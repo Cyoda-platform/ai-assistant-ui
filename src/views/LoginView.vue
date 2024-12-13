@@ -14,7 +14,7 @@
         </el-form-item>
 
         <div class="login-view__actions">
-          <el-button class="login-view__btn-login btn btn-primary" :loading="loading" @click="onLogin" type="warning">Sign in</el-button>
+          <el-button class="login-view__btn-login btn btn-primary" :loading="loading" @click="onLogin">Sign in</el-button>
         </div>
       </el-form>
     </div>
@@ -68,10 +68,11 @@ const yearComputed = computed(() => {
   padding: 0 52px 0 40px;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
+  height: auto;
 
   &__wrapper-logo {
-    height: 40%;
+    padding-top: 15vh;
     display: flex;
     align-items: center;
   }
@@ -81,7 +82,8 @@ const yearComputed = computed(() => {
     width: auto;
   }
 
-  &__form{
+  &__form {
+    padding-top: 20vh;
     flex: 1;
   }
 
@@ -106,6 +108,7 @@ const yearComputed = computed(() => {
     justify-content: right;
     right: -18px;
     position: relative;
+    margin-top: 20px;
   }
 }
 </style>

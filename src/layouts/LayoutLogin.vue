@@ -30,7 +30,6 @@
     min-height: 100vh;
     height: auto;
     background: #EFF2EC;
-    overflow: hidden;
     align-items: center;
     justify-content: center;
     flex-direction: column;
@@ -46,7 +45,7 @@
 
   &__inner-text {
     color: #fff;
-    padding-top: 15%;
+    padding-top: 20vh;
 
     h1 {
       font-size: 48px;

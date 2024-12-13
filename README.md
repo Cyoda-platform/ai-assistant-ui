@@ -1,39 +1,38 @@
-# vue-project
+# Project Setup Instructions
 
-This template should help get you started developing with Vue 3 in Vite.
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 
-## Recommended IDE Setup
+## Requirements
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+Make sure you have the following software installed:
 
-## Type Support for `.vue` Imports in TS
+- **Node.js v22**: Install it from the [official Node.js download page](https://nodejs.org/en/download/package-manager).
+- **Yarn v4**: Follow the [Yarn installation guide](https://yarnpkg.com/getting-started/install).
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+## Installation
 
-## Customize configuration
+To set up the project, follow these steps:
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+1. **Create Environment File**  
+   Copy the `.env.template` file to `.env` and set the appropriate configuration values.
 
-## Project Setup
+2. **Install Dependencies**  
+   Run the following command to install all necessary dependencies:
 
-```sh
-yarn
+```bash
+  yarn
 ```
 
-### Compile and Hot-Reload for Development
+If Yarn is not installed on your system, please follow the [Yarn installation guide](https://yarnpkg.com/getting-started/install). We recommend using **version 4**.
 
-```sh
-yarn dev
+3. **Start the Application**
+
+- For local development, run:
+```bash
+   yarn dev
 ```
+- For production deployment, run:
 
-### Type-Check, Compile and Minify for Production
-
-```sh
-yarn build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-yarn lint
+```bash
+   yarn build
 ```

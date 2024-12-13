@@ -33,6 +33,7 @@
     "typescript": "~5.7.2",
     "vite": "^6.0.3",
     "vite-plugin-vue-devtools": "^7.6.8",
+    "vite-svg-loader": "^5.1.0",
     "vue-tsc": "^2.1.10"
   },
   "packageManager": "yarn@4.5.3"
