@@ -2,6 +2,7 @@
   <el-row class="chat-bot-message" :class="{
     'chat-bot-message--question': message.type === 'question',
     'chat-bot-message--answer': message.type === 'answer',
+    'chat-bot-message--notification': message.type === 'notification',
   }">
     <el-col :offset="offsetColumn" :span="12">
       <div class="chat-bot-message__inner">
@@ -65,6 +66,10 @@ const computedMessage = computed(() => {
     background-color: #EBEBEB;
     padding: 8px 16px;
     white-space: pre-wrap;
+  }
+
+  &--notification &__body {
+    background-color: rgba(230, 162, 60, 0.5);
   }
 }
 </style>

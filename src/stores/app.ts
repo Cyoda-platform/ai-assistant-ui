@@ -1,6 +1,4 @@
 import {defineStore} from "pinia";
-import privateClient from "@/clients/private";
-import type {CreateChatRequest, CreateChatResponse} from "@/types/chat";
 import HelperStorage from "@/helpers/HelperStorage.ts";
 
 const helperStorage = new HelperStorage();
@@ -8,18 +6,18 @@ const helperStorage = new HelperStorage();
 const useAppStore = defineStore('app', {
   state: () => {
     return {
-      sidebarVisible: helperStorage.get('app:sidebarVisible', false),
-      sidebarCanvasVisible: helperStorage.get('app:sidebarCanvasVisible', false),
+      isSidebarHidden: helperStorage.get('app:isSidebarHidden', false),
+      isCanvasHidden: helperStorage.get('app:isCanvasHidden', false),
     }
   },
   actions: {
     toggleSidebar() {
-      this.sidebarVisible = !this.sidebarVisible;
-      helperStorage.set("app:sidebarVisible", this.sidebarVisible);
+      this.isSidebarHidden = !this.isSidebarHidden;
+      helperStorage.set("app:isSidebarHidden", this.isSidebarHidden);
     },
-    toggleSidebarCanvas() {
-      this.sidebarCanvasVisible = !this.sidebarCanvasVisible;
-      helperStorage.set("app:sidebarCanvasVisible", this.sidebarCanvasVisible);
+    toggleCanvas() {
+      this.isCanvasHidden = !this.isCanvasHidden;
+      helperStorage.set("app:isCanvasHidden", this.isCanvasHidden);
     },
   },
 });

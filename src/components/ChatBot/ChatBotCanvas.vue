@@ -1,8 +1,15 @@
 <template>
   <div v-loading="isLoading" class="chat-bot-canvas">
     <Editor v-model="canvasData" ref="editorRef" class="chat-bot-canvas__editor" :actions="editorActions"/>
-    <div @click="onClickSend" class="btn-action">
-      <SendIcon/>
+    <div class="chat-bot-canvas__actions">
+      <div @click="onSubmitAnswer" class="btn-action">
+        <SendIcon/>
+        A
+      </div>
+      <div @click="onSubmitQuestion" class="btn-action">
+        <SendIcon/>
+        Q
+      </div>
     </div>
   </div>
 </template>
@@ -26,7 +33,7 @@ const props = defineProps<{
   technicalId: string
 }>()
 
-async function onClickSend() {
+async function onSubmitQuestion() {
   try {
     isLoading.value = true;
     const {data} = await assistantStore.postTextQuestions(props.technicalId, canvasData.value);
@@ -34,6 +41,10 @@ async function onClickSend() {
   } finally {
     isLoading.value = false;
   }
+}
+
+async function onSubmitAnswer() {
+  emit('answer', canvasData.value);
 }
 
 addSubmitQuestionAction();
@@ -130,7 +141,7 @@ function addSubmitAnswerAction() {
     min-height: 100%;
   }
 
-  .btn-action {
+  &__actions {
     width: 56px;
     height: 56px;
     border-radius: 56px;
@@ -142,10 +153,35 @@ function addSubmitAnswerAction() {
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     z-index: 100;
     display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: end;
+    transition: 0.5s all;
+    overflow: hidden;
+
+    &:hover {
+      height: 112px;
+
+      .btn-action {
+        opacity: 1;
+        height: 56px;
+      }
+    }
+
+    .btn-action:last-child {
+      opacity: 1;
+      height: 56px;
+    }
+  }
+
+  .btn-action {
+    cursor: pointer;
+    width: 56px;
+    height: 0;
+    display: flex;
+    opacity: 0;
     justify-content: center;
     align-items: center;
-    cursor: pointer;
-    opacity: 1;
     transition: 0.5s all;
 
     &:hover {
