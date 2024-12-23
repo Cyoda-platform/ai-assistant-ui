@@ -3,7 +3,7 @@
     <el-row class="chat-bot__top_actions">
       <el-col :span="24" class="chat-bot__right">
         <el-form :model="form" label-width="auto">
-          <el-form-item label="Go to terminal mode">
+          <el-form-item label="Go to canvas mode">
             <el-switch v-model="form.isShowCanvas"/>
           </el-form-item>
         </el-form>
@@ -20,7 +20,7 @@
         </div>
       </div>
       <div v-if="form.isShowCanvas" class="chat-bot__canvas">
-        <ChatBotCanvas/>
+        <ChatBotCanvas :technicalId="technicalId" @answer="onAnswer"/>
       </div>
     </div>
   </div>
@@ -74,9 +74,10 @@ async function getQuestions() {
   isLoadingQuestions.value = false;
 }
 
-function onAnswer(text: string) {
+function onAnswer(answer: string) {
+  assistantStore.postTextAnswers(props.technicalId, answer);
   messages.value.push({
-    text,
+    text: answer,
     type: 'answer'
   });
   isLoadingQuestions.value = true;
