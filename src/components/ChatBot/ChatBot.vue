@@ -67,7 +67,7 @@ async function getQuestions() {
   data.questions.forEach((el) => {
     messages.value.push({
       text: el.question || el.notification,
-      type: 'question'
+      type: el.question ? 'question' : 'notification'
     });
   })
   promiseInterval = null;

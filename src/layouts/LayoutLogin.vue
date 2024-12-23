@@ -1,9 +1,9 @@
 <template>
   <el-row class="layout-login">
-    <el-col :span="6" class="layout-login__main">
+    <el-col :span="5" class="layout-login__main">
       <slot/>
     </el-col>
-    <el-col :span="18" class="layout-login__background">
+    <el-col :span="19" class="layout-login__background">
       <el-row>
         <el-col :offset="2" :span="12" class="layout-login__inner-text">
           <h1>CYODA platform</h1>

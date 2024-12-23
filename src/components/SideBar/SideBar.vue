@@ -1,7 +1,14 @@
 <template>
-  <div class="side-bar">
+  <div class="side-bar" :class="{'side-bar--hidden': isSidebarHidden}">
     <div class="side-bar__wrapper-logo">
-      <img alt="logo" class="side-bar__logo" src="../../assets/images/logo.svg"/>
+      <template v-if="isSidebarHidden">
+        <img alt="logo" class="side-bar__logo" src="../../assets/images/logo-small.svg"/>
+        <ToggleOpenIcon @click="onClickToggleSidebar" class="side-bar__toggle-close"/>
+      </template>
+      <template v-else>
+        <img alt="logo" class="side-bar__logo" src="../../assets/images/logo.svg"/>
+        <ToggleCloseIcon @click="onClickToggleSidebar" class="side-bar__toggle-close"/>
+      </template>
     </div>
     <ul class="side-bar__nav">
       <li
@@ -13,25 +20,17 @@
       >
         <router-link class="side-bar__link" :to="menu.link">
           <Icon :icon="menu.icon"/>
-          <span>{{ menu.name }}</span>
+          <span v-if="!isSidebarHidden">{{ menu.name }}</span>
         </router-link>
       </li>
     </ul>
     <div class="side-bar__footer">
       <a @click="onClickLogout" href="#" class="side-bar__logout">
         <LogoutIcon/>
-        Log out
+        <span v-if="!isSidebarHidden">
+          Log out
+        </span>
       </a>
-
-      <div class="side-bar__user">
-        <div>
-          <img src="@/assets/images/avatar.png"/>
-        </div>
-        <div>
-          <span>Steve Smith</span>
-          <span class="side-bar__user-city">New York Group</span>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -41,9 +40,14 @@ import menusJson from "./menu.json";
 import Icon from "@/components/Icon.vue";
 import {useRoute, useRouter} from "vue-router";
 import LogoutIcon from '@/assets/images/icons/logout.svg';
+import ToggleCloseIcon from '@/assets/images/icons/toggle-close.svg';
+import ToggleOpenIcon from '@/assets/images/icons/toggle-open.svg';
 import useAuthStore from "@/stores/auth.ts";
+import useAppStore from "@/stores/app.ts";
+import {computed} from "vue";
 
 const authStore = useAuthStore();
+const appStore = useAppStore();
 const router = useRouter();
 const route = useRoute();
 
@@ -55,24 +59,42 @@ function onClickLogout() {
   authStore.logout();
   router.push('/');
 }
+
+function onClickToggleSidebar() {
+  appStore.isCanvasHidden ? appStore.toggleSidebarCanvas() : appStore.toggleSidebar();
+}
+
+const isSidebarHidden = computed(() => {
+  return appStore.isSidebarHidden;
+})
 </script>
 
 <style lang="scss">
 .side-bar {
-  padding: 0 52px 0 40px;
+  padding: 0 40px;
   display: flex;
   flex-direction: column;
   height: 100vh;
+
+  &--hidden {
+    padding: 0 20px;
+  }
+
 
   &__wrapper-logo {
     padding-top: 15vh;
     display: flex;
     align-items: center;
+    justify-content: space-between;
   }
 
   &__logo {
     height: 36px;
     width: auto;
+  }
+
+  &__toggle-close {
+    cursor: pointer;
   }
 
   &__nav {
@@ -94,8 +116,12 @@ function onClickLogout() {
     }
   }
 
+  &--hidden &__link {
+    justify-content: center;
+  }
+
   &__footer {
-    margin-top: 15px;
+    margin: 15px 0;
   }
 
   &__logout {
@@ -115,25 +141,8 @@ function onClickLogout() {
     }
   }
 
-  &__user {
-    display: flex;
-    align-items: center;
-    margin-top: 40px;
-    margin-bottom: 20px;
-
-    img {
-      width: 42px;
-      height: 42px;
-      margin-right: 13px;
-    }
-
-    span {
-      display: block;
-    }
-  }
-
-  &__user-city {
-    font-size: 12px;
+  &--hidden &__logout {
+    justify-content: center;
   }
 }
 </style>
