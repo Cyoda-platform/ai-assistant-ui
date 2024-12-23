@@ -12,6 +12,9 @@ const useAssistantStore = defineStore('assistant', {
     },
     postTextAnswers(technical_id: string, answer: string) {
       return privateClient.post(`/v1/chats/${technical_id}/text-answers`, {answer})
+    },
+    postTextQuestions(technical_id: string, question: string) {
+      return privateClient.post(`/v1/chats/${technical_id}/text-questions`, {question})
     }
   }
 });

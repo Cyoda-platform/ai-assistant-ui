@@ -22,6 +22,7 @@ const props = defineProps({
   modelValue: {default: ""},
   language: {default: "plain"},
   editable: {default: true},
+  actions: {default: () => ([])}
 });
 
 const language = computed(() => {
@@ -42,12 +43,18 @@ onMounted(() => {
     theme: 'vs-dark',
     padding: {
       top: 10
-    }
+    },
+    wordWrap: 'on',
+    wrappingStrategy: 'advanced',
   });
 
   editor.getModel().onDidChangeContent((e) => {
     updateListenerExtension(editor);
   })
+
+  if (props.actions.length > 0) {
+    props.actions.forEach((el) => editor.addAction(el));
+  }
 
   nextTick(() => {
     emit('ready');
@@ -61,19 +68,10 @@ function updateListenerExtension(editor) {
   emit("update:modelValue", value);
 }
 
-function isJsonValid(str: string) {
-  try {
-    JSON.parse(str);
-  } catch (e) {
-    return false;
-  }
-  return true;
-}
-
 watch(
   () => props.modelValue,
-  ([modelValue, newString]) => {
-    let newValue = modelValue || newString;
+  (modelValue) => {
+    let newValue = modelValue;
     if (editor) {
       const editorValue = editor.getValue();
       if (newValue !== editorValue) {
@@ -88,6 +86,8 @@ watch(language, () => {
   if (!editor) return;
   monaco.editor.setModelLanguage(editor.getModel(), language.value)
 })
+
+defineExpose({editor});
 </script>
 
 <style lang="scss">

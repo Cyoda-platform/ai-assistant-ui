@@ -39,13 +39,10 @@ const props = defineProps<{
 
 const emit = defineEmits(['answer']);
 
-const assistantStore = useAssistantStore();
-
 async function onClickTextAnswer() {
   emit('answer', form.value.answer);
   const answer = form.value.answer;
   form.value.answer = '';
-  await assistantStore.postTextAnswers(props.technicalId, answer);
 }
 </script>
 
