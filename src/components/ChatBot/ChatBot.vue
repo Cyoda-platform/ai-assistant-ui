@@ -4,17 +4,24 @@
       <el-col :span="24" class="chat-bot__right">
         <el-form :model="form" label-width="auto">
           <el-form-item label="Go to terminal mode">
-            <el-switch v-model="form.terminalMode"/>
+            <el-switch v-model="form.isShowCanvas"/>
           </el-form-item>
         </el-form>
       </el-col>
     </el-row>
-    <div class="chat-bot__messages">
-      <ChatBotMessage ref="chatBotMessageRef" v-for="(message, index) in messages" :key="index" :message="message"/>
-      <ChatLoader v-if="isLoadingQuestions"/>
-    </div>
-    <div class="form">
-      <ChatBotSubmitForm @answer="onAnswer" :technicalId="props.technicalId"/>
+    <div class="chat-bot__body" :class="{'chat-bot__body--canvas': form.isShowCanvas}">
+      <div class="chat-bot__messages">
+        <div class="chat-bot__inner-messages">
+          <ChatBotMessage ref="chatBotMessageRef" v-for="(message, index) in messages" :key="index" :message="message"/>
+          <ChatLoader v-if="isLoadingQuestions"/>
+        </div>
+        <div class="chat-bot__form" :class="{'chat-bot__body--canvas': form.isShowCanvas}">
+          <ChatBotSubmitForm @answer="onAnswer" :technicalId="props.technicalId"/>
+        </div>
+      </div>
+      <div v-if="form.isShowCanvas" class="chat-bot__canvas">
+        <ChatBotCanvas/>
+      </div>
     </div>
   </div>
 </template>
@@ -25,6 +32,7 @@ import useAssistantStore from "@/stores/assistant.ts";
 import ChatBotMessage from "@/components/ChatBot/ChatBotMessage.vue";
 import ChatBotSubmitForm from "@/components/ChatBot/ChatBotSubmitForm.vue";
 import ChatLoader from "@/components/ChatBot/ChatLoader.vue";
+import ChatBotCanvas from "@/components/ChatBot/ChatBotCanvas.vue";
 
 let intervalId = null;
 let promiseInterval: any = null;
@@ -32,9 +40,8 @@ const messages = ref<any[]>([]);
 const assistantStore = useAssistantStore();
 const isLoadingQuestions = ref(false);
 const chatBotMessageRef = ref(null);
-
 const form = ref({
-  terminalMode: false
+  isShowCanvas: false
 })
 
 const props = defineProps<{
@@ -79,7 +86,7 @@ onBeforeUnmount(() => {
   if (intervalId) clearInterval(intervalId);
 })
 
-let messagesHtml:any = null;
+let messagesHtml: any = null;
 watch(messages.value, (value) => {
   if (!value || messagesHtml) return;
   nextTick(() => {
@@ -105,21 +112,59 @@ function scrollToBottom() {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  overflow: hidden;
 
   &__top_actions {
     height: auto;
   }
 
   &__right {
-    justify-items: end;
-    padding-right: 15px;
-    padding-top: 15px;
+    margin-top: 15px;
+    text-align: right;
+    display: flex;
+    justify-content: right;
+  }
+
+  &__body {
+    flex-grow: 1;
+    margin-bottom: 20px;
+    display: flex;
+    overflow: hidden;
   }
 
   &__messages {
     flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__inner-messages {
+    flex-grow: 1;
+    flex-direction: column;
+    display: flex;
     overflow-y: auto;
-    margin-bottom: 20px;
+  }
+
+  .chat-bot-submit-form {
+    width: 90%;
+    margin: 0 auto;
+  }
+
+  &__form {
+    margin-top: 20px;
+  }
+
+  &__body--canvas {
+    display: flex;
+    gap: 30px;
+
+    .chat-bot__messages, .chat-bot__canvas {
+      flex: 1;
+
+      .chat-bot-submit-form {
+        width: 100%;
+      }
+    }
   }
 }
 </style>

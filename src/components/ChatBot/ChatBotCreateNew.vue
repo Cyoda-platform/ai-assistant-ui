@@ -39,9 +39,6 @@ const rules = reactive({
   name: [
     {required: true, message: 'Please input name', trigger: 'blur'},
   ],
-  description: [
-    {required: true, message: 'Please input description', trigger: 'blur'},
-  ],
 })
 
 function onClickSubmit() {

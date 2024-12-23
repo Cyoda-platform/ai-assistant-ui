@@ -13,8 +13,7 @@
             <img class="inner-avatar" src="@/assets/images/avatar.png">
           </template>
         </div>
-        <div class="chat-bot-message__body">
-          {{ message.text }}
+        <div v-html="computedMessage" class="chat-bot-message__body">
         </div>
       </div>
     </el-col>
@@ -30,6 +29,14 @@ const props = defineProps<{
 
 const offsetColumn = computed(() => {
   return props.message.type === 'answer' ? 12 : 0;
+});
+
+const computedMessage = computed(() => {
+  const text = props.message.text;
+  if (typeof text === 'object' && text !== null) {
+    return JSON.stringify(text, null, 2);
+  }
+  return text;
 });
 </script>
 
@@ -57,6 +64,7 @@ const offsetColumn = computed(() => {
     border-radius: 24px;
     background-color: #EBEBEB;
     padding: 8px 16px;
+    white-space: pre-wrap;
   }
 }
 </style>

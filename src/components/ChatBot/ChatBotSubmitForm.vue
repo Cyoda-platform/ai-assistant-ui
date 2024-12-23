@@ -51,10 +51,6 @@ async function onClickTextAnswer() {
 
 <style lang="scss">
 .chat-bot-submit-form {
-  width: 90%;
-  margin: 0 auto;
-  margin-bottom: 30px;
-
   &__wrap_input {
     display: flex;
     align-items: center;
