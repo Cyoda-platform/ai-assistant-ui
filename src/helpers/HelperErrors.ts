@@ -32,7 +32,8 @@ export default class HelperErrors {
       data?.response?.status &&
       data.response.status > 200 &&
       data.response.data &&
-      !data.response.data.message
+      !data.response.data.message &&
+      !data.response.data.error
     ) {
       ElMessageBox.alert(
         `Server response status ${data.response.status}`,
@@ -71,6 +72,8 @@ export default class HelperErrors {
       content = errorsArr.join('<br/>');
     } else if (data?.message) {
       content = data.message;
+    } else if (data?.error) {
+      content = data.error;
     }
 
     ElMessageBox.alert(content, title, {
