@@ -1,19 +1,49 @@
 <template>
   <div class="chat-bot">
-    <el-row class="chat-bot__top_actions">
-      <el-col :span="24" class="chat-bot__right">
-        <el-form :model="form" label-width="auto">
-          <el-form-item label="Go to canvas mode">
-            <el-switch v-model="form.isShowCanvas"/>
-          </el-form-item>
-        </el-form>
-      </el-col>
-    </el-row>
+    <div class="chat-bot__top_actions">
+      <div>
+        <el-tooltip
+          class="box-item"
+          effect="dark"
+          content="Push"
+          placement="top"
+        >
+          <el-button @click="onClickPush" class="btn btn-primary">
+            <PushIcon class="icon"/>
+          </el-button>
+        </el-tooltip>
+        <el-tooltip
+          class="box-item"
+          effect="dark"
+          content="Approve"
+          placement="top"
+        >
+          <el-button @click="onClickApprove" class="btn btn-primary">
+            <ApproveIcon class="icon"/>
+          </el-button>
+        </el-tooltip>
+        <el-tooltip
+          class="box-item"
+          effect="dark"
+          content="Rollback"
+          placement="top"
+        >
+          <el-button @click="onClickRollback" class="btn btn-primary">
+            <RollbackIcon class="icon"/>
+          </el-button>
+        </el-tooltip>
+      </div>
+      <el-form :model="form" label-width="auto">
+        <el-form-item label="Go to canvas mode">
+          <el-switch v-model="form.isShowCanvas"/>
+        </el-form-item>
+      </el-form>
+    </div>
     <div class="chat-bot__body" :class="{'chat-bot__body--canvas': form.isShowCanvas}">
       <div class="chat-bot__messages">
         <div class="chat-bot__inner-messages">
           <ChatBotMessage ref="chatBotMessageRef" v-for="(message, index) in messages" :key="index" :message="message"/>
-          <ChatLoader v-if="isLoadingQuestions"/>
+          <ChatLoader v-if="isLoading"/>
         </div>
         <div class="chat-bot__form" :class="{'chat-bot__body--canvas': form.isShowCanvas}">
           <ChatBotSubmitForm @answer="onAnswer" :technicalId="props.technicalId"/>
@@ -33,12 +63,15 @@ import ChatBotMessage from "@/components/ChatBot/ChatBotMessage.vue";
 import ChatBotSubmitForm from "@/components/ChatBot/ChatBotSubmitForm.vue";
 import ChatLoader from "@/components/ChatBot/ChatLoader.vue";
 import ChatBotCanvas from "@/components/ChatBot/ChatBotCanvas.vue";
+import PushIcon from "@/assets/images/icons/push.svg";
+import ApproveIcon from "@/assets/images/icons/approve.svg";
+import RollbackIcon from "@/assets/images/icons/rollback.svg";
 
 let intervalId = null;
 let promiseInterval: any = null;
 const messages = ref<any[]>([]);
 const assistantStore = useAssistantStore();
-const isLoadingQuestions = ref(false);
+const isLoading = ref(false);
 const chatBotMessageRef = ref(null);
 const form = ref({
   isShowCanvas: false
@@ -71,7 +104,7 @@ async function getQuestions() {
     });
   })
   promiseInterval = null;
-  isLoadingQuestions.value = false;
+  isLoading.value = false;
 }
 
 function onAnswer(answer: string) {
@@ -80,7 +113,7 @@ function onAnswer(answer: string) {
     text: answer,
     type: 'answer'
   });
-  isLoadingQuestions.value = true;
+  isLoading.value = true;
 }
 
 onBeforeUnmount(() => {
@@ -106,6 +139,21 @@ function scrollToBottom() {
     lastElement.scrollIntoView({behavior: 'smooth'});
   }
 }
+
+function onClickPush() {
+  assistantStore.postPushNotify(props.technicalId);
+  isLoading.value = true;
+}
+
+function onClickApprove() {
+  assistantStore.postApprove(props.technicalId);
+  isLoading.value = true;
+}
+
+function onClickRollback() {
+  assistantStore.postRollback(props.technicalId);
+  isLoading.value = true;
+}
 </script>
 
 <style lang="scss">
@@ -117,6 +165,9 @@ function scrollToBottom() {
 
   &__top_actions {
     height: auto;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
   }
 
   &__right {
