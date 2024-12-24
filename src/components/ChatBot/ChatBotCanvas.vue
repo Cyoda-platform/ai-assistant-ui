@@ -3,12 +3,27 @@
     <Editor v-model="canvasData" ref="editorRef" class="chat-bot-canvas__editor" :actions="editorActions"/>
     <div class="chat-bot-canvas__actions">
       <div @click="onSubmitAnswer" class="btn-action">
+        <el-tooltip
+          class="box-item"
+          effect="dark"
+          content="Submit Answer"
+          placement="top"
+        >
         <SendIcon/>
         A
+
+        </el-tooltip>
       </div>
       <div @click="onSubmitQuestion" class="btn-action">
+        <el-tooltip
+          class="box-item"
+          effect="dark"
+          content="Submit Question"
+          placement="top"
+        >
         <SendIcon/>
         Q
+        </el-tooltip>
       </div>
     </div>
   </div>
