@@ -12,9 +12,6 @@ export default defineConfig({
     vueJsx(),
     svgLoader(),
   ],
-  server: {
-    port: 5000,
-  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
