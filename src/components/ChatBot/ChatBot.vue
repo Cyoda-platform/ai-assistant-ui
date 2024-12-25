@@ -1,7 +1,7 @@
 <template>
   <div class="chat-bot">
     <div class="chat-bot__top_actions">
-      <div>
+      <div class="chat-bot__top_actions_buttons">
         <el-tooltip
           class="box-item"
           effect="dark"
@@ -32,6 +32,10 @@
             <RollbackIcon class="icon"/>
           </el-button>
         </el-tooltip>
+        <span class="btn-wrapper">
+          <EnvelopeIcon style="height: 2rem; color: #000000" class="envelope-icon"
+                        :class="{'envelope-icon--active': isEnvelopeActive}"/>
+        </span>
       </div>
       <el-form :model="form" label-width="auto">
         <el-form-item label="Go to canvas mode">
@@ -42,7 +46,7 @@
     <div class="chat-bot__body" :class="{'chat-bot__body--canvas': form.isShowCanvas}">
       <div class="chat-bot__messages">
         <div class="chat-bot__inner-messages">
-          <ChatBotMessage ref="chatBotMessageRef" v-for="(message, index) in messages" :key="index" :message="message"/>
+          <ChatBotMessage ref="chatBotMessageRef" v-for="message in messages" :key="message.id" :message="message"/>
           <ChatLoader v-if="isLoading"/>
         </div>
         <div class="chat-bot__form" :class="{'chat-bot__body--canvas': form.isShowCanvas}">
@@ -66,13 +70,17 @@ import ChatBotCanvas from "@/components/ChatBot/ChatBotCanvas.vue";
 import PushIcon from "@/assets/images/icons/push.svg";
 import ApproveIcon from "@/assets/images/icons/approve.svg";
 import RollbackIcon from "@/assets/images/icons/rollback.svg";
+import EnvelopeIcon from "@/assets/images/icons/envelope.svg";
+import {v4 as uuidv4} from "uuid";
 
 let intervalId = null;
+let intervalEnvelopeId = null;
 let promiseInterval: any = null;
 const messages = ref<any[]>([]);
 const assistantStore = useAssistantStore();
 const isLoading = ref(false);
 const chatBotMessageRef = ref(null);
+const isEnvelopeActive = ref(false);
 const form = ref({
   isShowCanvas: false
 })
@@ -93,15 +101,16 @@ function init() {
 }
 
 async function getQuestions() {
-  if (!promiseInterval) {
-    promiseInterval = assistantStore.getQuestions(props.technicalId);
-  }
+  if (promiseInterval) return;
+  promiseInterval = assistantStore.getQuestions(props.technicalId);
   const {data} = await promiseInterval;
   data.questions.forEach((el) => {
     messages.value.push({
+      id: uuidv4(),
       text: el.question || el.notification,
       type: el.question ? 'question' : 'notification'
     });
+    if (el.notification) startEnvelopeFlash();
   })
   promiseInterval = null;
   isLoading.value = false;
@@ -118,13 +127,14 @@ function onAnswer(answer: string) {
 
 onBeforeUnmount(() => {
   if (intervalId) clearInterval(intervalId);
+  if (intervalEnvelopeId) clearInterval(intervalEnvelopeId);
 })
 
 let messagesHtml: any = null;
 watch(messages.value, (value) => {
   if (!value || messagesHtml) return;
   nextTick(() => {
-    messagesHtml = document.querySelector('.chat-bot__messages');
+    messagesHtml = document.querySelector('.chat-bot__inner-messages');
     new MutationObserver(() => {
       messagesHtml.scrollTo(0, messagesHtml.scrollHeight);
     }).observe(messagesHtml, {
@@ -132,13 +142,6 @@ watch(messages.value, (value) => {
     });
   })
 });
-
-function scrollToBottom() {
-  const lastElement = chatBotMessageRef.value[chatBotMessageRef.value.length - 1];
-  if (lastElement) {
-    lastElement.scrollIntoView({behavior: 'smooth'});
-  }
-}
 
 function onClickPush() {
   assistantStore.postPushNotify(props.technicalId);
@@ -154,6 +157,15 @@ function onClickRollback() {
   assistantStore.postRollback(props.technicalId);
   isLoading.value = true;
 }
+
+function startEnvelopeFlash() {
+  if (intervalEnvelopeId) return;
+  isEnvelopeActive.value = true;
+  intervalEnvelopeId = setTimeout(() => {
+    isEnvelopeActive.value = false;
+    intervalEnvelopeId = null;
+  }, 500);
+}
 </script>
 
 <style lang="scss">
@@ -168,6 +180,11 @@ function onClickRollback() {
     display: flex;
     justify-content: space-between;
     margin-top: 15px;
+  }
+
+  &__top_actions_buttons {
+    display: flex;
+    align-items: center;
   }
 
   &__right {
@@ -217,6 +234,14 @@ function onClickRollback() {
         width: 100%;
       }
     }
+  }
+
+  .btn-wrapper {
+    margin-left: 12px;
+  }
+
+  .envelope-icon--active {
+    fill: rgb(230, 162, 60);
   }
 }
 </style>

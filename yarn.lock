@@ -4384,6 +4384,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"uuid@npm:^11.0.3":
+  version: 11.0.3
+  resolution: "uuid@npm:11.0.3"
+  bin:
+    uuid: dist/esm/bin/uuid
+  checksum: 10c0/cee762fc76d949a2ff9205770334699e0043d52bb766472593a25f150077c9deed821230251ea3d6ab3943a5ea137d2826678797f1d5f6754c7ce5ce27e9f7a6
+  languageName: node
+  linkType: hard
+
 "varint@npm:^6.0.0":
   version: 6.0.0
   resolution: "varint@npm:6.0.0"
@@ -4581,6 +4590,7 @@ __metadata:
     pinia: "npm:^2.3.0"
     sass-embedded: "npm:^1.82.0"
     typescript: "npm:~5.7.2"
+    uuid: "npm:^11.0.3"
     vite: "npm:^6.0.3"
     vite-plugin-vue-devtools: "npm:^7.6.8"
     vite-svg-loader: "npm:^5.1.0"

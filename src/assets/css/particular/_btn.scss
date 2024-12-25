@@ -9,5 +9,6 @@
   &:hover {
     background-color: color.adjust(variables.$color-primary, $lightness: 8%);
     border: 1px solid color.adjust(variables.$color-primary, $lightness: 8%);
+    color: #fff;
   }
 }
