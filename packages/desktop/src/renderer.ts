@@ -11,7 +11,7 @@
  *
  * https://electronjs.org/docs/tutorial/security
  *
- * To enable Node.js integration in this file, open up `main.js` and enable the `nodeIntegration`
+ * To enable Node.js integration in this file, open up `main.ts` and enable the `nodeIntegration`
  * flag:
  *
  * ```
@@ -26,6 +26,30 @@
  * ```
  */
 
-import './index.css';
+// import './index.css';
 
-console.log('👋 This message is being logged by "renderer.js", included via Vite');
+import 'modern-normalize/modern-normalize.css';
+
+import LayoutLogin from '@/layouts/LayoutLogin.vue';
+import LayoutSidebar from "@/layouts/LayoutSidebar.vue";
+
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
+
+import App from '@/App.vue';
+import router from '@/router';
+
+// Plugins
+import elementUi from "@/plugins/element-ui.ts";
+
+const app = createApp(App);
+
+app.component("layout-sidebar", LayoutSidebar);
+app.component("layout-login", LayoutLogin);
+app.use(createPinia());
+app.use(elementUi);
+app.use(router);
+
+import '@/assets/css/main.scss';
+
+app.mount('#app');
