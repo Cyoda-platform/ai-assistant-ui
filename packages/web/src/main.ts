@@ -10,7 +10,7 @@ import App from './App.vue';
 import router from './router';
 
 // Plugins
-import elementUi from "./plugins/element-ui";
+import elementUi from "./plugins/element-ui.ts";
 
 const app = createApp(App);
 

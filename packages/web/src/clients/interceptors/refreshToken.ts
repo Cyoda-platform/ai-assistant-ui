@@ -1,6 +1,6 @@
 import type {AxiosError, AxiosInstance} from "axios";
-import HelperStorage from "@/helpers/HelperStorage";
-import useAuthStore from "@/stores/auth";
+import HelperStorage from "@/helpers/HelperStorage.ts";
+import useAuthStore from "@/stores/auth.ts";
 import type {Auth} from "@/types/auth";
 
 let refreshAccessTokenPromise: Promise<void> | null = null;
