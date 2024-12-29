@@ -1,5 +1,5 @@
 import {defineStore} from "pinia";
-import privateClient from "@/clients/private";
+import privateClient from "@/clients/private.ts";
 import type {CreateChatRequest, CreateChatResponse} from "@/types/chat";
 
 const useAssistantStore = defineStore('assistant', {

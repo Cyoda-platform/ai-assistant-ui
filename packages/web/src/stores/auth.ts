@@ -1,6 +1,6 @@
 import {defineStore} from "pinia";
-import HelperStorage from "../helpers/HelperStorage";
-import publicClient from "@/clients/public";
+import HelperStorage from "../helpers/HelperStorage.ts";
+import publicClient from "@/clients/public.ts";
 import type {Auth} from "@/types/auth";
 
 const helperStorage = new HelperStorage();

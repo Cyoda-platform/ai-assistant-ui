@@ -11,7 +11,7 @@
             <div class="inner-avatar"></div>
           </template>
           <template v-if="message.type === 'answer'">
-            <img class="inner-avatar" src="@/assets/images/avatar.png">
+            <img class="inner-avatar" src="../../assets/images/avatar.png">
           </template>
         </div>
         <div v-html="computedMessage" class="chat-bot-message__body">
