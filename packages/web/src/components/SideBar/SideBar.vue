@@ -2,11 +2,11 @@
   <div class="side-bar" :class="{'side-bar--hidden': isSidebarHidden}">
     <div class="side-bar__wrapper-logo">
       <template v-if="isSidebarHidden">
-        <img alt="logo" class="side-bar__logo" src="../../assets/images/logo-small.svg"/>
+        <img alt="logo" class="side-bar__logo" :src="LogoSmallUrl"/>
         <ToggleOpenIcon @click="onClickToggleSidebar" class="side-bar__toggle-close"/>
       </template>
       <template v-else>
-        <img alt="logo" class="side-bar__logo" src="../../assets/images/logo.svg"/>
+        <img alt="logo" class="side-bar__logo" :src="LogoUrl"/>
         <ToggleCloseIcon @click="onClickToggleSidebar" class="side-bar__toggle-close"/>
       </template>
     </div>
@@ -45,6 +45,8 @@ import ToggleOpenIcon from '@/assets/images/icons/toggle-open.svg';
 import useAuthStore from "@/stores/auth.ts";
 import useAppStore from "@/stores/app.ts";
 import {computed} from "vue";
+import LogoSmallUrl from '@/assets/images/logo-small.svg?url'
+import LogoUrl from '@/assets/images/logo.svg?url'
 
 const authStore = useAuthStore();
 const appStore = useAppStore();

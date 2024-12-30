@@ -1,7 +1,7 @@
 <template>
   <div class="login-view">
     <div class="login-view__wrapper-logo">
-      <img alt="logo" class="login-view__logo" src="../assets/images/logo.svg"/>
+      <img alt="logo" class="login-view__logo" :src="LogoUrl"/>
     </div>
     <div class="login-view__form">
       <el-form :rules="rules" label-position="top" ref="formRef" :model="form" label-width="120px">
@@ -27,6 +27,7 @@ import {useRouter} from "vue-router";
 
 import {ref, reactive, computed} from "vue";
 import useAuthStore from "@/stores/auth.ts";
+import LogoUrl from '@/assets/images/logo.svg?url'
 
 const router = useRouter();
 const authStore = useAuthStore();
