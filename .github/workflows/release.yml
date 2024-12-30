@@ -25,20 +25,23 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 22
 
       - name: Install dependencies
-        run: npm install
+        working-directory: packages/desktop
+        run: yarn install
 
       - name: Package Electron app
+        working-directory: packages/desktop
         run: |
           if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            npm run make -- --arch=${{ matrix.arch }};
+            yarn run make -- --arch=${{ matrix.arch }};
           else
-            npm run make -- --arch=${{ matrix.arch }} --platform=${{ matrix.os == 'ubuntu-latest' && 'linux' || 'win32' }};
+            yarn run make -- --arch=${{ matrix.arch }} --platform=${{ matrix.os == 'ubuntu-latest' && 'linux' || 'win32' }};
           fi
 
       - name: Publish Electron app
-        run: npm run publish
+        working-directory: packages/desktop
+        run: yarn run publish
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
