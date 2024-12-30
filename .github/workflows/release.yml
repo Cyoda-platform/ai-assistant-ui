@@ -15,8 +15,8 @@ jobs:
       NODE_OPTIONS: --disable-warning=DEP0174
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-        arch: [x64, arm64]
+        os: [macos-latest]
+        arch: [arm64]
 
     runs-on: ${{ matrix.os }}
 
