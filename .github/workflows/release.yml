@@ -11,6 +11,8 @@ on:
 
 jobs:
   build:
+    env:
+      NODE_OPTIONS: --disable-warning=DEP0174
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
