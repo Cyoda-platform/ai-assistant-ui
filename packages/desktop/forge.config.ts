@@ -19,11 +19,10 @@ const config: ForgeConfig = {
             name: '@electron-forge/publisher-github',
             config: {
                 repository: {
-                    owner: 'Alexander Savenko',
-                    name: 'ai-assistant-ui-desktop'
+                    owner: 'SavenkoAlexander',
+                    name: 'ai-assistant-ui'
                 },
                 prerelease: false,
-                draft: true
             }
         }
     ],
