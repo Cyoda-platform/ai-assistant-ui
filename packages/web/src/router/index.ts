@@ -1,8 +1,9 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import {createRouter, createWebHashHistory, createWebHistory} from 'vue-router'
 import useAuthStore from "@/stores/auth.ts";
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  // history: process.env.IS_ELECTRON ? createWebHashHistory() : createWebHistory(),
+  history: import.meta.env.VITE_IS_ELECTRON ? createWebHashHistory() : createWebHistory(),
   routes: [
     {
       path: "/",
