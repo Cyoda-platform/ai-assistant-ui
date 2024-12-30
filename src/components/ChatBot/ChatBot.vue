@@ -73,8 +73,8 @@ import RollbackIcon from "@/assets/images/icons/rollback.svg";
 import EnvelopeIcon from "@/assets/images/icons/envelope.svg";
 import {v4 as uuidv4} from "uuid";
 
-let intervalId = null;
-let intervalEnvelopeId = null;
+let intervalId: any = null;
+let intervalEnvelopeId: any = null;
 let promiseInterval: any = null;
 const messages = ref<any[]>([]);
 const assistantStore = useAssistantStore();
@@ -86,8 +86,8 @@ const form = ref({
 })
 
 const props = defineProps<{
-  technicalId: string
-}>()
+  technicalId: string;
+}>();
 
 onMounted(() => {
   init();

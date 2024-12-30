@@ -10,7 +10,7 @@ import {useRoute} from "vue-router";
 const route = useRoute();
 
 const technicalId = computed(() => {
-  return route.params.technicalId;
+  return route.params.technicalId as string;
 });
 
 </script>
