@@ -50,4 +50,4 @@ jobs:
         working-directory: packages/desktop
         run: yarn run publish
         env:
-          GH_TOKEN: ${{ secrets.SAVENKO_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.SAVENKO_GITHUB_TOKEN }}
