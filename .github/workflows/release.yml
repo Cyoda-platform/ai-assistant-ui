@@ -1,0 +1,44 @@
+name: Build and Publish Electron App
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        arch: [x64, arm64]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Package Electron app
+        run: |
+          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            npm run make -- --arch=${{ matrix.arch }};
+          else
+            npm run make -- --arch=${{ matrix.arch }} --platform=${{ matrix.os == 'ubuntu-latest' && 'linux' || 'win32' }};
+          fi
+
+      - name: Publish Electron app
+        run: npm run publish
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
