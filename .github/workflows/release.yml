@@ -51,5 +51,6 @@ jobs:
       - name: Publish Electron app
         working-directory: packages/desktop
         run: yarn run publish
+        timeout-minutes: 10
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
