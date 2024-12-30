@@ -23,8 +23,6 @@ To set up the project, follow these steps:
   yarn
 ```
 
-If Yarn is not installed on your system, please follow the [Yarn installation guide](https://yarnpkg.com/getting-started/install). We recommend using **version 4**.
-
 3. **Start the Application**
 
 - For local development, run:
