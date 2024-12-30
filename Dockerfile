@@ -6,7 +6,7 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY entrypoint.sh /entrypoint.sh
 
 RUN mkdir /app
-COPY ./dist /app
+COPY dist /app
 RUN chmod +x entrypoint.sh
 RUN chown -R nginx:nginx /app && chmod -R 775 /app
 RUN mkdir -p /var/cache/nginx && chown -R nginx:nginx /var/cache/nginx && \
