@@ -522,19 +522,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@electron-forge/maker-zip@npm:^7.6.0":
-  version: 7.6.0
-  resolution: "@electron-forge/maker-zip@npm:7.6.0"
-  dependencies:
-    "@electron-forge/maker-base": "npm:7.6.0"
-    "@electron-forge/shared-types": "npm:7.6.0"
-    cross-zip: "npm:^4.0.0"
-    fs-extra: "npm:^10.0.0"
-    got: "npm:^11.8.5"
-  checksum: 10c0/f4ab0344ad069f91d280dbfb379beff02e98835da2dd565f365f04160885f80664fa915dc698accb7eb6f9ba1b24e58209092a48ae13b2c4f7d67c7adcb3d27f
-  languageName: node
-  linkType: hard
-
 "@electron-forge/plugin-auto-unpack-natives@npm:^7.6.0":
   version: 7.6.0
   resolution: "@electron-forge/plugin-auto-unpack-natives@npm:7.6.0"
@@ -3709,13 +3696,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cross-zip@npm:^4.0.0":
-  version: 4.0.1
-  resolution: "cross-zip@npm:4.0.1"
-  checksum: 10c0/06d737481854ee61376f2d6f80ce758cf543ef6a753300e45141f3d424e6790c2db19ccc86d07e10416bfdf3e1b30e5b3b8084619204b9931c7a0e694f54436c
-  languageName: node
-  linkType: hard
-
 "css-select@npm:^5.1.0":
   version: 5.1.0
   resolution: "css-select@npm:5.1.0"
@@ -3966,7 +3946,6 @@ __metadata:
     "@electron-forge/maker-dmg": "npm:^7.6.0"
     "@electron-forge/maker-rpm": "npm:^7.6.0"
     "@electron-forge/maker-squirrel": "npm:^7.6.0"
-    "@electron-forge/maker-zip": "npm:^7.6.0"
     "@electron-forge/plugin-auto-unpack-natives": "npm:^7.6.0"
     "@electron-forge/plugin-fuses": "npm:^7.6.0"
     "@electron-forge/plugin-vite": "npm:^7.6.0"
