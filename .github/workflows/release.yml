@@ -41,6 +41,7 @@ jobs:
 
       - name: Package Electron app
         working-directory: packages/desktop
+        shell: bash
         run: |
           if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
             yarn run make -- --arch=${{ matrix.arch }};
