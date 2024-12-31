@@ -11,14 +11,18 @@ on:
 
 jobs:
   build:
-    env:
-      NODE_OPTIONS: --disable-warning=DEP0174
+    concurrency:
+      group: build-${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: false # Выполнение строго последовательно
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        arch: [x64]
+        os: [ubuntu-latest, macos-latest]
+        arch: [x64, arm64]
 
     runs-on: ${{ matrix.os }}
+    env:
+      NODE_OPTIONS: --disable-warning=DEP0174
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout code
@@ -39,21 +43,7 @@ jobs:
         working-directory: packages/desktop
         run: yarn install
 
-      - name: Package Electron app
-        working-directory: packages/desktop
-        shell: bash
-        run: |
-          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            yarn run make -- --arch=${{ matrix.arch }};
-          elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            yarn run make -- --arch=${{ matrix.arch }} --platform=linux;
-          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            yarn run make -- --arch=${{ matrix.arch }} --platform=win32;
-          fi
-
       - name: Publish Electron app
         working-directory: packages/desktop
         run: yarn run publish
         timeout-minutes: 10
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
