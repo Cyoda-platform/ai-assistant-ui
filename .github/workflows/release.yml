@@ -44,8 +44,10 @@ jobs:
         run: |
           if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
             yarn run make -- --arch=${{ matrix.arch }};
-          else
-            yarn run make -- --arch=${{ matrix.arch }} --platform=${{ matrix.os == 'ubuntu-latest' && 'linux' || 'win32' }};
+          elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            yarn run make -- --arch=${{ matrix.arch }} --platform=linux;
+          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            yarn run make -- --arch=${{ matrix.arch }} --platform=win32;
           fi
 
       - name: Publish Electron app
