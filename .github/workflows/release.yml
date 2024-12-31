@@ -4,17 +4,19 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   build:
     env:
       NODE_OPTIONS: --disable-warning=DEP0174
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-        arch: [x64, arm64]
+        os: [macos-latest]
+        arch: [x64]
 
     runs-on: ${{ matrix.os }}
 
@@ -37,7 +39,7 @@ jobs:
         working-directory: packages/desktop
         run: yarn install
 
-      - name: Build Electron App
+      - name: Package Electron app
         working-directory: packages/desktop
         run: |
           if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
@@ -46,10 +48,9 @@ jobs:
             yarn run make -- --arch=${{ matrix.arch }} --platform=${{ matrix.os == 'ubuntu-latest' && 'linux' || 'win32' }};
           fi
 
-      - name: Upload Release Assets
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: packages/desktop/out/make/${{ matrix.os }}-${{ matrix.arch }}/app-release.zip
-          asset_name: app-${{ matrix.os }}-${{ matrix.arch }}.zip
-          asset_content_type: application/zip
+      - name: Publish Electron app
+        working-directory: packages/desktop
+        run: yarn run publish
+        timeout-minutes: 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
