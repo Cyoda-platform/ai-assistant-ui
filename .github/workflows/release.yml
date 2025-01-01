@@ -12,12 +12,17 @@ on:
 jobs:
   build:
     concurrency:
-      group: build-${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: false # Выполнение строго последовательно
+      group: build-${{ github.workflow }}-${{ github.ref_name }}
+      cancel-in-progress: true
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        arch: [x64, arm64]
+        include:
+          - os: ubuntu-latest
+            arch: x64
+          - os: ubuntu-latest
+            arch: arm64
+          - os: macos-latest
+            arch: arm64
 
     runs-on: ${{ matrix.os }}
     env:
