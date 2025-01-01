@@ -36,7 +36,7 @@ jobs:
 
       - name: Publish Electron app (Ubuntu x64)
         working-directory: packages/desktop
-        run: yarn run publish -- --platform=linux --arch=x64,arm64
+        run: yarn publish --platform=linux --arch=universal
         timeout-minutes: 10
 
   build-macos-arm64:
@@ -66,5 +66,5 @@ jobs:
 
       - name: Publish Electron app (macOS arm64)
         working-directory: packages/desktop
-        run: yarn run publish -- --platform=darwin --arch=arm64
+        run: yarn publish --arch=universal
         timeout-minutes: 10
