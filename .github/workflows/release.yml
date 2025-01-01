@@ -10,25 +10,71 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    concurrency:
-      group: build-${{ matrix.os }}-${{ matrix.arch }}-${{ github.ref_name }}
-      cancel-in-progress: true
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            arch: x64
-          - os: ubuntu-latest
-            arch: arm64
-          - os: macos-latest
-            arch: arm64
-
-    runs-on: ${{ matrix.os }}
+  build-ubuntu-x64:
+    runs-on: ubuntu-latest
     env:
       NODE_OPTIONS: --disable-warning=DEP0174
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Prepare Yarn version
+        run: corepack prepare yarn@4.5.3 --activate
+
+      - name: Install dependencies
+        working-directory: packages/desktop
+        run: yarn install
+
+      - name: Publish Electron app
+        working-directory: packages/desktop
+        run: yarn run publish
+        timeout-minutes: 10
+
+  build-ubuntu-arm64:
+    needs: build-ubuntu-x64
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --disable-warning=DEP0174
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Prepare Yarn version
+        run: corepack prepare yarn@4.5.3 --activate
+
+      - name: Install dependencies
+        working-directory: packages/desktop
+        run: yarn install
+
+      - name: Publish Electron app
+        working-directory: packages/desktop
+        run: yarn run publish
+        timeout-minutes: 10
+
+  build-macos-arm64:
+    needs: build-ubuntu-arm64
+    runs-on: macos-latest
+    env:
+      NODE_OPTIONS: --disable-warning=DEP0174
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
