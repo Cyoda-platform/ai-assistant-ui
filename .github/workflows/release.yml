@@ -66,5 +66,5 @@ jobs:
 
       - name: Publish Electron app (macOS arm64)
         working-directory: packages/desktop
-        run: yarn publish --arch=universal
+        run: yarn publish --arch=arm64
         timeout-minutes: 10
