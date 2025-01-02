@@ -5,6 +5,8 @@ import {MakerRpm} from '@electron-forge/maker-rpm';
 import {VitePlugin} from '@electron-forge/plugin-vite';
 import {FusesPlugin} from '@electron-forge/plugin-fuses';
 import {FuseV1Options, FuseVersion} from '@electron/fuses';
+import * as url from "node:url";
+import path from "path";
 
 const config: ForgeConfig = {
     packagerConfig: {
@@ -26,7 +28,7 @@ const config: ForgeConfig = {
     ],
     makers: [
         new MakerSquirrel({
-            iconUrl: 'src/assets/icons/app-icon.ico'
+            iconUrl: url.pathToFileURL(path.resolve(__dirname, 'src/assets/icons/app-icon.ico')).toString(),
         }),
         {
             name: '@electron-forge/maker-dmg',

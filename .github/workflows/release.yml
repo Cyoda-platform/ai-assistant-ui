@@ -68,3 +68,33 @@ jobs:
         working-directory: packages/desktop
         run: yarn publish --arch=arm64
         timeout-minutes: 10
+
+  build-windows:
+    needs: build-macos-arm64
+    runs-on: windows-latest
+    env:
+      NODE_OPTIONS: --disable-warning=DEP0174
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Prepare Yarn version
+        run: corepack prepare yarn@4.5.3 --activate
+
+      - name: Install dependencies
+        working-directory: packages/desktop
+        run: yarn install
+
+      - name: Publish Electron app
+        working-directory: packages/desktop
+        run: yarn publish --platform=windows --arch=x64,arm64
+        timeout-minutes: 10
