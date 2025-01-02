@@ -9,5 +9,8 @@
   "main": " ",
   "license": " ",
   "author": "Cyoda",
-  "packageManager": "yarn@4.5.3"
+  "packageManager": "yarn@4.5.3",
+  "dependencies": {
+    "electron-icon-maker": "^0.0.5"
+  }
 }

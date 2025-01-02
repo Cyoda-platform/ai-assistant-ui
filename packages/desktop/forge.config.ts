@@ -34,8 +34,23 @@ const config: ForgeConfig = {
             name: '@electron-forge/maker-dmg',
             config: {
                 background: 'src/assets/backgrounds/dmg-background.png',
-                format: 'ULFO'
-            }
+                format: 'ULFO',
+                contents: (opts:any) => {
+                    return [{
+                        x: 130, y: 200, type: 'file', path: opts.appPath,
+                    }, {
+                        x: 410, y: 200, type: 'link', path: '/Applications',
+                    }];
+                },
+                additionalDMGOptions: {
+                    window: {
+                        size: {
+                            width: 660,
+                            height: 400,
+                        },
+                    },
+                },
+            },
         },
         new MakerRpm({
             options: {
