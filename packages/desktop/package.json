@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "productName": "desktop",
+  "productName": "Cyoda",
   "version": "1.0.0",
   "description": "My Electron application description",
   "main": ".vite/build/main.js",
@@ -41,5 +41,9 @@
   "dependencies": {
     "electron-squirrel-startup": "^1.0.1",
     "update-electron-app": "^3.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Cyoda-platform/ai-assistant-ui.git"
   }
 }
