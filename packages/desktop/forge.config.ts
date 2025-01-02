@@ -5,6 +5,7 @@ import {MakerRpm} from '@electron-forge/maker-rpm';
 import {VitePlugin} from '@electron-forge/plugin-vite';
 import {FusesPlugin} from '@electron-forge/plugin-fuses';
 import {FuseV1Options, FuseVersion} from '@electron/fuses';
+import { MakerZIP } from '@electron-forge/maker-zip';
 import * as url from "node:url";
 import path from "path";
 
@@ -12,7 +13,6 @@ const config: ForgeConfig = {
     packagerConfig: {
         asar: true,
         icon: 'src/assets/icons/app-icon',
-        osxSign: false,
     },
     rebuildConfig: {},
     publishers: [
@@ -31,28 +31,29 @@ const config: ForgeConfig = {
         new MakerSquirrel({
             iconUrl: url.pathToFileURL(path.resolve(__dirname, 'src/assets/icons/app-icon.ico')).toString(),
         }),
-        {
-            name: '@electron-forge/maker-dmg',
-            config: {
-                background: 'src/assets/backgrounds/dmg-background.png',
-                format: 'ULFO',
-                contents: (opts:any) => {
-                    return [{
-                        x: 130, y: 200, type: 'file', path: opts.appPath,
-                    }, {
-                        x: 410, y: 200, type: 'link', path: '/Applications',
-                    }];
-                },
-                additionalDMGOptions: {
-                    window: {
-                        size: {
-                            width: 660,
-                            height: 400,
-                        },
-                    },
-                },
-            },
-        },
+        new MakerZIP({}, ['darwin']),
+        // {
+        //     name: '@electron-forge/maker-dmg',
+        //     config: {
+        //         background: 'src/assets/backgrounds/dmg-background.png',
+        //         format: 'ULFO',
+        //         contents: (opts:any) => {
+        //             return [{
+        //                 x: 130, y: 200, type: 'file', path: opts.appPath,
+        //             }, {
+        //                 x: 410, y: 200, type: 'link', path: '/Applications',
+        //             }];
+        //         },
+        //         additionalDMGOptions: {
+        //             window: {
+        //                 size: {
+        //                     width: 660,
+        //                     height: 400,
+        //                 },
+        //             },
+        //         },
+        //     },
+        // },
         new MakerRpm({
             options: {
                 icon: 'src/assets/icons/png/256x256.png'
