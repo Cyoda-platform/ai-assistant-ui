@@ -96,5 +96,5 @@ jobs:
 
       - name: Publish Electron app
         working-directory: packages/desktop
-        run: yarn publish --platform=windows --arch=x64,arm64
+        run: yarn publish --platform=win32 --arch=x64,arm64
         timeout-minutes: 10
