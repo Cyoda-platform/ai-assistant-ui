@@ -5,7 +5,6 @@ import {MakerRpm} from '@electron-forge/maker-rpm';
 import {VitePlugin} from '@electron-forge/plugin-vite';
 import {FusesPlugin} from '@electron-forge/plugin-fuses';
 import {FuseV1Options, FuseVersion} from '@electron/fuses';
-import { MakerZIP } from '@electron-forge/maker-zip';
 import * as url from "node:url";
 import path from "path";
 
@@ -55,12 +54,14 @@ const config: ForgeConfig = {
         },
         new MakerRpm({
             options: {
-                icon: 'src/assets/icons/png/256x256.png'
+                icon: 'src/assets/icons/png/256x256.png',
+                bin: 'cyoda'
             },
         }),
         new MakerDeb({
             options: {
-                icon: 'src/assets/icons/png/256x256.png'
+                icon: 'src/assets/icons/png/256x256.png',
+                bin: 'cyoda'
             },
         })
     ],
@@ -100,6 +101,7 @@ const config: ForgeConfig = {
             [FuseV1Options.OnlyLoadAppFromAsar]: true,
         }),
     ],
+    buildIdentifier: 'cyoda-build',
 };
 
 export default config;
