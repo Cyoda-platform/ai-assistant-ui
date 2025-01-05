@@ -13,7 +13,9 @@ const config: ForgeConfig = {
     packagerConfig: {
         asar: true,
         icon: 'src/assets/icons/app-icon',
-        osxSign: {},
+        osxSign: {
+            identity: null,
+        }
     },
     rebuildConfig: {},
     publishers: [
