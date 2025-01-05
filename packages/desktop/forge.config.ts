@@ -12,10 +12,7 @@ import path from "path";
 const config: ForgeConfig = {
     packagerConfig: {
         asar: true,
-        icon: 'src/assets/icons/app-icon',
-        osxSign: {
-            identity: null,
-        }
+        icon: 'src/assets/icons/app-icon'
     },
     rebuildConfig: {},
     publishers: [
