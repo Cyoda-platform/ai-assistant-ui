@@ -15,6 +15,9 @@ jobs:
     env:
       NODE_OPTIONS: --disable-warning=DEP0174
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      VITE_APP_API_AUTH: ${{ vars.VITE_APP_API_AUTH }}
+      VITE_APP_API_BASE: ${{ vars.VITE_APP_API_BASE }}
+      VITE_IS_ELECTRON: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -78,6 +81,9 @@ jobs:
     env:
       NODE_OPTIONS: --disable-warning=DEP0174
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      VITE_APP_API_AUTH: ${{ vars.VITE_APP_API_AUTH }}
+      VITE_APP_API_BASE: ${{ vars.VITE_APP_API_BASE }}
+      VITE_IS_ELECTRON: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
