@@ -11,7 +11,8 @@ import path from "path";
 const config: ForgeConfig = {
     packagerConfig: {
         asar: true,
-        icon: 'src/assets/icons/app-icon'
+        icon: 'src/assets/icons/app-icon',
+        executableName: 'cyoda',
     },
     rebuildConfig: {},
     publishers: [
