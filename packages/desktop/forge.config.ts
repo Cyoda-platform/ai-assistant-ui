@@ -23,7 +23,7 @@ const config: ForgeConfig = {
                     owner: 'SavenkoAlexander',
                     name: 'ai-assistant-ui'
                 },
-                prerelease: false,
+                // prerelease: false,
             }
         }
     ],
@@ -31,29 +31,28 @@ const config: ForgeConfig = {
         new MakerSquirrel({
             iconUrl: url.pathToFileURL(path.resolve(__dirname, 'src/assets/icons/app-icon.ico')).toString(),
         }),
-        new MakerZIP({}, ['darwin']),
-        // {
-        //     name: '@electron-forge/maker-dmg',
-        //     config: {
-        //         background: 'src/assets/backgrounds/dmg-background.png',
-        //         format: 'ULFO',
-        //         contents: (opts:any) => {
-        //             return [{
-        //                 x: 130, y: 200, type: 'file', path: opts.appPath,
-        //             }, {
-        //                 x: 410, y: 200, type: 'link', path: '/Applications',
-        //             }];
-        //         },
-        //         additionalDMGOptions: {
-        //             window: {
-        //                 size: {
-        //                     width: 660,
-        //                     height: 400,
-        //                 },
-        //             },
-        //         },
-        //     },
-        // },
+        {
+            name: '@electron-forge/maker-dmg',
+            config: {
+                background: 'src/assets/backgrounds/dmg-background.png',
+                format: 'ULFO',
+                contents: (opts:any) => {
+                    return [{
+                        x: 130, y: 200, type: 'file', path: opts.appPath,
+                    }, {
+                        x: 410, y: 200, type: 'link', path: '/Applications',
+                    }];
+                },
+                additionalDMGOptions: {
+                    window: {
+                        size: {
+                            width: 660,
+                            height: 400,
+                        },
+                    },
+                },
+            },
+        },
         new MakerRpm({
             options: {
                 icon: 'src/assets/icons/png/256x256.png'
