@@ -19,7 +19,7 @@ function onCreated(data: CreateChatResponse) {
 <style lang="scss">
 .dashboard-view {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
   align-items: center;
   justify-content: center;
 

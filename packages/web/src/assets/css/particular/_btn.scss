@@ -6,9 +6,29 @@
   background-color: variables.$color-primary;
   border: 1px solid variables.$color-primary;
   transition: all 0.5s;
+  font-family: 'PingFang SC', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+
   &:hover {
     background-color: color.adjust(variables.$color-primary, $lightness: 8%);
     border: 1px solid color.adjust(variables.$color-primary, $lightness: 8%);
     color: #fff;
+  }
+}
+
+.btn-default {
+  background-color: #EFF2EC;
+  border: none;
+  color: #000;
+}
+
+.btn-icon {
+  padding: unset;
+  width: 40px;
+  height: 40px;
+
+  .icon {
+    height: unset;
   }
 }

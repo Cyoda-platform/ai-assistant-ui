@@ -40,7 +40,6 @@ onMounted(() => {
     renderLineHighlight: "none",
     overviewRulerBorder: false,
     minimap: {enabled: false},
-    theme: 'vs-dark',
     padding: {
       top: 10
     },
@@ -92,8 +91,10 @@ defineExpose({editor});
 
 <style lang="scss">
 .editor {
-  border: 1px solid silver;
+  border: 1px solid #E4E7ED;
   outline: none;
+  border-radius: 24px;
+  overflow: hidden;
 
   .lines-content.monaco-editor-background {
     padding-left: 5px !important;

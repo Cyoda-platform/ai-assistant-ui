@@ -1,22 +1,28 @@
 <template>
-  <el-form label-position="top" :model="form" :rules="rules" ref="formRef" label-width="auto"
-           class="chat-bot-create-new">
-    <h2 class="chat-bot-create-new__title">New Chat</h2>
-    <el-form-item label="Name" prop="name">
-      <el-input v-model="form.name"/>
-    </el-form-item>
-
-    <el-form-item label="Description" prop="description">
-      <el-input v-model="form.description"/>
-    </el-form-item>
-
-    <div class="chat-bot-create-new__actions">
-      <el-button class="chat-bot-create-new__button btn btn-primary" :loading="isLoading" size="large" type="primary"
-                 @click="onClickSubmit">
-        Create
-      </el-button>
+  <div class="chat-bot-create-new">
+    <h1 class="chat-bot-create-new__title">What do you want to do?</h1>
+    <div class="chat-bot-create-new__description">
+      The fastest way to build <span class="color-green">YOUR</span> complex,
+      data intensive system <span class="color-green">STARTS</span> here
     </div>
-  </el-form>
+    <el-form label-position="top" :model="form" :rules="rules" ref="formRef" label-width="auto"
+             class="chat-bot-create-new__form">
+      <el-form-item label="Create name for your request" prop="name">
+        <el-input placeholder="Financial app" v-model="form.name"/>
+      </el-form-item>
+
+      <el-form-item label="Create description for your request" prop="description">
+        <el-input placeholder="Database from 12 December" type="textarea" :rows="4" resize="none" v-model="form.description"/>
+      </el-form-item>
+
+      <div class="chat-bot-create-new__actions">
+        <el-button class="chat-bot-create-new__button btn btn-primary" :loading="isLoading" size="large" type="primary"
+                   @click="onClickSubmit">
+          Save and continue
+        </el-button>
+      </div>
+    </el-form>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -60,12 +66,26 @@ function onClickSubmit() {
     text-align: center;
   }
 
-  &__actions {
-    text-align: center;
+  &__description {
+    font-size: 24px;
+    color: #606266;
+    line-height: 160%;
+  }
+
+  &__form {
+    margin-top: 80px;
   }
 
   &__button {
-    width: 200px;
+    width: 300px;
+  }
+
+  &__actions {
+    margin-bottom: 15px;
+  }
+
+  .el-form-item {
+    margin-bottom: 40px;
   }
 }
 </style>

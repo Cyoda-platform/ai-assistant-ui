@@ -7,7 +7,7 @@
           class="box-item"
           effect="dark"
           content="Submit Answer"
-          placement="top"
+          placement="left"
         >
         <SendIcon/>
         A
@@ -19,7 +19,7 @@
           class="box-item"
           effect="dark"
           content="Submit Question"
-          placement="top"
+          placement="left"
         >
         <SendIcon/>
         Q
@@ -150,7 +150,7 @@ function addSubmitAnswerAction() {
 .chat-bot-canvas {
   position: relative;
   padding-right: 70px;
-  height: 100%;
+  height: calc(100vh - 70px);
 
   &__editor {
     min-height: 100%;
@@ -181,6 +181,10 @@ function addSubmitAnswerAction() {
         opacity: 1;
         height: 56px;
       }
+    }
+
+    svg {
+      fill: #148751;
     }
 
     .btn-action:last-child {
