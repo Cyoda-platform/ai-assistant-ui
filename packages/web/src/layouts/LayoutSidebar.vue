@@ -35,7 +35,7 @@ const mainSpan = computed(() => {
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    border-right: 2px solid rgba(20, 135, 81, 0.5);
+    border-right: 1px solid rgba(20, 135, 81, 0.5);
   }
 
   &__main {

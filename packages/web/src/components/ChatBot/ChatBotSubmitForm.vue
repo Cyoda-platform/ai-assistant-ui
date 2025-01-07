@@ -5,7 +5,7 @@
         <el-form-item class="chat-bot-submit-form__input" label="">
           <el-input v-model="form.answer" placeholder="Use icons on  the right side or simply type">
             <template #suffix>
-              <button class="chat-bot-submit-form__btn-submit" @click.prevent="onClickTextAnswer">
+              <button class="btn btn-primary btn-icon chat-bot-submit-form__btn-submit" @click.prevent="onClickTextAnswer">
                 <SendIcon/>
               </button>
             </template>
@@ -33,15 +33,10 @@ const form = ref({
   answer: ''
 });
 
-const props = defineProps<{
-  technicalId: string
-}>()
-
 const emit = defineEmits(['answer']);
 
 async function onClickTextAnswer() {
   emit('answer', form.value.answer);
-  const answer = form.value.answer;
   form.value.answer = '';
 }
 </script>
@@ -60,14 +55,13 @@ async function onClickTextAnswer() {
 
   &__btn-submit {
     cursor: pointer;
-    width: 38px;
-    height: 38px;
-    background-color: rgba(0, 0, 0, 0.2);
     border: none;
     border-radius: 4px;
-    display: flex;
-    justify-items: center;
-    align-items: center;
+    svg {
+      position: relative;
+      top: 2px;
+      fill: #fff;
+    }
   }
 
   &__actions {
@@ -88,7 +82,7 @@ async function onClickTextAnswer() {
   }
 
   .el-input__inner::placeholder {
-    color: #56575A;
+    color: #A8ABB2;
   }
 }
 </style>
