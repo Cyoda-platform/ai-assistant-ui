@@ -3,5 +3,12 @@
     "link": "/home",
     "name": "Home",
     "icon": "home"
+  },
+  {
+    "name": "History",
+    "icon": "history",
+    "component": "MenuChatList",
+    "isShow": false,
+    "ready": false
   }
 ]

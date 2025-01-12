@@ -3060,6 +3060,7 @@ __metadata:
     npm-run-all2: "npm:^7.0.2"
     pinia: "npm:^2.3.0"
     sass-embedded: "npm:^1.83.1"
+    tiny-emitter: "npm:^2.1.0"
     typescript: "npm:~5.7.2"
     uuid: "npm:^11.0.4"
     vite: "npm:^6.0.7"
@@ -10662,6 +10663,13 @@ __metadata:
   version: 2.0.3
   resolution: "tiny-each-async@npm:2.0.3"
   checksum: 10c0/0a16a8d2527f56716b563a8a1004a7faa68e8c002a924e88d446b253f4909b74cc888c91329d4a3ce499c04fbc80e4fbd3c561510a8a41167cc89764c4e59715
+  languageName: node
+  linkType: hard
+
+"tiny-emitter@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "tiny-emitter@npm:2.1.0"
+  checksum: 10c0/459c0bd6e636e80909898220eb390e1cba2b15c430b7b06cec6ac29d87acd29ef618b9b32532283af749f5d37af3534d0e3bde29fdf6bcefbf122784333c953d
   languageName: node
   linkType: hard
 
