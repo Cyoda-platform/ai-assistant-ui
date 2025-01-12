@@ -12,16 +12,27 @@
     </div>
     <ul class="side-bar__nav">
       <li
-        v-for="(menu, index) in menusJson"
+        class="side-bar__li"
+        v-for="(menu, index) in menus"
         :key="index"
         :class="{
               active: getIsActive(menu)
             }"
       >
-        <router-link class="side-bar__link" :to="menu.link">
+        <a @click.stop="onClickMenu(menu)" href="#" class="side-bar__link">
           <Icon :icon="menu.icon"/>
-          <span v-if="!isSidebarHidden">{{ menu.name }}</span>
-        </router-link>
+          <span v-if="!isSidebarHidden">
+              {{ menu.name }}
+            <template v-if="!isMenuReady(menu)">
+              (<LoadingText/>)
+            </template>
+          </span>
+        </a>
+        <template v-if="menu.component">
+          <el-collapse-transition>
+            <component @ready="onReady(menu)" v-show="menu.isShow" :is="getComponent(menu.component)"/>
+          </el-collapse-transition>
+        </template>
       </li>
     </ul>
     <div class="side-bar__footer">
@@ -38,20 +49,24 @@
 <script setup lang="ts">
 import menusJson from "./menu.json";
 import Icon from "@/components/Icon.vue";
+import MenuChatList from "@/components/MenuChatList/MenuChatList.vue";
 import {useRoute, useRouter} from "vue-router";
 import LogoutIcon from '@/assets/images/icons/logout.svg';
 import ToggleCloseIcon from '@/assets/images/icons/toggle-close.svg';
 import ToggleOpenIcon from '@/assets/images/icons/toggle-open.svg';
 import useAuthStore from "@/stores/auth.ts";
 import useAppStore from "@/stores/app.ts";
-import {computed} from "vue";
+import {computed, ref} from "vue";
 import LogoSmallUrl from '@/assets/images/logo-small.svg?url'
 import LogoUrl from '@/assets/images/logo.svg?url'
+import LoadingText from "@/components/LoadingText.vue";
 
 const authStore = useAuthStore();
 const appStore = useAppStore();
 const router = useRouter();
 const route = useRoute();
+
+const menus = ref(menusJson);
 
 const getIsActive = (menu) => {
   return route.path === menu.link || route.meta.baseUrl === menu.link;
@@ -69,11 +84,39 @@ function onClickToggleSidebar() {
 const isSidebarHidden = computed(() => {
   return appStore.isSidebarHidden;
 })
+
+function getComponent(componentName: string) {
+  switch (componentName) {
+    case 'MenuChatList':
+      return MenuChatList
+  }
+}
+
+function onClickMenu(menu) {
+  if (menu.link) {
+    return router.push(menu.link);
+  } else if (!isMenuReady(menu)) {
+    return;
+  } else if (menu.component) {
+    menu.isShow = !menu.isShow;
+  }
+}
+
+function isMenuReady(menu) {
+  if (!Object.hasOwn(menu, 'ready')) return true;
+
+  return menu.ready;
+}
+
+function onReady(menu) {
+  menu.ready = true;
+}
 </script>
 
 <style lang="scss">
 .side-bar {
-  padding: 0 40px;
+  background-color: #FEFFFC;;
+  padding: 0 20px 0 40px;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -102,8 +145,13 @@ const isSidebarHidden = computed(() => {
   &__nav {
     flex-grow: 1;
     list-style: none;
-    padding: 10vh 0 0 0;
-    margin: 0;
+    padding: 9vh 20px 0 0;
+    overflow-y: auto;
+    margin: 15px 0;
+  }
+
+  &__li {
+    margin-bottom: 40px;
   }
 
   &__link {
