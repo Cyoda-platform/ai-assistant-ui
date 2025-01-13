@@ -19,20 +19,31 @@
               active: getIsActive(menu)
             }"
       >
-        <a @click.stop="onClickMenu(menu)" href="#" class="side-bar__link">
-          <Icon :icon="menu.icon"/>
+        <a
+          @click.stop="onClickMenu(menu)"
+          href="#"
+          class="side-bar__link"
+          :class="{
+            'side-bar__link--active': menu.isShow
+          }"
+        >
+          <Icon :icon="menu.isShow? menu.iconOpen: menu.icon" class="main-icon"/>
           <span v-if="!isSidebarHidden">
               {{ menu.name }}
             <template v-if="!isMenuReady(menu)">
               (<LoadingText/>)
             </template>
           </span>
+          <ArrowDownIcon class="arrow-down-icon" v-if="menu.component"/>
         </a>
         <template v-if="menu.component">
           <el-collapse-transition>
             <component @ready="onReady(menu)" v-show="menu.isShow" :is="getComponent(menu.component)"/>
           </el-collapse-transition>
         </template>
+      </li>
+      <li>
+        <el-button @click="onClickCreate" class="btn-primary side-bar__create_new">Create new request</el-button>
       </li>
     </ul>
     <div class="side-bar__footer">
@@ -60,6 +71,7 @@ import {computed, ref} from "vue";
 import LogoSmallUrl from '@/assets/images/logo-small.svg?url'
 import LogoUrl from '@/assets/images/logo.svg?url'
 import LoadingText from "@/components/LoadingText.vue";
+import ArrowDownIcon from '@/assets/images/icons/arrow-down.svg';
 
 const authStore = useAuthStore();
 const appStore = useAppStore();
@@ -111,6 +123,10 @@ function isMenuReady(menu) {
 function onReady(menu) {
   menu.ready = true;
 }
+
+function onClickCreate() {
+  router.push('/home');
+}
 </script>
 
 <style lang="scss">
@@ -151,7 +167,7 @@ function onReady(menu) {
   }
 
   &__li {
-    margin-bottom: 40px;
+    padding-bottom: 40px;
   }
 
   &__link {
@@ -161,13 +177,24 @@ function onReady(menu) {
     color: #000;
     text-decoration: none;
 
-    svg {
+    .main-icon {
       margin-right: 16px;
+    }
+
+    .arrow-down-icon {
+      margin-left: auto;
+      transition: all 0.5s;
+    }
+  }
+
+  &__link--active {
+    .arrow-down-icon {
+      transform: rotate(180deg);
     }
   }
 
   &--hidden &__link {
-    justify-content: center;
+    justify-content: start;
   }
 
   &__footer {
@@ -193,6 +220,10 @@ function onReady(menu) {
 
   &--hidden &__logout {
     justify-content: center;
+  }
+
+  &__create_new {
+    width: 100%;
   }
 }
 </style>

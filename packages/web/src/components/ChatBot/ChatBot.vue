@@ -113,11 +113,16 @@ function init() {
 }
 
 async function loadChatHistory() {
-  const {data} = await assistantStore.getChatById(props.technicalId);
-  console.log(data);
-  data.chat_body.dialogue.forEach((el) => {
-    addMessage(el);
-  })
+  try {
+    messages.value = [];
+    isLoading.value = true;
+    const {data} = await assistantStore.getChatById(props.technicalId);
+    data.chat_body.dialogue.forEach((el) => {
+      addMessage(el);
+    })
+  } finally {
+    isLoading.value = false;
+  }
 }
 
 async function getQuestions() {
@@ -203,6 +208,10 @@ function isAnswer(message) {
 function onClickShowCanvas() {
   chatBotDialogCanvasRef.value.dialogVisible = true;
 }
+
+watch(() => props.technicalId, () => {
+  loadChatHistory();
+})
 </script>
 
 <style lang="scss">

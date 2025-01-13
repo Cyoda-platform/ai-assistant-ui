@@ -5,6 +5,7 @@
 <script setup lang="ts">
 import HomeIcon from '@/assets/images/icons/home.svg';
 import HistoryIcon from '@/assets/images/icons/history.svg';
+import HistoryOpenIcon from '@/assets/images/icons/history-open.svg';
 import {computed} from "vue";
 
 const props = defineProps<{
@@ -17,6 +18,8 @@ const icon = computed(() => {
       return HomeIcon
     case 'history':
       return HistoryIcon
+    case 'history-open':
+      return HistoryOpenIcon
   }
 })
 </script>
