@@ -7,6 +7,7 @@
   {
     "name": "History",
     "icon": "history",
+    "iconOpen": "history-open",
     "component": "MenuChatList",
     "isShow": false,
     "ready": false
