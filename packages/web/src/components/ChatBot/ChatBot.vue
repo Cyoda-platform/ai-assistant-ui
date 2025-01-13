@@ -105,10 +105,24 @@ onMounted(() => {
 })
 
 function init() {
+  loadChatHistory();
   intervalId = setInterval(() => {
     getQuestions();
   }, 5000);
   getQuestions();
+}
+
+async function loadChatHistory() {
+  try {
+    messages.value = [];
+    isLoading.value = true;
+    const {data} = await assistantStore.getChatById(props.technicalId);
+    data.chat_body.dialogue.forEach((el) => {
+      addMessage(el);
+    })
+  } finally {
+    isLoading.value = false;
+  }
 }
 
 async function getQuestions() {
@@ -116,11 +130,7 @@ async function getQuestions() {
   promiseInterval = assistantStore.getQuestions(props.technicalId);
   const {data} = await promiseInterval;
   data.questions.forEach((el) => {
-    messages.value.push({
-      id: uuidv4(),
-      text: el.question || el.notification,
-      type: el.question ? 'question' : 'notification'
-    });
+    addMessage(el);
     if (el.notification) startEnvelopeFlash();
   })
   promiseInterval = null;
@@ -129,11 +139,20 @@ async function getQuestions() {
 
 function onAnswer(answer: string) {
   assistantStore.postTextAnswers(props.technicalId, answer);
-  messages.value.push({
-    text: answer,
-    type: 'answer'
-  });
+  addMessage({answer});
   isLoading.value = true;
+}
+
+function addMessage(el) {
+  let type = 'answer'; // Значение по умолчанию
+  if (el.question) type = 'question';
+  else if (el.notification) type = 'notification';
+
+  messages.value.push({
+    id: uuidv4(),
+    text: el.question || el.notification || el.answer,
+    type
+  });
 }
 
 onBeforeUnmount(() => {
@@ -141,11 +160,11 @@ onBeforeUnmount(() => {
   if (intervalEnvelopeId) clearInterval(intervalEnvelopeId);
 })
 
-onMounted(()=>{
+onMounted(() => {
   scrollDownMessages();
 })
 
-function scrollDownMessages(){
+function scrollDownMessages() {
   const messagesHtml = document.querySelector('.chat-bot__inner-messages');
   new MutationObserver(() => {
     messagesHtml.scrollTo(0, messagesHtml.scrollHeight);
@@ -189,6 +208,10 @@ function isAnswer(message) {
 function onClickShowCanvas() {
   chatBotDialogCanvasRef.value.dialogVisible = true;
 }
+
+watch(() => props.technicalId, () => {
+  loadChatHistory();
+})
 </script>
 
 <style lang="scss">

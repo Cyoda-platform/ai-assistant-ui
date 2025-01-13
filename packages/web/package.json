@@ -16,6 +16,7 @@
     "modern-normalize": "^3.0.1",
     "monaco-editor": "0.52.2",
     "pinia": "^2.3.0",
+    "tiny-emitter": "^2.1.0",
     "uuid": "^11.0.4",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"

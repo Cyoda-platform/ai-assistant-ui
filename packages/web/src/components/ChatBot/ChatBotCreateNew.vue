@@ -29,6 +29,8 @@
 import {reactive, ref, useTemplateRef} from "vue";
 import useAssistantStore from "@/stores/assistant.ts";
 import type {CreateChatResponse} from "@/types/chat";
+import eventBus from "@/plugins/eventBus";
+import {UPDATE_CHAT_LIST} from "@/helpers/HelperConstants";
 
 const assistantStore = useAssistantStore();
 const formRef = useTemplateRef('formRef');
@@ -54,6 +56,7 @@ function onClickSubmit() {
       const {data} = await assistantStore.chats(form.value);
       isLoading.value = false;
       emit('created', data);
+      eventBus.$emit(UPDATE_CHAT_LIST);
       formRef.value.resetFields();
     }
   })

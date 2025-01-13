@@ -1,6 +1,8 @@
+@use 'variables';
+
 .el-form-item__label {
   font-size: 20px;
-  color: #606266;
+  color: variables.$text-color-regular;
 }
 
 .el-input__inner::placeholder {
@@ -12,7 +14,7 @@
 }
 
 .el-form-item.is-required:not(.is-no-asterisk).asterisk-left>.el-form-item__label-wrap>.el-form-item__label:after, .el-form-item.is-required:not(.is-no-asterisk).asterisk-left>.el-form-item__label:after {
-  color: #606266;
+  color: variables.$text-color-regular;
   content: "*";
   margin-left: 4px;
 }
