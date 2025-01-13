@@ -1,6 +1,7 @@
 import {defineStore} from "pinia";
-import privateClient from "@/clients/private.ts";
+import privateClient from "@/clients/private";
 import type {CreateChatRequest, CreateChatResponse} from "@/types/chat";
+import {ChatResponse} from "../types/chat";
 
 const useAssistantStore = defineStore('assistant', {
   actions: {
@@ -24,6 +25,12 @@ const useAssistantStore = defineStore('assistant', {
     },
     postRollback(technical_id: string) {
       return privateClient.post(`/v1/chats/${technical_id}/rollback`)
+    },
+    getChats() {
+      return privateClient.get<ChatResponse>(`/v1/chats`)
+    },
+    getChatById(technical_id: string) {
+      return privateClient.get<ChatResponse>(`/v1/chats/${technical_id}`)
     }
   }
 });
