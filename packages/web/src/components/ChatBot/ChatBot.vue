@@ -49,7 +49,7 @@
           <el-row>
             <el-col :span="14">
               <template v-for="message in messages">
-                <ChatBotMessageQuestion v-if="isQuestion(message)" :message="message"/>
+                <ChatBotMessageQuestion v-if="isQuestion(message)" :message="message" @rollbackQuestion="onRollbackQuestion"/>
                 <ChatBotMessageAnswer v-if="isAnswer(message)" :message="message"/>
               </template>
             </el-col>
@@ -66,6 +66,7 @@
                          @push="onClickPush"
                          @approve="onClickApprove"
                          @rollback="onClickRollback"
+                         @rollbackQuestion="onRollbackQuestion"
                          :technicalId="props.technicalId"
                          :isLoading="isLoading"
                          :messages="messages"/>
@@ -207,6 +208,12 @@ function isAnswer(message) {
 
 function onClickShowCanvas() {
   chatBotDialogCanvasRef.value.dialogVisible = true;
+}
+
+async function onRollbackQuestion(question) {
+  await assistantStore.postRollbackQuestion(props.technicalId, question);
+  isLoading.value = true;
+  loadChatHistory();
 }
 
 watch(() => props.technicalId, () => {
