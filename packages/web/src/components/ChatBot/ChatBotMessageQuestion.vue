@@ -36,6 +36,7 @@
 import AiChaIcon from "@/assets/images/icons/ai-chat.svg";
 import NotificationIcon from "@/assets/images/icons/notification.svg";
 import RollbackQuestionIcon from "@/assets/images/icons/rollback-question.svg";
+import * as marked from 'marked';
 import {computed, ref} from "vue";
 
 const props = defineProps<{
@@ -49,7 +50,8 @@ const computedMessage = computed(() => {
   if (typeof text === 'object' && text !== null) {
     return JSON.stringify(text, null, 2);
   }
-  return text;
+
+  return marked.parse(text);
 });
 
 function onClickRollbackQuestion() {
