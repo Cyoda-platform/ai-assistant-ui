@@ -3,10 +3,18 @@
     'chat-bot-message-question--notification': message.type === 'notification',
   }">
     <div class="chat-bot-message-question__title">
-      <span class="chat-bot-message-question__cyoda-wrapper-icon">
-        <AiChaIcon/>
-      </span>
-      <span>CYODA. AI</span>
+      <template v-if="message.type === 'question'">
+        <span class="chat-bot-message-question__cyoda-wrapper-icon">
+          <AiChaIcon/>
+        </span>
+        <span>CYODA. AI</span>
+      </template>
+      <template v-if="message.type === 'notification'">
+         <span class="chat-bot-message-question__cyoda-wrapper-icon">
+          <NotificationIcon/>
+        </span>
+        <span>Notification</span>
+      </template>
     </div>
     <div v-html="computedMessage" class="chat-bot-message-question__body"></div>
     <div class="chat-bot-message-question__actions">
@@ -26,6 +34,7 @@
 
 <script lang="ts" setup>
 import AiChaIcon from "@/assets/images/icons/ai-chat.svg";
+import NotificationIcon from "@/assets/images/icons/notification.svg";
 import RollbackQuestionIcon from "@/assets/images/icons/rollback-question.svg";
 import {computed, ref} from "vue";
 
@@ -50,6 +59,8 @@ function onClickRollbackQuestion() {
 </script>
 
 <style lang="scss">
+@use '@/assets/css/particular/variables.scss';
+
 .chat-bot-message-question {
   background: #FFFFFF;
   border: 1px solid #F0F1F4;
@@ -105,8 +116,14 @@ function onClickRollbackQuestion() {
     }
   }
 
-  &--notification {
-    background-color: rgba(230, 162, 60, 0.5);
+  &--notification &__cyoda-wrapper-icon {
+    border: none;
+    top: 17px;
+  }
+
+  &--notification &__title span {
+    color: variables.$color-primary;
+    font-size: 16px;
   }
 }
 </style>
