@@ -17,7 +17,7 @@
       </template>
     </div>
     <div v-html="computedMessage" class="chat-bot-message-question__body"></div>
-    <div class="chat-bot-message-question__actions">
+    <div v-if="message.type === 'question'" class="chat-bot-message-question__actions">
       <el-button
         @click="onClickRollbackQuestion"
         :loading="isLoading"
@@ -118,6 +118,9 @@ function onClickRollbackQuestion() {
     }
   }
 
+  &--notification {
+    padding-bottom: 0;
+  }
   &--notification &__cyoda-wrapper-icon {
     border: none;
     top: 17px;
