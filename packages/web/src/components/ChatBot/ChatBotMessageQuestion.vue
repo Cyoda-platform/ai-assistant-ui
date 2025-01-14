@@ -3,21 +3,38 @@
     'chat-bot-message-question--notification': message.type === 'notification',
   }">
     <div class="chat-bot-message-question__title">
-      <AiChat class="cyoda-icon"/>
+      <span class="chat-bot-message-question__cyoda-wrapper-icon">
+        <AiChaIcon/>
+      </span>
       <span>CYODA. AI</span>
     </div>
     <div v-html="computedMessage" class="chat-bot-message-question__body"></div>
+    <div class="chat-bot-message-question__actions">
+      <el-button
+        @click="onClickRollbackQuestion"
+        :loading="isLoading"
+        class="btn-default chat-bot-message-question__action-rollback"
+        :class="{
+          'is-loading': isLoading
+        }"
+      >
+        <RollbackQuestionIcon class="chat-bot-message-question__rollback-icon"/>
+      </el-button>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import AiChat from "@/assets/images/icons/ai-chat.svg";
-import {computed} from "vue";
+import AiChaIcon from "@/assets/images/icons/ai-chat.svg";
+import RollbackQuestionIcon from "@/assets/images/icons/rollback-question.svg";
+import {computed, ref} from "vue";
 
 const props = defineProps<{
   message: any,
 }>()
 
+const emit = defineEmits(['rollbackQuestion']);
+const isLoading = ref(false);
 const computedMessage = computed(() => {
   const text = props.message.text;
   if (typeof text === 'object' && text !== null) {
@@ -25,26 +42,37 @@ const computedMessage = computed(() => {
   }
   return text;
 });
+
+function onClickRollbackQuestion() {
+  isLoading.value = true;
+  emit('rollbackQuestion', props.message)
+}
 </script>
 
 <style lang="scss">
 .chat-bot-message-question {
   background: #FFFFFF;
   border: 1px solid #F0F1F4;
-  box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.12);
-  border-radius: 24px;
+  border-radius: 16px;
   min-height: 100px;
   padding-left: 68px;
-  padding-right: 64px;
+  padding-right: 16px;
   padding-top: 24px;
-  padding-bottom: 24px;
+  padding-bottom: 16px;
   position: relative;
   margin-bottom: 25px;
 
-  .cyoda-icon{
+  &__cyoda-wrapper-icon {
     position: absolute;
     left: 24px;
     top: 20px;
+    border: 1px solid #F0F1F4;
+    border-radius: 4px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   &__title {
@@ -57,6 +85,24 @@ const computedMessage = computed(() => {
   &__body {
     font-size: 16px;
     line-height: 1.5;
+    padding-right: 48px;
+    padding-bottom: 16px;
+  }
+
+  &__actions {
+    text-align: right;
+  }
+
+  &__action-rollback {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+
+    &.is-loading {
+      span {
+        display: none;
+      }
+    }
   }
 
   &--notification {
