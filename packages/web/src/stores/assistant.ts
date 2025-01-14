@@ -31,6 +31,9 @@ const useAssistantStore = defineStore('assistant', {
     },
     getChatById(technical_id: string) {
       return privateClient.get<ChatResponse>(`/v1/chats/${technical_id}`)
+    },
+    postRollbackQuestion(technical_id: string, question) {
+      return privateClient.post<ChatResponse>(`/v1/chats/${technical_id}/rollback`, {question})
     }
   }
 });
