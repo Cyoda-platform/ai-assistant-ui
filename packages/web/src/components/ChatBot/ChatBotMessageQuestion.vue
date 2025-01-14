@@ -45,7 +45,7 @@ const computedMessage = computed(() => {
 
 function onClickRollbackQuestion() {
   isLoading.value = true;
-  emit('rollbackQuestion', props.message)
+  emit('rollbackQuestion', props.message.text)
 }
 </script>
 
