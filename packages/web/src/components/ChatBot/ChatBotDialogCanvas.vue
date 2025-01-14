@@ -10,7 +10,7 @@
         <h2>Cyoda Chat with Canvas</h2>
         <div class="chat-bot-dialog-canvas__sidebar-messages">
           <template v-for="message in props.messages">
-            <ChatBotMessageQuestion v-if="isQuestion(message)" :message="message"/>
+            <ChatBotMessageQuestion v-if="isQuestion(message)" :message="message" @rollbackQuestion="emit('rollbackQuestion', $event)"/>
             <ChatBotMessageAnswer v-if="isAnswer(message)" :message="message"/>
           </template>
           <ChatLoader v-if="props.isLoading"/>
@@ -88,7 +88,7 @@ const props = defineProps<{
 
 const isEnvelopeActive = ref(false);
 const dialogVisible = ref(false);
-const emit = defineEmits(['push', 'approve', 'rollback', 'answer']);
+const emit = defineEmits(['push', 'approve', 'rollback', 'answer', 'rollbackQuestion']);
 
 function isQuestion(message) {
   return ['question', 'notification'].includes(message.type);
