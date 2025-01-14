@@ -42,7 +42,7 @@ async function loadChats() {
 }
 
 const isChatExists = computed(() => {
-  return chatsGroups.value.every((el) => el.chats.length > 0);
+  return chatsGroups.value.some((el) => el.chats.length > 0);
 })
 
 
