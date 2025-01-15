@@ -7,7 +7,7 @@
         <span class="chat-bot-message-question__cyoda-wrapper-icon">
           <AiChaIcon/>
         </span>
-        <span>CYODA. AI</span>
+        <span>CYODA AI</span>
       </template>
       <template v-if="message.type === 'notification'">
          <span class="chat-bot-message-question__cyoda-wrapper-icon">
@@ -78,11 +78,8 @@ function onClickRollbackQuestion() {
   &__cyoda-wrapper-icon {
     position: absolute;
     left: 24px;
-    top: 20px;
-    border: 1px solid #F0F1F4;
+    top: 17px;
     border-radius: 4px;
-    width: 32px;
-    height: 32px;
     display: flex;
     justify-content: center;
     align-items: center;
