@@ -120,7 +120,7 @@ function onClickRollbackQuestion() {
   }
   &--notification &__cyoda-wrapper-icon {
     border: none;
-    top: 17px;
+    top: 22px;
   }
 
   &--notification &__title span {
