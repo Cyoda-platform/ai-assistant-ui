@@ -7,8 +7,5 @@
     "packages/desktop"
   ],
   "author": "Cyoda",
-  "packageManager": "yarn@4.5.3",
-  "dependencies": {
-    "electron-icon-maker": "^0.0.5"
-  }
+  "packageManager": "yarn@4.6.0"
 }
