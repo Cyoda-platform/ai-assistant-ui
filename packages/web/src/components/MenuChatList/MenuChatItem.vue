@@ -37,7 +37,7 @@ const popperOptions = {
   modifiers: [{
     name: 'offset',
     options: {
-      offset: [0, 80],
+      offset: [0, 10],
     },
   },]
 }
