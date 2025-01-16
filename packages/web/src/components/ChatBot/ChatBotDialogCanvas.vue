@@ -10,8 +10,20 @@
         <h2>Cyoda Chat with Canvas</h2>
         <div class="chat-bot-dialog-canvas__sidebar-messages">
           <template v-for="message in props.messages">
-            <ChatBotMessageQuestion v-if="isQuestion(message)" :message="message" @rollbackQuestion="emit('rollbackQuestion', $event)"/>
-            <ChatBotMessageAnswer v-if="isAnswer(message)" :message="message"/>
+            <ChatBotMessageQuestion
+              v-if="message.type === 'question'"
+              :message="message"
+              @rollbackQuestion="emit('rollbackQuestion', $event)"
+            />
+            <ChatBotMessageNotification
+              v-if="message.type === 'notification'"
+              :message="message"
+              @updateNotification="emit('updateNotification', $event)"
+            />
+            <ChatBotMessageAnswer
+              v-if="message.type === 'answer'"
+              :message="message"
+            />
           </template>
           <ChatLoader v-if="props.isLoading"/>
         </div>
@@ -79,6 +91,7 @@ import BellIcon from "@/assets/images/icons/bell.svg";
 import CloseCanvasIcon from "@/assets/images/icons/close-canvas.svg";
 import ChatBotDialogCanvasSubmitForm from "@/components/ChatBot/ChatBotDialogCanvasSubmitForm.vue";
 import ChatLoader from "@/components/ChatBot/ChatLoader.vue";
+import ChatBotMessageNotification from "@/components/ChatBot/ChatBotMessageNotification.vue";
 
 const props = defineProps<{
   messages: any[],
@@ -88,15 +101,7 @@ const props = defineProps<{
 
 const isEnvelopeActive = ref(false);
 const dialogVisible = ref(false);
-const emit = defineEmits(['push', 'approve', 'rollback', 'answer', 'rollbackQuestion']);
-
-function isQuestion(message) {
-  return ['question', 'notification'].includes(message.type);
-}
-
-function isAnswer(message) {
-  return ['answer'].includes(message.type);
-}
+const emit = defineEmits(['push', 'approve', 'rollback', 'answer', 'rollbackQuestion', 'updateNotification']);
 
 defineExpose({dialogVisible});
 
