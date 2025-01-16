@@ -103,7 +103,10 @@ function onClickCancel() {
 
 function onClickSave() {
   isLoading.value = true;
-  emit('updateNotification', props.message.raw);
+  emit('updateNotification', {
+    ...props.message.raw,
+    notification: form.value.message
+  });
 }
 
 function resetForm() {
