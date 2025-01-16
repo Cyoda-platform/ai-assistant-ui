@@ -4,11 +4,13 @@
       <span>USER</span>
     </div>
     <div v-html="computedMessage" class="chat-bot-message-answer__body"></div>
+    <FilePreview v-if="currentFile" :file="currentFile"/>
   </div>
 </template>
 
 <script lang="ts" setup>
 import {computed} from "vue";
+import FilePreview from "@/components/FilePreview/FilePreview.vue";
 
 const props = defineProps<{
   message: any,
@@ -21,6 +23,11 @@ const computedMessage = computed(() => {
   }
   return text;
 });
+
+
+const currentFile = computed(() => {
+  return props.message.file || null;
+})
 </script>
 
 <style lang="scss">
