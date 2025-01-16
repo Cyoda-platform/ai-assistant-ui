@@ -49,8 +49,19 @@
           <el-row>
             <el-col :span="14">
               <template v-for="message in messages">
-                <ChatBotMessageQuestion v-if="isQuestion(message)" :message="message" @rollbackQuestion="onRollbackQuestion"/>
-                <ChatBotMessageAnswer v-if="isAnswer(message)" :message="message"/>
+                <ChatBotMessageQuestion
+                  v-if="message.type === 'question'"
+                  :message="message"
+                  @rollbackQuestion="onRollbackQuestion"
+                />
+                <ChatBotMessageNotification
+                  v-if="message.type === 'notification'"
+                  @updateNotification="onUpdateNotification"
+                  :message="message"
+                />
+                <ChatBotMessageAnswer
+                  v-if="message.type === 'answer'"
+                  :message="message"/>
               </template>
             </el-col>
           </el-row>
@@ -85,6 +96,7 @@ import BellIcon from "@/assets/images/icons/bell.svg";
 import OpenCanvasIcon from "@/assets/images/icons/open-canvas.svg";
 import {v4 as uuidv4} from "uuid";
 import ChatBotMessageQuestion from "@/components/ChatBot/ChatBotMessageQuestion.vue";
+import ChatBotMessageNotification from "@/components/ChatBot/ChatBotMessageNotification.vue";
 import ChatBotMessageAnswer from "@/components/ChatBot/ChatBotMessageAnswer.vue";
 import ChatBotDialogCanvas from "@/components/ChatBot/ChatBotDialogCanvas.vue";
 
@@ -152,6 +164,8 @@ function addMessage(el) {
   messages.value.push({
     id: uuidv4(),
     text: el.question || el.notification || el.answer,
+    editable: !!el.editable,
+    raw: el,
     type
   });
 }
@@ -198,20 +212,18 @@ function startEnvelopeFlash() {
   }, 500);
 }
 
-function isQuestion(message) {
-  return ['question', 'notification'].includes(message.type);
-}
-
-function isAnswer(message) {
-  return ['answer'].includes(message.type);
-}
-
 function onClickShowCanvas() {
   chatBotDialogCanvasRef.value.dialogVisible = true;
 }
 
 async function onRollbackQuestion(question) {
   await assistantStore.postRollbackQuestion(props.technicalId, question);
+  isLoading.value = true;
+  loadChatHistory();
+}
+
+async function onUpdateNotification(notification) {
+  await assistantStore.putNotification(props.technicalId, notification);
   isLoading.value = true;
   loadChatHistory();
 }
