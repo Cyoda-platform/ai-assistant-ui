@@ -1,23 +1,13 @@
 <template>
-  <div class="chat-bot-message-question" :class="{
-    'chat-bot-message-question--notification': message.type === 'notification',
-  }">
+  <div class="chat-bot-message-question">
     <div class="chat-bot-message-question__title">
-      <template v-if="message.type === 'question'">
         <span class="chat-bot-message-question__cyoda-wrapper-icon">
           <AiChaIcon/>
         </span>
-        <span>CYODA AI</span>
-      </template>
-      <template v-if="message.type === 'notification'">
-         <span class="chat-bot-message-question__cyoda-wrapper-icon">
-          <NotificationIcon/>
-        </span>
-        <span>Notification</span>
-      </template>
+      <span>CYODA AI</span>
     </div>
     <div v-html="computedMessage" class="chat-bot-message-question__body"></div>
-    <div v-if="message.type === 'question'" class="chat-bot-message-question__actions">
+    <div class="chat-bot-message-question__actions">
       <el-button
         @click="onClickRollbackQuestion"
         :loading="isLoading"
@@ -34,7 +24,6 @@
 
 <script lang="ts" setup>
 import AiChaIcon from "@/assets/images/icons/ai-chat.svg";
-import NotificationIcon from "@/assets/images/icons/notification.svg";
 import RollbackQuestionIcon from "@/assets/images/icons/rollback-question.svg";
 import * as marked from 'marked';
 import {computed, ref} from "vue";
@@ -68,10 +57,7 @@ function onClickRollbackQuestion() {
   border: 1px solid #F0F1F4;
   border-radius: 16px;
   min-height: 100px;
-  padding-left: 68px;
-  padding-right: 16px;
-  padding-top: 24px;
-  padding-bottom: 16px;
+  padding: 24px 16px 16px 68px;
   position: relative;
   margin-bottom: 25px;
 
@@ -79,7 +65,6 @@ function onClickRollbackQuestion() {
     position: absolute;
     left: 24px;
     top: 17px;
-    border-radius: 4px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -90,6 +75,10 @@ function onClickRollbackQuestion() {
     margin-bottom: 8px;
     font-size: 15px;
     letter-spacing: 2px;
+
+    span {
+      font-weight: bold;
+    }
   }
 
   &__body {
@@ -113,19 +102,6 @@ function onClickRollbackQuestion() {
         display: none;
       }
     }
-  }
-
-  &--notification {
-    padding-bottom: 0;
-  }
-  &--notification &__cyoda-wrapper-icon {
-    border: none;
-    top: 22px;
-  }
-
-  &--notification &__title span {
-    color: variables.$color-primary;
-    font-size: 16px;
   }
 }
 </style>
