@@ -1,7 +1,7 @@
 @use "variables";
 @use "sass:color";
 
-.btn-primary {
+.btn-primary, .el-message-box .el-button--primary {
   color: #fff;
   background-color: variables.$color-primary;
   border: 1px solid variables.$color-primary;
@@ -25,6 +25,13 @@
   background-color: #EFF2EC;
   border: none;
   color: #000;
+
+  &.is-disabled {
+    background-color: variables.$text-color-disable;
+    &:hover{
+      background-color: variables.$text-color-disable;
+    }
+  }
 }
 
 .btn-icon {

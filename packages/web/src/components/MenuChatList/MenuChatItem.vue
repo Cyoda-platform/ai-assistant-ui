@@ -1,7 +1,7 @@
 <template>
   <div class="menu-chat-item" @mouseleave="isShowPopover=false">
     <router-link class="menu-chat-item__link" :to="link">{{ chat.name }}</router-link>
-    <el-popover v-model:visible="isShowPopover" placement="right-start" :popper-style="popperStyle"
+    <el-popover popper-class="default" v-model:visible="isShowPopover" placement="right-start" :popper-style="popperStyle"
                 :popper-options="popperOptions"
                 trigger="click" :show-arrow="false">
       <template #reference>

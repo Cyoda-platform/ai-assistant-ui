@@ -11,8 +11,8 @@ const useAppStore = defineStore('app', {
     }
   },
   actions: {
-    toggleSidebar() {
-      this.isSidebarHidden = !this.isSidebarHidden;
+    toggleSidebar(value) {
+      this.isSidebarHidden = value !== undefined ? value : !this.isSidebarHidden;
       helperStorage.set("app:isSidebarHidden", this.isSidebarHidden);
     },
     toggleCanvas() {

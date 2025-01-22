@@ -1,6 +1,6 @@
 @use "variables";
 
-.el-popper {
+.el-popper.default {
   border-color: variables.$color-primary !important;
   background: #FEFFFC !important;
   box-shadow: none !important;

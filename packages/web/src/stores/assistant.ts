@@ -11,11 +11,17 @@ const useAssistantStore = defineStore('assistant', {
     getQuestions(technical_id: string) {
       return privateClient.get(`/v1/chats/${technical_id}/questions`);
     },
-    postTextAnswers(technical_id: string, answer: string) {
-      return privateClient.post(`/v1/chats/${technical_id}/text-answers`, {answer})
+    postTextAnswers(technical_id: string, data: any) {
+      return privateClient.post(`/v1/chats/${technical_id}/text-answers`, data)
     },
-    postTextQuestions(technical_id: string, question: string) {
-      return privateClient.post(`/v1/chats/${technical_id}/text-questions`, {question})
+    postAnswers(technical_id: string, data: any) {
+      return privateClient.post(`/v1/chats/${technical_id}/answers`, data)
+    },
+    postTextQuestions(technical_id: string, data: any) {
+      return privateClient.post(`/v1/chats/${technical_id}/text-questions`, data)
+    },
+    postQuestions(technical_id: string, data: any) {
+      return privateClient.post(`/v1/chats/${technical_id}/questions`, data)
     },
     postPushNotify(technical_id: string) {
       return privateClient.post(`/v1/chats/${technical_id}/push-notify`)

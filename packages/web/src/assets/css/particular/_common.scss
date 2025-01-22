@@ -1,3 +1,5 @@
+@use './variables.scss';
+
 html {
   font-family: "Roboto", Arial, sans-serif
 }
@@ -18,5 +20,18 @@ h4 {
 }
 
 .color-green {
-  color: #148751;
+  color: variables.$color-primary;
+}
+
+a {
+  color: variables.$color-primary;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+pre code {
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
