@@ -150,20 +150,29 @@ async function getQuestions() {
   isLoading.value = false;
 }
 
-function onAnswer(answer: string) {
-  assistantStore.postTextAnswers(props.technicalId, answer);
-  addMessage({answer});
+function onAnswer(answer: any) {
+  if (answer.file) {
+    const formData = new FormData();
+    formData.append('file', answer.file);
+    formData.append('answer', answer.answer);
+
+    assistantStore.postAnswers(props.technicalId, formData);
+  } else {
+    assistantStore.postTextAnswers(props.technicalId, answer);
+  }
+  addMessage(answer);
   isLoading.value = true;
 }
 
 function addMessage(el) {
-  let type = 'answer'; // Значение по умолчанию
+  let type = 'answer';
   if (el.question) type = 'question';
   else if (el.notification) type = 'notification';
 
   messages.value.push({
     id: uuidv4(),
     text: el.question || el.notification || el.answer,
+    file: el.file,
     editable: !!el.editable,
     raw: el,
     type
@@ -182,7 +191,9 @@ onMounted(() => {
 function scrollDownMessages() {
   const messagesHtml = document.querySelector('.chat-bot__inner-messages');
   new MutationObserver(() => {
-    messagesHtml.scrollTo(0, messagesHtml.scrollHeight);
+    nextTick(() => {
+      messagesHtml.scrollTo(0, messagesHtml.scrollHeight);
+    })
   }).observe(messagesHtml, {
     childList: true,
   });

@@ -27,7 +27,7 @@
           </template>
           <ChatLoader v-if="props.isLoading"/>
         </div>
-        <ChatBotDialogCanvasSubmitForm @answer="emit('answer', $event)"/>
+        <ChatBotSubmitForm layout="canvas" @answer="emit('answer', $event)"/>
       </el-col>
       <el-col :span="19" class="chat-bot-dialog-canvas__main">
         <div class="chat-bot-dialog-canvas__top_actions">
@@ -81,7 +81,7 @@
 
 <script lang="ts" setup>
 import ChatBotCanvas from "@/components/ChatBot/ChatBotCanvas.vue";
-import {nextTick, ref, watch} from "vue";
+import {nextTick, ref, useTemplateRef, watch} from "vue";
 import ChatBotMessageAnswer from "@/components/ChatBot/ChatBotMessageAnswer.vue";
 import ChatBotMessageQuestion from "@/components/ChatBot/ChatBotMessageQuestion.vue";
 import PushIcon from "@/assets/images/icons/push.svg";
@@ -89,9 +89,9 @@ import ApproveIcon from "@/assets/images/icons/approve.svg";
 import RollbackIcon from "@/assets/images/icons/rollback.svg";
 import BellIcon from "@/assets/images/icons/bell.svg";
 import CloseCanvasIcon from "@/assets/images/icons/close-canvas.svg";
-import ChatBotDialogCanvasSubmitForm from "@/components/ChatBot/ChatBotDialogCanvasSubmitForm.vue";
 import ChatLoader from "@/components/ChatBot/ChatLoader.vue";
 import ChatBotMessageNotification from "@/components/ChatBot/ChatBotMessageNotification.vue";
+import ChatBotSubmitForm from "@/components/ChatBot/ChatBotSubmitForm.vue";
 
 const props = defineProps<{
   messages: any[],
@@ -114,7 +114,9 @@ let mutationObserverEl = null;
 function scrollDownMessages() {
   const messagesHtml = document.querySelector('.chat-bot-dialog-canvas__sidebar-messages');
   mutationObserverEl = new MutationObserver(() => {
-    messagesHtml.scrollTo(0, messagesHtml.scrollHeight);
+    nextTick(() => {
+      messagesHtml.scrollTo(0, messagesHtml.scrollHeight);
+    });
   });
   mutationObserverEl.observe(messagesHtml, {
     childList: true,
@@ -135,7 +137,7 @@ watch(dialogVisible, (value) => {
 .chat-bot-dialog-canvas {
   padding: 0;
 
-  .el-dialog__header {
+  > .el-dialog__header {
     display: none;
   }
 

@@ -9,8 +9,8 @@
           content="Submit Answer"
           placement="left"
         >
-        <SendIcon/>
-        A
+          <SendIcon/>
+          A
 
         </el-tooltip>
       </div>
@@ -21,11 +21,16 @@
           content="Submit Question"
           placement="left"
         >
-        <SendIcon/>
-        Q
+          <SendIcon/>
+          Q
         </el-tooltip>
       </div>
     </div>
+    <ChatBotAttachFile
+      ref="chatBotAttachFileRef"
+      @answer="emit('answer', $event)"
+      @question="onQuestionAttachFile"
+    />
   </div>
 </template>
 
@@ -36,6 +41,7 @@ import {ref, useTemplateRef} from "vue";
 import * as monaco from 'monaco-editor';
 import {ElMessageBox, ElNotification} from "element-plus";
 import useAssistantStore from "@/stores/assistant.ts";
+import ChatBotAttachFile from "@/components/ChatBot/ChatBotAttachFile.vue";
 
 const canvasData = ref('');
 const editorRef = useTemplateRef('editorRef');
@@ -43,6 +49,8 @@ const editorActions = ref<any[]>([]);
 const isLoading = ref(false);
 const assistantStore = useAssistantStore();
 const emit = defineEmits(['answer']);
+const chatBotAttachFileRef = useTemplateRef('chatBotAttachFileRef');
+let currentEditor = null;
 
 const props = defineProps<{
   technicalId: string
@@ -51,10 +59,22 @@ const props = defineProps<{
 async function onSubmitQuestion() {
   try {
     isLoading.value = true;
-    const {data} = await assistantStore.postTextQuestions(props.technicalId, canvasData.value);
+    const {data} = await questionRequest({question: canvasData.value})
     canvasData.value += `\n/*\n${data.message}\n*/`;
   } finally {
     isLoading.value = false;
+  }
+}
+
+async function questionRequest(data) {
+  if (data.file) {
+    const formData = new FormData();
+    formData.append('file', data.file);
+    formData.append('question', data.question);
+
+    return assistantStore.postQuestions(props.technicalId, formData);
+  } else {
+    return assistantStore.postTextQuestions(props.technicalId, data.question);
   }
 }
 
@@ -62,8 +82,51 @@ async function onSubmitAnswer() {
   emit('answer', canvasData.value);
 }
 
+async function onQuestionAttachFile(question) {
+  try {
+    isLoading.value = true;
+    const {data} = await questionRequest(question);
+
+    const position = currentEditor.getPosition();
+    const lineCount = currentEditor.getModel().getLineCount();
+    const message = data.message.replaceAll('```javascript', '').replaceAll('```', '').trim();
+    let textToInsert = `/*\n${message}\n*/`;
+    if (position.lineNumber === lineCount) {
+      textToInsert = '\n' + textToInsert;
+    } else {
+      textToInsert = textToInsert + '\n';
+    }
+    const range = new monaco.Range(
+      position.lineNumber + 1,
+      1,
+      position.lineNumber + 1,
+      1
+    );
+    currentEditor.executeEdits('DialogContentScriptEditor', [
+      {
+        range,
+        text: textToInsert,
+      },
+    ]);
+    currentEditor.setPosition({
+      lineNumber: position.lineNumber + 1,
+      column: textToInsert.length + 1
+    });
+
+    ElNotification({
+      title: 'Success',
+      message: 'The code was generated',
+      type: 'success',
+    })
+  } finally {
+    isLoading.value = false;
+  }
+}
+
 addSubmitQuestionAction();
+addSubmitQuestionActionWithFile();
 addSubmitAnswerAction();
+addSubmitAnswerActionWithFile();
 
 function addSubmitQuestionAction() {
   editorActions.value.push({
@@ -83,7 +146,7 @@ function addSubmitQuestionAction() {
 
       try {
         isLoading.value = true;
-        const {data} = await assistantStore.postTextQuestions(props.technicalId, selectedValue);
+        const {data} = await questionRequest({question: selectedValue});
 
         const position = editor.getPosition();
         const lineCount = editor.getModel().getLineCount();
@@ -124,6 +187,28 @@ function addSubmitQuestionAction() {
   })
 }
 
+function addSubmitQuestionActionWithFile() {
+  editorActions.value.push({
+    id: "submitQuestionWithFile",
+    label: "Submit Question with File",
+    contextMenuGroupId: "chatbot",
+    keybindings: [
+      monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyW,
+    ],
+    run: async (editor) => {
+      currentEditor = editor;
+      const selectedValue = editor.getModel().getValueInRange(editor.getSelection());
+
+      if (!selectedValue) {
+        ElMessageBox.alert('Please select text before use it', 'Warning');
+        return;
+      }
+
+      chatBotAttachFileRef.value.openDialog(selectedValue, 'question');
+    }
+  })
+}
+
 function addSubmitAnswerAction() {
   editorActions.value.push({
     id: "submitAnswer",
@@ -140,7 +225,28 @@ function addSubmitAnswerAction() {
         return;
       }
 
-      emit('answer', selectedValue);
+      emit('answer', {answer: selectedValue});
+    }
+  })
+}
+
+function addSubmitAnswerActionWithFile() {
+  editorActions.value.push({
+    id: "submitAnswerWithFile",
+    label: "Submit Answer with File",
+    contextMenuGroupId: "chatbot",
+    keybindings: [
+      monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyS,
+    ],
+    run: async (editor) => {
+      const selectedValue = editor.getModel().getValueInRange(editor.getSelection());
+
+      if (!selectedValue) {
+        ElMessageBox.alert('Please select text before use it', 'Warning');
+        return;
+      }
+
+      chatBotAttachFileRef.value.openDialog(selectedValue, 'answer');
     }
   })
 }
