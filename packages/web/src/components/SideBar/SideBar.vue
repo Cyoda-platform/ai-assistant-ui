@@ -3,7 +3,6 @@
     <div class="side-bar__wrapper-logo">
       <template v-if="isSidebarHidden">
         <img alt="logo" class="side-bar__logo" :src="LogoSmallUrl"/>
-        <ToggleOpenIcon @click="onClickToggleSidebar" class="side-bar__toggle-close"/>
       </template>
       <template v-else>
         <img alt="logo" class="side-bar__logo" :src="LogoUrl"/>
@@ -11,6 +10,11 @@
       </template>
     </div>
     <ul class="side-bar__nav">
+      <li v-if="isSidebarHidden" class="side-bar__li">
+        <a @click="onClickToggleSidebar" class="side-bar__link">
+          <ToggleOpenIcon class="side-bar__toggle-close main-icon"/>
+        </a>
+      </li>
       <li
         class="side-bar__li"
         v-for="(menu, index) in menus"
@@ -34,7 +38,7 @@
               (<LoadingText/>)
             </template>
           </span>
-          <ArrowDownIcon class="arrow-down-icon" v-if="menu.component"/>
+          <ArrowDownIcon class="arrow-down-icon" v-if="menu.component && !isSidebarHidden"/>
         </a>
         <template v-if="menu.component">
           <el-collapse-transition>
@@ -42,9 +46,18 @@
           </el-collapse-transition>
         </template>
       </li>
-      <li>
-        <el-button @click="onClickCreate" class="btn-primary side-bar__create_new">Create new request</el-button>
-      </li>
+      <template v-if="isSidebarHidden">
+        <li class="side-bar__li">
+          <a class="side-bar__link side-bar__link" href="#" @click.prevent="onClickCreate">
+            <CreateNewRequestIcon class="main-icon"/>
+          </a>
+        </li>
+      </template>
+      <template v-else>
+        <li class="side-bar__li">
+          <el-button @click="onClickCreate" class="btn-primary side-bar__create_new">Create new request</el-button>
+        </li>
+      </template>
     </ul>
     <div class="side-bar__footer">
       <a @click="onClickLogout" href="#" class="side-bar__logout">
@@ -72,6 +85,7 @@ import LogoSmallUrl from '@/assets/images/logo-small.svg?url'
 import LogoUrl from '@/assets/images/logo.svg?url'
 import LoadingText from "@/components/LoadingText.vue";
 import ArrowDownIcon from '@/assets/images/icons/arrow-down.svg';
+import CreateNewRequestIcon from '@/assets/images/icons/create-new-request.svg';
 
 const authStore = useAuthStore();
 const appStore = useAppStore();
@@ -90,7 +104,12 @@ function onClickLogout() {
 }
 
 function onClickToggleSidebar() {
+  closeAllMenus();
   appStore.isCanvasHidden ? appStore.toggleSidebarCanvas() : appStore.toggleSidebar();
+}
+
+function closeAllMenus() {
+  menus.value.map((el) => el.isShow = false);
 }
 
 const isSidebarHidden = computed(() => {
@@ -110,6 +129,7 @@ function onClickMenu(menu) {
   } else if (!isMenuReady(menu)) {
     return;
   } else if (menu.component) {
+    if (isSidebarHidden.value) appStore.toggleSidebar(false);
     menu.isShow = !menu.isShow;
   }
 }
@@ -193,10 +213,6 @@ function onClickCreate() {
     }
   }
 
-  &--hidden &__link {
-    justify-content: start;
-  }
-
   &__footer {
     margin: 15px 0;
   }
@@ -218,12 +234,32 @@ function onClickCreate() {
     }
   }
 
-  &--hidden &__logout {
+  &__create_new {
+    width: 100%;
+  }
+
+  &--hidden &__link {
     justify-content: center;
   }
 
-  &__create_new {
-    width: 100%;
+  &--hidden &__logout {
+    justify-content: center;
+
+    svg {
+      margin-right: 0;
+    }
+  }
+
+  &--hidden &__wrapper-logo {
+    justify-content: center;
+  }
+
+  &--hidden &__li .main-icon {
+    margin-right: 0;
+  }
+
+  &--hidden &__nav{
+    padding-right: 0;
   }
 }
 </style>

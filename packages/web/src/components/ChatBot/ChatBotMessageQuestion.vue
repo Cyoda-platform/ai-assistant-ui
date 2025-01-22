@@ -25,8 +25,8 @@
 <script lang="ts" setup>
 import AiChaIcon from "@/assets/images/icons/ai-chat.svg";
 import RollbackQuestionIcon from "@/assets/images/icons/rollback-question.svg";
-import * as marked from 'marked';
 import {computed, ref} from "vue";
+import HelperMarkdown from "@/helpers/HelperMarkdown";
 
 const props = defineProps<{
   message: any,
@@ -40,7 +40,7 @@ const computedMessage = computed(() => {
     return JSON.stringify(text, null, 2);
   }
 
-  return marked.parse(text);
+  return HelperMarkdown.parseMarkdown(text);
 });
 
 function onClickRollbackQuestion() {

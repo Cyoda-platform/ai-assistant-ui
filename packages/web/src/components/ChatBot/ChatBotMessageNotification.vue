@@ -64,8 +64,8 @@
 
 <script lang="ts" setup>
 import NotificationIcon from "@/assets/images/icons/notification.svg";
-import * as marked from 'marked';
 import {computed, ref} from "vue";
+import HelperMarkdown from "@/helpers/HelperMarkdown";
 
 const props = defineProps<{
   message: any,
@@ -82,7 +82,7 @@ const computedMessage = computed(() => {
     return JSON.stringify(text, null, 2);
   }
 
-  return marked.parse(text);
+  return HelperMarkdown.parseMarkdown(text);
 });
 
 const isVisibleEditBtn = computed(() => {
