@@ -1,6 +1,10 @@
 @use "variables";
 @use "sass:color";
 
+.el-button {
+  font-weight: 400;
+}
+
 .btn-primary, .el-message-box .el-button--primary {
   color: #fff;
   background-color: variables.$color-primary;
@@ -17,8 +21,9 @@
   }
 }
 
-.el-button--small{
+.el-button--small {
   font-size: 12px;
+  border-radius: 4px;
 }
 
 .btn-default {
@@ -28,7 +33,8 @@
 
   &.is-disabled {
     background-color: variables.$text-color-disable;
-    &:hover{
+
+    &:hover {
       background-color: variables.$text-color-disable;
     }
   }
@@ -41,5 +47,10 @@
 
   .icon {
     height: unset;
+  }
+
+  &.el-button--small {
+    width: 28px;
+    height: 28px;
   }
 }

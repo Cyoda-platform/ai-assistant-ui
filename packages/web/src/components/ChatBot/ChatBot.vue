@@ -99,6 +99,7 @@ import ChatBotMessageQuestion from "@/components/ChatBot/ChatBotMessageQuestion.
 import ChatBotMessageNotification from "@/components/ChatBot/ChatBotMessageNotification.vue";
 import ChatBotMessageAnswer from "@/components/ChatBot/ChatBotMessageAnswer.vue";
 import ChatBotDialogCanvas from "@/components/ChatBot/ChatBotDialogCanvas.vue";
+import {useRoute, useRouter} from "vue-router";
 
 let intervalId: any = null;
 let intervalEnvelopeId: any = null;
@@ -108,6 +109,8 @@ const assistantStore = useAssistantStore();
 const isLoading = ref(false);
 const isEnvelopeActive = ref(false);
 const chatBotDialogCanvasRef = ref(null);
+const route = useRoute();
+const router = useRouter();
 
 const props = defineProps<{
   technicalId: string;
@@ -118,7 +121,13 @@ onMounted(() => {
 })
 
 function init() {
-  loadChatHistory();
+  if (route.query.isNew) {
+    const query = { ...route.query };
+    delete query.isNew;
+    router.replace({ query });
+  } else {
+    loadChatHistory();
+  }
   intervalId = setInterval(() => {
     getQuestions();
   }, 5000);
