@@ -24,7 +24,9 @@
               type="textarea"
               resize="none"
               :autosize="{ minRows: 1 }"
-              :placeholder="placeholderComputed"/>
+              :placeholder="placeholderComputed"
+              @keydown.enter="onClickTextAnswer"
+            />
             <div class="chat-bot-submit-form__btn-submit">
               <button class="btn btn-primary btn-icon"
                       @click.prevent="onClickTextAnswer">
