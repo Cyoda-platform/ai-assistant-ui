@@ -2,24 +2,13 @@
   <div class="chat-bot-message-notification" :class="{
     'chat-bot-message-notification--editable': message.editable
   }">
-
-    <el-button
-      @click="onClickEdit"
-      v-if="isVisibleEditBtn"
-      size="small"
-      class="btn-default chat-bot-message-notification__edit_icon_wrapper"
-      :class="{
-          'is-loading': isLoading
-        }"
-    >
-      Edit
-    </el-button>
     <div class="chat-bot-message-notification__title">
          <span class="chat-bot-message-notification__cyoda-wrapper-icon">
           <NotificationIcon/>
         </span>
       <span>Notification</span>
     </div>
+    <div v-html="computedMessage" class="chat-bot-message-notification__body"/>
     <template v-if="isEditMode">
       <el-input
         v-model="form.message"
@@ -28,20 +17,21 @@
         :disabled="isLoading"
         resize="none"
         type="textarea"
-        placeholder="Please input"
+        placeholder="Type here"
         class="chat-bot-message-notification__input_edit"
+        @keydown.enter="onClickSave"
       />
       <div class="chat-bot-message-question__actions">
         <el-button
           @click="onClickCancel"
           size="small"
           :disabled="isLoading"
-          class="btn-default"
+          class="btn-white"
           :class="{
           'is-loading': isLoading
         }"
         >
-          Cancel
+          Discard Changes
         </el-button>
         <el-button
           @click="onClickSave"
@@ -52,13 +42,21 @@
           'is-loading': isLoading
         }"
         >
-          Save
+          Save Changes
         </el-button>
       </div>
     </template>
-    <template v-else>
-      <div v-html="computedMessage" class="chat-bot-message-notification__body"/>
-    </template>
+    <el-button
+      @click="onClickEdit"
+      v-if="isVisibleEditBtn"
+      size="small"
+      class="btn-default btn-icon chat-bot-message-notification__edit_icon_wrapper"
+      :class="{
+          'is-loading': isLoading
+        }"
+    >
+      <EditIcon/>
+    </el-button>
   </div>
 </template>
 
@@ -66,6 +64,7 @@
 import NotificationIcon from "@/assets/images/icons/notification.svg";
 import {computed, ref} from "vue";
 import HelperMarkdown from "@/helpers/HelperMarkdown";
+import EditIcon from '@/assets/images/icons/edit.svg';
 
 const props = defineProps<{
   message: any,
@@ -93,7 +92,7 @@ const emit = defineEmits(['updateNotification']);
 
 function onClickEdit() {
   isEditMode.value = true;
-  form.value.message = props.message.text;
+  form.value.message = '';
 }
 
 function onClickCancel() {
@@ -130,14 +129,14 @@ function resetForm() {
   &__edit_icon_wrapper {
     position: absolute;
     right: 10px;
-    top: 10px;
+    bottom: 10px;
     display: block;
   }
 
   &__cyoda-wrapper-icon {
     position: absolute;
     left: 24px;
-    top: 22px;
+    top: 19px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -151,6 +150,7 @@ function resetForm() {
 
     span {
       color: variables.$color-primary;
+      font-weight: 500;
       font-size: 16px;
     }
   }
@@ -165,6 +165,12 @@ function resetForm() {
   &__input_edit {
     margin-right: 48px;
     margin-bottom: 16px;
+
+    .el-textarea__inner {
+      box-shadow: none;
+      border: 1px solid variables.$color-primary-darken;
+      border-radius: 8px;
+    }
   }
 
   &__actions {

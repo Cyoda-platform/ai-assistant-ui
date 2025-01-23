@@ -1,6 +1,6 @@
 <template>
   <div v-loading="isLoading" class="chat-bot-canvas">
-    <Editor v-model="canvasData" ref="editorRef" class="chat-bot-canvas__editor" :actions="editorActions"/>
+    <Editor v-model="canvasData" class="chat-bot-canvas__editor" :actions="editorActions"/>
     <div class="chat-bot-canvas__actions">
       <div @click="onSubmitAnswer" class="btn-action">
         <el-tooltip
@@ -44,7 +44,6 @@ import useAssistantStore from "@/stores/assistant.ts";
 import ChatBotAttachFile from "@/components/ChatBot/ChatBotAttachFile.vue";
 
 const canvasData = ref('');
-const editorRef = useTemplateRef('editorRef');
 const editorActions = ref<any[]>([]);
 const isLoading = ref(false);
 const assistantStore = useAssistantStore();
@@ -74,12 +73,12 @@ async function questionRequest(data) {
 
     return assistantStore.postQuestions(props.technicalId, formData);
   } else {
-    return assistantStore.postTextQuestions(props.technicalId, data.question);
+    return assistantStore.postTextQuestions(props.technicalId, data);
   }
 }
 
 async function onSubmitAnswer() {
-  emit('answer', canvasData.value);
+  emit('answer', {answer: canvasData.value});
 }
 
 async function onQuestionAttachFile(question) {
