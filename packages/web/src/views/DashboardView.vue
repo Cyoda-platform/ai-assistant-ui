@@ -12,7 +12,7 @@ import {useRouter} from "vue-router";
 const router = useRouter();
 
 function onCreated(data: CreateChatResponse) {
-  router.push(`/chat-bot/view/${data.technical_id}`)
+  router.push(`/chat-bot/view/${data.technical_id}?isNew=true`);
 }
 </script>
 
