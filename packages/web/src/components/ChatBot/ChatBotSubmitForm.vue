@@ -203,6 +203,10 @@ const placeholderComputed = computed(() => {
     display: flex;
     gap: 10px;
     margin-bottom: 6px;
+
+    svg {
+      fill: #606266;
+    }
   }
 
   .el-textarea__inner {
