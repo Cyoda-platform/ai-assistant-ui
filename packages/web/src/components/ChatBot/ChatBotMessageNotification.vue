@@ -9,43 +9,45 @@
       <span>Notification</span>
     </div>
     <div v-html="computedMessage" class="chat-bot-message-notification__body"/>
-    <template v-if="isEditMode">
-      <el-input
-        v-model="form.message"
-        style="width: 100%"
-        :autosize="{ minRows: 4, maxRows: 6 }"
-        :disabled="isLoading"
-        resize="none"
-        type="textarea"
-        placeholder="Type here"
-        class="chat-bot-message-notification__input_edit"
-        @keydown.enter="onClickSave"
-      />
-      <div class="chat-bot-message-question__actions">
-        <el-button
-          @click="onClickCancel"
-          size="small"
+    <el-collapse-transition>
+      <div v-show="isEditMode">
+        <el-input
+          v-model="form.message"
+          style="width: 100%"
+          :autosize="{ minRows: 4, maxRows: 6 }"
           :disabled="isLoading"
-          class="btn-white"
-          :class="{
+          resize="none"
+          type="textarea"
+          placeholder="Type here"
+          class="chat-bot-message-notification__input_edit"
+          @keydown.enter="onClickSave"
+        />
+        <div class="chat-bot-message-question__actions">
+          <el-button
+            @click="onClickCancel"
+            size="small"
+            :disabled="isLoading"
+            class="btn-white"
+            :class="{
           'is-loading': isLoading
         }"
-        >
-          Discard Changes
-        </el-button>
-        <el-button
-          @click="onClickSave"
-          size="small"
-          :loading="isLoading"
-          class="btn-primary"
-          :class="{
+          >
+            Discard Changes
+          </el-button>
+          <el-button
+            @click="onClickSave"
+            size="small"
+            :loading="isLoading"
+            class="btn-primary"
+            :class="{
           'is-loading': isLoading
         }"
-        >
-          Save Changes
-        </el-button>
+          >
+            Save Changes
+          </el-button>
+        </div>
       </div>
-    </template>
+    </el-collapse-transition>
     <el-button
       @click="onClickEdit"
       v-if="isVisibleEditBtn"
@@ -91,13 +93,12 @@ const isVisibleEditBtn = computed(() => {
 const emit = defineEmits(['updateNotification']);
 
 function onClickEdit() {
+  resetForm();
   isEditMode.value = true;
-  form.value.message = '';
 }
 
 function onClickCancel() {
   isEditMode.value = false;
-  resetForm();
 }
 
 function onClickSave() {
@@ -168,7 +169,7 @@ function resetForm() {
 
     .el-textarea__inner {
       box-shadow: none;
-      border: 1px solid variables.$color-primary-darken;
+      border: 1px solid variables.$color-primary;
       border-radius: 8px;
     }
   }

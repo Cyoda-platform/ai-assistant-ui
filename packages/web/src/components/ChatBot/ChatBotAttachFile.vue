@@ -1,68 +1,84 @@
 <template>
   <el-dialog
-    class="chat-bot-attach-file"
-    v-model="dialogVisible"
-    :title="computedTitle"
-    width="500"
+      class="chat-bot-attach-file"
+      v-model="dialogVisible"
+      :title="computedTitle"
+      width="400"
   >
-    <div class="chat-bot-attach-file__content">
-      {{ message }}
-    </div>
 
     <input
-      ref="fileInput"
-      type="file"
-      style="display: none;"
-      @change="handleFileSelect"
-      accept=".pdf,.docx,.xlsx,.pptx,.xml,.json,text/*,image/*"
+        ref="fileInput"
+        type="file"
+        style="display: none;"
+        @change="handleFileSelect"
+        accept=".pdf,.docx,.xlsx,.pptx,.xml,.json,text/*,image/*"
     />
 
-    <div class="chat-bot-attach-file__attachment">
-      <div @click="onClickAttachFile" class="chat-bot-attach-file__attachment-input">
-        {{ fileData.fileName }}
-      </div>
-      <div class="chat-bot-attach-file__attachment-submit">
-        <template v-if="currentFile">
-          <el-button @click="onDeleteFile" class="btn-default btn-icon">
-            <TrashIcon class="chat-bot-attach-file__trash-icon"/>
-          </el-button>
-        </template>
-        <template v-else>
-          <el-button @click="onClickAttachFile" class="btn-default btn-icon">
-            <AttachIcon/>
-          </el-button>
-        </template>
-      </div>
+    <div class="chat-bot-attach-file__attachment" @click="onClickAttachFile" :class="{
+      empty: !currentFile
+    }">
+      <template v-if="currentFile">
+        <FileSubmitPreview
+            :file="currentFile"
+            @delete="currentFile=null"
+            width="220px"
+            height="220px"
+        />
+      </template>
+      <template v-else>
+        <div class="chat-bot-attach-file__attachment-empty">
+          <div class="chat-bot-attach-file__attachment-empty-title">
+            Drag and drop a file here or click to upload
+          </div>
+          <div class="chat-bot-attach-file__attachment-empty-icon">
+            <ImageIcon/>
+          </div>
+        </div>
+      </template>
     </div>
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="dialogVisible = false">Cancel</el-button>
-        <el-button class="btn-primary" type="primary" @click="onSubmit">
-          Submit
-        </el-button>
+        <template v-if="mode === 'new'">
+          <el-button @click="dialogVisible = false">
+            Cancel
+          </el-button>
+
+          <el-button @click="onSubmit" :disabled="!currentFile" class="btn-primary" type="primary">
+            Attach
+          </el-button>
+        </template>
+        <template v-else>
+          <el-button @click="onDeleteFile">
+            Delete
+          </el-button>
+
+          <el-button @click="onSubmit" class="btn-primary" type="primary">
+            Save
+          </el-button>
+        </template>
       </div>
     </template>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
-import AttachIcon from '@/assets/images/icons/attach.svg';
-import TrashIcon from '@/assets/images/icons/trash.svg';
+import ImageIcon from '@/assets/images/icons/image.svg';
 import {computed, ref, useTemplateRef} from "vue";
 import HelperUpload from "@/helpers/HelperUpload";
 import {ElMessageBox} from "element-plus";
+import FileSubmitPreview from "@/components/FileSubmitPreview/FileSubmitPreview.vue";
 
 const dialogVisible = ref(false);
-const message = ref("");
-const type = ref<'answer' | 'question' | null>(null);
 const fileInput = useTemplateRef('fileInput');
 const currentFile = ref(null);
-const emit = defineEmits(['question', 'answer']);
+const emit = defineEmits(['file']);
+const mode = ref<'new' | 'delete' | null>(null);
 
-function openDialog(msg: string, mode: string): void {
-  message.value = msg;
-  type.value = mode;
+
+function openDialog(file: File): void {
   dialogVisible.value = true;
+  currentFile.value = file;
+  mode.value = file? 'delete' : 'new';
 }
 
 function handleFileSelect(event) {
@@ -81,6 +97,7 @@ function handleFileSelect(event) {
 }
 
 function onClickAttachFile() {
+  if (currentFile.value) return;
   fileInput.value.click();
 }
 
@@ -90,25 +107,16 @@ function onDeleteFile() {
 
 function reset() {
   currentFile.value = null;
-  message.value = '';
 }
 
 function onSubmit() {
   dialogVisible.value = false;
-  const data = {
-    file: currentFile.value
-  };
-  data[type.value] = message.value;
-  emit(type.value, data);
+  emit('file', currentFile.value);
   reset();
 }
 
 const computedTitle = computed(() => {
-  const titles = {
-    answer: 'Attach File for Answer',
-    question: 'Attach File for Question',
-  };
-  return titles[type.value] || 'Attach File';
+  return mode.value === 'new' ? 'Attach file or image' : 'Check uploaded file';
 });
 
 const fileData = computed(() => {
@@ -125,38 +133,56 @@ const fileData = computed(() => {
 defineExpose({openDialog});
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
+@use "@/assets/css/particular/variables";
+
 .chat-bot-attach-file {
+  padding-left: 24px !important;
+  padding-right: 24px !important;
+
   &__content {
     margin-bottom: 10px;
   }
 
   &__attachment {
     display: flex;
-    border: 1px solid #CDD0D6;
-    border-radius: 8px;
-    height: 40px;
     overflow: hidden;
-  }
+    width: 352px;
+    height: 264px;
+    background: #EFF2EC;
+    border: 1px solid #D4D7DE;
+    border-radius: 6px;
+    margin: 0 auto;
 
-  &__attachment-input {
-    flex: 1;
-    cursor: not-allowed;
-    line-height: 40px;
-    padding-left: 15px;
-  }
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
 
-  &__attachment-submit {
-    margin-left: auto;
-
-    button {
-      border-top-left-radius: 0;
-      border-bottom-left-radius: 0;
+    &.empty {
+      cursor: pointer;
     }
   }
 
-  &__trash-icon {
-    width: 18px;
+  &__attachment-empty {
+    text-align: center;
+  }
+
+  &__attachment-empty-title {
+    margin-bottom: 24px;
+    font-size: 16px;
+    color: variables.$text-color-secondary;
+    font-weight: 400;
+  }
+
+  .dialog-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+
+    button {
+      flex: 1;
+      margin: 0;
+    }
   }
 }
 </style>
