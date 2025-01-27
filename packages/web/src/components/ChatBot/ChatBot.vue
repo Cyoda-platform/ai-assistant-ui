@@ -236,8 +236,8 @@ function onClickShowCanvas() {
   chatBotDialogCanvasRef.value.dialogVisible = true;
 }
 
-async function onRollbackQuestion(question) {
-  await assistantStore.postRollbackQuestion(props.technicalId, question);
+async function onRollbackQuestion(event) {
+  await assistantStore.postRollbackQuestion(props.technicalId, event);
   isLoading.value = true;
   loadChatHistory();
 }

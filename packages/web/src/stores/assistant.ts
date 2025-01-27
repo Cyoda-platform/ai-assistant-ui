@@ -38,8 +38,8 @@ const useAssistantStore = defineStore('assistant', {
     getChatById(technical_id: string) {
       return privateClient.get(`/v1/chats/${technical_id}`)
     },
-    postRollbackQuestion(technical_id: string, question) {
-      return privateClient.post(`/v1/chats/${technical_id}/rollback`, {question})
+    postRollbackQuestion(technical_id: string, event) {
+      return privateClient.post(`/v1/chats/${technical_id}/rollback`, event)
     },
     putNotification(technical_id: string, data) {
       return privateClient.put(`/v1/chats/${technical_id}/notification`, data)
