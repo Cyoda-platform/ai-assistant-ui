@@ -3,7 +3,7 @@
     <template v-if="props.file">
       <CloseIcon @click="onDeleteAttach" class="file-submit-preview__icon-close"/>
       <template v-if="imagePreview">
-        <el-image class="file-submit-preview__image" style="width: 100px; height: 100px"
+        <el-image class="file-submit-preview__image" :style="{width: width, height: height}"
                   :src="imagePreview" fit="fill"/>
       </template>
       <template v-else>
@@ -27,9 +27,14 @@ import CloseIcon from '@/assets/images/icons/close.svg';
 import FileIcon from '@/assets/images/icons/file.svg';
 import {ElMessageBox} from "element-plus";
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   file: File,
-}>()
+  width: string,
+  height: string,
+}>(), {
+  width: '100px',
+  height: '100px',
+});
 
 const emit = defineEmits(['delete']);
 
