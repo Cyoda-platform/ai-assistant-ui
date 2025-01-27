@@ -24,7 +24,7 @@ Make sure you have the following software installed:
 
 ### Installation
 
-To set up the project, follow these steps:
+To set up the project, navigate to the **packages/web** folder and follow these steps:
 
 1. **Create Environment File**  
    Copy the `.env.template` file to `.env` and set the appropriate configuration values.
@@ -45,7 +45,7 @@ To set up the project, follow these steps:
 
 ### Installation
 
-To set up the project, follow these steps:
+To set up the project, navigate to the **package/desktop** folder and follow these steps:
 
 1. **Create Environment File**  
    Copy the `.env.template` file to `.env` and set the appropriate configuration values.
