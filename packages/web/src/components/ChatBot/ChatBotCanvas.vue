@@ -2,34 +2,50 @@
   <div v-loading="isLoading" class="chat-bot-canvas">
     <Editor v-model="canvasData" class="chat-bot-canvas__editor" :actions="editorActions"/>
     <div class="chat-bot-canvas__actions">
-      <div @click="onSubmitAnswer" class="btn-action">
+      <div class="btn-action">
         <el-tooltip
           class="box-item"
           effect="dark"
-          content="Submit Answer"
+          content="Attach File"
           placement="left"
         >
-          <SendIcon/>
-          A
-
+          <el-badge :show-zero="false" :value="countFiles" class="item" color="green">
+            <el-button @click="onAttachFile" class="btn-default btn-icon btn-border">
+              <AttachIcon/>
+            </el-button>
+          </el-badge>
         </el-tooltip>
       </div>
-      <div @click="onSubmitQuestion" class="btn-action">
+
+      <div class="btn-action">
         <el-tooltip
           class="box-item"
           effect="dark"
-          content="Submit Question"
+          content="Ask CYODA AI"
           placement="left"
         >
-          <SendIcon/>
-          Q
+          <el-button @click="onSubmitQuestion" class="btn-default btn-icon btn-border">
+            <ChatIcon/>
+          </el-button>
+        </el-tooltip>
+      </div>
+
+      <div class="btn-action">
+        <el-tooltip
+          class="box-item"
+          effect="dark"
+          content="Send Answer"
+          placement="left"
+        >
+          <el-button @click="onSubmitAnswer" class="btn-default btn-icon btn-border">
+            <SendIcon/>
+          </el-button>
         </el-tooltip>
       </div>
     </div>
     <ChatBotAttachFile
       ref="chatBotAttachFileRef"
-      @answer="emit('answer', $event)"
-      @question="onQuestionAttachFile"
+      @file="onFile"
     />
   </div>
 </template>
@@ -37,7 +53,9 @@
 <script setup lang="ts">
 import Editor from "@/components/Editor/Editor.vue";
 import SendIcon from "@/assets/images/icons/send.svg";
-import {ref, useTemplateRef} from "vue";
+import AttachIcon from "@/assets/images/icons/attach.svg";
+import ChatIcon from "@/assets/images/icons/chat.svg";
+import {computed, ref, useTemplateRef} from "vue";
 import * as monaco from 'monaco-editor';
 import {ElMessageBox, ElNotification} from "element-plus";
 import useAssistantStore from "@/stores/assistant.ts";
@@ -49,16 +67,34 @@ const isLoading = ref(false);
 const assistantStore = useAssistantStore();
 const emit = defineEmits(['answer']);
 const chatBotAttachFileRef = useTemplateRef('chatBotAttachFileRef');
-let currentEditor = null;
+const currentFile = ref(null);
 
 const props = defineProps<{
   technicalId: string
 }>()
 
+function onAttachFile() {
+  chatBotAttachFileRef.value.openDialog(currentFile.value);
+}
+
+const countFiles = computed(() => {
+  return currentFile.value ? 1 : 0;
+})
+
 async function onSubmitQuestion() {
   try {
     isLoading.value = true;
-    const {data} = await questionRequest({question: canvasData.value})
+
+    const dataRequest = {
+      question: canvasData.value
+    };
+
+    if (currentFile.value) {
+      dataRequest.file = currentFile.value;
+    }
+
+    const {data} = await questionRequest(dataRequest)
+    currentFile.value = null;
     canvasData.value += `\n/*\n${data.message}\n*/`;
   } finally {
     isLoading.value = false;
@@ -78,54 +114,21 @@ async function questionRequest(data) {
 }
 
 async function onSubmitAnswer() {
-  emit('answer', {answer: canvasData.value});
-}
 
-async function onQuestionAttachFile(question) {
-  try {
-    isLoading.value = true;
-    const {data} = await questionRequest(question);
+  const dataRequest = {
+    answer: canvasData.value
+  };
 
-    const position = currentEditor.getPosition();
-    const lineCount = currentEditor.getModel().getLineCount();
-    const message = data.message.replaceAll('```javascript', '').replaceAll('```', '').trim();
-    let textToInsert = `/*\n${message}\n*/`;
-    if (position.lineNumber === lineCount) {
-      textToInsert = '\n' + textToInsert;
-    } else {
-      textToInsert = textToInsert + '\n';
-    }
-    const range = new monaco.Range(
-      position.lineNumber + 1,
-      1,
-      position.lineNumber + 1,
-      1
-    );
-    currentEditor.executeEdits('DialogContentScriptEditor', [
-      {
-        range,
-        text: textToInsert,
-      },
-    ]);
-    currentEditor.setPosition({
-      lineNumber: position.lineNumber + 1,
-      column: textToInsert.length + 1
-    });
-
-    ElNotification({
-      title: 'Success',
-      message: 'The code was generated',
-      type: 'success',
-    })
-  } finally {
-    isLoading.value = false;
+  if (currentFile.value) {
+    dataRequest.file = currentFile.value;
   }
+
+  emit('answer', dataRequest);
+  currentFile.value = null;
 }
 
 addSubmitQuestionAction();
-addSubmitQuestionActionWithFile();
 addSubmitAnswerAction();
-addSubmitAnswerActionWithFile();
 
 function addSubmitQuestionAction() {
   editorActions.value.push({
@@ -145,7 +148,17 @@ function addSubmitQuestionAction() {
 
       try {
         isLoading.value = true;
-        const {data} = await questionRequest({question: selectedValue});
+
+        const dataRequest = {
+          question: selectedValue
+        };
+
+        if (currentFile.value) {
+          dataRequest.file = currentFile.value;
+        }
+
+        const {data} = await questionRequest(dataRequest);
+        currentFile.value = null;
 
         const position = editor.getPosition();
         const lineCount = editor.getModel().getLineCount();
@@ -186,28 +199,6 @@ function addSubmitQuestionAction() {
   })
 }
 
-function addSubmitQuestionActionWithFile() {
-  editorActions.value.push({
-    id: "submitQuestionWithFile",
-    label: "Submit Question with File",
-    contextMenuGroupId: "chatbot",
-    keybindings: [
-      monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyW,
-    ],
-    run: async (editor) => {
-      currentEditor = editor;
-      const selectedValue = editor.getModel().getValueInRange(editor.getSelection());
-
-      if (!selectedValue) {
-        ElMessageBox.alert('Please select text before use it', 'Warning');
-        return;
-      }
-
-      chatBotAttachFileRef.value.openDialog(selectedValue, 'question');
-    }
-  })
-}
-
 function addSubmitAnswerAction() {
   editorActions.value.push({
     id: "submitAnswer",
@@ -224,30 +215,23 @@ function addSubmitAnswerAction() {
         return;
       }
 
-      emit('answer', {answer: selectedValue});
+      const dataRequest = {
+        answer: selectedValue
+      };
+
+      if (currentFile.value) {
+        dataRequest.file = currentFile.value;
+      }
+
+      emit('answer', dataRequest);
+
+      currentFile.value = null;
     }
   })
 }
 
-function addSubmitAnswerActionWithFile() {
-  editorActions.value.push({
-    id: "submitAnswerWithFile",
-    label: "Submit Answer with File",
-    contextMenuGroupId: "chatbot",
-    keybindings: [
-      monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyS,
-    ],
-    run: async (editor) => {
-      const selectedValue = editor.getModel().getValueInRange(editor.getSelection());
-
-      if (!selectedValue) {
-        ElMessageBox.alert('Please select text before use it', 'Warning');
-        return;
-      }
-
-      chatBotAttachFileRef.value.openDialog(selectedValue, 'answer');
-    }
-  })
+function onFile(file: File) {
+  currentFile.value = file;
 }
 </script>
 
@@ -262,54 +246,25 @@ function addSubmitAnswerActionWithFile() {
   }
 
   &__actions {
-    width: 56px;
-    height: 56px;
-    border-radius: 56px;
     position: absolute;
     right: 5px;
-    bottom: 5px;
-    border: 1px solid #e3e3e3;
-    background: #fff;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    bottom: 20px;
     z-index: 100;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: end;
-    transition: 0.5s all;
-    overflow: hidden;
-
-    &:hover {
-      height: 112px;
-
-      .btn-action {
-        opacity: 1;
-        height: 56px;
-      }
-    }
+    align-items: center;
 
     svg {
-      fill: #148751;
+      fill: #0d8484;
     }
 
-    .btn-action:last-child {
-      opacity: 1;
-      height: 56px;
+    button {
+      margin: 0 !important;
     }
-  }
 
-  .btn-action {
-    cursor: pointer;
-    width: 56px;
-    height: 0;
-    display: flex;
-    opacity: 0;
-    justify-content: center;
-    align-items: center;
-    transition: 0.5s all;
-
-    &:hover {
-      opacity: 0.8;
+    .btn-action {
+      margin-top: 24px !important;
     }
   }
 }
