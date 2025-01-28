@@ -14,8 +14,10 @@
     "axios": "^1.7.9",
     "element-plus": "^2.9.3",
     "marked": "^15.0.6",
+    "mermaid": "^11.4.1",
     "modern-normalize": "^3.0.1",
     "monaco-editor": "0.52.2",
+    "pako": "^2.1.0",
     "pinia": "^2.3.1",
     "tiny-emitter": "^2.1.0",
     "uuid": "^11.0.5",
@@ -25,6 +27,7 @@
   "devDependencies": {
     "@tsconfig/node22": "^22.0.0",
     "@types/node": "^22.10.10",
+    "@types/pako": "^2",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vitejs/plugin-vue-jsx": "^4.1.1",
     "@vue/eslint-config-typescript": "^14.3.0",
