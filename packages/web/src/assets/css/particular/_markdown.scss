@@ -1,0 +1,19 @@
+@use "variables";
+
+.wrapper-mermaid, .wrapper-plantuml {
+  .actions{
+    text-align: right;
+    margin-bottom: 16px;
+  }
+  .copy {
+    color: variables.$text-color-regular;
+    text-decoration: none;
+    display: inline-block;
+    background: variables.$text-color-disable;
+    padding: 1px;
+    font-size: 12px;
+    border-radius: 8px;
+    width: 70px;
+    text-align: center;
+  }
+}

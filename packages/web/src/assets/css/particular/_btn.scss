@@ -13,9 +13,11 @@
   font-family: 'PingFang SC', Arial, sans-serif;
   font-size: 16px;
   font-weight: 400;
+  box-shadow: none;
 
   &.is-disabled{
     background: linear-gradient(0deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), #0D8484;
+    border-color: transparent;
   }
 
   &:hover {

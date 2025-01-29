@@ -1,28 +1,36 @@
 <template>
   <el-dialog
-      class="chat-bot-attach-file"
-      v-model="dialogVisible"
-      :title="computedTitle"
-      width="400"
+    class="chat-bot-attach-file"
+    v-model="dialogVisible"
+    :title="computedTitle"
+    width="400"
   >
 
     <input
-        ref="fileInput"
-        type="file"
-        style="display: none;"
-        @change="handleFileSelect"
-        accept=".pdf,.docx,.xlsx,.pptx,.xml,.json,text/*,image/*"
+      ref="fileInput"
+      type="file"
+      style="display: none;"
+      @change="handleFileSelect"
+      accept=".pdf,.docx,.xlsx,.pptx,.xml,.json,text/*,image/*"
     />
 
-    <div class="chat-bot-attach-file__attachment" @click="onClickAttachFile" :class="{
+    <div
+      @dragenter.prevent="handleDragEnter"
+      @dragleave.prevent="handleDragLeave"
+      @drop.prevent="handleDrop"
+      @dragover.prevent
+      class="chat-bot-attach-file__attachment"
+      @click="onClickAttachFile"
+      :class="{
+      'chat-bot-attach-file__drag-started': isDragging,
       empty: !currentFile
     }">
       <template v-if="currentFile">
         <FileSubmitPreview
-            :file="currentFile"
-            @delete="currentFile=null"
-            width="220px"
-            height="220px"
+          :file="currentFile"
+          @delete="currentFile=null"
+          width="220px"
+          height="220px"
         />
       </template>
       <template v-else>
@@ -73,12 +81,12 @@ const fileInput = useTemplateRef('fileInput');
 const currentFile = ref(null);
 const emit = defineEmits(['file']);
 const mode = ref<'new' | 'delete' | null>(null);
-
+const isDragging = ref(false);
 
 function openDialog(file: File): void {
   dialogVisible.value = true;
   currentFile.value = file;
-  mode.value = file? 'delete' : 'new';
+  mode.value = file ? 'delete' : 'new';
 }
 
 function handleFileSelect(event) {
@@ -130,6 +138,25 @@ const fileData = computed(() => {
   return {};
 })
 
+let dragCounter = 0;
+
+function handleDragEnter() {
+  dragCounter++;
+  isDragging.value = true;
+}
+
+function handleDragLeave() {
+  dragCounter--;
+  if (dragCounter === 0) isDragging.value = false;
+}
+
+function handleDrop(event) {
+  dragCounter = 0;
+  isDragging.value = false;
+
+  currentFile.value = event.dataTransfer.files[0];
+}
+
 defineExpose({openDialog});
 </script>
 
@@ -172,6 +199,10 @@ defineExpose({openDialog});
     font-size: 16px;
     color: variables.$text-color-secondary;
     font-weight: 400;
+  }
+
+  &__drag-started {
+    background-color: rgb(235.9,245.3,255);
   }
 
   .dialog-footer {
