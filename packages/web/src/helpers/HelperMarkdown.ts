@@ -4,14 +4,7 @@ import {renderPlantUML} from "./markdown/plantuml";
 
 export default class HelperMarkdown {
   static parseMarkdown(text) {
-    text=`
- \`\`\`plantuml
-       @startuml
-       Alice -> Bob: Привет!
-       Bob -> Alice: Привет, как дела?
-       @enduml
-\`\`\`
-`;
+
     const renderer = new marked.Renderer();
 
     renderer.link = function ({href, title, text}) {
