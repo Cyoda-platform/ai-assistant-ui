@@ -2,7 +2,6 @@
   <el-dialog
     v-model="dialogVisible"
     fullscreen
-    draggable
     class="chat-bot-dialog-canvas"
   >
     <el-row>

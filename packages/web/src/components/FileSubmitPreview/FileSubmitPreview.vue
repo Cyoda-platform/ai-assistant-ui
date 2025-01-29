@@ -4,7 +4,7 @@
       <CloseIcon @click="onDeleteAttach" class="file-submit-preview__icon-close"/>
       <template v-if="imagePreview">
         <el-image class="file-submit-preview__image" :style="{width: width, height: height}"
-                  :src="imagePreview" fit="fill"/>
+                  :src="imagePreview" fit="cover"/>
       </template>
       <template v-else>
         <div class="file-submit-preview__doc">
