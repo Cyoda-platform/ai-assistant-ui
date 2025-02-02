@@ -2,7 +2,6 @@ import {createRouter, createWebHashHistory, createWebHistory} from 'vue-router'
 import useAuthStore from "@/stores/auth.ts";
 
 const router = createRouter({
-  // history: process.env.IS_ELECTRON ? createWebHashHistory() : createWebHistory(),
   history: import.meta.env.VITE_IS_ELECTRON ? createWebHashHistory() : createWebHistory(),
   routes: [
     {
@@ -32,7 +31,7 @@ const router = createRouter({
       path: "/chat-bot/view/:technicalId",
       name: "ChatBotView",
       meta: {
-        layout: "sidebar",
+        layout: "default",
         isPublic: false,
       },
       component: () => import("../views/ChatBotView.vue"),
