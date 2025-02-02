@@ -1,16 +1,191 @@
 <template>
-  <ChatBot :technicalId="technicalId"/>
+  <ChatBotCanvas
+    :technicalId="technicalId"
+    @answer="onAnswer"
+    @push="onClickPush"
+    @approve="onClickApprove"
+    @rollback="onClickRollback"
+    @rollbackQuestion="onRollbackQuestion"
+    @toggleCanvas="onToggleCanvas"
+    @updateNotification="onUpdateNotification"
+    :isLoading="isLoading"
+    :messages="messages"
+  />
+
+  <el-dialog
+    v-model="dialogVisible"
+    fullscreen
+    class="chat-bot-dialog"
+  >
+    <ChatBot
+      :technicalId="technicalId"
+      @answer="onAnswer"
+      @push="onClickPush"
+      @approve="onClickApprove"
+      @rollback="onClickRollback"
+      @rollbackQuestion="onRollbackQuestion"
+      @toggleCanvas="onToggleCanvas"
+      @updateNotification="onUpdateNotification"
+      :isLoading="isLoading"
+      :messages="messages"
+    />
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
 import ChatBot from "@/components/ChatBot/ChatBot.vue";
 import {computed} from "vue";
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
+import ChatBotCanvas from "@/components/ChatBot/ChatBotCanvas.vue";
+import {onBeforeUnmount, onMounted, ref, watch} from "vue";
+import useAssistantStore from "@/stores/assistant.ts";
+import {v4 as uuidv4} from "uuid";
 
 const route = useRoute();
+const dialogVisible = ref(false);
 
 const technicalId = computed(() => {
   return route.params.technicalId as string;
 });
 
+let intervalId: any = null;
+let intervalEnvelopeId: any = null;
+let promiseInterval: any = null;
+const messages = ref<any[]>([]);
+const assistantStore = useAssistantStore();
+const isLoading = ref(false);
+const isEnvelopeActive = ref(false);
+const router = useRouter();
+
+onMounted(() => {
+  init();
+})
+
+function init() {
+  if (route.query.isNew) {
+    const query = {...route.query};
+    delete query.isNew;
+    router.replace({query});
+  } else {
+    loadChatHistory();
+  }
+  intervalId = setInterval(() => {
+    getQuestions();
+  }, 5000);
+  getQuestions();
+}
+
+async function loadChatHistory() {
+  try {
+    messages.value = [];
+    isLoading.value = true;
+    const {data} = await assistantStore.getChatById(technicalId.value);
+    data.chat_body.dialogue.forEach((el) => {
+      addMessage(el);
+    })
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+async function getQuestions() {
+  if (promiseInterval) return;
+  promiseInterval = assistantStore.getQuestions(technicalId.value);
+  const {data} = await promiseInterval;
+  data.questions.forEach((el) => {
+    addMessage(el);
+    if (el.notification) startEnvelopeFlash();
+  })
+  promiseInterval = null;
+  isLoading.value = false;
+}
+
+function onAnswer(answer: any) {
+  if (answer.file) {
+    const formData = new FormData();
+    formData.append('file', answer.file);
+    formData.append('answer', answer.answer);
+
+    assistantStore.postAnswers(technicalId.value, formData);
+  } else {
+    assistantStore.postTextAnswers(technicalId.value, answer);
+  }
+  addMessage(answer);
+  isLoading.value = true;
+}
+
+function addMessage(el) {
+  let type = 'answer';
+  if (el.question) type = 'question';
+  else if (el.notification) type = 'notification';
+
+  messages.value.push({
+    id: uuidv4(),
+    text: el.question || el.notification || el.answer,
+    file: el.file,
+    editable: !!el.editable,
+    raw: el,
+    type
+  });
+}
+
+onBeforeUnmount(() => {
+  if (intervalId) clearInterval(intervalId);
+  if (intervalEnvelopeId) clearInterval(intervalEnvelopeId);
+})
+function onClickPush() {
+  assistantStore.postPushNotify(technicalId.value);
+  isLoading.value = true;
+}
+
+function onClickApprove() {
+  assistantStore.postApprove(technicalId.value);
+  isLoading.value = true;
+}
+
+function onClickRollback() {
+  assistantStore.postRollback(technicalId.value);
+  isLoading.value = true;
+}
+
+function startEnvelopeFlash() {
+  if (intervalEnvelopeId) return;
+  isEnvelopeActive.value = true;
+  intervalEnvelopeId = setTimeout(() => {
+    isEnvelopeActive.value = false;
+    intervalEnvelopeId = null;
+  }, 500);
+}
+
+async function onRollbackQuestion(event) {
+  await assistantStore.postRollbackQuestion(technicalId.value, event);
+  isLoading.value = true;
+  loadChatHistory();
+}
+
+function onToggleCanvas(){
+  dialogVisible.value = !dialogVisible.value;
+}
+
+
+async function onUpdateNotification(notification) {
+  await assistantStore.putNotification(technicalId.value, notification);
+  isLoading.value = true;
+  loadChatHistory();
+}
+
+watch(technicalId, () => {
+  loadChatHistory();
+})
+
 </script>
+
+<style>
+.chat-bot-dialog {
+  padding: 0;
+
+  > .el-dialog__header {
+    display: none;
+  }
+}
+</style>

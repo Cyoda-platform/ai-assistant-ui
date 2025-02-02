@@ -1,257 +1,132 @@
 <template>
-  <div class="chat-bot">
-    <div class="chat-bot__top_actions">
-      <div>
-        <el-button @click="onClickShowCanvas" class="btn btn-default btn-icon">
-          <OpenCanvasIcon/>
-        </el-button>
-      </div>
-      <div>
-        <el-tooltip
-          class="box-item"
-          effect="dark"
-          content="Push"
-          placement="top"
+  <el-row class="layout-sidebar">
+    <el-col :span="sidebarSpan" class="layout-sidebar__sidebar">
+      <SideBar/>
+    </el-col>
+    <el-col :span="mainSpan" class="layout-sidebar__main">
+      <div class="chat-bot">
+        <ChatBotTopActions
+          @toggleCanvas="emit('toggleCanvas')"
+          @push="emit('push')"
+          @approve="emit('approve')"
+          @rollback="emit('rollback')"
         >
-          <el-button @click="onClickPush" class="btn btn-default btn-icon">
-            <PushIcon class="icon"/>
-          </el-button>
-        </el-tooltip>
-        <el-tooltip
-          class="box-item"
-          effect="dark"
-          content="Approve"
-          placement="top"
-        >
-          <el-button @click="onClickApprove" class="btn btn-default btn-icon">
-            <ApproveIcon class="icon"/>
-          </el-button>
-        </el-tooltip>
-        <el-tooltip
-          class="box-item"
-          effect="dark"
-          content="Rollback"
-          placement="top"
-        >
-          <el-button @click="onClickRollback" class="btn btn-default btn-icon">
-            <RollbackIcon class="icon"/>
-          </el-button>
-        </el-tooltip>
-        <el-button class="btn btn-default btn-icon">
-          <BellIcon style="height: 2rem; color: #000000" class="bell-icon"
-                    :class="{'bell-icon--active': isEnvelopeActive}"/>
-        </el-button>
-      </div>
-    </div>
-    <div class="chat-bot__body">
-      <div class="chat-bot__messages">
-        <div class="chat-bot__inner-messages">
-          <el-row>
-            <el-col :span="14">
-              <template v-for="message in messages">
-                <ChatBotMessageQuestion
-                  v-if="message.type === 'question'"
-                  :message="message"
-                  @rollbackQuestion="onRollbackQuestion"
-                />
-                <ChatBotMessageNotification
-                  v-if="message.type === 'notification'"
-                  @updateNotification="onUpdateNotification"
-                  :message="message"
-                />
-                <ChatBotMessageAnswer
-                  v-if="message.type === 'answer'"
-                  :message="message"/>
-              </template>
-            </el-col>
-          </el-row>
-          <ChatLoader v-if="isLoading"/>
-        </div>
-        <div class="chat-bot__form">
-          <ChatBotSubmitForm @answer="onAnswer"/>
+          <template #toggle-canvas-icon>
+            <OpenCanvasIcon/>
+          </template>
+        </ChatBotTopActions>
+
+        <div class="chat-bot__body">
+          <div class="chat-bot__messages">
+            <div class="chat-bot__inner-messages">
+              <el-row>
+                <el-col :span="14">
+                  <template v-for="message in messages">
+                    <ChatBotMessageQuestion
+                      v-if="message.type === 'question'"
+                      :message="message"
+                      @rollbackQuestion="emit('rollbackQuestion', $event)"
+                    />
+                    <ChatBotMessageNotification
+                      v-if="message.type === 'notification'"
+                      @updateNotification="emit('updateNotification', $event)"
+                      :message="message"
+                    />
+                    <ChatBotMessageAnswer
+                      v-if="message.type === 'answer'"
+                      :message="message"/>
+                  </template>
+                </el-col>
+              </el-row>
+              <ChatLoader v-if="isLoading"/>
+            </div>
+            <div class="chat-bot__form">
+              <ChatBotSubmitForm @answer="emit('answer', $event)"/>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-    <ChatBotDialogCanvas ref="chatBotDialogCanvasRef"
-                         @answer="onAnswer"
-                         @push="onClickPush"
-                         @approve="onClickApprove"
-                         @rollback="onClickRollback"
-                         @rollbackQuestion="onRollbackQuestion"
-                         :technicalId="props.technicalId"
-                         :isLoading="isLoading"
-                         :messages="messages"/>
-  </div>
+    </el-col>
+  </el-row>
 </template>
 
 <script lang="ts" setup>
-import {nextTick, onBeforeUnmount, onMounted, ref, watch} from "vue";
-import useAssistantStore from "@/stores/assistant.ts";
+import {computed, nextTick, onBeforeUnmount, onMounted} from "vue";
 import ChatBotSubmitForm from "@/components/ChatBot/ChatBotSubmitForm.vue";
 import ChatLoader from "@/components/ChatBot/ChatLoader.vue";
-import PushIcon from "@/assets/images/icons/push.svg";
-import ApproveIcon from "@/assets/images/icons/approve.svg";
-import RollbackIcon from "@/assets/images/icons/rollback.svg";
-import BellIcon from "@/assets/images/icons/bell.svg";
 import OpenCanvasIcon from "@/assets/images/icons/open-canvas.svg";
-import {v4 as uuidv4} from "uuid";
 import ChatBotMessageQuestion from "@/components/ChatBot/ChatBotMessageQuestion.vue";
 import ChatBotMessageNotification from "@/components/ChatBot/ChatBotMessageNotification.vue";
 import ChatBotMessageAnswer from "@/components/ChatBot/ChatBotMessageAnswer.vue";
-import ChatBotDialogCanvas from "@/components/ChatBot/ChatBotDialogCanvas.vue";
-import {useRoute, useRouter} from "vue-router";
+import ChatBotTopActions from "@/components/ChatBot/ChatBotTopActions.vue";
+import SideBar from "@/components/SideBar/SideBar.vue";
+import useAppStore from "@/stores/app";
 
-let intervalId: any = null;
-let intervalEnvelopeId: any = null;
-let promiseInterval: any = null;
-const messages = ref<any[]>([]);
-const assistantStore = useAssistantStore();
-const isLoading = ref(false);
-const isEnvelopeActive = ref(false);
-const chatBotDialogCanvasRef = ref(null);
-const route = useRoute();
-const router = useRouter();
+const appStore = useAppStore();
+let mutationObserverEl = null;
+
+const sidebarSpan = computed(() => {
+  return appStore.isSidebarHidden ? 2 : 5;
+});
+
+const mainSpan = computed(() => {
+  return appStore.isSidebarHidden ? 22 : 19;
+});
+
+const emit = defineEmits([
+  'push',
+  'approve',
+  'rollback',
+  'answer',
+  'rollbackQuestion',
+  'updateNotification',
+  'toggleCanvas'
+]);
 
 const props = defineProps<{
-  technicalId: string;
+  isLoading: boolean,
+  messages: any[],
 }>();
-
-onMounted(() => {
-  init();
-})
-
-function init() {
-  if (route.query.isNew) {
-    const query = { ...route.query };
-    delete query.isNew;
-    router.replace({ query });
-  } else {
-    loadChatHistory();
-  }
-  intervalId = setInterval(() => {
-    getQuestions();
-  }, 5000);
-  getQuestions();
-}
-
-async function loadChatHistory() {
-  try {
-    messages.value = [];
-    isLoading.value = true;
-    const {data} = await assistantStore.getChatById(props.technicalId);
-    data.chat_body.dialogue.forEach((el) => {
-      addMessage(el);
-    })
-  } finally {
-    isLoading.value = false;
-  }
-}
-
-async function getQuestions() {
-  if (promiseInterval) return;
-  promiseInterval = assistantStore.getQuestions(props.technicalId);
-  const {data} = await promiseInterval;
-  data.questions.forEach((el) => {
-    addMessage(el);
-    if (el.notification) startEnvelopeFlash();
-  })
-  promiseInterval = null;
-  isLoading.value = false;
-}
-
-function onAnswer(answer: any) {
-  if (answer.file) {
-    const formData = new FormData();
-    formData.append('file', answer.file);
-    formData.append('answer', answer.answer);
-
-    assistantStore.postAnswers(props.technicalId, formData);
-  } else {
-    assistantStore.postTextAnswers(props.technicalId, answer);
-  }
-  addMessage(answer);
-  isLoading.value = true;
-}
-
-function addMessage(el) {
-  let type = 'answer';
-  if (el.question) type = 'question';
-  else if (el.notification) type = 'notification';
-
-  messages.value.push({
-    id: uuidv4(),
-    text: el.question || el.notification || el.answer,
-    file: el.file,
-    editable: !!el.editable,
-    raw: el,
-    type
-  });
-}
-
 onBeforeUnmount(() => {
-  if (intervalId) clearInterval(intervalId);
-  if (intervalEnvelopeId) clearInterval(intervalEnvelopeId);
+  mutationObserverEl.disconnect();
 })
-
 onMounted(() => {
   scrollDownMessages();
 })
 
 function scrollDownMessages() {
   const messagesHtml = document.querySelector('.chat-bot__inner-messages');
-  new MutationObserver(() => {
+  mutationObserverEl = new MutationObserver(() => {
     nextTick(() => {
       messagesHtml.scrollTo(0, messagesHtml.scrollHeight);
     })
-  }).observe(messagesHtml, {
+  })
+  mutationObserverEl.observe(messagesHtml, {
     childList: true,
   });
 }
-
-function onClickPush() {
-  assistantStore.postPushNotify(props.technicalId);
-  isLoading.value = true;
-}
-
-function onClickApprove() {
-  assistantStore.postApprove(props.technicalId);
-  isLoading.value = true;
-}
-
-function onClickRollback() {
-  assistantStore.postRollback(props.technicalId);
-  isLoading.value = true;
-}
-
-function startEnvelopeFlash() {
-  if (intervalEnvelopeId) return;
-  isEnvelopeActive.value = true;
-  intervalEnvelopeId = setTimeout(() => {
-    isEnvelopeActive.value = false;
-    intervalEnvelopeId = null;
-  }, 500);
-}
-
-function onClickShowCanvas() {
-  chatBotDialogCanvasRef.value.dialogVisible = true;
-}
-
-async function onRollbackQuestion(event) {
-  await assistantStore.postRollbackQuestion(props.technicalId, event);
-  isLoading.value = true;
-  loadChatHistory();
-}
-
-async function onUpdateNotification(notification) {
-  await assistantStore.putNotification(props.technicalId, notification);
-  isLoading.value = true;
-  loadChatHistory();
-}
-
-watch(() => props.technicalId, () => {
-  loadChatHistory();
-})
 </script>
+
+<style scoped lang="scss">
+.layout-sidebar {
+  &__sidebar {
+    min-height: 100vh;
+    height: auto;
+    background: #fff;
+    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    border-right: 1px solid rgba(20, 135, 81, 0.5);
+  }
+
+  &__main {
+    min-height: 100vh;
+    height: auto;
+    padding: 0 30px;
+  }
+}
+</style>
 
 <style lang="scss">
 .chat-bot {
@@ -259,14 +134,6 @@ watch(() => props.technicalId, () => {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-
-  &__top_actions {
-    height: auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin: 15px 0;
-  }
 
   &__body {
     flex-grow: 1;
