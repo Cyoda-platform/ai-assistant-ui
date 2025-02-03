@@ -1,270 +1,257 @@
 <template>
-  <div v-loading="isLoading" class="chat-bot-canvas">
-    <Editor v-model="canvasData" class="chat-bot-canvas__editor" :actions="editorActions"/>
-    <div class="chat-bot-canvas__actions">
-      <div class="btn-action">
-        <el-tooltip
-          class="box-item"
-          effect="dark"
-          content="Attach File"
-          placement="left"
-        >
-          <el-badge :show-zero="false" :value="countFiles" class="item" color="green">
-            <el-button @click="onAttachFile" class="btn-default btn-icon btn-border">
-              <AttachIcon/>
-            </el-button>
-          </el-badge>
-        </el-tooltip>
-      </div>
-
-      <div class="btn-action">
-        <el-tooltip
-          class="box-item"
-          effect="dark"
-          content="Ask CYODA AI"
-          placement="left"
-        >
-          <el-button @click="onSubmitQuestion" class="btn-default btn-icon btn-border">
-            <ChatIcon/>
+  <div class="chat-bot-canvas" :class="{
+    resizing: isResizing
+  }">
+    <el-row>
+      <el-col :span="5" class="chat-bot-canvas__sidebar" :style="{ flexBasis: sideBarWidth, maxWidth: sideBarWidth }">
+        <div class="chat-bot-canvas__drag" @mousedown="startResize"></div>
+        <div class="chat-bot-canvas__sidebar-title">
+          <el-button @click="drawerVisible=true" class="btn-default btn-icon">
+            <ToggleSidebar/>
           </el-button>
-        </el-tooltip>
-      </div>
-
-      <div class="btn-action">
-        <el-tooltip
-          class="box-item"
-          effect="dark"
-          content="Send Answer"
-          placement="left"
+          <h2>Cyoda Chat with Canvas</h2>
+        </div>
+        <div class="chat-bot-canvas__sidebar-messages">
+          <template v-for="message in props.messages">
+            <ChatBotMessageQuestion
+              v-if="message.type === 'question'"
+              :message="message"
+              @rollbackQuestion="emit('rollbackQuestion', $event)"
+            />
+            <ChatBotMessageNotification
+              v-if="message.type === 'notification'"
+              :message="message"
+              @updateNotification="emit('updateNotification', $event)"
+            />
+            <ChatBotMessageAnswer
+              v-if="message.type === 'answer'"
+              :message="message"
+            />
+          </template>
+          <ChatLoader v-if="props.isLoading"/>
+        </div>
+        <ChatBotSubmitForm layout="canvas" @answer="emit('answer', $event)"/>
+      </el-col>
+      <el-col :span="19" class="chat-bot-canvas__main" :style="{ flexBasis: mainWidth, maxWidth: mainWidth }">
+        <ChatBotTopActions
+          @toggleCanvas="emit('toggleCanvas')"
+          @push="emit('push')"
+          @approve="emit('approve')"
+          @rollback="emit('rollback')"
         >
-          <el-button @click="onSubmitAnswer" class="btn-default btn-icon btn-border">
-            <SendIcon/>
+          <template #toggle-canvas-icon>
+            <CloseCanvasIcon/>
+          </template>
+        </ChatBotTopActions>
+        <ChatBotEditor :technicalId="technicalId" @answer="emit('answer', $event)"/>
+      </el-col>
+    </el-row>
+
+    <el-drawer
+      ref="elDrawerRef"
+      v-model="drawerVisible"
+      :modal="false"
+      direction="ltr"
+      size="320px"
+      class="chat-bot-canvas__drawer"
+    >
+      <SideBar mode="drawer">
+        <template #toggle>
+          <el-button @click="drawerVisible=false" class="btn-default btn-icon">
+            <ToggleSidebar/>
           </el-button>
-        </el-tooltip>
-      </div>
-    </div>
-    <ChatBotAttachFile
-      ref="chatBotAttachFileRef"
-      @file="onFile"
-    />
+        </template>
+      </SideBar>
+    </el-drawer>
   </div>
 </template>
 
-<script setup lang="ts">
-import Editor from "@/components/Editor/Editor.vue";
-import SendIcon from "@/assets/images/icons/send.svg";
-import AttachIcon from "@/assets/images/icons/attach.svg";
-import ChatIcon from "@/assets/images/icons/chat.svg";
-import {computed, ref, useTemplateRef} from "vue";
-import * as monaco from 'monaco-editor';
-import {ElMessageBox, ElNotification} from "element-plus";
-import useAssistantStore from "@/stores/assistant.ts";
-import ChatBotAttachFile from "@/components/ChatBot/ChatBotAttachFile.vue";
+<script lang="ts" setup>
+import ChatBotEditor from "@/components/ChatBot/ChatBotEditor.vue";
+import {nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch} from "vue";
+import ChatBotMessageAnswer from "@/components/ChatBot/ChatBotMessageAnswer.vue";
+import ChatBotMessageQuestion from "@/components/ChatBot/ChatBotMessageQuestion.vue";
 
-const canvasData = ref('');
-const editorActions = ref<any[]>([]);
-const isLoading = ref(false);
-const assistantStore = useAssistantStore();
-const emit = defineEmits(['answer']);
-const chatBotAttachFileRef = useTemplateRef('chatBotAttachFileRef');
-const currentFile = ref(null);
+import ToggleSidebar from '@/assets/images/icons/toggle-sidebar.svg';
+import CloseCanvasIcon from "@/assets/images/icons/close-canvas.svg";
+import ChatLoader from "@/components/ChatBot/ChatLoader.vue";
+import ChatBotMessageNotification from "@/components/ChatBot/ChatBotMessageNotification.vue";
+import ChatBotSubmitForm from "@/components/ChatBot/ChatBotSubmitForm.vue";
+import ChatBotTopActions from "@/components/ChatBot/ChatBotTopActions.vue";
+import SideBar from "@/components/SideBar/SideBar.vue";
+import HelperStorage from "@/helpers/HelperStorage";
+
+
+const helperStorage = new HelperStorage();
+
+const INIT_SIDEBAR_WIDTH = '20.8333333333%';
+const INIT_MAIN_WIDTH = '79.1666666667%';
 
 const props = defineProps<{
-  technicalId: string
-}>()
+  messages: any[],
+  technicalId: string,
+  isLoading: boolean,
+}>();
 
-function onAttachFile() {
-  chatBotAttachFileRef.value.openDialog(currentFile.value);
-}
 
-const countFiles = computed(() => {
-  return currentFile.value ? 1 : 0;
+const emit = defineEmits([
+  'push',
+  'approve',
+  'rollback',
+  'answer',
+  'rollbackQuestion',
+  'updateNotification',
+  'toggleCanvas'
+]);
+
+let mutationObserverEl = null;
+const drawerVisible = ref(false);
+const isResizing = ref(false);
+
+const canvasWidth = helperStorage.get('canvasWidth', {});
+
+const sideBarWidth = ref(canvasWidth.sideBarWidth || INIT_SIDEBAR_WIDTH);
+const mainWidth = ref(canvasWidth.mainWidth || INIT_MAIN_WIDTH);
+
+onMounted(() => {
+  scrollDownMessages();
+  window.addEventListener("mousedown", onDocumentClick);
+});
+
+onUnmounted(() => {
+  mutationObserverEl.disconnect();
+  window.removeEventListener("mousedown", onDocumentClick);
 })
 
-async function onSubmitQuestion() {
-  try {
-    isLoading.value = true;
+function scrollDownMessages() {
+  const messagesHtml = document.querySelector('.chat-bot-canvas__sidebar-messages');
+  mutationObserverEl = new MutationObserver(() => {
+    nextTick(() => {
+      messagesHtml.scrollTo(0, messagesHtml.scrollHeight);
+    });
+  });
+  mutationObserverEl.observe(messagesHtml, {
+    childList: true,
+  });
+}
 
-    const dataRequest = {
-      question: canvasData.value
-    };
-
-    if (currentFile.value) {
-      dataRequest.file = currentFile.value;
-    }
-
-    const {data} = await questionRequest(dataRequest)
-    currentFile.value = null;
-    canvasData.value += `\n/*\n${data.message}\n*/`;
-  } finally {
-    isLoading.value = false;
+function onDocumentClick(e) {
+  const elDrawerEl = document.querySelector('.chat-bot-canvas__drawer');
+  if (!elDrawerEl?.contains(e.target) && drawerVisible.value) {
+    drawerVisible.value = false;
   }
 }
 
-async function questionRequest(data) {
-  if (data.file) {
-    const formData = new FormData();
-    formData.append('file', data.file);
-    formData.append('question', data.question);
+const startResize = (event) => {
+  isResizing.value = true;
+  const startX = event.clientX;
+  const startSideBarWidth = document.querySelector('.chat-bot-canvas__sidebar').clientWidth;
+  const parentWidth = document.querySelector('.chat-bot-canvas').clientWidth-20;
+  const minWidth = (parseFloat(INIT_SIDEBAR_WIDTH) / 100) * parentWidth;
 
-    return assistantStore.postQuestions(props.technicalId, formData);
-  } else {
-    return assistantStore.postTextQuestions(props.technicalId, data);
-  }
-}
+  const onMouseMove = (e) => {
+    let newSideBarWidth = Math.max(100, startSideBarWidth + (e.clientX - startX));
 
-async function onSubmitAnswer() {
+    if (newSideBarWidth > parentWidth / 2) newSideBarWidth = parentWidth / 2;
+    if (newSideBarWidth < minWidth) newSideBarWidth = minWidth;
 
-  const dataRequest = {
-    answer: canvasData.value
+    let newMainWidth = parentWidth - newSideBarWidth;
+
+    sideBarWidth.value = `${newSideBarWidth}px`;
+    mainWidth.value = `${newMainWidth}px`;
+
+    helperStorage.set('canvasWidth', {
+      sideBarWidth: sideBarWidth.value,
+      mainWidth: mainWidth.value,
+    });
   };
 
-  if (currentFile.value) {
-    dataRequest.file = currentFile.value;
-  }
+  const onMouseUp = () => {
+    isResizing.value = false;
+    window.removeEventListener("mousemove", onMouseMove);
+    window.removeEventListener("mouseup", onMouseUp);
+  };
 
-  emit('answer', dataRequest);
-  currentFile.value = null;
-}
+  window.addEventListener("mousemove", onMouseMove);
+  window.addEventListener("mouseup", onMouseUp);
+};
 
-addSubmitQuestionAction();
-addSubmitAnswerAction();
-
-function addSubmitQuestionAction() {
-  editorActions.value.push({
-    id: "submitQuestion",
-    label: "Submit Question",
-    contextMenuGroupId: "chatbot",
-    keybindings: [
-      monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyQ,
-    ],
-    run: async (editor) => {
-      const selectedValue = editor.getModel().getValueInRange(editor.getSelection());
-
-      if (!selectedValue) {
-        ElMessageBox.alert('Please select text before use it', 'Warning');
-        return;
-      }
-
-      try {
-        isLoading.value = true;
-
-        const dataRequest = {
-          question: selectedValue
-        };
-
-        if (currentFile.value) {
-          dataRequest.file = currentFile.value;
-        }
-
-        const {data} = await questionRequest(dataRequest);
-        currentFile.value = null;
-
-        const position = editor.getPosition();
-        const lineCount = editor.getModel().getLineCount();
-        const message = data.message.replaceAll('```javascript', '').replaceAll('```', '').trim();
-        let textToInsert = `/*\n${message}\n*/`;
-        if (position.lineNumber === lineCount) {
-          textToInsert = '\n' + textToInsert;
-        } else {
-          textToInsert = textToInsert + '\n';
-        }
-        const range = new monaco.Range(
-          position.lineNumber + 1,
-          1,
-          position.lineNumber + 1,
-          1
-        );
-        editor.executeEdits('DialogContentScriptEditor', [
-          {
-            range,
-            text: textToInsert,
-          },
-        ]);
-        editor.setPosition({
-          lineNumber: position.lineNumber + 1,
-          column: textToInsert.length + 1
-        });
-
-        ElNotification({
-          title: 'Success',
-          message: 'The code was generated',
-          type: 'success',
-        })
-      } finally {
-        isLoading.value = false;
-      }
-
-    }
-  })
-}
-
-function addSubmitAnswerAction() {
-  editorActions.value.push({
-    id: "submitAnswer",
-    label: "Submit Answer",
-    contextMenuGroupId: "chatbot",
-    keybindings: [
-      monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyA,
-    ],
-    run: async (editor) => {
-      const selectedValue = editor.getModel().getValueInRange(editor.getSelection());
-
-      if (!selectedValue) {
-        ElMessageBox.alert('Please select text before use it', 'Warning');
-        return;
-      }
-
-      const dataRequest = {
-        answer: selectedValue
-      };
-
-      if (currentFile.value) {
-        dataRequest.file = currentFile.value;
-      }
-
-      emit('answer', dataRequest);
-
-      currentFile.value = null;
-    }
-  })
-}
-
-function onFile(file: File) {
-  currentFile.value = file;
-}
+watch(() => props.technicalId, () => {
+  drawerVisible.value = false
+})
 </script>
 
 <style lang="scss">
 .chat-bot-canvas {
-  position: relative;
-  padding-right: 70px;
-  height: calc(100vh - 70px);
-
-  &__editor {
-    min-height: 100%;
+  &.resizing * {
+    user-select: none;
+  }
+  &.resizing .chat-bot-canvas__main{
+    opacity: 0.5;
   }
 
-  &__actions {
+  &__drag {
     position: absolute;
-    right: 5px;
-    bottom: 20px;
-    z-index: 100;
+    width: 10px;
+    height: 100%;
+    background: transparent;
+    top: 0;
+    right: -4px;
+    cursor: ew-resize;
+  }
+
+  &__sidebar {
+    position: relative;
+    padding: 36px 15px;
+    background-color: #FFFFF4;
+    border-right: 1px solid #ccd0d7;
+    height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+
+    h2 {
+      margin: 0;
+      color: #606266;
+      margin-left: 24px;
+    }
+  }
+
+  &__sidebar-title {
+    display: flex;
     align-items: center;
+  }
 
-    svg {
-      fill: #0d8484;
+  &__sidebar-messages {
+    flex-grow: 1;
+    overflow: auto;
+    margin: 15px 0;
+    padding: 0 15px;
+  }
+
+  &__main {
+    padding: 0 30px;
+    height: 100vh;
+    transition: opacity 0.5s;
+  }
+
+  &__top_actions {
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 15px 0;
+  }
+
+  &__drawer {
+    box-shadow: none;
+    border-right: 1px solid rgba(20, 135, 81, 0.5);
+
+    .el-drawer__header {
+      display: none
     }
 
-    button {
-      margin: 0 !important;
-    }
-
-    .btn-action {
-      margin-top: 24px !important;
+    .el-drawer__body {
+      padding: 0;
     }
   }
 }
