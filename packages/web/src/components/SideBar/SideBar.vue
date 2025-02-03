@@ -1,12 +1,17 @@
 <template>
-  <div class="side-bar" :class="{'side-bar--hidden': isSidebarHidden}">
+  <div class="side-bar" :class="{'side-bar--hidden': isSidebarHidden, 'side-bar--drawer': mode === 'drawer'}">
     <div class="side-bar__wrapper-logo">
       <template v-if="isSidebarHidden">
         <img alt="logo" class="side-bar__logo" :src="LogoSmallUrl"/>
       </template>
       <template v-else>
         <img alt="logo" class="side-bar__logo" :src="LogoUrl"/>
+        <template v-if="slots.toggle">
+          <slot name="toggle"></slot>
+        </template>
+        <template v-else>
         <ToggleCloseIcon @click="onClickToggleSidebar" class="side-bar__toggle-close"/>
+        </template>
       </template>
     </div>
     <ul class="side-bar__nav">
@@ -80,7 +85,7 @@ import ToggleCloseIcon from '@/assets/images/icons/toggle-close.svg';
 import ToggleOpenIcon from '@/assets/images/icons/toggle-open.svg';
 import useAuthStore from "@/stores/auth.ts";
 import useAppStore from "@/stores/app.ts";
-import {computed, ref} from "vue";
+import {computed, ref, useSlots} from "vue";
 import LogoSmallUrl from '@/assets/images/logo-small.svg?url'
 import LogoUrl from '@/assets/images/logo.svg?url'
 import LoadingText from "@/components/LoadingText.vue";
@@ -91,6 +96,13 @@ const authStore = useAuthStore();
 const appStore = useAppStore();
 const router = useRouter();
 const route = useRoute();
+const slots = useSlots();
+
+withDefaults(defineProps<{
+  mode: string,
+}>(), {
+  mode: 'default',
+});
 
 const menus = ref(menusJson);
 
@@ -258,8 +270,18 @@ function onClickCreate() {
     margin-right: 0;
   }
 
-  &--hidden &__nav{
+  &--hidden &__nav {
     padding-right: 0;
+  }
+
+  &--drawer {
+    .side-bar__logo{
+      max-width: 160px;
+    }
+    .side-bar__wrapper-logo{
+      padding-top: 24px;
+      padding-right: 20px;
+    }
   }
 }
 </style>

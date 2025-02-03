@@ -8,7 +8,7 @@ const krokiBaseUrl = "https://docs.cyoda.org/kroki/";
 const encodePlantUML = (text) => {
   const deflated = pako.deflate(text, {level: 9});
   const base64 = btoa(String.fromCharCode.apply(null, deflated));
-  return base64.replace(/\+/g, "-").replace(/\//g, "_"); // URL-безопасный формат
+  return base64.replace(/\+/g, "-").replace(/\//g, "_");
 };
 
 export function renderPlantUML(text, raw) {

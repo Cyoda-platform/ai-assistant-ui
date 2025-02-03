@@ -1,4 +1,8 @@
 .el-dialog {
   border: 1px solid #0D8484;
   border-radius: 12px;
+
+  &.is-fullscreen {
+    border: none;
+  }
 }
