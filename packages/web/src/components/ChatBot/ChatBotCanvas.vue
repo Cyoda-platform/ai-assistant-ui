@@ -9,7 +9,7 @@
           <el-button @click="drawerVisible=true" class="btn-default btn-icon">
             <ToggleSidebar/>
           </el-button>
-          <h2>Cyoda Chat with Canvas</h2>
+          <h2>Cyoda Chat</h2>
         </div>
         <div class="chat-bot-canvas__sidebar-messages">
           <template v-for="message in props.messages">
@@ -17,6 +17,7 @@
               v-if="message.type === 'question'"
               :message="message"
               @rollbackQuestion="emit('rollbackQuestion', $event)"
+              @approveQuestion="emit('approveQuestion', $event)"
             />
             <ChatBotMessageNotification
               v-if="message.type === 'notification'"
@@ -35,15 +36,18 @@
       <el-col :span="19" class="chat-bot-canvas__main" :style="{ flexBasis: mainWidth, maxWidth: mainWidth }">
         <ChatBotTopActions
           @toggleCanvas="emit('toggleCanvas')"
-          @push="emit('push')"
-          @approve="emit('approve')"
-          @rollback="emit('rollback')"
         >
+          <template #actions>
+            <el-button @click="onToggleMarkdown" class="btn btn-default btn-icon">
+              <SplitScreenCloseIcon v-if="isShowMarkdown" class="icon"/>
+              <SplitScreenIcon v-else class="icon"/>
+            </el-button>
+          </template>
           <template #toggle-canvas-icon>
             <CloseCanvasIcon/>
           </template>
         </ChatBotTopActions>
-        <ChatBotEditor :technicalId="technicalId" @answer="emit('answer', $event)"/>
+        <ChatBotEditor :technicalId="technicalId" @answer="emit('answer', $event)" :isShowMarkdown="isShowMarkdown"/>
       </el-col>
     </el-row>
 
@@ -74,6 +78,8 @@ import ChatBotMessageQuestion from "@/components/ChatBot/ChatBotMessageQuestion.
 
 import ToggleSidebar from '@/assets/images/icons/toggle-sidebar.svg';
 import CloseCanvasIcon from "@/assets/images/icons/close-canvas.svg";
+import SplitScreenIcon from "@/assets/images/icons/split-screen.svg";
+import SplitScreenCloseIcon from "@/assets/images/icons/split-screen-close.svg";
 import ChatLoader from "@/components/ChatBot/ChatLoader.vue";
 import ChatBotMessageNotification from "@/components/ChatBot/ChatBotMessageNotification.vue";
 import ChatBotSubmitForm from "@/components/ChatBot/ChatBotSubmitForm.vue";
@@ -81,11 +87,10 @@ import ChatBotTopActions from "@/components/ChatBot/ChatBotTopActions.vue";
 import SideBar from "@/components/SideBar/SideBar.vue";
 import HelperStorage from "@/helpers/HelperStorage";
 
-
 const helperStorage = new HelperStorage();
 
-const INIT_SIDEBAR_WIDTH = '20.8333333333%';
-const INIT_MAIN_WIDTH = '79.1666666667%';
+const INIT_SIDEBAR_WIDTH = '54%';
+const INIT_MAIN_WIDTH = '46%';
 
 const props = defineProps<{
   messages: any[],
@@ -95,11 +100,9 @@ const props = defineProps<{
 
 
 const emit = defineEmits([
-  'push',
-  'approve',
-  'rollback',
   'answer',
   'rollbackQuestion',
+  'approveQuestion',
   'updateNotification',
   'toggleCanvas'
 ]);
@@ -107,6 +110,7 @@ const emit = defineEmits([
 let mutationObserverEl = null;
 const drawerVisible = ref(false);
 const isResizing = ref(false);
+const isShowMarkdown = ref(false);
 
 const canvasWidth = helperStorage.get('canvasWidth', {});
 
@@ -116,6 +120,7 @@ const mainWidth = ref(canvasWidth.mainWidth || INIT_MAIN_WIDTH);
 onMounted(() => {
   scrollDownMessages();
   window.addEventListener("mousedown", onDocumentClick);
+  window.addEventListener('resize', () => calculateSizes());
 });
 
 onUnmounted(() => {
@@ -142,28 +147,43 @@ function onDocumentClick(e) {
   }
 }
 
-const startResize = (event) => {
+function onToggleMarkdown() {
+  isShowMarkdown.value = !isShowMarkdown.value;
+}
+
+function calculateSizes(newSideBarWidth = null) {
+  const parentWidth = document.querySelector('.chat-bot-canvas').clientWidth - 20;
+  const minWidth = (parseFloat('32%') / 100) * parentWidth;
+  const maxWidth = (parseFloat('54%') / 100) * parentWidth;
+
+  if (newSideBarWidth === null) {
+    const savedSizes = helperStorage.get('canvasWidth');
+    newSideBarWidth = savedSizes ? parseFloat(savedSizes.sideBarWidth) : minWidth;
+  }
+
+  newSideBarWidth = Math.max(minWidth, Math.min(maxWidth, newSideBarWidth));
+  const newMainWidth = parentWidth - newSideBarWidth;
+
+  sideBarWidth.value = `${newSideBarWidth}px`;
+  mainWidth.value = `${newMainWidth}px`;
+
+  helperStorage.set('canvasWidth', {
+    sideBarWidth: sideBarWidth.value,
+    mainWidth: mainWidth.value,
+  });
+}
+
+function startResize(event) {
   isResizing.value = true;
   const startX = event.clientX;
   const startSideBarWidth = document.querySelector('.chat-bot-canvas__sidebar').clientWidth;
-  const parentWidth = document.querySelector('.chat-bot-canvas').clientWidth-20;
-  const minWidth = (parseFloat(INIT_SIDEBAR_WIDTH) / 100) * parentWidth;
+  const parentWidth = document.querySelector('.chat-bot-canvas').clientWidth - 20;
+  const minWidth = (parseFloat('32%') / 100) * parentWidth;
+  const maxWidth = (parseFloat('54%') / 100) * parentWidth;
 
   const onMouseMove = (e) => {
-    let newSideBarWidth = Math.max(100, startSideBarWidth + (e.clientX - startX));
-
-    if (newSideBarWidth > parentWidth / 2) newSideBarWidth = parentWidth / 2;
-    if (newSideBarWidth < minWidth) newSideBarWidth = minWidth;
-
-    let newMainWidth = parentWidth - newSideBarWidth;
-
-    sideBarWidth.value = `${newSideBarWidth}px`;
-    mainWidth.value = `${newMainWidth}px`;
-
-    helperStorage.set('canvasWidth', {
-      sideBarWidth: sideBarWidth.value,
-      mainWidth: mainWidth.value,
-    });
+    const newSideBarWidth = startSideBarWidth + (e.clientX - startX);
+    calculateSizes(newSideBarWidth);
   };
 
   const onMouseUp = () => {
@@ -174,7 +194,7 @@ const startResize = (event) => {
 
   window.addEventListener("mousemove", onMouseMove);
   window.addEventListener("mouseup", onMouseUp);
-};
+}
 
 watch(() => props.technicalId, () => {
   drawerVisible.value = false
@@ -186,7 +206,8 @@ watch(() => props.technicalId, () => {
   &.resizing * {
     user-select: none;
   }
-  &.resizing .chat-bot-canvas__main{
+
+  &.resizing .chat-bot-canvas__main {
     opacity: 0.5;
   }
 
@@ -202,7 +223,7 @@ watch(() => props.technicalId, () => {
 
   &__sidebar {
     position: relative;
-    padding: 36px 15px;
+    padding: 15px 15px;
     background-color: #FFFFF4;
     border-right: 1px solid #ccd0d7;
     height: 100vh;
