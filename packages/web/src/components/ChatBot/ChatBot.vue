@@ -7,9 +7,6 @@
       <div class="chat-bot">
         <ChatBotTopActions
           @toggleCanvas="emit('toggleCanvas')"
-          @push="emit('push')"
-          @approve="emit('approve')"
-          @rollback="emit('rollback')"
         >
           <template #toggle-canvas-icon>
             <OpenCanvasIcon/>
@@ -26,6 +23,7 @@
                       v-if="message.type === 'question'"
                       :message="message"
                       @rollbackQuestion="emit('rollbackQuestion', $event)"
+                      @approveQuestion="emit('approveQuestion', $event)"
                     />
                     <ChatBotMessageNotification
                       v-if="message.type === 'notification'"
@@ -74,11 +72,9 @@ const mainSpan = computed(() => {
 });
 
 const emit = defineEmits([
-  'push',
-  'approve',
-  'rollback',
   'answer',
   'rollbackQuestion',
+  'approveQuestion',
   'updateNotification',
   'toggleCanvas'
 ]);
