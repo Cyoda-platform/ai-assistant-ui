@@ -1,3 +1,5 @@
+import HelperCopy from "../HelperCopy";
+
 export default function markdownActions(element: HTMLElement, raw) {
   const copyButton = element.querySelector('.copy') as HTMLAnchorElement | null;
   const copySpan = copyButton?.querySelector('span') as HTMLSpanElement | null;
@@ -6,15 +8,12 @@ export default function markdownActions(element: HTMLElement, raw) {
     copyButton.addEventListener("click", (e) => {
       e.preventDefault();
 
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(raw)
-          .then(() => {
+        HelperCopy.copy(raw).then(() => {
             copySpan.textContent = 'copied!';
             setTimeout(() => {
               copySpan.textContent = 'copy';
             }, 2000);
           })
-      }
     });
   }
 }
