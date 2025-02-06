@@ -25,7 +25,7 @@
               resize="none"
               :autosize="{ minRows: 1 }"
               :placeholder="placeholderComputed"
-              @keydown.enter="onClickTextAnswer"
+              @keydown="handleKeyDown"
             />
             <div class="chat-bot-submit-form__btn-submit">
               <button class="btn btn-primary btn-icon"
@@ -134,6 +134,14 @@ const placeholderComputed = computed(() => {
   return 'Use icons on  the right side or simply type';
 });
 
+function handleKeyDown(event) {
+  console.log(event);
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    onClickTextAnswer();
+  }
+}
+
 </script>
 
 <style lang="scss">
@@ -222,7 +230,6 @@ const placeholderComputed = computed(() => {
 
   &__layout_canvas {
     padding-top: 8px;
-    border-top: 1px solid #EBEBEB;
   }
 
   &__layout_canvas &__wrap-input {

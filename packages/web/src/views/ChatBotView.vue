@@ -2,10 +2,9 @@
   <ChatBotCanvas
     :technicalId="technicalId"
     @answer="onAnswer"
-    @push="onClickPush"
     @approve="onClickApprove"
-    @rollback="onClickRollback"
     @rollbackQuestion="onRollbackQuestion"
+    @approveQuestion="onApproveQuestion"
     @toggleCanvas="onToggleCanvas"
     @updateNotification="onUpdateNotification"
     :isLoading="isLoading"
@@ -20,10 +19,9 @@
     <ChatBot
       :technicalId="technicalId"
       @answer="onAnswer"
-      @push="onClickPush"
       @approve="onClickApprove"
-      @rollback="onClickRollback"
       @rollbackQuestion="onRollbackQuestion"
+      @approveQuestion="onApproveQuestion"
       @toggleCanvas="onToggleCanvas"
       @updateNotification="onUpdateNotification"
       :isLoading="isLoading"
@@ -124,6 +122,7 @@ function addMessage(el) {
     text: el.question || el.notification || el.answer,
     file: el.file,
     editable: !!el.editable,
+    approve: !!el.approve,
     raw: el,
     type
   });
@@ -133,18 +132,9 @@ onBeforeUnmount(() => {
   if (intervalId) clearInterval(intervalId);
   if (intervalEnvelopeId) clearInterval(intervalEnvelopeId);
 })
-function onClickPush() {
-  assistantStore.postPushNotify(technicalId.value);
-  isLoading.value = true;
-}
 
 function onClickApprove() {
   assistantStore.postApprove(technicalId.value);
-  isLoading.value = true;
-}
-
-function onClickRollback() {
-  assistantStore.postRollback(technicalId.value);
   isLoading.value = true;
 }
 
@@ -159,6 +149,12 @@ function startEnvelopeFlash() {
 
 async function onRollbackQuestion(event) {
   await assistantStore.postRollbackQuestion(technicalId.value, event);
+  isLoading.value = true;
+  loadChatHistory();
+}
+
+async function onApproveQuestion(event) {
+  await assistantStore.postApproveQuestion(technicalId.value, event);
   isLoading.value = true;
   loadChatHistory();
 }
