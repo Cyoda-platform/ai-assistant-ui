@@ -1,47 +1,74 @@
 <template>
-  <div v-loading="isLoading" class="chat-bot-editor">
-    <Editor v-model="canvasData" class="chat-bot-editor__editor" :actions="editorActions"/>
-    <div class="chat-bot-editor__actions">
-      <div class="btn-action">
-        <el-tooltip
-          class="box-item"
-          effect="dark"
-          content="Attach File"
-          placement="left"
-        >
-          <el-badge :show-zero="false" :value="countFiles" class="item" color="green">
-            <el-button @click="onAttachFile" class="btn-default btn-icon btn-border">
-              <AttachIcon/>
-            </el-button>
-          </el-badge>
-        </el-tooltip>
-      </div>
+  <div
+    v-loading="isLoading"
+    class="chat-bot-editor"
+    :class="{
+    resizing: isResizing
+  }"
+  >
+    <div class="chat-bot-editor__wrap-editor" :class="{'chat-bot-editor__markdown--show': isShowMarkdown}">
+      <div class="chat-bot-editor__editor" :style="editorStyle">
+        <Editor v-model="canvasData" class="chat-bot-editor__editor-inner" :actions="editorActions"/>
+        <div class="chat-bot-editor__actions">
+          <div class="btn-action btn-block">
+            <el-tooltip
+              class="box-item"
+              effect="dark"
+              content="Attach File"
+              placement="left"
+              show-after="1000"
+            >
+              <el-badge :show-zero="false" :value="countFiles" class="item" color="green">
+                <el-button @click="onAttachFile" class="btn-default btn-icon btn-border">
+                  <AttachIcon/>
+                </el-button>
+              </el-badge>
+            </el-tooltip>
+          </div>
 
-      <div class="btn-action">
-        <el-tooltip
-          class="box-item"
-          effect="dark"
-          content="Ask CYODA AI"
-          placement="left"
-        >
-          <el-button @click="onSubmitQuestion" class="btn-default btn-icon btn-border">
-            <ChatIcon/>
-          </el-button>
-        </el-tooltip>
-      </div>
+          <div class="btn-action btn-block">
+            <el-tooltip
+              class="box-item"
+              effect="dark"
+              content="Ask CYODA AI"
+              placement="left"
+              show-after="1000"
+            >
+              <el-button @click="onSubmitQuestion" class="btn-default btn-icon btn-border">
+                <QuestionIcon/>
+              </el-button>
+            </el-tooltip>
+          </div>
 
-      <div class="btn-action">
-        <el-tooltip
-          class="box-item"
-          effect="dark"
-          content="Send Answer"
-          placement="left"
-        >
-          <el-button @click="onSubmitAnswer" class="btn-default btn-icon btn-border">
-            <SendIcon/>
-          </el-button>
-        </el-tooltip>
+          <div class="btn-action btn-block">
+            <el-tooltip
+              class="box-item"
+              effect="dark"
+              content="Send Answer"
+              placement="left"
+              show-after="1000"
+            >
+              <el-button @click="onSubmitAnswer" class="btn-default btn-icon btn-border">
+                <SendIcon/>
+              </el-button>
+            </el-tooltip>
+          </div>
+
+          <div class="btn-action">
+            <el-badge :show-zero="false" :value="countFiles" class="item" color="green">
+              <el-button class="btn-default btn-icon btn-border">
+                <ThreeDotsIcon/>
+              </el-button>
+            </el-badge>
+          </div>
+        </div>
       </div>
+      <template v-if="isShowMarkdown">
+        <div class="chat-bot-editor__markdown">
+          <div class="chat-bot-editor__drag" @mousedown="startResize"></div>
+          <div class="chat-bot-editor__markdown-inner" v-html="canvasDataWithMarkdown"></div>
+        </div>
+      </template>
     </div>
     <ChatBotAttachFile
       ref="chatBotAttachFileRef"
@@ -54,12 +81,15 @@
 import Editor from "@/components/Editor/Editor.vue";
 import SendIcon from "@/assets/images/icons/send.svg";
 import AttachIcon from "@/assets/images/icons/attach.svg";
-import ChatIcon from "@/assets/images/icons/chat.svg";
+import QuestionIcon from "@/assets/images/icons/question.svg";
+import ThreeDotsIcon from "@/assets/images/icons/three-dots.svg";
 import {computed, ref, useTemplateRef} from "vue";
 import * as monaco from 'monaco-editor';
 import {ElMessageBox, ElNotification} from "element-plus";
 import useAssistantStore from "@/stores/assistant.ts";
 import ChatBotAttachFile from "@/components/ChatBot/ChatBotAttachFile.vue";
+import HelperMarkdown from "@/helpers/HelperMarkdown";
+import HelperStorage from "@/helpers/HelperStorage";
 
 const canvasData = ref('');
 const editorActions = ref<any[]>([]);
@@ -68,10 +98,17 @@ const assistantStore = useAssistantStore();
 const emit = defineEmits(['answer']);
 const chatBotAttachFileRef = useTemplateRef('chatBotAttachFileRef');
 const currentFile = ref(null);
+const isResizing = ref(false);
+const helperStorage = new HelperStorage();
+const chatBotEditorWidth = helperStorage.get('сhatBotEditorWidth', {});
+const editorWidth = ref(chatBotEditorWidth.editorWidth || '50%');
 
-const props = defineProps<{
-  technicalId: string
-}>()
+const props = withDefaults(defineProps<{
+  technicalId: string,
+  isShowMarkdown: boolean
+}>(), {
+  isShowMarkdown: false,
+});
 
 function onAttachFile() {
   chatBotAttachFileRef.value.openDialog(currentFile.value);
@@ -129,6 +166,12 @@ async function onSubmitAnswer() {
 
 addSubmitQuestionAction();
 addSubmitAnswerAction();
+
+const canvasDataWithMarkdown = computed(() => {
+  if (!props.isShowMarkdown) return null;
+
+  return HelperMarkdown.parseMarkdown(canvasData.value);
+})
 
 function addSubmitQuestionAction() {
   editorActions.value.push({
@@ -233,27 +276,94 @@ function addSubmitAnswerAction() {
 function onFile(file: File) {
   currentFile.value = file;
 }
+
+function startResize(event) {
+  isResizing.value = true;
+  const startX = event.clientX;
+  const startEditorWidth = document.querySelector('.chat-bot-editor__editor').clientWidth;
+  const parentWidth = document.querySelector('.chat-bot-canvas').clientWidth -20;
+  const minWidth = (parseFloat('20%') / 100) * parentWidth;
+  const maxWidth = (parseFloat('60%') / 100) * parentWidth;
+
+  const onMouseMove = (e) => {
+    let newEditorWidth = Math.max(100, startEditorWidth + (e.clientX - startX));
+
+    if (newEditorWidth > maxWidth) newEditorWidth = maxWidth;
+    if (newEditorWidth < minWidth) newEditorWidth = minWidth;
+
+    editorWidth.value = `${newEditorWidth}px`;
+
+    helperStorage.set('сhatBotEditorWidth', {
+      editorWidth: editorWidth.value,
+    });
+  };
+
+  const onMouseUp = () => {
+    isResizing.value = false;
+    window.removeEventListener("mousemove", onMouseMove);
+    window.removeEventListener("mouseup", onMouseUp);
+  };
+
+  window.addEventListener("mousemove", onMouseMove);
+  window.addEventListener("mouseup", onMouseUp);
+}
+
+const editorStyle = computed(() => {
+  if (!props.isShowMarkdown) return null;
+
+  return {
+    width: editorWidth.value
+  }
+});
 </script>
 
 <style lang="scss">
+@use '@/assets/css/particular/variables';
+
 .chat-bot-editor {
   position: relative;
-  padding-right: 70px;
   height: calc(100vh - 70px);
 
-  &__editor {
+  &.resizing * {
+    user-select: none;
+  }
+
+  &__editor-inner {
     min-height: 100%;
   }
 
   &__actions {
     position: absolute;
-    right: 5px;
+    right: 15px;
     bottom: 20px;
     z-index: 100;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: end;
     align-items: center;
+    height: 50px;
+    overflow: hidden;
+    transition: height 0.5s;
+    width: 60px;
+
+    .btn-block {
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+
+    &:hover {
+      height: 250px;
+      transition-delay: 0s;
+      transition-duration: 0s;
+    }
+
+    &:not(:hover) {
+      transition-delay: 0.5s;
+    }
+
+    &:hover .btn-block {
+      opacity: 1;
+    }
 
     svg {
       fill: #0d8484;
@@ -263,9 +373,43 @@ function onFile(file: File) {
       margin: 0 !important;
     }
 
-    .btn-action {
+    .btn-action + .btn-action {
       margin-top: 24px !important;
     }
+  }
+
+  &__wrap-editor {
+    display: flex;
+    width: 100%;
+    min-height: 100%;
+  }
+
+  &__editor {
+    width: 100%;
+    min-height: 100%;
+    position: relative;
+  }
+
+  &__markdown--show &__editor {
+    width: 50%;
+    padding-right: 15px;
+  }
+
+  &__markdown {
+    flex: 1;
+    border-left: 1px solid variables.$border-color-darken;
+    padding: 0 15px;
+    position: relative;
+  }
+
+  &__drag {
+    position: absolute;
+    width: 10px;
+    height: 100%;
+    background: transparent;
+    top: 0;
+    left: -4px;
+    cursor: ew-resize;
   }
 }
 </style>
