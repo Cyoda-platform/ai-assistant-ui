@@ -91,9 +91,7 @@ defineExpose({editor});
 
 <style lang="scss">
 .editor {
-  border: 1px solid #E4E7ED;
   outline: none;
-  border-radius: 24px;
   overflow: hidden;
 
   .lines-content.monaco-editor-background {

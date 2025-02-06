@@ -23,15 +23,6 @@ const useAssistantStore = defineStore('assistant', {
     postQuestions(technical_id: string, data: any) {
       return privateClient.post(`/v1/chats/${technical_id}/questions`, data)
     },
-    postPushNotify(technical_id: string) {
-      return privateClient.post(`/v1/chats/${technical_id}/push-notify`)
-    },
-    postApprove(technical_id: string) {
-      return privateClient.post(`/v1/chats/${technical_id}/approve`)
-    },
-    postRollback(technical_id: string) {
-      return privateClient.post(`/v1/chats/${technical_id}/rollback`)
-    },
     getChats() {
       return privateClient.get<ChatResponse>(`/v1/chats`)
     },
@@ -40,6 +31,9 @@ const useAssistantStore = defineStore('assistant', {
     },
     postRollbackQuestion(technical_id: string, event) {
       return privateClient.post(`/v1/chats/${technical_id}/rollback`, event)
+    },
+    postApproveQuestion(technical_id: string, event) {
+      return privateClient.post(`/v1/chats/${technical_id}/approve`, event)
     },
     putNotification(technical_id: string, data) {
       return privateClient.put(`/v1/chats/${technical_id}/notification`, data)

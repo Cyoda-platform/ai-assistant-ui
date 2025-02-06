@@ -58,6 +58,12 @@
   &.el-button--small {
     width: 28px;
     height: 28px;
+
+    &.is-loading {
+      span {
+        display: none;
+      }
+    }
   }
 }
 
