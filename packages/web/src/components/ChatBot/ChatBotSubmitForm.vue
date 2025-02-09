@@ -257,6 +257,7 @@ function handleKeyDown(event) {
 
   &__layout_canvas &__input {
     border-color: #EBEBEB;
+    background: #ffffff;
   }
 
   &__layout_canvas &__input-inner {
