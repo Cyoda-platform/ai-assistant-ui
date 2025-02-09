@@ -1,5 +1,7 @@
 <template>
-  <div class="menu-chat-item" @mouseleave="isShowPopover=false">
+  <div class="menu-chat-item" :class="{
+    'menu-chat-item--active': isActive
+  }" @mouseleave="isShowPopover=false">
     <router-link class="menu-chat-item__link" :to="link">{{ chat.name }}</router-link>
     <el-popover popper-class="default" v-model:visible="isShowPopover" placement="right-start" :popper-style="popperStyle"
                 :popper-options="popperOptions"
@@ -30,8 +32,10 @@ import {ChatData} from "@/types/chat.d";
 import {computed, ref} from "vue";
 import ThreeDotsIcon from '@/assets/images/icons/three-dots.svg';
 import {dayjs} from "element-plus";
+import {useRoute} from "vue-router";
 
 const isShowPopover = ref(false);
+const route = useRoute();
 
 const popperOptions = {
   modifiers: [{
@@ -57,6 +61,10 @@ const link = computed(() => {
 function transformDate(dateStr) {
   return dayjs(dateStr).format('DD/MM/YYYY')
 }
+
+const isActive = computed(() => {
+  return props.chat.technical_id===route.params.technicalId;
+})
 </script>
 
 <style lang="scss" scoped>
@@ -90,13 +98,17 @@ function transformDate(dateStr) {
     align-self: stretch;
   }
 
-  &:hover {
+  &:hover, &--active {
     border-color: variables.$color-primary;
     background: #fff;
   }
 
-  &:hover &__link {
+  &:hover &__link, &--active  &__link {
     padding-left: 8px;
+  }
+
+  &--active  &__link {
+    font-weight: 500;
   }
 
   &:hover &__svg_wrapper {
