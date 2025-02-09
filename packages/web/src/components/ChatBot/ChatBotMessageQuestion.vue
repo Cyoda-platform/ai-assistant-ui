@@ -159,7 +159,7 @@ function onClickCopy() {
     line-height: 1.5;
     padding-right: 48px;
     padding-bottom: 16px;
-    word-break: break-all;
+    overflow-wrap: break-word;
 
     ul, ol {
       padding: 0 0 0 20px;

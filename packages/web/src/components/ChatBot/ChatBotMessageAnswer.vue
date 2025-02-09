@@ -47,7 +47,7 @@ const currentFile = computed(() => {
   &__body {
     font-size: 16px;
     line-height: 1.5;
-    word-break: break-all;
+    overflow-wrap: break-word;
   }
 
   &--notification {
