@@ -14,25 +14,30 @@
       <span>Drag & Drop</span>
     </div>
     <el-form :model="form" label-width="auto">
-      <div class="chat-bot-submit-form__wrap-input">
-        <div class="chat-bot-submit-form__input">
-          <FileSubmitPreview class="chat-bot-submit-form__file-submit-preview" v-if="currentFile" :file="currentFile"
-                             @delete="currentFile=null"/>
-          <div class="chat-bot-submit-form__input-inner">
-            <el-input
-              v-model="form.answer"
-              type="textarea"
-              resize="none"
-              :autosize="{ minRows: 1 }"
-              :placeholder="placeholderComputed"
-              @keydown="handleKeyDown"
-            />
-            <div class="chat-bot-submit-form__btn-submit">
-              <button class="btn btn-primary btn-icon"
-                      @click.prevent="onClickTextAnswer">
-                <SendIcon/>
-              </button>
+      <div class="chat-bot-submit-form__wrapper">
+        <div class="chat-bot-submit-form__input-box">
+          <div class="chat-bot-submit-form__input">
+            <FileSubmitPreview class="chat-bot-submit-form__file-submit-preview" v-if="currentFile" :file="currentFile"
+                               @delete="currentFile=null"/>
+            <div class="chat-bot-submit-form__input-inner">
+              <el-input
+                v-model="form.answer"
+                type="textarea"
+                resize="none"
+                :autosize="{ minRows: 1 }"
+                :placeholder="placeholderComputed"
+                @keydown="handleKeyDown"
+              />
+              <div class="chat-bot-submit-form__btn-submit">
+                <button class="btn btn-primary btn-icon"
+                        @click.prevent="onClickTextAnswer">
+                  <SendIcon/>
+                </button>
+              </div>
             </div>
+          </div>
+          <div class="chat-bot-submit-form__info">
+            Use the field above exclusively <strong>for responding</strong> to Cyoda AI.
           </div>
         </div>
         <div class="chat-bot-submit-form__actions">
@@ -170,9 +175,13 @@ function handleKeyDown(event) {
     display: flex;
   }
 
-  &__wrap-input {
+  &__wrapper {
     display: flex;
     align-items: end;
+  }
+
+  &__input-box {
+    flex: 1;
   }
 
   &__input {
@@ -210,7 +219,7 @@ function handleKeyDown(event) {
     margin-left: 15px;
     display: flex;
     gap: 10px;
-    margin-bottom: 6px;
+    margin-bottom: 30px;
 
     svg {
       fill: #606266;
@@ -232,18 +241,22 @@ function handleKeyDown(event) {
     padding-top: 8px;
   }
 
-  &__layout_canvas &__wrap-input {
+  &__layout_canvas &__input-box {
+    width: 100%;
+    order: 2;
+  }
+
+  &__layout_canvas &__wrapper {
     flex-direction: column;
   }
 
   &__layout_canvas &__actions {
     order: 1;
+    margin-bottom: 12px;
   }
 
   &__layout_canvas &__input {
     border-color: #EBEBEB;
-    order: 2;
-    width: 100%;
   }
 
   &__layout_canvas &__input-inner {
@@ -261,6 +274,11 @@ function handleKeyDown(event) {
 
   &__layout_canvas &__file-submit-preview {
     margin-bottom: 8px;
+  }
+
+  &__info {
+    text-align: center;
+    margin-top: 8px;
   }
 }
 </style>
