@@ -101,12 +101,12 @@ function onDeleteAttach() {
   &__doc {
     border-radius: 8px;
     overflow: hidden;
-    background: variables.$green-primary-dark;
+    background: #063B3B;
     display: flex;
     align-items: center;
     padding: 16px;
     gap: 16px;
-    min-width: 200px;
+    min-width: 250px;
   }
 
   &__description {

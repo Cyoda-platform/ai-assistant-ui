@@ -25,11 +25,14 @@
 </script>
 
 <style scoped lang="scss">
+@use "@/assets/css/particular/variables";
+
 .layout-login {
   &__main {
     min-height: 100vh;
     height: auto;
-    background: #EFF2EC;
+    border-right: 1px solid variables.$accent-border;
+    background: variables.$bg-sidebar;
     align-items: center;
     justify-content: center;
     flex-direction: column;

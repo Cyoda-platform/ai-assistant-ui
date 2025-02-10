@@ -26,6 +26,7 @@
             />
             <ChatBotMessageAnswer
               v-if="message.type === 'answer'"
+              class="chat-bot-canvas__message-answer"
               :message="message"
             />
           </template>
@@ -202,6 +203,8 @@ watch(() => props.technicalId, () => {
 </script>
 
 <style lang="scss">
+@use '@/assets/css/particular/variables.scss';
+
 .chat-bot-canvas {
   &.resizing * {
     user-select: none;
@@ -224,8 +227,8 @@ watch(() => props.technicalId, () => {
   &__sidebar {
     position: relative;
     padding: 15px 15px;
-    background-color: #FFFFF4;
-    border-right: 1px solid #ccd0d7;
+    border-right: 1px solid variables.$accent-border;
+    background: variables.$bg-sidebar;
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -247,6 +250,11 @@ watch(() => props.technicalId, () => {
     overflow: auto;
     margin: 15px 0;
     padding: 0 15px;
+  }
+
+  &__message-answer {
+    width: 60%;
+    margin-left: 40%;
   }
 
   &__main {
