@@ -4,6 +4,7 @@
       <img alt="logo" class="login-view__logo" :src="LogoUrl"/>
     </div>
     <div class="login-view__form">
+      <h3 class="login-view__title">Login</h3>
       <el-form :rules="rules" label-position="top" ref="formRef" :model="form" label-width="120px">
         <el-form-item prop="username" label="Email Address">
           <el-input placeholder="Email" v-model.trim="form.username"/>
@@ -14,7 +15,12 @@
         </el-form-item>
 
         <div class="login-view__actions">
-          <el-button class="login-view__btn-login btn btn-primary" :loading="loading" @click="onLogin">Sign in</el-button>
+          <el-button
+            class="login-view__btn-login btn btn-primary"
+            :loading="loading"
+            @click="onLogin">
+            Sign in
+          </el-button>
         </div>
       </el-form>
     </div>
@@ -65,6 +71,8 @@ const yearComputed = computed(() => {
 </script>
 
 <style lang="scss">
+@use "@/assets/css/particular/variables";
+
 .login-view {
   padding: 0 52px 0 40px;
   display: flex;
@@ -83,8 +91,14 @@ const yearComputed = computed(() => {
     width: auto;
   }
 
+  &__title {
+    font-size: 24px;
+    font-weight: 500;
+    color: variables.$text-header;
+  }
+
   &__form {
-    padding-top: 20vh;
+    padding-top: 10vh;
     flex: 1;
   }
 
@@ -95,6 +109,7 @@ const yearComputed = computed(() => {
   &__actions {
     margin-top: 30px;
   }
+
   &__btn-login {
     width: 100%;
   }
@@ -110,6 +125,10 @@ const yearComputed = computed(() => {
     right: -18px;
     position: relative;
     margin-top: 20px;
+  }
+
+  .el-form-item__label::after {
+    display: none;
   }
 }
 </style>
