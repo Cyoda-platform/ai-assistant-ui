@@ -176,7 +176,7 @@ defineExpose({openDialog});
     overflow: hidden;
     width: 352px;
     height: 264px;
-    background: #EFF2EC;
+    background: variables.$bg-sidebar;
     border: 1px solid #D4D7DE;
     border-radius: 6px;
     margin: 0 auto;
