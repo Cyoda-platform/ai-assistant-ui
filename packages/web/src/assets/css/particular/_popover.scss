@@ -2,6 +2,6 @@
 
 .el-popper.default {
   border-color: variables.$color-primary !important;
-  background: #FEFFFC !important;
+  background: variables.$bg-sidebar !important;
   box-shadow: none !important;
 }

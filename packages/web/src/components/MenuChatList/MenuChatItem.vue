@@ -75,7 +75,6 @@ const isActive = computed(() => {
   border-radius: 4px;
   margin-bottom: 6px;
   transition: all 0.5s;
-  background: #fff;
   display: flex;
   align-items: center;
 
@@ -120,7 +119,7 @@ const isActive = computed(() => {
     font-size: 16px;
 
     h4 {
-      color: variables.$color-primary;
+      color: variables.$text-header;
       margin: 0 0 8px 0;
     }
   }

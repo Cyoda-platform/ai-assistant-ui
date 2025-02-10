@@ -116,13 +116,14 @@ function onClickCopy() {
 @use '@/assets/css/particular/variables.scss';
 
 .chat-bot-message-question {
-  background: #FFFFFF;
+  background: #FDFEFE;
   border: 1px solid #F0F1F4;
   border-radius: 16px;
   min-height: 100px;
   padding: 24px 16px 16px 68px;
   position: relative;
   margin-bottom: 25px;
+  box-shadow: -1px 1px 20px rgba(214, 219, 219, 0.6);
 
   &__cyoda-wrapper-icon {
     position: absolute;

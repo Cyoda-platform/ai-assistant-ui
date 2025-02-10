@@ -26,11 +26,14 @@ const mainSpan = computed(() => {
 </script>
 
 <style scoped lang="scss">
+@use "@/assets/css/particular/variables";
+
 .layout-sidebar {
   &__sidebar {
     min-height: 100vh;
     height: auto;
-    background: #fff;
+    border-right: 1px solid variables.$accent-border;
+    background: variables.$bg-sidebar;
     overflow: hidden;
     align-items: center;
     justify-content: center;
@@ -42,6 +45,7 @@ const mainSpan = computed(() => {
     min-height: 100vh;
     height: auto;
     padding: 0 30px;
+    background-color: #FEFEFE;
   }
 }
 </style>
