@@ -32,16 +32,20 @@ const currentFile = computed(() => {
 
 <style lang="scss">
 .chat-bot-message-answer {
-  padding-left: 12px;
+  padding: 16px;
   padding-right: 64px;
   margin-bottom: 25px;
   position: relative;
+  box-shadow: -2px 2px 2px rgba(66, 65, 45, 0.2);
+  background: #D6DBDB;
+  border-radius: 16px;
 
   &__title {
     display: flex;
     margin-bottom: 8px;
     font-size: 15px;
     letter-spacing: 2px;
+    font-weight: bold;
   }
 
   &__body {

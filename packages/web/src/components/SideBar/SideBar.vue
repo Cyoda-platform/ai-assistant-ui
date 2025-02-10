@@ -162,8 +162,8 @@ function onClickCreate() {
 </script>
 
 <style lang="scss">
+@use "@/assets/css/particular/variables";
 .side-bar {
-  background-color: #FEFFFC;;
   padding: 0 20px 0 40px;
   display: flex;
   flex-direction: column;

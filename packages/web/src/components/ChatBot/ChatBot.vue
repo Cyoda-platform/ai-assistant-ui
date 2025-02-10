@@ -16,9 +16,9 @@
         <div class="chat-bot__body">
           <div class="chat-bot__messages">
             <div class="chat-bot__inner-messages">
-              <el-row>
-                <el-col :span="14">
-                  <template v-for="message in messages">
+              <template v-for="message in messages">
+                <el-row>
+                  <el-col :offset="getOffset(message.type)" :span="getSpan(message.type)">
                     <ChatBotMessageQuestion
                       v-if="message.type === 'question'"
                       :message="message"
@@ -33,9 +33,9 @@
                     <ChatBotMessageAnswer
                       v-if="message.type === 'answer'"
                       :message="message"/>
-                  </template>
-                </el-col>
-              </el-row>
+                  </el-col>
+                </el-row>
+              </template>
               <ChatLoader v-if="isLoading"/>
             </div>
             <div class="chat-bot__form">
@@ -101,25 +101,36 @@ function scrollDownMessages() {
     childList: true,
   });
 }
+
+function getOffset(type){
+  return ['question', 'notification'].includes(type) ? 1: 8;
+}
+
+function getSpan(type){
+  return ['question', 'notification'].includes(type) ? 21: 14;
+}
 </script>
 
 <style scoped lang="scss">
+@use "@/assets/css/particular/variables";
+
 .layout-sidebar {
   &__sidebar {
     min-height: 100vh;
     height: auto;
-    background: #fff;
     overflow: hidden;
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    border-right: 1px solid rgba(20, 135, 81, 0.5);
+    border-right: 1px solid variables.$accent-border;
+    background-color: variables.$bg-sidebar;
   }
 
   &__main {
     min-height: 100vh;
     height: auto;
     padding: 0 30px;
+    background-color: #EEF3F3;
   }
 }
 </style>
