@@ -11,17 +11,20 @@
 <script lang="ts" setup>
 import {computed} from "vue";
 import FilePreview from "@/components/FilePreview/FilePreview.vue";
+import HelperMarkdown from "@/helpers/HelperMarkdown";
 
 const props = defineProps<{
   message: any,
 }>()
 
 const computedMessage = computed(() => {
-  const text = props.message.text;
+  let text = props.message.text;
   if (typeof text === 'object' && text !== null) {
     return JSON.stringify(text, null, 2);
   }
-  return text;
+
+  text = text.replaceAll('\n', '<br/>');
+  return HelperMarkdown.parseMarkdown(text);
 });
 
 
