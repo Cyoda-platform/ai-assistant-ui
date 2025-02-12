@@ -2,7 +2,11 @@
   <div class="menu-chat-list">
     <template v-if="isChatExists">
       <template v-for="group in chatsGroups">
-        <MenuChatGroup v-if="group.chats.length>0" :chats="group.chats" :title="group.title"/>
+        <MenuChatGroup
+          v-if="group.chats.length>0"
+          :chats="group.chats"
+          :title="group.title"
+        />
       </template>
     </template>
     <template v-else>
@@ -16,15 +20,16 @@
 
 <script setup lang="ts">
 import useAssistantStore from "@/stores/assistant";
-import {computed, onBeforeUnmount, onMounted, ref} from "vue";
-import {ChatResponse} from "@/types/chat.d";
+import {computed, onBeforeUnmount, onMounted, ref, watch, watchEffect} from "vue";
 import MenuChatGroup from "@/components/MenuChatList/MenuChatGroup.vue";
 import eventBus from "@/plugins/eventBus";
 import {UPDATE_CHAT_LIST} from "@/helpers/HelperConstants";
+import {useRoute} from "vue-router";
 
 const assistantStore = useAssistantStore();
-const chatsGroups = ref<ChatResponse>([]);
-const emit = defineEmits(['ready']);
+const emit = defineEmits(['ready', 'active']);
+const allChats = ref([]);
+const route = useRoute();
 
 onMounted(() => {
   loadChats();
@@ -37,9 +42,13 @@ onBeforeUnmount(() => {
 
 async function loadChats() {
   const {data} = await assistantStore.getChats();
-  chatsGroups.value = splitChatsByDate(data.chats);
+  allChats.value = data.chats;
   emit('ready');
 }
+
+const chatsGroups = computed(() => {
+  return splitChatsByDate(allChats.value);
+})
 
 const isChatExists = computed(() => {
   return chatsGroups.value.some((el) => el.chats.length > 0);
@@ -86,10 +95,16 @@ function splitChatsByDate(chatsData) {
       chats: previousChats,
     }];
 }
+
+watchEffect(() => {
+  const isSelected = allChats.value.some((el) => el.chat_id === route.params.technicalId);
+  emit('active', isSelected);
+});
 </script>
 
 <style scoped lang="scss">
 @use '@/assets/css/particular/variables';
+
 .menu-chat-list {
   &__empty-title {
     font-weight: bold;
