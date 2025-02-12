@@ -10,7 +10,7 @@
           <slot name="toggle"></slot>
         </template>
         <template v-else>
-        <ToggleCloseIcon @click="onClickToggleSidebar" class="side-bar__toggle-close"/>
+          <ToggleCloseIcon @click="onClickToggleSidebar" class="side-bar__toggle-close"/>
         </template>
       </template>
     </div>
@@ -47,7 +47,8 @@
         </a>
         <template v-if="menu.component">
           <el-collapse-transition>
-            <component @ready="onReady(menu)" v-show="menu.isShow" :is="getComponent(menu.component)"/>
+            <component @ready="onReady(menu)" @active="onChildMenu(menu, $event)" v-show="menu.isShow"
+                       :is="getComponent(menu.component)"/>
           </el-collapse-transition>
         </template>
       </li>
@@ -106,7 +107,14 @@ withDefaults(defineProps<{
 
 const menus = ref(menusJson);
 
+
+function onChildMenu(menu, active) {
+  menu.active = active;
+}
+
 const getIsActive = (menu) => {
+  if (menu.active) return true;
+  if (!menu.link) return false;
   return route.path === menu.link || route.meta.baseUrl === menu.link;
 }
 
@@ -163,6 +171,7 @@ function onClickCreate() {
 
 <style lang="scss">
 @use "@/assets/css/particular/variables";
+
 .side-bar {
   padding: 0 20px 0 40px;
   display: flex;
@@ -211,11 +220,21 @@ function onClickCreate() {
 
     .main-icon {
       margin-right: 16px;
+      fill: #606266;
     }
 
     .arrow-down-icon {
       margin-left: auto;
       transition: all 0.5s;
+    }
+  }
+
+  &__li.active > a {
+    color: variables.$text-header;
+    font-weight: bold;
+
+    svg {
+      fill: variables.$text-header;
     }
   }
 
@@ -275,10 +294,11 @@ function onClickCreate() {
   }
 
   &--drawer {
-    .side-bar__logo{
+    .side-bar__logo {
       max-width: 160px;
     }
-    .side-bar__wrapper-logo{
+
+    .side-bar__wrapper-logo {
       padding-top: 24px;
       padding-right: 20px;
     }

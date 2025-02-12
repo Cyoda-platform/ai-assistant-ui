@@ -3,7 +3,8 @@
     'menu-chat-item--active': isActive
   }" @mouseleave="isShowPopover=false">
     <router-link class="menu-chat-item__link" :to="link">{{ chat.name }}</router-link>
-    <el-popover popper-class="default" v-model:visible="isShowPopover" placement="right-start" :popper-style="popperStyle"
+    <el-popover popper-class="default" v-model:visible="isShowPopover" placement="right-start"
+                :popper-style="popperStyle"
                 :popper-options="popperOptions"
                 trigger="click" :show-arrow="false">
       <template #reference>
@@ -63,7 +64,7 @@ function transformDate(dateStr) {
 }
 
 const isActive = computed(() => {
-  return props.chat.technical_id===route.params.technicalId;
+  return props.chat.technical_id === route.params.technicalId;
 })
 </script>
 
@@ -102,11 +103,11 @@ const isActive = computed(() => {
     background: #fff;
   }
 
-  &:hover &__link, &--active  &__link {
+  &:hover &__link, &--active &__link {
     padding-left: 8px;
   }
 
-  &--active  &__link {
+  &--active &__link {
     font-weight: 500;
   }
 
