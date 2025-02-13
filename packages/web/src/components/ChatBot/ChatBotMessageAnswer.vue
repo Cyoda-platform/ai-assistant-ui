@@ -35,8 +35,7 @@ const currentFile = computed(() => {
 
 <style lang="scss">
 .chat-bot-message-answer {
-  padding: 16px;
-  padding-right: 64px;
+  padding: 16px 64px 8px 16px;
   margin-bottom: 25px;
   position: relative;
   box-shadow: -2px 2px 2px rgba(66, 65, 45, 0.2);
@@ -55,6 +54,10 @@ const currentFile = computed(() => {
     font-size: 16px;
     line-height: 1.5;
     overflow-wrap: break-word;
+
+    * {
+      margin: 8px 0;
+    }
   }
 
   &--notification {

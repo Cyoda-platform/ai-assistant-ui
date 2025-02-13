@@ -189,6 +189,7 @@ function handleKeyDown(event) {
     border-radius: 8px;
     flex: 1;
     overflow: hidden;
+    background-color: #fff;
   }
 
   &__input-inner {

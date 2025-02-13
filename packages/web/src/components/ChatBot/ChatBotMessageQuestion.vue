@@ -18,7 +18,7 @@
             @click="onClickRollbackQuestion"
             :loading="isLoadingRollback"
             size="small"
-            class="btn-default btn-icon"
+            class="btn-default-lighter btn-icon"
           >
             <RollbackQuestionIcon/>
           </el-button>
@@ -39,7 +39,7 @@
         <el-button
           @click="onClickCopy"
           size="small"
-          class="btn-default btn-icon"
+          class="btn-default-lighter btn-icon"
         >
           <CopyIcon/>
         </el-button>
@@ -56,7 +56,7 @@
         <el-button
           @click="onClickApproveQuestion"
           size="small"
-          class="btn-default btn-icon"
+          class="btn-default-lighter btn-icon"
           :loading="isLoadingApprove"
         >
           <ThumbUpIcon/>
@@ -159,11 +159,15 @@ function onClickCopy() {
     font-size: 16px;
     line-height: 1.5;
     padding-right: 48px;
-    padding-bottom: 16px;
+    padding-bottom: 0;
     overflow-wrap: break-word;
 
     ul, ol {
       padding: 0 0 0 20px;
+    }
+
+    * {
+      margin: 8px 0;
     }
   }
 
