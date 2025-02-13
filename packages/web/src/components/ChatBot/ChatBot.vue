@@ -130,7 +130,7 @@ function getSpan(type){
     min-height: 100vh;
     height: auto;
     padding: 0 30px;
-    background-color: #EEF3F3;
+    background-color: variables.$bg;
   }
 }
 </style>

@@ -52,7 +52,7 @@
       @click="onClickEdit"
       v-if="isVisibleEditBtn"
       size="small"
-      class="btn-default btn-icon chat-bot-message-notification__edit_icon_wrapper"
+      class="btn-default-lighter btn-icon chat-bot-message-notification__edit_icon_wrapper"
       :class="{
           'is-loading': isLoading
         }"
@@ -123,7 +123,7 @@ function resetForm() {
   border: 1px solid #F0F1F4;
   border-radius: 16px;
   min-height: 100px;
-  padding: 24px 16px 16px 68px;
+  padding: 24px 16px 8px 68px;
   position: relative;
   margin-bottom: 25px;
   box-shadow: -1px 1px 20px rgba(214, 219, 219, 0.6);
@@ -161,10 +161,14 @@ function resetForm() {
     font-size: 16px;
     line-height: 1.5;
     padding-right: 48px;
-    padding-bottom: 16px;
+    padding-bottom: 0;
     overflow-wrap: break-word;
     ul, ol{
       padding: 0 0 0 20px;
+    }
+
+    * {
+      margin: 8px 0;
     }
   }
 

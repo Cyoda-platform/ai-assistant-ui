@@ -4,7 +4,6 @@
   }">
     <el-row>
       <el-col :span="5" class="chat-bot-canvas__sidebar" :style="{ flexBasis: sideBarWidth, maxWidth: sideBarWidth }">
-        <DotsHandlerIcon class="icon-handler"/>
         <div class="chat-bot-canvas__drag" @mousedown="startResize"></div>
         <div class="chat-bot-canvas__sidebar-title">
           <el-button @click="drawerVisible=true" class="btn-default btn-icon">
@@ -82,7 +81,6 @@ import ToggleSidebar from '@/assets/images/icons/toggle-sidebar.svg';
 import CloseCanvasIcon from "@/assets/images/icons/close-canvas.svg";
 import SplitScreenIcon from "@/assets/images/icons/split-screen.svg";
 import SplitScreenCloseIcon from "@/assets/images/icons/split-screen-close.svg";
-import DotsHandlerIcon from "@/assets/images/icons/dots-handler.svg";
 import ChatLoader from "@/components/ChatBot/ChatLoader.vue";
 import ChatBotMessageNotification from "@/components/ChatBot/ChatBotMessageNotification.vue";
 import ChatBotSubmitForm from "@/components/ChatBot/ChatBotSubmitForm.vue";
@@ -230,7 +228,7 @@ watch(() => props.technicalId, () => {
     position: relative;
     padding: 15px 15px;
     border-right: 1px solid variables.$accent-border;
-    background: variables.$bg-sidebar;
+    background: variables.$bg;
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -240,21 +238,6 @@ watch(() => props.technicalId, () => {
       color: #606266;
       margin-left: 24px;
     }
-  }
-
-  .icon-handler {
-    width: 24px;
-    position: absolute;
-    right: -4px;
-    top: 50%;
-    margin-top: -12px;
-    fill: #606266;
-    opacity: 0;
-    transition: opacity 0.5s;
-  }
-
-  &__sidebar:hover .icon-handler, &.resizing .icon-handler{
-    opacity: 1;
   }
 
   &__sidebar-title {

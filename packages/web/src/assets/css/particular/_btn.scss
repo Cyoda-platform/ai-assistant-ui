@@ -15,7 +15,7 @@
   font-weight: 400;
   box-shadow: none;
 
-  &.is-disabled{
+  &.is-disabled {
     background: linear-gradient(0deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), #0D8484;
     border-color: transparent;
   }
@@ -34,6 +34,20 @@
 
 .btn-default {
   background-color: #E6E6DA;
+  border: none;
+  color: #000;
+
+  &.is-disabled {
+    background-color: variables.$text-color-disable;
+
+    &:hover {
+      background-color: variables.$text-color-disable;
+    }
+  }
+}
+
+.btn-default-lighter {
+  background-color: #EFF2EC;
   border: none;
   color: #000;
 
