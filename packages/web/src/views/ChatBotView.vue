@@ -38,13 +38,16 @@ import ChatBotCanvas from "@/components/ChatBot/ChatBotCanvas.vue";
 import {onBeforeUnmount, onMounted, ref, watch} from "vue";
 import useAssistantStore from "@/stores/assistant.ts";
 import {v4 as uuidv4} from "uuid";
+import HelperStorage from "@/helpers/HelperStorage.ts";
 
+const helperStorage = new HelperStorage();
 const route = useRoute();
-const dialogVisible = ref(false);
 
 const technicalId = computed(() => {
   return route.params.technicalId as string;
 });
+
+const dialogVisible = ref(helperStorage.get(`chatDialog:${technicalId.value}`, false));
 
 let intervalId: any = null;
 let intervalEnvelopeId: any = null;
@@ -161,6 +164,7 @@ async function onApproveQuestion(event) {
 
 function onToggleCanvas(){
   dialogVisible.value = !dialogVisible.value;
+  helperStorage.set(`chatDialog:${technicalId.value}`, dialogVisible.value)
 }
 
 
