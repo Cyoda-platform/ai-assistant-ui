@@ -24,7 +24,7 @@
                 v-model="form.answer"
                 type="textarea"
                 resize="none"
-                :autosize="{ minRows: 1 }"
+                :autosize="{ minRows: 1, maxRows: 10 }"
                 :placeholder="placeholderComputed"
                 @keydown="handleKeyDown"
               />
@@ -201,6 +201,7 @@ function handleKeyDown(event) {
 
   &__btn-submit {
     margin-right: 16px;
+    margin-left: 16px;
     margin-bottom: 6px;
 
     button {
