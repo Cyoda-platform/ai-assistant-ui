@@ -126,6 +126,11 @@ onUnmounted(() => {
   window.removeEventListener("mousedown", onDocumentClick);
 })
 
+function scrollDownMessages() {
+  const messagesHtml = document.querySelector('.chat-bot-canvas__sidebar-messages');
+  messagesHtml.scrollTo(0, messagesHtml.scrollHeight);
+}
+
 function onDocumentClick(e) {
   const elDrawerEl = document.querySelector('.chat-bot-canvas__drawer');
   if (!elDrawerEl?.contains(e.target) && drawerVisible.value) {
@@ -184,6 +189,13 @@ function startResize(event) {
 
 watch(() => props.technicalId, () => {
   drawerVisible.value = false
+})
+
+watch(() => props.isLoading, () => {
+  if (props.isLoading) return;
+  nextTick(() => {
+    scrollDownMessages();
+  })
 })
 </script>
 
