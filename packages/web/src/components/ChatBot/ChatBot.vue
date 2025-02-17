@@ -49,7 +49,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, nextTick, onBeforeUnmount, onMounted} from "vue";
+import {computed, nextTick, onBeforeUnmount, onMounted, watch} from "vue";
 import ChatBotSubmitForm from "@/components/ChatBot/ChatBotSubmitForm.vue";
 import ChatLoader from "@/components/ChatBot/ChatLoader.vue";
 import OpenCanvasIcon from "@/assets/images/icons/open-canvas.svg";
@@ -83,13 +83,25 @@ const props = defineProps<{
   messages: any[],
 }>();
 
-function getOffset(type){
-  return ['question', 'notification'].includes(type) ? 1: 8;
+function scrollDownMessages() {
+  const messagesHtml = document.querySelector('.chat-bot__inner-messages');
+  messagesHtml.scrollTo(0, messagesHtml.scrollHeight);
 }
 
-function getSpan(type){
-  return ['question', 'notification'].includes(type) ? 21: 14;
+function getOffset(type) {
+  return ['question', 'notification'].includes(type) ? 1 : 8;
 }
+
+function getSpan(type) {
+  return ['question', 'notification'].includes(type) ? 21 : 14;
+}
+
+watch(() => props.isLoading, () => {
+  if (props.isLoading) return;
+  nextTick(() => {
+    scrollDownMessages();
+  })
+})
 </script>
 
 <style scoped lang="scss">
