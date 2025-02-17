@@ -108,7 +108,6 @@ const emit = defineEmits([
   'toggleCanvas'
 ]);
 
-let mutationObserverEl = null;
 const drawerVisible = ref(false);
 const isResizing = ref(false);
 const isShowMarkdown = ref(false);
@@ -119,27 +118,13 @@ const sideBarWidth = ref(canvasWidth.sideBarWidth || INIT_SIDEBAR_WIDTH);
 const mainWidth = ref(canvasWidth.mainWidth || INIT_MAIN_WIDTH);
 
 onMounted(() => {
-  scrollDownMessages();
   window.addEventListener("mousedown", onDocumentClick);
   window.addEventListener('resize', () => calculateSizes());
 });
 
 onUnmounted(() => {
-  mutationObserverEl.disconnect();
   window.removeEventListener("mousedown", onDocumentClick);
 })
-
-function scrollDownMessages() {
-  const messagesHtml = document.querySelector('.chat-bot-canvas__sidebar-messages');
-  mutationObserverEl = new MutationObserver(() => {
-    nextTick(() => {
-      messagesHtml.scrollTo(0, messagesHtml.scrollHeight);
-    });
-  });
-  mutationObserverEl.observe(messagesHtml, {
-    childList: true,
-  });
-}
 
 function onDocumentClick(e) {
   const elDrawerEl = document.querySelector('.chat-bot-canvas__drawer');

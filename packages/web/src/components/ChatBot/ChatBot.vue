@@ -61,7 +61,6 @@ import SideBar from "@/components/SideBar/SideBar.vue";
 import useAppStore from "@/stores/app";
 
 const appStore = useAppStore();
-let mutationObserverEl = null;
 
 const sidebarSpan = computed(() => {
   return appStore.isSidebarHidden ? 2 : 5;
@@ -83,24 +82,6 @@ const props = defineProps<{
   isLoading: boolean,
   messages: any[],
 }>();
-onBeforeUnmount(() => {
-  mutationObserverEl.disconnect();
-})
-onMounted(() => {
-  scrollDownMessages();
-})
-
-function scrollDownMessages() {
-  const messagesHtml = document.querySelector('.chat-bot__inner-messages');
-  mutationObserverEl = new MutationObserver(() => {
-    nextTick(() => {
-      messagesHtml.scrollTo(0, messagesHtml.scrollHeight);
-    })
-  })
-  mutationObserverEl.observe(messagesHtml, {
-    childList: true,
-  });
-}
 
 function getOffset(type){
   return ['question', 'notification'].includes(type) ? 1: 8;
