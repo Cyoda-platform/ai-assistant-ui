@@ -36,9 +36,6 @@
               </div>
             </div>
           </div>
-          <div class="chat-bot-submit-form__info">
-            Use the field above exclusively <strong>for responding</strong> to Cyoda AI.
-          </div>
         </div>
         <div class="chat-bot-submit-form__actions">
           <el-button @click="onClickAttachFile" class="btn-default btn-icon">
@@ -221,7 +218,7 @@ function handleKeyDown(event) {
     margin-left: 15px;
     display: flex;
     gap: 10px;
-    margin-bottom: 30px;
+    margin-bottom: 8px;
 
     svg {
       fill: #606266;
