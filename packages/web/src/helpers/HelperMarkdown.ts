@@ -25,6 +25,6 @@ export default class HelperMarkdown {
       return `<pre><code>${text}</code></pre>`;
     };
 
-    return marked.parse(text, {renderer});
+    return marked.parse(text, {renderer, breaks: true});
   }
 }

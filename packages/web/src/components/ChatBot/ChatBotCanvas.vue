@@ -256,6 +256,7 @@ watch(() => props.isLoading, () => {
 
   &__main {
     padding: 0 30px;
+    padding-right: 10px;
     height: 100vh;
     transition: opacity 0.5s;
   }

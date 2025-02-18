@@ -128,7 +128,7 @@ function onClickCopy() {
   &__cyoda-wrapper-icon {
     position: absolute;
     left: 24px;
-    top: 17px;
+    top: 18px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -137,8 +137,9 @@ function onClickCopy() {
   &__title {
     display: flex;
     margin-bottom: 8px;
-    font-size: 15px;
+    font-size: 16px;
     letter-spacing: 2px;
+    color: #303133;
 
     span {
       font-weight: bold;
@@ -161,6 +162,7 @@ function onClickCopy() {
     padding-right: 48px;
     padding-bottom: 0;
     overflow-wrap: break-word;
+    color: #303133;
 
     ul, ol {
       padding: 0 0 0 20px;

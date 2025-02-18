@@ -199,7 +199,7 @@ function handleKeyDown(event) {
   &__btn-submit {
     margin-right: 16px;
     margin-left: 16px;
-    margin-bottom: 6px;
+    margin-bottom: 7px;
 
     button {
       cursor: pointer;
@@ -215,10 +215,14 @@ function handleKeyDown(event) {
   }
 
   &__actions {
-    margin-left: 15px;
+    margin-left: 16px;
     display: flex;
-    gap: 10px;
+    gap: 16px;
     margin-bottom: 8px;
+
+    .el-button {
+      margin: 0;
+    }
 
     svg {
       fill: #606266;
@@ -228,12 +232,17 @@ function handleKeyDown(event) {
   .el-textarea__inner {
     box-shadow: none;
     min-height: 40px !important;
+    font-size: 16px;
+    margin-bottom: 7px;
+    margin-top: 7px;
+    padding-bottom: 8px;
+    padding-top: 8px;
   }
 
   .el-textarea__inner::placeholder {
     color: #A8ABB2;
-    position: absolute;
-    top: 5px;
+    font-size: 16px;
+    line-height: 24px;
   }
 
   &__layout_canvas {
@@ -264,12 +273,13 @@ function handleKeyDown(event) {
     min-height: 70px !important;
 
     .el-textarea__inner {
-      min-height: 70px !important;
+      margin-bottom: 15px;
+      margin-top: 15px;
     }
   }
 
   &__layout_canvas &__btn-submit {
-    margin-bottom: 16px;
+    margin-bottom: 15px;
   }
 
   &__layout_canvas &__file-submit-preview {
