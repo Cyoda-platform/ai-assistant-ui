@@ -163,6 +163,7 @@ function resetForm() {
     padding-right: 48px;
     padding-bottom: 0;
     overflow-wrap: break-word;
+    color: #303133;
     ul, ol{
       padding: 0 0 0 20px;
     }

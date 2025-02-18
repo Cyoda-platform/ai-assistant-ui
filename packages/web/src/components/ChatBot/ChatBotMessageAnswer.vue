@@ -23,7 +23,6 @@ const computedMessage = computed(() => {
     return JSON.stringify(text, null, 2);
   }
 
-  text = text.replaceAll('\n', '<br/>');
   return HelperMarkdown.parseMarkdown(text);
 });
 
@@ -48,12 +47,14 @@ const currentFile = computed(() => {
     font-size: 15px;
     letter-spacing: 2px;
     font-weight: bold;
+    color: #01143C;
   }
 
   &__body {
     font-size: 16px;
     line-height: 1.5;
     overflow-wrap: break-word;
+    color: #01143C;
 
     * {
       margin: 8px 0;
