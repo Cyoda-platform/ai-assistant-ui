@@ -86,8 +86,6 @@ function onDownload() {
 </script>
 
 <style lang="scss">
-@use "@/assets/css/particular/variables";
-
 .file-preview {
   display: inline-block;
   position: relative;
@@ -106,7 +104,7 @@ function onDownload() {
   &__image-format {
     height: 20px;
     line-height: 20px;
-    background-color: variables.$color-primary;
+    background-color: var(--color-primary);
     transform: rotate(45deg);
     text-align: center;
     color: #fff;
@@ -152,7 +150,7 @@ function onDownload() {
   &__doc {
     border-radius: 8px;
     overflow: hidden;
-    background: variables.$green-primary-dark;
+    background: var(--green-primary-dark);
     display: flex;
     align-items: center;
     padding: 16px;

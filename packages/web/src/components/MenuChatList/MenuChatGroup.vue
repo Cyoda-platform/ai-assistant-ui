@@ -25,6 +25,9 @@ withDefaults(defineProps<{
 h4 {
   margin-top: 32px;
   margin-bottom: 8px;
+  color: var(--text-color-regular);
+  font-weight: 500;
+  font-size: 16px;
 }
 
 ul {

@@ -67,11 +67,12 @@ function onClickSubmit() {
 .chat-bot-create-new {
   &__title {
     text-align: center;
+    color: var(--text-header-lighter);
   }
 
   &__description {
     font-size: 24px;
-    color: #606266;
+    color: var(--text-color-regular);
     line-height: 160%;
   }
 

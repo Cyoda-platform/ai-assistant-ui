@@ -70,8 +70,6 @@ function onDeleteAttach() {
 </script>
 
 <style lang="scss">
-@use "@/assets/css/particular/variables";
-
 .file-submit-preview {
   display: inline-block;
   position: relative;

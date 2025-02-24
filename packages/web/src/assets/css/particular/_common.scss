@@ -1,7 +1,6 @@
-@use './variables.scss';
-
 html {
-  font-family: "Roboto", Arial, sans-serif
+  font-family: "Roboto", Arial, sans-serif;
+
 }
 
 h1 {
@@ -20,11 +19,11 @@ h4 {
 }
 
 .color-green {
-  color: variables.$color-primary;
+  color: var(--color-primary);
 }
 
 a {
-  color: variables.$color-primary;
+  color: var(--color-primary);
 
   &:hover {
     text-decoration: none;

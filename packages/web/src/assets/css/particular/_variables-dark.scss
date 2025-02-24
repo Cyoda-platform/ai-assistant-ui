@@ -1,0 +1,56 @@
+@mixin dark-theme {
+  --color-primary: #0D8484;
+  --color-primary-ligter: #109f9f;
+  --text-color-regular: #9F9F9F;
+  --text-copy-color: #1D1C2C;
+  --text-color-primary: #303133;
+  --text-color-secondary: #909399;
+  --bg-btn-disable: #27273C;
+  --bg-copy: #C0C4CC;
+  --green-primary-dark: #2e8861;
+  --border-color-darken: #27273C;
+  --bg-sidebar: #110F1B;
+  --bg-sidebar-canvas: #110F1B;
+  --accent-border: #1E1E2E;
+  --text-header-lighter: #C0C0C0;
+  --text-header: #C0C0C0;
+  --bg: #110F1B;
+  --input: #222337;
+  --input-border-color: #27273C;
+  --bubble-notification-bg-color: #1D1C2C;
+  --bubble-text-color: #B1B1B2;
+  --bubble-box-shadow-color: rgba(19, 19, 33, 0.6);
+  --bubble-border-color: transparent;
+  --bubble-question-bg-color: #151925;
+  --bubble-question-text-color: #B1B1B2;
+  --bubble-question-title-color: #B1B1B2;
+  --bg-btn-default: #27273C;
+  --bg-btn-default-hover: rgba(39, 39, 60, 0.5);
+  --bg-btn-default-lighter: #27273C;
+  --bg-btn-default-lighter-hover: rgba(39, 39, 60, 0.5);
+  --color-icon-submit: #EAE8E8;
+  --bg-popup: #1D1C2C;
+  --bg-attachment: #110F1B;
+  --border-attachment-file: #110F1B;
+  --bg-button: #27273C;
+  --bg-active-menu: #222337;
+  --border-color-active-menu: #222337;
+  --border-color-popover: #110F1B;
+  --border-color-default-button: #27273C;
+  --bg-button-create-new: #C0C0C0;
+  --color-settings-text: #B1B1B2;
+  --color-input-text: #9F9F9F;
+}
+
+:root {
+  .theme-dark {
+    @include dark-theme;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    @include dark-theme;
+  }
+}
+

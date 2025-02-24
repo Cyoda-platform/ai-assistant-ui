@@ -161,8 +161,6 @@ defineExpose({openDialog});
 </script>
 
 <style lang="scss">
-@use "@/assets/css/particular/variables";
-
 .chat-bot-attach-file {
   padding-left: 24px !important;
   padding-right: 24px !important;
@@ -176,8 +174,8 @@ defineExpose({openDialog});
     overflow: hidden;
     width: 352px;
     height: 264px;
-    background: variables.$bg-sidebar;
-    border: 1px solid #D4D7DE;
+    background: var(--bg-attachment);
+    border: 1px solid var(--border-attachment-file);
     border-radius: 6px;
     margin: 0 auto;
 
@@ -197,7 +195,7 @@ defineExpose({openDialog});
   &__attachment-empty-title {
     margin-bottom: 24px;
     font-size: 16px;
-    color: variables.$text-color-secondary;
+    color: var(--text-color-secondary);
     font-weight: 400;
   }
 

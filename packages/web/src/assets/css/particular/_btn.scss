@@ -1,14 +1,16 @@
-@use "variables";
 @use "sass:color";
 
 .el-button {
   font-weight: 400;
+  background-color: var(--bg-button);
+  border-color: var(--border-color-default-button);
+  color: var(--text-color-regular);
 }
 
 .btn-primary, .el-message-box .el-button--primary {
   color: #fff;
-  background-color: variables.$color-primary;
-  border: 1px solid variables.$color-primary;
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
   transition: all 0.5s;
   font-family: 'PingFang SC', Arial, sans-serif;
   font-size: 16px;
@@ -22,7 +24,7 @@
 
   &:hover {
     background: linear-gradient(0deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), #0D8484 !important;
-    border: 1px solid color.adjust(variables.$color-primary, $lightness: 8%);
+    border: 1px solid var(--color-primary-ligter);
     color: #fff;
   }
 }
@@ -33,29 +35,37 @@
 }
 
 .btn-default {
-  background-color: #E6E6DA;
+  background-color: var(--bg-btn-default);
   border: none;
   color: #000;
 
+  &:hover {
+    background-color: var(--bg-btn-default-hover);
+  }
+
   &.is-disabled {
-    background-color: variables.$text-color-disable;
+    background-color: var(--bg-btn-disable);
 
     &:hover {
-      background-color: variables.$text-color-disable;
+      background-color: var(--bg-btn-disable);
     }
   }
 }
 
 .btn-default-lighter {
-  background-color: #EFF2EC;
+  background-color: var(--bg-btn-default-lighter);
   border: none;
   color: #000;
 
+  &:hover {
+    background-color: var(--bg-btn-default-lighter-hover);
+  }
+
   &.is-disabled {
-    background-color: variables.$text-color-disable;
+    background-color: var(--bg-btn-disable);
 
     &:hover {
-      background-color: variables.$text-color-disable;
+      background-color: var(--bg-btn-disable);
     }
   }
 }
@@ -67,6 +77,14 @@
 
   .icon {
     height: unset;
+  }
+
+  svg:not(.fill-stroke) {
+    fill: var(--text-color-regular);
+  }
+
+  svg.fill-stroke {
+    stroke: var(--text-color-regular);
   }
 
   &.el-button--small {
@@ -82,6 +100,6 @@
 }
 
 .btn-border {
-  border: 1px solid variables.$color-primary;
+  border: 1px solid var(--color-primary);
   border-radius: 4px;
 }
