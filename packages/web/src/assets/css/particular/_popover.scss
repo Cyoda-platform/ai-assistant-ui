@@ -1,7 +1,6 @@
-@use "variables";
-
 .el-popper.default {
-  border-color: variables.$color-primary !important;
-  background: variables.$bg-sidebar !important;
+  border-color: var(--border-color-popover) !important;
+  background: var(--bg-sidebar) !important;
   box-shadow: none !important;
+  color: var(--text-color-regular);
 }

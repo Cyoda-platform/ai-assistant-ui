@@ -13,14 +13,12 @@
 </script>
 
 <style lang="scss">
-@use "@/assets/css/particular/variables";
-
 .chat-loading {
   margin-top: 25px;
   height: 56px;
 
   .el-loading-spinner .path {
-    stroke: variables.$color-primary;
+    stroke: var(--color-primary);
   }
 }
 </style>

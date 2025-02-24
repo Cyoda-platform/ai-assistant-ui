@@ -116,17 +116,15 @@ function resetForm() {
 </script>
 
 <style lang="scss">
-@use '@/assets/css/particular/variables.scss';
-
 .chat-bot-message-notification {
-  background: #FDFEFE;
-  border: 1px solid #F0F1F4;
+  background: var(--bubble-notification-bg-color);
+  border: 1px solid var(--bubble-border-color);
   border-radius: 16px;
   min-height: 100px;
   padding: 24px 16px 8px 68px;
   position: relative;
   margin-bottom: 25px;
-  box-shadow: -1px 1px 20px rgba(214, 219, 219, 0.6);
+  box-shadow: -1px 1px 20px var(--bubble-box-shadow-color);
 
   &__edit_icon_wrapper {
     position: absolute;
@@ -151,7 +149,7 @@ function resetForm() {
     letter-spacing: 2px;
 
     span {
-      color: variables.$color-primary;
+      color: var(--color-primary);
       font-weight: 500;
       font-size: 16px;
     }
@@ -163,7 +161,7 @@ function resetForm() {
     padding-right: 48px;
     padding-bottom: 0;
     overflow-wrap: break-word;
-    color: #303133;
+    color: var(--bubble-text-color);
     ul, ol{
       padding: 0 0 0 20px;
     }
@@ -179,7 +177,7 @@ function resetForm() {
 
     .el-textarea__inner {
       box-shadow: none;
-      border: 1px solid variables.$color-primary;
+      border: 1px solid var(--color-primary);
       border-radius: 8px;
     }
   }

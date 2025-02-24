@@ -137,7 +137,6 @@ const placeholderComputed = computed(() => {
 });
 
 function handleKeyDown(event) {
-  console.log(event);
   if (event.key === 'Enter' && !event.shiftKey) {
     event.preventDefault();
     onClickTextAnswer();
@@ -147,8 +146,6 @@ function handleKeyDown(event) {
 </script>
 
 <style lang="scss">
-@use "@/assets/css/particular/variables";
-
 .chat-bot-submit-form {
   position: relative;
 
@@ -160,10 +157,10 @@ function handleKeyDown(event) {
     right: 0;
     justify-content: center;
     background-color: #fff;
-    color: variables.$color-primary;
+    color: var(--color-primary);
     align-items: center;
     z-index: 1;
-    border: 1px dashed variables.$color-primary;
+    border: 1px dashed var(--color-primary);
     display: none;
     border-radius: 8px;
   }
@@ -182,11 +179,11 @@ function handleKeyDown(event) {
   }
 
   &__input {
-    border: 1px solid #CDD0D6;
+    border: 1px solid var(--border-color-darken);
     border-radius: 8px;
     flex: 1;
     overflow: hidden;
-    background-color: #fff;
+    background-color: var(--input);
   }
 
   &__input-inner {
@@ -210,7 +207,7 @@ function handleKeyDown(event) {
     svg {
       position: relative;
       top: 2px;
-      fill: #fff;
+      fill: var(--color-icon-submit) !important;
     }
   }
 
@@ -223,14 +220,10 @@ function handleKeyDown(event) {
     .el-button {
       margin: 0;
     }
-
-    svg {
-      fill: #606266;
-    }
   }
 
   .el-textarea__inner {
-    box-shadow: none;
+    box-shadow: none !important;
     min-height: 40px !important;
     font-size: 16px;
     margin-bottom: 7px;
@@ -264,12 +257,12 @@ function handleKeyDown(event) {
   }
 
   &__layout_canvas &__input {
-    border-color: #EBEBEB;
-    background: #ffffff;
+    border-color: var(--border-color-darken);
+    background: var(--input);
   }
 
   &__layout_canvas &__input-inner {
-    background-color: #fff;
+    background-color: var(--input);
     min-height: 70px !important;
 
     .el-textarea__inner {
