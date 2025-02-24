@@ -1,6 +1,11 @@
 .el-dialog {
-  border: 1px solid #0D8484;
+  border: 1px solid var(--accent-border);
   border-radius: 12px;
+  background-color: var(--bg-popup);
+
+  &__title{
+    color: var(--text-color-regular);
+  }
 
   &.is-fullscreen {
     border: none;

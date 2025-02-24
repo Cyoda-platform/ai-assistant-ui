@@ -1,0 +1,56 @@
+@mixin light-theme {
+  --color-primary: #0D8484;
+  --color-primary-ligter: #109f9f;
+  --text-color-regular: #606266;
+  --text-copy-color: #606266;
+  --text-color-primary: #303133;
+  --text-color-secondary: #909399;
+  --bg-btn-disable: #C0C4CC;
+  --bg-copy: #C0C4CC;
+  --green-primary-dark: #2e8861;
+  --border-color-darken: #CDD0D6;
+  --bg-sidebar: #F4F4F4;
+  --bg-sidebar-canvas: #EEF3F3;
+  --accent-border: #B4D9D9;
+  --text-header: #0A6363;
+  --text-header-lighter: #303133;
+  --bg: #FEFEFE;
+  --input: #FFFFFF;
+  --input-border-color: #DCDFE6;
+  --bubble-notification-bg-color: #FDFEFE;
+  --bubble-text-color: #303133;
+  --bubble-box-shadow-color: rgba(214, 219, 219, 0.6);
+  --bubble-border-color: #F0F1F4;
+  --bubble-question-bg-color: #D6DBDB;
+  --bubble-question-text-color: #01143C;
+  --bubble-question-title-color: #303133;
+  --bg-btn-default: #E6E6DA;
+  --bg-btn-default-hover: rgb(235.9, 245.3, 255);
+  --bg-btn-default-lighter: #EFF2EC;
+  --bg-btn-default-lighter-hover: rgb(235.9, 245.3, 255);
+  --color-icon-submit: #FFFFFF;
+  --bg-popup: #FFFFFF;
+  --bg-attachment: #F4F4F4;
+  --border-attachment-file: #D4D7DE;
+  --bg-button: #FFFFFF;
+  --bg-active-menu: #FFFFFF;
+  --border-color-active-menu: #0D8484;
+  --border-color-popover: #0D8484;
+  --border-color-default-button: #DCDFE6;
+  --bg-button-create-new: #0A6363;
+  --color-settings-text: #303133;
+  --color-input-text: #A8ABB2;
+}
+
+
+:root {
+  .theme-light {
+    @include light-theme;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    @include light-theme;
+  }
+}
