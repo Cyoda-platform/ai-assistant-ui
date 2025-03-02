@@ -105,8 +105,6 @@ watch(() => props.isLoading, () => {
 </script>
 
 <style scoped lang="scss">
-@use "@/assets/css/particular/variables";
-
 .layout-sidebar {
   &__sidebar {
     min-height: 100vh;
@@ -115,15 +113,15 @@ watch(() => props.isLoading, () => {
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    border-right: 1px solid variables.$accent-border;
-    background-color: variables.$bg-sidebar;
+    border-right: 1px solid var(--accent-border);
+    background-color: var(--bg-sidebar);
   }
 
   &__main {
     min-height: 100vh;
     height: auto;
     padding: 0 30px;
-    background-color: variables.$bg;
+    background-color: var(--bg-sidebar-canvas);
   }
 }
 </style>

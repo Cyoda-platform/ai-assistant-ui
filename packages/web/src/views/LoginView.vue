@@ -71,8 +71,6 @@ const yearComputed = computed(() => {
 </script>
 
 <style lang="scss">
-@use "@/assets/css/particular/variables";
-
 .login-view {
   padding: 0 52px 0 40px;
   display: flex;
@@ -94,7 +92,7 @@ const yearComputed = computed(() => {
   &__title {
     font-size: 24px;
     font-weight: 500;
-    color: variables.$text-header;
+    color: var(--text-header);
   }
 
   &__form {

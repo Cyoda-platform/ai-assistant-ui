@@ -1,5 +1,3 @@
-@use "variables";
-
 .wrapper-mermaid, .wrapper-plantuml {
   .actions {
     text-align: right;
@@ -7,10 +5,10 @@
   }
 
   .copy {
-    color: variables.$text-color-regular;
+    color: var(--text-copy-color);
     text-decoration: none;
     display: inline-block;
-    background: variables.$text-color-disable;
+    background: var(--bg-copy);
     padding: 1px;
     font-size: 12px;
     border-radius: 8px;
@@ -20,5 +18,17 @@
 
   .mermaid {
     text-align: center;
+    text {
+      fill: var(--bubble-text-color) !important;
+    }
+
+    line {
+      stroke: var(--bubble-text-color) !important;
+    }
+
+    #arrowhead path{
+      fill: var(--bubble-text-color) !important;
+      stroke: var(--bubble-text-color) !important;
+    }
   }
 }
