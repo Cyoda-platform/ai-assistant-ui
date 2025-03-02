@@ -318,8 +318,6 @@ const editorStyle = computed(() => {
 </script>
 
 <style lang="scss">
-@use '@/assets/css/particular/variables';
-
 .chat-bot-editor {
   position: relative;
   height: calc(100vh - 70px);
@@ -366,7 +364,7 @@ const editorStyle = computed(() => {
     }
 
     svg {
-      fill: #0d8484;
+      fill: #0d8484 !important;
     }
 
     button {
@@ -397,7 +395,7 @@ const editorStyle = computed(() => {
 
   &__markdown {
     flex: 1;
-    border-left: 1px solid variables.$border-color-darken;
+    border-left: 1px solid var(--border-color-darken);
     padding: 0 15px;
     position: relative;
   }

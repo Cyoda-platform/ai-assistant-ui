@@ -7,7 +7,7 @@
         <div class="chat-bot-canvas__drag" @mousedown="startResize"></div>
         <div class="chat-bot-canvas__sidebar-title">
           <el-button @click="drawerVisible=true" class="btn-default btn-icon">
-            <ToggleSidebar/>
+            <ToggleSidebar class="fill-stroke"/>
           </el-button>
           <h2>Cyoda Chat</h2>
         </div>
@@ -63,7 +63,7 @@
       <SideBar mode="drawer">
         <template #toggle>
           <el-button @click="drawerVisible=false" class="btn-default btn-icon">
-            <ToggleSidebar/>
+            <ToggleSidebar class="fill-stroke"/>
           </el-button>
         </template>
       </SideBar>
@@ -133,7 +133,8 @@ function scrollDownMessages() {
 
 function onDocumentClick(e) {
   const elDrawerEl = document.querySelector('.chat-bot-canvas__drawer');
-  if (!elDrawerEl?.contains(e.target) && drawerVisible.value) {
+  const elDropdownMenuEl = document.querySelector('.el-dropdown-menu');
+  if ((!elDrawerEl?.contains(e.target) && !elDropdownMenuEl.contains(e.target)) && drawerVisible.value) {
     drawerVisible.value = false;
   }
 }
@@ -200,8 +201,6 @@ watch(() => props.isLoading, () => {
 </script>
 
 <style lang="scss">
-@use '@/assets/css/particular/variables.scss';
-
 .chat-bot-canvas {
   &.resizing * {
     user-select: none;
@@ -224,8 +223,8 @@ watch(() => props.isLoading, () => {
   &__sidebar {
     position: relative;
     padding: 15px 15px;
-    border-right: 1px solid variables.$accent-border;
-    background: variables.$bg;
+    border-right: 1px solid var(--accent-border);
+    background: var(--bg-sidebar-canvas);
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -259,6 +258,7 @@ watch(() => props.isLoading, () => {
     padding-right: 10px;
     height: 100vh;
     transition: opacity 0.5s;
+    background-color: var(--bg);
   }
 
   &__top_actions {
@@ -271,7 +271,7 @@ watch(() => props.isLoading, () => {
 
   &__drawer {
     box-shadow: none;
-    border-right: 1px solid rgba(20, 135, 81, 0.5);
+    border-right: 1px solid var(--accent-border);
 
     .el-drawer__header {
       display: none
