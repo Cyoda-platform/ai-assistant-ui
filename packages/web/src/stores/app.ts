@@ -8,6 +8,7 @@ const useAppStore = defineStore('app', {
     return {
       isSidebarHidden: helperStorage.get('app:isSidebarHidden', false),
       isCanvasHidden: helperStorage.get('app:isCanvasHidden', false),
+      theme: helperStorage.get('app:theme', 'system'),
     }
   },
   actions: {
@@ -19,6 +20,10 @@ const useAppStore = defineStore('app', {
       this.isCanvasHidden = !this.isCanvasHidden;
       helperStorage.set("app:isCanvasHidden", this.isCanvasHidden);
     },
+    setTheme(theme) {
+      this.theme = theme;
+      helperStorage.set("app:theme", theme);
+    }
   },
 });
 

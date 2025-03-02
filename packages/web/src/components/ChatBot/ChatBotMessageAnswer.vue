@@ -38,7 +38,7 @@ const currentFile = computed(() => {
   margin-bottom: 25px;
   position: relative;
   box-shadow: -2px 2px 2px rgba(66, 65, 45, 0.2);
-  background: #D6DBDB;
+  background: var(--bubble-question-bg-color);
   border-radius: 16px;
 
   &__title {
@@ -47,14 +47,14 @@ const currentFile = computed(() => {
     font-size: 15px;
     letter-spacing: 2px;
     font-weight: bold;
-    color: #01143C;
+    color: var(--bubble-question-text-color);
   }
 
   &__body {
     font-size: 16px;
     line-height: 1.5;
     overflow-wrap: break-word;
-    color: #01143C;
+    color: var(--bubble-question-text-color);
 
     * {
       margin: 8px 0;

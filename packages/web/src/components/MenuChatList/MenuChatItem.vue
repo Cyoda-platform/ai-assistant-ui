@@ -69,8 +69,6 @@ const isActive = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/css/particular/variables.scss';
-
 .menu-chat-item {
   border: 1px solid transparent;
   border-radius: 4px;
@@ -81,7 +79,7 @@ const isActive = computed(() => {
 
   &__link {
     padding: 8px 8px 8px 0;
-    color: variables.$text-color-regular;
+    color: var(--text-color-regular);
     text-decoration: none;
     display: block;
     transition: all 0.5s;
@@ -96,11 +94,15 @@ const isActive = computed(() => {
     opacity: 0;
     transition: all 1s;
     align-self: stretch;
+
+    svg {
+      fill: var(--text-color-regular);
+    }
   }
 
   &:hover, &--active {
-    border-color: variables.$color-primary;
-    background: #fff;
+    border-color: var(--border-color-active-menu);
+    background: var(--bg-active-menu);
   }
 
   &:hover &__link, &--active &__link {
@@ -120,7 +122,7 @@ const isActive = computed(() => {
     font-size: 16px;
 
     h4 {
-      color: variables.$text-header;
+      color: var(--text-header);
       margin: 0 0 8px 0;
     }
   }

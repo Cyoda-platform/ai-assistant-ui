@@ -20,42 +20,45 @@
           <ToggleOpenIcon class="side-bar__toggle-close main-icon"/>
         </a>
       </li>
-      <li
-        class="side-bar__li"
-        v-for="(menu, index) in menus"
-        :key="index"
-        :class="{
-              active: getIsActive(menu)
-            }"
-      >
-        <a
-          @click.stop="onClickMenu(menu)"
-          href="#"
-          class="side-bar__link"
-          :class="{
-            'side-bar__link--active': menu.isShow
-          }"
-        >
-          <Icon :icon="menu.isShow? menu.iconOpen: menu.icon" class="main-icon"/>
+      <li class="side-bar__li" :class="{
+              active: isActiveMenu('/home')
+            }">
+        <router-link class="side-bar__link" to="/home">
+          <HomeIcon class="main-icon"/>
+          <span v-if="!isSidebarHidden">Home</span>
+        </router-link>
+      </li>
+
+      <li class="side-bar__li" :class="{
+              active: isHistoryMenuActive
+            }">
+        <a @click.prevent="onClickToggleHistory" class="side-bar__link" href="#">
+          <template v-if="!isSidebarHidden">
+            <HistoryOpenIcon v-if="isHistoryMenuVisible" class="main-icon"/>
+            <HistoryIcon v-else class="main-icon"/>
+          </template>
           <span v-if="!isSidebarHidden">
-              {{ menu.name }}
-            <template v-if="!isMenuReady(menu)">
+            History
+             <template v-if="!isHistoryMenuReady">
               (<LoadingText/>)
             </template>
           </span>
-          <ArrowDownIcon class="arrow-down-icon" v-if="menu.component && !isSidebarHidden"/>
+          <ArrowDownIcon class="arrow-down-icon" v-if="!isSidebarHidden"/>
         </a>
-        <template v-if="menu.component">
-          <el-collapse-transition>
-            <component @ready="onReady(menu)" @active="onChildMenu(menu, $event)" v-show="menu.isShow"
-                       :is="getComponent(menu.component)"/>
-          </el-collapse-transition>
-        </template>
+        <el-collapse-transition>
+          <MenuChatList @ready="onHistoryMenuReady" @active="onHistoryMenuActive" v-show="isHistoryMenuVisible"/>
+        </el-collapse-transition>
+      </li>
+      <li class="side-bar__li">
+        <a @click="onClickSettings" class="side-bar__link" href="#">
+          <SettingsIcon class="main-icon"/>
+          <span v-if="!isSidebarHidden">Settings</span>
+        </a>
       </li>
       <template v-if="isSidebarHidden">
         <li class="side-bar__li">
           <a class="side-bar__link side-bar__link" href="#" @click.prevent="onClickCreate">
-            <CreateNewRequestIcon class="main-icon"/>
+            <CreateNewRequestIcon class="main-icon main-icon-create-new"/>
           </a>
         </li>
       </template>
@@ -73,12 +76,11 @@
         </span>
       </a>
     </div>
+    <SettingsDialog ref="settingsDialogRef"/>
   </div>
 </template>
 
 <script setup lang="ts">
-import menusJson from "./menu.json";
-import Icon from "@/components/Icon.vue";
 import MenuChatList from "@/components/MenuChatList/MenuChatList.vue";
 import {useRoute, useRouter} from "vue-router";
 import LogoutIcon from '@/assets/images/icons/logout.svg';
@@ -86,18 +88,24 @@ import ToggleCloseIcon from '@/assets/images/icons/toggle-close.svg';
 import ToggleOpenIcon from '@/assets/images/icons/toggle-open.svg';
 import useAuthStore from "@/stores/auth.ts";
 import useAppStore from "@/stores/app.ts";
-import {computed, ref, useSlots} from "vue";
+import {computed, ref, useSlots, useTemplateRef} from "vue";
 import LogoSmallUrl from '@/assets/images/logo-small.svg?url'
 import LogoUrl from '@/assets/images/logo.svg?url'
 import LoadingText from "@/components/LoadingText.vue";
 import ArrowDownIcon from '@/assets/images/icons/arrow-down.svg';
 import CreateNewRequestIcon from '@/assets/images/icons/create-new-request.svg';
+import HomeIcon from '@/assets/images/icons/home.svg';
+import HistoryIcon from '@/assets/images/icons/history.svg';
+import HistoryOpenIcon from '@/assets/images/icons/history-open.svg';
+import SettingsIcon from '@/assets/images/icons/settings.svg';
+import SettingsDialog from "@/components/SettingsDialog/SettingsDialog.vue";
 
 const authStore = useAuthStore();
 const appStore = useAppStore();
 const router = useRouter();
 const route = useRoute();
 const slots = useSlots();
+const settingsDialogRef = useTemplateRef('settingsDialogRef');
 
 withDefaults(defineProps<{
   mode: string,
@@ -105,17 +113,24 @@ withDefaults(defineProps<{
   mode: 'default',
 });
 
-const menus = ref(menusJson);
+const isHistoryMenuVisible = ref(false);
+const isHistoryMenuReady = ref(false);
+const isHistoryMenuActive = ref(false);
 
-
-function onChildMenu(menu, active) {
-  menu.active = active;
+function onClickToggleHistory() {
+  isHistoryMenuVisible.value = !isHistoryMenuVisible.value;
 }
 
-const getIsActive = (menu) => {
-  if (menu.active) return true;
-  if (!menu.link) return false;
-  return route.path === menu.link || route.meta.baseUrl === menu.link;
+function isActiveMenu(link) {
+  return route.path === link;
+}
+
+function onHistoryMenuReady() {
+  isHistoryMenuReady.value = true;
+}
+
+function onHistoryMenuActive(event) {
+  isHistoryMenuActive.value = event;
 }
 
 function onClickLogout() {
@@ -129,49 +144,23 @@ function onClickToggleSidebar() {
 }
 
 function closeAllMenus() {
-  menus.value.map((el) => el.isShow = false);
+  isHistoryMenuActive.value = false;
 }
 
 const isSidebarHidden = computed(() => {
   return appStore.isSidebarHidden;
 })
 
-function getComponent(componentName: string) {
-  switch (componentName) {
-    case 'MenuChatList':
-      return MenuChatList
-  }
-}
-
-function onClickMenu(menu) {
-  if (menu.link) {
-    return router.push(menu.link);
-  } else if (!isMenuReady(menu)) {
-    return;
-  } else if (menu.component) {
-    if (isSidebarHidden.value) appStore.toggleSidebar(false);
-    menu.isShow = !menu.isShow;
-  }
-}
-
-function isMenuReady(menu) {
-  if (!Object.hasOwn(menu, 'ready')) return true;
-
-  return menu.ready;
-}
-
-function onReady(menu) {
-  menu.ready = true;
-}
-
 function onClickCreate() {
   router.push('/home');
+}
+
+function onClickSettings() {
+  settingsDialogRef.value.openDialog();
 }
 </script>
 
 <style lang="scss">
-@use "@/assets/css/particular/variables";
-
 .side-bar {
   padding: 0 20px 0 40px;
   display: flex;
@@ -197,6 +186,7 @@ function onClickCreate() {
 
   &__toggle-close {
     cursor: pointer;
+    fill: var(--text-color-regular) !important;
   }
 
   &__nav {
@@ -215,26 +205,27 @@ function onClickCreate() {
     display: flex;
     align-items: center;
     font-size: 16px;
-    color: #000;
+    color: var(--text-color-regular);
     text-decoration: none;
 
     .main-icon {
       margin-right: 16px;
-      fill: #606266;
+      fill: var(--text-color-regular);
     }
 
     .arrow-down-icon {
       margin-left: auto;
       transition: all 0.5s;
+      fill: var(--text-color-regular);
     }
   }
 
   &__li.active > a {
-    color: variables.$text-header;
+    color: var(--text-header);
     font-weight: bold;
 
     svg {
-      fill: variables.$text-header;
+      fill: var(--text-header)
     }
   }
 
@@ -251,7 +242,7 @@ function onClickCreate() {
   &__logout {
     display: flex;
     font-size: 16px;
-    color: #000000;
+    color: var(--text-color-regular);
     text-decoration: none;
     align-items: center;
     margin-left: 5px;
@@ -262,6 +253,10 @@ function onClickCreate() {
 
     svg {
       margin-right: 16px;
+
+      g {
+        stroke: var(--text-color-regular);
+      }
     }
   }
 
@@ -294,6 +289,8 @@ function onClickCreate() {
   }
 
   &--drawer {
+    background-color: var(--bg-sidebar);
+
     .side-bar__logo {
       max-width: 160px;
     }
@@ -302,6 +299,10 @@ function onClickCreate() {
       padding-top: 24px;
       padding-right: 20px;
     }
+  }
+
+  .main-icon-create-new {
+    fill: var(--bg-button-create-new);
   }
 }
 </style>

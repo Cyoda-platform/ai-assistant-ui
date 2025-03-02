@@ -46,7 +46,6 @@
       </el-tooltip>
 
       <el-tooltip
-        v-if="message.approve"
         class="box-item"
         effect="dark"
         content="Approve"
@@ -59,7 +58,7 @@
           class="btn-default-lighter btn-icon"
           :loading="isLoadingApprove"
         >
-          <ThumbUpIcon/>
+          <ThumbUpIcon class="fill-stroke" />
         </el-button>
       </el-tooltip>
     </div>
@@ -113,17 +112,15 @@ function onClickCopy() {
 </script>
 
 <style lang="scss">
-@use '@/assets/css/particular/variables.scss';
-
 .chat-bot-message-question {
-  background: #FDFEFE;
-  border: 1px solid #F0F1F4;
+  background: var(--bubble-notification-bg-color);
+  border: 1px solid var(--bubble-border-color);
   border-radius: 16px;
   min-height: 100px;
   padding: 24px 16px 16px 68px;
   position: relative;
   margin-bottom: 25px;
-  box-shadow: -1px 1px 20px rgba(214, 219, 219, 0.6);
+  box-shadow: -1px 1px 20px var(--bubble-box-shadow-color);
 
   &__cyoda-wrapper-icon {
     position: absolute;
@@ -139,7 +136,7 @@ function onClickCopy() {
     margin-bottom: 8px;
     font-size: 16px;
     letter-spacing: 2px;
-    color: #303133;
+    color: var(--bubble-question-title-color);
 
     span {
       font-weight: bold;
@@ -162,7 +159,7 @@ function onClickCopy() {
     padding-right: 48px;
     padding-bottom: 0;
     overflow-wrap: break-word;
-    color: #303133;
+    color: var(--bubble-text-color);
 
     ul, ol {
       padding: 0 0 0 20px;

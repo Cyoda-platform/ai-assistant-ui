@@ -103,18 +103,16 @@ watchEffect(() => {
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/css/particular/variables';
-
 .menu-chat-list {
   &__empty-title {
     font-weight: bold;
-    color: variables.$text-color-regular;
+    color: var(--text-color-regular);
   }
 
   &__empty-description {
     font-size: 16px;
     line-height: 1.5;
-    color: variables.$text-color-secondary;
+    color: var(--text-color-secondary);
   }
 }
 </style>
