@@ -9,7 +9,7 @@
           <el-button @click="drawerVisible=true" class="btn-default btn-icon">
             <ToggleSidebar class="fill-stroke"/>
           </el-button>
-          <h2>Cyoda Chat</h2>
+          <ChatBotName v-if="chatName" :chatName="chatName" :technicalId="technicalId"/>
         </div>
         <div class="chat-bot-canvas__sidebar-messages">
           <template v-for="message in props.messages">
@@ -87,6 +87,7 @@ import ChatBotSubmitForm from "@/components/ChatBot/ChatBotSubmitForm.vue";
 import ChatBotTopActions from "@/components/ChatBot/ChatBotTopActions.vue";
 import SideBar from "@/components/SideBar/SideBar.vue";
 import HelperStorage from "@/helpers/HelperStorage";
+import ChatBotName from "@/components/ChatBot/ChatBotName.vue";
 
 const helperStorage = new HelperStorage();
 
@@ -95,8 +96,9 @@ const INIT_MAIN_WIDTH = '46%';
 
 const props = defineProps<{
   messages: any[],
-  technicalId: string,
   isLoading: boolean,
+  technicalId: string,
+  chatName: string,
 }>();
 
 
@@ -239,6 +241,11 @@ watch(() => props.isLoading, () => {
   &__sidebar-title {
     display: flex;
     align-items: center;
+    margin: 0 15px;
+  }
+
+  .chat-bot-name{
+    margin-left: 10px;
   }
 
   &__sidebar-messages {

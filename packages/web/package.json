@@ -11,8 +11,8 @@
     "lint": "eslint vue-project --fix"
   },
   "dependencies": {
-    "axios": "^1.7.9",
-    "element-plus": "^2.9.4",
+    "axios": "^1.8.1",
+    "element-plus": "^2.9.5",
     "marked": "^15.0.7",
     "mermaid": "^11.4.1",
     "modern-normalize": "^3.0.1",
@@ -20,26 +20,26 @@
     "pako": "^2.1.0",
     "pinia": "^3.0.1",
     "tiny-emitter": "^2.1.0",
-    "uuid": "^11.0.5",
+    "uuid": "^11.1.0",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.0",
-    "@types/node": "^22.13.4",
+    "@types/node": "^22.13.9",
     "@types/pako": "^2.0.3",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vitejs/plugin-vue-jsx": "^4.1.1",
     "@vue/eslint-config-typescript": "^14.4.0",
     "@vue/tsconfig": "^0.7.0",
-    "eslint": "^9.20.1",
+    "eslint": "^9.21.0",
     "eslint-plugin-vue": "^9.32.0",
     "npm-run-all2": "^7.0.2",
-    "sass-embedded": "^1.85.0",
-    "typescript": "~5.7.3",
-    "vite": "^6.1.0",
+    "sass-embedded": "^1.85.1",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0",
     "vite-plugin-vue-devtools": "^7.7.2",
     "vite-svg-loader": "^5.1.0",
-    "vue-tsc": "^2.2.2"
+    "vue-tsc": "^2.2.8"
   }
 }

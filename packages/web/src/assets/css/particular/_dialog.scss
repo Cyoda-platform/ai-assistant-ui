@@ -3,11 +3,24 @@
   border-radius: 12px;
   background-color: var(--bg-popup);
 
-  &__title{
+  &__title {
     color: var(--text-color-regular);
   }
 
   &.is-fullscreen {
     border: none;
+  }
+}
+
+.el-dialog__close {
+  width: 20px;
+  height: 20px;
+  background-color: var(--bg-dialog-close-color);
+  border-radius: 3px;
+  color: #FFFFFF !important;
+  transition: all 0.3s;
+
+  &:hover {
+    opacity: 0.8;
   }
 }
