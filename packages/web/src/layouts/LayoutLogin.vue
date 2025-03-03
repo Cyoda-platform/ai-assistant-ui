@@ -42,10 +42,16 @@
     background: #38b291 url("@/assets/images/bigdata-green.jpg") 0 0 no-repeat;
     background-size: cover;
     background-position: 50%;
+    @media (prefers-color-scheme: dark) {
+      background: #38b291 url("@/assets/images/bigdata-green-dark.jpg") 0 0 no-repeat;
+    }
+    .theme-dark & {
+      background: #38b291 url("@/assets/images/bigdata-green-dark.jpg") 0 0 no-repeat;
+    }
   }
 
   &__inner-text {
-    color: #fff;
+    color: var(--text-login-main-color);
     padding-top: 20vh;
 
     h1 {
