@@ -116,6 +116,8 @@ function resetForm() {
 </script>
 
 <style lang="scss">
+@use '@/assets/css/particular/mixins';
+
 .chat-bot-message-notification {
   background: var(--bubble-notification-bg-color);
   border: 1px solid var(--bubble-border-color);
@@ -156,19 +158,7 @@ function resetForm() {
   }
 
   &__body {
-    font-size: 16px;
-    line-height: 1.5;
-    padding-right: 48px;
-    padding-bottom: 0;
-    overflow-wrap: break-word;
-    color: var(--bubble-text-color);
-    ul, ol{
-      padding: 0 0 0 20px;
-    }
-
-    * {
-      margin: 8px 0;
-    }
+    @include mixins.bubble_body;
   }
 
   &__input_edit {

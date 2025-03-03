@@ -1,6 +1,7 @@
 <template>
   <ChatBotCanvas
     :technicalId="technicalId"
+    :chatName="chatName"
     @answer="onAnswer"
     @approve="onClickApprove"
     @rollbackQuestion="onRollbackQuestion"
@@ -18,6 +19,7 @@
   >
     <ChatBot
       :technicalId="technicalId"
+      :chatName="chatName"
       @answer="onAnswer"
       @approve="onClickApprove"
       @rollbackQuestion="onRollbackQuestion"
@@ -52,6 +54,7 @@ const dialogVisible = ref(helperStorage.get(`chatDialog:${technicalId.value}`, f
 let intervalId: any = null;
 let intervalEnvelopeId: any = null;
 let promiseInterval: any = null;
+const chatName = ref<string | null>(null);
 const messages = ref<any[]>([]);
 const assistantStore = useAssistantStore();
 const isLoading = ref(false);
@@ -81,6 +84,7 @@ async function loadChatHistory() {
     messages.value = [];
     isLoading.value = true;
     const {data} = await assistantStore.getChatById(technicalId.value);
+    chatName.value = data.chat_body.name;
     data.chat_body.dialogue.forEach((el) => {
       addMessage(el);
     })
@@ -162,7 +166,7 @@ async function onApproveQuestion(event) {
   loadChatHistory();
 }
 
-function onToggleCanvas(){
+function onToggleCanvas() {
   dialogVisible.value = !dialogVisible.value;
   helperStorage.set(`chatDialog:${technicalId.value}`, dialogVisible.value)
 }

@@ -1,5 +1,6 @@
 <template>
   <div class="chat-bot-top-actions">
+    <slot name="chat-name"></slot>
     <div>
       &nbsp;<slot name="actions"></slot>
     </div>

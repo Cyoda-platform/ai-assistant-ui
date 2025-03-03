@@ -8,6 +8,9 @@
         <ChatBotTopActions
           @toggleCanvas="emit('toggleCanvas')"
         >
+          <template #chat-name>
+           <ChatBotName v-if="chatName" :chatName="chatName" :technicalId="technicalId"/>
+          </template>
           <template #toggle-canvas-icon>
             <OpenCanvasIcon/>
           </template>
@@ -59,6 +62,7 @@ import ChatBotMessageAnswer from "@/components/ChatBot/ChatBotMessageAnswer.vue"
 import ChatBotTopActions from "@/components/ChatBot/ChatBotTopActions.vue";
 import SideBar from "@/components/SideBar/SideBar.vue";
 import useAppStore from "@/stores/app";
+import ChatBotName from "@/components/ChatBot/ChatBotName.vue";
 
 const appStore = useAppStore();
 
@@ -81,6 +85,8 @@ const emit = defineEmits([
 const props = defineProps<{
   isLoading: boolean,
   messages: any[],
+  technicalId: string,
+  chatName: string,
 }>();
 
 function scrollDownMessages() {
@@ -132,6 +138,10 @@ watch(() => props.isLoading, () => {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+
+  .chat-bot-top-actions{
+    margin-left: 4.1666666667%;
+  }
 
   &__body {
     flex-grow: 1;
