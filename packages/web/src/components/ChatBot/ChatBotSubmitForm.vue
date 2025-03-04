@@ -230,6 +230,7 @@ function handleKeyDown(event) {
     margin-top: 7px;
     padding-bottom: 8px;
     padding-top: 8px;
+    padding-left: 20px;
   }
 
   .el-textarea__inner::placeholder {
