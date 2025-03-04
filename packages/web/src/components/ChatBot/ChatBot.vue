@@ -104,9 +104,10 @@ function getSpan(type) {
 
 watch(() => props.isLoading, () => {
   if (props.isLoading) return;
-  nextTick(() => {
+  setTimeout(() => {
     scrollDownMessages();
-  })
+    window.getSelection().removeAllRanges();
+  }, 500)
 })
 </script>
 

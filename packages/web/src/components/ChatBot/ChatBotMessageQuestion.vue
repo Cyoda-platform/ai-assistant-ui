@@ -58,7 +58,7 @@
           class="btn-default-lighter btn-icon"
           :loading="isLoadingApprove"
         >
-          <ThumbUpIcon class="fill-stroke" />
+          <ThumbUpIcon class="fill-stroke"/>
         </el-button>
       </el-tooltip>
     </div>
@@ -99,6 +99,9 @@ function onClickRollbackQuestion() {
 function onClickApproveQuestion() {
   isLoadingApprove.value = true;
   emit('approveQuestion', props.message.raw);
+  setTimeout(() => {
+    isLoadingApprove.value = false;
+  }, 2000);
 }
 
 function onClickCopy() {

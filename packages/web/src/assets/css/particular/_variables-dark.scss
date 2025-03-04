@@ -33,6 +33,7 @@
   --bg-attachment: #110F1B;
   --border-attachment-file: #110F1B;
   --bg-button: #27273C;
+  --bg-button-hover: #110F1B;
   --bg-active-menu: #222337;
   --border-color-active-menu: #222337;
   --border-color-popover: #110F1B;
@@ -44,9 +45,24 @@
   --bg-dialog-close-color: #9F9F9F;
 }
 
+@mixin scollbar {
+  ::-webkit-scrollbar-track {
+    background: #2D2D40;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #161422;
+  }
+
+  * {
+    scrollbar-color: #161422 #2D2D40;
+  }
+}
+
 :root {
   .theme-dark {
     @include dark-theme;
+    @include scollbar;
   }
 }
 
@@ -54,5 +70,6 @@
   :root {
     @include dark-theme;
   }
+  @include scollbar;
 }
 
