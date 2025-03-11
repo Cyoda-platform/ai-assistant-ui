@@ -46,6 +46,7 @@
       </el-tooltip>
 
       <el-tooltip
+        v-if="message.approve"
         class="box-item"
         effect="dark"
         content="Approve"
