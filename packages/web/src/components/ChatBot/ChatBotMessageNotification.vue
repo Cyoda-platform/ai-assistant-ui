@@ -18,7 +18,7 @@
           :disabled="isLoading"
           resize="none"
           type="textarea"
-          placeholder="Type here"
+          placeholder="Ask Cyoda AI Assistant..."
           class="chat-bot-message-notification__input_edit"
           @keydown.enter="onClickSave"
         />
