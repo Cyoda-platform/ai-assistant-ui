@@ -1,10 +1,12 @@
 .el-dialog {
   border: 1px solid var(--accent-border);
-  border-radius: 12px;
-  background-color: var(--bg-popup);
+  border-radius: 8px;
+  background-color: var(--bg-dialog-color);
 
   &__title {
-    color: var(--text-color-regular);
+    color: var(--color-dialog-title);
+    font-weight: 600;
+    font-size: 20px;
   }
 
   &.is-fullscreen {
