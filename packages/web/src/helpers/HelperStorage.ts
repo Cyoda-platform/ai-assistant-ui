@@ -18,6 +18,10 @@ export default class HelperStorage {
     return defaultValue;
   }
 
+  public removeItem(key: string){
+    this.storage.removeItem(key);
+  }
+
   public clear(): void {
     this.storage.clear();
   }

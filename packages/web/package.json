@@ -11,10 +11,11 @@
     "lint": "eslint vue-project --fix"
   },
   "dependencies": {
-    "axios": "^1.8.3",
-    "element-plus": "^2.9.6",
+    "@auth0/auth0-vue": "^2.4.0",
+    "axios": "^1.8.4",
+    "element-plus": "^2.9.7",
     "marked": "^15.0.7",
-    "mermaid": "^11.5.0",
+    "mermaid": "^11.6.0",
     "modern-normalize": "^3.0.1",
     "monaco-editor": "0.52.2",
     "pako": "^2.1.0",
@@ -25,19 +26,19 @@
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
-    "@tsconfig/node22": "^22.0.0",
-    "@types/node": "^22.13.10",
+    "@tsconfig/node22": "^22.0.1",
+    "@types/node": "^22.13.13",
     "@types/pako": "^2.0.3",
     "@vitejs/plugin-vue": "^5.2.3",
     "@vitejs/plugin-vue-jsx": "^4.1.2",
     "@vue/eslint-config-typescript": "^14.5.0",
     "@vue/tsconfig": "^0.7.0",
-    "eslint": "^9.22.0",
+    "eslint": "^9.23.0",
     "eslint-plugin-vue": "^10.0.0",
     "npm-run-all2": "^7.0.2",
     "sass-embedded": "^1.86.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.2",
+    "vite": "^6.2.3",
     "vite-plugin-vue-devtools": "^7.7.2",
     "vite-svg-loader": "^5.1.0",
     "vue-tsc": "^2.2.8"
