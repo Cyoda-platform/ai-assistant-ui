@@ -35,6 +35,47 @@
   }
 }
 
+.btn-primary-darken {
+  color: #fff;
+  background-color: var(--color-primary-darken);
+  border: 1px solid var(--color-primary-darken);
+
+  transition: all 0.5s;
+  font-family: 'PingFang SC', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  box-shadow: none;
+
+  &.is-disabled {
+    background: linear-gradient(0deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), #0D8484;
+    border-color: transparent;
+  }
+
+  &:hover {
+    background: linear-gradient(0deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), #0D8484 !important;
+    border: 1px solid var(--color-primary-ligter);
+    color: #fff;
+  }
+}
+
+.btn-border-github {
+  background-color: unset !important;
+  border: 1px solid var(--btn-bordered-border-color);
+  border-radius: 4px;
+  color: var(--btn-bordered-text-color);
+  padding-left: 16px;
+  padding-right: 16px;
+
+  svg {
+    fill: var(--btn-bordered-text-color);
+  }
+
+  &:hover {
+    border: 1px solid var(--btn-bordered-border-color-hover);
+    color: var(--btn-bordered-text-color);
+  }
+}
+
 .el-button--small {
   font-size: 12px;
   border-radius: 4px;
@@ -93,15 +134,15 @@
     stroke: var(--text-color-regular);
   }
 
+  &.is-loading {
+    span {
+      display: none;
+    }
+  }
+
   &.el-button--small {
     width: 28px;
     height: 28px;
-
-    &.is-loading {
-      span {
-        display: none;
-      }
-    }
   }
 }
 

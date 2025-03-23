@@ -25,8 +25,10 @@ import MenuChatGroup from "@/components/MenuChatList/MenuChatGroup.vue";
 import eventBus from "@/plugins/eventBus";
 import {UPDATE_CHAT_LIST} from "@/helpers/HelperConstants";
 import {useRoute} from "vue-router";
+import useAuthStore from "@/stores/auth";
 
 const assistantStore = useAssistantStore();
+const authStore = useAuthStore()
 const emit = defineEmits(['ready', 'active']);
 const allChats = ref([]);
 const route = useRoute();
