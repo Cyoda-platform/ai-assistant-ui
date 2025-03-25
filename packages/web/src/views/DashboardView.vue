@@ -1,31 +1,60 @@
 <template>
   <div class="dashboard-view">
-    <ChatBotCreateNew class="dashboard-view__new-chat" @created="onCreated"/>
+    <div class="dashboard-view__actions">
+      <LoginButton v-if="!isLoggedIn"/>
+    </div>
+    <div class="dashboard-view__body">
+      <NewChat @created="onCreated"/>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import ChatBotCreateNew from "@/components/ChatBot/ChatBotCreateNew.vue";
 import type {CreateChatResponse} from "@/types/chat";
 import {useRouter} from "vue-router";
+import NewChat from "@/components/NewChat/NewChat.vue";
+import {computed, onBeforeUnmount, onMounted} from "vue";
+import useAuthStore from "@/stores/auth";
+import LoginButton from "@/components/LoginButton/LoginButton.vue";
 
 const router = useRouter();
 
 function onCreated(data: CreateChatResponse) {
   router.push(`/chat-bot/view/${data.technical_id}?isNew=true`);
 }
+
+const BODY_CLASS_NAME = 'body-dashboard-view';
+
+const authStore = useAuthStore();
+const isLoggedIn = computed(() => {
+  return authStore.isLoggedIn;
+})
+
+onMounted(() => {
+  document.body.classList.add(BODY_CLASS_NAME);
+})
+
+onBeforeUnmount(() => {
+  document.body.classList.remove(BODY_CLASS_NAME);
+})
 </script>
 
 <style lang="scss">
 .dashboard-view {
+  padding-top: 48px;
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  align-items: center;
-  justify-content: center;
 
-  &__new-chat {
-    align-self: center;
-    width: 50%;
+  &__actions {
+    text-align: right;
+  }
+
+  &__body {
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
   }
 }
 </style>

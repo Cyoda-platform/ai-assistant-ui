@@ -12,15 +12,16 @@ import router from './router';
 
 // Plugins
 import elementUi from "./plugins/element-ui.ts";
+import auth0 from "./plugins/auth0.ts";
 
 const app = createApp(App);
 
 app.component("layout-sidebar", LayoutSidebar);
-app.component("layout-login", LayoutLogin);
 app.component("layout-default", LayoutDefault);
 app.use(createPinia());
 app.use(elementUi);
 app.use(router);
+app.use(auth0);
 
 import './assets/css/main.scss';
 

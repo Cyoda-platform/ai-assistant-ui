@@ -33,7 +33,7 @@
   --bg-attachment: #110F1B;
   --border-attachment-file: #110F1B;
   --bg-button: #27273C;
-  --bg-button-hover: #110F1B;
+  --bg-button-hover: rgba(39, 39, 60, 0.5);
   --bg-active-menu: #222337;
   --border-color-active-menu: #222337;
   --border-color-popover: #110F1B;
@@ -43,6 +43,32 @@
   --color-input-text: #9F9F9F;
   --text-login-main-color: #EAE8E8;
   --bg-dialog-close-color: #9F9F9F;
+  --color-primary-darken: #0A6A6A;
+  --bg-new-chat: #11101C;
+  --color-title: #0D8484;
+  --color-sub-title: #C0C0C0;
+  --color-white-examples: #EAE8E8;
+  --bg-new-chat-button: #1D1C2C;
+  --bg-new-chat-button-hover: #403e61;
+  --bg-new-chat-button-readonly: #27273C;
+  --color-primary-dark-active: #434367;
+  --input-border: #2F2F44;
+  --btn-bordered-border-color: #EAE8E8;
+  --btn-bordered-border-color-hover: rgba(255, 255, 255, 0.5);
+  --btn-bordered-text-color: #EAE8E8;
+  --input-disabled: #27273C;
+  --bg-dialog-color: #110F1B;
+  --color-dialog-title: #B1B1B2;
+}
+
+.only-theme-dark {
+  display: none;
+}
+
+@mixin applyForOnlyTheme {
+  .only-theme-dark {
+    display: unset;
+  }
 }
 
 @mixin scollbar {
@@ -63,6 +89,7 @@
   .theme-dark {
     @include dark-theme;
     @include scollbar;
+    @include applyForOnlyTheme;
   }
 }
 
@@ -71,5 +98,6 @@
     @include dark-theme;
   }
   @include scollbar;
+  @include applyForOnlyTheme;
 }
 

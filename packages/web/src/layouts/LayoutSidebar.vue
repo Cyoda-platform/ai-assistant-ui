@@ -45,4 +45,8 @@ const mainSpan = computed(() => {
     background-color: var(--bg);
   }
 }
+
+.body-dashboard-view .layout-sidebar__main {
+  background-color: var(--bg-new-chat);
+}
 </style>
