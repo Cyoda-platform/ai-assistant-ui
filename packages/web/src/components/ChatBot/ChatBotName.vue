@@ -1,7 +1,7 @@
 <template>
     <div class="chat-bot-name">
       <a :href="linkToGithub" target="_blank">
-        <GithubIcon/>
+        <GithubIcon style="width: 24px"/>
         <span>{{ chatName }}</span>
       </a>
       <EditIcon/>

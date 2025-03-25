@@ -1,11 +1,13 @@
 import {defineStore} from "pinia";
 import HelperStorage from "../helpers/HelperStorage.ts";
-import publicClient from "@/clients/public.ts";
+import privateClient from "@/clients/private.ts";
 import type {Auth} from "@/types/auth";
+import {useAuth0} from "@auth0/auth0-vue";
 
 const helperStorage = new HelperStorage();
 const defaultState: Auth = {
   token: "",
+  tokenType: "",
   refreshToken: "",
   userId: "",
   username: "",
@@ -16,9 +18,13 @@ const useAuthStore = defineStore('auth', {
     ...helperStorage.get("auth", {...defaultState}),
   }),
 
+  getters: {
+    isLoggedIn: (state) => !!state.token && state.tokenType === 'private',
+  },
+
   actions: {
     async login(form) {
-      const {data} = await publicClient.post("/auth/login", form);
+      const {data} = await privateClient.post("/auth/login", form);
       this.saveData(data);
     },
 
@@ -27,23 +33,25 @@ const useAuthStore = defineStore('auth', {
       helperStorage.set("auth", this.$state);
     },
 
-    async logout() {
+    async logout(logoutFn) {
+      if (this.isLoggedIn) {
+       logoutFn();
+      }
       this.$patch(defaultState);
       helperStorage.set("auth", defaultState);
     },
 
     async refreshAccessToken() {
-      const {data} = await publicClient.get("/auth/token", {
-        headers: {
-          Authorization: `Bearer ${this.refreshToken}`,
-        },
-      });
-      this.saveData({token: data.token});
+      const {getAccessTokenSilently} = useAuth0();
+      const token = await getAccessTokenSilently();
+      this.saveData({token});
     },
-  },
 
-  getters: {
-    isLoggedIn: (state) => !!state.token,
+    async getGuestToken() {
+      const {data} = await privateClient.get("/v1/get_guest_token");
+      this.saveData({token: data.access_token, tokenType: 'public'});
+      return data.access_token;
+    },
   },
 });
 

@@ -69,9 +69,9 @@
       </template>
     </ul>
     <div class="side-bar__footer">
-      <a @click="onClickLogout" href="#" class="side-bar__logout">
+      <a v-if="isLogoutVisible" @click="onClickLogout" href="#" class="side-bar__logout">
         <LogoutIcon/>
-        <span v-if="!isSidebarHidden">
+        <span>
           Log out
         </span>
       </a>
@@ -99,12 +99,14 @@ import HistoryIcon from '@/assets/images/icons/history.svg';
 import HistoryOpenIcon from '@/assets/images/icons/history-open.svg';
 import SettingsIcon from '@/assets/images/icons/settings.svg';
 import SettingsDialog from "@/components/SettingsDialog/SettingsDialog.vue";
+import {useAuth0} from "@auth0/auth0-vue";
 
 const authStore = useAuthStore();
 const appStore = useAppStore();
 const router = useRouter();
 const route = useRoute();
 const slots = useSlots();
+const {logout} = useAuth0();
 const settingsDialogRef = useTemplateRef('settingsDialogRef');
 
 withDefaults(defineProps<{
@@ -134,7 +136,13 @@ function onHistoryMenuActive(event) {
 }
 
 function onClickLogout() {
-  authStore.logout();
+  authStore.logout(() => {
+    logout({
+      logoutParams: {
+        returnTo: window.location.origin
+      }
+    });
+  });
   router.push('/');
 }
 
@@ -149,6 +157,10 @@ function closeAllMenus() {
 
 const isSidebarHidden = computed(() => {
   return appStore.isSidebarHidden;
+})
+
+const isLogoutVisible = computed(() => {
+  return !appStore.isSidebarHidden && authStore.isLoggedIn;
 })
 
 function onClickCreate() {

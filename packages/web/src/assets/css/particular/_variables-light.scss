@@ -43,17 +43,47 @@
   --color-input-text: #606266;
   --text-login-main-color: #FFFFFF;
   --bg-dialog-close-color: #606265;
+  --color-primary-darken: #084F4F;
+  --bg-new-chat: #EEF3F3;
+  --color-title: #0A6A6A;
+  --color-sub-title: #303133;
+  --color-white-examples: #303133;
+  --bg-new-chat-button: #D6DBDB;
+  --bg-new-chat-button-hover: #bec3c3;
+  --bg-new-chat-button-readonly: #ffffff;
+  --color-primary-dark-active: #063B3B;
+  --input-border: #CDD0D6;
+  --btn-bordered-border-color: #084F4F;
+  --btn-bordered-border-color-hover: #109f9f;
+  --btn-bordered-text-color: #063B3B;
+  --input-disabled: #f5f7fa;
+  --bg-dialog-color: #F4F4F4;
+  --color-dialog-title: #303133;
+}
+
+.only-theme-light {
+  display: none;
+}
+
+@mixin applyOnlyForTheme {
+  .only-theme-light {
+    display: unset;
+  }
 }
 
 
 :root {
   .theme-light {
     @include light-theme;
+    @include applyOnlyForTheme;
   }
 }
 
 @media (prefers-color-scheme: light) {
-  :root {
-    @include light-theme;
+  body:not(.theme-dark) {
+    :root {
+      @include light-theme;
+    }
+    @include applyOnlyForTheme;
   }
 }
