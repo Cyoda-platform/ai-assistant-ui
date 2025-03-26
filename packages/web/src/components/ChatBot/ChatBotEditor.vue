@@ -398,6 +398,7 @@ const editorStyle = computed(() => {
     border-left: 1px solid var(--border-color-darken);
     padding: 0 15px;
     position: relative;
+    color: var(--text-color-regular);
   }
 
   &__drag {
