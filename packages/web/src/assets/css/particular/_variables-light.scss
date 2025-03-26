@@ -65,9 +65,23 @@
   display: none;
 }
 
-@mixin applyOnlyForTheme {
+@mixin applyOnlyForThemeLight {
   .only-theme-light {
     display: unset;
+  }
+}
+
+@mixin scollbar {
+  ::-webkit-scrollbar-track {
+    background: initial !important;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: initial !important;
+  }
+
+  * {
+    scrollbar-color: initial !important;
   }
 }
 
@@ -75,15 +89,7 @@
 :root {
   .theme-light {
     @include light-theme;
-    @include applyOnlyForTheme;
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  body:not(.theme-dark) {
-    :root {
-      @include light-theme;
-    }
-    @include applyOnlyForTheme;
+    @include scollbar;
+    @include applyOnlyForThemeLight;
   }
 }

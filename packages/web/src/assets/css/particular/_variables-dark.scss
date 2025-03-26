@@ -65,7 +65,7 @@
   display: none;
 }
 
-@mixin applyForOnlyTheme {
+@mixin applyForOnlyThemeDark {
   .only-theme-dark {
     display: unset;
   }
@@ -89,15 +89,7 @@
   .theme-dark {
     @include dark-theme;
     @include scollbar;
-    @include applyForOnlyTheme;
+    @include applyForOnlyThemeDark;
   }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    @include dark-theme;
-  }
-  @include scollbar;
-  @include applyForOnlyTheme;
 }
 
