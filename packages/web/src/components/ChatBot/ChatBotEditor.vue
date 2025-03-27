@@ -396,9 +396,19 @@ const editorStyle = computed(() => {
   &__markdown {
     flex: 1;
     border-left: 1px solid var(--border-color-darken);
-    padding: 0 15px;
     position: relative;
     color: var(--text-color-regular);
+    height: calc(100vh - 70px);
+    padding: 0 0 10px 15px;
+  }
+
+  &__markdown-inner p:first-child{
+    margin-top: 8px;
+  }
+
+  &__markdown-inner {
+    height: 100%;
+    overflow-y: auto;
   }
 
   &__drag {
