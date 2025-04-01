@@ -6,8 +6,11 @@
       </template>
       <template v-else>
         <img alt="logo" class="side-bar__logo" :src="LogoUrl"/>
+        <VersionApp :small="true"/>
         <template v-if="slots.toggle">
-          <slot name="toggle"></slot>
+          <div class="side-bar__toggle-slot">
+            <slot name="toggle"></slot>
+          </div>
         </template>
         <template v-else>
           <ToggleCloseIcon @click="onClickToggleSidebar" class="side-bar__toggle-close"/>
@@ -43,16 +46,28 @@
               (<LoadingText/>)
             </template>
           </span>
-          <ArrowDownIcon class="arrow-down-icon" v-if="!isSidebarHidden"/>
+          <ArrowDownIcon
+            v-if="!isSidebarHidden"
+            class="arrow-down-icon"
+            :class="{
+              'open': isHistoryMenuVisible
+            }"
+          />
         </a>
         <el-collapse-transition>
           <MenuChatList @ready="onHistoryMenuReady" @active="onHistoryMenuActive" v-show="isHistoryMenuVisible"/>
         </el-collapse-transition>
       </li>
-      <li class="side-bar__li">
+      <li class="side-bar__li side-bar__li-border">
         <a @click="onClickSettings" class="side-bar__link" href="#">
           <SettingsIcon class="main-icon"/>
           <span v-if="!isSidebarHidden">Settings</span>
+        </a>
+      </li>
+      <li class="side-bar__li">
+        <a @click="onClickAbout" class="side-bar__link" href="#">
+          <AboutIcon class="main-icon"/>
+          <span v-if="!isSidebarHidden">About</span>
         </a>
       </li>
       <template v-if="isSidebarHidden">
@@ -77,6 +92,7 @@
       </a>
     </div>
     <SettingsDialog ref="settingsDialogRef"/>
+    <AboutDialog ref="aboutDialogRef"/>
   </div>
 </template>
 
@@ -98,8 +114,11 @@ import HomeIcon from '@/assets/images/icons/home.svg';
 import HistoryIcon from '@/assets/images/icons/history.svg';
 import HistoryOpenIcon from '@/assets/images/icons/history-open.svg';
 import SettingsIcon from '@/assets/images/icons/settings.svg';
+import AboutIcon from '@/assets/images/icons/about.svg';
 import SettingsDialog from "@/components/SettingsDialog/SettingsDialog.vue";
 import {useAuth0} from "@auth0/auth0-vue";
+import AboutDialog from "@/components/AboutDialog/AboutDialog.vue";
+import VersionApp from "@/components/VersionApp/VersionApp.vue";
 
 const authStore = useAuthStore();
 const appStore = useAppStore();
@@ -108,6 +127,7 @@ const route = useRoute();
 const slots = useSlots();
 const {logout} = useAuth0();
 const settingsDialogRef = useTemplateRef('settingsDialogRef');
+const aboutDialogRef = useTemplateRef('aboutDialogRef');
 
 withDefaults(defineProps<{
   mode: string,
@@ -170,6 +190,10 @@ function onClickCreate() {
 function onClickSettings() {
   settingsDialogRef.value.openDialog();
 }
+
+function onClickAbout() {
+  aboutDialogRef.value.openDialog();
+}
 </script>
 
 <style lang="scss">
@@ -185,10 +209,9 @@ function onClickSettings() {
 
 
   &__wrapper-logo {
-    padding-top: 15vh;
+    padding-top: 24px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
   }
 
   &__logo {
@@ -199,24 +222,37 @@ function onClickSettings() {
   &__toggle-close {
     cursor: pointer;
     fill: var(--text-color-regular) !important;
+    margin-left: auto;
+  }
+
+  &__toggle-slot {
+    margin-left: auto;
   }
 
   &__nav {
     flex-grow: 1;
     list-style: none;
-    padding: 9vh 20px 0 0;
+    padding: 0 20px 0 0;
     overflow-y: auto;
-    margin: 15px 0;
+    margin: 56px 0 15px 0;
   }
 
   &__li {
-    padding-bottom: 40px;
+    margin-bottom: 12px;
+  }
+
+  &__li-border {
+    border-top: 1px solid var(--border-attachment-file);
+    padding-top: 5px;
   }
 
   &__link {
     display: flex;
     align-items: center;
     font-size: 16px;
+    min-height: 40px;
+    font-weight: 600;
+    padding: 0 12px;
     color: var(--text-color-regular);
     text-decoration: none;
 
@@ -229,16 +265,16 @@ function onClickSettings() {
       margin-left: auto;
       transition: all 0.5s;
       fill: var(--text-color-regular);
+
+      &.open {
+        transform: rotate(-180deg);
+      }
     }
   }
 
   &__li.active > a {
-    color: var(--text-header);
-    font-weight: bold;
-
-    svg {
-      fill: var(--text-header)
-    }
+    background-color: var(--bg-active-menu);
+    border-radius: 6px;
   }
 
   &__link--active {
@@ -274,6 +310,10 @@ function onClickSettings() {
 
   &__create_new {
     width: 100%;
+  }
+
+  &--hidden &__toggle-close {
+    margin-left: unset;
   }
 
   &--hidden &__link {
