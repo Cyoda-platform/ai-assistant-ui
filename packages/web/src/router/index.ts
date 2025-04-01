@@ -1,5 +1,6 @@
 import {createRouter, createWebHashHistory, createWebHistory} from 'vue-router'
 import useAuthStore from "@/stores/auth.ts";
+import useAssistantStore from "../stores/assistant";
 
 const router = createRouter({
   history: import.meta.env.VITE_IS_ELECTRON ? createWebHashHistory() : createWebHistory(),
@@ -26,5 +27,20 @@ const router = createRouter({
     },
   ],
 })
+
+let firstVisit = true;
+router.beforeEach(async (to, from, next) => {
+  const assistantStore = useAssistantStore();
+  if (firstVisit) {
+    firstVisit = false;
+    const {data} = await assistantStore.getChats();
+    if (data.chats.length > 0) {
+      return next({path: "/home"});
+    } else {
+      return next({path: "/"});
+    }
+  }
+  next();
+});
 
 export default router

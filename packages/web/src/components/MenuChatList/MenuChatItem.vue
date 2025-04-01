@@ -84,6 +84,8 @@ const isActive = computed(() => {
     display: block;
     transition: all 0.5s;
     flex-grow: 1;
+    font-size: 16px;
+    line-height: 130%;
   }
 
   &__svg_wrapper {
@@ -107,10 +109,6 @@ const isActive = computed(() => {
 
   &:hover &__link, &--active &__link {
     padding-left: 8px;
-  }
-
-  &--active &__link {
-    font-weight: 500;
   }
 
   &:hover &__svg_wrapper {
