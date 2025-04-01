@@ -57,7 +57,7 @@
       v-model="drawerVisible"
       :modal="false"
       direction="ltr"
-      size="320px"
+      size="360px"
       class="chat-bot-canvas__drawer"
     >
       <SideBar mode="drawer">
