@@ -2,6 +2,7 @@
   <div class="new-chat-view">
     <div class="new-chat-view__header">
       <img alt="logo" class="new-chat-view__header-logo" :src="LogoUrl"/>
+      <VersionApp/>
       <div class="new-chat-view__header-buttons">
         <el-button class="btn-border-github" v-show="stars>0" @click="onClickGithub()">
           <GithubIcon class="icon-github"/>
@@ -25,6 +26,7 @@ import type {CreateChatResponse} from "@/types/chat.d";
 import {useRouter, useRoute} from "vue-router";
 import useAuthStore from "@/stores/auth";
 import LoginButton from "@/components/LoginButton/LoginButton.vue";
+import VersionApp from "@/components/VersionApp/VersionApp.vue";
 
 const stars = ref(0);
 const router = useRouter();
@@ -63,6 +65,10 @@ const isLoggedIn = computed(() => {
   display: flex;
   flex-direction: column;
 
+  &__header-buttons {
+    margin-left: auto;
+  }
+
   .icon-github {
     margin-right: 12px;
     transition: none;
@@ -71,7 +77,6 @@ const isLoggedIn = computed(() => {
 
   &__header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
 
     .el-button + .el-button {
