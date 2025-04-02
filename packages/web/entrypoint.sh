@@ -8,7 +8,8 @@ for file in $ROOT_DIR/js/* $ROOT_DIR/index.html $ROOT_DIR/css/* $ROOT_DIR/assets
 
 do
   echo "Processing $file ...";
-  sed -i 's~HOST_value~'$HOST_value'~g' $file
+  sed -i 's~APP_AI_API_AUTH_value~'$APP_AI_API_AUTH_value'~g' $file
+  sed -i 's~APP_AI_API_BASE_value~'$APP_AI_API_BASE_value'~g' $file
   sed -i 's~APP_AI_AUTH0_DOMAIN_value~'$APP_AI_AUTH0_DOMAIN_value'~g' $file
   sed -i 's~APP_AI_AUTH0_CLIENT_ID_value~'$APP_AI_AUTH0_CLIENT_ID_value'~g' $file
   sed -i 's~APP_AI_AUTH0_AUDIENCE_value~'$APP_AI_AUTH0_AUDIENCE_value'~g' $file
