@@ -41,6 +41,7 @@ import {onBeforeUnmount, onMounted, ref, watch} from "vue";
 import useAssistantStore from "@/stores/assistant.ts";
 import {v4 as uuidv4} from "uuid";
 import HelperStorage from "@/helpers/HelperStorage.ts";
+import useAuthStore from "@/stores/auth";
 
 const helperStorage = new HelperStorage();
 const route = useRoute();
@@ -60,16 +61,28 @@ const assistantStore = useAssistantStore();
 const isLoading = ref(false);
 const isEnvelopeActive = ref(false);
 const router = useRouter();
+const authStore = useAuthStore();
 
 onMounted(() => {
   init();
 })
 
 function init() {
+
+  const params = new URLSearchParams(window.location.search);
+  const authState = params.get('authState');
+  if (authState) {
+    authStore.saveData(JSON.parse(authState));
+
+    const url = new URL(window.location.href)
+    url.searchParams.delete('authState')
+    window.history.replaceState({}, '', url)
+  }
+
   if (route.query.isNew) {
-    const query = {...route.query};
-    delete query.isNew;
-    router.replace({query});
+    const url = new URL(window.location.href)
+    url.searchParams.delete('isNew')
+    window.history.replaceState({}, '', url)
   } else {
     loadChatHistory();
   }

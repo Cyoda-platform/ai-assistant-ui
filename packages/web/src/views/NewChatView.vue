@@ -3,7 +3,7 @@
     <div class="new-chat-view__header">
       <img alt="logo" class="new-chat-view__header-logo" :src="LogoUrl"/>
       <VersionApp/>
-      <div class="new-chat-view__header-buttons">
+      <div v-if="!isInIframe" class="new-chat-view__header-buttons">
         <el-button class="btn-border-github" v-show="stars>0" @click="onClickGithub()">
           <GithubIcon class="icon-github"/>
           {{ stars }}
@@ -27,6 +27,7 @@ import {useRouter, useRoute} from "vue-router";
 import useAuthStore from "@/stores/auth";
 import LoginButton from "@/components/LoginButton/LoginButton.vue";
 import VersionApp from "@/components/VersionApp/VersionApp.vue";
+import {isInIframe} from "@/helpers/HelperIframe";
 
 const stars = ref(0);
 const router = useRouter();
@@ -47,7 +48,12 @@ function onClickGithub() {
 }
 
 function onCreated(data: CreateChatResponse) {
-  router.push(`/chat-bot/view/${data.technical_id}?isNew=true`);
+  if(isInIframe) {
+    const baseUrl = window.location.origin;
+    window.top.location.href = `${baseUrl}/chat-bot/view/${data.technical_id}?isNew=true&authState=${encodeURIComponent(JSON.stringify(authStore.$state))}`;
+  } else {
+    router.push(`/chat-bot/view/${data.technical_id}?isNew=true`);
+  }
 }
 
 const isLoggedIn = computed(() => {
