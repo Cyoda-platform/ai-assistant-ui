@@ -47,7 +47,7 @@ watchEffect(() => {
 const helperStorage = new HelperStorage();
 
 watch(isAuthenticated, async (value) => {
-  if (!value) return;
+  if (!value || authStore.isLoggedIn) return;
   const token = await getAccessTokenSilently();
   authStore.saveData({
     token: token,
