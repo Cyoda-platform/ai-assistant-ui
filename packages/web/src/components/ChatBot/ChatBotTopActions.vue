@@ -32,6 +32,10 @@ const isLoggedIn = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 15px 0;
+  padding: 12px 32px 12px 4.1666666667%;
+  background-color: var(--bg-sidebar);
+  box-sizing: content-box;
+  border-bottom: 1px solid var(--sidebar-border);
+  margin-bottom: 16px;
 }
 </style>

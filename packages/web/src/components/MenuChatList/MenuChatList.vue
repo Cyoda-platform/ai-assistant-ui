@@ -3,6 +3,7 @@
     <template v-if="isChatExists">
       <template v-for="group in chatsGroups">
         <MenuChatGroup
+          class="menu-chat-list__chat-group"
           v-if="group.chats.length>0"
           :chats="group.chats"
           :title="group.title"
@@ -106,7 +107,14 @@ watchEffect(() => {
 
 <style scoped lang="scss">
 .menu-chat-list {
+  margin-left: 12px;
+  margin-top: 12px;
+  max-height: 256px;
+  overflow-y: auto;
+
   &__empty-title {
+    margin-top: 0;
+    margin-bottom: 8px;
     font-weight: bold;
     color: var(--text-color-regular);
   }
@@ -115,6 +123,10 @@ watchEffect(() => {
     font-size: 16px;
     line-height: 1.5;
     color: var(--text-color-secondary);
+  }
+
+  .menu-chat-list__chat-group + .menu-chat-list__chat-group {
+    margin-top: 40px;
   }
 }
 </style>
