@@ -138,7 +138,7 @@ async function onClickSend() {
 
   &__form {
     display: flex;
-    align-content: center;
+    align-items: center;
     padding: 16px;
     border: 1px solid var(--input-border);
     border-radius: 10px;
