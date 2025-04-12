@@ -25,8 +25,8 @@ const isSidebarHidden = computed(() => appStore.isSidebarHidden);
   &__sidebar {
     min-height: 100vh;
     height: auto;
-    border-right: 1px solid var(--accent-border);
-    background: var(--bg-sidebar);
+    border-right: 1px solid var(--sidebar-border);
+    background-color: var(--bg-sidebar);
     overflow: hidden;
     align-items: center;
     justify-content: center;
