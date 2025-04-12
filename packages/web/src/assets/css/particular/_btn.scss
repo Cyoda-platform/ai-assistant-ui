@@ -117,6 +117,28 @@
   }
 }
 
+.btn-white {
+  background-color: var(--bg);
+  border-color: var(--sidebar-border);
+  color: #000;
+
+  svg{
+    fill: var(--text-color-regular);
+  }
+
+  &:hover {
+    background-color: var(--bg-btn-default-lighter-hover);
+  }
+
+  &.is-disabled {
+    background-color: var(--bg-btn-disable);
+
+    &:hover {
+      background-color: var(--bg-btn-disable);
+    }
+  }
+}
+
 .btn-icon {
   padding: unset;
   width: 32px;
