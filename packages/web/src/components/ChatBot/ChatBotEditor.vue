@@ -14,18 +14,15 @@
             <el-tooltip
               class="box-item"
               effect="dark"
-              content="Attach File"
+              content="Send Answer"
               placement="left"
               show-after="1000"
             >
-              <el-badge :show-zero="false" :value="countFiles" class="item" color="green">
-                <el-button @click="onAttachFile" class="btn-default btn-icon btn-border">
-                  <AttachIcon/>
-                </el-button>
-              </el-badge>
+              <el-button @click="onSubmitAnswer" class="btn-white btn-icon">
+                <SendIcon/>
+              </el-button>
             </el-tooltip>
           </div>
-
           <div class="btn-action btn-block">
             <el-tooltip
               class="box-item"
@@ -34,32 +31,25 @@
               placement="left"
               show-after="1000"
             >
-              <el-button @click="onSubmitQuestion" class="btn-default btn-icon btn-border">
+              <el-button @click="onSubmitQuestion" class="btn-white btn-icon">
                 <QuestionIcon/>
               </el-button>
             </el-tooltip>
           </div>
-
           <div class="btn-action btn-block">
             <el-tooltip
               class="box-item"
               effect="dark"
-              content="Send Answer"
+              content="Attach File"
               placement="left"
               show-after="1000"
             >
-              <el-button @click="onSubmitAnswer" class="btn-default btn-icon btn-border">
-                <SendIcon/>
-              </el-button>
+              <el-badge :show-zero="false" :value="countFiles" class="item" color="green">
+                <el-button @click="onAttachFile" class="btn-white btn-icon">
+                  <AttachIcon/>
+                </el-button>
+              </el-badge>
             </el-tooltip>
-          </div>
-
-          <div class="btn-action">
-            <el-badge :show-zero="false" :value="countFiles" class="item" color="green">
-              <el-button class="btn-default btn-icon btn-border">
-                <ThreeDotsIcon/>
-              </el-button>
-            </el-badge>
           </div>
         </div>
       </div>
@@ -82,7 +72,6 @@ import Editor from "@/components/Editor/Editor.vue";
 import SendIcon from "@/assets/images/icons/send.svg";
 import AttachIcon from "@/assets/images/icons/attach.svg";
 import QuestionIcon from "@/assets/images/icons/question.svg";
-import ThreeDotsIcon from "@/assets/images/icons/three-dots.svg";
 import {computed, ref, useTemplateRef} from "vue";
 import * as monaco from 'monaco-editor';
 import {ElMessageBox, ElNotification} from "element-plus";
@@ -281,7 +270,7 @@ function startResize(event) {
   isResizing.value = true;
   const startX = event.clientX;
   const startEditorWidth = document.querySelector('.chat-bot-editor__editor').clientWidth;
-  const parentWidth = document.querySelector('.chat-bot-canvas').clientWidth -20;
+  const parentWidth = document.querySelector('.chat-bot-canvas').clientWidth - 20;
   const minWidth = (parseFloat('20%') / 100) * parentWidth;
   const maxWidth = (parseFloat('60%') / 100) * parentWidth;
 
@@ -320,7 +309,7 @@ const editorStyle = computed(() => {
 <style lang="scss">
 .chat-bot-editor {
   position: relative;
-  height: calc(100vh - 70px);
+  height: calc(100vh - 81px);
 
   &.resizing * {
     user-select: none;
@@ -336,43 +325,16 @@ const editorStyle = computed(() => {
     bottom: 20px;
     z-index: 100;
     display: flex;
-    flex-direction: column;
     justify-content: end;
     align-items: center;
-    height: 50px;
-    overflow: hidden;
-    transition: height 0.5s;
-    width: 60px;
-
-    .btn-block {
-      opacity: 0;
-      transition: opacity 0.5s;
-    }
-
-    &:hover {
-      height: 250px;
-      transition-delay: 0s;
-      transition-duration: 0s;
-    }
-
-    &:not(:hover) {
-      transition-delay: 0.5s;
-    }
-
-    &:hover .btn-block {
-      opacity: 1;
-    }
-
-    svg {
-      fill: #0d8484 !important;
-    }
+    gap: 12px;
+    background: var(--bg-new-chat);
+    border: 1px solid var(--input-border);
+    padding: 9px 12px;
+    border-radius: 4px;
 
     button {
       margin: 0 !important;
-    }
-
-    .btn-action + .btn-action {
-      margin-top: 24px !important;
     }
   }
 
@@ -398,11 +360,11 @@ const editorStyle = computed(() => {
     border-left: 1px solid var(--border-color-darken);
     position: relative;
     color: var(--text-color-regular);
-    height: calc(100vh - 70px);
+    height: calc(100vh - 81px);
     padding: 0 0 10px 15px;
   }
 
-  &__markdown-inner p:first-child{
+  &__markdown-inner p:first-child {
     margin-top: 8px;
   }
 

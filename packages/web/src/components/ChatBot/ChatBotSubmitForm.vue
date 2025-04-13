@@ -28,7 +28,17 @@
                 :placeholder="placeholderComputed"
                 @keydown="handleKeyDown"
               />
-              <div class="chat-bot-submit-form__btn-submit">
+              <div class="chat-bot-submit-form__actions">
+                <el-button @click="onClickAttachFile" class="btn-default btn-icon transparent">
+                  <AttachIcon/>
+                  <input
+                    ref="fileInput"
+                    type="file"
+                    style="display: none;"
+                    @change="handleFileSelect"
+                    accept=".pdf,.docx,.xlsx,.pptx,.xml,.json,text/*,image/*"
+                  />
+                </el-button>
                 <button class="btn btn-primary btn-icon"
                         @click.prevent="onClickTextAnswer">
                   <SendIcon/>
@@ -36,24 +46,6 @@
               </div>
             </div>
           </div>
-        </div>
-        <div class="chat-bot-submit-form__actions">
-          <el-button @click="onClickAttachFile" class="btn-default btn-icon">
-            <AttachIcon/>
-            <input
-              ref="fileInput"
-              type="file"
-              style="display: none;"
-              @change="handleFileSelect"
-              accept=".pdf,.docx,.xlsx,.pptx,.xml,.json,text/*,image/*"
-            />
-          </el-button>
-          <el-button disabled class="btn-default btn-icon">
-            <PencilIcon/>
-          </el-button>
-          <el-button disabled class="btn-default btn-icon">
-            <LinkIcon/>
-          </el-button>
         </div>
       </div>
     </el-form>
@@ -63,9 +55,7 @@
 <script lang="ts" setup>
 import {computed, ref, useTemplateRef} from "vue";
 import SendIcon from '@/assets/images/icons/send.svg';
-import LinkIcon from '@/assets/images/icons/link.svg';
 import AttachIcon from '@/assets/images/icons/attach.svg';
-import PencilIcon from '@/assets/images/icons/pencil.svg';
 import FileSubmitPreview from "@/components/FileSubmitPreview/FileSubmitPreview.vue";
 import HelperUpload from "@/helpers/HelperUpload";
 import {ElMessageBox} from "element-plus";
@@ -133,7 +123,7 @@ function handleDrop(event) {
 
 const placeholderComputed = computed(() => {
   if (props.layout === 'canvas') return 'Type here';
-  return 'Use icons on  the right side or simply type';
+  return 'Ask Cyoda AI Assistant...';
 });
 
 function handleKeyDown(event) {
@@ -193,10 +183,22 @@ function handleKeyDown(event) {
     min-height: 54px;
   }
 
-  &__btn-submit {
+  &__actions {
     margin-right: 16px;
     margin-left: 16px;
-    margin-bottom: 7px;
+    margin-bottom: 18px;
+    display: flex;
+    gap: 8px;
+
+    .transparent {
+      background: none;
+      position: relative;
+      top: -2px;
+
+      svg {
+        fill: var(--text-color-regular) !important;
+      }
+    }
 
     button {
       cursor: pointer;
@@ -211,26 +213,15 @@ function handleKeyDown(event) {
     }
   }
 
-  &__actions {
-    margin-left: 16px;
-    display: flex;
-    gap: 16px;
-    margin-bottom: 8px;
-
-    .el-button {
-      margin: 0;
-    }
-  }
-
   .el-textarea__inner {
     box-shadow: none !important;
     min-height: 40px !important;
     font-size: 16px;
-    margin-bottom: 7px;
-    margin-top: 7px;
+    margin-bottom: 15px;
+    margin-top: 15px;
     padding-bottom: 8px;
     padding-top: 8px;
-    padding-left: 20px;
+    padding-left: 16px;
   }
 
   .el-textarea__inner::placeholder {
@@ -272,7 +263,7 @@ function handleKeyDown(event) {
     }
   }
 
-  &__layout_canvas &__btn-submit {
+  &__layout_canvas &__actions {
     margin-bottom: 15px;
   }
 
