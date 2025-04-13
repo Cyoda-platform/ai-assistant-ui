@@ -71,3 +71,8 @@ If you download the desktop application from GitHub releases and see messages ab
 ```
 
 Afterward, the application should open correctly.
+
+---
+## Copyrights
+- Certain images in this project are sourced from Freepik under their Premium License and are not covered by the project's open source license
+- Some icons are still the property of Webalys LLC ([https://streamlinehq.com](https://streamlinehq.com)) and can be used only in the context of the open-source project.

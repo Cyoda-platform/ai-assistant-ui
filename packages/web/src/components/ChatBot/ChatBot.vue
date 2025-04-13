@@ -1,15 +1,18 @@
 <template>
-  <el-row class="layout-sidebar">
-    <el-col :span="sidebarSpan" class="layout-sidebar__sidebar">
+  <div class="layout-sidebar">
+    <div
+      class="layout-sidebar__sidebar"
+      :class="{'hidden':isSidebarHidden}"
+    >
       <SideBar/>
-    </el-col>
-    <el-col :span="mainSpan" class="layout-sidebar__main">
+    </div>
+    <div class="layout-sidebar__main">
       <div class="chat-bot">
         <ChatBotTopActions
           @toggleCanvas="emit('toggleCanvas')"
         >
           <template #chat-name>
-           <ChatBotName v-if="chatName" :chatName="chatName" :technicalId="technicalId"/>
+            <ChatBotName v-if="chatName" :chatName="chatName" :technicalId="technicalId"/>
           </template>
           <template #toggle-canvas-icon>
             <OpenCanvasIcon/>
@@ -47,8 +50,8 @@
           </div>
         </div>
       </div>
-    </el-col>
-  </el-row>
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -66,13 +69,7 @@ import ChatBotName from "@/components/ChatBot/ChatBotName.vue";
 
 const appStore = useAppStore();
 
-const sidebarSpan = computed(() => {
-  return appStore.isSidebarHidden ? 2 : 5;
-});
-
-const mainSpan = computed(() => {
-  return appStore.isSidebarHidden ? 22 : 19;
-});
+const isSidebarHidden = computed(() => appStore.isSidebarHidden);
 
 const emit = defineEmits([
   'answer',
@@ -99,7 +96,7 @@ function getOffset(type) {
 }
 
 function getSpan(type) {
-  return ['question', 'notification'].includes(type) ? 21 : 14;
+  return ['question', 'notification'].includes(type) ? 22 : 14;
 }
 
 watch(() => props.isLoading, () => {
@@ -113,6 +110,8 @@ watch(() => props.isLoading, () => {
 
 <style scoped lang="scss">
 .layout-sidebar {
+  display: flex;
+
   &__sidebar {
     min-height: 100vh;
     height: auto;
@@ -120,14 +119,19 @@ watch(() => props.isLoading, () => {
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    border-right: 1px solid var(--accent-border);
+    border-right: 1px solid var(--sidebar-border);
     background-color: var(--bg-sidebar);
+    width: 296px;
+
+    &.hidden {
+      width: 64px;
+    }
   }
 
   &__main {
+    flex: 1;
     min-height: 100vh;
     height: auto;
-    padding: 0 30px;
     background-color: var(--bg-sidebar-canvas);
   }
 }
@@ -139,10 +143,6 @@ watch(() => props.isLoading, () => {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-
-  .chat-bot-top-actions{
-    margin-left: 4.1666666667%;
-  }
 
   &__body {
     flex-grow: 1;
@@ -166,7 +166,7 @@ watch(() => props.isLoading, () => {
   }
 
   .chat-bot-submit-form {
-    width: 90%;
+    width: 91.6666666667%;
     margin: 0 auto;
   }
 

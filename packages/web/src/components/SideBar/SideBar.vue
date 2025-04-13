@@ -1,5 +1,5 @@
 <template>
-  <div class="side-bar" :class="{'side-bar--hidden': isSidebarHidden, 'side-bar--drawer': mode === 'drawer'}">
+  <div class="side-bar" :class="{'side-bar--hidden': isSidebarHidden}">
     <div class="side-bar__wrapper-logo">
       <template v-if="isSidebarHidden">
         <img alt="logo" class="side-bar__logo" :src="LogoSmallUrl"/>
@@ -7,14 +7,7 @@
       <template v-else>
         <img alt="logo" class="side-bar__logo" :src="LogoUrl"/>
         <VersionApp :small="true"/>
-        <template v-if="slots.toggle">
-          <div class="side-bar__toggle-slot">
-            <slot name="toggle"></slot>
-          </div>
-        </template>
-        <template v-else>
-          <ToggleCloseIcon @click="onClickToggleSidebar" class="side-bar__toggle-close"/>
-        </template>
+        <ToggleCloseIcon @click="onClickToggleSidebar" class="side-bar__toggle-close"/>
       </template>
     </div>
     <ul class="side-bar__nav">
@@ -32,32 +25,30 @@
         </router-link>
       </li>
 
-      <li class="side-bar__li" :class="{
+      <template v-if="!isSidebarHidden">
+        <li class="side-bar__li" :class="{
               active: isHistoryMenuActive
             }">
-        <a @click.prevent="onClickToggleHistory" class="side-bar__link" href="#">
-          <template v-if="!isSidebarHidden">
+          <a @click.prevent="onClickToggleHistory" class="side-bar__link" href="#">
             <HistoryOpenIcon v-if="isHistoryMenuVisible" class="main-icon"/>
             <HistoryIcon v-else class="main-icon"/>
-          </template>
-          <span v-if="!isSidebarHidden">
+            <span v-if="!isSidebarHidden">
             History
              <template v-if="!isHistoryMenuReady">
               (<LoadingText/>)
             </template>
           </span>
-          <ArrowDownIcon
-            v-if="!isSidebarHidden"
-            class="arrow-down-icon"
-            :class="{
+            <ArrowDownIcon
+              v-if="!isSidebarHidden"
+              class="arrow-down-icon"
+              :class="{
               'open': isHistoryMenuVisible
             }"
-          />
-        </a>
-        <el-collapse-transition>
+            />
+          </a>
           <MenuChatList @ready="onHistoryMenuReady" @active="onHistoryMenuActive" v-show="isHistoryMenuVisible"/>
-        </el-collapse-transition>
-      </li>
+        </li>
+      </template>
       <li class="side-bar__li side-bar__li-border">
         <a @click="onClickSettings" class="side-bar__link" href="#">
           <SettingsIcon class="main-icon"/>
@@ -78,7 +69,7 @@
         </li>
       </template>
       <template v-else>
-        <li class="side-bar__li">
+        <li class="side-bar__li side-bar__li-action">
           <el-button @click="onClickCreate" class="btn-primary side-bar__create_new">Create new request</el-button>
         </li>
       </template>
@@ -128,12 +119,6 @@ const slots = useSlots();
 const {logout} = useAuth0();
 const settingsDialogRef = useTemplateRef('settingsDialogRef');
 const aboutDialogRef = useTemplateRef('aboutDialogRef');
-
-withDefaults(defineProps<{
-  mode: string,
-}>(), {
-  mode: 'default',
-});
 
 const isHistoryMenuVisible = ref(false);
 const isHistoryMenuReady = ref(false);
@@ -198,14 +183,10 @@ function onClickAbout() {
 
 <style lang="scss">
 .side-bar {
-  padding: 0 20px 0 40px;
+  padding: 0 16px;
   display: flex;
   flex-direction: column;
   height: 100vh;
-
-  &--hidden {
-    padding: 0 20px;
-  }
 
 
   &__wrapper-logo {
@@ -215,8 +196,8 @@ function onClickAbout() {
   }
 
   &__logo {
-    height: 36px;
-    width: auto;
+    width: 160px;
+    height: auto;
   }
 
   &__toggle-close {
@@ -232,18 +213,22 @@ function onClickAbout() {
   &__nav {
     flex-grow: 1;
     list-style: none;
-    padding: 0 20px 0 0;
-    overflow-y: auto;
+    padding: 0;
     margin: 56px 0 15px 0;
   }
 
   &__li {
-    margin-bottom: 12px;
+    margin-bottom: 4px;
   }
 
   &__li-border {
     border-top: 1px solid var(--border-attachment-file);
     padding-top: 5px;
+    margin-top: 5px;
+  }
+
+  &__li-action {
+    margin-top: 32px;
   }
 
   &__link {
@@ -257,7 +242,7 @@ function onClickAbout() {
     text-decoration: none;
 
     .main-icon {
-      margin-right: 16px;
+      margin-right: 8px;
       fill: var(--text-color-regular);
     }
 
@@ -312,12 +297,22 @@ function onClickAbout() {
     width: 100%;
   }
 
+  &--hidden {
+    padding: 0 12px;
+  }
+
+  &--hidden &__logo {
+    width: 32px;
+    height: auto;
+  }
+
   &--hidden &__toggle-close {
     margin-left: unset;
   }
 
   &--hidden &__link {
     justify-content: center;
+    padding: 0;
   }
 
   &--hidden &__logout {
@@ -338,19 +333,6 @@ function onClickAbout() {
 
   &--hidden &__nav {
     padding-right: 0;
-  }
-
-  &--drawer {
-    background-color: var(--bg-sidebar);
-
-    .side-bar__logo {
-      max-width: 160px;
-    }
-
-    .side-bar__wrapper-logo {
-      padding-top: 24px;
-      padding-right: 20px;
-    }
   }
 
   .main-icon-create-new {
