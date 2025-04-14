@@ -1,12 +1,12 @@
 <template>
-  <el-row class="layout-sidebar">
-    <el-col :span="sidebarSpan" class="layout-sidebar__sidebar">
+  <div class="layout-sidebar">
+    <div class="layout-sidebar__sidebar" :class="{'hidden':isSidebarHidden}">
       <SideBar/>
-    </el-col>
-    <el-col :span="mainSpan" class="layout-sidebar__main">
+    </div>
+    <div class="layout-sidebar__main">
       <slot/>
-    </el-col>
-  </el-row>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -16,29 +16,30 @@ import useAppStore from "@/stores/app.ts";
 
 const appStore = useAppStore();
 
-const sidebarSpan = computed(() => {
-  return appStore.isSidebarHidden ? 2 : 5;
-});
-
-const mainSpan = computed(() => {
-  return appStore.isSidebarHidden ? 22 : 19;
-});
+const isSidebarHidden = computed(() => appStore.isSidebarHidden);
 </script>
 
 <style scoped lang="scss">
 .layout-sidebar {
+  display: flex;
   &__sidebar {
     min-height: 100vh;
     height: auto;
-    border-right: 1px solid var(--accent-border);
-    background: var(--bg-sidebar);
+    border-right: 1px solid var(--sidebar-border);
+    background-color: var(--bg-sidebar);
     overflow: hidden;
     align-items: center;
     justify-content: center;
     flex-direction: column;
+    width: 296px;
+
+    &.hidden {
+      width: 64px;
+    }
   }
 
   &__main {
+    flex: 1;
     min-height: 100vh;
     height: auto;
     padding: 0 30px;

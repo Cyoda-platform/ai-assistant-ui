@@ -8,8 +8,9 @@
   >
     <div class="about-dialog__body">
       <p>
-        Some icons used in this website are provided by <a href="https://streamlinehq.com" target="_blank">https://streamlinehq.com</a>
+        Some icons are still the property of Webalys LLC (<a href="https://streamlinehq.com" target="_blank">https://streamlinehq.com</a>) and can be used only in the context of the open-source project.
       </p>
+      <p>Certain images used in this project are sourced from Freepik under their Premium License and are not covered by the project’s open-source license.</p>
       <p>Copyright © {{ year }} CYODA Ltd.</p>
     </div>
     <div class="about-dialog__actions">
