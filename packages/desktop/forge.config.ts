@@ -104,12 +104,13 @@ const config: ForgeConfig = {
     ],
     buildIdentifier: 'cyoda-build',
     hooks: {
-        postMake: async (forgeConfig, makeResults) => {
+        postMake: async (forgeConfig: ForgeConfig, makeResults: any[]) => {
             const { execSync } = require('child_process');
-            const path = require('path');
 
             for (const result of makeResults) {
-                if (result.maker.name === '@electron-forge/maker-dmg') {
+                const makerName = (result as any).maker?.name;
+
+                if (makerName === '@electron-forge/maker-dmg') {
                     for (const artifactPath of result.artifacts) {
                         if (artifactPath.endsWith('.dmg')) {
                             console.log(`Removing quarantine from ${artifactPath}`);
