@@ -103,6 +103,12 @@ const config: ForgeConfig = {
         }),
     ],
     buildIdentifier: 'cyoda-build',
+    hooks: {
+        postMake: async () => {
+            const { execSync } = require('child_process');
+            execSync('xattr -dr com.apple.quarantine out/make/Cyoda-*.dmg', { shell: '/bin/bash' });
+        },
+    },
 };
 
 export default config;
