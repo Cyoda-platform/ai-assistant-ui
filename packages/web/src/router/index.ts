@@ -1,4 +1,4 @@
-import {createRouter, createWebHashHistory, createWebHistory} from 'vue-router'
+import {createRouter, createWebHashHistory, createWebHistory, useRoute} from 'vue-router'
 import useAuthStore from "@/stores/auth.ts";
 import useAssistantStore from "../stores/assistant";
 import {isInIframe} from "../helpers/HelperIframe";
@@ -35,7 +35,7 @@ const params = new URLSearchParams(window.location.search)
 let firstVisit = !params.has('authState');
 router.beforeEach(async (to, from, next) => {
   const assistantStore = useAssistantStore();
-  if (firstVisit) {
+  if (firstVisit && Object.keys(to.params).length === 0) {
     firstVisit = false;
     const {data} = await assistantStore.getChats();
     if (data.chats.length === 0 || isInIframe) {

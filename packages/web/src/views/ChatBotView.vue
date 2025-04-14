@@ -1,5 +1,5 @@
 <template>
-  <ChatBotCanvas
+  <ChatBot
     :technicalId="technicalId"
     :chatName="chatName"
     @answer="onAnswer"
@@ -17,7 +17,7 @@
     fullscreen
     class="chat-bot-dialog"
   >
-    <ChatBot
+    <ChatBotCanvas
       :technicalId="technicalId"
       :chatName="chatName"
       @answer="onAnswer"

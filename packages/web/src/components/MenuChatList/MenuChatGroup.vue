@@ -23,7 +23,7 @@ withDefaults(defineProps<{
 
 <style scoped>
 h4 {
-  margin-top: 32px;
+  margin-top: 0;
   margin-bottom: 8px;
   color: var(--text-color-regular);
   font-weight: 500;
