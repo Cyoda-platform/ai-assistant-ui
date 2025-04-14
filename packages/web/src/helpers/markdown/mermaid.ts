@@ -10,6 +10,21 @@ export function renderMermaid(text, raw) {
   const mermaidDiv = `
     <div class="wrapper-mermaid" id="${id}">
         <div class="actions">
+            <span class="zoom-box">
+            Zoom:
+            <span class="current-zoom">1</span>
+            </span>
+            <span class="delimiter">|</span>
+            <a class="zoom-in" href="#">
+                <span>zoom in</span>
+            </a>
+            <a class="zoom-out" href="#">
+                <span>zoom out</span>
+            </a>
+            <a class="zoom-reset" href="#">
+                <span>reset</span>
+            </a>
+            <span class="delimiter">|</span>
             <a class="copy" href="#">
                 <span>copy</span>
             </a>
