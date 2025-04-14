@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make",
+    "make": "NODE_OPTIONS=--disable-warning=DEP0174 electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx ."
   },
