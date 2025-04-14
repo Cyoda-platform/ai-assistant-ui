@@ -104,9 +104,20 @@ const config: ForgeConfig = {
     ],
     buildIdentifier: 'cyoda-build',
     hooks: {
-        postMake: async () => {
+        postMake: async (forgeConfig, makeResults) => {
             const { execSync } = require('child_process');
-            execSync('xattr -dr com.apple.quarantine out/make/Cyoda-*.dmg', { shell: '/bin/bash' });
+            const path = require('path');
+
+            for (const result of makeResults) {
+                if (result.maker.name === '@electron-forge/maker-dmg') {
+                    for (const artifactPath of result.artifacts) {
+                        if (artifactPath.endsWith('.dmg')) {
+                            console.log(`Removing quarantine from ${artifactPath}`);
+                            execSync(`xattr -dr com.apple.quarantine "${artifactPath}"`, { shell: '/bin/bash' });
+                        }
+                    }
+                }
+            }
         },
     },
 };
