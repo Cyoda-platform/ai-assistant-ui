@@ -102,21 +102,7 @@ const config: ForgeConfig = {
             [FuseV1Options.OnlyLoadAppFromAsar]: true,
         }),
     ],
-    buildIdentifier: 'cyoda-build',
-    hooks: {
-        postMake: async (_forgeConfig, makeResults) => {
-            const { execSync } = require('child_process');
-
-            for (const result of makeResults) {
-                for (const artifactPath of result.artifacts) {
-                    if (artifactPath.endsWith('.dmg')) {
-                        console.log(`Removing quarantine from ${artifactPath}`);
-                        execSync(`xattr -dr com.apple.quarantine "${artifactPath}"`, { shell: '/bin/bash' });
-                    }
-                }
-            }
-        },
-    },
+    buildIdentifier: 'cyoda-build'
 };
 
 export default config;
