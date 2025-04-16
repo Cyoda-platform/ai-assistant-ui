@@ -43,6 +43,8 @@ import {v4 as uuidv4} from "uuid";
 import HelperStorage from "@/helpers/HelperStorage.ts";
 import useAuthStore from "@/stores/auth";
 
+const questionPollingInterval = import.meta.env.VITE_APP_QUESTION_POLLING_INTERVAL_MS || 5000;
+
 const helperStorage = new HelperStorage();
 const route = useRoute();
 
@@ -88,7 +90,7 @@ function init() {
   }
   intervalId = setInterval(() => {
     getQuestions();
-  }, 5000);
+  }, questionPollingInterval);
   getQuestions();
 }
 
