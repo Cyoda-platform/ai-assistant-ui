@@ -7,13 +7,14 @@ import {useAuth0} from "@auth0/auth0-vue";
 import HelperStorage from "@/helpers/HelperStorage";
 import {LOGIN_REDIRECT_URL} from "@/helpers/HelperConstants";
 import {useRoute} from "vue-router";
+
 const helperStorage = new HelperStorage();
 
 const {loginWithRedirect} = useAuth0();
 const route = useRoute();
 
 function onClick() {
-  helperStorage.set(LOGIN_REDIRECT_URL, route.fullPath);
+  helperStorage.set(LOGIN_REDIRECT_URL, route.fullPath === '/' ? '/home' : route.fullPath);
   loginWithRedirect()
 }
 </script>
