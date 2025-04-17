@@ -1,5 +1,5 @@
 <template>
-  <component :is="layout">
+  <component v-loading="isLoading" :is="layout">
     <RouterView/>
     <LoginPopUp/>
   </component>
@@ -7,7 +7,7 @@
 
 <script setup lang="ts">
 import {useRoute, RouterView, useRouter} from "vue-router";
-import {computed, watch, watchEffect} from "vue";
+import {computed, ref, watch, watchEffect} from "vue";
 import useAppStore from "@/stores/app";
 import LoginPopUp from "@/components/LoginPopUp/LoginPopUp.vue";
 import {useAuth0} from "@auth0/auth0-vue";
@@ -25,6 +25,7 @@ const router = useRouter();
 const appStore = useAppStore();
 const authStore = useAuthStore();
 const {user, getAccessTokenSilently, isAuthenticated} = useAuth0();
+const isLoading = ref(false);
 const layout = computed(() => {
   return `layout-${route.meta.layout || defaultLayout}`;
 });
@@ -48,18 +49,23 @@ const helperStorage = new HelperStorage();
 
 watch(isAuthenticated, async (value) => {
   if (!value || authStore.isLoggedIn) return;
-  const token = await getAccessTokenSilently();
-  authStore.saveData({
-    token: token,
-    tokenType: "private",
-    refreshToken: null,
-    userId: user.value.sub,
-    username: user.value.name,
-  })
+  isLoading.value = true;
+  try {
+    const token = await getAccessTokenSilently();
+    authStore.saveData({
+      token: token,
+      tokenType: "private",
+      refreshToken: null,
+      userId: user.value.sub,
+      username: user.value.name,
+    })
 
-  const returnTo = helperStorage.get(LOGIN_REDIRECT_URL, '/home');
-  helperStorage.removeItem(LOGIN_REDIRECT_URL)
-  router.replace(returnTo);
+    const returnTo = helperStorage.get(LOGIN_REDIRECT_URL, '/home');
+    helperStorage.removeItem(LOGIN_REDIRECT_URL)
+    router.replace(returnTo);
+  } finally {
+    isLoading.value = false;
+  }
 }, {immediate: true});
 
 </script>
