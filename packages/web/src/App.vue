@@ -57,7 +57,7 @@ watch(isAuthenticated, async (value) => {
     username: user.value.name,
   })
 
-  const returnTo = helperStorage.get(LOGIN_REDIRECT_URL, '/');
+  const returnTo = helperStorage.get(LOGIN_REDIRECT_URL, '/home');
   helperStorage.removeItem(LOGIN_REDIRECT_URL)
   router.replace(returnTo);
 }, {immediate: true});
