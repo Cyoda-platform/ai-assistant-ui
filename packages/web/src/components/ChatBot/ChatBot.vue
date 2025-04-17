@@ -92,6 +92,7 @@ function scrollDownMessages() {
 }
 
 function getOffset(type) {
+  if (type === 'answer') return 9;
   return ['question', 'notification'].includes(type) ? 1 : 8;
 }
 
