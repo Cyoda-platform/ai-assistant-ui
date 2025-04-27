@@ -39,7 +39,6 @@ import {useRoute, useRouter} from "vue-router";
 import ChatBotCanvas from "@/components/ChatBot/ChatBotCanvas.vue";
 import {onBeforeUnmount, onMounted, ref, watch} from "vue";
 import useAssistantStore from "@/stores/assistant.ts";
-import {v4 as uuidv4} from "uuid";
 import HelperStorage from "@/helpers/HelperStorage.ts";
 import useAuthStore from "@/stores/auth";
 
@@ -62,7 +61,6 @@ const messages = ref<any[]>([]);
 const assistantStore = useAssistantStore();
 const isLoading = ref(false);
 const isEnvelopeActive = ref(false);
-const router = useRouter();
 const authStore = useAuthStore();
 
 onMounted(() => {
@@ -70,7 +68,6 @@ onMounted(() => {
 })
 
 function init() {
-
   const params = new URLSearchParams(window.location.search);
   const authState = params.get('authState');
   if (authState) {
@@ -85,53 +82,46 @@ function init() {
     const url = new URL(window.location.href)
     url.searchParams.delete('isNew')
     window.history.replaceState({}, '', url)
-  } else {
-    loadChatHistory();
   }
   intervalId = setInterval(() => {
-    getQuestions();
+    loadChatHistory();
   }, questionPollingInterval);
-  getQuestions();
+  loadChatHistory();
 }
 
 async function loadChatHistory() {
+  if (promiseInterval) return;
   try {
-    messages.value = [];
-    isLoading.value = true;
-    const {data} = await assistantStore.getChatById(technicalId.value);
+    promiseInterval = assistantStore.getChatById(technicalId.value);
+    const {data} = await promiseInterval;
     chatName.value = data.chat_body.name;
     data.chat_body.dialogue.forEach((el) => {
       addMessage(el);
     })
+    if (messages.value[messages.value.length - 1]?.type !== 'answer') isLoading.value = false;
   } finally {
-    isLoading.value = false;
+    promiseInterval = null;
   }
 }
 
-async function getQuestions() {
-  if (promiseInterval) return;
-  promiseInterval = assistantStore.getQuestions(technicalId.value);
-  const {data} = await promiseInterval;
-  data.questions.forEach((el) => {
-    addMessage(el);
-    if (el.notification) startEnvelopeFlash();
-  })
-  promiseInterval = null;
-  isLoading.value = false;
-}
-
-function onAnswer(answer: any) {
+async function onAnswer(answer: any) {
+  let response;
   if (answer.file) {
     const formData = new FormData();
     formData.append('file', answer.file);
     formData.append('answer', answer.answer);
 
-    assistantStore.postAnswers(technicalId.value, formData);
+    const {data} = await assistantStore.postAnswers(technicalId.value, formData);
+    response = data;
   } else {
-    assistantStore.postTextAnswers(technicalId.value, answer);
+    const {data} = await assistantStore.postTextAnswers(technicalId.value, answer);
+    response = data;
   }
+  if (!response.answer_technical_id) return;
+  answer.technical_id = response.answer_technical_id;
   addMessage(answer);
   isLoading.value = true;
+  loadChatHistory();
 }
 
 function addMessage(el) {
@@ -139,8 +129,10 @@ function addMessage(el) {
   if (el.question) type = 'question';
   else if (el.notification) type = 'notification';
 
+  if (messages.value.find(m => m.id === el.technical_id)) return;
+
   messages.value.push({
-    id: uuidv4(),
+    id: el.technical_id,
     text: el.question || el.notification || el.answer,
     file: el.file,
     editable: !!el.editable,
@@ -172,13 +164,13 @@ function startEnvelopeFlash() {
 async function onRollbackQuestion(event) {
   await assistantStore.postRollbackQuestion(technicalId.value, event);
   isLoading.value = true;
-  loadChatHistory();
+  await loadChatHistory();
 }
 
 async function onApproveQuestion(event) {
   await assistantStore.postApproveQuestion(technicalId.value, event);
   isLoading.value = true;
-  loadChatHistory();
+  await loadChatHistory();
 }
 
 function onToggleCanvas() {
@@ -190,13 +182,12 @@ function onToggleCanvas() {
 async function onUpdateNotification(notification) {
   await assistantStore.putNotification(technicalId.value, notification);
   isLoading.value = true;
-  loadChatHistory();
+  await loadChatHistory();
 }
 
 watch(technicalId, () => {
   loadChatHistory();
 })
-
 </script>
 
 <style>
