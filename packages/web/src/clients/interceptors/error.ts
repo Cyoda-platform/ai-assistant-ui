@@ -8,7 +8,7 @@ const errorInterceptor = (instance: AxiosInstance): void => {
     (response: AxiosResponse) => response,
     (error: AxiosError) => {
       const response = error.response;
-      if (response?.status === 403) {
+      if ([403, 429].includes(response?.status)) {
         eventBus.$emit(SHOW_LOGIN_POPUP);
         return Promise.reject(error);
       }
