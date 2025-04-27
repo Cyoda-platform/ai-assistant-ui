@@ -8,9 +8,6 @@ const useAssistantStore = defineStore('assistant', {
     chats(data: CreateChatRequest) {
       return privateClient.post<CreateChatResponse>("/v1/chats", data);
     },
-    getQuestions(technical_id: string) {
-      return privateClient.get(`/v1/chats/${technical_id}/questions`);
-    },
     postTextAnswers(technical_id: string, data: any) {
       return privateClient.post(`/v1/chats/${technical_id}/text-answers`, data)
     },
