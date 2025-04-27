@@ -52,6 +52,10 @@ const useAuthStore = defineStore('auth', {
       this.saveData({token: data.access_token, tokenType: 'public'});
       return data.access_token;
     },
+
+    async postTransferChats(guestToken) {
+      return privateClient.post("/v1/transfer-chats", {guest_token: guestToken});
+    },
   },
 });
 
