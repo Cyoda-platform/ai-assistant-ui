@@ -34,7 +34,7 @@ const useAuthStore = defineStore('auth', {
     },
 
     async logout(logoutFn) {
-      if (this.isLoggedIn) {
+      if (this.isLoggedIn && logoutFn) {
        logoutFn();
       }
       this.$patch(defaultState);
