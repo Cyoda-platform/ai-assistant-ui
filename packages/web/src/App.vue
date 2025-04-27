@@ -51,6 +51,7 @@ watch(isAuthenticated, async (value) => {
   if (!value || authStore.isLoggedIn) return;
   isLoading.value = true;
   try {
+    const oldToken = authStore.token;
     const token = await getAccessTokenSilently();
     authStore.saveData({
       token: token,
@@ -59,7 +60,7 @@ watch(isAuthenticated, async (value) => {
       userId: user.value.sub,
       username: user.value.name,
     })
-
+    authStore.postTransferChats(oldToken);
     const returnTo = helperStorage.get(LOGIN_REDIRECT_URL, '/home');
     helperStorage.removeItem(LOGIN_REDIRECT_URL)
     router.replace(returnTo);
