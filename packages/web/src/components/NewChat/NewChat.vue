@@ -150,7 +150,8 @@ async function onClickSend() {
 
     .el-textarea__inner {
       box-shadow: none !important;
-      padding: 9px 0;
+      padding: 9px 10px 9px 0;
+      font-size: 16px;
     }
 
     .btn-icon {
@@ -159,6 +160,9 @@ async function onClickSend() {
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      align-self: end;
+      margin-bottom: 4px;
+      margin-left: 16px;
 
       svg {
         fill: #fff;

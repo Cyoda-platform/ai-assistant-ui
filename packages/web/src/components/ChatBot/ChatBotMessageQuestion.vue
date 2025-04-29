@@ -163,6 +163,10 @@ function onClickCopy() {
     @include mixins.bubble_body;
   }
 
+  .wrap-container {
+    overflow: auto;
+  }
+
   &__actions {
     text-align: right;
   }
