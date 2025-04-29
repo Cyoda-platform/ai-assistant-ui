@@ -15,6 +15,7 @@ import useAuthStore from "@/stores/auth";
 import HelperStorage from "@/helpers/HelperStorage";
 import {LOGIN_REDIRECT_URL} from "@/helpers/HelperConstants";
 import {usePreferredDark} from '@vueuse/core';
+import useAssistantStore from "@/stores/assistant";
 
 const isDark = usePreferredDark()
 
@@ -24,6 +25,7 @@ const route = useRoute();
 const router = useRouter();
 const appStore = useAppStore();
 const authStore = useAuthStore();
+const assistantStore = useAssistantStore();
 const {user, getAccessTokenSilently, isAuthenticated} = useAuth0();
 const isLoading = ref(false);
 const layout = computed(() => {
@@ -60,7 +62,9 @@ watch(isAuthenticated, async (value) => {
       userId: user.value.sub,
       username: user.value.name,
     })
-    authStore.postTransferChats(oldToken);
+    if (assistantStore.isExistChats) {
+      authStore.postTransferChats(oldToken);
+    }
     const returnTo = helperStorage.get(LOGIN_REDIRECT_URL, '/home');
     helperStorage.removeItem(LOGIN_REDIRECT_URL)
     router.replace(returnTo);
