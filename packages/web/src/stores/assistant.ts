@@ -6,11 +6,11 @@ import {ChatResponse} from "../types/chat";
 const useAssistantStore = defineStore('assistant', {
   state: () => {
     return {
-      chats: []
+      chatList: []
     }
   },
   getters: {
-    isExistChats: (state) => state.chats.length > 0,
+    isExistChats: (state) => state.chatList.length > 0,
   },
   actions: {
     chats(data: CreateChatRequest) {
@@ -30,7 +30,7 @@ const useAssistantStore = defineStore('assistant', {
     },
     async getChats() {
       const response = await privateClient.get<ChatResponse>(`/v1/chats`);
-      this.chats = response.data.chats;
+      this.chatList = response.data.chats;
       return response;
     },
     getChatById(technical_id: string) {
