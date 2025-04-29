@@ -100,7 +100,7 @@ function splitChatsByDate(chatsData) {
 }
 
 watchEffect(() => {
-  const isSelected = allChats.value.some((el) => el.chat_id === route.params.technicalId);
+  const isSelected = allChats.value.some((el) => el.technical_id === route.params.technicalId);
   emit('active', isSelected);
 });
 </script>
