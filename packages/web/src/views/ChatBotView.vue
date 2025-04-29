@@ -186,6 +186,8 @@ async function onUpdateNotification(notification) {
 }
 
 watch(technicalId, () => {
+  messages.value = [];
+  isLoading.value = true;
   loadChatHistory();
 })
 </script>

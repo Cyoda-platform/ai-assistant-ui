@@ -7,7 +7,7 @@ export default function markdownActions(element: HTMLElement, raw) {
   const zoomOutButton = element.querySelector('.zoom-out') as HTMLAnchorElement | null;
   const zoomResetButton = element.querySelector('.zoom-reset') as HTMLAnchorElement | null;
   const copySpan = copyButton?.querySelector('span') as HTMLSpanElement | null;
-  const mermaidDiv = zoomInButton.closest('.wrapper-mermaid').querySelector('.mermaid');
+  const containerDiv = zoomInButton.closest('.wrapper').querySelector('.diagram-container');
   const currentZoomEl = element.querySelector('.current-zoom');
 
 
@@ -30,7 +30,7 @@ export default function markdownActions(element: HTMLElement, raw) {
       e.preventDefault();
       let currentValue = parseFloat(currentZoomEl.textContent);
       currentValue = +(currentValue + 0.1).toFixed(1);
-      mermaidDiv.style.zoom = currentValue;
+      containerDiv.style.transform = `scale(${currentValue})`;
       currentZoomEl.textContent = currentValue;
     });
   }
@@ -43,7 +43,7 @@ export default function markdownActions(element: HTMLElement, raw) {
       if (currentValue < 0.1) {
         currentValue = 0.1;
       }
-      mermaidDiv.style.zoom = currentValue;
+      containerDiv.style.transform = `scale(${currentValue})`;
       currentZoomEl.textContent = currentValue;
     });
   }
@@ -51,7 +51,7 @@ export default function markdownActions(element: HTMLElement, raw) {
   if (zoomResetButton) {
     zoomResetButton.addEventListener("click", (e) => {
       e.preventDefault();
-      mermaidDiv.style.zoom = 1;
+      containerDiv.style.transform = `scale(1)`;
       currentZoomEl.textContent = 1;
     });
   }

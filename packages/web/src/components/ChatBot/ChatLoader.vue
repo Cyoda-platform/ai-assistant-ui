@@ -1,6 +1,6 @@
 <template>
   <el-row>
-    <el-col :span="14">
+    <el-col :offset="1" :span="22">
       <div class="chat-loading">
         <div v-loading="true"></div>
       </div>
