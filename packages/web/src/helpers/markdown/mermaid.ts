@@ -8,7 +8,7 @@ mermaid.initialize({ startOnLoad: false });
 export function renderMermaid(text, raw) {
   const id = `mermaid-${uuidv4()}`;
   const mermaidDiv = `
-    <div class="wrapper-mermaid" id="${id}">
+    <div class="wrapper wrapper-mermaid" id="${id}">
         <div class="actions">
             <span class="zoom-box">
             Zoom:
@@ -29,7 +29,9 @@ export function renderMermaid(text, raw) {
                 <span>copy</span>
             </a>
         </div>
-        <div class="mermaid"></div>
+         <div class="wrap-container">
+        <div style="transform-origin: top left;" class="diagram-container mermaid"></div>
+        </div>
     </div>
   `;
 
