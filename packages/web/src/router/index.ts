@@ -35,6 +35,12 @@ const params = new URLSearchParams(window.location.search)
 let firstVisit = !params.has('authState');
 router.beforeEach(async (to, from, next) => {
   const assistantStore = useAssistantStore();
+
+  if (firstVisit && params.has('auth0')) {
+    firstVisit = false;
+    return next();
+  }
+
   if (firstVisit && Object.keys(to.params).length === 0) {
     firstVisit = false;
     const {data} = await assistantStore.getChats();
