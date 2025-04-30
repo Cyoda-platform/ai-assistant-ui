@@ -6,7 +6,7 @@ export default {
       domain: import.meta.env.VITE_APP_AUTH0_DOMAIN,
       clientId: import.meta.env.VITE_APP_AUTH0_CLIENT_ID,
       authorizationParams: {
-        redirect_uri: import.meta.env.VITE_APP_AUTH0_REDIRECT_URI,
+        redirect_uri: `${import.meta.env.VITE_APP_AUTH0_REDIRECT_URI}?auth0=true`,
         audience: import.meta.env.VITE_APP_AUTH0_AUDIENCE,
         organization: import.meta.env.VITE_APP_AUTH0_ORGANIZATION,
       }
