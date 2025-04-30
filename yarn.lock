@@ -3285,7 +3285,7 @@ __metadata:
     axios-retry: "npm:^4.5.0"
     element-plus: "npm:^2.9.9"
     eslint: "npm:^9.25.1"
-    eslint-plugin-vue: "npm:^10.0.1"
+    eslint-plugin-vue: "npm:^10.1.0"
     marked: "npm:^15.0.11"
     mermaid: "npm:^11.6.0"
     modern-normalize: "npm:^3.0.1"
@@ -3297,7 +3297,7 @@ __metadata:
     tiny-emitter: "npm:^2.1.0"
     typescript: "npm:~5.8.3"
     uuid: "npm:^11.1.0"
-    vite: "npm:^6.3.3"
+    vite: "npm:^6.3.4"
     vite-plugin-vue-devtools: "npm:^7.7.6"
     vite-svg-loader: "npm:^5.1.0"
     vue: "npm:^3.5.13"
@@ -4909,14 +4909,14 @@ __metadata:
     "@types/electron-squirrel-startup": "npm:^1.0.2"
     "@typescript-eslint/eslint-plugin": "npm:^8.31.1"
     "@typescript-eslint/parser": "npm:^8.31.1"
-    electron: "npm:36.0.0"
+    electron: "npm:36.0.1"
     electron-squirrel-startup: "npm:^1.0.1"
     eslint: "npm:^9.25.1"
     eslint-plugin-import: "npm:^2.31.0"
     ts-node: "npm:^10.9.2"
     typescript: "npm:~5.8.3"
     update-electron-app: "npm:^3.1.1"
-    vite: "npm:^6.3.3"
+    vite: "npm:^6.3.4"
   languageName: unknown
   linkType: soft
 
@@ -5159,16 +5159,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:36.0.0":
-  version: 36.0.0
-  resolution: "electron@npm:36.0.0"
+"electron@npm:36.0.1":
+  version: 36.0.1
+  resolution: "electron@npm:36.0.1"
   dependencies:
     "@electron/get": "npm:^2.0.0"
     "@types/node": "npm:^22.7.7"
     extract-zip: "npm:^2.0.1"
   bin:
     electron: cli.js
-  checksum: 10c0/058242132249982d77656999650f17ee50dca4ae7e1851411dcf05dee0370e248d052c72b4a4705a052148c195bdf88ae200fba8c2813214140d89e2b98f328f
+  checksum: 10c0/be0dddedf67632ca2cedd2d037106ecabe617a59cb6f65d5fcf5b68455a82c753637441bec3cec2cf91625c36ad3fbf3251e466c1be15093e00ba1fe517eca47
   languageName: node
   linkType: hard
 
@@ -5571,9 +5571,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-vue@npm:^10.0.1":
-  version: 10.0.1
-  resolution: "eslint-plugin-vue@npm:10.0.1"
+"eslint-plugin-vue@npm:^10.1.0":
+  version: 10.1.0
+  resolution: "eslint-plugin-vue@npm:10.1.0"
   dependencies:
     "@eslint-community/eslint-utils": "npm:^4.4.0"
     natural-compare: "npm:^1.4.0"
@@ -5584,7 +5584,7 @@ __metadata:
   peerDependencies:
     eslint: ^8.57.0 || ^9.0.0
     vue-eslint-parser: ^10.0.0
-  checksum: 10c0/54d4e2b47147aa7fe131472ada1954fe9e98e18313f803d724ce4cff16ca670cfe66348c5c67da1bc4e2d604c0f34cea38a568364de155d6dd312c31b10ff65f
+  checksum: 10c0/3c2b5b54c4d0da6f42ddd207ae44d8b3ea4ded4834d6672804ace7ef746a31c20a03d6fd09adf3556106f8e1f79599b2a16992f8e48da9ba0a4b17e4fd1ab562
   languageName: node
   linkType: hard
 
@@ -10975,9 +10975,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^6.3.3":
-  version: 6.3.3
-  resolution: "vite@npm:6.3.3"
+"vite@npm:^6.3.4":
+  version: 6.3.4
+  resolution: "vite@npm:6.3.4"
   dependencies:
     esbuild: "npm:^0.25.0"
     fdir: "npm:^6.4.4"
@@ -11026,7 +11026,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10c0/7ea27d2c80a9e0b7ccf6cbd6c251455501286568160e8b632984e5332440f21a6d05f9236408212ba7653f7d2d4790f848956d8a620bbf4dd2ecb792a2fe1ab1
+  checksum: 10c0/f1534a3f42d14b30e11c58e5e451903d965d5f5ba18d8c81f9df208589e3d2c65535abaa3268d3963573174b8e056ea7bc445f567622c65fcdf98eb4acc1bf4e
   languageName: node
   linkType: hard
 

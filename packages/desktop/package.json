@@ -25,12 +25,12 @@
     "@types/electron-squirrel-startup": "^1.0.2",
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",
-    "electron": "36.0.0",
+    "electron": "36.0.1",
     "eslint": "^9.25.1",
     "eslint-plugin-import": "^2.31.0",
     "ts-node": "^10.9.2",
     "typescript": "~5.8.3",
-    "vite": "^6.3.3"
+    "vite": "^6.3.4"
   },
   "keywords": [],
   "author": {
