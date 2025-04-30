@@ -39,9 +39,13 @@ const theme = computed(() => {
 watchEffect(() => {
   document.body.classList.remove(`theme-dark`);
   document.body.classList.remove(`theme-light`);
+  if(isInIframe && !authStore.isLoggedIn) {
+    document.body.classList.add('theme-light');
+    return;
+  }
   if (['dark', 'light'].includes(theme.value)) {
     document.body.classList.add(`theme-${theme.value}`);
-  } else if (!isInIframe) {
+  } else {
     document.body.classList.add(isDark.value ? 'theme-dark' : 'theme-light')
   }
 });
