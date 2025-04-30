@@ -15,7 +15,7 @@ import useAuthStore from "@/stores/auth";
 import HelperStorage from "@/helpers/HelperStorage";
 import {LOGIN_REDIRECT_URL} from "@/helpers/HelperConstants";
 import {usePreferredDark} from '@vueuse/core';
-import useAssistantStore from "@/stores/assistant";
+import {isInIframe} from "@/helpers/HelperIframe";
 
 const isDark = usePreferredDark()
 
@@ -41,7 +41,7 @@ watchEffect(() => {
   document.body.classList.remove(`theme-light`);
   if (['dark', 'light'].includes(theme.value)) {
     document.body.classList.add(`theme-${theme.value}`);
-  } else {
+  } else if (!isInIframe) {
     document.body.classList.add(isDark.value ? 'theme-dark' : 'theme-light')
   }
 });
