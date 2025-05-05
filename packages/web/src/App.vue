@@ -7,7 +7,7 @@
 
 <script setup lang="ts">
 import {useRoute, RouterView, useRouter} from "vue-router";
-import {computed, ref, watch, watchEffect} from "vue";
+import {computed, onMounted, ref, watch, watchEffect} from "vue";
 import useAppStore from "@/stores/app";
 import LoginPopUp from "@/components/LoginPopUp/LoginPopUp.vue";
 import {useAuth0} from "@auth0/auth0-vue";
@@ -16,6 +16,8 @@ import HelperStorage from "@/helpers/HelperStorage";
 import {LOGIN_REDIRECT_URL} from "@/helpers/HelperConstants";
 import {usePreferredDark} from '@vueuse/core';
 import {isInIframe} from "@/helpers/HelperIframe";
+import useAssistantStore from "@/stores/assistant";
+import {setTokenGetter} from "@/helpers/HelperAuth";
 
 const isDark = usePreferredDark()
 
@@ -25,6 +27,13 @@ const route = useRoute();
 const router = useRouter();
 const appStore = useAppStore();
 const authStore = useAuthStore();
+const assistantStore = useAssistantStore();
+
+onMounted(() => {
+  const { getAccessTokenSilently } = useAuth0()
+  setTokenGetter(() => getAccessTokenSilently())
+})
+
 const {user, getAccessTokenSilently, isAuthenticated} = useAuth0();
 const isLoading = ref(false);
 const layout = computed(() => {
@@ -39,7 +48,7 @@ const theme = computed(() => {
 watchEffect(() => {
   document.body.classList.remove(`theme-dark`);
   document.body.classList.remove(`theme-light`);
-  if(isInIframe && !authStore.isLoggedIn) {
+  if (isInIframe && !authStore.isLoggedIn) {
     document.body.classList.add('theme-light');
     return;
   }
@@ -65,7 +74,12 @@ watch(isAuthenticated, async (value) => {
       userId: user.value.sub,
       username: user.value.name,
     })
-    authStore.postTransferChats(oldToken);
+    if (oldToken) {
+      authStore.postTransferChats(oldToken, true);
+    }
+
+    console.log('new Token', token);
+    assistantStore.setGuestChatsExist(false);
     const returnTo = helperStorage.get(LOGIN_REDIRECT_URL, '/home');
     helperStorage.removeItem(LOGIN_REDIRECT_URL)
     router.replace(returnTo);

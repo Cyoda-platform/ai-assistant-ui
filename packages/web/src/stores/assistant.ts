@@ -2,18 +2,29 @@ import {defineStore} from "pinia";
 import privateClient from "@/clients/private";
 import type {CreateChatRequest, CreateChatResponse} from "@/types/chat";
 import {ChatResponse} from "../types/chat";
+import HelperStorage from "../helpers/HelperStorage";
+import useAuthStore from "./auth";
+
+const helperStorage = new HelperStorage();
 
 const useAssistantStore = defineStore('assistant', {
   state: () => {
     return {
-      chatList: []
+      chatList: null,
+      chatListReady: false,
+      guestChatsExist: helperStorage.get('assistant:guestChatsExist', false),
     }
   },
   getters: {
-    isExistChats: (state) => state.chatList.length > 0,
+    isExistChats: (state) => state.chatList?.length > 0,
+    isGuestChatsExist: (state) => state.guestChatsExist,
   },
   actions: {
     chats(data: CreateChatRequest) {
+      const authStore = useAuthStore();
+      if (!authStore.isLoggedIn) {
+        this.setGuestChatsExist(true);
+      }
       return privateClient.post<CreateChatResponse>("/v1/chats", data);
     },
     postTextAnswers(technical_id: string, data: any) {
@@ -44,6 +55,10 @@ const useAssistantStore = defineStore('assistant', {
     },
     putNotification(technical_id: string, data) {
       return privateClient.put(`/v1/chats/${technical_id}/notification`, data)
+    },
+    setGuestChatsExist(value) {
+      helperStorage.set('assistant:guestChatsExist', value);
+      return this.guestChatsExist = value;
     }
   }
 });

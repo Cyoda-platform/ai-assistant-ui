@@ -48,6 +48,7 @@ onBeforeUnmount(() => {
 
   &__actions {
     text-align: right;
+    padding: 0 30px;
   }
 
   &__body {

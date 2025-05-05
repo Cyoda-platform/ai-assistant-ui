@@ -1,6 +1,6 @@
 <template>
   <div class="chat-bot-canvas" :class="{'hidden':isSidebarHidden}">
-    <div class="chat-bot-canvas__sidebar">
+    <div class="chat-bot-canvas__sidebar" :class="{'hidden':isSidebarHidden}">
       <SideBar/>
     </div>
     <div class="chat-bot-canvas__main">

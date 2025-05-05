@@ -11,10 +11,20 @@
 
 <script setup lang="ts">
 import SideBar from "@/components/SideBar/SideBar.vue";
-import {computed} from "vue";
-import useAppStore from "@/stores/app.ts";
+import {computed, onMounted} from "vue";
+import useAppStore from "@/stores/app";
+import useAssistantStore from "@/stores/assistant";
 
 const appStore = useAppStore();
+const assistantStore = useAssistantStore();
+
+onMounted(()=>{
+  loadChats();
+})
+
+async function loadChats() {
+  await assistantStore.getChats();
+}
 
 const isSidebarHidden = computed(() => appStore.isSidebarHidden);
 </script>
@@ -42,7 +52,6 @@ const isSidebarHidden = computed(() => appStore.isSidebarHidden);
     flex: 1;
     min-height: 100vh;
     height: auto;
-    padding: 0 30px;
     background-color: var(--bg);
   }
 }

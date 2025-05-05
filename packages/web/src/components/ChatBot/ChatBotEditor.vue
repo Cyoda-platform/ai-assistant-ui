@@ -16,7 +16,7 @@
               effect="dark"
               content="Send Answer"
               placement="left"
-              show-after="1000"
+              :show-after="1000"
             >
               <el-button @click="onSubmitAnswer" class="btn-white btn-icon">
                 <SendIcon/>
@@ -29,7 +29,7 @@
               effect="dark"
               content="Ask CYODA AI"
               placement="left"
-              show-after="1000"
+              :show-after="1000"
             >
               <el-button @click="onSubmitQuestion" class="btn-white btn-icon">
                 <QuestionIcon/>
@@ -42,7 +42,7 @@
               effect="dark"
               content="Attach File"
               placement="left"
-              show-after="1000"
+              :show-after="1000"
             >
               <el-badge :show-zero="false" :value="countFiles" class="item" color="green">
                 <el-button @click="onAttachFile" class="btn-white btn-icon">
