@@ -22,7 +22,7 @@ const router = createRouter({
       path: "/chat-bot/view/:technicalId",
       name: "ChatBotView",
       meta: {
-        layout: "default",
+        layout: "sidebar",
       },
       component: () => import("../views/ChatBotView.vue"),
     },
@@ -35,16 +35,16 @@ const params = new URLSearchParams(window.location.search)
 let firstVisit = !params.has('authState');
 router.beforeEach(async (to, from, next) => {
   const assistantStore = useAssistantStore();
+  const authStore = useAuthStore();
 
   if (firstVisit && params.has('auth0')) {
     firstVisit = false;
     return next();
   }
 
-  if (firstVisit && Object.keys(to.params).length === 0) {
+  if (!authStore.isLoggedIn && firstVisit && Object.keys(to.params).length === 0) {
     firstVisit = false;
-    const {data} = await assistantStore.getChats();
-    if (data.chats.length === 0 || isInIframe) {
+    if (!assistantStore.isGuestChatsExist || isInIframe) {
       return next({path: "/"});
     } else {
       return next({path: "/home"});

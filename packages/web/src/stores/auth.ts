@@ -2,7 +2,7 @@ import {defineStore} from "pinia";
 import HelperStorage from "../helpers/HelperStorage.ts";
 import privateClient from "@/clients/private.ts";
 import type {Auth} from "@/types/auth";
-import {useAuth0} from "@auth0/auth0-vue";
+import {getToken} from "../helpers/HelperAuth";
 
 const helperStorage = new HelperStorage();
 const defaultState: Auth = {
@@ -35,15 +35,14 @@ const useAuthStore = defineStore('auth', {
 
     async logout(logoutFn) {
       if (this.isLoggedIn && logoutFn) {
-       logoutFn();
+        logoutFn();
       }
       this.$patch(defaultState);
       helperStorage.set("auth", defaultState);
     },
 
     async refreshAccessToken() {
-      const {getAccessTokenSilently} = useAuth0();
-      const token = await getAccessTokenSilently();
+      const token = await getToken();
       this.saveData({token});
     },
 

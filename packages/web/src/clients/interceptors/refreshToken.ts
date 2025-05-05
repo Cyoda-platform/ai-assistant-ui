@@ -39,7 +39,7 @@ const refreshToken = (instance: AxiosInstance): void => {
           }
           // @ts-ignore
           return instance.request(originalConfig);
-        } catch {
+        } catch(e) {
           authStore.logout();
           window.location.href = "/";
         }

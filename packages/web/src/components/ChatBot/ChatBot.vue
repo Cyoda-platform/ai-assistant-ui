@@ -1,53 +1,43 @@
 <template>
-  <div class="layout-sidebar">
-    <div
-      class="layout-sidebar__sidebar"
-      :class="{'hidden':isSidebarHidden}"
+  <div class="chat-bot">
+    <ChatBotTopActions
+      @toggleCanvas="emit('toggleCanvas')"
     >
-      <SideBar/>
-    </div>
-    <div class="layout-sidebar__main">
-      <div class="chat-bot">
-        <ChatBotTopActions
-          @toggleCanvas="emit('toggleCanvas')"
-        >
-          <template #chat-name>
-            <ChatBotName v-if="chatName" :chatName="chatName" :technicalId="technicalId"/>
-          </template>
-          <template #toggle-canvas-icon>
-            <OpenCanvasIcon/>
-          </template>
-        </ChatBotTopActions>
+      <template #chat-name>
+        <ChatBotName v-if="chatName" :chatName="chatName" :technicalId="technicalId"/>
+      </template>
+      <template #toggle-canvas-icon>
+        <OpenCanvasIcon/>
+      </template>
+    </ChatBotTopActions>
 
-        <div class="chat-bot__body">
-          <div class="chat-bot__messages">
-            <div class="chat-bot__inner-messages">
-              <template v-for="message in messages">
-                <el-row>
-                  <el-col :offset="getOffset(message.type)" :span="getSpan(message.type)">
-                    <ChatBotMessageQuestion
-                      v-if="message.type === 'question'"
-                      :message="message"
-                      @rollbackQuestion="emit('rollbackQuestion', $event)"
-                      @approveQuestion="emit('approveQuestion', $event)"
-                    />
-                    <ChatBotMessageNotification
-                      v-if="message.type === 'notification'"
-                      @updateNotification="emit('updateNotification', $event)"
-                      :message="message"
-                    />
-                    <ChatBotMessageAnswer
-                      v-if="message.type === 'answer'"
-                      :message="message"/>
-                  </el-col>
-                </el-row>
-              </template>
-              <ChatLoader v-if="isLoading"/>
-            </div>
-            <div class="chat-bot__form">
-              <ChatBotSubmitForm @answer="emit('answer', $event)"/>
-            </div>
-          </div>
+    <div class="chat-bot__body">
+      <div class="chat-bot__messages">
+        <div class="chat-bot__inner-messages">
+          <template v-for="message in messages">
+            <el-row>
+              <el-col :offset="getOffset(message.type)" :span="getSpan(message.type)">
+                <ChatBotMessageQuestion
+                  v-if="message.type === 'question'"
+                  :message="message"
+                  @rollbackQuestion="emit('rollbackQuestion', $event)"
+                  @approveQuestion="emit('approveQuestion', $event)"
+                />
+                <ChatBotMessageNotification
+                  v-if="message.type === 'notification'"
+                  @updateNotification="emit('updateNotification', $event)"
+                  :message="message"
+                />
+                <ChatBotMessageAnswer
+                  v-if="message.type === 'answer'"
+                  :message="message"/>
+              </el-col>
+            </el-row>
+          </template>
+          <ChatLoader v-if="isLoading"/>
+        </div>
+        <div class="chat-bot__form">
+          <ChatBotSubmitForm @answer="emit('answer', $event)"/>
         </div>
       </div>
     </div>
@@ -83,7 +73,7 @@ const props = defineProps<{
   isLoading: boolean,
   messages: any[],
   technicalId: string,
-  chatName: string,
+  chatName: string | null,
 }>();
 
 function scrollDownMessages() {

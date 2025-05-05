@@ -138,6 +138,7 @@ function onHistoryMenuReady() {
 
 function onHistoryMenuActive(event) {
   isHistoryMenuActive.value = event;
+  if (event && !isHistoryMenuVisible.value) isHistoryMenuVisible.value = event;
 }
 
 function onClickLogout() {

@@ -19,7 +19,7 @@ const props = defineProps<{
 }>();
 
 const linkToGithub = computed(() => {
-  return `https://github.com/Cyoda-platform/quart-client-template/tree/${props.technicalId}`
+  return `https://github.com/Cyoda-platform`
 });
 </script>
 
