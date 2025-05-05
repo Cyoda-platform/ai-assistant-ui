@@ -11,7 +11,7 @@
           class="box-item"
           effect="dark"
           content="Rollback"
-          show-after="1000"
+          :show-after="1000"
           placement="top"
         >
           <el-button
@@ -34,7 +34,7 @@
         effect="dark"
         content="Copy"
         placement="top"
-        show-after="1000"
+        :show-after="1000"
       >
         <el-button
           @click="onClickCopy"
@@ -51,7 +51,7 @@
         effect="dark"
         content="Approve"
         placement="top"
-        show-after="1000"
+        :show-after="1000"
       >
         <el-button
           @click="onClickApproveQuestion"

@@ -60,7 +60,7 @@ import FileSubmitPreview from "@/components/FileSubmitPreview/FileSubmitPreview.
 import HelperUpload from "@/helpers/HelperUpload";
 import {ElMessageBox} from "element-plus";
 
-const props = withDefaults(defineProps<{ layout: 'default' | 'canvas' }>(), {
+const props = withDefaults(defineProps<{ layout?: 'default' | 'canvas' }>(), {
   layout: 'default'
 })
 

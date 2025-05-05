@@ -26,16 +26,12 @@ import MenuChatGroup from "@/components/MenuChatList/MenuChatGroup.vue";
 import eventBus from "@/plugins/eventBus";
 import {UPDATE_CHAT_LIST} from "@/helpers/HelperConstants";
 import {useRoute} from "vue-router";
-import useAuthStore from "@/stores/auth";
 
 const assistantStore = useAssistantStore();
-const authStore = useAuthStore()
 const emit = defineEmits(['ready', 'active']);
-const allChats = ref([]);
 const route = useRoute();
 
 onMounted(() => {
-  loadChats();
   eventBus.$on(UPDATE_CHAT_LIST, loadChats);
 });
 
@@ -43,11 +39,14 @@ onBeforeUnmount(() => {
   eventBus.$off(UPDATE_CHAT_LIST, loadChats);
 })
 
+
 async function loadChats() {
-  const {data} = await assistantStore.getChats();
-  allChats.value = data.chats;
-  emit('ready');
+  await assistantStore.getChats();
 }
+
+const allChats = computed(() => {
+  return assistantStore.chatList || [];
+});
 
 const chatsGroups = computed(() => {
   return splitChatsByDate(allChats.value);
@@ -103,6 +102,10 @@ watchEffect(() => {
   const isSelected = allChats.value.some((el) => el.technical_id === route.params.technicalId);
   emit('active', isSelected);
 });
+
+watch(() => assistantStore.chatList, (value) => {
+  if (value !== null) emit('ready');
+}, {immediate: true});
 </script>
 
 <style scoped lang="scss">
