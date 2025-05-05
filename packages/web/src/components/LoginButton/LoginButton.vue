@@ -14,7 +14,7 @@ const {loginWithRedirect} = useAuth0();
 const route = useRoute();
 
 function onClick() {
-  helperStorage.set(LOGIN_REDIRECT_URL, route.fullPath === '/' ? '/home' : route.fullPath);
+  helperStorage.set(LOGIN_REDIRECT_URL, '/home');
   loginWithRedirect()
 }
 </script>
