@@ -42,6 +42,11 @@ router.beforeEach(async (to, from, next) => {
     return next();
   }
 
+  if(authStore.isLoggedIn && firstVisit && Object.keys(to.params).length === 0){
+    firstVisit = false;
+    return next({path: "/home"});
+  }
+
   if (!authStore.isLoggedIn && firstVisit && Object.keys(to.params).length === 0) {
     firstVisit = false;
     if (!assistantStore.isGuestChatsExist || isInIframe) {
