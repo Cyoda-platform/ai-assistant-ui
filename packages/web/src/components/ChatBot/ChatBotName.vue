@@ -1,26 +1,14 @@
 <template>
-    <div class="chat-bot-name">
-      <a :href="linkToGithub" target="_blank">
-        <GithubIcon style="width: 24px"/>
-        <span>{{ chatName }}</span>
-      </a>
-      <EditIcon/>
-    </div>
+  <div class="chat-bot-name">
+    <span>{{ chatName }}</span>
+  </div>
 </template>
 
 <script setup lang="ts">
-import GithubIcon from '@/assets/images/icons/github.svg';
-import EditIcon from '@/assets/images/icons/edit.svg';
-import {computed} from "vue";
-
-const props = defineProps<{
+defineProps<{
   technicalId: string,
   chatName: string,
 }>();
-
-const linkToGithub = computed(() => {
-  return `https://github.com/Cyoda-platform`
-});
 </script>
 
 <style lang="scss" scoped>
@@ -33,19 +21,8 @@ const linkToGithub = computed(() => {
     fill: var(--text-color-regular);
   }
 
-  a {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: var(--text-color-regular);
-    text-decoration: none;
-  }
-
-  a:hover {
-    text-decoration: underline;
-  }
-
   span {
+    color: var(--text-color-regular);
     font-size: 20px;
     font-style: italic;
     font-weight: 400;

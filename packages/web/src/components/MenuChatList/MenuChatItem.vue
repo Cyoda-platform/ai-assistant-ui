@@ -86,6 +86,9 @@ const isActive = computed(() => {
     flex-grow: 1;
     font-size: 16px;
     line-height: 130%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
 
   &__svg_wrapper {
