@@ -10,8 +10,6 @@ export default function markdownActions(element: HTMLElement, raw) {
   const containerDiv = zoomInButton.closest('.wrapper').querySelector('.diagram-container');
   const currentZoomEl = element.querySelector('.current-zoom');
 
-
-  console.log('zoomInButton', zoomInButton);
   if (copyButton && copySpan) {
     copyButton.addEventListener("click", (e) => {
       e.preventDefault();

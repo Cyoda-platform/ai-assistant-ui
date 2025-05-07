@@ -63,9 +63,9 @@
       </li>
       <template v-if="isSidebarHidden">
         <li class="side-bar__li">
-          <a class="side-bar__link side-bar__link" href="#" @click.prevent="onClickCreate">
+          <router-link class="side-bar__link side-bar__link" to="/home">
             <CreateNewRequestIcon class="main-icon main-icon-create-new"/>
-          </a>
+          </router-link>
         </li>
       </template>
       <template v-else>
@@ -115,7 +115,6 @@ const authStore = useAuthStore();
 const appStore = useAppStore();
 const router = useRouter();
 const route = useRoute();
-const slots = useSlots();
 const {logout} = useAuth0();
 const settingsDialogRef = useTemplateRef('settingsDialogRef');
 const aboutDialogRef = useTemplateRef('aboutDialogRef');
@@ -136,9 +135,14 @@ function onHistoryMenuReady() {
   isHistoryMenuReady.value = true;
 }
 
+let isInit = false;
+
 function onHistoryMenuActive(event) {
   isHistoryMenuActive.value = event;
-  if (event && !isHistoryMenuVisible.value) isHistoryMenuVisible.value = event;
+  if (event && !isInit) {
+    isInit = true;
+    isHistoryMenuVisible.value = event;
+  }
 }
 
 function onClickLogout() {

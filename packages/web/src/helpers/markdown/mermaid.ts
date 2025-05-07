@@ -46,8 +46,16 @@ export function renderMermaid(text, raw) {
 
     const uniqueGraphId = `graph-${uuidv4()}`;
 
-    const { svg } = await mermaid.render(uniqueGraphId, text);
-    mermaidElement.innerHTML = svg;
+    try {
+      const {svg} = await mermaid.render(uniqueGraphId, text);
+      mermaidElement.innerHTML = svg;
+    } catch (e) {
+      const {svg} = await mermaid.render(uniqueGraphId,`
+      graph TD
+        A["Error: Syntax!"]
+      `);
+      mermaidElement.innerHTML = svg;
+    }
 
     markdownActions(element, raw);
   });
