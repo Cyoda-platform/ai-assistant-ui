@@ -21,7 +21,7 @@
 
 <script setup lang="ts">
 import useAssistantStore from "@/stores/assistant";
-import {computed, onBeforeUnmount, onMounted, ref, watch, watchEffect} from "vue";
+import {computed, onBeforeUnmount, onMounted, watch, watchEffect} from "vue";
 import MenuChatGroup from "@/components/MenuChatList/MenuChatGroup.vue";
 import eventBus from "@/plugins/eventBus";
 import {UPDATE_CHAT_LIST} from "@/helpers/HelperConstants";
@@ -62,6 +62,9 @@ function splitChatsByDate(chatsData) {
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
 
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(today.getDate() - 7);
+
   const isSameDay = (date1, date2) =>
     date1.getFullYear() === date2.getFullYear() &&
     date1.getMonth() === date2.getMonth() &&
@@ -69,7 +72,8 @@ function splitChatsByDate(chatsData) {
 
   const todayChats = [];
   const yesterdayChats = [];
-  const previousChats = [];
+  const previousWeekChats = [];
+  const olderChats = [];
 
   chatsData.forEach(chat => {
     const chatDate = new Date(chat.date);
@@ -78,8 +82,10 @@ function splitChatsByDate(chatsData) {
       todayChats.push(chat);
     } else if (isSameDay(chatDate, yesterday)) {
       yesterdayChats.push(chat);
+    } else if (chatDate >= sevenDaysAgo) {
+      previousWeekChats.push(chat);
     } else {
-      previousChats.push(chat);
+      olderChats.push(chat);
     }
   });
 
@@ -94,8 +100,13 @@ function splitChatsByDate(chatsData) {
     },
     {
       title: 'Previous week',
-      chats: previousChats,
-    }];
+      chats: previousWeekChats,
+    },
+    {
+      title: 'Older',
+      chats: olderChats,
+    }
+  ];
 }
 
 watchEffect(() => {

@@ -2,7 +2,7 @@
   <div class="menu-chat-item" :class="{
     'menu-chat-item--active': isActive
   }" @mouseleave="isShowPopover=false">
-    <router-link class="menu-chat-item__link" :to="link">{{ chat.name }}</router-link>
+    <router-link class="menu-chat-item__link" :to="link">{{ chat.name || 'No name' }}</router-link>
     <el-popover popper-class="default" v-model:visible="isShowPopover" placement="right-start"
                 :popper-style="popperStyle"
                 :popper-options="popperOptions"
@@ -21,7 +21,7 @@
         </div>
         <div class="menu-chat-item__popover-date">
           <span class="menu-chat-item__popover-date-title">Last change</span>
-          <span class="menu-chat-item__popover-date-value">{{ transformDate(chat.last_modified) }}</span>
+          <span class="menu-chat-item__popover-date-value">{{ chat.last_modified? transformDate(chat.last_modified) : '-' }}</span>
         </div>
       </div>
     </el-popover>
