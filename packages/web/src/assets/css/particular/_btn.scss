@@ -1,6 +1,7 @@
 @use "sass:color";
 
 .el-button {
+  font-size: 16px;
   font-weight: 400;
   background-color: var(--bg-button);
   border-color: var(--border-color-default-button);

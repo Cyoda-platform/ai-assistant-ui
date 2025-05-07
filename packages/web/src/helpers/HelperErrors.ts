@@ -22,7 +22,7 @@ export default class HelperErrors {
       [401, 403].includes(data.response.status) &&
       data.response.data?.message &&
       !data.response.data.message.includes('Invalid username or password') &&
-      !data.response.data.message.includes('already been transferred')
+      !data.response.data.message.toLowerCase().includes('token invalid')
     ) {
       return;
     }

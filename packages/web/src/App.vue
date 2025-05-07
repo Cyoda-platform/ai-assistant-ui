@@ -78,7 +78,6 @@ watch(isAuthenticated, async (value) => {
       authStore.postTransferChats(oldToken, true);
     }
 
-    console.log('new Token', token);
     assistantStore.setGuestChatsExist(false);
     const returnTo = helperStorage.get(LOGIN_REDIRECT_URL, '/home');
     helperStorage.removeItem(LOGIN_REDIRECT_URL)
