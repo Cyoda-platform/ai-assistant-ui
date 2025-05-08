@@ -50,7 +50,8 @@ function onClickGithub() {
 function onCreated(data: CreateChatResponse) {
   if(isInIframe) {
     const baseUrl = window.location.origin;
-    window.top.location.href = `${baseUrl}/chat-bot/view/${data.technical_id}?isNew=true&authState=${encodeURIComponent(JSON.stringify(authStore.$state))}`;
+    const link = `${baseUrl}/chat-bot/view/${data.technical_id}?isNew=true&authState=${encodeURIComponent(JSON.stringify(authStore.$state))}`;
+    window.open(link, '_blank').focus();
   } else {
     router.push(`/chat-bot/view/${data.technical_id}?isNew=true`);
   }
