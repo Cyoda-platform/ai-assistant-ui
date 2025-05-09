@@ -1,6 +1,7 @@
-import { createI18n } from 'vue-i18n';
-import type { App } from 'vue';
+import {createI18n} from 'vue-i18n';
+import type {App} from 'vue';
 import privateClient from '@/clients/private';
+import useTranslationsStore from "../stores/translations";
 
 const i18n = createI18n({
   legacy: false,
@@ -28,8 +29,8 @@ export async function loadLocaleMessages(locale: string) {
 
 async function getMessages() {
   try {
-    // privateClient.post('/v1/labels_config/refresh');
-    const { data } = await privateClient.get('/v1/labels_config');
+    const translationsStore = useTranslationsStore();
+    const {data} = await translationsStore.getLabelsConfig();
     return data;
   } catch (e) {
     console.error('Failed to load translations:', e);
@@ -37,4 +38,4 @@ async function getMessages() {
   }
 }
 
-export { i18n };
+export {i18n};
