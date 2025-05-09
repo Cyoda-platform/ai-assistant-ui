@@ -11,9 +11,9 @@
       </template>
     </template>
     <template v-else>
-      <h4 class="menu-chat-list__empty-title">Nothing to see yet.</h4>
+      <h4 class="menu-chat-list__empty-title"> {{ t('menu_chat_list.empty.title') }} </h4>
       <div class="menu-chat-list__empty-description">
-        Create your first request to start and keep track on your history here anytime.
+        {{ t('menu_chat_list.empty.description') }}
       </div>
     </template>
   </div>
@@ -26,6 +26,8 @@ import MenuChatGroup from "@/components/MenuChatList/MenuChatGroup.vue";
 import eventBus from "@/plugins/eventBus";
 import {UPDATE_CHAT_LIST} from "@/helpers/HelperConstants";
 import {useRoute} from "vue-router";
+import {useI18n} from "vue-i18n";
+const { t } = useI18n();
 
 const assistantStore = useAssistantStore();
 const emit = defineEmits(['ready', 'active']);
