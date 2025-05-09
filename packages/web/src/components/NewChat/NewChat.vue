@@ -1,11 +1,11 @@
 <template>
   <div class="new-chat">
-    <h1 class="new-chat-h1">BUILD BEAUTIFULLY</h1>
-    <h2>Build, deploy and scale data-intensive operational services</h2>
+    <h1 class="new-chat-h1">{{ t('new_chat.h1') }}</h1>
+    <h2>{{ t('new_chat.h2') }}</h2>
     <div class="new-chat__title">
       <img class="only-theme-light" src="@/assets/images/logo.gif"/>
       <img class="only-theme-dark" src="@/assets/images/logo-dark.gif"/>
-      What do you want to do?
+      {{ t('new_chat.title') }}
     </div>
 
     <div class="new-chat__form" :class="{
@@ -17,7 +17,7 @@
         type="textarea"
         resize="none"
         :autosize="{ minRows: 1, maxRows: 10 }"
-        placeholder="Build a microservice which is a scalable and can integrate and scale up"
+        :placeholder="t('new_chat.input.placeholder')"
       />
       <el-button :loading="isLoading" class="btn btn-primary btn-icon"
                  @click.prevent="onClickSend">
@@ -26,7 +26,7 @@
     </div>
 
     <div class="new-chat__examples">
-      <div class="new-chat__examples-title">For example</div>
+      <div class="new-chat__examples-title">{{ t('examples.title') }}</div>
       <div class="new-chat__buttons">
         <el-button
           v-for="example in examples"
@@ -44,11 +44,12 @@
 <script setup lang="ts">
 import SendIcon from '@/assets/images/icons/send.svg';
 
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import eventBus from "@/plugins/eventBus";
 import {UPDATE_CHAT_LIST} from "@/helpers/HelperConstants";
 import useAssistantStore from "@/stores/assistant";
 import type {CreateChatResponse} from "@/types/chat.d";
+import {useI18n} from "vue-i18n";
 
 const assistantStore = useAssistantStore();
 const form = ref({
@@ -61,25 +62,25 @@ const emit = defineEmits<{
 }>()
 
 const isLoading = ref(false);
+const {t, tm} = useI18n();
 
-const examples = [
-  {
-    text: 'Create new workflow',
-  },
-  {
-    text: 'Design small, independently deployable services',
-  },
-  {
-    text: 'Build new application for retail company',
-  },
-  {
-    text: 'Assist with a schema',
-  },
-  {
-    text: '+10к different requests',
-    readonly: true,
+const examples = computed(() => {
+  const items = tm('examples.items.clickable').map(el => {
+    return {
+      text: el,
+    }
+  });
+
+  if (t('examples.items.readonly') !== 'examples.items.readonly') {
+    items.push(
+      {
+        text: t('examples.items.readonly'),
+        readonly: true,
+      }
+    )
   }
-];
+  return items;
+});
 
 function onClickExample(example) {
   if (example.readonly) return;

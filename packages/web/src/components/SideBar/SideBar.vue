@@ -21,7 +21,7 @@
             }">
         <router-link class="side-bar__link" to="/home">
           <HomeIcon class="main-icon"/>
-          <span v-if="!isSidebarHidden">Home</span>
+          <span v-if="!isSidebarHidden">{{ t('side_bar.links.home')}}</span>
         </router-link>
       </li>
 
@@ -33,7 +33,7 @@
             <HistoryOpenIcon v-if="isHistoryMenuVisible" class="main-icon"/>
             <HistoryIcon v-else class="main-icon"/>
             <span v-if="!isSidebarHidden">
-            History
+            {{ t('side_bar.links.history')}}
              <template v-if="!isHistoryMenuReady">
               (<LoadingText/>)
             </template>
@@ -52,13 +52,13 @@
       <li class="side-bar__li side-bar__li-border">
         <a @click="onClickSettings" class="side-bar__link" href="#">
           <SettingsIcon class="main-icon"/>
-          <span v-if="!isSidebarHidden">Settings</span>
+          <span v-if="!isSidebarHidden">{{ t('side_bar.links.settings') }}</span>
         </a>
       </li>
       <li class="side-bar__li">
         <a @click="onClickAbout" class="side-bar__link" href="#">
           <AboutIcon class="main-icon"/>
-          <span v-if="!isSidebarHidden">About</span>
+          <span v-if="!isSidebarHidden">{{ t('side_bar.links.about') }}</span>
         </a>
       </li>
       <template v-if="isSidebarHidden">
@@ -70,7 +70,7 @@
       </template>
       <template v-else>
         <li class="side-bar__li side-bar__li-action">
-          <el-button @click="onClickCreate" class="btn-primary side-bar__create_new">Create new request</el-button>
+          <el-button @click="onClickCreate" class="btn-primary side-bar__create_new">{{ t('side_bar.create_new') }}</el-button>
         </li>
       </template>
     </ul>
@@ -78,7 +78,7 @@
       <a v-if="isLogoutVisible" @click="onClickLogout" href="#" class="side-bar__logout">
         <LogoutIcon/>
         <span>
-          Log out
+          {{ t('side_bar.logout') }}
         </span>
       </a>
     </div>
@@ -110,6 +110,7 @@ import SettingsDialog from "@/components/SettingsDialog/SettingsDialog.vue";
 import {useAuth0} from "@auth0/auth0-vue";
 import AboutDialog from "@/components/AboutDialog/AboutDialog.vue";
 import VersionApp from "@/components/VersionApp/VersionApp.vue";
+import {useI18n} from "vue-i18n";
 
 const authStore = useAuthStore();
 const appStore = useAppStore();
@@ -122,6 +123,7 @@ const aboutDialogRef = useTemplateRef('aboutDialogRef');
 const isHistoryMenuVisible = ref(false);
 const isHistoryMenuReady = ref(false);
 const isHistoryMenuActive = ref(false);
+const { t } = useI18n();
 
 function onClickToggleHistory() {
   isHistoryMenuVisible.value = !isHistoryMenuVisible.value;
