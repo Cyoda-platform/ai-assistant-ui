@@ -2,6 +2,7 @@
   <component v-loading="isLoading" :is="layout">
     <RouterView/>
     <LoginPopUp/>
+    <DeveloperComponentIcon v-if="isDev"/>
   </component>
 </template>
 
@@ -18,6 +19,7 @@ import {usePreferredDark} from '@vueuse/core';
 import {isInIframe} from "@/helpers/HelperIframe";
 import useAssistantStore from "@/stores/assistant";
 import {setTokenGetter} from "@/helpers/HelperAuth";
+import DeveloperComponentIcon from "@/components/DeveloperComponent/DeveloperComponentIcon.vue";
 
 const isDark = usePreferredDark()
 
@@ -28,6 +30,7 @@ const router = useRouter();
 const appStore = useAppStore();
 const authStore = useAuthStore();
 const assistantStore = useAssistantStore();
+const isDev = process.env.NODE_ENV === 'development';
 
 onMounted(() => {
   const { getAccessTokenSilently } = useAuth0()
