@@ -3,12 +3,12 @@
     class="version-app"
     :class="{'small': small}"
   >
-    {{ versionApp }}
+    {{ t('version_app.small') }}
   </div>
 </template>
 
 <script setup lang="ts">
-import {APP_VERSION} from "@/helpers/HelperConstants";
+import {useI18n} from "vue-i18n";
 
 const props = withDefaults(defineProps<{
   small: boolean,
@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<{
   small: false,
 });
 
-const versionApp = APP_VERSION;
+const { t } = useI18n();
 </script>
 
 <style scoped lang="scss">
