@@ -3,6 +3,7 @@
     v-model="dialogVisible"
     title="You are out of credits"
     width="400"
+    :close-on-click-modal="false"
   >
     <span>Log in to continue building beautifully for free.</span>
     <template #footer>

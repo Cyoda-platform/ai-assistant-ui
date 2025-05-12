@@ -1,0 +1,19 @@
+.el-tabs__item {
+  color: var(--text-color-regular);
+
+  &:hover {
+    color: var(--text-color-regular);
+  }
+
+  &.is-active {
+    color: var(--color-primary);
+  }
+}
+
+.el-tabs__active-bar {
+  background-color: var(--color-primary);
+}
+
+.el-tabs__nav-wrap:after{
+  background-color: var(--text-color-regular);
+}
