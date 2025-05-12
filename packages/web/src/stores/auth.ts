@@ -3,6 +3,7 @@ import HelperStorage from "../helpers/HelperStorage.ts";
 import privateClient from "@/clients/private.ts";
 import type {Auth} from "@/types/auth";
 import {getToken} from "../helpers/HelperAuth";
+import useAssistantStore from "./assistant";
 
 const helperStorage = new HelperStorage();
 const defaultState: Auth = {
@@ -34,6 +35,8 @@ const useAuthStore = defineStore('auth', {
     },
 
     async logout(logoutFn) {
+      const assistantStore = useAssistantStore();
+      assistantStore.setGuestChatsExist(false);
       if (this.isLoggedIn && logoutFn) {
         logoutFn();
       }

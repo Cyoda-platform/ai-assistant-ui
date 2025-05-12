@@ -27,7 +27,7 @@
       </template>
     </template>
 
-    <el-dialog v-model="dialogVisible">
+    <el-dialog v-model="dialogVisible" :close-on-click-modal="false">
       <div class="image-preview-wrapper">
         <img class="image-preview" :src="imagePreview" alt="Preview Image"/>
       </div>

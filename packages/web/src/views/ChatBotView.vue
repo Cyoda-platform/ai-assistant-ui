@@ -10,12 +10,14 @@
     @updateNotification="onUpdateNotification"
     :isLoading="isLoading"
     :messages="messages"
+    :entitiesData="entitiesData"
   />
 
   <el-dialog
     v-model="dialogVisible"
     fullscreen
     class="chat-bot-dialog"
+    :close-on-click-modal="false"
   >
     <ChatBotCanvas
       :technicalId="technicalId"
@@ -28,14 +30,15 @@
       @updateNotification="onUpdateNotification"
       :isLoading="isLoading"
       :messages="messages"
+      :entitiesData="entitiesData"
     />
   </el-dialog>
 </template>
 
 <script setup lang="ts">
 import ChatBot from "@/components/ChatBot/ChatBot.vue";
-import {computed} from "vue";
-import {useRoute, useRouter} from "vue-router";
+import {computed, provide} from "vue";
+import {useRoute} from "vue-router";
 import ChatBotCanvas from "@/components/ChatBot/ChatBotCanvas.vue";
 import {onBeforeUnmount, onMounted, ref, watch} from "vue";
 import useAssistantStore from "@/stores/assistant.ts";
@@ -57,11 +60,14 @@ let intervalId: any = null;
 let intervalEnvelopeId: any = null;
 let promiseInterval: any = null;
 const chatName = ref<string | null>(null);
+const entitiesData = ref<string | null>({});
 const messages = ref<any[]>([]);
 const assistantStore = useAssistantStore();
 const isLoading = ref(false);
 const isEnvelopeActive = ref(false);
 const authStore = useAuthStore();
+
+provide('entitiesData', entitiesData);
 
 onMounted(() => {
   init();
@@ -95,6 +101,7 @@ async function loadChatHistory() {
     promiseInterval = assistantStore.getChatById(technicalId.value);
     const {data} = await promiseInterval;
     chatName.value = data.chat_body.name;
+    entitiesData.value = data.chat_body.entities_data;
     data.chat_body.dialogue.forEach((el) => {
       addMessage(el);
     })
