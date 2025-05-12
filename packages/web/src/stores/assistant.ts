@@ -21,10 +21,6 @@ const useAssistantStore = defineStore('assistant', {
   },
   actions: {
     chats(data: CreateChatRequest) {
-      const authStore = useAuthStore();
-      if (!authStore.isLoggedIn) {
-        this.setGuestChatsExist(true);
-      }
       return privateClient.post<CreateChatResponse>("/v1/chats", data);
     },
     postTextAnswers(technical_id: string, data: any) {

@@ -1,13 +1,13 @@
 import {defineStore} from "pinia";
-import privateClient from "@/clients/private";
+import publicClient from "@/clients/public";
 
 const useTranslationsStore = defineStore('translations', {
   actions: {
     getLabelsConfig() {
-      return privateClient.get(`/v1/labels_config`)
+      return publicClient.get(`/v1/labels_config`)
     },
     postLabelsConfigRefresh() {
-      return privateClient.post(`/v1/labels_config/refresh`)
+      return publicClient.post(`/v1/labels_config/refresh`)
     }
   }
 });
