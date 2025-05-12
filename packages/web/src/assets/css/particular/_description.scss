@@ -1,0 +1,17 @@
+.el-descriptions__label.el-descriptions__cell.is-bordered-label {
+  background-color: var(--bubble-question-bg-color);
+  color: var(--text-color-regular);
+}
+
+.el-descriptions__body .el-descriptions__table.is-bordered .el-descriptions__cell {
+  border-color: var(--input-border-color);
+}
+
+.el-descriptions__body {
+  background-color: var(--bubble-notification-bg-color);
+  color: var(--text-color-regular);
+}
+
+.el-descriptions__content.el-descriptions__cell.is-bordered-content {
+  color: var(--text-color-regular);
+}

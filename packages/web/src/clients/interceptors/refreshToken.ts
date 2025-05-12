@@ -12,14 +12,13 @@ const refreshToken = (instance: AxiosInstance): void => {
     async (error: AxiosError) => {
       const response = error.response;
       const originalConfig = error.config;
+      const authStore = useAuthStore();
 
       if (
         response?.status === 401 &&
         // @ts-ignore
         !originalConfig?.__isRetryRequest
       ) {
-        const authStore = useAuthStore();
-
         try {
           if (!refreshAccessTokenPromise) {
             refreshAccessTokenPromise = authStore.refreshAccessToken();
