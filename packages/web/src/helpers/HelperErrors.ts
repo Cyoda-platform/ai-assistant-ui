@@ -17,12 +17,13 @@ export default class HelperErrors {
     const warningMessage = document.querySelector('.helper-errors');
     if (warningMessage) return;
 
+    if(data.response.data?.error.includes('Invalid token')) return;
+
     if (
       data?.response?.status &&
       [401, 403].includes(data.response.status) &&
       data.response.data?.message &&
-      !data.response.data.message.includes('Invalid username or password') &&
-      !data.response.data.message.toLowerCase().includes('token invalid')
+      !data.response.data?.message.includes('Invalid username or password')
     ) {
       return;
     }

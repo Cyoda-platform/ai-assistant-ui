@@ -1,13 +1,13 @@
 <template>
   <div class="chat-bot">
-    <ChatBotTopActions
-      @toggleCanvas="emit('toggleCanvas')"
-    >
+    <ChatBotTopActions>
       <template #chat-name>
         <ChatBotName v-if="chatName" :chatName="chatName" :technicalId="technicalId"/>
       </template>
-      <template #toggle-canvas-icon>
-        <OpenCanvasIcon/>
+      <template #secondary-actions>
+        <el-button @click="emit('toggleCanvas')" class="btn btn-default btn-icon btn-toggle-canvas">
+          <OpenCanvasIcon/>
+        </el-button>
       </template>
     </ChatBotTopActions>
 
@@ -45,7 +45,7 @@
 </template>
 
 <script lang="ts" setup>
-import {computed, nextTick, onBeforeUnmount, onMounted, watch} from "vue";
+import {watch} from "vue";
 import ChatBotSubmitForm from "@/components/ChatBot/ChatBotSubmitForm.vue";
 import ChatLoader from "@/components/ChatBot/ChatLoader.vue";
 import OpenCanvasIcon from "@/assets/images/icons/open-canvas.svg";
@@ -53,13 +53,7 @@ import ChatBotMessageQuestion from "@/components/ChatBot/ChatBotMessageQuestion.
 import ChatBotMessageNotification from "@/components/ChatBot/ChatBotMessageNotification.vue";
 import ChatBotMessageAnswer from "@/components/ChatBot/ChatBotMessageAnswer.vue";
 import ChatBotTopActions from "@/components/ChatBot/ChatBotTopActions.vue";
-import SideBar from "@/components/SideBar/SideBar.vue";
-import useAppStore from "@/stores/app";
 import ChatBotName from "@/components/ChatBot/ChatBotName.vue";
-
-const appStore = useAppStore();
-
-const isSidebarHidden = computed(() => appStore.isSidebarHidden);
 
 const emit = defineEmits([
   'answer',

@@ -142,7 +142,7 @@ watch(() => assistantStore.chatList, (value) => {
   }
 
   .menu-chat-list__chat-group + .menu-chat-list__chat-group {
-    margin-top: 40px;
+    margin-top: 30px;
   }
 }
 </style>

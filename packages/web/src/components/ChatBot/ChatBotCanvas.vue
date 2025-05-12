@@ -4,11 +4,11 @@
       <SideBar/>
     </div>
     <div class="chat-bot-canvas__main">
-      <ChatBotTopActions
-        @toggleCanvas="emit('toggleCanvas')"
-      >
-        <template #toggle-canvas-icon>
-          <CloseCanvasIcon/>
+      <ChatBotTopActions>
+        <template #secondary-actions>
+          <el-button @click="emit('toggleCanvas')" class="btn btn-default btn-icon btn-toggle-canvas">
+            <CloseCanvasIcon/>
+          </el-button>
         </template>
       </ChatBotTopActions>
       <ChatBotEditor :technicalId="technicalId" @answer="emit('answer', $event)" :isShowMarkdown="isShowMarkdown"/>

@@ -22,7 +22,5 @@ axiosRetry(instance, {
 });
 
 errorInterceptor(instance);
-jwtInterceptor(instance);
-refreshToken(instance);
 
 export default instance;
