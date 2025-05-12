@@ -4,6 +4,7 @@
     v-model="dialogVisible"
     :title="computedTitle"
     width="400"
+    :close-on-click-modal="false"
   >
 
     <input

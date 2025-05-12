@@ -50,6 +50,7 @@ import {UPDATE_CHAT_LIST} from "@/helpers/HelperConstants";
 import useAssistantStore from "@/stores/assistant";
 import type {CreateChatResponse} from "@/types/chat.d";
 import {useI18n} from "vue-i18n";
+import useAuthStore from "@/stores/auth";
 
 const assistantStore = useAssistantStore();
 const form = ref({
@@ -92,6 +93,10 @@ async function onClickSend() {
   isLoading.value = true;
   try {
     const {data} = await assistantStore.chats(form.value);
+    const authStore = useAuthStore();
+    if (!authStore.isLoggedIn) {
+      this.setGuestChatsExist(true);
+    }
     emit('created', data);
     eventBus.$emit(UPDATE_CHAT_LIST);
   } finally {
