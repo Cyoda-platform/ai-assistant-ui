@@ -45,8 +45,6 @@ import useAssistantStore from "@/stores/assistant.ts";
 import HelperStorage from "@/helpers/HelperStorage.ts";
 import useAuthStore from "@/stores/auth";
 
-const questionPollingInterval = import.meta.env.VITE_APP_QUESTION_POLLING_INTERVAL_MS || 5000;
-
 const helperStorage = new HelperStorage();
 const route = useRoute();
 
@@ -56,7 +54,7 @@ const technicalId = computed(() => {
 
 const dialogVisible = ref(helperStorage.get(`chatDialog:${technicalId.value}`, false));
 
-let intervalId: any = null;
+let pollChatTimeoutId: any = null;
 let intervalEnvelopeId: any = null;
 let promiseInterval: any = null;
 const chatName = ref<string | null>(null);
@@ -66,6 +64,11 @@ const assistantStore = useAssistantStore();
 const isLoading = ref(false);
 const isEnvelopeActive = ref(false);
 const authStore = useAuthStore();
+
+const BASE_INTERVAL = import.meta.env.VITE_APP_QUESTION_POLLING_INTERVAL_MS || 5000;
+const MAX_INTERVAL = import.meta.env.VITE_APP_QUESTION_MAX_POLLING_INTERVAL || 7000;
+const JITTER_PERCENT = 0.1;
+let currentInterval = BASE_INTERVAL;
 
 provide('entitiesData', entitiesData);
 
@@ -89,26 +92,42 @@ function init() {
     url.searchParams.delete('isNew')
     window.history.replaceState({}, '', url)
   }
-  intervalId = setInterval(() => {
-    loadChatHistory();
-  }, questionPollingInterval);
-  loadChatHistory();
+  pollChat();
 }
 
 async function loadChatHistory() {
-  if (promiseInterval) return;
+  if (promiseInterval) return false;
+  const newResults = [];
   try {
     promiseInterval = assistantStore.getChatById(technicalId.value);
     const {data} = await promiseInterval;
     chatName.value = data.chat_body.name;
     entitiesData.value = data.chat_body.entities_data;
     data.chat_body.dialogue.forEach((el) => {
-      addMessage(el);
+      const result = addMessage(el);
+      newResults.push(result);
     })
     if (messages.value[messages.value.length - 1]?.type !== 'answer') isLoading.value = false;
   } finally {
     promiseInterval = null;
   }
+
+  return newResults.some(el => el);
+}
+
+async function pollChat() {
+  try {
+    const gotNew = await loadChatHistory();
+    currentInterval = gotNew
+      ? BASE_INTERVAL
+      : Math.min(currentInterval * 2, MAX_INTERVAL);
+  } catch (err) {
+    currentInterval = Math.min(currentInterval * 2, MAX_INTERVAL);
+  }
+
+  const jitterFactor = 1 + (Math.random() * 2 - 1) * JITTER_PERCENT;
+  const nextDelay = Math.round(currentInterval * jitterFactor);
+  pollChatTimeoutId = setTimeout(pollChat, nextDelay);
 }
 
 async function onAnswer(answer: any) {
@@ -147,10 +166,12 @@ function addMessage(el) {
     raw: el,
     type
   });
+
+  return true;
 }
 
 onBeforeUnmount(() => {
-  if (intervalId) clearInterval(intervalId);
+  if (pollChatTimeoutId) clearInterval(pollChatTimeoutId);
   if (intervalEnvelopeId) clearInterval(intervalEnvelopeId);
 })
 
