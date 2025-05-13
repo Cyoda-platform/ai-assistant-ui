@@ -95,7 +95,7 @@ async function onClickSend() {
     const {data} = await assistantStore.chats(form.value);
     const authStore = useAuthStore();
     if (!authStore.isLoggedIn) {
-      this.setGuestChatsExist(true);
+      assistantStore.setGuestChatsExist(true);
     }
     emit('created', data);
     eventBus.$emit(UPDATE_CHAT_LIST);
