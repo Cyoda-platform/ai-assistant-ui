@@ -18,21 +18,8 @@
               placement="left"
               :show-after="1000"
             >
-              <el-button @click="onSubmitAnswer" class="btn-white btn-icon">
-                <SendIcon/>
-              </el-button>
-            </el-tooltip>
-          </div>
-          <div class="btn-action btn-block">
-            <el-tooltip
-              class="box-item"
-              effect="dark"
-              content="Ask CYODA AI"
-              placement="left"
-              :show-after="1000"
-            >
               <el-button @click="onSubmitQuestion" class="btn-white btn-icon">
-                <QuestionIcon/>
+                <SendIcon/>
               </el-button>
             </el-tooltip>
           </div>
@@ -139,6 +126,7 @@ async function questionRequest(data) {
   }
 }
 
+// Not used
 async function onSubmitAnswer() {
 
   const dataRequest = {
