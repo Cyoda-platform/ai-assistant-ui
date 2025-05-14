@@ -17,7 +17,7 @@ export default class HelperErrors {
     const warningMessage = document.querySelector('.helper-errors');
     if (warningMessage) return;
 
-    if(data.response.data?.error.includes('Invalid token')) return;
+    if(data.response.data?.error?.includes('Invalid token')) return;
 
     if (
       data?.response?.status &&
