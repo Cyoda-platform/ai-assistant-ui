@@ -1,6 +1,7 @@
 import {marked} from "marked";
 import {renderMermaid} from "./markdown/mermaid";
 import {renderPlantUML} from "./markdown/plantuml";
+import {renderBash} from "./markdown/bash";
 
 export default class HelperMarkdown {
   static parseMarkdown(text) {
@@ -20,6 +21,10 @@ export default class HelperMarkdown {
 
       if (lang === "plantuml") {
         return renderPlantUML(text, raw);
+      }
+
+      if (lang === "bash") {
+        return renderBash(text, raw);
       }
 
       return `<pre><code>${text}</code></pre>`;

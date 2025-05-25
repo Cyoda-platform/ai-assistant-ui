@@ -12,6 +12,10 @@ const defaultState: Auth = {
   refreshToken: "",
   userId: "",
   username: "",
+  picture: "",
+  family_name: "",
+  given_name: "",
+  email: "",
 };
 
 const useAuthStore = defineStore('auth', {
