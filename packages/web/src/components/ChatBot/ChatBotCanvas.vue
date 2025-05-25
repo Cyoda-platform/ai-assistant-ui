@@ -6,9 +6,17 @@
     <div class="chat-bot-canvas__main">
       <ChatBotTopActions>
         <template #secondary-actions>
-          <el-button @click="emit('toggleCanvas')" class="btn btn-default btn-icon btn-toggle-canvas">
-            <CloseCanvasIcon/>
-          </el-button>
+          <el-tooltip
+            class="box-item"
+            effect="dark"
+            content="Close Canvas"
+            :show-after="1000"
+            placement="top"
+          >
+            <el-button @click="emit('toggleCanvas')" class="btn btn-default btn-icon btn-toggle-canvas">
+              <CloseCanvasIcon/>
+            </el-button>
+          </el-tooltip>
         </template>
       </ChatBotTopActions>
       <ChatBotEditor :technicalId="technicalId" @answer="emit('answer', $event)" :isShowMarkdown="isShowMarkdown"/>
@@ -48,6 +56,7 @@ const isShowMarkdown = ref(true);
 
 function scrollDownMessages() {
   const messagesHtml = document.querySelector('.chat-bot-canvas__sidebar-messages');
+  if (!messagesHtml) return;
   messagesHtml.scrollTo(0, messagesHtml.scrollHeight);
 }
 

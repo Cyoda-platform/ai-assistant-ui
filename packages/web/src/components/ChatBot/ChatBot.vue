@@ -5,9 +5,17 @@
         <ChatBotName v-if="chatName" :chatName="chatName" :technicalId="technicalId"/>
       </template>
       <template #secondary-actions>
-        <el-button @click="emit('toggleCanvas')" class="btn btn-default btn-icon btn-toggle-canvas">
-          <OpenCanvasIcon/>
-        </el-button>
+        <el-tooltip
+          class="box-item"
+          effect="dark"
+          content="Open Canvas"
+          :show-after="1000"
+          placement="top"
+        >
+          <el-button @click="emit('toggleCanvas')" class="btn btn-default btn-icon btn-toggle-canvas">
+            <OpenCanvasIcon/>
+          </el-button>
+        </el-tooltip>
       </template>
     </ChatBotTopActions>
 
