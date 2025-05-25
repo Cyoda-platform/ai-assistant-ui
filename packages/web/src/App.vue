@@ -2,7 +2,7 @@
   <component v-loading="isLoading" :is="layout">
     <RouterView/>
     <LoginPopUp/>
-    <DeveloperComponentIcon v-if="isDev"/>
+<!--    <DeveloperComponentIcon v-if="isDev"/>-->
   </component>
 </template>
 
@@ -19,7 +19,6 @@ import {usePreferredDark} from '@vueuse/core';
 import {isInIframe} from "@/helpers/HelperIframe";
 import useAssistantStore from "@/stores/assistant";
 import {setTokenGetter} from "@/helpers/HelperAuth";
-import DeveloperComponentIcon from "@/components/DeveloperComponent/DeveloperComponentIcon.vue";
 
 const isDark = usePreferredDark()
 
@@ -76,6 +75,10 @@ watch(isAuthenticated, async (value) => {
       refreshToken: null,
       userId: user.value.sub,
       username: user.value.name,
+      picture: user.value.picture,
+      family_name: user.value.family_name,
+      given_name: user.value.given_name,
+      email: user.value.email,
     })
     if (oldToken) {
       authStore.postTransferChats(oldToken, true);
