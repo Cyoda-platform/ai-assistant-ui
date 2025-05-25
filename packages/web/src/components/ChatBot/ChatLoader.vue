@@ -1,5 +1,5 @@
 <template>
-  <el-row>
+  <el-row class="chat-loader">
     <el-col :offset="1" :span="22">
       <div class="chat-loading">
         <div v-loading="true"></div>

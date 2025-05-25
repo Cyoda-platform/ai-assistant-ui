@@ -23,28 +23,26 @@
             <RollbackQuestionIcon/>
           </el-button>
         </el-tooltip>
+        <el-tooltip
+          class="box-item"
+          effect="dark"
+          content="Copy"
+          placement="top"
+          :show-after="1000"
+        >
+          <el-button
+            @click="onClickCopy"
+            size="small"
+            class="btn-default-lighter btn-icon"
+          >
+            <CopyIcon/>
+          </el-button>
+        </el-tooltip>
       </div>
 
     </div>
     <div v-html="computedMessage" class="chat-bot-message-question__body"></div>
     <div class="chat-bot-message-question__bottom-actions">
-
-      <el-tooltip
-        class="box-item"
-        effect="dark"
-        content="Copy"
-        placement="top"
-        :show-after="1000"
-      >
-        <el-button
-          @click="onClickCopy"
-          size="small"
-          class="btn-default-lighter btn-icon"
-        >
-          <CopyIcon/>
-        </el-button>
-      </el-tooltip>
-
       <el-tooltip
         v-if="message.approve"
         class="box-item"
@@ -56,10 +54,10 @@
         <el-button
           @click="onClickApproveQuestion"
           size="small"
-          class="btn-default-lighter btn-icon"
+          class="btn btn-primary btn-icon"
           :loading="isLoadingApprove"
         >
-          <ThumbUpIcon class="fill-stroke"/>
+          <CheckIcon class="fill-stroke"/>
         </el-button>
       </el-tooltip>
     </div>
@@ -70,7 +68,7 @@
 import AiChaIcon from "@/assets/images/icons/ai-chat.svg";
 import RollbackQuestionIcon from "@/assets/images/icons/rollback-question.svg";
 import CopyIcon from "@/assets/images/icons/copy.svg";
-import ThumbUpIcon from "@/assets/images/icons/thumb-up.svg";
+import CheckIcon from "@/assets/images/icons/check.svg";
 import {computed, ref} from "vue";
 import HelperMarkdown from "@/helpers/HelperMarkdown";
 import HelperCopy from "@/helpers/HelperCopy";
@@ -157,6 +155,9 @@ function onClickCopy() {
 
   &__bottom-actions {
     text-align: right;
+    .btn-primary svg{
+      stroke: var(--color-icon-submit) !important;
+    }
   }
 
   &__body {
