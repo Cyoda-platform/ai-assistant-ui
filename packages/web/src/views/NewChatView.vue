@@ -4,11 +4,12 @@
       <img alt="logo" class="new-chat-view__header-logo" :src="LogoUrl"/>
       <VersionApp/>
       <div v-if="!isInIframe" class="new-chat-view__header-buttons">
+        <Support size="large"/>
         <el-button class="btn-border-github" v-show="stars>0" @click="onClickGithub()">
           <GithubIcon class="icon-github"/>
           {{ stars }}
         </el-button>
-        <LoginButton v-if="!isLoggedIn"/>
+        <AuthState/>
       </div>
     </div>
     <div class="new-chat-view__body">
@@ -25,9 +26,10 @@ import {computed, onMounted, ref} from "vue";
 import type {CreateChatResponse} from "@/types/chat.d";
 import {useRouter, useRoute} from "vue-router";
 import useAuthStore from "@/stores/auth";
-import LoginButton from "@/components/LoginButton/LoginButton.vue";
 import VersionApp from "@/components/VersionApp/VersionApp.vue";
 import {isInIframe} from "@/helpers/HelperIframe";
+import AuthState from "@/components/AuthState/AuthState.vue";
+import Support from "@/components/Support/Support.vue";
 
 const stars = ref(0);
 const router = useRouter();
@@ -48,7 +50,7 @@ function onClickGithub() {
 }
 
 function onCreated(data: CreateChatResponse) {
-  if(isInIframe) {
+  if (isInIframe) {
     const baseUrl = window.location.origin;
     const link = `${baseUrl}/chat-bot/view/${data.technical_id}?isNew=true&authState=${encodeURIComponent(JSON.stringify(authStore.$state))}`;
     window.open(link, '_blank').focus();
@@ -56,10 +58,6 @@ function onCreated(data: CreateChatResponse) {
     router.push(`/chat-bot/view/${data.technical_id}?isNew=true`);
   }
 }
-
-const isLoggedIn = computed(() => {
-  return authStore.isLoggedIn;
-})
 </script>
 
 <style scoped lang="scss">
@@ -74,6 +72,9 @@ const isLoggedIn = computed(() => {
 
   &__header-buttons {
     margin-left: auto;
+    display: flex;
+    gap: 15px;
+    align-items: center;
   }
 
   .icon-github {

@@ -7,7 +7,7 @@ export default function markdownActions(element: HTMLElement, raw) {
   const zoomOutButton = element.querySelector('.zoom-out') as HTMLAnchorElement | null;
   const zoomResetButton = element.querySelector('.zoom-reset') as HTMLAnchorElement | null;
   const copySpan = copyButton?.querySelector('span') as HTMLSpanElement | null;
-  const containerDiv = zoomInButton.closest('.wrapper').querySelector('.diagram-container');
+  const containerDiv = zoomInButton?.closest('.wrapper')?.querySelector('.diagram-container');
   const currentZoomEl = element.querySelector('.current-zoom');
 
   if (copyButton && copySpan) {

@@ -77,7 +77,7 @@
     <div class="side-bar__footer">
       <a v-if="isLogoutVisible" @click="onClickLogout" href="#" class="side-bar__logout">
         <LogoutIcon/>
-        <span>
+        <span v-if="!isSidebarHidden">
           {{ t('side_bar.logout') }}
         </span>
       </a>
@@ -172,7 +172,7 @@ const isSidebarHidden = computed(() => {
 })
 
 const isLogoutVisible = computed(() => {
-  return !appStore.isSidebarHidden && authStore.isLoggedIn;
+  return authStore.isLoggedIn;
 })
 
 function onClickCreate() {

@@ -1,7 +1,8 @@
 <template>
   <div class="dashboard-view">
     <div class="dashboard-view__actions">
-      <LoginButton v-if="!isLoggedIn"/>
+      <Support size="large"/>
+      <AuthState/>
     </div>
     <div class="dashboard-view__body">
       <NewChat @created="onCreated"/>
@@ -13,9 +14,9 @@
 import type {CreateChatResponse} from "@/types/chat";
 import {useRouter} from "vue-router";
 import NewChat from "@/components/NewChat/NewChat.vue";
-import {computed, onBeforeUnmount, onMounted} from "vue";
-import useAuthStore from "@/stores/auth";
-import LoginButton from "@/components/LoginButton/LoginButton.vue";
+import {onBeforeUnmount, onMounted} from "vue";
+import AuthState from "@/components/AuthState/AuthState.vue";
+import Support from "@/components/Support/Support.vue";
 
 const router = useRouter();
 
@@ -24,11 +25,6 @@ function onCreated(data: CreateChatResponse) {
 }
 
 const BODY_CLASS_NAME = 'body-dashboard-view';
-
-const authStore = useAuthStore();
-const isLoggedIn = computed(() => {
-  return authStore.isLoggedIn;
-})
 
 onMounted(() => {
   document.body.classList.add(BODY_CLASS_NAME);
@@ -41,14 +37,17 @@ onBeforeUnmount(() => {
 
 <style lang="scss">
 .dashboard-view {
-  padding-top: 48px;
+  padding-top: 24px;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 
   &__actions {
-    text-align: right;
+    margin-left: auto;
     padding: 0 30px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
   }
 
   &__body {
