@@ -6,11 +6,11 @@
       </template>
       <template #secondary-actions>
         <el-tooltip
-          class="box-item"
-          effect="dark"
-          content="Open Canvas"
-          :show-after="1000"
-          placement="top"
+            class="box-item"
+            effect="dark"
+            content="Open Canvas"
+            :show-after="1000"
+            placement="top"
         >
           <el-button @click="emit('toggleCanvas')" class="btn btn-default btn-icon btn-toggle-canvas">
             <OpenCanvasIcon/>
@@ -26,23 +26,26 @@
             <el-row>
               <el-col :offset="getOffset(message.type)" :span="getSpan(message.type)">
                 <ChatBotMessageQuestion
-                  v-if="message.type === 'question'"
-                  :message="message"
-                  @rollbackQuestion="emit('rollbackQuestion', $event)"
-                  @approveQuestion="emit('approveQuestion', $event)"
+                    v-if="message.type === 'question'"
+                    :message="message"
+                    @rollbackQuestion="emit('rollbackQuestion', $event)"
+                    @approveQuestion="emit('approveQuestion', $event)"
                 />
                 <ChatBotMessageNotification
-                  v-if="message.type === 'notification'"
-                  @updateNotification="emit('updateNotification', $event)"
-                  :message="message"
+                    v-if="message.type === 'notification'"
+                    @updateNotification="emit('updateNotification', $event)"
+                    :message="message"
                 />
                 <ChatBotMessageAnswer
-                  v-if="message.type === 'answer'"
-                  :message="message"/>
+                    v-if="message.type === 'answer'"
+                    :message="message"/>
               </el-col>
             </el-row>
           </template>
           <ChatLoader v-if="isLoading"/>
+          <div ref="chatBotPlaceholderRef" class="chat-bot__placeholder" :style="{
+                minHeight: `${chatBotPlaceholderHeight}px`
+                }"></div>
         </div>
         <div class="chat-bot__form">
           <ChatBotSubmitForm @answer="emit('answer', $event)"/>
@@ -53,7 +56,7 @@
 </template>
 
 <script lang="ts" setup>
-import {watch} from "vue";
+import {computed, nextTick, ref, watch} from "vue";
 import ChatBotSubmitForm from "@/components/ChatBot/ChatBotSubmitForm.vue";
 import ChatLoader from "@/components/ChatBot/ChatLoader.vue";
 import OpenCanvasIcon from "@/assets/images/icons/open-canvas.svg";
@@ -62,6 +65,7 @@ import ChatBotMessageNotification from "@/components/ChatBot/ChatBotMessageNotif
 import ChatBotMessageAnswer from "@/components/ChatBot/ChatBotMessageAnswer.vue";
 import ChatBotTopActions from "@/components/ChatBot/ChatBotTopActions.vue";
 import ChatBotName from "@/components/ChatBot/ChatBotName.vue";
+import {templateRef} from "@vueuse/core";
 
 const emit = defineEmits([
   'answer',
@@ -78,6 +82,10 @@ const props = defineProps<{
   chatName: string | null,
 }>();
 
+let lastAnswerEl = null;
+let chatLoaderHeight = null;
+const chatBotPlaceholderHeight = ref(0);
+
 function scrollDownMessages() {
   const messagesHtml = document.querySelector('.chat-bot__inner-messages');
   messagesHtml.scrollTo(0, messagesHtml.scrollHeight);
@@ -92,6 +100,12 @@ function getSpan(type) {
   return ['question', 'notification'].includes(type) ? 22 : 14;
 }
 
+const isLastMessageAnswer = computed(() => {
+  const last = props.messages[props.messages.length - 1];
+  if (!last) return false;
+  return last.type === 'answer';
+})
+
 watch(() => props.isLoading, () => {
   if (props.isLoading) return;
   setTimeout(() => {
@@ -99,6 +113,75 @@ watch(() => props.isLoading, () => {
     window.getSelection().removeAllRanges();
   }, 500)
 })
+
+watch(isLastMessageAnswer, async (value) => {
+  if (value) {
+    updatePlaceholderHeightForAnswer();
+  } else {
+    updatePlaceholderHeightForNoneAnswers();
+  }
+});
+
+async function updatePlaceholderHeightForAnswer() {
+  await nextTick();
+
+  const messagesContainer = document.querySelector('.chat-bot__inner-messages');
+  chatLoaderHeight = getFullHeight(document.querySelector('.chat-loader'));
+  const answers = messagesContainer.querySelectorAll('.chat-bot-message-answer');
+  const lastAnswer = answers[answers.length - 1];
+
+  if (!lastAnswer) return;
+  lastAnswerEl = lastAnswer;
+
+  const messagesHeight = messagesContainer.clientHeight;
+  const lastAnswerHeight = getFullHeight(lastAnswer);
+  let placeholderHeight = messagesHeight - lastAnswerHeight - chatLoaderHeight;
+  if (placeholderHeight < 0) placeholderHeight = 0;
+  chatBotPlaceholderHeight.value = placeholderHeight;
+
+  await nextTick();
+  lastAnswer.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+async function updatePlaceholderHeightForNoneAnswers() {
+  if (!lastAnswerEl) return;
+  await nextTick();
+  const startEl = lastAnswerEl.closest('.el-row');
+  const nextEls = getNextElements(startEl);
+  nextEls.forEach((el) => {
+    const height = getFullHeight(el);
+    chatBotPlaceholderHeight.value -= height;
+  })
+
+  if (chatLoaderHeight) {
+    chatBotPlaceholderHeight.value += chatLoaderHeight;
+    chatLoaderHeight = 0;
+  }
+
+  if (chatBotPlaceholderHeight.value < 0) chatBotPlaceholderHeight.value = 0;
+}
+
+function getNextElements(el) {
+  let followingElements = [];
+  let node = el.nextElementSibling;
+
+  while (node) {
+    if (!node.classList.contains('chat-bot__placeholder')) {
+      followingElements.push(node);
+    }
+    node = node.nextElementSibling;
+  }
+
+  return followingElements;
+}
+
+function getFullHeight(el) {
+  if (!el) return 0;
+  const style = window.getComputedStyle(el);
+  const marginTop = parseFloat(style.marginTop) || 0;
+  const marginBottom = parseFloat(style.marginBottom) || 0;
+  return el.offsetHeight + marginTop + marginBottom;
+}
 </script>
 
 <style scoped lang="scss">
@@ -191,6 +274,10 @@ watch(() => props.isLoading, () => {
 
   .bell-icon--active {
     fill: rgb(230, 162, 60);
+  }
+
+  &__placeholder {
+    //transition: all 1s linear;
   }
 }
 </style>
