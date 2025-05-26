@@ -96,7 +96,7 @@ function init() {
 }
 
 async function loadChatHistory() {
-  if (promiseInterval) return false;
+  if (promiseInterval || !technicalId.value) return false;
   const newResults = [];
   try {
     promiseInterval = assistantStore.getChatById(technicalId.value);
@@ -155,7 +155,7 @@ function addMessage(el) {
   if (el.question) type = 'question';
   else if (el.notification) type = 'notification';
 
-  if (messages.value.find(m => m.id === el.technical_id)) return;
+  if (messages.value.find(m => m.id === el.technical_id)) return false;
 
   messages.value.push({
     id: el.technical_id,
@@ -190,14 +190,22 @@ function startEnvelopeFlash() {
 }
 
 async function onRollbackQuestion(event) {
-  await assistantStore.postRollbackQuestion(technicalId.value, event);
   isLoading.value = true;
+  try {
+    await assistantStore.postRollbackQuestion(technicalId.value, event);
+  } catch {
+    isLoading.value = false;
+  }
   await loadChatHistory();
 }
 
 async function onApproveQuestion(event) {
-  await assistantStore.postApproveQuestion(technicalId.value, event);
   isLoading.value = true;
+  try {
+    await assistantStore.postApproveQuestion(technicalId.value, event);
+  } catch {
+    isLoading.value = false;
+  }
   await loadChatHistory();
 }
 

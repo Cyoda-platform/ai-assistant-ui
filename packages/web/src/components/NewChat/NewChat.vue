@@ -92,7 +92,7 @@ function onClickExample(example) {
 async function onClickSend() {
   isLoading.value = true;
   try {
-    const {data} = await assistantStore.chats(form.value);
+    const {data} = await assistantStore.postChats(form.value);
     const authStore = useAuthStore();
     if (!authStore.isLoggedIn) {
       assistantStore.setGuestChatsExist(true);
