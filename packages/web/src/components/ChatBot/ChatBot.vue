@@ -48,7 +48,7 @@
                 }"></div>
         </div>
         <div class="chat-bot__form">
-          <ChatBotSubmitForm @answer="emit('answer', $event)"/>
+          <ChatBotSubmitForm :isLoading="isLoading" @answer="emit('answer', $event)"/>
         </div>
       </div>
     </div>
@@ -65,7 +65,6 @@ import ChatBotMessageNotification from "@/components/ChatBot/ChatBotMessageNotif
 import ChatBotMessageAnswer from "@/components/ChatBot/ChatBotMessageAnswer.vue";
 import ChatBotTopActions from "@/components/ChatBot/ChatBotTopActions.vue";
 import ChatBotName from "@/components/ChatBot/ChatBotName.vue";
-import {templateRef} from "@vueuse/core";
 
 const emit = defineEmits([
   'answer',

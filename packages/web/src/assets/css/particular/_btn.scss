@@ -37,6 +37,10 @@
   }
 }
 
+.btn-primary .el-icon.is-loading {
+  color: #fff;
+}
+
 .btn-primary-darken {
   color: #fff;
   background-color: var(--color-primary-darken);
@@ -124,7 +128,7 @@
   border-color: var(--sidebar-border);
   color: #000;
 
-  svg{
+  svg {
     fill: var(--text-color-regular);
   }
 
