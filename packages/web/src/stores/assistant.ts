@@ -20,7 +20,7 @@ const useAssistantStore = defineStore('assistant', {
     isGuestChatsExist: (state) => state.guestChatsExist,
   },
   actions: {
-    chats(data: CreateChatRequest) {
+    postChats(data: CreateChatRequest) {
       return privateClient.post<CreateChatResponse>("/v1/chats", data);
     },
     postTextAnswers(technical_id: string, data: any) {
