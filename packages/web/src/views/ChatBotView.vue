@@ -216,8 +216,12 @@ function onToggleCanvas() {
 
 
 async function onUpdateNotification(notification) {
-  await assistantStore.putNotification(technicalId.value, notification);
   isLoading.value = true;
+  try{
+  await assistantStore.putNotification(technicalId.value, notification);
+  } catch {
+    isLoading.value = false;
+  }
   await loadChatHistory();
 }
 
