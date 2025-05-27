@@ -14,7 +14,7 @@
             placement="top"
           >
             <el-button @click="emit('toggleCanvas')" class="btn btn-default btn-icon btn-toggle-canvas">
-              <CloseCanvasIcon/>
+              <ToggleCanvasIcon/>
             </el-button>
           </el-tooltip>
         </template>
@@ -28,7 +28,7 @@
 import ChatBotEditor from "@/components/ChatBot/ChatBotEditor.vue";
 import {computed, ref, watch} from "vue";
 
-import CloseCanvasIcon from "@/assets/images/icons/close-canvas.svg";
+import ToggleCanvasIcon from "@/assets/images/icons/toggle-canvas.svg";
 import ChatBotTopActions from "@/components/ChatBot/ChatBotTopActions.vue";
 import SideBar from "@/components/SideBar/SideBar.vue";
 import useAppStore from "@/stores/app";
