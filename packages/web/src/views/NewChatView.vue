@@ -5,10 +5,18 @@
       <VersionApp/>
       <div v-if="!isInIframe" class="new-chat-view__header-buttons">
         <Support size="large"/>
-        <el-button class="btn-border-github" v-show="stars>0" @click="onClickGithub()">
+        <el-tooltip
+          class="box-item"
+          effect="dark"
+          content="GitHub Stars"
+          :show-after="1000"
+          placement="top"
+        >
+        <el-button class="btn-border-github" v-show="stars>0" @click="onClickGithub">
           <GithubIcon class="icon-github"/>
           {{ stars }}
         </el-button>
+        </el-tooltip>
         <AuthState/>
       </div>
     </div>

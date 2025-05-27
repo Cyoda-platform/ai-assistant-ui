@@ -109,6 +109,7 @@ function handleClickOutside(event) {
 
 <style scoped lang="scss">
 .auth_state_avatar {
+  height: 32px;
   position: relative;
 
   &__icon {
@@ -150,7 +151,6 @@ function handleClickOutside(event) {
     align-items: center;
     font-size: 16px;
     min-height: 40px;
-    font-weight: 600;
     color: var(--text-color-regular);
     text-decoration: none;
     width: 100%;
@@ -163,6 +163,11 @@ function handleClickOutside(event) {
     .logout-icon {
       margin-right: 8px;
     }
+  }
+
+  .card-header{
+    color: var(--text-color-regular);
+    font-weight: bold;
   }
 }
 </style>

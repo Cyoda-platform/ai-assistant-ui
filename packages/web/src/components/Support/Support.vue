@@ -22,7 +22,7 @@ defineProps<{
 }>();
 
 function onClick() {
-  const url = "https://discord.com/channels/791341703498956840/791341703498956843";
+  const url = "https://discord.gg/CP9aB7Ts";
   window.open(url, '_blank').focus();
 }
 </script>
@@ -30,7 +30,7 @@ function onClick() {
 <style scoped lang="scss">
 .support {
   svg ::v-deep(path) {
-    stroke: var(--text-color-primary);
+    stroke: var(--text-color-regular);
   }
 
   .btn-icon.large {

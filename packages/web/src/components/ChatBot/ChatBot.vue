@@ -13,7 +13,7 @@
             placement="top"
         >
           <el-button @click="emit('toggleCanvas')" class="btn btn-default btn-icon btn-toggle-canvas">
-            <OpenCanvasIcon/>
+            <ToggleCanvasIcon/>
           </el-button>
         </el-tooltip>
       </template>
@@ -28,6 +28,7 @@
                 <ChatBotMessageQuestion
                     v-if="message.type === 'question'"
                     :message="message"
+                    :isLoading="isLoading"
                     @rollbackQuestion="emit('rollbackQuestion', $event)"
                     @approveQuestion="emit('approveQuestion', $event)"
                 />
@@ -59,7 +60,7 @@
 import {computed, nextTick, ref, watch} from "vue";
 import ChatBotSubmitForm from "@/components/ChatBot/ChatBotSubmitForm.vue";
 import ChatLoader from "@/components/ChatBot/ChatLoader.vue";
-import OpenCanvasIcon from "@/assets/images/icons/open-canvas.svg";
+import ToggleCanvasIcon from "@/assets/images/icons/toggle-canvas.svg";
 import ChatBotMessageQuestion from "@/components/ChatBot/ChatBotMessageQuestion.vue";
 import ChatBotMessageNotification from "@/components/ChatBot/ChatBotMessageNotification.vue";
 import ChatBotMessageAnswer from "@/components/ChatBot/ChatBotMessageAnswer.vue";
