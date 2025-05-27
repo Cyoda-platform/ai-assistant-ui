@@ -185,7 +185,7 @@ function handleKeyDown(event) {
     background-color: var(--input);
 
     &.disabled {
-      background-color: var(--el-disabled-bg-color);
+      background-color: var(--input-disabled);
       cursor: not-allowed;
     }
   }

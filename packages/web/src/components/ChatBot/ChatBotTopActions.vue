@@ -14,7 +14,7 @@
         placement="top"
       >
         <el-button @click="onClickEntitiesDetails" class="btn btn-default btn-icon btn-toggle-canvas">
-          <CheckboxListDetailIcon/>
+          <EntitiesDataIcon/>
         </el-button>
       </el-tooltip>
       <Support/>
@@ -27,7 +27,7 @@
 <script setup lang="ts">
 import {computed, ref} from "vue";
 import useAuthStore from "@/stores/auth";
-import CheckboxListDetailIcon from "@/assets/images/icons/checkbox-list-detail.svg";
+import EntitiesDataIcon from "@/assets/images/icons/entities-data.svg";
 import EntitiesDetailsDialog from "@/components/EntitiesDetailsDialog/EntitiesDetailsDialog.vue";
 import AuthState from "@/components/AuthState/AuthState.vue";
 import Support from "@/components/Support/Support.vue";

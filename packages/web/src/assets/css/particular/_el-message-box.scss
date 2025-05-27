@@ -1,0 +1,8 @@
+.el-message-box{
+  background-color: var(--bg-dialog-color);
+  &__title {
+    color: var(--color-dialog-title);
+    font-weight: 600;
+    font-size: 20px;
+  }
+}

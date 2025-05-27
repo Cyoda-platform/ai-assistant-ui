@@ -8,6 +8,7 @@
 
       <div class="chat-bot-message-question__top-actions">
         <el-tooltip
+          v-if="false"
           class="box-item"
           effect="dark"
           content="Rollback"
@@ -54,6 +55,7 @@
         <el-button
           @click="onClickApproveQuestion"
           size="small"
+          :disabled="isLoading"
           class="btn btn-primary btn-icon"
           :loading="isLoadingApprove"
         >
@@ -76,6 +78,7 @@ import {ElNotification} from "element-plus";
 
 const props = defineProps<{
   message: any,
+  isLoading: boolean,
 }>()
 
 const emit = defineEmits(['rollbackQuestion', 'approveQuestion']);
