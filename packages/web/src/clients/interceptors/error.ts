@@ -8,7 +8,7 @@ const errorInterceptor = (instance: AxiosInstance): void => {
     (response: AxiosResponse) => response,
     (error: AxiosError) => {
       const response = error.response;
-      if(response?.config?.url.includes('/v1/transfer-chats') && [403].includes(response?.status)) {
+      if(response?.config?.url.includes('/v1/chats/transfer') && [403].includes(response?.status)) {
         HelperErrors.handler(error);
         return Promise.reject(error);
       }
