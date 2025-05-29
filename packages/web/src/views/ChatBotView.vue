@@ -1,25 +1,5 @@
 <template>
   <ChatBot
-    :technicalId="technicalId"
-    :chatName="chatName"
-    @answer="onAnswer"
-    @approve="onClickApprove"
-    @rollbackQuestion="onRollbackQuestion"
-    @approveQuestion="onApproveQuestion"
-    @toggleCanvas="onToggleCanvas"
-    @updateNotification="onUpdateNotification"
-    :isLoading="isLoading"
-    :messages="messages"
-    :entitiesData="entitiesData"
-  />
-
-  <el-dialog
-    v-model="dialogVisible"
-    fullscreen
-    class="chat-bot-dialog"
-    :close-on-click-modal="false"
-  >
-    <ChatBotCanvas
       :technicalId="technicalId"
       :chatName="chatName"
       @answer="onAnswer"
@@ -31,6 +11,26 @@
       :isLoading="isLoading"
       :messages="messages"
       :entitiesData="entitiesData"
+  />
+
+  <el-dialog
+      v-model="dialogVisible"
+      fullscreen
+      class="chat-bot-dialog"
+      :close-on-click-modal="false"
+  >
+    <ChatBotCanvas
+        :technicalId="technicalId"
+        :chatName="chatName"
+        @answer="onAnswer"
+        @approve="onClickApprove"
+        @rollbackQuestion="onRollbackQuestion"
+        @approveQuestion="onApproveQuestion"
+        @toggleCanvas="onToggleCanvas"
+        @updateNotification="onUpdateNotification"
+        :isLoading="isLoading"
+        :messages="messages"
+        :entitiesData="entitiesData"
     />
   </el-dialog>
 </template>
@@ -44,6 +44,8 @@ import {onBeforeUnmount, onMounted, ref, watch} from "vue";
 import useAssistantStore from "@/stores/assistant.ts";
 import HelperStorage from "@/helpers/HelperStorage.ts";
 import useAuthStore from "@/stores/auth";
+import eventBus from "@/plugins/eventBus";
+import {DELETE_CHAT_START} from "@/helpers/HelperConstants";
 
 const helperStorage = new HelperStorage();
 const route = useRoute();
@@ -74,6 +76,7 @@ provide('entitiesData', entitiesData);
 
 onMounted(() => {
   init();
+  eventBus.$on('deteChat', onDeleteChat);
 })
 
 function init() {
@@ -119,8 +122,8 @@ async function pollChat() {
   try {
     const gotNew = await loadChatHistory();
     currentInterval = gotNew
-      ? BASE_INTERVAL
-      : Math.min(currentInterval * 2, MAX_INTERVAL);
+        ? BASE_INTERVAL
+        : Math.min(currentInterval * 2, MAX_INTERVAL);
   } catch (err) {
     currentInterval = Math.min(currentInterval * 2, MAX_INTERVAL);
   }
@@ -171,9 +174,18 @@ function addMessage(el) {
 }
 
 onBeforeUnmount(() => {
+  clearIntervals();
+  eventBus.$off(DELETE_CHAT_START, onDeleteChat);
+})
+
+function onDeleteChat() {
+  clearIntervals();
+}
+
+function clearIntervals() {
   if (pollChatTimeoutId) clearInterval(pollChatTimeoutId);
   if (intervalEnvelopeId) clearInterval(intervalEnvelopeId);
-})
+}
 
 function onClickApprove() {
   assistantStore.postApprove(technicalId.value);
@@ -217,8 +229,8 @@ function onToggleCanvas() {
 
 async function onUpdateNotification(notification) {
   isLoading.value = true;
-  try{
-  await assistantStore.putNotification(technicalId.value, notification);
+  try {
+    await assistantStore.putNotification(technicalId.value, notification);
   } catch {
     isLoading.value = false;
   }

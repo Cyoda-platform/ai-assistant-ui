@@ -7,46 +7,60 @@ let refreshAccessTokenPromise: Promise<void> | null = null;
 const helperStorage = new HelperStorage();
 
 const refreshToken = (instance: AxiosInstance): void => {
-  instance.interceptors.response.use(
-    undefined,
-    async (error: AxiosError) => {
-      const response = error.response;
-      const originalConfig = error.config;
-      const authStore = useAuthStore();
+    instance.interceptors.response.use(
+        undefined,
+        async (error: AxiosError) => {
+            const response = error.response;
+            const originalConfig = error.config;
+            const authStore = useAuthStore();
+            let autoLogoutTimeout = null;
 
-      if (
-        response?.status === 401 &&
-        // @ts-ignore
-        !originalConfig?.__isRetryRequest
-      ) {
-        try {
-          if (!refreshAccessTokenPromise) {
-            refreshAccessTokenPromise = authStore.refreshAccessToken();
-          }
-          await refreshAccessTokenPromise;
-          refreshAccessTokenPromise = null;
+            if (
+                response?.status === 401 &&
+                // @ts-ignore
+                !originalConfig?.__isRetryRequest
+            ) {
+                try {
+                    if (!refreshAccessTokenPromise) {
+                        refreshAccessTokenPromise = authStore.refreshAccessToken();
+                    }
 
-          // @ts-ignore
-          originalConfig.__isRetryRequest = true;
-          const token = helperStorage.get<Auth>("auth")?.token;
-          if (token) {
-            // @ts-ignore
-            originalConfig.headers = {
-              ...originalConfig?.headers,
-              Authorization: `Bearer ${token}`,
-            };
-          }
-          // @ts-ignore
-          return instance.request(originalConfig);
-        } catch(e) {
-          authStore.logout();
-          window.location.href = "/";
+                    autoLogoutTimeout = setTimeout(() => {
+                        authStore.logout();
+                        window.location.href = "/";
+                    }, 10000);
+
+                    await refreshAccessTokenPromise;
+                    refreshAccessTokenPromise = null;
+                    autoLogoutTimeout = null;
+
+                    // @ts-ignore
+                    originalConfig.__isRetryRequest = true;
+                    const token = helperStorage.get<Auth>("auth")?.token;
+                    if (token) {
+                        // @ts-ignore
+                        originalConfig.headers = {
+                            ...originalConfig?.headers,
+                            Authorization: `Bearer ${token}`,
+                        };
+                    }
+                    // @ts-ignore
+                    return instance.request(originalConfig);
+                } catch (e) {
+                    authStore.logout();
+                    window.location.href = "/";
+                } finally {
+                    if (autoLogoutTimeout) clearTimeout(autoLogoutTimeout);
+                    autoLogoutTimeout = null;
+                }
+            } else if (response?.status === 401 && originalConfig?.__isRetryRequest) {
+                authStore.logout();
+                window.location.href = "/";
+            }
+
+            return Promise.reject(error);
         }
-      }
-
-      return Promise.reject(error);
-    }
-  );
+    );
 };
 
 export default refreshToken;
