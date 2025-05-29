@@ -9,27 +9,23 @@
 <script setup lang="ts">
 import {useRoute, RouterView, useRouter} from "vue-router";
 import {computed, onMounted, ref, watch, watchEffect} from "vue";
-import useAppStore from "@/stores/app";
 import LoginPopUp from "@/components/LoginPopUp/LoginPopUp.vue";
 import {useAuth0} from "@auth0/auth0-vue";
 import useAuthStore from "@/stores/auth";
 import HelperStorage from "@/helpers/HelperStorage";
 import {LOGIN_REDIRECT_URL} from "@/helpers/HelperConstants";
-import {usePreferredDark} from '@vueuse/core';
 import {isInIframe} from "@/helpers/HelperIframe";
 import useAssistantStore from "@/stores/assistant";
 import {setTokenGetter} from "@/helpers/HelperAuth";
-
-const isDark = usePreferredDark()
+import {useDetectTheme} from "@/helpers/HelperTheme";
 
 const defaultLayout = "default";
 
 const route = useRoute();
 const router = useRouter();
-const appStore = useAppStore();
 const authStore = useAuthStore();
 const assistantStore = useAssistantStore();
-const isDev = process.env.NODE_ENV === 'development';
+const detectTheme = useDetectTheme();
 
 onMounted(() => {
   const { getAccessTokenSilently } = useAuth0()
@@ -42,11 +38,6 @@ const layout = computed(() => {
   return `layout-${route.meta.layout || defaultLayout}`;
 });
 
-const theme = computed(() => {
-  return appStore.theme;
-})
-
-
 watchEffect(() => {
   document.body.classList.remove(`theme-dark`);
   document.body.classList.remove(`theme-light`);
@@ -54,11 +45,8 @@ watchEffect(() => {
     document.body.classList.add('theme-light');
     return;
   }
-  if (['dark', 'light'].includes(theme.value)) {
-    document.body.classList.add(`theme-${theme.value}`);
-  } else {
-    document.body.classList.add(isDark.value ? 'theme-dark' : 'theme-light')
-  }
+
+  document.body.classList.add(`theme-${detectTheme.value}`);
 });
 
 const helperStorage = new HelperStorage();
@@ -81,7 +69,7 @@ watch(isAuthenticated, async (value) => {
       email: user.value.email,
     })
     if (oldToken) {
-      authStore.postTransferChats(oldToken, true);
+      await authStore.postTransferChats(oldToken, true);
     }
 
     assistantStore.setGuestChatsExist(false);
