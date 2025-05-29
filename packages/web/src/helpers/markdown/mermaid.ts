@@ -1,13 +1,15 @@
 import {v4 as uuidv4} from "uuid";
-import {nextTick} from "vue";
+import {nextTick, watch} from "vue";
 import mermaid from "mermaid";
 import markdownActions from "./actions";
+import {usePreferredDark} from "@vueuse/core";
+import {useDetectTheme} from "../HelperTheme";
 
-mermaid.initialize({ startOnLoad: false });
+mermaid.initialize({startOnLoad: false});
 
 export function renderMermaid(text, raw) {
-  const id = `mermaid-${uuidv4()}`;
-  const mermaidDiv = `
+    const id = `mermaid-${uuidv4()}`;
+    const mermaidDiv = `
     <div class="wrapper wrapper-mermaid" id="${id}">
         <div class="actions">
             <span class="zoom-box">
@@ -35,30 +37,77 @@ export function renderMermaid(text, raw) {
     </div>
   `;
 
-  nextTick(async () => {
-    mermaid.initialize({ startOnLoad: false });
+    // nextTick(async () => {
+    //     const detectTheme = useDetectTheme();
+    //     mermaid.initialize({
+    //         startOnLoad: false,
+    //         theme: detectTheme.value === 'dark' ? 'dark' : undefined,
+    //     });
+    //
+    //     const element = document.getElementById(id);
+    //     if (!element) return;
+    //
+    //     const mermaidElement = element.querySelector('.mermaid') as HTMLElement | null;
+    //     if (!mermaidElement) return;
+    //
+    //     const uniqueGraphId = `graph-${uuidv4()}`;
+    //
+    //     try {
+    //         const {svg} = await mermaid.render(uniqueGraphId, text);
+    //         mermaidElement.innerHTML = svg;
+    //     } catch (e) {
+    //         const {svg} = await mermaid.render(uniqueGraphId, `
+    //   graph TD
+    //     A["Error: Syntax!"]
+    //   `);
+    //         mermaidElement.innerHTML = svg;
+    //     }
+    //
+    //     markdownActions(element, raw);
+    // });
 
-    const element = document.getElementById(id);
-    if (!element) return;
+    // return mermaidDiv;
 
-    const mermaidElement = element.querySelector('.mermaid') as HTMLElement | null;
-    if (!mermaidElement) return;
 
-    const uniqueGraphId = `graph-${uuidv4()}`;
+    nextTick(async () => {
+        const detectTheme = useDetectTheme();
 
-    try {
-      const {svg} = await mermaid.render(uniqueGraphId, text);
-      mermaidElement.innerHTML = svg;
-    } catch (e) {
-      const {svg} = await mermaid.render(uniqueGraphId,`
-      graph TD
-        A["Error: Syntax!"]
-      `);
-      mermaidElement.innerHTML = svg;
-    }
+        async function render() {
+            mermaid.initialize({
+                startOnLoad: false,
+                theme: detectTheme.value === "dark" ? "dark" : undefined,
+            });
 
-    markdownActions(element, raw);
-  });
+            const element = document.getElementById(id);
+            if (!element) return;
 
-  return mermaidDiv;
+            const mermaidElement = element.querySelector(".mermaid");
+            if (!mermaidElement) return;
+
+            const uniqueGraphId = `graph-${uuidv4()}`;
+
+            try {
+                const { svg } = await mermaid.render(uniqueGraphId, text);
+                mermaidElement.innerHTML = svg;
+            } catch (e) {
+                const { svg } = await mermaid.render(uniqueGraphId, `
+          graph TD
+            A["Error: Syntax!"]
+        `);
+                mermaidElement.innerHTML = svg;
+            }
+
+            markdownActions(element, raw);
+        }
+
+        // Рендерим первый раз
+        await render();
+
+        // Следим за сменой темы
+        watch(detectTheme, async () => {
+            await render();
+        });
+    });
+
+    return mermaidDiv;
 }
