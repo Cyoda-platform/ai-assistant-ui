@@ -60,7 +60,7 @@ const useAuthStore = defineStore('auth', {
     },
 
     async postTransferChats(guestToken) {
-      return privateClient.post("/v1/transfer-chats", {guest_token: guestToken});
+      return privateClient.post("/v1/chats/transfer", {guest_token: guestToken});
     },
   },
 });
