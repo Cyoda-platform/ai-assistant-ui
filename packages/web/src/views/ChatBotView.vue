@@ -76,7 +76,7 @@ provide('entitiesData', entitiesData);
 
 onMounted(() => {
   init();
-  eventBus.$on('deteChat', onDeleteChat);
+  eventBus.$on(DELETE_CHAT_START, onDeleteChat);
 })
 
 function init() {
