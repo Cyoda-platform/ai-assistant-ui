@@ -22,7 +22,7 @@ defineProps<{
 }>();
 
 function onClick() {
-  const url = "https://discord.gg/CP9aB7Ts";
+  const url = "https://discord.com/invite/95rdAyBZr2";
   window.open(url, '_blank').focus();
 }
 </script>
