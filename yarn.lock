@@ -2381,6 +2381,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/tinycon@npm:^0":
+  version: 0.6.7
+  resolution: "@types/tinycon@npm:0.6.7"
+  checksum: 10c0/4f5b805108079cd072656638fc0aee48118e42848ef1f91234b652b6d452cf96be6b7967f3537c74872f7791c39b7f2595409e7ded34e53a968e8a28e206b09f
+  languageName: node
+  linkType: hard
+
 "@types/trusted-types@npm:^2.0.7":
   version: 2.0.7
   resolution: "@types/trusted-types@npm:2.0.7"
@@ -3020,6 +3027,7 @@ __metadata:
     "@tsconfig/node22": "npm:^22.0.2"
     "@types/node": "npm:^22.15.29"
     "@types/pako": "npm:^2.0.3"
+    "@types/tinycon": "npm:^0"
     "@vitejs/plugin-vue": "npm:^5.2.4"
     "@vitejs/plugin-vue-jsx": "npm:^4.2.0"
     "@vue/eslint-config-typescript": "npm:^14.5.0"
@@ -3039,6 +3047,7 @@ __metadata:
     pinia: "npm:^3.0.2"
     sass-embedded: "npm:^1.89.1"
     tiny-emitter: "npm:^2.1.0"
+    tinycon: "npm:^0.6.8"
     typescript: "npm:~5.8.3"
     uuid: "npm:^11.1.0"
     vite: "npm:^6.3.5"
@@ -10067,6 +10076,13 @@ __metadata:
   version: 2.1.0
   resolution: "tiny-emitter@npm:2.1.0"
   checksum: 10c0/459c0bd6e636e80909898220eb390e1cba2b15c430b7b06cec6ac29d87acd29ef618b9b32532283af749f5d37af3534d0e3bde29fdf6bcefbf122784333c953d
+  languageName: node
+  linkType: hard
+
+"tinycon@npm:^0.6.8":
+  version: 0.6.8
+  resolution: "tinycon@npm:0.6.8"
+  checksum: 10c0/9c82afb92e230993607a40d674f102138e42a4626e4653d84e5f564d764093d8ff3151cf8ce3641a9fc6c645acd7dbecfcbdb0582842d8333941637ed35c0e31
   languageName: node
   linkType: hard
 

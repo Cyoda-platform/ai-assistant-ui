@@ -46,6 +46,8 @@ import HelperStorage from "@/helpers/HelperStorage.ts";
 import useAuthStore from "@/stores/auth";
 import eventBus from "@/plugins/eventBus";
 import {DELETE_CHAT_START} from "@/helpers/HelperConstants";
+import Tinycon from 'tinycon';
+import {ElMessage} from "element-plus";
 
 const helperStorage = new HelperStorage();
 const route = useRoute();
@@ -66,6 +68,8 @@ const assistantStore = useAssistantStore();
 const isLoading = ref(false);
 const isEnvelopeActive = ref(false);
 const authStore = useAuthStore();
+const countNewMessages = ref(0);
+const originalTitle = 'Cyoda AI Assistant';
 
 const BASE_INTERVAL = import.meta.env.VITE_APP_QUESTION_POLLING_INTERVAL_MS || 5000;
 const MAX_INTERVAL = import.meta.env.VITE_APP_QUESTION_MAX_POLLING_INTERVAL || 7000;
@@ -76,8 +80,20 @@ provide('entitiesData', entitiesData);
 
 onMounted(() => {
   init();
+  isLoading.value = true;
   eventBus.$on(DELETE_CHAT_START, onDeleteChat);
+  window.addEventListener('focus', onFocusDocument);
 })
+
+onBeforeUnmount(() => {
+  clearIntervals();
+  eventBus.$off(DELETE_CHAT_START, onDeleteChat);
+  window.removeEventListener('focus', onFocusDocument);
+})
+
+function onFocusDocument() {
+  countNewMessages.value = 0;
+}
 
 function init() {
   const params = new URLSearchParams(window.location.search);
@@ -101,6 +117,7 @@ function init() {
 async function loadChatHistory() {
   if (promiseInterval || !technicalId.value) return false;
   const newResults = [];
+  const isFirstRequest = !messages.value.length;
   try {
     promiseInterval = assistantStore.getChatById(technicalId.value);
     const {data} = await promiseInterval;
@@ -115,6 +132,7 @@ async function loadChatHistory() {
     promiseInterval = null;
   }
 
+  if (!isFirstRequest && messages.value[messages.value.length - 1]?.type !== 'answer') countNewMessages.value += newResults.filter(el => el).length;
   return newResults.some(el => el);
 }
 
@@ -172,11 +190,6 @@ function addMessage(el) {
 
   return true;
 }
-
-onBeforeUnmount(() => {
-  clearIntervals();
-  eventBus.$off(DELETE_CHAT_START, onDeleteChat);
-})
 
 function onDeleteChat() {
   clearIntervals();
@@ -242,6 +255,28 @@ watch(technicalId, () => {
   isLoading.value = true;
   loadChatHistory();
 })
+
+watch(countNewMessages, (newVal) => {
+  if (document.hasFocus() && newVal > 0) {
+    ElMessage({
+      message: 'You got new question',
+      type: 'info',
+      plain: true,
+      duration: 5000,
+      grouping: true,
+      showClose: true,
+    })
+  } else if (newVal > 0) {
+    document.title = `(${newVal}) New question${newVal > 1 ? 's' : ''}`;
+    Tinycon.setBubble(newVal);
+  }
+
+  if (newVal === 0) {
+    document.title = originalTitle;
+    Tinycon.setBubble(0);
+  }
+})
+;
 </script>
 
 <style>
