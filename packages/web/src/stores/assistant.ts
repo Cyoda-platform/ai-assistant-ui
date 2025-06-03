@@ -40,8 +40,8 @@ const useAssistantStore = defineStore('assistant', {
       this.chatList = response.data.chats;
       return response;
     },
-    getChatById(technical_id: string) {
-      return privateClient.get(`/v1/chats/${technical_id}`)
+    getChatById(technical_id: string, params = {}) {
+      return privateClient.get(`/v1/chats/${technical_id}`, params)
     },
     deleteChatById(technical_id: string) {
       return privateClient.delete(`/v1/chats/${technical_id}`)

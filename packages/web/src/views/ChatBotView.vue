@@ -8,6 +8,7 @@
       @approveQuestion="onApproveQuestion"
       @toggleCanvas="onToggleCanvas"
       @updateNotification="onUpdateNotification"
+      :disabled="disabled"
       :isLoading="isLoading"
       :messages="messages"
       :entitiesData="entitiesData"
@@ -61,6 +62,7 @@ const dialogVisible = ref(helperStorage.get(`chatDialog:${technicalId.value}`, f
 let pollChatTimeoutId: any = null;
 let intervalEnvelopeId: any = null;
 let promiseInterval: any = null;
+let abortController: any = null;
 const chatName = ref<string | null>(null);
 const entitiesData = ref<string | null>({});
 const messages = ref<any[]>([]);
@@ -70,6 +72,7 @@ const isEnvelopeActive = ref(false);
 const authStore = useAuthStore();
 const countNewMessages = ref(0);
 const originalTitle = 'Cyoda AI Assistant';
+const disabled = ref(false);
 
 const BASE_INTERVAL = import.meta.env.VITE_APP_QUESTION_POLLING_INTERVAL_MS || 5000;
 const MAX_INTERVAL = import.meta.env.VITE_APP_QUESTION_MAX_POLLING_INTERVAL || 7000;
@@ -116,10 +119,11 @@ function init() {
 
 async function loadChatHistory() {
   if (promiseInterval || !technicalId.value) return false;
+  abortController = new AbortController();
   const newResults = [];
   const isFirstRequest = !messages.value.length;
   try {
-    promiseInterval = assistantStore.getChatById(technicalId.value);
+    promiseInterval = assistantStore.getChatById(technicalId.value, {signal: abortController.signal});
     const {data} = await promiseInterval;
     chatName.value = data.chat_body.name;
     entitiesData.value = data.chat_body.entities_data;
@@ -152,6 +156,7 @@ async function pollChat() {
 }
 
 async function onAnswer(answer: any) {
+  disabled.value = true;
   let response;
   if (answer.file) {
     const formData = new FormData();
@@ -196,6 +201,7 @@ function onDeleteChat() {
 }
 
 function clearIntervals() {
+  if (promiseInterval) promiseInterval = null;
   if (pollChatTimeoutId) clearInterval(pollChatTimeoutId);
   if (intervalEnvelopeId) clearInterval(intervalEnvelopeId);
 }
@@ -253,13 +259,17 @@ async function onUpdateNotification(notification) {
 watch(technicalId, () => {
   messages.value = [];
   isLoading.value = true;
-  loadChatHistory();
+  if (abortController) abortController.abort();
+  chatName.value = null;
+  abortController = null;
+  clearIntervals();
+  init();
 })
 
 watch(countNewMessages, (newVal) => {
   if (document.hasFocus() && newVal > 0) {
     ElMessage({
-      message: 'You got new question',
+      message: 'New message!',
       type: 'info',
       plain: true,
       duration: 5000,
@@ -275,8 +285,11 @@ watch(countNewMessages, (newVal) => {
     document.title = originalTitle;
     Tinycon.setBubble(0);
   }
+});
+
+watch(isLoading, ()=>{
+  disabled.value= isLoading.value;
 })
-;
 </script>
 
 <style>

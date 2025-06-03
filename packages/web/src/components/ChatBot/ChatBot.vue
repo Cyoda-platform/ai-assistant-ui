@@ -49,7 +49,7 @@
                 }"></div>
         </div>
         <div class="chat-bot__form">
-          <ChatBotSubmitForm :isLoading="isLoading" @answer="emit('answer', $event)"/>
+          <ChatBotSubmitForm :disabled="disabled" @answer="emit('answer', $event)"/>
         </div>
       </div>
     </div>
@@ -77,6 +77,7 @@ const emit = defineEmits([
 
 const props = defineProps<{
   isLoading: boolean,
+  disabled: boolean,
   messages: any[],
   technicalId: string,
   chatName: string | null,
