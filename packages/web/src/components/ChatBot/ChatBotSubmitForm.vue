@@ -16,7 +16,7 @@
     <el-form :model="form" label-width="auto">
       <div class="chat-bot-submit-form__wrapper">
         <div class="chat-bot-submit-form__input-box">
-          <div class="chat-bot-submit-form__input" :class="{disabled: isLoading}">
+          <div class="chat-bot-submit-form__input" :class="{disabled: disabled}">
             <FileSubmitPreview class="chat-bot-submit-form__file-submit-preview" v-if="currentFile" :file="currentFile"
                                @delete="currentFile=null"/>
             <div class="chat-bot-submit-form__input-inner">
@@ -27,7 +27,7 @@
                 :autosize="{ minRows: 1, maxRows: 10 }"
                 :placeholder="placeholderComputed"
                 @keydown="handleKeyDown"
-                :disabled="isLoading"
+                :disabled="disabled"
               />
               <div class="chat-bot-submit-form__actions">
                 <el-button @click="onClickAttachFile" class="btn-default btn-icon transparent">
@@ -35,14 +35,14 @@
                   <input
                     ref="fileInput"
                     type="file"
-                    :disabled="isLoading"
+                    :disabled="disabled"
                     style="display: none;"
                     @change="handleFileSelect"
                     accept=".pdf,.docx,.xlsx,.pptx,.xml,.json,text/*,image/*"
                   />
                 </el-button>
                 <button class="btn btn-primary btn-icon"
-                        :disabled="isLoading"
+                        :disabled="disabled"
                         @click.prevent="onClickTextAnswer">
                   <SendIcon/>
                 </button>
@@ -65,11 +65,11 @@ import {ElMessageBox} from "element-plus";
 
 const props = withDefaults(defineProps<{
     layout?: 'default' | 'canvas',
-    isLoading: boolean,
+    disabled: boolean,
   }>(),
   {
     layout: 'default',
-    isLoading: false,
+    disabled: false,
   }
 )
 
