@@ -53,7 +53,7 @@ const currentFile = computed(() => {
   &__body {
     font-size: 16px;
     line-height: 1.5;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
     color: var(--bubble-question-text-color);
 
     * {

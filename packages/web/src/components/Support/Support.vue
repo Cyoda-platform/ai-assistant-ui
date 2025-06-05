@@ -6,8 +6,8 @@
       :show-after="1000"
       placement="top"
   >
-    <div class="support">
-      <el-button @click="onClick" class="btn btn-default btn-icon" :class="{large: size==='large'}">
+    <div v-bind="$attrs" class="support">
+      <el-button @click="onClick" class="btn btn-default btn-icon" :class="{large: size === 'large'}">
         <SupportIcon class="fill-stroke"/>
       </el-button>
     </div>
@@ -31,11 +31,6 @@ function onClick() {
 .support {
   svg ::v-deep(path) {
     stroke: var(--text-color-regular);
-  }
-
-  .btn-icon.large {
-    height: 40px;
-    width: 40px;
   }
 }
 </style>

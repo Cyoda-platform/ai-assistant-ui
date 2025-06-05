@@ -1,24 +1,10 @@
 <template>
   <div class="chat-bot-canvas" :class="{'hidden':isSidebarHidden}">
-    <div class="chat-bot-canvas__sidebar" :class="{'hidden':isSidebarHidden}">
+    <div class="chat-bot-canvas__sidebar hidden-below-md" :class="{'hidden':isSidebarHidden}">
       <SideBar/>
     </div>
     <div class="chat-bot-canvas__main">
-      <ChatBotTopActions>
-        <template #secondary-actions>
-          <el-tooltip
-            class="box-item"
-            effect="dark"
-            content="Close Canvas"
-            :show-after="1000"
-            placement="top"
-          >
-            <el-button @click="emit('toggleCanvas')" class="btn btn-default btn-icon btn-toggle-canvas">
-              <ToggleCanvasIcon/>
-            </el-button>
-          </el-tooltip>
-        </template>
-      </ChatBotTopActions>
+      <ChatBotTopActions @toggleCanvas="emit('toggleCanvas')"/>
       <ChatBotEditor :technicalId="technicalId" @answer="emit('answer', $event)" :isShowMarkdown="isShowMarkdown"/>
     </div>
   </div>
@@ -28,7 +14,6 @@
 import ChatBotEditor from "@/components/ChatBot/ChatBotEditor.vue";
 import {computed, ref, watch} from "vue";
 
-import ToggleCanvasIcon from "@/assets/images/icons/toggle-canvas.svg";
 import ChatBotTopActions from "@/components/ChatBot/ChatBotTopActions.vue";
 import SideBar from "@/components/SideBar/SideBar.vue";
 import useAppStore from "@/stores/app";
