@@ -1,12 +1,20 @@
 <template>
   <div class="dashboard-view">
     <div class="dashboard-view__actions">
-      <Support size="large"/>
-      <AuthState/>
+      <div class="dashboard-view__actions-left-part">
+        <el-button @click="onClickDrawerSideBar" class="btn btn-default btn-icon hidden-above-md large">
+          <MenuIcon/>
+        </el-button>
+      </div>
+      <div class="dashboard-view__actions-right-part">
+        <Support size="large"/>
+        <AuthState/>
+      </div>
     </div>
     <div class="dashboard-view__body">
       <NewChat @created="onCreated"/>
     </div>
+    <DrawerSidebar ref="drawerSidebarRef"/>
   </div>
 </template>
 
@@ -17,8 +25,12 @@ import NewChat from "@/components/NewChat/NewChat.vue";
 import {onBeforeUnmount, onMounted} from "vue";
 import AuthState from "@/components/AuthState/AuthState.vue";
 import Support from "@/components/Support/Support.vue";
+import DrawerSidebar from "@/components/DrawerSidebar/DrawerSidebar.vue";
+import {templateRef} from "@vueuse/core";
+import MenuIcon from "@/assets/images/icons/menu.svg";
 
 const router = useRouter();
+const drawerSidebarRef = templateRef('drawerSidebarRef');
 
 function onCreated(data: CreateChatResponse) {
   router.push(`/chat-bot/view/${data.technical_id}?isNew=true`);
@@ -33,18 +45,35 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.body.classList.remove(BODY_CLASS_NAME);
 })
+
+function onClickDrawerSideBar() {
+  drawerSidebarRef.value.drawerVisible = true;
+}
 </script>
 
 <style lang="scss">
+@use '@/assets/css/particular/breakpoints';
 .dashboard-view {
   padding-top: 24px;
+  padding-left: 29px;
+  padding-right: 29px;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 
   &__actions {
-    margin-left: auto;
-    padding: 0 30px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+
+    @include breakpoints.respond-max('sm') {
+      margin-bottom: 36px;
+    }
+  }
+
+  &__actions-right-part{
     display: flex;
     gap: 12px;
     align-items: center;

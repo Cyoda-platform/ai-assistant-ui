@@ -3,7 +3,7 @@
     class="about-dialog"
     v-model="dialogVisible"
     title="Cyoda AI Assistant"
-    width="620"
+    :width="widthComputed"
     :close-on-click-modal="false"
   >
     <div class="about-dialog__body">
@@ -23,6 +23,7 @@
 <script setup lang="ts">
 import {computed, ref} from "vue";
 import HelperCopy from "@/helpers/HelperCopy";
+import helperBreakpoints from "@/helpers/HelperBreakpoints";
 
 const dialogVisible = ref(false);
 
@@ -39,12 +40,20 @@ function onCopyAndClose() {
   dialogVisible.value = false;
 }
 
+const widthComputed = computed(() => {
+  if (helperBreakpoints.smaller('md').value) {
+    return '90%';
+  }
+  return '620px';
+})
+
 defineExpose({
   openDialog,
 })
 </script>
 
 <style lang="scss">
+@use '@/assets/css/particular/breakpoints';
 .about-dialog {
   &__body {
     font-size: 16px;
@@ -56,9 +65,14 @@ defineExpose({
 
   &__actions {
     display: flex;
+    gap: 12px;
+    @include breakpoints.respond-max('xs') {
+      flex-direction: column;
+    }
 
     button {
       flex: 1;
+      margin: 0 !important;
     }
   }
 }

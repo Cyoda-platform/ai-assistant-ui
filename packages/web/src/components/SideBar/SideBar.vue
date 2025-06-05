@@ -7,7 +7,8 @@
       <template v-else>
         <img alt="logo" class="side-bar__logo" :src="LogoUrl"/>
         <VersionApp :small="true"/>
-        <ToggleCloseIcon @click="onClickToggleSidebar" class="side-bar__toggle-close"/>
+        <CloseIcon v-if="isDrawer" @click="onToggleDrawer" class="side-bar__toggle-close"/>
+        <ToggleCloseIcon v-else @click="onClickToggleSidebar" class="side-bar__toggle-close"/>
       </template>
     </div>
     <ul class="side-bar__nav">
@@ -21,7 +22,7 @@
             }">
         <router-link class="side-bar__link" to="/home">
           <HomeIcon class="main-icon"/>
-          <span v-if="!isSidebarHidden">{{ t('side_bar.links.home')}}</span>
+          <span v-if="!isSidebarHidden">{{ t('side_bar.links.home') }}</span>
         </router-link>
       </li>
 
@@ -33,15 +34,15 @@
             <HistoryOpenIcon v-if="isHistoryMenuVisible" class="main-icon"/>
             <HistoryIcon v-else class="main-icon"/>
             <span v-if="!isSidebarHidden">
-            {{ t('side_bar.links.history')}}
+            {{ t('side_bar.links.history') }}
              <template v-if="!isHistoryMenuReady">
               (<LoadingText/>)
             </template>
           </span>
             <ArrowDownIcon
-              v-if="!isSidebarHidden"
-              class="arrow-down-icon"
-              :class="{
+                v-if="!isSidebarHidden"
+                class="arrow-down-icon"
+                :class="{
               'open': isHistoryMenuVisible
             }"
             />
@@ -70,7 +71,10 @@
       </template>
       <template v-else>
         <li class="side-bar__li side-bar__li-action">
-          <el-button @click="onClickCreate" class="btn-primary side-bar__create_new">{{ t('side_bar.create_new') }}</el-button>
+          <el-button @click="onClickCreate" class="btn-primary side-bar__create_new">{{
+              t('side_bar.create_new')
+            }}
+          </el-button>
         </li>
       </template>
     </ul>
@@ -95,7 +99,7 @@ import ToggleCloseIcon from '@/assets/images/icons/toggle-close.svg';
 import ToggleOpenIcon from '@/assets/images/icons/toggle-open.svg';
 import useAuthStore from "@/stores/auth.ts";
 import useAppStore from "@/stores/app.ts";
-import {computed, ref, useSlots, useTemplateRef} from "vue";
+import {computed, onBeforeUnmount, onMounted, ref, useSlots, useTemplateRef} from "vue";
 import LogoSmallUrl from '@/assets/images/logo-small.svg?url'
 import LogoUrl from '@/assets/images/logo.svg?url'
 import LoadingText from "@/components/LoadingText.vue";
@@ -111,6 +115,8 @@ import {useAuth0} from "@auth0/auth0-vue";
 import AboutDialog from "@/components/AboutDialog/AboutDialog.vue";
 import VersionApp from "@/components/VersionApp/VersionApp.vue";
 import {useI18n} from "vue-i18n";
+import CloseIcon from '@/assets/images/icons/close.svg';
+import {templateRef} from "@vueuse/core";
 
 const authStore = useAuthStore();
 const appStore = useAppStore();
@@ -123,7 +129,19 @@ const aboutDialogRef = useTemplateRef('aboutDialogRef');
 const isHistoryMenuVisible = ref(false);
 const isHistoryMenuReady = ref(false);
 const isHistoryMenuActive = ref(false);
-const { t } = useI18n();
+const {t} = useI18n();
+
+const props = withDefaults(defineProps<{
+  mode?: string,
+}>(), {
+  mode: undefined,
+});
+
+const emit = defineEmits(['drawer']);
+
+function onToggleDrawer() {
+  emit('drawer');
+}
 
 function onClickToggleHistory() {
   isHistoryMenuVisible.value = !isHistoryMenuVisible.value;
@@ -168,7 +186,12 @@ function closeAllMenus() {
 }
 
 const isSidebarHidden = computed(() => {
+  if (isDrawer.value) return false;
   return appStore.isSidebarHidden;
+})
+
+const isDrawer = computed(() => {
+  return props.mode === 'drawer';
 })
 
 const isLogoutVisible = computed(() => {
@@ -193,7 +216,7 @@ function onClickAbout() {
   padding: 0 16px;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100dvh;
 
 
   &__wrapper-logo {
