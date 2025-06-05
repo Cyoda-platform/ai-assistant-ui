@@ -1,10 +1,12 @@
 <template>
   <div class="chat-bot-top-actions">
-    <slot name="chat-name"></slot>
-    <div>
-      &nbsp;<slot name="actions"></slot>
+    <div class="chat-bot-top-actions__left-part">
+      <el-button @click="onClickDrawerSideBar" class="btn btn-default btn-icon">
+        <MenuIcon/>
+      </el-button>
+      <slot class="chat-bot-top-actions__chat-name" name="chat-name"></slot>
     </div>
-    <div class="chat-bot-top-actions__right-part">
+    <div class="chat-bot-top-actions__right-part hidden-below-md">
       <el-tooltip
           class="box-item"
           effect="dark"
@@ -31,23 +33,30 @@
       <Support/>
       <AuthState/>
     </div>
+    <div class="chat-bot-top-actions__right-part hidden-above-md">
+      <AuthState/>
+      <ChatBotMobileMenu/>
+    </div>
     <EntitiesDetailsDialog v-model="entitiesDetailsDialogVisible"/>
+    <DrawerSidebar ref="drawerSidebarRef"/>
   </div>
 </template>
 
 <script setup lang="ts">
 import {ref} from "vue";
-import EntitiesDataIcon from "@/assets/images/icons/entities-data.svg";
-import TrashSmallIcon from "@/assets/images/icons/trash-small.svg";
+import MenuIcon from "@/assets/images/icons/menu.svg";
 import EntitiesDetailsDialog from "@/components/EntitiesDetailsDialog/EntitiesDetailsDialog.vue";
 import AuthState from "@/components/AuthState/AuthState.vue";
-import Support from "@/components/Support/Support.vue";
 import {ElMessageBox} from "element-plus";
 import useAssistantStore from "@/stores/assistant";
 import {useRoute} from "vue-router";
 import router from "@/router";
 import eventBus from "@/plugins/eventBus";
 import {DELETE_CHAT_START} from "@/helpers/HelperConstants";
+import DrawerSidebar from "@/components/DrawerSidebar/DrawerSidebar.vue";
+import {templateRef} from "@vueuse/core";
+import ChatBotMobileMenu from "@/components/ChatBot/ChatBotMobileMenu.vue";
+import ChatActions from "@/components/ChatBot/ChatActions.vue";
 
 const emit = defineEmits(['toggleCanvas']);
 const isLoadingDelete = ref(false);
@@ -56,9 +65,14 @@ const assistantStore = useAssistantStore();
 const route = useRoute();
 
 const entitiesDetailsDialogVisible = ref(false);
+const drawerSidebarRef = templateRef('drawerSidebarRef');
 
 function onClickEntitiesDetails() {
   entitiesDetailsDialogVisible.value = true;
+}
+
+function onClickDrawerSideBar() {
+  drawerSidebarRef.value.drawerVisiable = true;
 }
 
 function onClickDelete() {
@@ -81,6 +95,8 @@ function onClickDelete() {
 </script>
 
 <style lang="scss" scoped>
+@use '@/assets/css/particular/breakpoints';
+
 .chat-bot-top-actions {
   min-height: 40px;
   display: flex;
@@ -91,6 +107,19 @@ function onClickDelete() {
   box-sizing: content-box;
   border-bottom: 1px solid var(--sidebar-border);
   margin-bottom: 16px;
+  gap: 12px;
+  flex-wrap: nowrap;
+
+  &__left-part {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    @include breakpoints.respond-max('md') {
+      //width: 100vw;
+      flex: 1;
+      min-width: 0;
+    }
+  }
 
   &__right-part {
     display: flex;
