@@ -1,8 +1,10 @@
 <template>
   <component v-loading="isLoading" :is="layout">
+    <el-alert class="alert" title="No Live Yet, user beware here be dragons" type="error" show-icon
+              :closable="false"/>
     <RouterView/>
     <LoginPopUp/>
-<!--    <DeveloperComponentIcon v-if="isDev"/>-->
+    <!--    <DeveloperComponentIcon v-if="isDev"/>-->
   </component>
 </template>
 
@@ -28,7 +30,7 @@ const assistantStore = useAssistantStore();
 const detectTheme = useDetectTheme();
 
 onMounted(() => {
-  const { getAccessTokenSilently } = useAuth0()
+  const {getAccessTokenSilently} = useAuth0()
   setTokenGetter(() => getAccessTokenSilently())
 })
 
@@ -82,3 +84,15 @@ watch(isAuthenticated, async (value) => {
 }, {immediate: true});
 
 </script>
+
+<style scoped lang="scss">
+.alert {
+  display: flex;
+  justify-content: center;
+  height: 60px;
+  font-weight: bold;
+  ::v-deep(.el-alert__title){
+    font-size: 18px !important;
+  }
+}
+</style>
