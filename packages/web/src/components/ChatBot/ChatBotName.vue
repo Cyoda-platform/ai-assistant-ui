@@ -16,6 +16,7 @@ defineProps<{
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 
   svg {
     fill: var(--text-color-regular);
@@ -26,6 +27,11 @@ defineProps<{
     font-size: 20px;
     font-style: italic;
     font-weight: 400;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: block;
+    min-width: 0;
   }
 }
 </style>

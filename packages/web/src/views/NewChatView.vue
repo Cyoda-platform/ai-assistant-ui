@@ -1,21 +1,24 @@
 <template>
   <div class="new-chat-view">
     <div class="new-chat-view__header">
-      <img alt="logo" class="new-chat-view__header-logo" :src="LogoUrl"/>
-      <VersionApp/>
+      <div class="new-chat-view__header-logo">
+        <img alt="logo" class="new-chat-view__header-logo hidden-below-xs" :src="LogoUrl"/>
+        <img alt="logo" class="new-chat-view__header-logo-small hidden-above-xs" :src="LogoUrlSmall"/>
+        <VersionApp/>
+      </div>
       <div v-if="!isInIframe" class="new-chat-view__header-buttons">
-        <Support size="large"/>
+        <Support class="hidden-below-sm" size="large"/>
         <el-tooltip
-          class="box-item"
-          effect="dark"
-          content="GitHub Stars"
-          :show-after="1000"
-          placement="top"
+            class="box-item"
+            effect="dark"
+            content="GitHub Stars"
+            :show-after="1000"
+            placement="top"
         >
-        <el-button class="btn-border-github" v-show="stars>0" @click="onClickGithub">
-          <GithubIcon class="icon-github"/>
-          {{ stars }}
-        </el-button>
+          <el-button class="btn-border-github hidden-below-sm" v-show="stars>0" @click="onClickGithub">
+            <GithubIcon class="icon-github"/>
+            {{ stars }}
+          </el-button>
         </el-tooltip>
         <AuthState/>
       </div>
@@ -28,6 +31,7 @@
 
 <script setup lang="ts">
 import LogoUrl from '@/assets/images/logo.svg?url';
+import LogoUrlSmall from '@/assets/images/logo-small.svg?url';
 import GithubIcon from '@/assets/images/icons/github.svg';
 import NewChat from "@/components/NewChat/NewChat.vue";
 import {computed, onMounted, ref} from "vue";
@@ -69,6 +73,8 @@ function onCreated(data: CreateChatResponse) {
 </script>
 
 <style scoped lang="scss">
+@use '@/assets/css/particular/breakpoints';
+
 .new-chat-view {
   background-color: var(--bg-new-chat);
   padding-top: 48px;
@@ -78,8 +84,31 @@ function onCreated(data: CreateChatResponse) {
   display: flex;
   flex-direction: column;
 
+  @include breakpoints.respond-max('sm') {
+    padding-top: 24px;
+    padding-left: 29px;
+    padding-right: 29px;
+  }
+
+  &__header {
+    gap: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+
+    .el-button + .el-button {
+      margin-left: 24px;
+    }
+  }
+
+  &__header-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
   &__header-buttons {
-    margin-left: auto;
     display: flex;
     gap: 15px;
     align-items: center;
@@ -89,15 +118,6 @@ function onCreated(data: CreateChatResponse) {
     margin-right: 12px;
     transition: none;
     height: 16px;
-  }
-
-  &__header {
-    display: flex;
-    align-items: center;
-
-    .el-button + .el-button {
-      margin-left: 24px;
-    }
   }
 
   &__btn-login {

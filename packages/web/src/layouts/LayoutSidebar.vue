@@ -1,6 +1,6 @@
 <template>
   <div class="layout-sidebar">
-    <div class="layout-sidebar__sidebar" :class="{'hidden':isSidebarHidden}">
+    <div class="layout-sidebar__sidebar hidden-below-md" :class="{'hidden':isSidebarHidden}">
       <SideBar/>
     </div>
     <div class="layout-sidebar__main">

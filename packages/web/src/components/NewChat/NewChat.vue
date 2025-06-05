@@ -12,12 +12,12 @@
       'is-loading': isLoading
     }">
       <el-input
-        v-model="form.name"
-        :disabled="isLoading"
-        type="textarea"
-        resize="none"
-        :autosize="{ minRows: 1, maxRows: 10 }"
-        :placeholder="t('new_chat.input.placeholder')"
+          v-model="form.name"
+          :disabled="isLoading"
+          type="textarea"
+          resize="none"
+          :autosize="{ minRows: 1, maxRows: 10 }"
+          :placeholder="t('new_chat.input.placeholder')"
       />
       <el-button :loading="isLoading" class="btn btn-primary btn-icon"
                  @click.prevent="onClickSend">
@@ -29,9 +29,9 @@
       <div class="new-chat__examples-title">{{ t('examples.title') }}</div>
       <div class="new-chat__buttons">
         <el-button
-          v-for="example in examples"
-          @click="onClickExample(example)"
-          :class="{
+            v-for="example in examples"
+            @click="onClickExample(example)"
+            :class="{
             'readonly': example.readonly
           }"
         >
@@ -74,10 +74,10 @@ const examples = computed(() => {
 
   if (t('examples.items.readonly') !== 'examples.items.readonly') {
     items.push(
-      {
-        text: t('examples.items.readonly'),
-        readonly: true,
-      }
+        {
+          text: t('examples.items.readonly'),
+          readonly: true,
+        }
     )
   }
   return items;
@@ -106,6 +106,8 @@ async function onClickSend() {
 </script>
 
 <style lang="scss">
+@use '@/assets/css/particular/breakpoints';
+
 .new-chat {
   max-width: 800px;
   margin: 0 auto;
@@ -135,6 +137,12 @@ async function onClickSend() {
     font-size: 40px;
     font-weight: 400;
     margin: 24px 0;
+    flex-wrap: wrap;
+
+    @include breakpoints.respond-max('sm') {
+      font-size: 30px;
+      text-align: center;
+    }
 
     img {
       width: 120px;
@@ -218,6 +226,11 @@ async function onClickSend() {
           background: var(--bg-new-chat-button-readonly);
           border-color: var(--bg-new-chat-button-readonly);
         }
+      }
+
+      @include breakpoints.respond-max('sm') {
+        white-space: wrap;
+        height: auto;
       }
     }
   }
