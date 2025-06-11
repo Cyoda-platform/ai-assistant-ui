@@ -1,7 +1,7 @@
 import {createI18n} from 'vue-i18n';
 import type {App} from 'vue';
-import privateClient from '@/clients/private';
 import useTranslationsStore from "../stores/translations";
+import enJson from '@/i18n/en.json';
 
 const i18n = createI18n({
   legacy: false,
@@ -34,7 +34,7 @@ async function getMessages() {
     return data;
   } catch (e) {
     console.error('Failed to load translations:', e);
-    return {};
+    return enJson;
   }
 }
 

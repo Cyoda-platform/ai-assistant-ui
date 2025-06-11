@@ -1,10 +1,10 @@
 <template>
   <el-dialog
-    class="settings-dialog"
-    v-model="dialogVisible"
-    title="Settings"
-    width="620"
-    :close-on-click-modal="false"
+      class="settings-dialog"
+      v-model="dialogVisible"
+      title="Settings"
+      :width="widthComputed"
+      :close-on-click-modal="false"
   >
     <div class="settings-dialog__row">
       <div class="settings-dialog__category">
@@ -19,7 +19,7 @@
       <div class="settings-dialog__content">
         <el-dropdown trigger="click" @command="handleCommand">
     <span class="el-dropdown-link">
-      {{selectedTheme}}<ArrowDownSmallIcon/>
+      {{ selectedTheme }}<ArrowDownSmallIcon/>
     </span>
           <template #dropdown>
             <el-dropdown-menu>
@@ -39,6 +39,7 @@ import {computed, ref} from "vue";
 import SettingsIcon from '@/assets/images/icons/settings.svg';
 import ArrowDownSmallIcon from '@/assets/images/icons/arrow-down-small.svg';
 import useAppStore from "@/stores/app";
+import helperBreakpoints from "@/helpers/HelperBreakpoints";
 
 const dialogVisible = ref(false);
 const appStore = useAppStore();
@@ -60,6 +61,13 @@ const selectedTheme = computed(() => {
     case "dark":
       return "Dark Mode";
   }
+})
+
+const widthComputed = computed(() => {
+  if (helperBreakpoints.smaller('md').value) {
+    return '90%';
+  }
+  return '620px';
 })
 
 defineExpose({
@@ -87,7 +95,10 @@ defineExpose({
     color: var(--color-primary);
     font-size: 16px;
     font-weight: 500;
-    width: 179px;
+    min-width: 100px;
+    max-width: 150px;
+    flex: 1;
+    margin-right: 19px;
     height: 32px;
     border-right: 1px solid var(--input-border-color);
 
@@ -101,7 +112,8 @@ defineExpose({
     color: var(--color-settings-text);
     font-size: 16px;
     font-weight: 500;
-    margin-left: 19px;
+    min-width: 80px;
+    max-width: 100px;
   }
 
   &__content {
@@ -110,6 +122,7 @@ defineExpose({
     .el-dropdown-link {
       font-size: 16px;
       font-weight: 400;
+      white-space: nowrap;
       color: var(--color-settings-text);
 
       svg {
