@@ -18,7 +18,7 @@
     </div>
     <div class="chat-bot-top-actions__right-part hidden-above-md">
       <AuthState/>
-      <el-button @click="onClickMarkdownSideBar" class="btn btn-default btn-icon hidden-above-md">
+      <el-button v-if="canvasVisible" @click="onClickMarkdownSideBar" class="btn btn-default btn-icon hidden-above-md">
         <MarkdownIcon/>
       </el-button>
       <ChatBotMenuMobile
@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref} from "vue";
+import {inject, ref} from "vue";
 import MenuIcon from "@/assets/images/icons/menu.svg";
 import MarkdownIcon from "@/assets/images/icons/markdown.svg";
 import EntitiesDetailsDialog from "@/components/EntitiesDetailsDialog/EntitiesDetailsDialog.vue";
@@ -58,6 +58,7 @@ const route = useRoute();
 
 const entitiesDetailsDialogVisible = ref(false);
 const drawerSidebarRef = templateRef('drawerSidebarRef');
+const canvasVisible = inject('canvasVisible');
 
 function onClickEntitiesDetails() {
   entitiesDetailsDialogVisible.value = true;
