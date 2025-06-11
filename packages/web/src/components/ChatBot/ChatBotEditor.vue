@@ -1,8 +1,8 @@
 <template>
   <div
-    v-loading="isLoading"
-    class="chat-bot-editor"
-    :class="{
+      v-loading="isLoading"
+      class="chat-bot-editor"
+      :class="{
     resizing: isResizing
   }"
   >
@@ -12,11 +12,11 @@
         <div class="chat-bot-editor__actions">
           <div class="btn-action btn-block">
             <el-tooltip
-              class="box-item"
-              effect="dark"
-              content="Send Answer"
-              placement="left"
-              :show-after="1000"
+                class="box-item"
+                effect="dark"
+                content="Send Answer"
+                placement="left"
+                :show-after="1000"
             >
               <el-button @click="onSubmitQuestion" class="btn-white btn-icon">
                 <SendIcon/>
@@ -25,11 +25,11 @@
           </div>
           <div class="btn-action btn-block">
             <el-tooltip
-              class="box-item"
-              effect="dark"
-              content="Attach File"
-              placement="left"
-              :show-after="1000"
+                class="box-item"
+                effect="dark"
+                content="Attach File"
+                placement="left"
+                :show-after="1000"
             >
               <el-badge :show-zero="false" :value="countFiles" class="item" color="green">
                 <el-button @click="onAttachFile" class="btn-white btn-icon">
@@ -41,15 +41,19 @@
         </div>
       </div>
       <template v-if="isShowMarkdown">
-        <div class="chat-bot-editor__markdown">
+        <div class="chat-bot-editor__markdown hidden-below-md">
           <div class="chat-bot-editor__drag" @mousedown="startResize"></div>
           <div class="chat-bot-editor__markdown-inner" v-html="canvasDataWithMarkdown"></div>
         </div>
       </template>
     </div>
     <ChatBotAttachFile
-      ref="chatBotAttachFileRef"
-      @file="onFile"
+        ref="chatBotAttachFileRef"
+        @file="onFile"
+    />
+    <ChatBotCanvasMarkdownDrawer
+        ref="chatBotCanvasMarkdownDrawerRef"
+        :canvasDataWithMarkdown="canvasDataWithMarkdown"
     />
   </div>
 </template>
@@ -59,13 +63,18 @@ import Editor from "@/components/Editor/Editor.vue";
 import SendIcon from "@/assets/images/icons/send.svg";
 import AttachIcon from "@/assets/images/icons/attach.svg";
 import QuestionIcon from "@/assets/images/icons/question.svg";
-import {computed, ref, useTemplateRef} from "vue";
+import {computed, onMounted, ref, useTemplateRef, onUnmounted} from "vue";
 import * as monaco from 'monaco-editor';
 import {ElMessageBox, ElNotification} from "element-plus";
 import useAssistantStore from "@/stores/assistant.ts";
 import ChatBotAttachFile from "@/components/ChatBot/ChatBotAttachFile.vue";
 import HelperMarkdown from "@/helpers/HelperMarkdown";
 import HelperStorage from "@/helpers/HelperStorage";
+import helperBreakpoints from "@/helpers/HelperBreakpoints";
+import ChatBotCanvasMarkdownDrawer from "@/components/ChatBot/ChatBotCanvasMarkdownDrawer.vue";
+import {SHOW_MARKDOWN_DRAWER} from "@/helpers/HelperConstants";
+import eventBus from "@/plugins/eventBus";
+import {templateRef} from "@vueuse/core";
 
 const canvasData = ref('');
 const editorActions = ref<any[]>([]);
@@ -78,6 +87,7 @@ const isResizing = ref(false);
 const helperStorage = new HelperStorage();
 const chatBotEditorWidth = helperStorage.get('сhatBotEditorWidth', {});
 const editorWidth = ref(chatBotEditorWidth.editorWidth || '50%');
+const chatBotCanvasMarkdownDrawerRef = templateRef('chatBotCanvasMarkdownDrawerRef')
 
 const props = withDefaults(defineProps<{
   technicalId: string,
@@ -85,6 +95,18 @@ const props = withDefaults(defineProps<{
 }>(), {
   isShowMarkdown: false,
 });
+
+onMounted(() => {
+  eventBus.$on(SHOW_MARKDOWN_DRAWER, showChatBotCanvasMarkdownDrawer);
+})
+
+onUnmounted(()=>{
+  eventBus.$off(SHOW_MARKDOWN_DRAWER, showChatBotCanvasMarkdownDrawer);
+})
+
+function showChatBotCanvasMarkdownDrawer() {
+  chatBotCanvasMarkdownDrawerRef.value.drawerVisible = true;
+}
 
 function onAttachFile() {
   chatBotAttachFileRef.value.openDialog(currentFile.value);
@@ -190,10 +212,10 @@ function addSubmitQuestionAction() {
           textToInsert = textToInsert + '\n';
         }
         const range = new monaco.Range(
-          position.lineNumber + 1,
-          1,
-          position.lineNumber + 1,
-          1
+            position.lineNumber + 1,
+            1,
+            position.lineNumber + 1,
+            1
         );
         editor.executeEdits('DialogContentScriptEditor', [
           {
@@ -286,6 +308,11 @@ function startResize(event) {
 }
 
 const editorStyle = computed(() => {
+  if (helperBreakpoints.smaller('md').value) {
+    return {
+      width: '100%',
+    }
+  }
   if (!props.isShowMarkdown) return null;
 
   return {

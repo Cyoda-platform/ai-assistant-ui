@@ -15,7 +15,7 @@
   />
 
   <el-dialog
-      v-model="dialogVisible"
+      v-model="canvasVisible"
       fullscreen
       class="chat-bot-dialog"
       :close-on-click-modal="false"
@@ -57,7 +57,9 @@ const technicalId = computed(() => {
   return route.params.technicalId as string;
 });
 
-const dialogVisible = ref(helperStorage.get(`chatDialog:${technicalId.value}`, false));
+const canvasVisible = ref(helperStorage.get(`chatDialog:${technicalId.value}`, false));
+
+provide('canvasVisible', canvasVisible);
 
 let pollChatTimeoutId: any = null;
 let intervalEnvelopeId: any = null;
@@ -241,8 +243,8 @@ async function onApproveQuestion(event) {
 }
 
 function onToggleCanvas() {
-  dialogVisible.value = !dialogVisible.value;
-  helperStorage.set(`chatDialog:${technicalId.value}`, dialogVisible.value)
+  canvasVisible.value = !canvasVisible.value;
+  helperStorage.set(`chatDialog:${technicalId.value}`, canvasVisible.value)
 }
 
 
@@ -287,8 +289,8 @@ watch(countNewMessages, (newVal) => {
   }
 });
 
-watch(isLoading, ()=>{
-  disabled.value= isLoading.value;
+watch(isLoading, () => {
+  disabled.value = isLoading.value;
 })
 </script>
 
