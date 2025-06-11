@@ -12,6 +12,7 @@ defineProps<{
 </script>
 
 <style lang="scss" scoped>
+@use '@/assets/css/particular/breakpoints';
 .chat-bot-name {
   display: flex;
   align-items: center;
@@ -26,6 +27,12 @@ defineProps<{
     font-size: 20px;
     font-style: italic;
     font-weight: 400;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    @include breakpoints.respond-max('md') {
+      max-width: calc(100vw - 180px);
+    }
   }
 }
 </style>

@@ -118,6 +118,7 @@ function onClickCopy() {
 
 <style lang="scss">
 @use '@/assets/css/particular/mixins';
+@use '@/assets/css/particular/breakpoints';
 
 .chat-bot-message-question {
   background: var(--bubble-notification-bg-color);
@@ -128,6 +129,10 @@ function onClickCopy() {
   position: relative;
   margin-bottom: 25px;
   box-shadow: -1px 1px 20px var(--bubble-box-shadow-color);
+
+  @include breakpoints.respond-max('md') {
+    padding: 24px 8px 8px 68px;
+  }
 
   &__cyoda-wrapper-icon {
     position: absolute;

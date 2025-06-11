@@ -1,21 +1,8 @@
 <template>
   <div class="chat-bot">
-    <ChatBotTopActions>
+    <ChatBotTopActions @toggleCanvas="emit('toggleCanvas')">
       <template #chat-name>
         <ChatBotName v-if="chatName" :chatName="chatName" :technicalId="technicalId"/>
-      </template>
-      <template #secondary-actions>
-        <el-tooltip
-            class="box-item"
-            effect="dark"
-            content="Open Canvas"
-            :show-after="1000"
-            placement="top"
-        >
-          <el-button @click="emit('toggleCanvas')" class="btn btn-default btn-icon btn-toggle-canvas">
-            <ToggleCanvasIcon/>
-          </el-button>
-        </el-tooltip>
       </template>
     </ChatBotTopActions>
 
@@ -24,7 +11,7 @@
         <div class="chat-bot__inner-messages">
           <template v-for="message in messages">
             <el-row>
-              <el-col :offset="getOffset(message.type)" :span="getSpan(message.type)">
+              <el-col class="chat-bot__inner-messages-col" :offset="getOffset(message.type)" :span="getSpan(message.type)">
                 <ChatBotMessageQuestion
                     v-if="message.type === 'question'"
                     :message="message"
@@ -60,7 +47,6 @@
 import {computed, nextTick, ref, watch} from "vue";
 import ChatBotSubmitForm from "@/components/ChatBot/ChatBotSubmitForm.vue";
 import ChatLoader from "@/components/ChatBot/ChatLoader.vue";
-import ToggleCanvasIcon from "@/assets/images/icons/toggle-canvas.svg";
 import ChatBotMessageQuestion from "@/components/ChatBot/ChatBotMessageQuestion.vue";
 import ChatBotMessageNotification from "@/components/ChatBot/ChatBotMessageNotification.vue";
 import ChatBotMessageAnswer from "@/components/ChatBot/ChatBotMessageAnswer.vue";
@@ -215,10 +201,11 @@ function getFullHeight(el) {
 </style>
 
 <style lang="scss">
+@use '@/assets/css/particular/breakpoints';
 .chat-bot {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 
   &__body {
@@ -239,7 +226,20 @@ function getFullHeight(el) {
     flex-direction: column;
     display: flex;
     overflow-y: auto;
-    padding-left: 5px;
+    @include breakpoints.respond-max('md') {
+      width: 100vw;
+    }
+    //padding-left: 5px;
+  }
+
+  &__inner-messages-col{
+    @include breakpoints.respond-max('md') {
+      margin-left: auto !important;
+      margin-right: auto !important;
+      width: 90% !important;
+      max-width: unset;
+      flex: unset;
+    }
   }
 
   .chat-bot-submit-form {
