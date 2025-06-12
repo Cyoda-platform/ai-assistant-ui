@@ -13,7 +13,7 @@ const {loginWithRedirect} = useAuth0();
 
 function onClick() {
   helperStorage.set(LOGIN_REDIRECT_URL, '/home');
-  loginWithRedirect()
+  loginWithRedirect({authorizationParams: { prompt: 'login' }});
 }
 </script>
 
