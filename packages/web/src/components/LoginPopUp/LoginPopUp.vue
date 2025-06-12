@@ -11,7 +11,7 @@
         <el-button @click="dialogVisible=false">
           Cancel
         </el-button>
-        <el-button @click="loginWithRedirect" class="btn btn-primary" type="primary">
+        <el-button @click="onClickLogin" class="btn btn-primary" type="primary">
           Login
         </el-button>
       </div>
@@ -39,6 +39,10 @@ onBeforeUnmount(() => {
 
 function showLogin() {
   dialogVisible.value = true;
+}
+
+function onClickLogin() {
+  loginWithRedirect({authorizationParams: { prompt: 'login' }});
 }
 </script>
 
