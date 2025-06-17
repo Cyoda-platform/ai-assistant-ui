@@ -182,12 +182,13 @@ function addMessage(el) {
   let type = 'answer';
   if (el.question) type = 'question';
   else if (el.notification) type = 'notification';
+  else if (el.type==='ui_function') type = 'ui_function';
 
   if (messages.value.find(m => m.id === el.technical_id)) return false;
 
   messages.value.push({
     id: el.technical_id,
-    text: el.question || el.notification || el.answer,
+    text: el.question || el.notification || el.answer || el.message,
     file: el.file,
     editable: !!el.editable,
     approve: !!el.approve,
