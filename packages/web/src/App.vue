@@ -91,6 +91,7 @@ watch(isAuthenticated, async (value) => {
   justify-content: center;
   height: 60px;
   font-weight: 600;
+  background: var(--bg-sidebar) !important;
   ::v-deep(.el-alert__title){
     font-size: 28px !important;
   }
