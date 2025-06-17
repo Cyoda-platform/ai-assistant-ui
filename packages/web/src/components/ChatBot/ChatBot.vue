@@ -27,6 +27,9 @@
                 <ChatBotMessageAnswer
                     v-if="message.type === 'answer'"
                     :message="message"/>
+                <ChatBotMessageFunction
+                    v-if="message.type === 'ui_function'"
+                    :message="message"/>
               </el-col>
             </el-row>
           </template>
@@ -52,6 +55,7 @@ import ChatBotMessageNotification from "@/components/ChatBot/ChatBotMessageNotif
 import ChatBotMessageAnswer from "@/components/ChatBot/ChatBotMessageAnswer.vue";
 import ChatBotTopActions from "@/components/ChatBot/ChatBotTopActions.vue";
 import ChatBotName from "@/components/ChatBot/ChatBotName.vue";
+import ChatBotMessageFunction from "@/components/ChatBot/ChatBotMessageFunction.vue";
 
 const emit = defineEmits([
   'answer',
@@ -80,11 +84,11 @@ function scrollDownMessages() {
 
 function getOffset(type) {
   if (type === 'answer') return 9;
-  return ['question', 'notification'].includes(type) ? 1 : 8;
+  return ['question', 'notification', 'ui_function'].includes(type) ? 1 : 8;
 }
 
 function getSpan(type) {
-  return ['question', 'notification'].includes(type) ? 22 : 14;
+  return ['question', 'notification', 'ui_function'].includes(type) ? 22 : 14;
 }
 
 const isLastMessageAnswer = computed(() => {
