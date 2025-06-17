@@ -15,7 +15,9 @@
     "@vueuse/core": "^13.3.0",
     "axios": "^1.9.0",
     "axios-retry": "^4.5.0",
+    "dayjs": "^1.11.13",
     "element-plus": "^2.10.1",
+    "file-saver": "^2.0.5",
     "marked": "^15.0.12",
     "mermaid": "^11.6.0",
     "modern-normalize": "^3.0.1",
@@ -31,6 +33,7 @@
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.2",
+    "@types/file-saver": "^2",
     "@types/node": "^24.0.1",
     "@types/pako": "^2.0.3",
     "@types/tinycon": "^0.6.7",
