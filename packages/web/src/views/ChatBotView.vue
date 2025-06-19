@@ -34,6 +34,8 @@
         :entitiesData="entitiesData"
     />
   </el-dialog>
+
+  <ChatBotRenameDialog @resetChat="loadChatHistory" ref="chatBotRenameDialogRef" :technicalId="technicalId"/>
 </template>
 
 <script setup lang="ts">
@@ -46,12 +48,15 @@ import useAssistantStore from "@/stores/assistant.ts";
 import HelperStorage from "@/helpers/HelperStorage.ts";
 import useAuthStore from "@/stores/auth";
 import eventBus from "@/plugins/eventBus";
-import {DELETE_CHAT_START} from "@/helpers/HelperConstants";
+import {DELETE_CHAT_START, RENAME_CHAT} from "@/helpers/HelperConstants";
 import Tinycon from 'tinycon';
 import {ElMessage} from "element-plus";
+import ChatBotRenameDialog from "@/components/ChatBot/ChatBotRenameDialog.vue";
+import {templateRef} from "@vueuse/core";
 
 const helperStorage = new HelperStorage();
 const route = useRoute();
+const chatBotRenameDialogRef = templateRef('chatBotRenameDialogRef');
 
 const technicalId = computed(() => {
   return route.params.technicalId as string;
@@ -66,6 +71,7 @@ let intervalEnvelopeId: any = null;
 let promiseInterval: any = null;
 let abortController: any = null;
 const chatName = ref<string | null>(null);
+const chatDescription = ref<string | null>(null);
 const entitiesData = ref<string | null>({});
 const messages = ref<any[]>([]);
 const assistantStore = useAssistantStore();
@@ -82,17 +88,20 @@ const JITTER_PERCENT = 0.1;
 let currentInterval = BASE_INTERVAL;
 
 provide('entitiesData', entitiesData);
+provide('chatName', chatName);
 
 onMounted(() => {
   init();
   isLoading.value = true;
   eventBus.$on(DELETE_CHAT_START, onDeleteChat);
+  eventBus.$on(RENAME_CHAT, openRenameDialog);
   window.addEventListener('focus', onFocusDocument);
 })
 
 onBeforeUnmount(() => {
   clearIntervals();
   eventBus.$off(DELETE_CHAT_START, onDeleteChat);
+  eventBus.$off(RENAME_CHAT, openRenameDialog);
   window.removeEventListener('focus', onFocusDocument);
 })
 
@@ -128,6 +137,7 @@ async function loadChatHistory() {
     promiseInterval = assistantStore.getChatById(technicalId.value, {signal: abortController.signal});
     const {data} = await promiseInterval;
     chatName.value = data.chat_body.name;
+    chatDescription.value = data.chat_body.description;
     entitiesData.value = data.chat_body.entities_data;
     data.chat_body.dialogue.forEach((el) => {
       const result = addMessage(el);
@@ -182,7 +192,7 @@ function addMessage(el) {
   let type = 'answer';
   if (el.question) type = 'question';
   else if (el.notification) type = 'notification';
-  else if (el.type==='ui_function') type = 'ui_function';
+  else if (el.type === 'ui_function') type = 'ui_function';
 
   if (messages.value.find(m => m.id === el.technical_id)) return false;
 
@@ -289,6 +299,14 @@ watch(countNewMessages, (newVal) => {
     Tinycon.setBubble(0);
   }
 });
+
+function openRenameDialog() {
+  chatBotRenameDialogRef.value.dialogVisible = true;
+  chatBotRenameDialogRef.value.form = {
+    name: chatName.value,
+    description: chatDescription.value,
+  };
+}
 
 watch(isLoading, () => {
   disabled.value = isLoading.value;
