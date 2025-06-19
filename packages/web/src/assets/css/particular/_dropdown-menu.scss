@@ -6,6 +6,9 @@
   &:hover{
     color: var(--color-primary) !important;
   }
+  &.is-disabled{
+    opacity: 0.6;
+  }
 }
 
 .el-dropdown-menu {
