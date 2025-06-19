@@ -3,6 +3,17 @@
     <el-tooltip
         class="box-item"
         effect="dark"
+        content="Rename Chat"
+        :show-after="1000"
+        placement="top"
+    >
+      <el-button :disabled="!chatName" @click="emit('rename')" class="btn btn-default btn-icon">
+        <EditIcon/>
+      </el-button>
+    </el-tooltip>
+    <el-tooltip
+        class="box-item"
+        effect="dark"
         content="Delete Chat"
         :show-after="1000"
         placement="top"
@@ -51,16 +62,18 @@
 import EntitiesDataIcon from "@/assets/images/icons/entities-data.svg";
 import TrashSmallIcon from "@/assets/images/icons/trash-small.svg";
 import SupportIcon from '@/assets/images/icons/support.svg';
+import EditIcon from '@/assets/images/icons/edit.svg';
 import ToggleCanvasIcon from "@/assets/images/icons/toggle-canvas.svg";
-import {computed, inject} from "vue";
+import {computed, inject, provide} from "vue";
 
 defineProps<{
   isLoadingDelete: boolean,
 }>();
 
-const emit = defineEmits(['delete', 'toggleCanvas', 'entitiesDetails', 'support']);
+const emit = defineEmits(['delete', 'toggleCanvas', 'entitiesDetails', 'support', 'rename']);
 
 const canvasVisible = inject('canvasVisible');
+const chatName = inject('chatName');
 
 const toggleCanvasTitle = computed(() => {
     return canvasVisible.value ? 'Close Canvas' : 'Open Canvas';

@@ -9,6 +9,7 @@
     <div class="chat-bot-top-actions__right-part hidden-below-md">
       <ChatBotMenuDesktop
           :isLoadingDelete="isLoadingDelete"
+          @rename="onClickRename"
           @delete="onClickDelete"
           @toggleCanvas="emit('toggleCanvas')"
           @entitiesDetails="onClickEntitiesDetails"
@@ -22,6 +23,7 @@
         <MarkdownIcon/>
       </el-button>
       <ChatBotMenuMobile
+          @rename="onClickRename"
           @delete="onClickDelete"
           @toggleCanvas="emit('toggleCanvas')"
           @entitiesDetails="onClickEntitiesDetails"
@@ -29,7 +31,7 @@
       />
     </div>
     <EntitiesDetailsDialog v-model="entitiesDetailsDialogVisible"/>
-    <DrawerSidebar ref="drawerSidebarRef"/>
+    <DrawerSidebar v-model="drawerSidebarVisible"/>
   </div>
 </template>
 
@@ -44,9 +46,8 @@ import useAssistantStore from "@/stores/assistant";
 import {useRoute} from "vue-router";
 import router from "@/router";
 import eventBus from "@/plugins/eventBus";
-import {DELETE_CHAT_START, SHOW_MARKDOWN_DRAWER} from "@/helpers/HelperConstants";
+import {DELETE_CHAT_START, RENAME_CHAT, SHOW_MARKDOWN_DRAWER} from "@/helpers/HelperConstants";
 import DrawerSidebar from "@/components/DrawerSidebar/DrawerSidebar.vue";
-import {templateRef} from "@vueuse/core";
 import ChatBotMenuMobile from "@/components/ChatBot/ChatBotMenuMobile.vue";
 import ChatBotMenuDesktop from "@/components/ChatBot/ChatBotMenuDesktop.vue";
 
@@ -57,19 +58,23 @@ const assistantStore = useAssistantStore();
 const route = useRoute();
 
 const entitiesDetailsDialogVisible = ref(false);
-const drawerSidebarRef = templateRef('drawerSidebarRef');
+const drawerSidebarVisible = ref(false);
 const canvasVisible = inject('canvasVisible');
 
 function onClickEntitiesDetails() {
   entitiesDetailsDialogVisible.value = true;
 }
 
+function onClickDrawerSideBar() {
+  drawerSidebarVisible.value = true;
+}
+
 function onClickMarkdownSideBar() {
   eventBus.$emit(SHOW_MARKDOWN_DRAWER);
 }
 
-function onClickDrawerSideBar() {
-  drawerSidebarRef.value.drawerVisible = true;
+function onClickRename() {
+  eventBus.$emit(RENAME_CHAT)
 }
 
 function onClickDelete() {
