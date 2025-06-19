@@ -11,13 +11,9 @@
 </template>
 
 <script setup lang="ts">
-import {onBeforeUnmount, onMounted, ref} from "vue";
 import SideBar from "@/components/SideBar/SideBar.vue";
-import {templateRef} from "@vueuse/core";
 
-const drawerVisible = ref(false);
-
-defineExpose({drawerVisible});
+const drawerVisible = defineModel();
 </script>
 
 <style lang="scss">
