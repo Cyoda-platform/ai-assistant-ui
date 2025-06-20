@@ -35,7 +35,7 @@
     />
   </el-dialog>
 
-  <ChatBotRenameDialog @resetChat="loadChatHistory" ref="chatBotRenameDialogRef" :technicalId="technicalId"/>
+  <ChatBotRenameDialog :loadChatHistoryFn="loadChatHistory" ref="chatBotRenameDialogRef" :technicalId="technicalId"/>
 </template>
 
 <script setup lang="ts">
@@ -303,8 +303,8 @@ watch(countNewMessages, (newVal) => {
 function openRenameDialog() {
   chatBotRenameDialogRef.value.dialogVisible = true;
   chatBotRenameDialogRef.value.form = {
-    name: chatName.value,
-    description: chatDescription.value,
+    chat_name: chatName.value,
+    chat_description: chatDescription.value,
   };
 }
 
