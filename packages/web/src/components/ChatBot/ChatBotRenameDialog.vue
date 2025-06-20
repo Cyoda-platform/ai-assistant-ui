@@ -6,11 +6,11 @@
       :close-on-click-modal="false"
   >
     <el-form ref="formRef" :rules="rules" label-position="top" :model="form" label-width="auto">
-      <el-form-item label="Name" prop="name">
-        <el-input v-model="form.name"/>
+      <el-form-item label="Name" prop="chat_name">
+        <el-input v-model="form.chat_name"/>
       </el-form-item>
-      <el-form-item label="Description" prop="description">
-        <el-input v-model="form.description" rows="5" resize="none" type="textarea"/>
+      <el-form-item label="Description" prop="chat_description">
+        <el-input v-model="form.chat_description" rows="5" resize="none" type="textarea"/>
       </el-form-item>
     </el-form>
     <template #footer>
@@ -37,13 +37,12 @@ const formRef = templateRef('formRef');
 
 const props = defineProps<{
   technicalId: string,
+  loadChatHistoryFn: any
 }>();
 
-const emit = defineEmits(['resetChat'])
-
 const form = ref({
-  name: '',
-  description: '',
+  chat_name: '',
+  chat_description: '',
 })
 
 const widthComputed = computed(() => {
@@ -54,7 +53,7 @@ const widthComputed = computed(() => {
 })
 
 const rules = reactive({
-  name: [
+  chat_name: [
     {required: true, message: 'Please input Name', trigger: 'blur'},
   ],
 })
@@ -65,7 +64,7 @@ function onClickSubmit() {
     try {
       isLoading.value = true;
       await assistantStore.renameChatById(props.technicalId, form.value);
-      emit('resetChat');
+      await Promise.all([assistantStore.getChats(), props.loadChatHistoryFn()]);
       dialogVisible.value = false;
     } finally {
       isLoading.value = false;
