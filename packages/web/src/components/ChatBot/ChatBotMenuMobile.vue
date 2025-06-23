@@ -4,14 +4,6 @@
       <VerticalDotsIcon/>
       <template #dropdown>
         <el-dropdown-menu>
-          <el-dropdown-item :disabled="!chatName" command="rename">
-            <EditIcon/>
-            Rename Chat
-          </el-dropdown-item>
-          <el-dropdown-item command="delete">
-            <TrashSmallIcon/>
-            Delete Chat
-          </el-dropdown-item>
           <el-dropdown-item command="toggleCanvas">
             <ToggleCanvasIcon/>
             {{ toggleCanvasTitle }}
@@ -33,14 +25,16 @@
 <script setup lang="ts">
 import VerticalDotsIcon from "@/assets/images/icons/vertical-dots.svg";
 import EntitiesDataIcon from "@/assets/images/icons/entities-data.svg";
-import TrashSmallIcon from "@/assets/images/icons/trash-small.svg";
 import SupportIcon from '@/assets/images/icons/support.svg';
 import ToggleCanvasIcon from "@/assets/images/icons/toggle-canvas.svg";
-import EditIcon from '@/assets/images/icons/edit.svg';
 import {computed, inject} from "vue";
 
-const emit = defineEmits(['delete', 'toggleCanvas', 'entitiesDetails', 'support', 'rename']);
-const chatName = inject('chatName');
+const emit = defineEmits(['toggleCanvas', 'entitiesDetails', 'support']);
+const chatData = inject('chatData');
+
+const chatName = computed(() => {
+  return chatData.value?.chat_body?.name || '';
+})
 
 const handleCommand = (command: string | number | object) => {
   emit(command);
