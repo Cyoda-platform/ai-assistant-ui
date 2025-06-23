@@ -3,28 +3,6 @@
     <el-tooltip
         class="box-item"
         effect="dark"
-        content="Rename Chat"
-        :show-after="1000"
-        placement="top"
-    >
-      <el-button :disabled="!chatName" @click="emit('rename')" class="btn btn-default btn-icon">
-        <EditIcon/>
-      </el-button>
-    </el-tooltip>
-    <el-tooltip
-        class="box-item"
-        effect="dark"
-        content="Delete Chat"
-        :show-after="1000"
-        placement="top"
-    >
-      <el-button :loading="isLoadingDelete" @click="emit('delete')" class="btn btn-default btn-icon">
-        <TrashSmallIcon/>
-      </el-button>
-    </el-tooltip>
-    <el-tooltip
-        class="box-item"
-        effect="dark"
         :content="toggleCanvasTitle"
         :show-after="1000"
         placement="top"
@@ -70,13 +48,17 @@ defineProps<{
   isLoadingDelete: boolean,
 }>();
 
-const emit = defineEmits(['delete', 'toggleCanvas', 'entitiesDetails', 'support', 'rename']);
+const emit = defineEmits(['toggleCanvas', 'entitiesDetails', 'support']);
 
 const canvasVisible = inject('canvasVisible');
-const chatName = inject('chatName');
+const chatData = inject('chatData');
+
+const chatName = computed(() => {
+  return chatData.value?.chat_body?.name || '';
+})
 
 const toggleCanvasTitle = computed(() => {
-    return canvasVisible.value ? 'Close Canvas' : 'Open Canvas';
+  return canvasVisible.value ? 'Close Canvas' : 'Open Canvas';
 })
 </script>
 

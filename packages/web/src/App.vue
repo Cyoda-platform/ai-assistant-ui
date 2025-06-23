@@ -4,6 +4,7 @@
               :closable="false"/>
     <RouterView/>
     <LoginPopUp/>
+    <ChatBotRenameDialog ref="chatBotRenameDialogRef" />
     <!--    <DeveloperComponentIcon v-if="isDev"/>-->
   </component>
 </template>
@@ -20,6 +21,7 @@ import {isInIframe} from "@/helpers/HelperIframe";
 import useAssistantStore from "@/stores/assistant";
 import {setTokenGetter} from "@/helpers/HelperAuth";
 import {useDetectTheme} from "@/helpers/HelperTheme";
+import ChatBotRenameDialog from "@/components/ChatBot/ChatBotRenameDialog.vue";
 
 const defaultLayout = "default";
 

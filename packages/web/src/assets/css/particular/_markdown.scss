@@ -1,4 +1,4 @@
-.wrapper-mermaid, .wrapper-plantuml, .wrapper-bash {
+.wrapper-mermaid, .wrapper-plantuml, .wrapper-bash, .uuid-block {
   .actions {
     text-align: right;
     margin-bottom: 16px;
@@ -14,6 +14,7 @@
     border-radius: 8px;
     width: 70px;
     text-align: center;
+    font-weight: normal;
   }
 
   .mermaid {
@@ -40,4 +41,9 @@
   * {
     margin: 0 !important;
   }
+}
+
+.uuid-block .copy {
+  position: relative;
+  top: -10px;
 }
