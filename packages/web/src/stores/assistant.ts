@@ -3,7 +3,6 @@ import privateClient from "@/clients/private";
 import type {CreateChatRequest, CreateChatResponse} from "@/types/chat";
 import {ChatResponse} from "../types/chat";
 import HelperStorage from "../helpers/HelperStorage";
-import useAuthStore from "./auth";
 
 const helperStorage = new HelperStorage();
 
@@ -49,8 +48,8 @@ const useAssistantStore = defineStore('assistant', {
     renameChatById(technical_id: string, data) {
       return privateClient.put(`/v1/chats/${technical_id}`, data)
     },
-    postRollbackQuestion(technical_id: string, event) {
-      return privateClient.post(`/v1/chats/${technical_id}/rollback`, event)
+    postRollback(technical_id: string) {
+      return privateClient.post(`/v1/chats/${technical_id}/rollback`)
     },
     postApproveQuestion(technical_id: string, event) {
       return privateClient.post(`/v1/chats/${technical_id}/approve`, event)

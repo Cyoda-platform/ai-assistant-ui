@@ -1,7 +1,7 @@
 <template>
-  <div class="menu-chat-item" :class="{
+  <div v-loading="isLoadingDelete" class="menu-chat-item" :class="{
     'menu-chat-item--active': isActive
-  }" @mouseleave="isShowPopover=false">
+  }">
     <router-link class="menu-chat-item__link" :to="link">{{ chat.name || 'No name' }}</router-link>
     <el-popover popper-class="default" v-model:visible="isShowPopover" placement="right-start"
                 :popper-style="popperStyle"
@@ -19,9 +19,33 @@
           <span class="menu-chat-item__popover-date-title">Date</span>
           <span class="menu-chat-item__popover-date-value">{{ transformDate(chat.date) }}</span>
         </div>
-        <div class="menu-chat-item__popover-date">
-          <span class="menu-chat-item__popover-date-title">Last change</span>
-          <span class="menu-chat-item__popover-date-value">{{ chat.last_modified? transformDate(chat.last_modified) : '-' }}</span>
+        <div class="menu-chat-item__actions">
+          <span class="menu-chat-item__popover-action-title">Actions</span>
+          <span class="menu-chat-item__popover-action-btns">
+             <el-tooltip
+                 class="box-item"
+                 effect="dark"
+                 content="Rename Chat"
+                 :show-after="1000"
+                 placement="top"
+             >
+               <el-button @click="onClickRename" class="btn btn-default btn-icon">
+                  <EditIcon/>
+               </el-button>
+             </el-tooltip>
+
+            <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="Delete Chat"
+                :show-after="1000"
+                placement="top"
+            >
+      <el-button @click="onClickDelete" class="btn btn-default btn-icon">
+        <TrashSmallIcon/>
+      </el-button>
+    </el-tooltip>
+          </span>
         </div>
       </div>
     </el-popover>
@@ -32,11 +56,19 @@
 import {ChatData} from "@/types/chat.d";
 import {computed, ref} from "vue";
 import ThreeDotsIcon from '@/assets/images/icons/three-dots.svg';
-import {dayjs} from "element-plus";
+import {dayjs, ElMessageBox} from "element-plus";
 import {useRoute} from "vue-router";
+import EditIcon from '@/assets/images/icons/edit.svg';
+import TrashSmallIcon from "@/assets/images/icons/trash-small.svg";
+import eventBus from "@/plugins/eventBus";
+import {DELETE_CHAT_CLEAR_INTERVALS_BY_TECHNICAL_ID, RENAME_CHAT_START} from "@/helpers/HelperConstants";
+import useAssistantStore from "@/stores/assistant";
+import router from "@/router";
 
 const isShowPopover = ref(false);
 const route = useRoute();
+const isLoadingDelete = ref(false);
+const assistantStore = useAssistantStore();
 
 const popperOptions = {
   modifiers: [{
@@ -61,6 +93,28 @@ const link = computed(() => {
 
 function transformDate(dateStr) {
   return dayjs(dateStr).format('DD/MM/YYYY')
+}
+
+function onClickDelete() {
+  ElMessageBox.confirm("Do you really want to remove?", "Confirm!", {
+    callback: async (action) => {
+      if (action === "confirm") {
+        try {
+          eventBus.$emit(DELETE_CHAT_CLEAR_INTERVALS_BY_TECHNICAL_ID, props.chat.technical_id);
+          isLoadingDelete.value = true;
+          await assistantStore.deleteChatById(props.chat.technical_id);
+          await assistantStore.getChats();
+          router.push('/home');
+        } finally {
+          isLoadingDelete.value = false;
+        }
+      }
+    }
+  });
+}
+
+function onClickRename(){
+  eventBus.$emit(RENAME_CHAT_START, props.chat)
 }
 
 const isActive = computed(() => {
@@ -141,8 +195,9 @@ const isActive = computed(() => {
     margin-bottom: 0;
   }
 
-  &__popover-date-title {
+  &__popover-date-title, &__popover-action-title {
     width: 120px;
+    display: inline-block;
   }
 
 }
