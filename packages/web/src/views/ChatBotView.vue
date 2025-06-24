@@ -1,17 +1,14 @@
 <template>
   <ChatBot
       :technicalId="technicalId"
-      :chatName="chatName"
       @answer="onAnswer"
       @approve="onClickApprove"
-      @rollbackQuestion="onRollbackQuestion"
       @approveQuestion="onApproveQuestion"
       @toggleCanvas="onToggleCanvas"
       @updateNotification="onUpdateNotification"
       :disabled="disabled"
       :isLoading="isLoading"
       :messages="messages"
-      :entitiesData="entitiesData"
   />
 
   <el-dialog
@@ -22,20 +19,16 @@
   >
     <ChatBotCanvas
         :technicalId="technicalId"
-        :chatName="chatName"
         @answer="onAnswer"
         @approve="onClickApprove"
-        @rollbackQuestion="onRollbackQuestion"
+        @rollback="onRollback"
         @approveQuestion="onApproveQuestion"
         @toggleCanvas="onToggleCanvas"
         @updateNotification="onUpdateNotification"
         :isLoading="isLoading"
         :messages="messages"
-        :entitiesData="entitiesData"
     />
   </el-dialog>
-
-  <ChatBotRenameDialog :loadChatHistoryFn="loadChatHistory" ref="chatBotRenameDialogRef" :technicalId="technicalId"/>
 </template>
 
 <script setup lang="ts">
@@ -48,15 +41,12 @@ import useAssistantStore from "@/stores/assistant.ts";
 import HelperStorage from "@/helpers/HelperStorage.ts";
 import useAuthStore from "@/stores/auth";
 import eventBus from "@/plugins/eventBus";
-import {DELETE_CHAT_START, RENAME_CHAT} from "@/helpers/HelperConstants";
+import {DELETE_CHAT_CLEAR_INTERVALS_BY_TECHNICAL_ID, LOAD_CHAT_HISTORY, ROLLBACK_CHAT} from "@/helpers/HelperConstants";
 import Tinycon from 'tinycon';
 import {ElMessage} from "element-plus";
-import ChatBotRenameDialog from "@/components/ChatBot/ChatBotRenameDialog.vue";
-import {templateRef} from "@vueuse/core";
 
 const helperStorage = new HelperStorage();
 const route = useRoute();
-const chatBotRenameDialogRef = templateRef('chatBotRenameDialogRef');
 
 const technicalId = computed(() => {
   return route.params.technicalId as string;
@@ -70,12 +60,11 @@ let pollChatTimeoutId: any = null;
 let intervalEnvelopeId: any = null;
 let promiseInterval: any = null;
 let abortController: any = null;
-const chatName = ref<string | null>(null);
-const chatDescription = ref<string | null>(null);
-const entitiesData = ref<string | null>({});
+const chatData = ref<string | null>(null);
 const messages = ref<any[]>([]);
 const assistantStore = useAssistantStore();
 const isLoading = ref(false);
+const isLoadingRollback = ref(false);
 const isEnvelopeActive = ref(false);
 const authStore = useAuthStore();
 const countNewMessages = ref(0);
@@ -87,21 +76,23 @@ const MAX_INTERVAL = import.meta.env.VITE_APP_QUESTION_MAX_POLLING_INTERVAL || 7
 const JITTER_PERCENT = 0.1;
 let currentInterval = BASE_INTERVAL;
 
-provide('entitiesData', entitiesData);
-provide('chatName', chatName);
+provide('chatData', chatData);
+provide('isLoadingRollback', isLoadingRollback);
 
 onMounted(() => {
   init();
   isLoading.value = true;
-  eventBus.$on(DELETE_CHAT_START, onDeleteChat);
-  eventBus.$on(RENAME_CHAT, openRenameDialog);
+  eventBus.$on(DELETE_CHAT_CLEAR_INTERVALS_BY_TECHNICAL_ID, onDeleteChat);
+  eventBus.$on(LOAD_CHAT_HISTORY, loadChatHistory);
+  eventBus.$on(ROLLBACK_CHAT, onRollback);
   window.addEventListener('focus', onFocusDocument);
 })
 
 onBeforeUnmount(() => {
   clearIntervals();
-  eventBus.$off(DELETE_CHAT_START, onDeleteChat);
-  eventBus.$off(RENAME_CHAT, openRenameDialog);
+  eventBus.$off(DELETE_CHAT_CLEAR_INTERVALS_BY_TECHNICAL_ID, onDeleteChat);
+  eventBus.$off(LOAD_CHAT_HISTORY, loadChatHistory);
+  eventBus.$off(ROLLBACK_CHAT, onRollback);
   window.removeEventListener('focus', onFocusDocument);
 })
 
@@ -128,7 +119,8 @@ function init() {
   pollChat();
 }
 
-async function loadChatHistory() {
+async function loadChatHistory(id = null) {
+  if (id && id !== technicalId.value) return false;
   if (promiseInterval || !technicalId.value) return false;
   abortController = new AbortController();
   const newResults = [];
@@ -136,9 +128,7 @@ async function loadChatHistory() {
   try {
     promiseInterval = assistantStore.getChatById(technicalId.value, {signal: abortController.signal});
     const {data} = await promiseInterval;
-    chatName.value = data.chat_body.name;
-    chatDescription.value = data.chat_body.description;
-    entitiesData.value = data.chat_body.entities_data;
+    chatData.value = data;
     data.chat_body.dialogue.forEach((el) => {
       const result = addMessage(el);
       newResults.push(result);
@@ -209,7 +199,8 @@ function addMessage(el) {
   return true;
 }
 
-function onDeleteChat() {
+function onDeleteChat(technical_id) {
+  if (technical_id !== technicalId.value) return;
   clearIntervals();
 }
 
@@ -233,12 +224,15 @@ function startEnvelopeFlash() {
   }, 500);
 }
 
-async function onRollbackQuestion(event) {
+async function onRollback() {
   isLoading.value = true;
+  isLoadingRollback.value = true;
   try {
-    await assistantStore.postRollbackQuestion(technicalId.value, event);
+    await assistantStore.postRollback(technicalId.value);
   } catch {
     isLoading.value = false;
+  } finally {
+    isLoadingRollback.value = false;
   }
   await loadChatHistory();
 }
@@ -273,7 +267,7 @@ watch(technicalId, () => {
   messages.value = [];
   isLoading.value = true;
   if (abortController) abortController.abort();
-  chatName.value = null;
+  chatData.value = null;
   abortController = null;
   clearIntervals();
   init();
@@ -299,14 +293,6 @@ watch(countNewMessages, (newVal) => {
     Tinycon.setBubble(0);
   }
 });
-
-function openRenameDialog() {
-  chatBotRenameDialogRef.value.dialogVisible = true;
-  chatBotRenameDialogRef.value.form = {
-    chat_name: chatName.value,
-    chat_description: chatDescription.value,
-  };
-}
 
 watch(isLoading, () => {
   disabled.value = isLoading.value;

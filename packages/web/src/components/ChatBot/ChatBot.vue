@@ -2,7 +2,7 @@
   <div class="chat-bot">
     <ChatBotTopActions @toggleCanvas="emit('toggleCanvas')">
       <template #chat-name>
-        <ChatBotName v-if="chatName" :chatName="chatName" :technicalId="technicalId"/>
+        <ChatBotName :technicalId="technicalId"/>
       </template>
     </ChatBotTopActions>
 
@@ -11,12 +11,12 @@
         <div class="chat-bot__inner-messages">
           <template v-for="message in messages">
             <el-row>
-              <el-col class="chat-bot__inner-messages-col" :offset="getOffset(message.type)" :span="getSpan(message.type)">
+              <el-col class="chat-bot__inner-messages-col" :offset="getOffset(message.type)"
+                      :span="getSpan(message.type)">
                 <ChatBotMessageQuestion
                     v-if="message.type === 'question'"
                     :message="message"
                     :isLoading="isLoading"
-                    @rollbackQuestion="emit('rollbackQuestion', $event)"
                     @approveQuestion="emit('approveQuestion', $event)"
                 />
                 <ChatBotMessageNotification
@@ -59,7 +59,6 @@ import ChatBotMessageFunction from "@/components/ChatBot/ChatBotMessageFunction.
 
 const emit = defineEmits([
   'answer',
-  'rollbackQuestion',
   'approveQuestion',
   'updateNotification',
   'toggleCanvas'
@@ -70,7 +69,6 @@ const props = defineProps<{
   disabled: boolean,
   messages: any[],
   technicalId: string,
-  chatName: string | null,
 }>();
 
 let lastAnswerEl = null;
@@ -173,6 +171,10 @@ function getFullHeight(el) {
   const marginBottom = parseFloat(style.marginBottom) || 0;
   return el.offsetHeight + marginTop + marginBottom;
 }
+
+watch(() => props.technicalId, () => {
+  chatBotPlaceholderHeight.value = 0;
+})
 </script>
 
 <style scoped lang="scss">
@@ -206,6 +208,7 @@ function getFullHeight(el) {
 
 <style lang="scss">
 @use '@/assets/css/particular/breakpoints';
+
 .chat-bot {
   display: flex;
   flex-direction: column;
@@ -236,7 +239,7 @@ function getFullHeight(el) {
     //padding-left: 5px;
   }
 
-  &__inner-messages-col{
+  &__inner-messages-col {
     @include breakpoints.respond-max('md') {
       margin-left: auto !important;
       margin-right: auto !important;

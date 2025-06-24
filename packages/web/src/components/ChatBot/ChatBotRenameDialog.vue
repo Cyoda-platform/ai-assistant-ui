@@ -25,20 +25,38 @@
 </template>
 
 <script setup lang="ts">
-import {computed, reactive, ref} from "vue";
+import {computed, onMounted, onBeforeUnmount, reactive, ref} from "vue";
 import helperBreakpoints from "@/helpers/HelperBreakpoints";
 import useAssistantStore from "@/stores/assistant";
 import {templateRef} from "@vueuse/core";
+import eventBus from "@/plugins/eventBus";
+import {LOAD_CHAT_HISTORY, RENAME_CHAT_START} from "@/helpers/HelperConstants";
 
 const dialogVisible = ref(false);
 const isLoading = ref(false);
 const assistantStore = useAssistantStore();
 const formRef = templateRef('formRef');
+const technicalId = ref(null);
 
-const props = defineProps<{
-  technicalId: string,
-  loadChatHistoryFn: any
-}>();
+onMounted(() => {
+  eventBus.$on(RENAME_CHAT_START, onRenameChat);
+});
+
+onBeforeUnmount(() => {
+  eventBus.$off(RENAME_CHAT_START, onRenameChat);
+});
+
+function onRenameChat(data) {
+  form.value = {
+    chat_name: data.name,
+    chat_description: data.description,
+  }
+
+  technicalId.value = data.technical_id;
+
+
+  dialogVisible.value = true;
+}
 
 const form = ref({
   chat_name: '',
@@ -63,16 +81,15 @@ function onClickSubmit() {
     if (!valid) return;
     try {
       isLoading.value = true;
-      await assistantStore.renameChatById(props.technicalId, form.value);
-      await Promise.all([assistantStore.getChats(), props.loadChatHistoryFn()]);
+      await assistantStore.renameChatById(technicalId.value, form.value);
+      eventBus.$emit(LOAD_CHAT_HISTORY, technicalId.value);
+      await assistantStore.getChats();
       dialogVisible.value = false;
     } finally {
       isLoading.value = false;
     }
   })
 }
-
-defineExpose({dialogVisible, form});
 </script>
 
 <style scoped lang="scss">

@@ -8,23 +8,6 @@
 
       <div class="chat-bot-message-question__top-actions">
         <el-tooltip
-          v-if="false"
-          class="box-item"
-          effect="dark"
-          content="Rollback"
-          :show-after="1000"
-          placement="top"
-        >
-          <el-button
-            @click="onClickRollbackQuestion"
-            :loading="isLoadingRollback"
-            size="small"
-            class="btn-default-lighter btn-icon"
-          >
-            <RollbackQuestionIcon/>
-          </el-button>
-        </el-tooltip>
-        <el-tooltip
           class="box-item"
           effect="dark"
           content="Copy"
@@ -68,7 +51,6 @@
 
 <script lang="ts" setup>
 import AiChaIcon from "@/assets/images/icons/ai-chat.svg";
-import RollbackQuestionIcon from "@/assets/images/icons/rollback-question.svg";
 import CopyIcon from "@/assets/images/icons/copy.svg";
 import CheckIcon from "@/assets/images/icons/check.svg";
 import {computed, ref} from "vue";
@@ -81,8 +63,7 @@ const props = defineProps<{
   isLoading: boolean,
 }>()
 
-const emit = defineEmits(['rollbackQuestion', 'approveQuestion']);
-const isLoadingRollback = ref(false);
+const emit = defineEmits(['approveQuestion']);
 const isLoadingApprove = ref(false);
 const computedMessage = computed(() => {
   const text = props.message.text;
@@ -92,11 +73,6 @@ const computedMessage = computed(() => {
 
   return HelperMarkdown.parseMarkdown(text);
 });
-
-function onClickRollbackQuestion() {
-  isLoadingRollback.value = true;
-  emit('rollbackQuestion', props.message.raw);
-}
 
 function onClickApproveQuestion() {
   isLoadingApprove.value = true;

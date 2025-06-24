@@ -5,10 +5,17 @@
 </template>
 
 <script setup lang="ts">
+import {computed, inject} from "vue";
+
 defineProps<{
   technicalId: string,
-  chatName: string,
 }>();
+
+const chatData = inject('chatData');
+
+const chatName = computed(() => {
+  return chatData.value?.chat_body?.name || '';
+})
 </script>
 
 <style lang="scss" scoped>
