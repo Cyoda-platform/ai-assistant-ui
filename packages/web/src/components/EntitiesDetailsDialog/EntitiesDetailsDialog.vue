@@ -1,13 +1,28 @@
 <template>
   <el-dialog
-    v-model="dialogVisible"
-    title="Entities Data"
-    width="70%"
-    :close-on-click-modal="false"
+      v-model="dialogVisible"
+      width="70%"
+      :close-on-click-modal="false"
   >
+    <template #header="{ close, titleId, titleClass }">
+      <div class="my-header">
+        <h4 :id="titleId" :class="titleClass">
+          Entities Data
+          <el-button
+              @click="onClickRollbackChat"
+              :loading="isLoadingRollback"
+              size="small"
+              class="btn btn-primary"
+          >
+            Rollback
+            <RollbackQuestionIcon class="icon"/>
+          </el-button>
+        </h4>
+      </div>
+    </template>
     <el-tabs>
       <el-tab-pane v-for="workflow in workflows" :label="workflow.workflow_name">
-      <EntitiesDetailsDialogDetails :workflow="workflow"/>
+        <EntitiesDetailsDialogDetails :workflow="workflow"/>
       </el-tab-pane>
     </el-tabs>
     <template #footer>
@@ -19,11 +34,23 @@
 </template>
 
 <script setup lang="ts">
-import {inject, computed} from "vue";
+import {inject, computed, ref} from "vue";
 import EntitiesDetailsDialogDetails from "@/components/EntitiesDetailsDialog/EntitiesDetailsDialogDetails.vue";
+import RollbackQuestionIcon from "@/assets/images/icons/rollback-question.svg";
+import eventBus from "@/plugins/eventBus";
+import {ROLLBACK_CHAT} from "@/helpers/HelperConstants";
 
 const dialogVisible = defineModel();
-const entitiesData = inject('entitiesData');
+const chatData = inject('chatData');
+const isLoadingRollback = inject('isLoadingRollback');
+
+function onClickRollbackChat() {
+  eventBus.$emit(ROLLBACK_CHAT);
+}
+
+const entitiesData = computed(() => {
+  return chatData.value?.chat_body?.entities_data || {};
+})
 
 const workflows = computed(() => {
   return Object.keys(entitiesData.value).map(id => {
@@ -37,5 +64,9 @@ const workflows = computed(() => {
 </script>
 
 <style scoped lang="scss">
-
+.icon{
+  margin-left: 5px;
+  position: relative;
+  top: 2px;
+}
 </style>

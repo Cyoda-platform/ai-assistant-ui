@@ -46,7 +46,7 @@ import useAssistantStore from "@/stores/assistant";
 import {useRoute} from "vue-router";
 import router from "@/router";
 import eventBus from "@/plugins/eventBus";
-import {DELETE_CHAT_START, RENAME_CHAT, SHOW_MARKDOWN_DRAWER} from "@/helpers/HelperConstants";
+import {DELETE_CHAT_CLEAR_INTERVALS_BY_TECHNICAL_ID, RENAME_CHAT_START, SHOW_MARKDOWN_DRAWER} from "@/helpers/HelperConstants";
 import DrawerSidebar from "@/components/DrawerSidebar/DrawerSidebar.vue";
 import ChatBotMenuMobile from "@/components/ChatBot/ChatBotMenuMobile.vue";
 import ChatBotMenuDesktop from "@/components/ChatBot/ChatBotMenuDesktop.vue";
@@ -60,6 +60,7 @@ const route = useRoute();
 const entitiesDetailsDialogVisible = ref(false);
 const drawerSidebarVisible = ref(false);
 const canvasVisible = inject('canvasVisible');
+const chatData = inject('chatData');
 
 function onClickEntitiesDetails() {
   entitiesDetailsDialogVisible.value = true;
@@ -74,7 +75,7 @@ function onClickMarkdownSideBar() {
 }
 
 function onClickRename() {
-  eventBus.$emit(RENAME_CHAT)
+    eventBus.$emit(RENAME_CHAT_START, chatData.value?.chat_body)
 }
 
 function onClickDelete() {
@@ -82,7 +83,7 @@ function onClickDelete() {
     callback: async (action) => {
       if (action === "confirm") {
         try {
-          eventBus.$emit(DELETE_CHAT_START);
+          eventBus.$emit(DELETE_CHAT_CLEAR_INTERVALS_BY_TECHNICAL_ID, route.params.technicalId);
           isLoadingDelete.value = true;
           await assistantStore.deleteChatById(route.params.technicalId);
           await assistantStore.getChats();

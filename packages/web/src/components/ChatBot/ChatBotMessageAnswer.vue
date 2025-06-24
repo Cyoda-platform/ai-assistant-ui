@@ -19,7 +19,8 @@ const props = defineProps<{
 
 const computedMessage = computed(() => {
   let text = props.message.text;
-  if (typeof text === 'object' && text !== null) {
+  if (!text) return '';
+  if (typeof text === 'object') {
     return JSON.stringify(text, null, 2);
   }
 

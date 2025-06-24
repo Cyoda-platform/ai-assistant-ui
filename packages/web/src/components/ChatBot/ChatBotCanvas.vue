@@ -25,13 +25,11 @@ const props = defineProps<{
   messages: any[],
   isLoading: boolean,
   technicalId: string,
-  chatName: string,
 }>();
 
 
 const emit = defineEmits([
   'answer',
-  'rollbackQuestion',
   'approveQuestion',
   'updateNotification',
   'toggleCanvas'
