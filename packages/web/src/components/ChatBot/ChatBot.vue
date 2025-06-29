@@ -212,7 +212,7 @@ watch(() => props.technicalId, () => {
 .chat-bot {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  height: calc(100dvh - 60px);
   overflow: hidden;
 
   &__body {
