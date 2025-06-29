@@ -90,6 +90,7 @@ watch(isAuthenticated, async (value) => {
 
 <style scoped lang="scss">
 .alert {
+  border-radius: 0;
   display: flex;
   justify-content: center;
   height: 60px;
