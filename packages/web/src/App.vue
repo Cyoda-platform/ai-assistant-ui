@@ -76,7 +76,9 @@ watch(isAuthenticated, async (value) => {
       email: user.value.email,
     })
     if (oldToken) {
-      await authStore.postTransferChats(oldToken, true);
+      try {
+        await authStore.postTransferChats(oldToken, true);
+      } catch {}
     }
 
     assistantStore.setGuestChatsExist(false);
