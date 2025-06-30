@@ -73,6 +73,7 @@ const props = defineProps<{
 
 let lastAnswerEl = null;
 let chatLoaderHeight = null;
+let isAlreadyInit = false;
 const chatBotPlaceholderHeight = ref(0);
 
 function scrollDownMessages() {
@@ -94,22 +95,6 @@ const isLastMessageAnswer = computed(() => {
   if (!last) return false;
   return last.type === 'answer';
 })
-
-watch(() => props.isLoading, () => {
-  if (props.isLoading) return;
-  setTimeout(() => {
-    scrollDownMessages();
-    window.getSelection().removeAllRanges();
-  }, 500)
-})
-
-watch(isLastMessageAnswer, async (value) => {
-  if (value) {
-    updatePlaceholderHeightForAnswer();
-  } else {
-    updatePlaceholderHeightForNoneAnswers();
-  }
-});
 
 async function updatePlaceholderHeightForAnswer() {
   await nextTick();
@@ -174,7 +159,25 @@ function getFullHeight(el) {
 
 watch(() => props.technicalId, () => {
   chatBotPlaceholderHeight.value = 0;
+  isAlreadyInit = false;
 })
+
+watch(() => props.isLoading, () => {
+  if (props.isLoading || isAlreadyInit) return;
+  setTimeout(() => {
+    scrollDownMessages();
+    isAlreadyInit = true;
+    window.getSelection().removeAllRanges();
+  }, 500)
+})
+
+watch(isLastMessageAnswer, async (value) => {
+  if (value) {
+    updatePlaceholderHeightForAnswer();
+  } else {
+    updatePlaceholderHeightForNoneAnswers();
+  }
+});
 </script>
 
 <style scoped lang="scss">
@@ -212,7 +215,7 @@ watch(() => props.technicalId, () => {
 .chat-bot {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  height: calc(100dvh - 60px);
   overflow: hidden;
 
   &__body {
