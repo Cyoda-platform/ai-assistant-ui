@@ -84,16 +84,15 @@
     background: #161422;
   }
 
-  * {
+  &, * {
     scrollbar-color: #161422 #2D2D40;
   }
 }
 
-:root {
-  .theme-dark {
-    @include dark-theme;
-    @include scollbar;
-    @include applyForOnlyThemeDark;
-  }
+
+.theme-dark {
+  @include dark-theme;
+  @include scollbar;
+  @include applyForOnlyThemeDark;
 }
 
