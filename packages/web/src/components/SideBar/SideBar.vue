@@ -85,6 +85,11 @@
           {{ t('side_bar.logout') }}
         </span>
       </a>
+      <div class="side-bar__copyright">
+        Copyright © {{ year }} <a target="_blank" href="https://www.cyoda.com/"> CYODA Ltd.</a>
+        <br/>
+        All rights reserved
+      </div>
     </div>
     <SettingsDialog ref="settingsDialogRef"/>
     <AboutDialog ref="aboutDialogRef"/>
@@ -118,6 +123,7 @@ import {useI18n} from "vue-i18n";
 import CloseIcon from '@/assets/images/icons/close.svg';
 import {templateRef} from "@vueuse/core";
 
+const year = new Date().getFullYear();
 const authStore = useAuthStore();
 const appStore = useAppStore();
 const router = useRouter();
@@ -321,6 +327,12 @@ function onClickAbout() {
         stroke: var(--text-color-regular);
       }
     }
+  }
+
+  &__copyright {
+    font-size: 14px;
+    color: var(--text-color-regular);
+    margin-top: 10px;
   }
 
   &__create_new {

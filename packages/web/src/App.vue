@@ -5,6 +5,7 @@
     <RouterView/>
     <LoginPopUp/>
     <ChatBotRenameDialog ref="chatBotRenameDialogRef" />
+    <ConfirmationDialog/>
     <!--    <DeveloperComponentIcon v-if="isDev"/>-->
   </component>
 </template>
@@ -22,6 +23,7 @@ import useAssistantStore from "@/stores/assistant";
 import {setTokenGetter} from "@/helpers/HelperAuth";
 import {useDetectTheme} from "@/helpers/HelperTheme";
 import ChatBotRenameDialog from "@/components/ChatBot/ChatBotRenameDialog.vue";
+import ConfirmationDialog from "@/components/ConfirmationDialog/ConfirmationDialog.vue";
 
 const defaultLayout = "default";
 
