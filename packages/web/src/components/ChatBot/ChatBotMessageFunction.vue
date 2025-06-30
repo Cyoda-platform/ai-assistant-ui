@@ -50,7 +50,7 @@ const isLoading = ref(false);
 const emit = defineEmits(['updateNotification']);
 
 const endpointUrl = computed(() => {
-  return `https://${authStore.parsedToken.caas_org_id}.${import.meta.env.VITE_APP_CYODA_CLIENT_HOST}${computedMessage.value.path}`;
+  return `https://${import.meta.env.VITE_APP_CYODA_CLIENT_ENV_PREFIX}${authStore.parsedToken.caas_org_id}.${import.meta.env.VITE_APP_CYODA_CLIENT_HOST}${computedMessage.value.path}`;
 });
 
 async function onClick() {
