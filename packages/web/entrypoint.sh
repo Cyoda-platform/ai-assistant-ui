@@ -17,6 +17,7 @@ do
   sed -i 's~APP_AI_AUTH0_REDIRECT_URI_value~'$APP_AI_AUTH0_REDIRECT_URI_value'~g' $file
   sed -i 's~APP_AI_AUTH0_ORGANIZATION_value~'$APP_AI_AUTH0_ORGANIZATION_value'~g' $file
   sed -i 's~APP_CYODA_CLIENT_HOST_value~'$APP_CYODA_CLIENT_HOST_value'~g' $file
+  sed -i 's~APP_CYODA_CLIENT_ENV_PREFIX_value~'$APP_CYODA_CLIENT_ENV_PREFIX_value'~g' $file
 done
 
 echo "Starting Nginx"
