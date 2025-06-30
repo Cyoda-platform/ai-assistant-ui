@@ -45,14 +45,15 @@ const layout = computed(() => {
 });
 
 watchEffect(() => {
-  document.body.classList.remove(`theme-dark`);
-  document.body.classList.remove(`theme-light`);
+  const root = document.documentElement;
+  root.classList.remove(`theme-dark`);
+  root.classList.remove(`theme-light`);
   if (isInIframe && !authStore.isLoggedIn) {
-    document.body.classList.add('theme-light');
+    root.classList.add('theme-light');
     return;
   }
 
-  document.body.classList.add(`theme-${detectTheme.value}`);
+  root.classList.add(`theme-${detectTheme.value}`);
 });
 
 const helperStorage = new HelperStorage();
@@ -75,7 +76,9 @@ watch(isAuthenticated, async (value) => {
       email: user.value.email,
     })
     if (oldToken) {
-      await authStore.postTransferChats(oldToken, true);
+      try {
+        await authStore.postTransferChats(oldToken, true);
+      } catch {}
     }
 
     assistantStore.setGuestChatsExist(false);
@@ -91,6 +94,7 @@ watch(isAuthenticated, async (value) => {
 
 <style scoped lang="scss">
 .alert {
+  border-radius: 0;
   display: flex;
   justify-content: center;
   height: 60px;

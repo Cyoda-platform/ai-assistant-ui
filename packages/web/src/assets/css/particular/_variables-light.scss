@@ -84,16 +84,13 @@
     background: initial !important;
   }
 
-  * {
+  &, * {
     scrollbar-color: initial !important;
   }
 }
 
-
-:root {
-  .theme-light {
-    @include light-theme;
-    @include scollbar;
-    @include applyOnlyForThemeLight;
-  }
+.theme-light {
+  @include light-theme;
+  @include scollbar;
+  @include applyOnlyForThemeLight;
 }
