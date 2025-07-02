@@ -86,9 +86,14 @@
         </span>
       </a>
       <div class="side-bar__copyright">
-        Copyright © {{ year }} <a target="_blank" href="https://www.cyoda.com/"> CYODA Ltd.</a>
-        <br/>
-        All rights reserved
+        <template v-if="isSidebarHidden">
+          <a target="_blank" href="https://www.cyoda.com/">CYODA</a>
+        </template>
+        <template v-else>
+          Copyright © {{ year }} <a target="_blank" href="https://www.cyoda.com/"> CYODA Ltd.</a>
+          <br/>
+          All rights reserved
+        </template>
       </div>
     </div>
     <SettingsDialog ref="settingsDialogRef"/>
@@ -332,7 +337,13 @@ function onClickAbout() {
   &__copyright {
     font-size: 14px;
     color: var(--text-color-regular);
-    margin-top: 10px;
+    margin-top: 15px;
+
+    .side-bar--hidden & {
+      font-size: 12px;
+      text-align: center;
+      white-space: nowrap;
+    }
   }
 
   &__create_new {
