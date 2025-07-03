@@ -4,22 +4,36 @@
       <SideBar/>
     </div>
     <div class="chat-bot-canvas__main">
-      <ChatBotTopActions @toggleCanvas="emit('toggleCanvas')"/>
-      <ChatBotEditor :technicalId="technicalId" @answer="emit('answer', $event)" :isShowMarkdown="isShowMarkdown"/>
+      <ChatBotTopActions @toggleCanvas="emit('toggleCanvas')">
+        <template #left-side>
+          <el-radio-group v-model="canvasType" size="large">
+            <el-radio-button label="Markdown" value="markdown"/>
+            <el-radio-button label="Workflow" value="workflow"/>
+          </el-radio-group>
+        </template>
+      </ChatBotTopActions>
+      <ChatBotEditorMarkdown
+          v-if="canvasType==='markdown'"
+          @answer="emit('answer', $event)"
+          :technicalId="technicalId"
+      />
+      <ChatBotEditorWorkflow v-if="canvasType === 'workflow'" :technicalId="technicalId"/>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import ChatBotEditor from "@/components/ChatBot/ChatBotEditor.vue";
+import ChatBotEditorMarkdown from "@/components/ChatBot/ChatBotEditorMarkdown.vue";
 import {computed, ref, watch} from "vue";
 
 import ChatBotTopActions from "@/components/ChatBot/ChatBotTopActions.vue";
 import SideBar from "@/components/SideBar/SideBar.vue";
 import useAppStore from "@/stores/app";
+import ChatBotEditorWorkflow from "@/components/ChatBot/ChatBotEditorWorkflow.vue";
 
 const appStore = useAppStore();
 const isSidebarHidden = computed(() => appStore.isSidebarHidden);
+const canvasType = ref('markdown');
 
 const props = defineProps<{
   messages: any[],
@@ -34,8 +48,6 @@ const emit = defineEmits([
   'updateNotification',
   'toggleCanvas'
 ]);
-
-const isShowMarkdown = ref(true);
 
 function scrollDownMessages() {
   const messagesHtml = document.querySelector('.chat-bot-canvas__sidebar-messages');

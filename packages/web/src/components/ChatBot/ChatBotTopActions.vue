@@ -4,7 +4,7 @@
       <el-button @click="onClickDrawerSideBar" class="btn btn-default btn-icon hidden-above-md">
         <MenuIcon class="fill-stroke"/>
       </el-button>
-      <slot class="chat-bot-top-actions__chat-name" name="chat-name"></slot>
+      <slot class="chat-bot-top-actions__chat-name" name="left-side"></slot>
     </div>
     <div class="chat-bot-top-actions__right-part hidden-below-md">
       <ChatBotMenuDesktop

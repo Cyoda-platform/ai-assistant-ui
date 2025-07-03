@@ -1,7 +1,7 @@
 <template>
   <div class="chat-bot">
     <ChatBotTopActions @toggleCanvas="emit('toggleCanvas')">
-      <template #chat-name>
+      <template #left-side>
         <ChatBotName :technicalId="technicalId"/>
       </template>
     </ChatBotTopActions>
