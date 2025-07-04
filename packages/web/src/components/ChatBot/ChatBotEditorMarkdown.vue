@@ -1,15 +1,12 @@
 <template>
   <div
       v-loading="isLoading"
-      class="chat-bot-editor"
-      :class="{
-    resizing: isResizing
-  }"
+      class="chat-bot-editor-markdown"
   >
-    <div class="chat-bot-editor__wrap-editor" :class="{'chat-bot-editor__markdown--show': isShowMarkdown}">
-      <div class="chat-bot-editor__editor" :style="editorStyle">
-        <Editor v-model="canvasData" class="chat-bot-editor__editor-inner" :actions="editorActions"/>
-        <div class="chat-bot-editor__actions">
+    <el-splitter>
+      <el-splitter-panel v-model:size="editorSize" class="chat-bot-editor-markdown__editor-wrapper">
+        <Editor v-model="canvasData" class="chat-bot-editor-markdown__editor-inner" :actions="editorActions"/>
+        <div class="chat-bot-editor-markdown__actions">
           <div class="btn-action btn-block">
             <el-tooltip
                 class="box-item"
@@ -39,14 +36,11 @@
             </el-tooltip>
           </div>
         </div>
-      </div>
-      <template v-if="isShowMarkdown">
-        <div class="chat-bot-editor__markdown hidden-below-md">
-          <div class="chat-bot-editor__drag" @mousedown="startResize"></div>
-          <div class="chat-bot-editor__markdown-inner" v-html="canvasDataWithMarkdown"></div>
-        </div>
-      </template>
-    </div>
+      </el-splitter-panel>
+      <el-splitter-panel v-if="isShowMarkdown" class="chat-bot-editor-markdown__markdown-wrapper">
+        <div class="chat-bot-editor-markdown__markdown-inner" v-html="canvasDataWithMarkdown"></div>
+      </el-splitter-panel>
+    </el-splitter>
     <ChatBotAttachFile
         ref="chatBotAttachFileRef"
         @file="onFile"
@@ -62,8 +56,7 @@
 import Editor from "@/components/Editor/Editor.vue";
 import SendIcon from "@/assets/images/icons/send.svg";
 import AttachIcon from "@/assets/images/icons/attach.svg";
-import QuestionIcon from "@/assets/images/icons/question.svg";
-import {computed, onMounted, ref, useTemplateRef, onUnmounted} from "vue";
+import {computed, onMounted, ref, useTemplateRef, onUnmounted, watch} from "vue";
 import * as monaco from 'monaco-editor';
 import {ElMessageBox, ElNotification} from "element-plus";
 import useAssistantStore from "@/stores/assistant.ts";
@@ -83,24 +76,25 @@ const assistantStore = useAssistantStore();
 const emit = defineEmits(['answer']);
 const chatBotAttachFileRef = useTemplateRef('chatBotAttachFileRef');
 const currentFile = ref(null);
-const isResizing = ref(false);
 const helperStorage = new HelperStorage();
-const chatBotEditorWidth = helperStorage.get('сhatBotEditorWidth', {});
-const editorWidth = ref(chatBotEditorWidth.editorWidth || '50%');
-const chatBotCanvasMarkdownDrawerRef = templateRef('chatBotCanvasMarkdownDrawerRef')
+const chatBotCanvasMarkdownDrawerRef = templateRef('chatBotCanvasMarkdownDrawerRef');
+const EDITOR_WIDTH = 'chatBotEditorMarkdown:width';
 
-const props = withDefaults(defineProps<{
+const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
+
+const props = defineProps<{
   technicalId: string,
-  isShowMarkdown: boolean
-}>(), {
-  isShowMarkdown: false,
-});
+}>();
+
+const isShowMarkdown = computed(() => {
+  return !helperBreakpoints.smaller('md').value;
+})
 
 onMounted(() => {
   eventBus.$on(SHOW_MARKDOWN_DRAWER, showChatBotCanvasMarkdownDrawer);
 })
 
-onUnmounted(()=>{
+onUnmounted(() => {
   eventBus.$off(SHOW_MARKDOWN_DRAWER, showChatBotCanvasMarkdownDrawer);
 })
 
@@ -167,8 +161,6 @@ addSubmitQuestionAction();
 addSubmitAnswerAction();
 
 const canvasDataWithMarkdown = computed(() => {
-  if (!props.isShowMarkdown) return null;
-
   return HelperMarkdown.parseMarkdown(canvasData.value);
 })
 
@@ -276,58 +268,23 @@ function onFile(file: File) {
   currentFile.value = file;
 }
 
-function startResize(event) {
-  isResizing.value = true;
-  const startX = event.clientX;
-  const startEditorWidth = document.querySelector('.chat-bot-editor__editor').clientWidth;
-  const parentWidth = document.querySelector('.chat-bot-canvas').clientWidth - 20;
-  const minWidth = (parseFloat('20%') / 100) * parentWidth;
-  const maxWidth = (parseFloat('60%') / 100) * parentWidth;
-
-  const onMouseMove = (e) => {
-    let newEditorWidth = Math.max(100, startEditorWidth + (e.clientX - startX));
-
-    if (newEditorWidth > maxWidth) newEditorWidth = maxWidth;
-    if (newEditorWidth < minWidth) newEditorWidth = minWidth;
-
-    editorWidth.value = `${newEditorWidth}px`;
-
-    helperStorage.set('сhatBotEditorWidth', {
-      editorWidth: editorWidth.value,
-    });
-  };
-
-  const onMouseUp = () => {
-    isResizing.value = false;
-    window.removeEventListener("mousemove", onMouseMove);
-    window.removeEventListener("mouseup", onMouseUp);
-  };
-
-  window.addEventListener("mousemove", onMouseMove);
-  window.addEventListener("mouseup", onMouseUp);
-}
-
-const editorStyle = computed(() => {
-  if (helperBreakpoints.smaller('md').value) {
-    return {
-      width: '100%',
-    }
-  }
-  if (!props.isShowMarkdown) return null;
-
-  return {
-    width: editorWidth.value
-  }
-});
+watch(editorSize, (value) => {
+  helperStorage.set(EDITOR_WIDTH, value);
+})
 </script>
 
 <style lang="scss">
-.chat-bot-editor {
+.chat-bot-editor-markdown {
   position: relative;
   height: calc(100vh - 81px);
 
-  &.resizing * {
-    user-select: none;
+  &__editor-wrapper {
+    padding-right: 15px;
+    position: relative;
+  }
+
+  &__markdown-wrapper{
+    padding-left: 15px;
   }
 
   &__editor-inner {
@@ -353,32 +310,6 @@ const editorStyle = computed(() => {
     }
   }
 
-  &__wrap-editor {
-    display: flex;
-    width: 100%;
-    min-height: 100%;
-  }
-
-  &__editor {
-    width: 100%;
-    min-height: 100%;
-    position: relative;
-  }
-
-  &__markdown--show &__editor {
-    width: 50%;
-    padding-right: 15px;
-  }
-
-  &__markdown {
-    flex: 1;
-    border-left: 1px solid var(--border-color-darken);
-    position: relative;
-    color: var(--text-color-regular);
-    height: calc(100vh - 81px);
-    padding: 0 0 10px 15px;
-  }
-
   &__markdown-inner p:first-child {
     margin-top: 8px;
   }
@@ -386,16 +317,6 @@ const editorStyle = computed(() => {
   &__markdown-inner {
     height: 100%;
     overflow-y: auto;
-  }
-
-  &__drag {
-    position: absolute;
-    width: 10px;
-    height: 100%;
-    background: transparent;
-    top: 0;
-    left: -4px;
-    cursor: ew-resize;
   }
 }
 </style>

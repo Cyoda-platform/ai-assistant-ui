@@ -1,0 +1,9 @@
+.el-radio-button.is-active .el-radio-button__original-radio:not(:disabled)+.el-radio-button__inner {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: -1px 0 0 0 var(--color-primary);
+}
+
+.el-radio-button__inner:hover{
+  color: var(--color-primary);
+}
