@@ -142,7 +142,7 @@ async function questionRequest(data) {
   }
 }
 
-// Not used
+
 async function onSubmitAnswer() {
 
   const dataRequest = {

@@ -12,32 +12,35 @@
             @nodeDragStop="onNodeDragStop"
             v-model:nodes="nodes"
             v-model:edges="edges"
+            :edge-types="edgeTypes"
             :default-viewport="{ zoom: 1.5 }"
             :min-zoom="0.2"
             :max-zoom="4"
         >
           <Controls position="top-left">
-            <ControlButton title="Reset Transform" @click="resetTransform">
+            <ControlButton title="Сбросить масштаб" @click="resetTransform">
               <Icon name="reset"/>
             </ControlButton>
 
-            <ControlButton title="Shuffle Node Positions" @click="updatePos">
+            <ControlButton title="Автоматическое расположение" @click="autoLayout">
               <Icon name="update"/>
             </ControlButton>
+
           </Controls>
           <Background pattern-color="#aaa" :gap="16"/>
           <template #node-default="{ data }">
-            <Node @conditionChange="onConditionChange($event, data)" :data="data"/>
+            <Node :data="data"/>
           </template>
         </VueFlow>
       </el-splitter-panel>
     </el-splitter>
+    <EditEdgeConditional/>
   </div>
 </template>
 
 <script setup lang="ts">
-import {computed, ref, watch} from 'vue'
-import {VueFlow, useVueFlow} from '@vue-flow/core'
+import {computed, ref, watch, provide, onMounted, onUnmounted} from 'vue'
+import {VueFlow, useVueFlow, MarkerType} from '@vue-flow/core'
 import {Background} from '@vue-flow/background'
 import {ControlButton, Controls} from '@vue-flow/controls'
 import Editor from "@/components/Editor/Editor.vue";
@@ -45,6 +48,9 @@ import workflowData from "./workflow.json";
 import HelperStorage from "@/helpers/HelperStorage";
 import Icon from "@/components/ChatBot/ChatBotEditorWorkflow/Icon.vue";
 import Node from "@/components/ChatBot/ChatBotEditorWorkflow/Node.vue";
+import EdgeWithTooltip from "@/components/ChatBot/ChatBotEditorWorkflow/EdgeWithTooltip.vue";
+import eventBus from "@/plugins/eventBus";
+import EditEdgeConditional from "@/components/ChatBot/ChatBotEditorWorkflow/EditEdgeConditional.vue";
 
 const props = defineProps<{
   technicalId: string,
@@ -56,7 +62,7 @@ const canvasData = ref(JSON.stringify(workflowData, null, 2));
 const helperStorage = new HelperStorage();
 const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
 
-const {setViewport, onInit} = useVueFlow();
+const {setViewport, onInit, fitView: vueFlowFitView, getViewport} = useVueFlow();
 
 const nodePositionKey = computed(() => {
   return `workflow-node-positions${props.technicalId}`;
@@ -70,13 +76,54 @@ function saveNodePositions(positions) {
   helperStorage.set(nodePositionKey.value, positions);
 }
 
-let vueFlowInstance: any = null;
-
 onInit((instance) => {
   vueFlowInstance = instance;
 })
 
+onMounted(() => {
+  eventBus.$on('save-condition', handleSaveCondition);
+})
+
+onUnmounted(() => {
+  eventBus.$off('save-condition', handleSaveCondition);
+})
+
+function handleSaveCondition(eventData) {
+  const { stateName, transitionName, condition } = eventData;
+
+  let parsed;
+  try {
+    parsed = JSON.parse(canvasData.value);
+  } catch (e) {
+    console.error('Invalid JSON in canvasData:', e);
+    return;
+  }
+
+  const state = parsed.states[stateName];
+  if (!state) {
+    console.error('State not found:', stateName);
+    return;
+  }
+
+  const transition = state.transitions[transitionName];
+  if (!transition) {
+    console.error('Transition not found:', transitionName);
+    return;
+  }
+
+  if (condition === null || condition === undefined) {
+    delete transition.condition;
+  } else {
+    transition.condition = condition;
+  }
+
+  canvasData.value = JSON.stringify(parsed, null, 2);
+}
+
 const nodes = ref([]);
+const edgeTypes = {
+  custom: EdgeWithTooltip
+};
 const edges = computed(() => {
   const result = [];
   let parsed;
@@ -93,12 +140,67 @@ const edges = computed(() => {
   for (const [stateName, stateData] of Object.entries(states)) {
     if (stateData.transitions) {
       for (const [transitionName, transitionData] of Object.entries(stateData.transitions)) {
-        result.push({
+        const sourceNode = nodes.value.find(n => n.id === stateName);
+        const targetNode = nodes.value.find(n => n.id === transitionData.next);
+
+        let sourceHandle = 'right';
+        let targetHandle = 'left';
+
+        if (sourceNode && targetNode) {
+          const sourceY = sourceNode.position.y;
+          const targetY = targetNode.position.y;
+          const sourceX = sourceNode.position.x;
+          const targetX = targetNode.position.x;
+
+          const deltaY = Math.abs(targetY - sourceY);
+          const deltaX = Math.abs(targetX - sourceX);
+
+          if (deltaY > 80 && deltaX < 200) {
+            if (targetY > sourceY) {
+              sourceHandle = 'bottom';
+              targetHandle = 'top';
+            } else {
+              sourceHandle = 'top-source';
+              targetHandle = 'bottom-target';
+            }
+          }
+          else if (targetX < sourceX) {
+            if (targetY > sourceY + 50) {
+              sourceHandle = 'bottom';
+              targetHandle = 'top';
+            } else if (targetY < sourceY - 50) {
+              sourceHandle = 'top-source';
+              targetHandle = 'bottom-target';
+            } else {
+              sourceHandle = 'left';
+              targetHandle = 'right';
+            }
+          }
+        }
+
+        const edge = {
           id: `${stateName}-${transitionName}`,
           source: stateName,
           target: transitionData.next,
+          sourceHandle,
+          targetHandle,
           label: transitionName,
-        });
+          animated: true,
+          type: transitionData.condition ? 'custom' : 'default',
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 20,
+            height: 20,
+            color: '#333',
+          },
+          data: {
+            condition: transitionData.condition,
+            stateName,
+            transitionName,
+          },
+        };
+
+        result.push(edge);
       }
     }
   }
@@ -120,32 +222,25 @@ function generateNodes() {
   }
 
   const states = parsed.states || {};
+  const initialState = parsed.initial_state;
   let index = 0;
   const xDefault = 0;
   const ySpacing = 200;
 
   for (const [stateName, stateData] of Object.entries(states)) {
-    let condition = null;
-    let transitionNameWithCondition = null;
-
-    for (const [transitionName, transition] of Object.entries(stateData.transitions || {})) {
-      if (transition.condition) {
-        condition = transition.condition;
-        transitionNameWithCondition = transitionName;
-        break;
-      }
-    }
-
     const position = savedPositions[stateName] || {x: xDefault, y: index * ySpacing};
+    const transitionCount = Object.keys(stateData.transitions || {}).length;
+    const isTerminal = transitionCount === 0;
 
     result.push({
       id: stateName,
       type: 'default',
       data: {
         label: stateName,
-        editableCondition: condition ? JSON.stringify(condition, null, 2) : null,
         stateName,
-        transitionName: transitionNameWithCondition,
+        transitionCount,
+        isInitial: stateName === initialState,
+        isTerminal,
       },
       position,
     });
@@ -186,6 +281,34 @@ function onConditionChange(event, data) {
   canvasData.value = JSON.stringify(parsed, null, 2);
 }
 
+function onEdgeConditionChange(event) {
+  const { stateName, transitionName, condition } = event;
+
+  let parsed;
+  try {
+    parsed = JSON.parse(canvasData.value);
+  } catch (e) {
+    console.error('Invalid JSON in canvasData:', e);
+    return;
+  }
+
+  const state = parsed.states[stateName];
+  if (!state) return;
+
+  const transition = state.transitions[transitionName];
+  if (!transition) return;
+
+  if (condition === null || condition === undefined) {
+    delete transition.condition;
+  } else {
+    transition.condition = condition;
+  }
+
+  canvasData.value = JSON.stringify(parsed, null, 2);
+}
+
+provide('onConditionChange', onEdgeConditionChange);
+
 function onNodeDragStop(event) {
   const positions = loadNodePositions();
 
@@ -200,33 +323,124 @@ function resetTransform() {
   setViewport({x: 0, y: 0, zoom: 1})
 }
 
-function updatePos() {
-  nodes.value = nodes.value.map((node) => {
-    const newPos = {
-      x: Math.random() * 400,
-      y: Math.random() * 400,
-    }
-
-    return {
-      ...node,
-      position: newPos,
-    }
-  })
+function autoLayout() {
+  const parsed = JSON.parse(canvasData.value);
+  const states = parsed.states || {};
+  const initialState = parsed.initial_state;
 
   const positions = {};
-  nodes.value.forEach(node => {
-    positions[node.id] = node.position;
+  const levels = {};
+  const visited = new Set();
+  const nodesByLevel = {};
+
+  function assignMainLevels(stateName, level = 0) {
+    if (visited.has(stateName) || level > 10) return;
+
+    visited.add(stateName);
+    levels[stateName] = level;
+
+    if (!nodesByLevel[level]) nodesByLevel[level] = [];
+    nodesByLevel[level].push(stateName);
+
+    const state = states[stateName];
+    if (state?.transitions) {
+      const transitions = Object.values(state.transitions);
+
+      const sortedTransitions = transitions.sort((a, b) => {
+        if (a.condition && !b.condition) return 1;
+        if (!a.condition && b.condition) return -1;
+        return 0;
+      });
+
+      sortedTransitions.forEach(transition => {
+        if (transition.next && !visited.has(transition.next)) {
+          assignMainLevels(transition.next, level + 1);
+        }
+      });
+    }
+  }
+
+  if (initialState) {
+    assignMainLevels(initialState);
+  }
+
+  const remainingStates = Object.keys(states).filter(stateName => !visited.has(stateName));
+  remainingStates.forEach((stateName, index) => {
+    const level = Math.max(...Object.values(levels)) + 1 + Math.floor(index / 3);
+    levels[stateName] = level;
+
+    if (!nodesByLevel[level]) nodesByLevel[level] = [];
+    nodesByLevel[level].push(stateName);
   });
+
+  const LEVEL_WIDTH = 280;
+  const NODE_HEIGHT = 100;
+
+  Object.entries(nodesByLevel).forEach(([level, stateNames]) => {
+    const levelNum = parseInt(level);
+    const nodesCount = stateNames.length;
+
+    const startY = -(nodesCount - 1) * NODE_HEIGHT / 2;
+
+    stateNames.forEach((stateName, index) => {
+      let x = levelNum * LEVEL_WIDTH;
+      let y = startY + index * NODE_HEIGHT;
+
+      if (stateName === 'state_terminal') {
+        x = Math.max(levelNum * LEVEL_WIDTH, (Math.max(...Object.values(levels)) + 1) * LEVEL_WIDTH);
+        y = 0;
+      }
+
+      const state = states[stateName];
+      if (state?.transitions) {
+        const hasBackwardTransition = Object.values(state.transitions).some(t =>
+          t.next && levels[t.next] <= levels[stateName]
+        );
+
+        if (hasBackwardTransition && stateName !== initialState) {
+          y += index % 2 === 0 ? -150 : 150;
+        }
+      }
+
+      positions[stateName] = { x, y };
+    });
+  });
+
+  optimizePositions(positions, states);
+
+  nodes.value = nodes.value.map(node => ({
+    ...node,
+    position: positions[node.id] || node.position
+  }));
+
   saveNodePositions(positions);
 }
 
-function onResize() {
-  vueFlowInstance.fitView();
-}
+function optimizePositions(positions, states) {
+  const MIN_DISTANCE = 120;
+  const positionArray = Object.entries(positions);
 
-watch(editorSize, (value) => {
-  helperStorage.set(EDITOR_WIDTH, value);
-})
+  for (let i = 0; i < positionArray.length; i++) {
+    for (let j = i + 1; j < positionArray.length; j++) {
+      const [stateName1, pos1] = positionArray[i];
+      const [stateName2, pos2] = positionArray[j];
+
+      const distance = Math.sqrt(
+        Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2)
+      );
+
+      if (distance < MIN_DISTANCE) {
+        const angle = Math.atan2(pos2.y - pos1.y, pos2.x - pos1.x);
+        const moveDistance = (MIN_DISTANCE - distance) / 2;
+
+        pos1.x -= Math.cos(angle) * moveDistance;
+        pos1.y -= Math.sin(angle) * moveDistance;
+        pos2.x += Math.cos(angle) * moveDistance;
+        pos2.y += Math.sin(angle) * moveDistance;
+      }
+    }
+  }
+}
 </script>
 
 <style lang="scss">
