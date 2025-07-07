@@ -1,8 +1,9 @@
 <template>
-  <div class="chat-bot-editor-workflow">
+  <div v-loading="isLoading" class="chat-bot-editor-workflow">
     <el-splitter @resize="onResize">
       <el-splitter-panel v-model:size="editorSize" class="chat-bot-editor-workflow__editor-wrapper">
-        <Editor v-model="canvasData" language="javascript" class="chat-bot-editor-workflow__editor-inner"/>
+        <Editor v-model="canvasData" language="javascript" class="chat-bot-editor-workflow__editor-inner"
+                :actions="editorActions"/>
       </el-splitter-panel>
       <el-splitter-panel class="chat-bot-editor-workflow__flow-wrapper">
         <VueFlow
@@ -38,7 +39,8 @@
       </el-splitter-panel>
     </el-splitter>
     <EditEdgeConditionalDialog/>
-    <WorkflowMetaDialog @update="onUpdateWorkflowMetaDialog" ref="workflowMetaDialogRef" :workflowMetaData="workflowMetaData"/>
+    <WorkflowMetaDialog @update="onUpdateWorkflowMetaDialog" ref="workflowMetaDialogRef"
+                        :workflowMetaData="workflowMetaData"/>
   </div>
 </template>
 
@@ -57,6 +59,9 @@ import eventBus from "@/plugins/eventBus";
 import EditEdgeConditionalDialog from "@/components/ChatBot/ChatBotEditorWorkflow/EditEdgeConditionalDialog.vue";
 import {templateRef} from "@vueuse/core";
 import WorkflowMetaDialog from "@/components/ChatBot/ChatBotEditorWorkflow/WorkflowMetaDialog.vue";
+import * as monaco from "monaco-editor";
+import {ElMessageBox, ElNotification} from "element-plus";
+import useAssistantStore from "@/stores/assistant";
 
 const props = defineProps<{
   technicalId: string,
@@ -67,7 +72,7 @@ const EDITOR_WIDTH = 'chatBotEditorWorkflow:width';
 const canvasData = ref(JSON.stringify(workflowData, null, 2));
 const helperStorage = new HelperStorage();
 const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
-const workflowMetaDialogRef= templateRef('workflowMetaDialogRef');
+const workflowMetaDialogRef = templateRef('workflowMetaDialogRef');
 
 const {setViewport, fitView} = useVueFlow();
 
@@ -76,6 +81,9 @@ const nodePositionKey = computed(() => {
 })
 
 const workflowMetaData = ref(helperStorage.get(nodePositionKey.value, {}));
+const editorActions = ref<any[]>([]);
+const isLoading = ref(false);
+const assistantStore = useAssistantStore();
 
 function loadNodePositions() {
   return workflowMetaData.value;
@@ -459,6 +467,76 @@ function onUpdateWorkflowMetaDialog(data) {
 function onResize() {
   fitView();
 }
+
+function addSubmitQuestionAction() {
+  editorActions.value.push({
+    id: "submitQuestion",
+    label: "Submit Question",
+    contextMenuGroupId: "chatbot",
+    keybindings: [
+      monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyQ,
+    ],
+    run: async (editor) => {
+      const selectedValue = editor.getModel().getValueInRange(editor.getSelection());
+
+      if (!selectedValue) {
+        ElMessageBox.alert('Please select text before use it', 'Warning');
+        return;
+      }
+
+      try {
+        isLoading.value = true;
+
+        const dataRequest = {
+          question: selectedValue
+        };
+
+        const {data} = await questionRequest(dataRequest);
+
+        const position = editor.getPosition();
+        const lineCount = editor.getModel().getLineCount();
+        const message = data.message.replaceAll('```javascript', '').replaceAll('```', '').trim();
+        let textToInsert = `/*\n${message}\n*/`;
+        if (position.lineNumber === lineCount) {
+          textToInsert = '\n' + textToInsert;
+        } else {
+          textToInsert = textToInsert + '\n';
+        }
+        const range = new monaco.Range(
+            position.lineNumber + 1,
+            1,
+            position.lineNumber + 1,
+            1
+        );
+        editor.executeEdits('DialogContentScriptEditor', [
+          {
+            range,
+            text: textToInsert,
+          },
+        ]);
+        editor.setPosition({
+          lineNumber: position.lineNumber + 1,
+          column: textToInsert.length + 1
+        });
+
+        ElNotification({
+          title: 'Success',
+          message: 'The code was generated',
+          type: 'success',
+        })
+      } finally {
+        isLoading.value = false;
+      }
+
+    }
+  })
+}
+
+async function questionRequest(data) {
+  return assistantStore.postTextQuestions(props.technicalId, data);
+}
+
+addSubmitQuestionAction();
 </script>
 
 <style lang="scss">
