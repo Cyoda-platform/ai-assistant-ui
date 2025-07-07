@@ -27,7 +27,7 @@ const props = withDefaults(defineProps<{
   modelValue: '',
   language: 'text/plain',
   editable: true,
-  actions: () => []
+  actions: () => ([])
 });
 
 let editor: any = null;
