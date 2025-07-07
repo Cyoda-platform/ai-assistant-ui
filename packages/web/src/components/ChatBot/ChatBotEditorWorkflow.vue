@@ -2,7 +2,7 @@
   <div class="chat-bot-editor-workflow">
     <el-splitter @resize="onResize">
       <el-splitter-panel v-model:size="editorSize" class="chat-bot-editor-workflow__editor-wrapper">
-        <Editor v-model="canvasData" class="chat-bot-editor-workflow__editor-inner"/>
+        <Editor v-model="canvasData" language="javascript" class="chat-bot-editor-workflow__editor-inner"/>
       </el-splitter-panel>
       <el-splitter-panel class="chat-bot-editor-workflow__flow-wrapper">
         <VueFlow
@@ -69,7 +69,7 @@ const helperStorage = new HelperStorage();
 const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
 const workflowMetaDialogRef= templateRef('workflowMetaDialogRef');
 
-const {setViewport} = useVueFlow();
+const {setViewport, fitView} = useVueFlow();
 
 const nodePositionKey = computed(() => {
   return `workflow-node-positions${props.technicalId}`;
@@ -454,6 +454,10 @@ function onUpdateWorkflowMetaDialog(data) {
   workflowMetaData.value = data;
   helperStorage.set(nodePositionKey.value, data);
   generateNodes();
+}
+
+function onResize() {
+  fitView();
 }
 </script>
 
