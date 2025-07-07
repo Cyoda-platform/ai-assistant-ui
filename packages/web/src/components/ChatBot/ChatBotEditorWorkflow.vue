@@ -18,14 +18,17 @@
             :max-zoom="4"
         >
           <Controls position="top-left">
-            <ControlButton title="Сбросить масштаб" @click="resetTransform">
+            <ControlButton @click="resetTransform">
               <Icon name="reset"/>
             </ControlButton>
 
-            <ControlButton title="Автоматическое расположение" @click="autoLayout">
+            <ControlButton @click="autoLayout">
               <Icon name="update"/>
             </ControlButton>
 
+            <ControlButton @click="workflowMeta">
+              <Icon name="cogs"/>
+            </ControlButton>
           </Controls>
           <Background pattern-color="#aaa" :gap="16"/>
           <template #node-default="{ data }">
@@ -34,7 +37,8 @@
         </VueFlow>
       </el-splitter-panel>
     </el-splitter>
-    <EditEdgeConditional/>
+    <EditEdgeConditionalDialog/>
+    <WorkflowMetaDialog @update="onUpdateWorkflowMetaDialog" ref="workflowMetaDialogRef" :workflowMetaData="workflowMetaData"/>
   </div>
 </template>
 
@@ -50,7 +54,9 @@ import Icon from "@/components/ChatBot/ChatBotEditorWorkflow/Icon.vue";
 import Node from "@/components/ChatBot/ChatBotEditorWorkflow/Node.vue";
 import EdgeWithTooltip from "@/components/ChatBot/ChatBotEditorWorkflow/EdgeWithTooltip.vue";
 import eventBus from "@/plugins/eventBus";
-import EditEdgeConditional from "@/components/ChatBot/ChatBotEditorWorkflow/EditEdgeConditional.vue";
+import EditEdgeConditionalDialog from "@/components/ChatBot/ChatBotEditorWorkflow/EditEdgeConditionalDialog.vue";
+import {templateRef} from "@vueuse/core";
+import WorkflowMetaDialog from "@/components/ChatBot/ChatBotEditorWorkflow/WorkflowMetaDialog.vue";
 
 const props = defineProps<{
   technicalId: string,
@@ -61,24 +67,23 @@ const EDITOR_WIDTH = 'chatBotEditorWorkflow:width';
 const canvasData = ref(JSON.stringify(workflowData, null, 2));
 const helperStorage = new HelperStorage();
 const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
+const workflowMetaDialogRef= templateRef('workflowMetaDialogRef');
 
-const {setViewport, onInit, fitView: vueFlowFitView, getViewport} = useVueFlow();
+const {setViewport} = useVueFlow();
 
 const nodePositionKey = computed(() => {
   return `workflow-node-positions${props.technicalId}`;
 })
 
+const workflowMetaData = ref(helperStorage.get(nodePositionKey.value, {}));
+
 function loadNodePositions() {
-  return helperStorage.get(nodePositionKey.value, {});
+  return workflowMetaData.value;
 }
 
 function saveNodePositions(positions) {
   helperStorage.set(nodePositionKey.value, positions);
 }
-
-onInit((instance) => {
-  vueFlowInstance = instance;
-})
 
 onMounted(() => {
   eventBus.$on('save-condition', handleSaveCondition);
@@ -89,7 +94,7 @@ onUnmounted(() => {
 })
 
 function handleSaveCondition(eventData) {
-  const { stateName, transitionName, condition } = eventData;
+  const {stateName, transitionName, condition} = eventData;
 
   let parsed;
   try {
@@ -163,8 +168,7 @@ const edges = computed(() => {
               sourceHandle = 'top-source';
               targetHandle = 'bottom-target';
             }
-          }
-          else if (targetX < sourceX) {
+          } else if (targetX < sourceX) {
             if (targetY > sourceY + 50) {
               sourceHandle = 'bottom';
               targetHandle = 'top';
@@ -282,7 +286,7 @@ function onConditionChange(event, data) {
 }
 
 function onEdgeConditionChange(event) {
-  const { stateName, transitionName, condition } = event;
+  const {stateName, transitionName, condition} = event;
 
   let parsed;
   try {
@@ -394,7 +398,7 @@ function autoLayout() {
       const state = states[stateName];
       if (state?.transitions) {
         const hasBackwardTransition = Object.values(state.transitions).some(t =>
-          t.next && levels[t.next] <= levels[stateName]
+            t.next && levels[t.next] <= levels[stateName]
         );
 
         if (hasBackwardTransition && stateName !== initialState) {
@@ -402,7 +406,7 @@ function autoLayout() {
         }
       }
 
-      positions[stateName] = { x, y };
+      positions[stateName] = {x, y};
     });
   });
 
@@ -426,7 +430,7 @@ function optimizePositions(positions, states) {
       const [stateName2, pos2] = positionArray[j];
 
       const distance = Math.sqrt(
-        Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2)
+          Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2)
       );
 
       if (distance < MIN_DISTANCE) {
@@ -440,6 +444,16 @@ function optimizePositions(positions, states) {
       }
     }
   }
+}
+
+function workflowMeta() {
+  workflowMetaDialogRef.value.openDialog(workflowMetaData.value);
+}
+
+function onUpdateWorkflowMetaDialog(data) {
+  workflowMetaData.value = data;
+  helperStorage.set(nodePositionKey.value, data);
+  generateNodes();
 }
 </script>
 
