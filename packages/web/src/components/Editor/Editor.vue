@@ -18,23 +18,24 @@ self.MonacoEnvironment = {
 
 const emit = defineEmits(["update:modelValue", "ready"]);
 const rootRef = ref(null);
-const props = defineProps({
-  modelValue: {default: ""},
-  language: {default: "plain"},
-  editable: {default: true},
-  actions: {default: () => ([])}
+const props = withDefaults(defineProps<{
+  modelValue?: string
+  language?: string
+  editable?: boolean
+  actions?: any[]
+}>(), {
+  modelValue: '',
+  language: 'text/plain',
+  editable: true,
+  actions: () => []
 });
-
-const language = computed(() => {
-  return 'text/plain'
-})
 
 let editor: any = null;
 
 onMounted(() => {
   editor = monaco.editor.create(rootRef.value, {
     value: props.modelValue,
-    language: language.value,
+    language: props.language,
     automaticLayout: true,
     readOnly: !props.editable,
     renderLineHighlight: "none",
@@ -81,9 +82,9 @@ watch(
   {immediate: true}
 );
 
-watch(language, () => {
+watch(() => props.language, () => {
   if (!editor) return;
-  monaco.editor.setModelLanguage(editor.getModel(), language.value)
+  monaco.editor.setModelLanguage(editor.getModel(), props.language)
 })
 
 defineExpose({editor});

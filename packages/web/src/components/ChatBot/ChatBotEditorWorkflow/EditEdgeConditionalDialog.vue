@@ -1,26 +1,21 @@
 <template>
   <el-dialog
+      class="edit-edge-conditional-dialog"
       :close-on-click-modal="false"
       v-model="dialogVisible"
       title="Edit conditional"
       width="600px"
       :before-close="handleClosePopup"
   >
-    <div class="condition-editor">
-      <el-input
-          v-model="conditionText"
-          type="textarea"
-          :rows="10"
-          placeholder="Enter condition in JSON format"
-          :class="{ 'is-error': hasJsonError }"
-      />
-      <div v-if="hasJsonError" class="error-message">
+    <div class="edit-edge-conditional-dialog__editor">
+      <Editor language="javascript" v-model="conditionText"/>
+      <div v-if="hasJsonError" class="edit-edge-conditional-dialog__error-message">
         Error in JSON: {{ jsonError }}
       </div>
     </div>
 
     <template #footer>
-      <div class="dialog-footer">
+      <div class="edit-edge-conditional-dialog__dialog-footer">
         <el-button @click="cancelEdit">Cancel</el-button>
         <el-button class="btn btn-primary" type="primary" @click="saveCondition" :disabled="hasJsonError">
           Save
@@ -33,6 +28,7 @@
 <script setup lang="ts">
 import {computed, onMounted, onUnmounted, ref, watch} from "vue";
 import eventBus from "@/plugins/eventBus";
+import Editor from "@/components/Editor/Editor.vue";
 
 const originalConditionText = ref('')
 const dialogVisible = ref(false)
@@ -109,24 +105,18 @@ watch(conditionText, (newValue) => {
 })
 </script>
 
-<style scoped>
-.condition-editor {
-  margin-bottom: 16px;
-}
+<style scoped lang="scss">
+.edit-edge-conditional-dialog {
+  &__error-message {
+    color: #f56c6c;
+    font-size: 12px;
+    margin-top: 8px;
+  }
 
-.condition-editor :deep(.el-textarea.is-error .el-textarea__inner) {
-  border-color: #f56c6c;
-}
-
-.error-message {
-  color: #f56c6c;
-  font-size: 12px;
-  margin-top: 8px;
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
+  &__dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
 }
 </style>
