@@ -1,8 +1,8 @@
 <template>
   <el-dialog
-      append-to-body
-      v-model="showConditionPopup"
-      title="Редактировать условие"
+      :close-on-click-modal="false"
+      v-model="dialogVisible"
+      title="Edit conditional"
       width="600px"
       :before-close="handleClosePopup"
   >
@@ -11,19 +11,19 @@
           v-model="conditionText"
           type="textarea"
           :rows="10"
-          placeholder="Введите условие в формате JSON"
+          placeholder="Enter condition in JSON format"
           :class="{ 'is-error': hasJsonError }"
       />
       <div v-if="hasJsonError" class="error-message">
-        Ошибка в JSON: {{ jsonError }}
+        Error in JSON: {{ jsonError }}
       </div>
     </div>
 
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="cancelEdit">Отмена</el-button>
-        <el-button type="primary" @click="saveCondition" :disabled="hasJsonError">
-          Сохранить
+        <el-button @click="cancelEdit">Cancel</el-button>
+        <el-button class="btn btn-primary" type="primary" @click="saveCondition" :disabled="hasJsonError">
+          Save
         </el-button>
       </div>
     </template>
@@ -35,7 +35,7 @@ import {computed, onMounted, onUnmounted, ref, watch} from "vue";
 import eventBus from "@/plugins/eventBus";
 
 const originalConditionText = ref('')
-const showConditionPopup = ref(false)
+const dialogVisible = ref(false)
 const conditionText = ref('')
 const jsonError = ref('')
 
@@ -57,7 +57,7 @@ function openDialog(data) {
   currentEdgeData.value = data
   conditionText.value = data.condition ? JSON.stringify(data.condition, null, 2) : ''
   originalConditionText.value = conditionText.value
-  showConditionPopup.value = true
+  dialogVisible.value = true
 }
 
 function cancelEdit() {
@@ -85,11 +85,11 @@ function saveCondition() {
     condition: parsedCondition
   })
 
-  showConditionPopup.value = false
+  dialogVisible.value = false
 }
 
 function handleClosePopup() {
-  showConditionPopup.value = false
+  dialogVisible.value = false
   conditionText.value = originalConditionText.value
   jsonError.value = ''
 }
