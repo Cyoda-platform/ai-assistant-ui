@@ -7,11 +7,12 @@
 <script setup lang="ts">
 import {ref, watch, onMounted, onBeforeUnmount, nextTick} from "vue";
 import * as monaco from 'monaco-editor';
+import type { EditorAction } from '../../utils/editorUtils';
 
 // Configure Monaco environment for Vite - without worker imports
 if (typeof window !== 'undefined') {
   (window as any).MonacoEnvironment = {
-    getWorkerUrl: function (moduleId: string, label: string) {
+    getWorkerUrl: function (_moduleId: string, _label: string) {
       return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
         self.MonacoEnvironment = {
           baseUrl: '/monaco-editor/esm/'
@@ -23,13 +24,6 @@ if (typeof window !== 'undefined') {
     }
   };
 }
-
-type EditorAction = {
-  id: string;
-  label: string;
-  run: () => void;
-  keybindings?: number[];
-};
 
 const emit = defineEmits(["update:modelValue", "ready"]);
 const rootRef = ref<HTMLElement | null>(null);
@@ -70,7 +64,17 @@ onMounted(async () => {
   })
 
   if (props.actions.length > 0) {
-    props.actions.forEach((el) => editor?.addAction(el));
+    props.actions.forEach((action) => {
+      if (editor) {
+        editor.addAction({
+          id: action.id,
+          label: action.label,
+          contextMenuGroupId: action.contextMenuGroupId,
+          keybindings: action.keybindings,
+          run: (editorInstance) => action.run(editorInstance as monaco.editor.IStandaloneCodeEditor)
+        });
+      }
+    });
   }
 
   nextTick(() => {

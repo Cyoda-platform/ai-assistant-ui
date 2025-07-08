@@ -9,6 +9,7 @@ import eventBus from '@/plugins/eventBus';
 import HelperStorage from '@/helpers/HelperStorage';
 import { NodePositionStorage } from '../utils/nodeUtils';
 import { optimizePositions, calculateSmartPosition } from '../utils/smartLayout';
+import { type EditorAction, createWorkflowEditorActions } from '@/utils/editorUtils';
 import workflowData from '../../workflow.json';
 
 export interface WorkflowEditorProps {
@@ -63,14 +64,18 @@ export interface WorkflowEdge {
   };
 }
 
-export function useWorkflowEditor(props: WorkflowEditorProps) {
+export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: any) {
   const EDITOR_WIDTH = 'chatBotEditorWorkflow:width';
-
+  
   const canvasData = ref(JSON.stringify(workflowData, null, 2));
   const helperStorage = new HelperStorage();
   const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
   const isLoading = ref(false);
-  const editorActions = ref<any[]>([]);
+  const editorActions = ref<EditorAction[]>(
+    assistantStore 
+      ? createWorkflowEditorActions(props.technicalId, assistantStore, isLoading)
+      : []
+  );
   const nodes = ref<WorkflowNode[]>([]);
 
   const { setViewport, fitView } = useVueFlow();
