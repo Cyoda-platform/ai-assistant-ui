@@ -13,7 +13,7 @@
 
     <div class="node-title">{{ data.label }}</div>
     <div class="node-footer" v-if="hasTransitions">
-      <span class="transition-count">{{ transitionCount }} transitions</span>
+      <span class="transition-count">{{ transitionCount }} {{ transitionCount === 1 ? 'transition' : 'transitions' }}</span>
     </div>
   </div>
 </template>
