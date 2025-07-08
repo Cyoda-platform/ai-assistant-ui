@@ -77,7 +77,7 @@ const workflowMetaDialogRef = templateRef('workflowMetaDialogRef');
 const {setViewport, fitView} = useVueFlow();
 
 const nodePositionKey = computed(() => {
-  return `workflow-node-positions${props.technicalId}`;
+  return `workflow-node-positions:${props.technicalId}`;
 })
 
 const workflowMetaData = ref(helperStorage.get(nodePositionKey.value, {}));
@@ -127,13 +127,14 @@ function handleSaveCondition(eventData: any) {
   canvasData.value = JSON.stringify(parsed, null, 2);
 }
 
-const nodes = ref([]);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const nodes = ref<any[]>([]);
 const edgeTypes = {
   custom: EdgeWithTooltip
 };
 const edges = computed(() => {
-  const result = [];
-  let parsed;
+  const result: any[] = [];
+  let parsed: any;
 
   try {
     parsed = JSON.parse(canvasData.value);
@@ -145,10 +146,12 @@ const edges = computed(() => {
   const states = parsed.states || {};
 
   for (const [stateName, stateData] of Object.entries(states)) {
-    if (stateData.transitions) {
-      for (const [transitionName, transitionData] of Object.entries(stateData.transitions)) {
+    const state = stateData as any;
+    if (state.transitions) {
+      for (const [transitionName, transitionData] of Object.entries(state.transitions)) {
+        const transition = transitionData as any;
         const sourceNode = nodes.value.find(n => n.id === stateName);
-        const targetNode = nodes.value.find(n => n.id === transitionData.next);
+        const targetNode = nodes.value.find(n => n.id === transition.next);
 
         let sourceHandle = 'right';
         let targetHandle = 'left';
@@ -187,12 +190,12 @@ const edges = computed(() => {
         const edge = {
           id: `${stateName}-${transitionName}`,
           source: stateName,
-          target: transitionData.next,
+          target: transition.next,
           sourceHandle,
           targetHandle,
           label: transitionName,
           animated: true,
-          type: transitionData ? 'custom' : 'default',
+          type: transition ? 'custom' : 'default',
           markerEnd: {
             type: MarkerType.ArrowClosed,
             width: 20,
@@ -200,7 +203,7 @@ const edges = computed(() => {
             color: '#333',
           },
           data: {
-            transitionData: transitionData,
+            transitionData: transition,
             stateName,
             transitionName,
           },
@@ -215,8 +218,8 @@ const edges = computed(() => {
 });
 
 function generateNodes() {
-  const result = [];
-  let parsed;
+  const result: any[] = [];
+  let parsed: any;
   const savedPositions = loadNodePositions();
 
   try {
@@ -229,14 +232,19 @@ function generateNodes() {
 
   const states = parsed.states || {};
   const initialState = parsed.initial_state;
-  let index = 0;
-  const xDefault = 0;
-  const ySpacing = 200;
+
+  // Check if we have saved positions, if so use them
+  const hasSavedPositions = Object.keys(savedPositions).length > 0;
 
   for (const [stateName, stateData] of Object.entries(states)) {
-    const position = savedPositions[stateName] || {x: xDefault, y: index * ySpacing};
-    const transitionCount = Object.keys(stateData.transitions || {}).length;
+    const state = stateData as any;
+    const transitionCount = Object.keys(state.transitions || {}).length;
     const isTerminal = transitionCount === 0;
+
+    // Use saved positions if available, otherwise calculate smart layout
+    const position = hasSavedPositions 
+      ? savedPositions[stateName] || calculateSmartPosition(stateName, states, initialState)
+      : calculateSmartPosition(stateName, states, initialState);
 
     result.push({
       id: stateName,
@@ -250,10 +258,220 @@ function generateNodes() {
       },
       position,
     });
-    index++;
   }
 
   nodes.value = result;
+}
+
+// Smart positioning algorithm inspired by Cytoscape.js
+function calculateSmartPosition(stateName: string, states: any, initialState: string) {
+  const LEVEL_SPACING = 300;
+  const NODE_SPACING = 150;
+  const VERTICAL_SPREAD = 200; // Increased vertical spread
+  
+  // Build graph structure
+  const graph = buildGraph(states);
+  
+  // Calculate levels using BFS from initial state
+  const levels = calculateLevels(graph, initialState);
+  
+  // Group nodes by level
+  const nodesByLevel = groupNodesByLevel(levels, states);
+  
+  // Calculate position for this specific node
+  const nodeLevel = levels[stateName] || 0;
+  const nodesInLevel = nodesByLevel[nodeLevel] || [];
+  const nodeIndexInLevel = nodesInLevel.indexOf(stateName);
+  
+  // Calculate X position (level-based)
+  let x = nodeLevel * LEVEL_SPACING;
+  
+  // Special handling for different node types
+  if (stateName === initialState) {
+    x = 0; // Initial state at origin
+  } else if (stateName === 'state_terminal') {
+    // Terminal states to the right
+    x = Math.max(nodeLevel * LEVEL_SPACING, (Math.max(...Object.values(levels)) + 1) * LEVEL_SPACING);
+  }
+  
+  // Calculate Y position with better distribution
+  let y = 0;
+  
+  if (nodesInLevel.length === 1) {
+    y = 0; // Single node centered
+  } else {
+    // Multiple nodes in level - spread them out
+    const totalHeight = (nodesInLevel.length - 1) * NODE_SPACING;
+    const startY = -totalHeight / 2;
+    y = startY + nodeIndexInLevel * NODE_SPACING;
+    
+    // Add some randomness to avoid perfect lines
+    const randomOffset = (Math.random() - 0.5) * 50;
+    y += randomOffset;
+  }
+  
+  // Special positioning for self-loops and backward transitions
+  const currentState = states[stateName];
+  if (currentState?.transitions) {
+    const transitions = Object.values(currentState.transitions);
+    const hasSelfLoop = transitions.some((t: any) => t.next === stateName);
+    const hasBackwardTransition = transitions.some((t: any) => {
+      const targetLevel = levels[t.next];
+      return targetLevel !== undefined && targetLevel <= nodeLevel;
+    });
+    
+    if (hasSelfLoop) {
+      // Self-loop nodes slightly offset
+      y += 30;
+    }
+    
+    if (hasBackwardTransition && stateName !== initialState) {
+      // Backward transition nodes get vertical offset
+      y += nodeIndexInLevel % 2 === 0 ? -VERTICAL_SPREAD : VERTICAL_SPREAD;
+    }
+  }
+  
+  return { x, y };
+}
+
+function buildGraph(states: any) {
+  const graph: { [key: string]: string[] } = {};
+  
+  for (const [stateName, stateData] of Object.entries(states)) {
+    const state = stateData as any;
+    graph[stateName] = [];
+    
+    if (state.transitions) {
+      for (const [transitionName, transitionData] of Object.entries(state.transitions)) {
+        const transition = transitionData as any;
+        if (transition.next && transition.next !== stateName) {
+          graph[stateName].push(transition.next);
+        }
+      }
+    }
+  }
+  
+  return graph;
+}
+
+function calculateLevels(graph: { [key: string]: string[] }, initialState: string) {
+  const levels: { [key: string]: number } = {};
+  const visited = new Set<string>();
+  const queue: { node: string; level: number }[] = [];
+  
+  // Start with initial state at level 0
+  if (initialState && graph[initialState]) {
+    queue.push({ node: initialState, level: 0 });
+    levels[initialState] = 0;
+  }
+  
+  // BFS to assign levels, but handle cycles better
+  while (queue.length > 0) {
+    const { node, level } = queue.shift()!;
+    
+    if (visited.has(node)) continue;
+    visited.add(node);
+    
+    const neighbors = graph[node] || [];
+    for (const neighbor of neighbors) {
+      // Skip self-loops for level calculation
+      if (neighbor === node) continue;
+      
+      if (!visited.has(neighbor)) {
+        let newLevel = level + 1;
+        
+        // Special handling for terminal states
+        if (neighbor.includes('terminal')) {
+          newLevel = Math.max(newLevel, 4); // Push terminal states to the right
+        }
+        
+        // Special handling for backward transitions
+        if (levels[neighbor] !== undefined && levels[neighbor] <= level) {
+          // This is a backward transition, don't update level
+          continue;
+        }
+        
+        if (levels[neighbor] === undefined || levels[neighbor] > newLevel) {
+          levels[neighbor] = newLevel;
+          queue.push({ node: neighbor, level: newLevel });
+        }
+      }
+    }
+  }
+  
+  // Assign levels to remaining unvisited nodes
+  let maxLevel = Math.max(...Object.values(levels));
+  for (const nodeName of Object.keys(graph)) {
+    if (levels[nodeName] === undefined) {
+      maxLevel += 1;
+      levels[nodeName] = maxLevel;
+    }
+  }
+  
+  return levels;
+}
+
+function groupNodesByLevel(levels: { [key: string]: number }, states: any) {
+  const nodesByLevel: { [key: number]: string[] } = {};
+  
+  for (const [stateName, level] of Object.entries(levels)) {
+    if (!nodesByLevel[level]) {
+      nodesByLevel[level] = [];
+    }
+    nodesByLevel[level].push(stateName);
+  }
+  
+  // Sort nodes within each level for better visual organization
+  for (const level of Object.keys(nodesByLevel)) {
+    nodesByLevel[parseInt(level)].sort((a, b) => {
+      const stateA = states[a] as any;
+      const stateB = states[b] as any;
+      
+      // Prioritize nodes by their role in the workflow
+      const getNodePriority = (stateName: string, state: any) => {
+        // Terminal states get lowest priority (bottom)
+        if (stateName.includes('terminal')) return 0;
+        
+        // Initial state gets highest priority (top)
+        if (stateName.includes('initial')) return 100;
+        
+        // Nodes with conditions get medium-high priority
+        if (state.transitions) {
+          const hasCondition = Object.values(state.transitions).some((t: any) => t.condition);
+          if (hasCondition) return 80;
+        }
+        
+        // Nodes with self-loops get medium priority
+        if (state.transitions) {
+          const hasSelfLoop = Object.values(state.transitions).some((t: any) => t.next === stateName);
+          if (hasSelfLoop) return 60;
+        }
+        
+        // Regular nodes get base priority
+        return 40;
+      };
+      
+      const priorityA = getNodePriority(a, stateA);
+      const priorityB = getNodePriority(b, stateB);
+      
+      if (priorityA !== priorityB) {
+        return priorityB - priorityA; // Higher priority first
+      }
+      
+      // Sort by number of transitions (more connected nodes first)
+      const transitionsA = Object.keys(stateA.transitions || {}).length;
+      const transitionsB = Object.keys(stateB.transitions || {}).length;
+      
+      if (transitionsA !== transitionsB) {
+        return transitionsB - transitionsA;
+      }
+      
+      // Finally by name for consistency
+      return a.localeCompare(b);
+    });
+  }
+  
+  return nodesByLevel;
 }
 
 generateNodes();
@@ -329,87 +547,19 @@ function autoLayout() {
   const states = parsed.states || {};
   const initialState = parsed.initial_state;
 
-  const positions = {};
-  const levels = {};
-  const visited = new Set();
-  const nodesByLevel = {};
-
-  function assignMainLevels(stateName, level = 0) {
-    if (visited.has(stateName) || level > 10) return;
-
-    visited.add(stateName);
-    levels[stateName] = level;
-
-    if (!nodesByLevel[level]) nodesByLevel[level] = [];
-    nodesByLevel[level].push(stateName);
-
-    const state = states[stateName];
-    if (state?.transitions) {
-      const transitions = Object.values(state.transitions);
-
-      const sortedTransitions = transitions.sort((a, b) => {
-        if (a.condition && !b.condition) return 1;
-        if (!a.condition && b.condition) return -1;
-        return 0;
-      });
-
-      sortedTransitions.forEach(transition => {
-        if (transition.next && !visited.has(transition.next)) {
-          assignMainLevels(transition.next, level + 1);
-        }
-      });
-    }
+  // Use the new smart positioning for auto layout
+  const positions: any = {};
+  
+  // Apply smart positioning to all nodes
+  for (const stateName of Object.keys(states)) {
+    positions[stateName] = calculateSmartPosition(stateName, states, initialState);
   }
 
-  if (initialState) {
-    assignMainLevels(initialState);
-  }
+  // Apply force-directed adjustments for better spacing
+  optimizePositions(positions);
 
-  const remainingStates = Object.keys(states).filter(stateName => !visited.has(stateName));
-  remainingStates.forEach((stateName, index) => {
-    const level = Math.max(...Object.values(levels)) + 1 + Math.floor(index / 3);
-    levels[stateName] = level;
-
-    if (!nodesByLevel[level]) nodesByLevel[level] = [];
-    nodesByLevel[level].push(stateName);
-  });
-
-  const LEVEL_WIDTH = 280;
-  const NODE_HEIGHT = 100;
-
-  Object.entries(nodesByLevel).forEach(([level, stateNames]) => {
-    const levelNum = parseInt(level);
-    const nodesCount = stateNames.length;
-
-    const startY = -(nodesCount - 1) * NODE_HEIGHT / 2;
-
-    stateNames.forEach((stateName, index) => {
-      let x = levelNum * LEVEL_WIDTH;
-      let y = startY + index * NODE_HEIGHT;
-
-      if (stateName === 'state_terminal') {
-        x = Math.max(levelNum * LEVEL_WIDTH, (Math.max(...Object.values(levels)) + 1) * LEVEL_WIDTH);
-        y = 0;
-      }
-
-      const state = states[stateName];
-      if (state?.transitions) {
-        const hasBackwardTransition = Object.values(state.transitions).some(t =>
-            t.next && levels[t.next] <= levels[stateName]
-        );
-
-        if (hasBackwardTransition && stateName !== initialState) {
-          y += index % 2 === 0 ? -150 : 150;
-        }
-      }
-
-      positions[stateName] = {x, y};
-    });
-  });
-
-  optimizePositions(positions, states);
-
-  nodes.value = nodes.value.map(node => ({
+  // Update node positions
+  nodes.value = nodes.value.map((node: any) => ({
     ...node,
     position: positions[node.id] || node.position
   }));
@@ -417,28 +567,59 @@ function autoLayout() {
   saveNodePositions(positions);
 }
 
-function optimizePositions(positions: any, states: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function optimizePositions(positions: any) {
   const MIN_DISTANCE = 120;
+  const PREFERRED_DISTANCE = 180;
   const positionArray = Object.entries(positions);
 
-  for (let i = 0; i < positionArray.length; i++) {
-    for (let j = i + 1; j < positionArray.length; j++) {
-      const [stateName1, pos1] = positionArray[i];
-      const [stateName2, pos2] = positionArray[j];
+  // Multiple passes for better distribution
+  for (let pass = 0; pass < 3; pass++) {
+    for (let i = 0; i < positionArray.length; i++) {
+      for (let j = i + 1; j < positionArray.length; j++) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const [stateName1, pos1] = positionArray[i] as [string, any];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const [stateName2, pos2] = positionArray[j] as [string, any];
 
-      const distance = Math.sqrt(
-          Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2)
-      );
+        const distance = Math.sqrt(
+            Math.pow(pos1.x - pos2.x, 2) + Math.pow(pos1.y - pos2.y, 2)
+        );
 
-      if (distance < MIN_DISTANCE) {
-        const angle = Math.atan2(pos2.y - pos1.y, pos2.x - pos1.x);
-        const moveDistance = (MIN_DISTANCE - distance) / 2;
+        if (distance < MIN_DISTANCE) {
+          const angle = Math.atan2(pos2.y - pos1.y, pos2.x - pos1.x);
+          const moveDistance = (MIN_DISTANCE - distance) / 2;
 
-        pos1.x -= Math.cos(angle) * moveDistance;
-        pos1.y -= Math.sin(angle) * moveDistance;
-        pos2.x += Math.cos(angle) * moveDistance;
-        pos2.y += Math.sin(angle) * moveDistance;
+          pos1.x -= Math.cos(angle) * moveDistance;
+          pos1.y -= Math.sin(angle) * moveDistance;
+          pos2.x += Math.cos(angle) * moveDistance;
+          pos2.y += Math.sin(angle) * moveDistance;
+        } else if (distance < PREFERRED_DISTANCE) {
+          // Gentle adjustment for preferred spacing
+          const angle = Math.atan2(pos2.y - pos1.y, pos2.x - pos1.x);
+          const moveDistance = (PREFERRED_DISTANCE - distance) / 8;
+
+          pos1.x -= Math.cos(angle) * moveDistance;
+          pos1.y -= Math.sin(angle) * moveDistance;
+          pos2.x += Math.cos(angle) * moveDistance;
+          pos2.y += Math.sin(angle) * moveDistance;
+        }
       }
+    }
+  }
+
+  // Apply vertical clustering to reduce vertical spread
+  const states = Object.keys(positions);
+  const centerY = states.reduce((sum, state) => sum + positions[state].y, 0) / states.length;
+  
+  for (const state of states) {
+    const currentY = positions[state].y;
+    const distanceFromCenter = Math.abs(currentY - centerY);
+    
+    if (distanceFromCenter > 300) {
+      // Gently pull extreme nodes towards center
+      const pullForce = 0.3;
+      positions[state].y = currentY + (centerY - currentY) * pullForce;
     }
   }
 }
