@@ -94,15 +94,15 @@ function saveNodePositions(positions) {
 }
 
 onMounted(() => {
-  eventBus.$on('save-condition', handleSaveCondition);
+  eventBus.$on('save-transition', handleSaveCondition);
 })
 
 onUnmounted(() => {
-  eventBus.$off('save-condition', handleSaveCondition);
+  eventBus.$off('save-transition', handleSaveCondition);
 })
 
 function handleSaveCondition(eventData) {
-  const {stateName, transitionName, condition} = eventData;
+  const {stateName, transitionName, transitionData} = eventData;
 
   let parsed;
   try {
@@ -118,17 +118,11 @@ function handleSaveCondition(eventData) {
     return;
   }
 
-  const transition = state.transitions[transitionName];
-  if (!transition) {
-    console.error('Transition not found:', transitionName);
-    return;
+  if (!state.transitions) {
+    state.transitions = {};
   }
 
-  if (condition === null || condition === undefined) {
-    delete transition.condition;
-  } else {
-    transition.condition = condition;
-  }
+  state.transitions[transitionName] = transitionData;
 
   canvasData.value = JSON.stringify(parsed, null, 2);
 }
@@ -198,7 +192,7 @@ const edges = computed(() => {
           targetHandle,
           label: transitionName,
           animated: true,
-          type: transitionData.condition ? 'custom' : 'default',
+          type: transitionData ? 'custom' : 'default',
           markerEnd: {
             type: MarkerType.ArrowClosed,
             width: 20,
@@ -206,7 +200,7 @@ const edges = computed(() => {
             color: '#333',
           },
           data: {
-            condition: transitionData.condition,
+            transitionData: transitionData,
             stateName,
             transitionName,
           },
@@ -267,7 +261,7 @@ generateNodes();
 watch(canvasData, generateNodes);
 
 function onConditionChange(event, data) {
-  const newCondition = event.target.value;
+  const newTransitionData = event.target.value;
 
   let parsed;
   try {
@@ -280,13 +274,11 @@ function onConditionChange(event, data) {
   const state = parsed.states[data.stateName];
   if (!state) return;
 
-  const transition = state.transitions[data.transitionName];
-  if (!transition) return;
-
   try {
-    transition.condition = JSON.parse(newCondition);
+    const transitionData = JSON.parse(newTransitionData);
+    state.transitions[data.transitionName] = transitionData;
   } catch (e) {
-    console.error('Invalid JSON in condition textarea:', e);
+    console.error('Invalid JSON in transition data:', e);
     return;
   }
 
@@ -294,7 +286,7 @@ function onConditionChange(event, data) {
 }
 
 function onEdgeConditionChange(event) {
-  const {stateName, transitionName, condition} = event;
+  const {stateName, transitionName, transitionData} = event;
 
   let parsed;
   try {
@@ -307,14 +299,12 @@ function onEdgeConditionChange(event) {
   const state = parsed.states[stateName];
   if (!state) return;
 
-  const transition = state.transitions[transitionName];
-  if (!transition) return;
-
-  if (condition === null || condition === undefined) {
-    delete transition.condition;
-  } else {
-    transition.condition = condition;
+  if (!state.transitions) {
+    state.transitions = {};
   }
+
+  // Заменяем весь объект transition
+  state.transitions[transitionName] = transitionData;
 
   canvasData.value = JSON.stringify(parsed, null, 2);
 }

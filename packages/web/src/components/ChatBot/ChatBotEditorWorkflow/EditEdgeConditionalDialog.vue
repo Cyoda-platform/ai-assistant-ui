@@ -3,7 +3,7 @@
       class="edit-edge-conditional-dialog"
       :close-on-click-modal="false"
       v-model="dialogVisible"
-      title="Edit conditional"
+      title="Edit Transition Data"
       width="600px"
       :before-close="handleClosePopup"
   >
@@ -51,7 +51,7 @@ onUnmounted(() => {
 
 function openDialog(data) {
   currentEdgeData.value = data
-  conditionText.value = data.condition ? JSON.stringify(data.condition, null, 2) : ''
+  conditionText.value = data.transitionData ? JSON.stringify(data.transitionData, null, 2) : '{\n  "next": ""\n}'
   originalConditionText.value = conditionText.value
   dialogVisible.value = true
 }
@@ -65,20 +65,20 @@ function saveCondition() {
     return
   }
 
-  let parsedCondition = null
+  let parsedTransitionData = null
 
   if (conditionText.value.trim() !== '') {
     try {
-      parsedCondition = JSON.parse(conditionText.value)
+      parsedTransitionData = JSON.parse(conditionText.value)
     } catch (error: any) {
       jsonError.value = error.message
       return
     }
   }
 
-  eventBus.$emit('save-condition', {
+  eventBus.$emit('save-transition', {
     ...currentEdgeData.value,
-    condition: parsedCondition
+    transitionData: parsedTransitionData
   })
 
   dialogVisible.value = false
