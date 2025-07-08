@@ -65,16 +65,16 @@ export interface WorkflowEdge {
 
 export function useWorkflowEditor(props: WorkflowEditorProps) {
   const EDITOR_WIDTH = 'chatBotEditorWorkflow:width';
-  
+
   const canvasData = ref(JSON.stringify(workflowData, null, 2));
   const helperStorage = new HelperStorage();
   const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
   const isLoading = ref(false);
   const editorActions = ref<any[]>([]);
   const nodes = ref<WorkflowNode[]>([]);
-  
+
   const { setViewport, fitView } = useVueFlow();
-  
+
   // Initialize node position storage
   const nodePositionStorage = new NodePositionStorage(helperStorage, props.technicalId);
   const workflowMetaData = ref(nodePositionStorage.loadPositions());
@@ -190,7 +190,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps) {
       const isTerminal = transitionCount === 0;
 
       // Use saved positions if available, otherwise calculate smart layout
-      const position = hasSavedPositions 
+      const position = hasSavedPositions
         ? savedPositions[stateName] || calculateSmartPosition(stateName, states, initialState)
         : calculateSmartPosition(stateName, states, initialState);
 
@@ -272,7 +272,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps) {
     const initialState = parsed.initial_state;
 
     const positions: Record<string, { x: number; y: number }> = {};
-    
+
     // Apply smart positioning to all nodes
     for (const stateName of Object.keys(states)) {
       positions[stateName] = calculateSmartPosition(stateName, states, initialState);

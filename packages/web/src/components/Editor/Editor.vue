@@ -49,7 +49,7 @@ let editor: monaco.editor.IStandaloneCodeEditor | null = null;
 
 onMounted(async () => {
   if (!rootRef.value) return;
-  
+
   editor = monaco.editor.create(rootRef.value, {
     value: props.modelValue,
     language: props.language,
