@@ -24,12 +24,12 @@ export function createSubmitQuestionAction(
 ): EditorAction {
   return {
     id: "submitQuestion",
-    label: "Submit Question", 
+    label: "Submit Question",
     contextMenuGroupId: "chatbot",
     keybindings: [],
     run: async (editor: any) => {
       setLoading(true);
-      
+
       try {
         // Simplified implementation - actual logic should be in the component
         await questionRequest({ question: 'placeholder' });
@@ -54,9 +54,9 @@ export function validateEditorJson(content: string): {
     const data = JSON.parse(content);
     return { isValid: true, data };
   } catch (error) {
-    return { 
-      isValid: false, 
-      error: error instanceof Error ? error.message : 'Invalid JSON' 
+    return {
+      isValid: false,
+      error: error instanceof Error ? error.message : 'Invalid JSON'
     };
   }
 }

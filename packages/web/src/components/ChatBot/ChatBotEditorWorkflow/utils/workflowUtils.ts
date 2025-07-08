@@ -44,7 +44,7 @@ export function updateTransition(
   transitionData: TransitionData
 ): WorkflowData {
   const updatedData = { ...workflowData };
-  
+
   if (!updatedData.states[stateName]) {
     console.error('State not found:', stateName);
     return workflowData;
@@ -55,7 +55,7 @@ export function updateTransition(
   }
 
   updatedData.states[stateName].transitions[transitionName] = transitionData;
-  
+
   return updatedData;
 }
 
@@ -69,7 +69,7 @@ export function generateWorkflowNodes(
 ): any[] {
   const result: any[] = [];
   const { states, initial_state } = workflowData;
-  
+
   // Check if we have saved positions
   const hasSavedPositions = Object.keys(savedPositions).length > 0;
 
@@ -79,7 +79,7 @@ export function generateWorkflowNodes(
     const isTerminal = transitionCount === 0;
 
     // Use saved positions if available, otherwise calculate smart layout
-    const position = hasSavedPositions 
+    const position = hasSavedPositions
       ? savedPositions[stateName] || calculatePosition(stateName, states, initial_state)
       : calculatePosition(stateName, states, initial_state);
 
@@ -107,27 +107,27 @@ export function validateWorkflowData(data: any): boolean {
   if (!data || typeof data !== 'object') return false;
   if (!data.states || typeof data.states !== 'object') return false;
   if (!data.initial_state || typeof data.initial_state !== 'string') return false;
-  
+
   // Check if initial state exists in states
   if (!data.states[data.initial_state]) return false;
-  
+
   // Validate state structure
   for (const [stateName, stateData] of Object.entries(data.states)) {
     const state = stateData as any;
     if (state.transitions && typeof state.transitions !== 'object') return false;
-    
+
     // Validate transitions
     if (state.transitions) {
       for (const [transitionName, transitionData] of Object.entries(state.transitions)) {
         const transition = transitionData as any;
         if (!transition.next || typeof transition.next !== 'string') return false;
-        
+
         // Check if target state exists
         if (!data.states[transition.next]) return false;
       }
     }
   }
-  
+
   return true;
 }
 
@@ -151,18 +151,18 @@ export function getWorkflowStats(workflowData: WorkflowData): {
     const state = stateData as StateData;
     const transitions = state.transitions || {};
     const transitionCount = Object.keys(transitions).length;
-    
+
     if (transitionCount === 0) {
       terminalStates++;
     }
-    
+
     totalTransitions += transitionCount;
-    
+
     for (const [transitionName, transitionData] of Object.entries(transitions)) {
       if (transitionData.condition) {
         conditionalTransitions++;
       }
-      
+
       if (transitionData.next === stateName) {
         selfLoops++;
       }

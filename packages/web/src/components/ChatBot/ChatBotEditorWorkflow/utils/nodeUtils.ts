@@ -83,7 +83,7 @@ export function applyAutoLayout(
   const states = workflowData.states || {};
   const initialState = workflowData.initial_state;
   const positions: NodePositionsMap = {};
-  
+
   // Apply smart positioning to all nodes
   for (const node of nodes) {
     positions[node.id] = calculatePosition(node.id, states, initialState);
@@ -120,7 +120,7 @@ export function findNodeById(nodes: WorkflowNode[], nodeId: string): WorkflowNod
  */
 export function getNodesByLevel(nodes: WorkflowNode[], levels: Record<string, number>): Record<number, WorkflowNode[]> {
   const nodesByLevel: Record<number, WorkflowNode[]> = {};
-  
+
   for (const node of nodes) {
     const level = levels[node.id] || 0;
     if (!nodesByLevel[level]) {
@@ -128,7 +128,7 @@ export function getNodesByLevel(nodes: WorkflowNode[], levels: Record<string, nu
     }
     nodesByLevel[level].push(node);
   }
-  
+
   return nodesByLevel;
 }
 
