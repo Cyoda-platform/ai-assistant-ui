@@ -6,10 +6,10 @@
   >
     <Handle type="target" :position="Position.Left" id="left" />
     <Handle type="source" :position="Position.Right" id="right" />
-    <Handle type="target" :position="Position.Top" id="top" />
-    <Handle type="source" :position="Position.Bottom" id="bottom" />
-    <Handle type="target" :position="Position.Bottom" id="bottom-target" />
-    <Handle type="source" :position="Position.Top" id="top-source" />
+    <Handle type="target" :position="Position.Top" id="top" :style="topHandleStyle" />
+    <Handle type="source" :position="Position.Bottom" id="bottom" :style="bottomHandleStyle" />
+    <Handle type="target" :position="Position.Bottom" id="bottom-target" :style="bottomHandleStyle" />
+    <Handle type="source" :position="Position.Top" id="top-source" :style="topHandleStyle" />
 
     <div class="node-title">{{ data.label }}</div>
     <div class="node-footer" v-if="hasTransitions">
@@ -19,14 +19,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, nextTick } from 'vue'
-import { Handle, Position, useVueFlow } from '@vue-flow/core'
+import { computed, ref, onMounted, nextTick, watch } from 'vue'
+import { Handle, Position } from '@vue-flow/core'
 
 const props = defineProps<{
   data: any,
 }>()
 
 const nodeRef = ref()
+const nodeWidth = ref(0)
 
 const hasTransitions = computed(() => {
   return props.data.transitionCount > 0
@@ -40,6 +41,46 @@ const nodeTypeClass = computed(() => {
   if (props.data.isInitial) return 'node-initial'
   if (props.data.isTerminal) return 'node-terminal'
   return 'node-default'
+})
+
+const updateNodeWidth = () => {
+  if (nodeRef.value) {
+    nodeWidth.value = nodeRef.value.offsetWidth
+  }
+}
+
+const topHandleStyle = computed(() => ({
+  left: nodeWidth.value ? `${nodeWidth.value / 2}px` : '50%',
+  transform: nodeWidth.value ? 'translateX(-4px)' : 'translateX(-50%)',
+  top: '-4px',
+  position: 'absolute',
+  zIndex: 10
+}))
+
+const bottomHandleStyle = computed(() => ({
+  left: nodeWidth.value ? `${nodeWidth.value / 2}px` : '50%',
+  transform: nodeWidth.value ? 'translateX(-4px)' : 'translateX(-50%)',
+  bottom: '-4px',
+  position: 'absolute',
+  zIndex: 10
+}))
+
+onMounted(() => {
+  nextTick(() => {
+    updateNodeWidth()
+  })
+})
+
+watch(() => props.data.label, () => {
+  nextTick(() => {
+    updateNodeWidth()
+  })
+})
+
+watch(() => props.data.transitionCount, () => {
+  nextTick(() => {
+    updateNodeWidth()
+  })
 })
 </script>
 
