@@ -89,7 +89,7 @@ function loadNodePositions() {
   return workflowMetaData.value;
 }
 
-function saveNodePositions(positions) {
+function saveNodePositions(positions: any) {
   helperStorage.set(nodePositionKey.value, positions);
 }
 
@@ -101,7 +101,7 @@ onUnmounted(() => {
   eventBus.$off('save-transition', handleSaveCondition);
 })
 
-function handleSaveCondition(eventData) {
+function handleSaveCondition(eventData: any) {
   const {stateName, transitionName, transitionData} = eventData;
 
   let parsed;
@@ -260,7 +260,7 @@ generateNodes();
 
 watch(canvasData, generateNodes);
 
-function onConditionChange(event, data) {
+function onConditionChange(event: any, data: any) {
   const newTransitionData = event.target.value;
 
   let parsed;
@@ -285,7 +285,7 @@ function onConditionChange(event, data) {
   canvasData.value = JSON.stringify(parsed, null, 2);
 }
 
-function onEdgeConditionChange(event) {
+function onEdgeConditionChange(event: any) {
   const {stateName, transitionName, transitionData} = event;
 
   let parsed;
@@ -303,7 +303,6 @@ function onEdgeConditionChange(event) {
     state.transitions = {};
   }
 
-  // Заменяем весь объект transition
   state.transitions[transitionName] = transitionData;
 
   canvasData.value = JSON.stringify(parsed, null, 2);
@@ -311,7 +310,7 @@ function onEdgeConditionChange(event) {
 
 provide('onConditionChange', onEdgeConditionChange);
 
-function onNodeDragStop(event) {
+function onNodeDragStop(event: any) {
   const positions = loadNodePositions();
 
   event.nodes.forEach(node => {
@@ -418,7 +417,7 @@ function autoLayout() {
   saveNodePositions(positions);
 }
 
-function optimizePositions(positions, states) {
+function optimizePositions(positions: any, states: any) {
   const MIN_DISTANCE = 120;
   const positionArray = Object.entries(positions);
 
@@ -448,7 +447,7 @@ function workflowMeta() {
   workflowMetaDialogRef.value.openDialog(workflowMetaData.value);
 }
 
-function onUpdateWorkflowMetaDialog(data) {
+function onUpdateWorkflowMetaDialog(data: any) {
   workflowMetaData.value = data;
   helperStorage.set(nodePositionKey.value, data);
   generateNodes();
@@ -522,7 +521,7 @@ function addSubmitQuestionAction() {
   })
 }
 
-async function questionRequest(data) {
+async function questionRequest(data: any) {
   return assistantStore.postTextQuestions(props.technicalId, data);
 }
 

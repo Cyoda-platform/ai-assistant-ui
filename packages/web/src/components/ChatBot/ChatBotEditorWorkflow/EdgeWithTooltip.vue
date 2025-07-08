@@ -10,8 +10,8 @@
 
     <foreignObject
       v-if="data?.transitionData"
-      :x="badgeX - 35"
-      :y="badgeY - 10"
+      :x="badgeX"
+      :y="badgeY"
       width="70"
       height="20"
     >
@@ -21,19 +21,19 @@
         @mousedown="handleMouseDown"
         @mouseup="handleMouseUp"
       >
-        data
+       data
       </div>
     </foreignObject>
   </g>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject, watch, onMounted } from 'vue'
+import { computed } from 'vue'
 import { BaseEdge, EdgeProps, getBezierPath } from '@vue-flow/core'
 import eventBus from "@/plugins/eventBus";
 
 interface EdgeData {
-  transitionData?: any
+  transitionData?: object
   stateName: string
   transitionName: string
 }
@@ -53,11 +53,11 @@ const edgePath = computed(() => {
 })
 
 const badgeX = computed(() => {
-  return (props.sourceX + props.targetX) / 2
-})
+  return (props.sourceX + props.targetX) / 2 - 35;
+});
 
 const badgeY = computed(() => {
-  return (props.sourceY + props.targetY) / 2
+  return (props.sourceY + props.targetY) / 2 - 10;
 })
 
 function openConditionPopup() {
