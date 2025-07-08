@@ -9,7 +9,7 @@
     />
 
     <foreignObject
-      v-if="data?.condition"
+      v-if="data?.transitionData"
       :x="badgeX - 35"
       :y="badgeY - 10"
       width="70"
@@ -21,7 +21,7 @@
         @mousedown="handleMouseDown"
         @mouseup="handleMouseUp"
       >
-        conditional
+        data
       </div>
     </foreignObject>
   </g>
@@ -33,7 +33,7 @@ import { BaseEdge, EdgeProps, getBezierPath } from '@vue-flow/core'
 import eventBus from "@/plugins/eventBus";
 
 interface EdgeData {
-  condition?: any
+  transitionData?: any
   stateName: string
   transitionName: string
 }
