@@ -49,7 +49,7 @@ onUnmounted(() => {
   eventBus.$off('show-condition-popup', openDialog)
 })
 
-function openDialog(data) {
+function openDialog(data: any) {
   currentEdgeData.value = data
   conditionText.value = data.transitionData ? JSON.stringify(data.transitionData, null, 2) : '{\n  "next": ""\n}'
   originalConditionText.value = conditionText.value
@@ -70,8 +70,8 @@ function saveCondition() {
   if (conditionText.value.trim() !== '') {
     try {
       parsedTransitionData = JSON.parse(conditionText.value)
-    } catch (error: any) {
-      jsonError.value = error.message
+    } catch (error: unknown) {
+      jsonError.value = (error as Error).message
       return
     }
   }
@@ -99,8 +99,8 @@ watch(conditionText, (newValue) => {
   try {
     JSON.parse(newValue)
     jsonError.value = ''
-  } catch (error: any) {
-    jsonError.value = error.message
+  } catch (error: unknown) {
+    jsonError.value = (error as Error).message
   }
 })
 </script>
