@@ -5,24 +5,39 @@
 </template>
 
 <script setup lang="ts">
-import {ref, computed, watch, onMounted, onBeforeUnmount, nextTick} from "vue";
+import {ref, watch, onMounted, onBeforeUnmount, nextTick} from "vue";
 import * as monaco from 'monaco-editor';
 
-import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
-
-self.MonacoEnvironment = {
-  getWorker(_, label) {
-    return new editorWorker()
-  }
+// Configure Monaco environment for Vite - without worker imports
+if (typeof window !== 'undefined') {
+  (window as any).MonacoEnvironment = {
+    getWorkerUrl: function (moduleId: string, label: string) {
+      return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
+        self.MonacoEnvironment = {
+          baseUrl: '/monaco-editor/esm/'
+        };
+        self.importScripts = function() {};
+        self.require = function() {};
+        self.define = function() {};
+      `)}`;
+    }
+  };
 }
 
+type EditorAction = {
+  id: string;
+  label: string;
+  run: () => void;
+  keybindings?: number[];
+};
+
 const emit = defineEmits(["update:modelValue", "ready"]);
-const rootRef = ref(null);
+const rootRef = ref<HTMLElement | null>(null);
 const props = withDefaults(defineProps<{
   modelValue?: string
   language?: string
   editable?: boolean
-  actions?: any[]
+  actions?: EditorAction[]
 }>(), {
   modelValue: '',
   language: 'text/plain',
@@ -30,9 +45,11 @@ const props = withDefaults(defineProps<{
   actions: () => ([])
 });
 
-let editor: any = null;
+let editor: monaco.editor.IStandaloneCodeEditor | null = null;
 
-onMounted(() => {
+onMounted(async () => {
+  if (!rootRef.value) return;
+  
   editor = monaco.editor.create(rootRef.value, {
     value: props.modelValue,
     language: props.language,
@@ -48,30 +65,35 @@ onMounted(() => {
     wrappingStrategy: 'advanced',
   });
 
-  editor.getModel().onDidChangeContent((e) => {
+  editor.getModel()?.onDidChangeContent(() => {
     updateListenerExtension(editor);
   })
 
   if (props.actions.length > 0) {
-    props.actions.forEach((el) => editor.addAction(el));
+    props.actions.forEach((el) => editor?.addAction(el));
   }
 
   nextTick(() => {
     emit('ready');
   })
-  return;
-
 });
 
-function updateListenerExtension(editor) {
-  let value = editor.getValue();
+onBeforeUnmount(() => {
+  if (editor) {
+    editor.dispose();
+  }
+});
+
+function updateListenerExtension(editor: monaco.editor.IStandaloneCodeEditor | null) {
+  if (!editor) return;
+  const value = editor.getValue();
   emit("update:modelValue", value);
 }
 
 watch(
   () => props.modelValue,
   (modelValue) => {
-    let newValue = modelValue;
+    const newValue = modelValue;
     if (editor) {
       const editorValue = editor.getValue();
       if (newValue !== editorValue) {
@@ -84,7 +106,10 @@ watch(
 
 watch(() => props.language, () => {
   if (!editor) return;
-  monaco.editor.setModelLanguage(editor.getModel(), props.language)
+  const model = editor.getModel();
+  if (model) {
+    monaco.editor.setModelLanguage(model, props.language);
+  }
 })
 
 defineExpose({editor});

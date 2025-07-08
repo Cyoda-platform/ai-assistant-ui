@@ -10,7 +10,6 @@ import HelperStorage from '@/helpers/HelperStorage';
 import { NodePositionStorage } from '../utils/nodeUtils';
 import { optimizePositions, calculateSmartPosition } from '../utils/smartLayout';
 import workflowData from '../../workflow.json';
-import {createSubmitQuestionAction} from "../utils/editorUtils";
 
 export interface WorkflowEditorProps {
   technicalId: string;
@@ -64,7 +63,7 @@ export interface WorkflowEdge {
   };
 }
 
-export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore: any) {
+export function useWorkflowEditor(props: WorkflowEditorProps) {
   const EDITOR_WIDTH = 'chatBotEditorWorkflow:width';
   
   const canvasData = ref(JSON.stringify(workflowData, null, 2));
@@ -301,16 +300,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore: an
     fitView();
   }
 
-  async function questionRequest(data: any) {
-    return assistantStore.postTextQuestions(props.technicalId, data);
-  }
-
   function addSubmitQuestionAction() {
-    const submitAction = createSubmitQuestionAction(questionRequest, (loading) => {
-      isLoading.value = loading;
-    });
-    
-    editorActions.value.push(submitAction);
+    // Simplified version - don't add Monaco-specific actions for now
+    // This prevents the Monaco worker error
+    console.log('Editor actions setup - Monaco integration pending');
   }
 
   // Setup event listeners

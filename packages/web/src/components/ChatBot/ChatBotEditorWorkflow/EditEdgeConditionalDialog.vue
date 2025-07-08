@@ -8,7 +8,7 @@
       :before-close="handleClosePopup"
   >
     <div class="edit-edge-conditional-dialog__editor">
-      <Editor language="javascript" v-model="conditionText"/>
+      <Editor language="json" v-model="conditionText"/>
       <div v-if="hasJsonError" class="edit-edge-conditional-dialog__error-message">
         Error in JSON: {{ jsonError }}
       </div>

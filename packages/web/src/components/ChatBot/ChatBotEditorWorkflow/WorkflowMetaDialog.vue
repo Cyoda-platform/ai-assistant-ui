@@ -7,7 +7,7 @@
       width="600px"
   >
     <div class="editor">
-      <Editor v-model="localData" language="javascript"/>
+      <Editor v-model="localData" language="json"/>
       <div v-if="hasJsonError" class="workflow-meta-dialog__error-message">
         Error in JSON: {{ jsonError }}
       </div>

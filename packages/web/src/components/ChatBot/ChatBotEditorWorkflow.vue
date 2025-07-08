@@ -2,7 +2,7 @@
   <div v-loading="isLoading" class="chat-bot-editor-workflow">
     <el-splitter @resize="onResize">
       <el-splitter-panel v-model:size="editorSize" class="chat-bot-editor-workflow__editor-wrapper">
-        <Editor v-model="canvasData" language="javascript" class="chat-bot-editor-workflow__editor-inner"
+        <Editor v-model="canvasData" language="json" class="chat-bot-editor-workflow__editor-inner"
                 :actions="editorActions"/>
       </el-splitter-panel>
       <el-splitter-panel class="chat-bot-editor-workflow__flow-wrapper">
@@ -55,14 +55,12 @@ import Node from "@/components/ChatBot/ChatBotEditorWorkflow/Node.vue";
 import EdgeWithTooltip from "@/components/ChatBot/ChatBotEditorWorkflow/EdgeWithTooltip.vue";
 import EditEdgeConditionalDialog from "@/components/ChatBot/ChatBotEditorWorkflow/EditEdgeConditionalDialog.vue";
 import WorkflowMetaDialog from "@/components/ChatBot/ChatBotEditorWorkflow/WorkflowMetaDialog.vue";
-import useAssistantStore from "@/stores/assistant";
 import { useWorkflowEditor } from './ChatBotEditorWorkflow/composables/useWorkflowEditor';
 
 const props = defineProps<{
   technicalId: string,
 }>();
 
-const assistantStore = useAssistantStore();
 const workflowMetaDialogRef = templateRef('workflowMetaDialogRef');
 
 // Use the workflow editor composable
@@ -79,7 +77,7 @@ const {
   autoLayout,
   onUpdateWorkflowMetaDialog,
   onResize,
-} = useWorkflowEditor(props, assistantStore);
+} = useWorkflowEditor(props);
 
 // Configure edge types
 const edgeTypes = {
