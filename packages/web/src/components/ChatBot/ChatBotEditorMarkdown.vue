@@ -57,8 +57,6 @@ import Editor from "@/components/Editor/Editor.vue";
 import SendIcon from "@/assets/images/icons/send.svg";
 import AttachIcon from "@/assets/images/icons/attach.svg";
 import {computed, onMounted, ref, useTemplateRef, onUnmounted, watch} from "vue";
-import * as monaco from 'monaco-editor';
-import {ElMessageBox, ElNotification} from "element-plus";
 import useAssistantStore from "@/stores/assistant.ts";
 import ChatBotAttachFile from "@/components/ChatBot/ChatBotAttachFile.vue";
 import HelperMarkdown from "@/helpers/HelperMarkdown";
@@ -68,14 +66,15 @@ import ChatBotCanvasMarkdownDrawer from "@/components/ChatBot/ChatBotCanvasMarkd
 import {SHOW_MARKDOWN_DRAWER} from "@/helpers/HelperConstants";
 import eventBus from "@/plugins/eventBus";
 import {templateRef} from "@vueuse/core";
+import { createMarkdownEditorActions, type EditorAction } from "@/utils/editorUtils";
 
 const canvasData = ref('');
-const editorActions = ref<any[]>([]);
+const editorActions = ref<EditorAction[]>([]);
 const isLoading = ref(false);
 const assistantStore = useAssistantStore();
 const emit = defineEmits(['answer']);
 const chatBotAttachFileRef = useTemplateRef('chatBotAttachFileRef');
-const currentFile = ref(null);
+const currentFile = ref<File | null>(null);
 const helperStorage = new HelperStorage();
 const chatBotCanvasMarkdownDrawerRef = templateRef('chatBotCanvasMarkdownDrawerRef');
 const EDITOR_WIDTH = 'chatBotEditorMarkdown:width';
@@ -93,6 +92,8 @@ const isShowMarkdown = computed(() => {
 onMounted(() => {
   eventBus.$on(SHOW_MARKDOWN_DRAWER, showChatBotCanvasMarkdownDrawer);
 })
+
+initializeEditorActions();
 
 onUnmounted(() => {
   eventBus.$off(SHOW_MARKDOWN_DRAWER, showChatBotCanvasMarkdownDrawer);
@@ -130,7 +131,7 @@ async function onSubmitQuestion() {
   }
 }
 
-async function questionRequest(data) {
+async function questionRequest(data: any) {
   if (data.file) {
     const formData = new FormData();
     formData.append('file', data.file);
@@ -142,9 +143,7 @@ async function questionRequest(data) {
   }
 }
 
-
 async function onSubmitAnswer() {
-
   const dataRequest = {
     answer: canvasData.value
   };
@@ -157,112 +156,22 @@ async function onSubmitAnswer() {
   currentFile.value = null;
 }
 
-addSubmitQuestionAction();
-addSubmitAnswerAction();
+function initializeEditorActions() {
+  const actions = createMarkdownEditorActions({
+    isLoading,
+    currentFile,
+    questionRequest,
+    onAnswer: (data) => {
+      emit('answer', data);
+    }
+  });
+
+  editorActions.value = actions;
+}
 
 const canvasDataWithMarkdown = computed(() => {
   return HelperMarkdown.parseMarkdown(canvasData.value);
 })
-
-function addSubmitQuestionAction() {
-  editorActions.value.push({
-    id: "submitQuestion",
-    label: "Submit Question",
-    contextMenuGroupId: "chatbot",
-    keybindings: [
-      monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyQ,
-    ],
-    run: async (editor) => {
-      const selectedValue = editor.getModel().getValueInRange(editor.getSelection());
-
-      if (!selectedValue) {
-        ElMessageBox.alert('Please select text before use it', 'Warning');
-        return;
-      }
-
-      try {
-        isLoading.value = true;
-
-        const dataRequest = {
-          question: selectedValue
-        };
-
-        if (currentFile.value) {
-          dataRequest.file = currentFile.value;
-        }
-
-        const {data} = await questionRequest(dataRequest);
-        currentFile.value = null;
-
-        const position = editor.getPosition();
-        const lineCount = editor.getModel().getLineCount();
-        const message = data.message.replaceAll('```javascript', '').replaceAll('```', '').trim();
-        let textToInsert = `/*\n${message}\n*/`;
-        if (position.lineNumber === lineCount) {
-          textToInsert = '\n' + textToInsert;
-        } else {
-          textToInsert = textToInsert + '\n';
-        }
-        const range = new monaco.Range(
-            position.lineNumber + 1,
-            1,
-            position.lineNumber + 1,
-            1
-        );
-        editor.executeEdits('DialogContentScriptEditor', [
-          {
-            range,
-            text: textToInsert,
-          },
-        ]);
-        editor.setPosition({
-          lineNumber: position.lineNumber + 1,
-          column: textToInsert.length + 1
-        });
-
-        ElNotification({
-          title: 'Success',
-          message: 'The code was generated',
-          type: 'success',
-        })
-      } finally {
-        isLoading.value = false;
-      }
-
-    }
-  })
-}
-
-function addSubmitAnswerAction() {
-  editorActions.value.push({
-    id: "submitAnswer",
-    label: "Submit Answer",
-    contextMenuGroupId: "chatbot",
-    keybindings: [
-      monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyA,
-    ],
-    run: async (editor) => {
-      const selectedValue = editor.getModel().getValueInRange(editor.getSelection());
-
-      if (!selectedValue) {
-        ElMessageBox.alert('Please select text before use it', 'Warning');
-        return;
-      }
-
-      const dataRequest = {
-        answer: selectedValue
-      };
-
-      if (currentFile.value) {
-        dataRequest.file = currentFile.value;
-      }
-
-      emit('answer', dataRequest);
-
-      currentFile.value = null;
-    }
-  })
-}
 
 function onFile(file: File) {
   currentFile.value = file;

@@ -56,12 +56,14 @@ import EdgeWithTooltip from "@/components/ChatBot/ChatBotEditorWorkflow/EdgeWith
 import EditEdgeConditionalDialog from "@/components/ChatBot/ChatBotEditorWorkflow/EditEdgeConditionalDialog.vue";
 import WorkflowMetaDialog from "@/components/ChatBot/ChatBotEditorWorkflow/WorkflowMetaDialog.vue";
 import { useWorkflowEditor } from './ChatBotEditorWorkflow/composables/useWorkflowEditor';
+import useAssistantStore from "@/stores/assistant.ts";
 
 const props = defineProps<{
   technicalId: string,
 }>();
 
 const workflowMetaDialogRef = templateRef('workflowMetaDialogRef');
+const assistantStore = useAssistantStore();
 
 // Use the workflow editor composable
 const {
@@ -77,7 +79,7 @@ const {
   autoLayout,
   onUpdateWorkflowMetaDialog,
   onResize,
-} = useWorkflowEditor(props);
+} = useWorkflowEditor(props, assistantStore);
 
 // Configure edge types
 const edgeTypes = {
