@@ -19,9 +19,7 @@
     </div>
     <div class="chat-bot-top-actions__right-part hidden-above-md">
       <AuthState/>
-      <el-button v-if="canvasVisible" @click="onClickMarkdownSideBar" class="btn btn-default btn-icon hidden-above-md">
-        <MarkdownIcon/>
-      </el-button>
+      <slot name="modal-preview"/>
       <ChatBotMenuMobile
           @rename="onClickRename"
           @delete="onClickDelete"
@@ -38,7 +36,6 @@
 <script setup lang="ts">
 import {inject, ref} from "vue";
 import MenuIcon from "@/assets/images/icons/menu.svg";
-import MarkdownIcon from "@/assets/images/icons/markdown.svg";
 import EntitiesDetailsDialog from "@/components/EntitiesDetailsDialog/EntitiesDetailsDialog.vue";
 import AuthState from "@/components/AuthState/AuthState.vue";
 import {ElMessageBox} from "element-plus";
@@ -59,7 +56,6 @@ const route = useRoute();
 
 const entitiesDetailsDialogVisible = ref(false);
 const drawerSidebarVisible = ref(false);
-const canvasVisible = inject('canvasVisible');
 const chatData = inject('chatData');
 
 function onClickEntitiesDetails() {
@@ -68,10 +64,6 @@ function onClickEntitiesDetails() {
 
 function onClickDrawerSideBar() {
   drawerSidebarVisible.value = true;
-}
-
-function onClickMarkdownSideBar() {
-  eventBus.$emit(SHOW_MARKDOWN_DRAWER);
 }
 
 function onClickRename() {
