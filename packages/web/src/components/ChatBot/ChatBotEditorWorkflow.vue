@@ -6,39 +6,36 @@
                 :actions="editorActions"/>
       </el-splitter-panel>
       <el-splitter-panel v-if="isShowVueFlow" class="chat-bot-editor-workflow__flow-wrapper">
-        <div id="vue-flow-component"></div>
-        <teleport :to="targetVueFlow">
-          <VueFlow
-              class="chat-bot-editor-workflow__vue-flow"
-              :fit-view-on-init="true"
-              :zoom-on-scroll="false"
-              @nodeDragStop="onNodeDragStop"
-              v-model:nodes="nodes"
-              v-model:edges="edges"
-              :edge-types="edgeTypes"
-              :default-viewport="{ zoom: 1.5 }"
-              :min-zoom="0.2"
-              :max-zoom="4"
-          >
-            <Controls position="top-left">
-              <ControlButton @click="resetTransform">
-                <Icon name="reset"/>
-              </ControlButton>
+        <VueFlow
+            class="chat-bot-editor-workflow__vue-flow"
+            :fit-view-on-init="true"
+            :zoom-on-scroll="false"
+            @nodeDragStop="onNodeDragStop"
+            v-model:nodes="nodes"
+            v-model:edges="edges"
+            :edge-types="edgeTypes"
+            :default-viewport="{ zoom: 1.5 }"
+            :min-zoom="0.2"
+            :max-zoom="4"
+        >
+          <Controls position="top-left">
+            <ControlButton @click="resetTransform">
+              <Icon name="reset"/>
+            </ControlButton>
 
-              <ControlButton @click="autoLayout">
-                <Icon name="update"/>
-              </ControlButton>
+            <ControlButton @click="autoLayout">
+              <Icon name="update"/>
+            </ControlButton>
 
-              <ControlButton @click="workflowMeta">
-                <Icon name="cogs"/>
-              </ControlButton>
-            </Controls>
-            <Background pattern-color="#aaa" :gap="16"/>
-            <template #node-default="{ data }">
-              <Node :data="data"/>
-            </template>
-          </VueFlow>
-        </teleport>
+            <ControlButton @click="workflowMeta">
+              <Icon name="cogs"/>
+            </ControlButton>
+          </Controls>
+          <Background pattern-color="#aaa" :gap="16"/>
+          <template #node-default="{ data }">
+            <Node :data="data"/>
+          </template>
+        </VueFlow>
       </el-splitter-panel>
     </el-splitter>
     <EditEdgeConditionalDialog/>
@@ -77,7 +74,6 @@ const props = defineProps<{
 const workflowMetaDialogRef = templateRef('workflowMetaDialogRef');
 const assistantStore = useAssistantStore();
 const chatBotCanvasVueFlowDrawerRef = templateRef('chatBotCanvasVueFlowDrawerRef');
-const targetVueFlow = ref('#vue-flow-component');
 
 const {
   canvasData,
@@ -114,7 +110,7 @@ const isShowVueFlow = computed(() => {
   return !helperBreakpoints.smaller('md').value;
 })
 
-function showChatBotCanvasMarkdownDrawer() {
+function showChatBotCanvasVueFlowDrawer() {
   chatBotCanvasVueFlowDrawerRef.value.drawerVisible = true;
 }
 </script>
