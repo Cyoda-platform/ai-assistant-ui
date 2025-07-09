@@ -5,42 +5,49 @@
         <Editor v-model="canvasData" language="json" class="chat-bot-editor-workflow__editor-inner"
                 :actions="editorActions"/>
       </el-splitter-panel>
-      <el-splitter-panel class="chat-bot-editor-workflow__flow-wrapper">
-        <VueFlow
-            class="chat-bot-editor-workflow__vue-flow"
-            :fit-view-on-init="true"
-            :zoom-on-scroll="false"
-            @nodeDragStop="onNodeDragStop"
-            v-model:nodes="nodes"
-            v-model:edges="edges"
-            :edge-types="edgeTypes"
-            :default-viewport="{ zoom: 1.5 }"
-            :min-zoom="0.2"
-            :max-zoom="4"
-        >
-          <Controls position="top-left">
-            <ControlButton @click="resetTransform">
-              <Icon name="reset"/>
-            </ControlButton>
+      <el-splitter-panel v-if="isShowVueFlow" class="chat-bot-editor-workflow__flow-wrapper">
+        <div id="vue-flow-component"></div>
+        <teleport :to="targetVueFlow">
+          <VueFlow
+              class="chat-bot-editor-workflow__vue-flow"
+              :fit-view-on-init="true"
+              :zoom-on-scroll="false"
+              @nodeDragStop="onNodeDragStop"
+              v-model:nodes="nodes"
+              v-model:edges="edges"
+              :edge-types="edgeTypes"
+              :default-viewport="{ zoom: 1.5 }"
+              :min-zoom="0.2"
+              :max-zoom="4"
+          >
+            <Controls position="top-left">
+              <ControlButton @click="resetTransform">
+                <Icon name="reset"/>
+              </ControlButton>
 
-            <ControlButton @click="autoLayout">
-              <Icon name="update"/>
-            </ControlButton>
+              <ControlButton @click="autoLayout">
+                <Icon name="update"/>
+              </ControlButton>
 
-            <ControlButton @click="workflowMeta">
-              <Icon name="cogs"/>
-            </ControlButton>
-          </Controls>
-          <Background pattern-color="#aaa" :gap="16"/>
-          <template #node-default="{ data }">
-            <Node :data="data"/>
-          </template>
-        </VueFlow>
+              <ControlButton @click="workflowMeta">
+                <Icon name="cogs"/>
+              </ControlButton>
+            </Controls>
+            <Background pattern-color="#aaa" :gap="16"/>
+            <template #node-default="{ data }">
+              <Node :data="data"/>
+            </template>
+          </VueFlow>
+        </teleport>
       </el-splitter-panel>
     </el-splitter>
     <EditEdgeConditionalDialog/>
     <WorkflowMetaDialog @update="onUpdateWorkflowMetaDialog" ref="workflowMetaDialogRef"
                         :workflowMetaData="workflowMetaData"/>
+
+    <ChatBotCanvasVueFlowDrawer
+        ref="chatBotCanvasVueFlowDrawerRef"
+    />
   </div>
 </template>
 
@@ -55,8 +62,13 @@ import Node from "@/components/ChatBot/ChatBotEditorWorkflow/Node.vue";
 import EdgeWithTooltip from "@/components/ChatBot/ChatBotEditorWorkflow/EdgeWithTooltip.vue";
 import EditEdgeConditionalDialog from "@/components/ChatBot/ChatBotEditorWorkflow/EditEdgeConditionalDialog.vue";
 import WorkflowMetaDialog from "@/components/ChatBot/ChatBotEditorWorkflow/WorkflowMetaDialog.vue";
-import { useWorkflowEditor } from './ChatBotEditorWorkflow/composables/useWorkflowEditor';
+import {useWorkflowEditor} from './ChatBotEditorWorkflow/composables/useWorkflowEditor';
 import useAssistantStore from "@/stores/assistant.ts";
+import {computed, onMounted, onUnmounted, ref} from "vue";
+import helperBreakpoints from "@/helpers/HelperBreakpoints";
+import ChatBotCanvasVueFlowDrawer from "@/components/ChatBot/ChatBotCanvasVueFlowDrawer.vue";
+import eventBus from "@/plugins/eventBus";
+import {SHOW_MARKDOWN_DRAWER, SHOW_VUE_FLOW_DRAWER} from "@/helpers/HelperConstants";
 
 const props = defineProps<{
   technicalId: string,
@@ -64,6 +76,8 @@ const props = defineProps<{
 
 const workflowMetaDialogRef = templateRef('workflowMetaDialogRef');
 const assistantStore = useAssistantStore();
+const chatBotCanvasVueFlowDrawerRef = templateRef('chatBotCanvasVueFlowDrawerRef');
+const targetVueFlow = ref('#vue-flow-component');
 
 const {
   canvasData,
@@ -80,12 +94,28 @@ const {
   onResize,
 } = useWorkflowEditor(props, assistantStore);
 
+onMounted(() => {
+  eventBus.$on(SHOW_VUE_FLOW_DRAWER, showChatBotCanvasVueFlowDrawer);
+})
+
+onUnmounted(() => {
+  eventBus.$off(SHOW_MARKDOWN_DRAWER, showChatBotCanvasVueFlowDrawer);
+})
+
 const edgeTypes = {
   custom: EdgeWithTooltip
 };
 
 function workflowMeta() {
   workflowMetaDialogRef.value.openDialog(workflowMetaData.value);
+}
+
+const isShowVueFlow = computed(() => {
+  return !helperBreakpoints.smaller('md').value;
+})
+
+function showChatBotCanvasMarkdownDrawer() {
+  chatBotCanvasVueFlowDrawerRef.value.drawerVisible = true;
 }
 </script>
 

@@ -2,7 +2,7 @@
  * Composable for workflow editor functionality
  */
 
-import {ref, computed, provide, onMounted, onUnmounted} from 'vue';
+import {ref, computed, provide, onMounted, onUnmounted, watch} from 'vue';
 import {useVueFlow} from '@vue-flow/core';
 import {MarkerType} from '@vue-flow/core';
 import eventBus from '@/plugins/eventBus';
@@ -315,6 +315,25 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     onUnmounted(() => {
         eventBus.$off('save-transition', handleSaveCondition);
+        
+        // Clear debounce timer
+        if (debounceTimer) {
+            clearTimeout(debounceTimer);
+        }
+    });
+
+    // Watch for changes in canvasData and regenerate nodes/edges
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    watch(canvasData, () => {
+        // Clear previous timer
+        if (debounceTimer) {
+            clearTimeout(debounceTimer);
+        }
+        
+        // Set new timer with 300ms debounce
+        debounceTimer = setTimeout(() => {
+            generateNodes();
+        }, 300);
     });
 
     // Provide condition change handler

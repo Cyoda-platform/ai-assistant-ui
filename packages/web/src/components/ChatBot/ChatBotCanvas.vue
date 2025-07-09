@@ -11,6 +11,14 @@
             <el-radio-button label="Workflow" value="workflow"/>
           </el-radio-group>
         </template>
+        <template #modal-preview>
+          <el-button v-if="canvasType==='markdown'" @click="onClickMarkdownSideBar" class="btn btn-default btn-icon hidden-above-md">
+            <MarkdownIcon/>
+          </el-button>
+          <el-button v-if="canvasType==='workflow'" @click="onClickVueFlowSideBar" class="btn btn-default btn-icon hidden-above-md">
+            <GraphIcon/>
+          </el-button>
+        </template>
       </ChatBotTopActions>
       <ChatBotEditorMarkdown
           v-if="canvasType==='markdown'"
@@ -30,6 +38,10 @@ import ChatBotTopActions from "@/components/ChatBot/ChatBotTopActions.vue";
 import SideBar from "@/components/SideBar/SideBar.vue";
 import useAppStore from "@/stores/app";
 import ChatBotEditorWorkflow from "@/components/ChatBot/ChatBotEditorWorkflow.vue";
+import eventBus from "@/plugins/eventBus";
+import {SHOW_MARKDOWN_DRAWER, SHOW_VUE_FLOW_DRAWER} from "@/helpers/HelperConstants";
+import MarkdownIcon from "@/assets/images/icons/markdown.svg";
+import GraphIcon from "@/assets/images/icons/graph.svg";
 
 const appStore = useAppStore();
 const isSidebarHidden = computed(() => appStore.isSidebarHidden);
@@ -48,6 +60,14 @@ const emit = defineEmits([
   'updateNotification',
   'toggleCanvas'
 ]);
+
+function onClickMarkdownSideBar() {
+  eventBus.$emit(SHOW_MARKDOWN_DRAWER);
+}
+
+function onClickVueFlowSideBar() {
+  eventBus.$emit(SHOW_VUE_FLOW_DRAWER);
+}
 
 function scrollDownMessages() {
   const messagesHtml = document.querySelector('.chat-bot-canvas__sidebar-messages');
