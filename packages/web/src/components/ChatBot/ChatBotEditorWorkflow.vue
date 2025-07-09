@@ -65,7 +65,6 @@ const props = defineProps<{
 const workflowMetaDialogRef = templateRef('workflowMetaDialogRef');
 const assistantStore = useAssistantStore();
 
-// Use the workflow editor composable
 const {
   canvasData,
   editorSize,
@@ -81,7 +80,6 @@ const {
   onResize,
 } = useWorkflowEditor(props, assistantStore);
 
-// Configure edge types
 const edgeTypes = {
   custom: EdgeWithTooltip
 };
