@@ -52,11 +52,11 @@ const drawerVisible = ref(false);
 defineExpose({drawerVisible});
 
 const emit = defineEmits([
-  'onNodeDragStop', 
-  'resetTransform', 
-  'autoLayout', 
-  'workflowMeta', 
-  'update:nodes', 
+  'onNodeDragStop',
+  'resetTransform',
+  'autoLayout',
+  'workflowMeta',
+  'update:nodes',
   'update:edges'
 ]);
 
@@ -92,7 +92,7 @@ const edgesLocal = computed({
   .el-drawer__header {
     margin-bottom: 0;
   }
-  
+
   .el-drawer__body {
     padding: 0;
     height: 100%;
@@ -106,11 +106,11 @@ const edgesLocal = computed({
   height: 100%;
   flex: 1;
   min-height: 0;
-  
+
   // Ensure nodes can be dragged properly
   .vue-flow__node {
     cursor: grab;
-    
+
     &:active {
       cursor: grabbing;
     }
