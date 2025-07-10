@@ -8,13 +8,14 @@
       <div class="my-header">
         <h4 :id="titleId" :class="titleClass">
           Entities Data
+          <el-divider direction="vertical" />
           <el-button
               @click="onClickRollbackChat"
               :loading="isLoadingRollback"
               size="small"
               class="btn btn-primary"
           >
-            Rollback
+            Restart workflows
             <RollbackQuestionIcon class="icon"/>
           </el-button>
         </h4>
