@@ -100,10 +100,8 @@ export function renderMermaid(text, raw) {
             markdownActions(element, raw);
         }
 
-        // Рендерим первый раз
         await render();
 
-        // Следим за сменой темы
         watch(detectTheme, async () => {
             await render();
         });
