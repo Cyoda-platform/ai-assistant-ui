@@ -44,13 +44,13 @@
 
     <ChatBotCanvasVueFlowDrawer
         ref="chatBotCanvasVueFlowDrawerRef"
-        @nodeDragStop="onNodeDragStop"
-        @resetTransform="resetTransform"
-        @autoLayout="autoLayout"
-        @workflowMeta="workflowMeta"
         :nodes="nodes"
         :edges="edges"
         :edge-types="edgeTypes"
+        @onNodeDragStop="onNodeDragStop"
+        @resetTransform="resetTransform"
+        @autoLayout="autoLayout"
+        @workflowMeta="workflowMeta"
     />
   </div>
 </template>

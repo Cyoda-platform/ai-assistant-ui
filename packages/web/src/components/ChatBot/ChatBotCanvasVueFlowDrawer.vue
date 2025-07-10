@@ -51,12 +51,19 @@ const drawerVisible = ref(false);
 
 defineExpose({drawerVisible});
 
-const emit = defineEmits(['onNodeDragStop', 'resetTransform', 'autoLayout', 'workflowMeta', 'update:nodes', 'update:edges']);
+const emit = defineEmits([
+  'onNodeDragStop', 
+  'resetTransform', 
+  'autoLayout', 
+  'workflowMeta', 
+  'update:nodes', 
+  'update:edges'
+]);
 
 const props = defineProps<{
-  nodes: any[],
-  edges: any[],
-  edgeTypes: any[],
+  nodes: any[];
+  edges: any[];
+  edgeTypes: any;
 }>();
 
 const nodesLocal = computed({
@@ -79,20 +86,39 @@ const edgesLocal = computed({
 </script>
 
 <style lang="scss">
-.chat-bot-canvas-markdown-drawer {
+.chat-bot-canvas-vue-flow-drawer {
   background-color: var(--bg-sidebar);
-
-  &__markdown-inner p:first-child {
-    margin-top: 8px;
-  }
-
-  &__markdown-inner {
-    height: 100%;
-    overflow-y: auto;
-  }
 
   .el-drawer__header {
     margin-bottom: 0;
+  }
+  
+  .el-drawer__body {
+    padding: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.chat-bot-editor-workflow__vue-flow {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
+  
+  // Ensure nodes can be dragged properly
+  .vue-flow__node {
+    cursor: grab;
+    
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  .vue-flow__container {
+    width: 100%;
+    height: 100%;
   }
 }
 </style>
