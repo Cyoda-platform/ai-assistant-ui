@@ -14,7 +14,7 @@
     <div class="dashboard-view__body">
       <NewChat @created="onCreated"/>
     </div>
-    <DrawerSidebar ref="drawerSidebarRef"/>
+    <DrawerSidebar v-model="drawerSidebarVisible"/>
   </div>
 </template>
 
@@ -22,15 +22,14 @@
 import type {CreateChatResponse} from "@/types/chat";
 import {useRouter} from "vue-router";
 import NewChat from "@/components/NewChat/NewChat.vue";
-import {onBeforeUnmount, onMounted} from "vue";
+import {onBeforeUnmount, onMounted, ref} from "vue";
 import AuthState from "@/components/AuthState/AuthState.vue";
 import Support from "@/components/Support/Support.vue";
 import DrawerSidebar from "@/components/DrawerSidebar/DrawerSidebar.vue";
-import {templateRef} from "@vueuse/core";
 import MenuIcon from "@/assets/images/icons/menu.svg";
 
 const router = useRouter();
-const drawerSidebarRef = templateRef('drawerSidebarRef');
+const drawerSidebarVisible = ref(false);
 
 function onCreated(data: CreateChatResponse) {
   router.push(`/chat-bot/view/${data.technical_id}?isNew=true`);
@@ -47,12 +46,13 @@ onBeforeUnmount(() => {
 })
 
 function onClickDrawerSideBar() {
-  drawerSidebarRef.value.drawerVisible = true;
+  drawerSidebarVisible.value = true;
 }
 </script>
 
 <style lang="scss">
 @use '@/assets/css/particular/breakpoints';
+
 .dashboard-view {
   padding-top: 24px;
   padding-left: 29px;
@@ -73,7 +73,7 @@ function onClickDrawerSideBar() {
     }
   }
 
-  &__actions-right-part{
+  &__actions-right-part {
     display: flex;
     gap: 12px;
     align-items: center;
