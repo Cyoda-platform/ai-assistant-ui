@@ -1,0 +1,21 @@
+.vue-flow__node-default {
+  border: none !important;
+  padding: 0;
+  border-radius: 8px;
+}
+
+.vue-flow__node-default.selected {
+  box-shadow: none !important;
+}
+
+.vue-flow__controls-button {
+  background-color: var(--vue-flow-button-color);
+  border-color: var(--vue-flow-button-color);
+  &:hover{
+    background-color: var(--bg-btn-default-hover);;
+  }
+
+  .theme-dark & svg {
+    fill: var(--text-color-regular);
+  }
+}

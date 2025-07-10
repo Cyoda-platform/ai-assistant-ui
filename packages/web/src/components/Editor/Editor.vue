@@ -5,36 +5,48 @@
 </template>
 
 <script setup lang="ts">
-import {ref, computed, watch, onMounted, onBeforeUnmount, nextTick} from "vue";
+import {ref, watch, onMounted, onBeforeUnmount, nextTick} from "vue";
 import * as monaco from 'monaco-editor';
+import type { EditorAction } from '../../utils/editorUtils';
 
-import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
-
-self.MonacoEnvironment = {
-  getWorker(_, label) {
-    return new editorWorker()
-  }
+// Configure Monaco environment for Vite - without worker imports
+if (typeof window !== 'undefined') {
+  (window as any).MonacoEnvironment = {
+    getWorkerUrl: function (_moduleId: string, _label: string) {
+      return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
+        self.MonacoEnvironment = {
+          baseUrl: '/monaco-editor/esm/'
+        };
+        self.importScripts = function() {};
+        self.require = function() {};
+        self.define = function() {};
+      `)}`;
+    }
+  };
 }
 
 const emit = defineEmits(["update:modelValue", "ready"]);
-const rootRef = ref(null);
-const props = defineProps({
-  modelValue: {default: ""},
-  language: {default: "plain"},
-  editable: {default: true},
-  actions: {default: () => ([])}
+const rootRef = ref<HTMLElement | null>(null);
+const props = withDefaults(defineProps<{
+  modelValue?: string
+  language?: string
+  editable?: boolean
+  actions?: EditorAction[]
+}>(), {
+  modelValue: '',
+  language: 'text/plain',
+  editable: true,
+  actions: () => ([])
 });
 
-const language = computed(() => {
-  return 'text/plain'
-})
+let editor: monaco.editor.IStandaloneCodeEditor | null = null;
 
-let editor: any = null;
+onMounted(async () => {
+  if (!rootRef.value) return;
 
-onMounted(() => {
   editor = monaco.editor.create(rootRef.value, {
     value: props.modelValue,
-    language: language.value,
+    language: props.language,
     automaticLayout: true,
     readOnly: !props.editable,
     renderLineHighlight: "none",
@@ -47,30 +59,45 @@ onMounted(() => {
     wrappingStrategy: 'advanced',
   });
 
-  editor.getModel().onDidChangeContent((e) => {
+  editor.getModel()?.onDidChangeContent(() => {
     updateListenerExtension(editor);
   })
 
   if (props.actions.length > 0) {
-    props.actions.forEach((el) => editor.addAction(el));
+    props.actions.forEach((action) => {
+      if (editor) {
+        editor.addAction({
+          id: action.id,
+          label: action.label,
+          contextMenuGroupId: action.contextMenuGroupId,
+          keybindings: action.keybindings,
+          run: (editorInstance) => action.run(editorInstance as monaco.editor.IStandaloneCodeEditor)
+        });
+      }
+    });
   }
 
   nextTick(() => {
     emit('ready');
   })
-  return;
-
 });
 
-function updateListenerExtension(editor) {
-  let value = editor.getValue();
+onBeforeUnmount(() => {
+  if (editor) {
+    editor.dispose();
+  }
+});
+
+function updateListenerExtension(editor: monaco.editor.IStandaloneCodeEditor | null) {
+  if (!editor) return;
+  const value = editor.getValue();
   emit("update:modelValue", value);
 }
 
 watch(
   () => props.modelValue,
   (modelValue) => {
-    let newValue = modelValue;
+    const newValue = modelValue;
     if (editor) {
       const editorValue = editor.getValue();
       if (newValue !== editorValue) {
@@ -81,9 +108,12 @@ watch(
   {immediate: true}
 );
 
-watch(language, () => {
+watch(() => props.language, () => {
   if (!editor) return;
-  monaco.editor.setModelLanguage(editor.getModel(), language.value)
+  const model = editor.getModel();
+  if (model) {
+    monaco.editor.setModelLanguage(model, props.language);
+  }
 })
 
 defineExpose({editor});

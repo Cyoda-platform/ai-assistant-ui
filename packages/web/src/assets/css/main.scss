@@ -20,3 +20,11 @@
 @use "particular/message";
 @use "particular/breakpoints";
 @use "particular/notification";
+@use "particular/splitter-bar";
+@use "particular/radio-button";
+@use "particular/vue-flow";
+
+//Vue-flow
+@import "@vue-flow/core/dist/style.css";
+@import "@vue-flow/core/dist/theme-default.css";
+@import "@vue-flow/controls/dist/style.css";

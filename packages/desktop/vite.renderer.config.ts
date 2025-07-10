@@ -8,7 +8,7 @@ export default defineConfig({
     plugins: [vue(), svgLoader()],
     resolve: {
         alias: {
-            '@': resolve(__dirname, '../web/src'), // Убедитесь, что путь ведёт к папке `src`
+            '@': resolve(__dirname, '../web/src'),
         },
     },
 });
