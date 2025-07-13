@@ -1,3 +1,4 @@
 init.txt
 scripts/*
 node_modules
+**/.env.local
