@@ -8,9 +8,189 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create a new release'
+        required: false
+        default: 'true'
+        type: boolean
+      version_type:
+        description: 'Version bump type'
+        required: false
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      custom_version:
+        description: 'Custom version (optional, overrides version_type)'
+        required: false
+        type: string
 
 jobs:
+  create-tag:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_release == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      new_tag: ${{ steps.create_tag.outputs.new_tag }}
+      version: ${{ steps.create_tag.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Get package version and create tag
+        id: create_tag
+        run: |
+          # Get current version from package.json
+          CURRENT_VERSION=$(node -p "require('./packages/desktop/package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Validate current version format
+          if ! echo "$CURRENT_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "❌ Invalid version format in package.json: $CURRENT_VERSION"
+            exit 1
+          fi
+          
+          # Check if custom version is provided
+          if [ -n "${{ github.event.inputs.custom_version }}" ]; then
+            NEW_VERSION="${{ github.event.inputs.custom_version }}"
+            echo "Using custom version: $NEW_VERSION"
+          
+            # Validate custom version format
+            if ! echo "$NEW_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "❌ Invalid custom version format: $NEW_VERSION (expected: x.y.z)"
+              exit 1
+            fi
+          else
+            # Auto-increment version based on type
+            VERSION_TYPE="${{ github.event.inputs.version_type }}"
+            echo "Auto-incrementing version with type: $VERSION_TYPE"
+          
+            # Parse current version
+            IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT_VERSION"
+            MAJOR=${VERSION_PARTS[0]}
+            MINOR=${VERSION_PARTS[1]}
+            PATCH=${VERSION_PARTS[2]}
+          
+            case $VERSION_TYPE in
+              "major")
+                MAJOR=$((MAJOR + 1))
+                MINOR=0
+                PATCH=0
+                ;;
+              "minor")
+                MINOR=$((MINOR + 1))
+                PATCH=0
+                ;;
+              "patch")
+                PATCH=$((PATCH + 1))
+                ;;
+            esac
+          
+            NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          fi
+          
+          NEW_TAG="v$NEW_VERSION"
+          echo "New tag will be: $NEW_TAG"
+          
+          # Check if tag already exists
+          if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
+            echo "❌ Tag $NEW_TAG already exists!"
+            exit 1
+          fi
+          
+          # Check if new version is greater than current
+          if [ "$NEW_VERSION" = "$CURRENT_VERSION" ]; then
+            echo "❌ New version ($NEW_VERSION) must be different from current version ($CURRENT_VERSION)"
+            exit 1
+          fi
+          
+          # Update package.json version
+          cd packages/desktop
+          npm version $NEW_VERSION --no-git-tag-version
+          
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Commit version change
+          git add package.json
+          git commit -m "chore: bump version to $NEW_VERSION"
+          
+          # Create and push tag
+          git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
+          git push origin main
+          git push origin "$NEW_TAG"
+          
+          # Set outputs
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
+          echo "✅ Created and pushed tag: $NEW_TAG"
+
+      - name: Generate Release Notes
+        id: release_notes
+        run: |
+          # Generate automatic release notes
+          echo "📝 Generating release notes..."
+          
+          # Get commits since last tag
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          
+          if [ -n "$LAST_TAG" ]; then
+            echo "📋 Changes since $LAST_TAG:"
+            COMMITS=$(git log $LAST_TAG..HEAD --oneline --pretty=format:"- %s" | head -20)
+          else
+            echo "📋 Initial release - all changes:"
+            COMMITS=$(git log --oneline --pretty=format:"- %s" | head -20)
+          fi
+          
+          # Create release notes
+          cat > release_notes.md << EOF
+          ## 🚀 What's New in ${{ steps.create_tag.outputs.version }}
+          
+          This release includes the following changes:
+          
+          ### 📋 Changes
+          $COMMITS
+          
+          ### 📦 Downloads
+          - **macOS**: Download the DMG and use the included install-macos.sh script
+          - **Linux**: Use the .deb, .rpm, or .AppImage file depending on your distribution  
+          - **Windows**: Use the .exe installer
+          
+          ### ⚠️ Installation Notes
+          - **macOS users**: May need to approve unsigned application in System Preferences → Security & Privacy
+          - **Linux users**: Choose the package format that matches your distribution
+          - **Windows users**: Run the .exe installer with administrator privileges if needed
+          
+          ### 🔧 Technical Details
+          - Built with Electron Forge
+          - Cross-platform support (Linux x64/arm64, macOS arm64, Windows x64)
+          - Unsigned macOS build with automated installation script
+          EOF
+          
+          echo "✅ Release notes generated"
+
+      - name: Upload release notes
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-notes
+          path: release_notes.md
+          retention-days: 1
+
   build-ubuntu:
+    needs: [ create-tag ]
+    if: always() && (needs.create-tag.result == 'success' || needs.create-tag.result == 'skipped')
     runs-on: ubuntu-latest
     env:
       NODE_OPTIONS: --disable-warning=DEP0174
@@ -26,6 +206,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.create-tag.outputs.new_tag || github.ref }}
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -47,8 +230,37 @@ jobs:
         run: yarn publish --platform=linux --arch=x64,arm64
         timeout-minutes: 10
 
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: cyoda-linux
+          path: |
+            packages/desktop/out/cyoda-build/make/*.deb
+            packages/desktop/out/cyoda-build/make/*.rpm
+            packages/desktop/out/cyoda-build/make/*.tar.gz
+            packages/desktop/out/cyoda-build/make/*.AppImage
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload to GitHub Releases (if tagged) - Linux
+        if: startsWith(github.ref, 'refs/tags/') || (needs.create-tag.outputs.new_tag != '' && github.event_name == 'workflow_dispatch')
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.create-tag.outputs.new_tag || github.ref_name }}
+          name: "Cyoda Platform v${{ needs.create-tag.outputs.version || github.ref_name }}"
+          body_path: ${{ github.workspace }}/release_notes.md
+          files: |
+            packages/desktop/out/cyoda-build/make/*.deb
+            packages/desktop/out/cyoda-build/make/*.rpm
+            packages/desktop/out/cyoda-build/make/*.tar.gz
+            packages/desktop/out/cyoda-build/make/*.AppImage
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: false
+          prerelease: false
+
   build-macos-arm64:
-    needs: build-ubuntu
+    needs: [ create-tag, build-ubuntu ]
+    if: always() && (needs.create-tag.result == 'success' || needs.create-tag.result == 'skipped') && (needs.build-ubuntu.result == 'success')
     runs-on: macos-latest
     env:
       NODE_OPTIONS: --disable-warning=DEP0174
@@ -70,6 +282,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.create-tag.outputs.new_tag || github.ref }}
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -99,13 +314,13 @@ jobs:
           # Find all .app files
           find out -name "*.app" -type d | while read APP_PATH; do
             echo "📱 Processing: $APP_PATH"
-            
+          
             # Remove quarantine attributes
             sudo xattr -rd com.apple.quarantine "$APP_PATH" 2>/dev/null || true
-            
+          
             # Ensure application is executable
             chmod +x "$APP_PATH/Contents/MacOS/"* 2>/dev/null || true
-            
+          
             echo "✅ Processed: $APP_PATH"
           done
           
@@ -172,8 +387,35 @@ jobs:
           
           echo "📋 Installation files prepared"
 
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: cyoda-macos-arm64
+          path: |
+            packages/desktop/out/cyoda-build/make/*.dmg
+            packages/desktop/out/cyoda-build/make/*.zip
+            packages/desktop/out/cyoda-build/make/install-macos.sh
+            packages/desktop/out/cyoda-build/make/README-INSTALLATION.md
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload to GitHub Releases (if tagged)
+        if: startsWith(github.ref, 'refs/tags/') || (needs.create-tag.outputs.new_tag != '' && github.event_name == 'workflow_dispatch')
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.create-tag.outputs.new_tag || github.ref_name }}
+          files: |
+            packages/desktop/out/cyoda-build/make/*.dmg
+            packages/desktop/out/cyoda-build/make/*.zip
+            packages/desktop/out/cyoda-build/make/install-macos.sh
+            packages/desktop/out/cyoda-build/make/README-INSTALLATION.md
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: false
+          prerelease: false
+
   build-windows:
-    needs: build-macos-arm64
+    needs: [ create-tag, build-macos-arm64 ]
+    if: always() && (needs.create-tag.result == 'success' || needs.create-tag.result == 'skipped') && (needs.build-macos-arm64.result == 'success')
     runs-on: windows-latest
     env:
       NODE_OPTIONS: --disable-warning=DEP0174
@@ -189,6 +431,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.create-tag.outputs.new_tag || github.ref }}
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -209,3 +454,226 @@ jobs:
         working-directory: packages/desktop
         run: yarn publish --platform=win32 --arch=x64
         timeout-minutes: 10
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: cyoda-windows-x64
+          path: |
+            packages/desktop/out/cyoda-build/make/*.exe
+            packages/desktop/out/cyoda-build/make/*.msi
+            packages/desktop/out/cyoda-build/make/*.nupkg
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload to GitHub Releases (if tagged) - Windows
+        if: startsWith(github.ref, 'refs/tags/') || (needs.create-tag.outputs.new_tag != '' && github.event_name == 'workflow_dispatch')
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.create-tag.outputs.new_tag || github.ref_name }}
+          files: |
+            packages/desktop/out/cyoda-build/make/*.exe
+            packages/desktop/out/cyoda-build/make/*.msi
+            packages/desktop/out/cyoda-build/make/*.nupkg
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: false
+          prerelease: false
+
+  # Parallel build optimization with matrix strategy
+  build-parallel:
+    needs: [ create-tag ]
+    if: always() && (needs.create-tag.result == 'success' || needs.create-tag.result == 'skipped')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64,arm64
+            artifact_name: cyoda-linux
+            files: |
+              packages/desktop/out/cyoda-build/make/*.deb
+              packages/desktop/out/cyoda-build/make/*.rpm
+              packages/desktop/out/cyoda-build/make/*.tar.gz
+              packages/desktop/out/cyoda-build/make/*.AppImage
+          - os: macos-latest
+            platform: darwin
+            arch: arm64
+            artifact_name: cyoda-macos-arm64
+            files: |
+              packages/desktop/out/cyoda-build/make/*.dmg
+              packages/desktop/out/cyoda-build/make/*.zip
+              packages/desktop/out/cyoda-build/make/install-macos.sh
+              packages/desktop/out/cyoda-build/make/README-INSTALLATION.md
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            artifact_name: cyoda-windows-x64
+            files: |
+              packages/desktop/out/cyoda-build/make/*.exe
+              packages/desktop/out/cyoda-build/make/*.msi
+              packages/desktop/out/cyoda-build/make/*.nupkg
+    runs-on: ${{ matrix.os }}
+    env:
+      NODE_OPTIONS: --disable-warning=DEP0174
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      VITE_APP_API_BASE: ${{ vars.VITE_APP_API_BASE }}
+      VITE_APP_BASE_URL: ${{ vars.VITE_APP_BASE_URL }}
+      VITE_APP_AUTH0_DOMAIN: ${{ vars.VITE_APP_AUTH0_DOMAIN }}
+      VITE_APP_AUTH0_CLIENT_ID: ${{ vars.VITE_APP_AUTH0_CLIENT_ID }}
+      VITE_APP_AUTH0_AUDIENCE: ${{ vars.VITE_APP_AUTH0_AUDIENCE }}
+      VITE_APP_AUTH0_REDIRECT_URI: ${{ vars.VITE_APP_AUTH0_REDIRECT_URI }}
+      VITE_APP_AUTH0_ORGANIZATION: ${{ vars.VITE_APP_AUTH0_ORGANIZATION }}
+      VITE_IS_ELECTRON: true
+      # Apple signing credentials (optional for macOS)
+      ENABLE_CODE_SIGNING: ${{ secrets.ENABLE_CODE_SIGNING || 'false' }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_IDENTITY: ${{ secrets.APPLE_IDENTITY }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.create-tag.outputs.new_tag || github.ref }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.yarn/cache
+            node_modules
+            packages/desktop/node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Prepare Yarn version
+        run: corepack prepare yarn@4.5.3 --activate
+
+      - name: Install dependencies
+        working-directory: packages/desktop
+        run: yarn install
+
+      - name: Download release notes
+        if: needs.create-tag.outputs.new_tag != ''
+        uses: actions/download-artifact@v3
+        with:
+          name: release-notes
+          path: .
+
+      - name: Build for Linux
+        if: matrix.platform == 'linux'
+        working-directory: packages/desktop
+        run: yarn publish --platform=linux --arch=${{ matrix.arch }}
+        timeout-minutes: 10
+
+      - name: Build for macOS (unsigned)
+        if: matrix.platform == 'darwin'
+        working-directory: packages/desktop
+        run: |
+          yarn make:unsigned
+          
+          echo "🔧 Preparing unsigned app for distribution..."
+          
+          # Find and process .app files
+          find out -name "*.app" -type d | while read APP_PATH; do
+            echo "📱 Processing: $APP_PATH"
+            sudo xattr -rd com.apple.quarantine "$APP_PATH" 2>/dev/null || true
+            chmod +x "$APP_PATH/Contents/MacOS/"* 2>/dev/null || true
+            echo "✅ Processed: $APP_PATH"
+          done
+          
+          # Process .dmg files
+          find out -name "*.dmg" -type f | while read DMG_PATH; do
+            echo "💿 Processing DMG: $DMG_PATH"
+            sudo xattr -rd com.apple.quarantine "$DMG_PATH" 2>/dev/null || true
+            echo "✅ DMG processed: $DMG_PATH"
+          done
+          
+          # Copy installation script and create README
+          cp scripts/install-macos.sh out/cyoda-build/make/ 2>/dev/null || true
+          
+          cat > out/cyoda-build/make/README-INSTALLATION.md << 'EOF'
+          # 🚀 Installing Cyoda on macOS
+          
+          ## 🎯 Automatic Installation (Recommended)
+          
+          ```bash
+          # Make script executable and run
+          chmod +x install-macos.sh
+          ./install-macos.sh
+          ```
+          
+          ## 📥 Manual Installation from DMG
+          
+          1. Download `Cyoda-*.dmg` file
+          2. Run command: `sudo xattr -rd com.apple.quarantine Cyoda-*.dmg`
+          3. Open DMG file
+          4. Drag Cyoda.app to Applications folder
+          5. Run: `sudo xattr -rd com.apple.quarantine /Applications/Cyoda.app`
+          
+          ## 🔧 If Application Won't Start
+          
+          ```bash
+          # Complete security attributes cleanup
+          sudo xattr -rd com.apple.quarantine /Applications/Cyoda.app
+          sudo chmod +x /Applications/Cyoda.app/Contents/MacOS/cyoda
+          
+          # Launch
+          open /Applications/Cyoda.app
+          ```
+          
+          ## ❓ Why Are Additional Steps Needed?
+          
+          - Application is not signed with Apple Developer certificate (saves $99/year)
+          - macOS blocks unsigned applications by default
+          - This is safe - just requires one-time approval
+          - After installation, application works normally
+          
+          ## 🆘 Having Issues?
+          
+          If nothing helps:
+          1. Try automatic installer: `./install-macos.sh`
+          2. Check System Preferences → Security & Privacy
+          3. Click "Open Anyway" next to blocked application
+          EOF
+          
+          echo "🎉 All artifacts prepared for distribution!"
+        timeout-minutes: 10
+        continue-on-error: true
+
+      - name: Build for Windows
+        if: matrix.platform == 'win32'
+        working-directory: packages/desktop
+        run: yarn publish --platform=win32 --arch=${{ matrix.arch }}
+        timeout-minutes: 10
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.files }}
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload to GitHub Releases (if tagged)
+        if: startsWith(github.ref, 'refs/tags/') || (needs.create-tag.outputs.new_tag != '' && github.event_name == 'workflow_dispatch')
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.create-tag.outputs.new_tag || github.ref_name }}
+          name: "Cyoda Platform v${{ needs.create-tag.outputs.version || github.ref_name }}"
+          body_path: ${{ github.workspace }}/release_notes.md
+          files: ${{ matrix.files }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: false
+          prerelease: false
