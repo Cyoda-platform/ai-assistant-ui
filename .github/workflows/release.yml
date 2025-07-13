@@ -224,32 +224,39 @@ jobs:
           echo "🔧 Preparing unsigned app for distribution..."
           cd packages/desktop
           
-          # Find and process .app files
+          # Find and process .app files with ad-hoc signing
           find out -name "*.app" -type d | while read APP_PATH; do
             echo "📱 Processing: $APP_PATH"
-            # Remove extended attributes (quarantine)
-            sudo xattr -rc "$APP_PATH" 2>/dev/null || true
-            sudo xattr -d com.apple.quarantine "$APP_PATH" 2>/dev/null || true
-            # Make executable
-            chmod +x "$APP_PATH/Contents/MacOS/"* 2>/dev/null || true
-            # Remove quarantine from all files in the app bundle
-            find "$APP_PATH" -type f -exec sudo xattr -d com.apple.quarantine {} \; 2>/dev/null || true
-            echo "✅ Processed: $APP_PATH"
+            
+            # Remove all extended attributes first
+            sudo xattr -cr "$APP_PATH" 2>/dev/null || true
+            
+            # Ad-hoc sign the application (this makes macOS trust it more)
+            echo "🔏 Ad-hoc signing application..."
+            codesign --force --deep --sign - "$APP_PATH" 2>/dev/null || true
+            
+            # Verify signing
+            codesign --verify --verbose "$APP_PATH" 2>/dev/null || echo "Signing verification failed (expected for ad-hoc)"
+            
+            # Make all executables executable
+            find "$APP_PATH" -type f -perm +111 -exec chmod +x {} \; 2>/dev/null || true
+            
+            echo "✅ Processed and signed: $APP_PATH"
           done
           
-          # Process .dmg files
+          # Process and sign .dmg files
           find out -name "*.dmg" -type f | while read DMG_PATH; do
             echo "💿 Processing DMG: $DMG_PATH"
-            sudo xattr -rc "$DMG_PATH" 2>/dev/null || true
-            sudo xattr -d com.apple.quarantine "$DMG_PATH" 2>/dev/null || true
-            echo "✅ DMG processed: $DMG_PATH"
+            sudo xattr -cr "$DMG_PATH" 2>/dev/null || true
+            # Ad-hoc sign the DMG too
+            codesign --force --sign - "$DMG_PATH" 2>/dev/null || true
+            echo "✅ DMG processed and signed: $DMG_PATH"
           done
           
           # Process .zip files
           find out -name "*.zip" -type f | while read ZIP_PATH; do
             echo "📦 Processing ZIP: $ZIP_PATH"
-            sudo xattr -rc "$ZIP_PATH" 2>/dev/null || true
-            sudo xattr -d com.apple.quarantine "$ZIP_PATH" 2>/dev/null || true
+            sudo xattr -cr "$ZIP_PATH" 2>/dev/null || true
             echo "✅ ZIP processed: $ZIP_PATH"
           done
           
@@ -337,7 +344,7 @@ jobs:
           body_path: ${{ github.workspace }}/release_notes.md
           files: ${{ matrix.files }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          draft: false
+          draft: true
           prerelease: false
           make_latest: true
 
@@ -348,7 +355,7 @@ jobs:
           tag_name: ${{ needs.create-tag.outputs.new_tag || github.ref_name }}
           files: ${{ matrix.files }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          draft: false
+          draft: true
           prerelease: false
           append_body: true
           make_latest: true
