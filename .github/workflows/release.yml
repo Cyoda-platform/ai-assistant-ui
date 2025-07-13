@@ -251,18 +251,29 @@ jobs:
           find out -name "*.app" -type d | while read APP_PATH; do
             echo "📱 Processing: $APP_PATH"
             
-            # Remove all extended attributes first
+            # Remove all extended attributes recursively
             sudo xattr -cr "$APP_PATH" 2>/dev/null || true
+            sudo find "$APP_PATH" -exec xattr -c {} \; 2>/dev/null || true
+            
+            # Find the main executable and make it executable
+            MAIN_EXEC=$(find "$APP_PATH/Contents/MacOS" -type f -executable | head -1)
+            if [ -n "$MAIN_EXEC" ]; then
+              echo "� Found main executable: $MAIN_EXEC"
+              chmod +x "$MAIN_EXEC"
+              # Remove quarantine specifically from the executable
+              sudo xattr -d com.apple.quarantine "$MAIN_EXEC" 2>/dev/null || true
+            fi
+            
+            # Make all files in MacOS directory executable
+            find "$APP_PATH/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null || true
+            find "$APP_PATH/Contents/MacOS" -type f -exec sudo xattr -d com.apple.quarantine {} \; 2>/dev/null || true
             
             # Ad-hoc sign the application (this makes macOS trust it more)
             echo "🔏 Ad-hoc signing application..."
             codesign --force --deep --sign - "$APP_PATH" 2>/dev/null || true
             
-            # Verify signing
-            codesign --verify --verbose "$APP_PATH" 2>/dev/null || echo "Signing verification failed (expected for ad-hoc)"
-            
-            # Make all executables executable
-            find "$APP_PATH" -type f -perm +111 -exec chmod +x {} \; 2>/dev/null || true
+            # Additional quarantine removal after signing
+            sudo xattr -cr "$APP_PATH" 2>/dev/null || true
             
             echo "✅ Processed and signed: $APP_PATH"
           done
@@ -270,20 +281,133 @@ jobs:
           # Process and sign .dmg files
           find out -name "*.dmg" -type f | while read DMG_PATH; do
             echo "💿 Processing DMG: $DMG_PATH"
+            
+            # Remove quarantine from DMG
             sudo xattr -cr "$DMG_PATH" 2>/dev/null || true
-            # Ad-hoc sign the DMG too
+            sudo xattr -d com.apple.quarantine "$DMG_PATH" 2>/dev/null || true
+            
+            # Try to mount DMG and process contents
+            echo "🔍 Attempting to process DMG contents..."
+            MOUNT_POINT=$(mktemp -d)
+            if hdiutil attach "$DMG_PATH" -mountpoint "$MOUNT_POINT" -quiet 2>/dev/null; then
+              # Find .app inside DMG and clean it
+              find "$MOUNT_POINT" -name "*.app" -type d | while read MOUNTED_APP; do
+                echo "🧹 Cleaning app inside DMG: $MOUNTED_APP"
+                sudo xattr -cr "$MOUNTED_APP" 2>/dev/null || true
+                find "$MOUNTED_APP/Contents/MacOS" -type f -exec sudo xattr -d com.apple.quarantine {} \; 2>/dev/null || true
+                find "$MOUNTED_APP/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null || true
+              done
+              hdiutil detach "$MOUNT_POINT" -quiet 2>/dev/null || true
+            fi
+            rm -rf "$MOUNT_POINT" 2>/dev/null || true
+            
+            # Ad-hoc sign the DMG
             codesign --force --sign - "$DMG_PATH" 2>/dev/null || true
+            
+            # Final quarantine removal
+            sudo xattr -cr "$DMG_PATH" 2>/dev/null || true
+            
             echo "✅ DMG processed and signed: $DMG_PATH"
           done
-          
-          # Process .zip files
-          find out -name "*.zip" -type f | while read ZIP_PATH; do
-            echo "📦 Processing ZIP: $ZIP_PATH"
-            sudo xattr -cr "$ZIP_PATH" 2>/dev/null || true
+
+          # Process .zip archives for macOS (they may contain .app bundles)
+          find out -name "*darwin*.zip" -o -name "*mac*.zip" -o -name "*osx*.zip" | while read ZIP_PATH; do
+            echo "📦 Processing macOS ZIP: $ZIP_PATH"
+            
+            # Create temp directory for extraction
+            TEMP_DIR=$(mktemp -d)
+            cd "$TEMP_DIR"
+            
+            # Extract and clean .app bundles
+            if unzip -q "$OLDPWD/$ZIP_PATH" 2>/dev/null; then
+              find . -name "*.app" -type d | while read APP_IN_ZIP; do
+                echo "🧹 Cleaning app in ZIP: $APP_IN_ZIP"
+                sudo xattr -cr "$APP_IN_ZIP" 2>/dev/null || true
+                
+                # Find main executable
+                if [[ -d "$APP_IN_ZIP/Contents/MacOS" ]]; then
+                  find "$APP_IN_ZIP/Contents/MacOS" -type f | while read EXEC_FILE; do
+                    sudo xattr -d com.apple.quarantine "$EXEC_FILE" 2>/dev/null || true
+                    chmod +x "$EXEC_FILE" 2>/dev/null || true
+                  done
+                fi
+                
+                # Ad-hoc sign the app
+                codesign --force --deep --sign - "$APP_IN_ZIP" 2>/dev/null || true
+                
+                # Final cleanup
+                sudo xattr -cr "$APP_IN_ZIP" 2>/dev/null || true
+              done
+              
+              # Recreate the ZIP
+              rm -f "$OLDPWD/$ZIP_PATH"
+              zip -r "$OLDPWD/$ZIP_PATH" . 2>/dev/null || true
+            fi
+            
+            cd "$OLDPWD"
+            rm -rf "$TEMP_DIR"
+            
             echo "✅ ZIP processed: $ZIP_PATH"
           done
+
+          # Create installation script for macOS
+          cat > out/install-macos.sh << 'INSTALL_SCRIPT'
+          #!/bin/bash
+          echo "🍎 macOS Installation Helper"
+          echo "This script helps remove quarantine attributes from downloaded apps"
+          echo ""
           
-          echo "🎉 All artifacts prepared for distribution!"
+          # Function to clean an app
+          clean_app() {
+              local app_path="$1"
+              if [[ -d "$app_path" ]]; then
+                  echo "🧹 Cleaning: $app_path"
+                  sudo xattr -cr "$app_path" 2>/dev/null
+                  sudo find "$app_path" -exec xattr -d com.apple.quarantine {} \; 2>/dev/null
+                  find "$app_path/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null
+                  echo "✅ App cleaned"
+              else
+                  echo "❌ App not found: $app_path"
+              fi
+          }
+          
+          # Check if argument provided
+          if [[ $# -eq 0 ]]; then
+              echo "Usage: $0 <path-to-app-or-dmg>"
+              echo "Example: $0 /Applications/cyoda.app"
+              echo "Example: $0 ~/Downloads/cyoda.dmg"
+              exit 1
+          fi
+          
+          TARGET="$1"
+          
+          if [[ "$TARGET" == *.dmg ]]; then
+              echo "🔍 Processing DMG: $TARGET"
+              sudo xattr -cr "$TARGET" 2>/dev/null
+              
+              # Mount and clean apps inside
+              MOUNT_POINT=$(mktemp -d)
+              if hdiutil attach "$TARGET" -mountpoint "$MOUNT_POINT" -quiet 2>/dev/null; then
+                  find "$MOUNT_POINT" -name "*.app" -type d | while read app; do
+                      clean_app "$app"
+                  done
+                  hdiutil detach "$MOUNT_POINT" -quiet 2>/dev/null
+              fi
+              rm -rf "$MOUNT_POINT"
+              
+          elif [[ "$TARGET" == *.app ]]; then
+              clean_app "$TARGET"
+          else
+              echo "❌ Unsupported file type. Please provide .app or .dmg file"
+              exit 1
+          fi
+          
+          echo "🎉 Installation helper complete!"
+          INSTALL_SCRIPT
+
+          chmod +x out/install-macos.sh
+
+          echo "✅ macOS build processing complete"
         timeout-minutes: 10
         continue-on-error: true
 
