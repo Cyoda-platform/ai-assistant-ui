@@ -361,6 +361,21 @@ jobs:
         timeout-minutes: 10
         continue-on-error: true
 
+      - name: List macOS build artifacts
+        if: matrix.platform == 'darwin'
+        working-directory: packages/desktop
+        run: |
+          echo "📂 Listing all files in out directory:"
+          find out -type f -name "*" | head -20
+          
+          echo "📦 Checking specific file types:"
+          echo "DMG files:"
+          find out -name "*.dmg" -type f || echo "No DMG files found"
+          echo "ZIP files:"
+          find out -name "*.zip" -type f || echo "No ZIP files found"
+          echo "Installation script:"
+          find out -name "install-macos.sh" -type f || echo "No install script found"
+
       - name: Build for Windows
         if: matrix.platform == 'win32'
         working-directory: packages/desktop
@@ -375,8 +390,8 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
 
-      - name: Upload to GitHub Releases (if tagged)
-        if: startsWith(github.ref, 'refs/tags/') || (needs.create-tag.outputs.new_tag != '' && github.event_name == 'workflow_dispatch')
+      - name: Set release body (Linux only)
+        if: matrix.platform == 'linux' && (startsWith(github.ref, 'refs/tags/') || (needs.create-tag.outputs.new_tag != '' && github.event_name == 'workflow_dispatch'))
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.create-tag.outputs.new_tag || github.ref_name }}
@@ -386,3 +401,14 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           draft: false
           prerelease: false
+
+      - name: Upload to GitHub Releases (macOS/Windows)
+        if: matrix.platform != 'linux' && (startsWith(github.ref, 'refs/tags/') || (needs.create-tag.outputs.new_tag != '' && github.event_name == 'workflow_dispatch'))
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.create-tag.outputs.new_tag || github.ref_name }}
+          files: ${{ matrix.files }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: false
+          prerelease: false
+          append_body: true
