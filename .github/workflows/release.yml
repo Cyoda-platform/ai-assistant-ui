@@ -124,9 +124,16 @@ jobs:
           - **Windows**: Use the .exe installer
           
           ### ⚠️ Installation Notes
-          - **macOS users**: If you see "damaged" app warning, use the `install-macos.sh` script included in the release
+          - **macOS users**: DMG opens normally → drag app to Applications → right-click app → Open (first time)
           - **Linux users**: Choose the package format that matches your distribution
           - **Windows users**: Run the .exe installer with administrator privileges if needed
+          
+          ### 🍎 macOS Security Process
+          1. Open the downloaded DMG file
+          2. Drag Cyoda.app to Applications folder
+          3. **First launch**: Right-click the app → "Open" (not double-click)
+          4. Click "Open" in the security dialog
+          5. Subsequent launches work normally
           
           ### 🔧 Technical Details
           - Built with Electron Forge
@@ -287,63 +294,29 @@ jobs:
           find out -name "*.app" -type d | while read APP_PATH; do
             echo "📱 Processing: $APP_PATH"
             
-            # Remove all extended attributes recursively
-            sudo xattr -cr "$APP_PATH" 2>/dev/null || true
-            sudo find "$APP_PATH" -exec xattr -c {} \; 2>/dev/null || true
-            
             # Find the main executable and make it executable
             MAIN_EXEC=$(find "$APP_PATH/Contents/MacOS" -type f -executable | head -1)
             if [ -n "$MAIN_EXEC" ]; then
-              echo "� Found main executable: $MAIN_EXEC"
+              echo "🔍 Found main executable: $MAIN_EXEC"
               chmod +x "$MAIN_EXEC"
-              # Remove quarantine specifically from the executable
-              sudo xattr -d com.apple.quarantine "$MAIN_EXEC" 2>/dev/null || true
             fi
             
             # Make all files in MacOS directory executable
             find "$APP_PATH/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null || true
-            find "$APP_PATH/Contents/MacOS" -type f -exec sudo xattr -d com.apple.quarantine {} \; 2>/dev/null || true
             
-            # Ad-hoc sign the application (this makes macOS trust it more)
+            # Ad-hoc sign the application (this allows macOS Security to show proper dialog)
             echo "🔏 Ad-hoc signing application..."
             codesign --force --deep --sign - "$APP_PATH" 2>/dev/null || true
-            
-            # Additional quarantine removal after signing
-            sudo xattr -cr "$APP_PATH" 2>/dev/null || true
             
             echo "✅ Processed and signed: $APP_PATH"
           done
           
-          # Process and sign .dmg files
+          # Process and sign .dmg files (simple approach)
           find out -name "*.dmg" -type f | while read DMG_PATH; do
             echo "💿 Processing DMG: $DMG_PATH"
-            
-            # Remove quarantine from DMG
-            sudo xattr -cr "$DMG_PATH" 2>/dev/null || true
-            sudo xattr -d com.apple.quarantine "$DMG_PATH" 2>/dev/null || true
-            
-            # Try to mount DMG and process contents
-            echo "🔍 Attempting to process DMG contents..."
-            MOUNT_POINT=$(mktemp -d)
-            if hdiutil attach "$DMG_PATH" -mountpoint "$MOUNT_POINT" -quiet 2>/dev/null; then
-              # Find .app inside DMG and clean it
-              find "$MOUNT_POINT" -name "*.app" -type d | while read MOUNTED_APP; do
-                echo "🧹 Cleaning app inside DMG: $MOUNTED_APP"
-                sudo xattr -cr "$MOUNTED_APP" 2>/dev/null || true
-                find "$MOUNTED_APP/Contents/MacOS" -type f -exec sudo xattr -d com.apple.quarantine {} \; 2>/dev/null || true
-                find "$MOUNTED_APP/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null || true
-              done
-              hdiutil detach "$MOUNT_POINT" -quiet 2>/dev/null || true
-            fi
-            rm -rf "$MOUNT_POINT" 2>/dev/null || true
-            
-            # Ad-hoc sign the DMG
+            # Just ad-hoc sign the DMG - no quarantine removal
             codesign --force --sign - "$DMG_PATH" 2>/dev/null || true
-            
-            # Final quarantine removal
-            sudo xattr -cr "$DMG_PATH" 2>/dev/null || true
-            
-            echo "✅ DMG processed and signed: $DMG_PATH"
+            echo "✅ DMG signed: $DMG_PATH"
           done
 
           # Process .zip archives for macOS (they may contain .app bundles)
@@ -354,25 +327,18 @@ jobs:
             TEMP_DIR=$(mktemp -d)
             cd "$TEMP_DIR"
             
-            # Extract and clean .app bundles
+            # Extract and sign .app bundles
             if unzip -q "$OLDPWD/$ZIP_PATH" 2>/dev/null; then
               find . -name "*.app" -type d | while read APP_IN_ZIP; do
-                echo "🧹 Cleaning app in ZIP: $APP_IN_ZIP"
-                sudo xattr -cr "$APP_IN_ZIP" 2>/dev/null || true
+                echo "🔏 Signing app in ZIP: $APP_IN_ZIP"
                 
-                # Find main executable
+                # Make executables executable
                 if [[ -d "$APP_IN_ZIP/Contents/MacOS" ]]; then
-                  find "$APP_IN_ZIP/Contents/MacOS" -type f | while read EXEC_FILE; do
-                    sudo xattr -d com.apple.quarantine "$EXEC_FILE" 2>/dev/null || true
-                    chmod +x "$EXEC_FILE" 2>/dev/null || true
-                  done
+                  find "$APP_IN_ZIP/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null || true
                 fi
                 
-                # Ad-hoc sign the app
+                # Ad-hoc sign the app (keeps quarantine for proper macOS security dialog)
                 codesign --force --deep --sign - "$APP_IN_ZIP" 2>/dev/null || true
-                
-                # Final cleanup
-                sudo xattr -cr "$APP_IN_ZIP" 2>/dev/null || true
               done
               
               # Recreate the ZIP
@@ -390,18 +356,25 @@ jobs:
           cat > out/install-macos.sh << 'INSTALL_SCRIPT'
           #!/bin/bash
           echo "🍎 macOS Installation Helper"
-          echo "This script helps remove quarantine attributes from downloaded apps"
+          echo "This script helps with the initial app launch process"
+          echo ""
+          echo "ℹ️  Standard macOS Security Process:"
+          echo "   1. Open the DMG file normally"
+          echo "   2. Drag the app to Applications folder"
+          echo "   3. Right-click the app → Open (first time only)"
+          echo "   4. Click 'Open' in the security dialog"
+          echo ""
+          echo "If you need to force-remove quarantine attributes, use this script:"
           echo ""
           
-          # Function to clean an app
+          # Function to clean an app (for troubleshooting only)
           clean_app() {
               local app_path="$1"
               if [[ -d "$app_path" ]]; then
-                  echo "🧹 Cleaning: $app_path"
-                  sudo xattr -cr "$app_path" 2>/dev/null
-                  sudo find "$app_path" -exec xattr -d com.apple.quarantine {} \; 2>/dev/null
-                  find "$app_path/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null
-                  echo "✅ App cleaned"
+                  echo "🧹 Removing quarantine from: $app_path"
+                  sudo xattr -d com.apple.quarantine "$app_path" 2>/dev/null || true
+                  find "$app_path/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null || true
+                  echo "✅ Quarantine removed"
               else
                   echo "❌ App not found: $app_path"
               fi
@@ -409,36 +382,24 @@ jobs:
           
           # Check if argument provided
           if [[ $# -eq 0 ]]; then
-              echo "Usage: $0 <path-to-app-or-dmg>"
+              echo "💡 For normal installation, just right-click the app and select 'Open'"
+              echo ""
+              echo "For troubleshooting, use: $0 <path-to-app>"
               echo "Example: $0 /Applications/cyoda.app"
-              echo "Example: $0 ~/Downloads/cyoda.dmg"
-              exit 1
+              exit 0
           fi
           
           TARGET="$1"
           
-          if [[ "$TARGET" == *.dmg ]]; then
-              echo "🔍 Processing DMG: $TARGET"
-              sudo xattr -cr "$TARGET" 2>/dev/null
-              
-              # Mount and clean apps inside
-              MOUNT_POINT=$(mktemp -d)
-              if hdiutil attach "$TARGET" -mountpoint "$MOUNT_POINT" -quiet 2>/dev/null; then
-                  find "$MOUNT_POINT" -name "*.app" -type d | while read app; do
-                      clean_app "$app"
-                  done
-                  hdiutil detach "$MOUNT_POINT" -quiet 2>/dev/null
-              fi
-              rm -rf "$MOUNT_POINT"
-              
-          elif [[ "$TARGET" == *.app ]]; then
+          if [[ "$TARGET" == *.app ]]; then
               clean_app "$TARGET"
+              echo ""
+              echo "🎉 Try launching the app now!"
           else
-              echo "❌ Unsupported file type. Please provide .app or .dmg file"
+              echo "❌ Please provide a .app file"
+              echo "Example: $0 /Applications/cyoda.app"
               exit 1
           fi
-          
-          echo "🎉 Installation helper complete!"
           INSTALL_SCRIPT
 
           chmod +x out/install-macos.sh
