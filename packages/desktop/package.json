@@ -8,8 +8,14 @@
     "dev": "electron-forge start",
     "package": "electron-forge package",
     "make": "NODE_OPTIONS=--disable-warning=DEP0174 electron-forge make",
+    "make:signed": "NODE_OPTIONS=--disable-warning=DEP0174 ENABLE_CODE_SIGNING=true APPLE_IDENTITY='Apple Development: sovahome85@gmail.com (LLS5C7RYR4)' electron-forge make",
+    "make:unsigned": "NODE_OPTIONS=--disable-warning=DEP0174 electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "eslint --ext .ts,.tsx ."
+    "publish:signed": "NODE_OPTIONS=--disable-warning=DEP0174 ENABLE_CODE_SIGNING=true electron-forge publish",
+    "lint": "eslint --ext .ts,.tsx .",
+    "create-dev-cert": "./scripts/create-dev-certificate.sh",
+    "allow-unsigned": "./scripts/allow-unsigned-app.sh",
+    "setup-macos": "npm run create-dev-cert && npm run make:signed"
   },
   "devDependencies": {
     "@electron-forge/cli": "^7.8.1",
