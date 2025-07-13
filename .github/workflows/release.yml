@@ -36,25 +36,53 @@ jobs:
             VERSION=${TAG_NAME#v}
             echo "🏷️ Using existing tag: $TAG_NAME"
           else
-            # If this is a push to main, create a new tag
-            echo "� Creating new tag for main branch push..."
+            # If this is a push to main, increment version and create a new tag
+            echo "🔄 Auto-incrementing version for main branch push..."
             
-            # Get version from package.json
-            VERSION=$(node -e "console.log(require('./packages/desktop/package.json').version)")
+            # Get current version from package.json
+            CURRENT_VERSION=$(node -e "console.log(require('./packages/desktop/package.json').version)")
+            echo "📋 Current version: $CURRENT_VERSION"
             
-            # Get current date for timestamp
-            TIMESTAMP=$(date +"%Y%m%d%H%M%S")
+            # Auto-increment patch version (e.g., 1.0.3 → 1.0.4)
+            NEW_VERSION=$(node -e "
+              const version = '$CURRENT_VERSION';
+              const parts = version.split('.');
+              parts[2] = (parseInt(parts[2]) + 1).toString();
+              console.log(parts.join('.'));
+            ")
             
-            # Create new tag with timestamp
-            TAG_NAME="v${VERSION}-${TIMESTAMP}"
+            echo "⬆️ New version: $NEW_VERSION"
             
-            echo "📝 Creating new tag: $TAG_NAME"
+            # Update package.json with new version
+            node -e "
+              const fs = require('fs');
+              const path = 'packages/desktop/package.json';
+              const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
+              pkg.version = '$NEW_VERSION';
+              fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
+              console.log('✅ Updated package.json to version', pkg.version);
+            "
+            
+            # Commit the version bump
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add packages/desktop/package.json
+            git commit -m "🔖 Bump version to $NEW_VERSION"
+            
+            # Create new tag with clean version
+            TAG_NAME="v${NEW_VERSION}"
+            
+            echo "📝 Creating new tag: $TAG_NAME"
             git tag $TAG_NAME
+            
+            # Push both commit and tag
+            git push origin HEAD:main
             git push origin $TAG_NAME
             
             echo "✅ Created and pushed tag: $TAG_NAME"
+            
+            # Use the new version
+            VERSION=$NEW_VERSION
           fi
           
           echo "📋 Final tag: $TAG_NAME, Version: $VERSION"
@@ -83,7 +111,7 @@ jobs:
           # Create release notes
           VERSION="${{ steps.create_or_use_tag.outputs.version }}"
           cat > release_notes.md << EOF
-          ## 🚀 What's New in $VERSION
+          ## 🚀 What's New in v$VERSION
           
           This release includes the following changes:
           
@@ -91,19 +119,20 @@ jobs:
           $COMMITS
           
           ### 📦 Downloads
-          - **macOS**: Download the DMG file and follow simple installation guide
+          - **macOS**: Download the DMG file and use the included installation helper if needed
           - **Linux**: Use the .deb, .rpm, or .AppImage file depending on your distribution  
           - **Windows**: Use the .exe installer
           
           ### ⚠️ Installation Notes
-          - **macOS users**: Right-click app → Open (or use System Preferences → Security & Privacy)
+          - **macOS users**: If you see "damaged" app warning, use the `install-macos.sh` script included in the release
           - **Linux users**: Choose the package format that matches your distribution
           - **Windows users**: Run the .exe installer with administrator privileges if needed
           
           ### 🔧 Technical Details
           - Built with Electron Forge
           - Cross-platform support (Linux x64/arm64, macOS arm64, Windows x64)
-          - Unsigned macOS build with simple right-click installation
+          - Automatic version incrementing (v$VERSION)
+          - Enhanced macOS quarantine handling
           EOF
           
           echo "✅ Release notes generated"
@@ -208,19 +237,26 @@ jobs:
           yarn workspaces list
         shell: bash
 
-      - name: Update package version
+      - name: Validate package version
         run: |
           VERSION="${{ needs.create-tag.outputs.version }}"
-          echo "🔄 Updating package.json version to $VERSION"
-          # Update version in packages/desktop/package.json (cross-platform)
-          node -e "
-            const fs = require('fs');
-            const path = 'packages/desktop/package.json';
-            const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
-            pkg.version = process.argv[1];
-            fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
-            console.log('✅ Version updated to', pkg.version);
-          " "$VERSION"
+          PACKAGE_VERSION=$(node -e "console.log(require('./packages/desktop/package.json').version)")
+          echo "🔄 Expected version: $VERSION"
+          echo "📦 Package.json version: $PACKAGE_VERSION"
+          
+          if [ "$VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "⚠️ Version mismatch detected, updating package.json..."
+            node -e "
+              const fs = require('fs');
+              const path = 'packages/desktop/package.json';
+              const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
+              pkg.version = process.argv[1];
+              fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
+              console.log('✅ Version updated to', pkg.version);
+            " "$VERSION"
+          else
+            echo "✅ Version is already correct"
+          fi
         shell: bash
 
       - name: Download release notes
