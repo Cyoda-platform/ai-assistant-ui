@@ -182,7 +182,7 @@ jobs:
           echo "✅ Release notes generated"
 
       - name: Upload release notes
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: release-notes
           path: release_notes.md
@@ -231,7 +231,7 @@ jobs:
         timeout-minutes: 10
 
       - name: Upload Linux artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cyoda-linux
           path: |
@@ -388,7 +388,7 @@ jobs:
           echo "📋 Installation files prepared"
 
       - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cyoda-macos-arm64
           path: |
@@ -456,7 +456,7 @@ jobs:
         timeout-minutes: 10
 
       - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cyoda-windows-x64
           path: |
@@ -544,7 +544,7 @@ jobs:
           node-version: 22
 
       - name: Cache node modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.yarn/cache
@@ -566,7 +566,7 @@ jobs:
 
       - name: Download release notes
         if: needs.create-tag.outputs.new_tag != ''
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: release-notes
           path: .
@@ -659,7 +659,7 @@ jobs:
         timeout-minutes: 10
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
           path: ${{ matrix.files }}
