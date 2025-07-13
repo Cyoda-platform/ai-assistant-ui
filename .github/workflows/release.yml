@@ -2,17 +2,19 @@ name: Build and Publish Electron App
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
 
 jobs:
   create-tag:
-    # Run only when pushing tags
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    # Run on push to main branch or when pushing tags
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
     runs-on: ubuntu-latest
     outputs:
-      new_tag: ${{ steps.existing_tag.outputs.new_tag }}
-      version: ${{ steps.existing_tag.outputs.version }}
+      new_tag: ${{ steps.create_or_use_tag.outputs.new_tag }}
+      version: ${{ steps.create_or_use_tag.outputs.version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,17 +27,39 @@ jobs:
         with:
           node-version: 22
 
-      - name: Use existing tag info
-        id: existing_tag
+      - name: Create or use existing tag
+        id: create_or_use_tag
         run: |
-          # Extract tag from ref
-          TAG_NAME=${GITHUB_REF#refs/tags/}
-          VERSION=${TAG_NAME#v}
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            # If this is a tag push, use the existing tag
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+            VERSION=${TAG_NAME#v}
+            echo "🏷️ Using existing tag: $TAG_NAME"
+          else
+            # If this is a push to main, create a new tag
+            echo "� Creating new tag for main branch push..."
+            
+            # Get version from package.json
+            VERSION=$(node -e "console.log(require('./packages/desktop/package.json').version)")
+            
+            # Get current date for timestamp
+            TIMESTAMP=$(date +"%Y%m%d%H%M%S")
+            
+            # Create new tag with timestamp
+            TAG_NAME="v${VERSION}-${TIMESTAMP}"
+            
+            echo "📝 Creating new tag: $TAG_NAME"
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git tag $TAG_NAME
+            git push origin $TAG_NAME
+            
+            echo "✅ Created and pushed tag: $TAG_NAME"
+          fi
           
-          echo "🏷️ Using existing tag: $TAG_NAME"
-          echo "📋 Version: $VERSION"
+          echo "📋 Final tag: $TAG_NAME, Version: $VERSION"
           
-          # Set outputs for existing tag
+          # Set outputs
           echo "new_tag=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
@@ -57,7 +81,7 @@ jobs:
           fi
           
           # Create release notes
-          VERSION="${{ steps.existing_tag.outputs.version }}"
+          VERSION="${{ steps.create_or_use_tag.outputs.version }}"
           cat > release_notes.md << EOF
           ## 🚀 What's New in $VERSION
           
@@ -94,7 +118,7 @@ jobs:
   # Cross-platform build with matrix strategy
   build:
     needs: [ create-tag ]
-    if: always() && needs.create-tag.result == 'success' && startsWith(github.ref, 'refs/tags/')
+    if: always() && needs.create-tag.result == 'success'
     strategy:
       fail-fast: false
       matrix:
@@ -115,7 +139,6 @@ jobs:
             files: |
               packages/desktop/out/cyoda-build/make/*.dmg
               packages/desktop/out/cyoda-build/make/*.zip
-              packages/desktop/out/cyoda-build/make/README-INSTALLATION.md
           - os: windows-latest
             platform: win32
             arch: x64
@@ -260,48 +283,6 @@ jobs:
             echo "✅ ZIP processed: $ZIP_PATH"
           done
           
-          # Copy installation script and create README
-          cat > out/cyoda-build/make/README-INSTALLATION.md << 'EOF'
-          # 🚀 Installing Cyoda on macOS
-          
-          ## 📥 Simple Installation (No Terminal Required!)
-          
-          1. **Download** `Cyoda-*.dmg` file
-          2. **Double-click** the DMG file to open it
-          3. **Drag** Cyoda.app to Applications folder
-          4. **Right-click** on Cyoda.app in Applications → **Open**
-          5. **Click "Open"** when macOS asks for confirmation
-          
-          ## 🎯 Alternative Method (Command Line)
-          
-          If the app shows "damaged" error:
-          
-          ```bash
-          # Remove quarantine (one-time only)
-          sudo xattr -d com.apple.quarantine /Applications/Cyoda.app
-          
-          # Launch normally
-          open /Applications/Cyoda.app
-          ```
-          
-          ## ❓ Why These Steps?
-          
-          - **Cyoda is not signed** with Apple Developer certificate (saves $99/year)
-          - **macOS protects** you by blocking unsigned apps by default
-          - **This is safe** - just requires one-time approval
-          - **After approval** - app works normally like any other app
-          
-          ## � Pro Tip
-          
-          **Use Cmd+Right-Click** on the app → **Open** to bypass the warning instantly!
-          
-          ## 🆘 Still Having Issues?
-          
-          1. Try: **System Preferences** → **Security & Privacy** → **General**
-          2. Look for message about "Cyoda" → **Click "Open Anyway"**
-          3. Or contact support if needed
-          EOF
-          
           echo "🎉 All artifacts prepared for distribution!"
         timeout-minutes: 10
         continue-on-error: true
@@ -336,7 +317,7 @@ jobs:
           retention-days: 30
 
       - name: Set release body (Linux only)
-        if: matrix.platform == 'linux' && startsWith(github.ref, 'refs/tags/')
+        if: matrix.platform == 'linux'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.create-tag.outputs.new_tag || github.ref_name }}
@@ -349,7 +330,7 @@ jobs:
           make_latest: true
 
       - name: Upload to GitHub Releases (macOS/Windows)
-        if: matrix.platform != 'linux' && startsWith(github.ref, 'refs/tags/')
+        if: matrix.platform != 'linux'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.create-tag.outputs.new_tag || github.ref_name }}
@@ -363,7 +344,7 @@ jobs:
   # Cleanup source code archives from release
   cleanup-release:
     needs: [ create-tag, build ]
-    if: always() && needs.create-tag.result == 'success' && startsWith(github.ref, 'refs/tags/')
+    if: always() && needs.create-tag.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Remove source code archives
