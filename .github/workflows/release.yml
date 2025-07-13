@@ -4,9 +4,6 @@ on:
   push:
     tags:
       - 'v*'
-  pull_request:
-    branches:
-      - main
 
 jobs:
   create-tag:
@@ -18,13 +15,13 @@ jobs:
       version: ${{ steps.existing_tag.outputs.version }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22
 
@@ -118,7 +115,7 @@ jobs:
             files: |
               packages/desktop/out/cyoda-build/make/*.dmg
               packages/desktop/out/cyoda-build/make/*.zip
-              packages/desktop/out/cyoda-build/make/install-macos.sh
+              packages/desktop/scripts/install-macos.sh
               packages/desktop/out/cyoda-build/make/README-INSTALLATION.md
           - os: windows-latest
             platform: win32
@@ -148,13 +145,13 @@ jobs:
       APPLE_IDENTITY: ${{ secrets.APPLE_IDENTITY }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ needs.create-tag.outputs.new_tag || github.ref }}
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22
 
@@ -217,6 +214,7 @@ jobs:
           
           # Copy installation script and create README
           cp scripts/install-macos.sh out/cyoda-build/make/ 2>/dev/null || true
+          cp scripts/install-macos.sh . 2>/dev/null || true
           
           cat > out/cyoda-build/make/README-INSTALLATION.md << 'EOF'
           # 🚀 Installing Cyoda on macOS
@@ -298,7 +296,7 @@ jobs:
 
       - name: Set release body (Linux only)
         if: matrix.platform == 'linux' && startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.create-tag.outputs.new_tag || github.ref_name }}
           name: "Cyoda Platform v${{ needs.create-tag.outputs.version || github.ref_name }}"
@@ -307,11 +305,11 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           draft: false
           prerelease: false
-          generate_release_notes: false
+          make_latest: true
 
       - name: Upload to GitHub Releases (macOS/Windows)
         if: matrix.platform != 'linux' && startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.create-tag.outputs.new_tag || github.ref_name }}
           files: ${{ matrix.files }}
@@ -319,4 +317,54 @@ jobs:
           draft: false
           prerelease: false
           append_body: true
-          generate_release_notes: false
+          make_latest: true
+
+  # Cleanup source code archives from release
+  cleanup-release:
+    needs: [ create-tag, build ]
+    if: always() && needs.create-tag.result == 'success' && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove source code archives
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const tagName = '${{ needs.create-tag.outputs.new_tag || github.ref_name }}';
+            
+            try {
+              // Get the release
+              const release = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: tagName
+              });
+              
+              console.log(`🔍 Found release: ${release.data.name} (${release.data.tag_name})`);
+              
+              // Get all assets
+              const assets = await github.rest.repos.listReleaseAssets({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.data.id
+              });
+              
+              // Find and delete source code archives
+              for (const asset of assets.data) {
+                if (asset.name.includes('Source code') || asset.name.endsWith('.tar.gz') || 
+                    (asset.name.endsWith('.zip') && asset.name.includes(tagName))) {
+                  console.log(`🗑️ Deleting source archive: ${asset.name}`);
+                  await github.rest.repos.deleteReleaseAsset({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    asset_id: asset.id
+                  });
+                  console.log(`✅ Deleted: ${asset.name}`);
+                }
+              }
+              
+              console.log('🎉 Source code archives cleanup completed');
+            } catch (error) {
+              console.log(`⚠️ Cleanup error: ${error.message}`);
+              // Don't fail the workflow if cleanup fails
+            }
