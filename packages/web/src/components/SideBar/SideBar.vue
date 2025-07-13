@@ -1,5 +1,5 @@
 <template>
-  <div class="side-bar" :class="{'side-bar--hidden': isSidebarHidden}">
+  <div ref="rootRef" class="side-bar" :class="{'side-bar--hidden': isSidebarHidden}">
     <div class="side-bar__wrapper-logo">
       <template v-if="isSidebarHidden">
         <img alt="logo" class="side-bar__logo" :src="LogoSmallUrl"/>
@@ -141,6 +141,7 @@ const isHistoryMenuVisible = ref(false);
 const isHistoryMenuReady = ref(false);
 const isHistoryMenuActive = ref(false);
 const {t} = useI18n();
+const rootRef = useTemplateRef('rootRef');
 
 const props = withDefaults(defineProps<{
   mode?: string,
@@ -220,6 +221,8 @@ function onClickSettings() {
 function onClickAbout() {
   aboutDialogRef.value.openDialog();
 }
+
+defineExpose({rootRef})
 </script>
 
 <style lang="scss">
@@ -227,7 +230,7 @@ function onClickAbout() {
   padding: 0 16px;
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  min-height: 100dvh;
 
 
   &__wrapper-logo {

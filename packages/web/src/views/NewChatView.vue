@@ -80,7 +80,7 @@ function onCreated(data: CreateChatResponse) {
   padding-top: 48px;
   padding-left: 58px;
   padding-right: 58px;
-  min-height: 100vh;
+  min-height: calc(100vh - 60px);
   display: flex;
   flex-direction: column;
 

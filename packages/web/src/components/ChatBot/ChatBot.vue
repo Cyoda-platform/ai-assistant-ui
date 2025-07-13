@@ -215,7 +215,8 @@ watch(isLastMessageAnswer, async (value) => {
 .chat-bot {
   display: flex;
   flex-direction: column;
-  height: calc(100dvh - 60px);
+  min-height: calc(100dvh - 60px);
+  height: calc(100% - 60px);
   overflow: hidden;
 
   &__body {
