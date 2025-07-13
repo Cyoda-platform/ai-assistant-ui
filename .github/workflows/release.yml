@@ -169,20 +169,23 @@ jobs:
         run: corepack enable
 
       - name: Prepare Yarn version
-        run: corepack prepare yarn@4.5.3 --activate
+        run: |
+          echo "🔄 Setting up Yarn..."
+          corepack prepare yarn@4.5.3 --activate
+          yarn --version
+          echo "✅ Yarn version ready"
 
-      - name: Install dependencies
-        run: yarn install
-
-      - name: Install desktop dependencies
-        working-directory: packages/desktop
-        run: yarn install
+      - name: Install workspace dependencies
+        run: |
+          echo "🔄 Installing workspace dependencies..."
+          yarn install --immutable
+          echo "✅ Workspace dependencies installed"
 
       - name: Update package version
-        working-directory: packages/desktop
         run: |
           VERSION="${{ needs.create-tag.outputs.version }}"
           echo "🔄 Updating package.json version to $VERSION"
+          cd packages/desktop
           npm version $VERSION --no-git-tag-version
           echo "✅ Version updated to $VERSION"
 
@@ -195,14 +198,17 @@ jobs:
 
       - name: Build for Linux
         if: matrix.platform == 'linux'
-        working-directory: packages/desktop
-        run: yarn make --platform=linux --arch=${{ matrix.arch }}
+        run: |
+          cd packages/desktop
+          echo "🔧 Building for Linux..."
+          yarn make --platform=linux --arch=${{ matrix.arch }}
         timeout-minutes: 10
 
       - name: Build for macOS (unsigned)
         if: matrix.platform == 'darwin'
-        working-directory: packages/desktop
         run: |
+          cd packages/desktop
+          echo "🔧 Building for macOS (unsigned)..."
           yarn make:unsigned
           
           echo "🔧 Preparing unsigned app for distribution..."
@@ -284,8 +290,8 @@ jobs:
 
       - name: List macOS build artifacts
         if: matrix.platform == 'darwin'
-        working-directory: packages/desktop
         run: |
+          cd packages/desktop
           echo "📂 Listing all files in out directory:"
           find out -type f -name "*" | head -20
           
@@ -299,8 +305,10 @@ jobs:
 
       - name: Build for Windows
         if: matrix.platform == 'win32'
-        working-directory: packages/desktop
-        run: yarn make --platform=win32 --arch=${{ matrix.arch }}
+        run: |
+          cd packages/desktop
+          echo "🔧 Building for Windows..."
+          yarn make --platform=win32 --arch=${{ matrix.arch }}
         timeout-minutes: 10
 
       - name: Upload artifacts
