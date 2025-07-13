@@ -61,6 +61,12 @@ jobs:
       VITE_APP_AUTH0_REDIRECT_URI: ${{ vars.VITE_APP_AUTH0_REDIRECT_URI }}
       VITE_APP_AUTH0_ORGANIZATION: ${{ vars.VITE_APP_AUTH0_ORGANIZATION }}
       VITE_IS_ELECTRON: true
+      # Apple signing credentials (optional)
+      ENABLE_CODE_SIGNING: ${{ secrets.ENABLE_CODE_SIGNING || 'false' }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_IDENTITY: ${{ secrets.APPLE_IDENTITY }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -80,10 +86,91 @@ jobs:
         working-directory: packages/desktop
         run: yarn install
 
-      - name: Publish Electron app (macOS arm64)
+      - name: Build Electron app (macOS arm64) - unsigned
         working-directory: packages/desktop
-        run: yarn publish --arch=arm64
+        run: yarn make:unsigned
         timeout-minutes: 10
+
+      - name: Prepare app for distribution (remove quarantine)
+        working-directory: packages/desktop
+        run: |
+          echo "🔧 Preparing unsigned app for distribution..."
+          
+          # Find all .app files
+          find out -name "*.app" -type d | while read APP_PATH; do
+            echo "📱 Processing: $APP_PATH"
+            
+            # Remove quarantine attributes
+            sudo xattr -rd com.apple.quarantine "$APP_PATH" 2>/dev/null || true
+            
+            # Ensure application is executable
+            chmod +x "$APP_PATH/Contents/MacOS/"* 2>/dev/null || true
+            
+            echo "✅ Processed: $APP_PATH"
+          done
+          
+          # Also process .dmg files if they exist
+          find out -name "*.dmg" -type f | while read DMG_PATH; do
+            echo "💿 Processing DMG: $DMG_PATH"
+            sudo xattr -rd com.apple.quarantine "$DMG_PATH" 2>/dev/null || true
+            echo "✅ DMG processed: $DMG_PATH"
+          done
+          
+          echo "🎉 All artifacts prepared for distribution!"
+        continue-on-error: true
+
+      - name: Create installation instructions
+        working-directory: packages/desktop
+        run: |
+          # Copy installation script to artifacts folder
+          cp scripts/install-macos.sh out/cyoda-build/make/ 2>/dev/null || true
+          
+          cat > out/cyoda-build/make/README-INSTALLATION.md << 'EOF'
+          # 🚀 Installing Cyoda on macOS
+          
+          ## 🎯 Automatic Installation (Recommended)
+          
+          ```bash
+          # Make script executable and run
+          chmod +x install-macos.sh
+          ./install-macos.sh
+          ```
+          
+          ## 📥 Manual Installation from DMG
+          
+          1. Download `Cyoda-*.dmg` file
+          2. Run command: `sudo xattr -rd com.apple.quarantine Cyoda-*.dmg`
+          3. Open DMG file
+          4. Drag Cyoda.app to Applications folder
+          5. Run: `sudo xattr -rd com.apple.quarantine /Applications/Cyoda.app`
+          
+          ## 🔧 If Application Won't Start
+          
+          ```bash
+          # Complete security attributes cleanup
+          sudo xattr -rd com.apple.quarantine /Applications/Cyoda.app
+          sudo chmod +x /Applications/Cyoda.app/Contents/MacOS/cyoda
+          
+          # Launch
+          open /Applications/Cyoda.app
+          ```
+          
+          ## ❓ Why Are Additional Steps Needed?
+          
+          - Application is not signed with Apple Developer certificate (saves $99/year)
+          - macOS blocks unsigned applications by default
+          - This is safe - just requires one-time approval
+          - After installation, application works normally
+          
+          ## 🆘 Having Issues?
+          
+          If nothing helps:
+          1. Try automatic installer: `./install-macos.sh`
+          2. Check System Preferences → Security & Privacy
+          3. Click "Open Anyway" next to blocked application
+          EOF
+          
+          echo "📋 Installation files prepared"
 
   build-windows:
     needs: build-macos-arm64

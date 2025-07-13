@@ -13,6 +13,21 @@ const config: ForgeConfig = {
         asar: true,
         icon: 'src/assets/icons/app-icon',
         executableName: 'cyoda',
+        // macOS code signing configuration (only if certificate is available)
+        ...(process.platform === 'darwin' && process.env.ENABLE_CODE_SIGNING === 'true' && {
+            osxSign: {
+                identity: process.env.APPLE_IDENTITY || 'Apple Development: sovahome85@gmail.com (LLS5C7RYR4)',
+                'hardened-runtime': true,
+                'gatekeeper-assess': false,
+                entitlements: 'build/entitlements.mac.plist',
+                'entitlements-inherit': 'build/entitlements.mac.plist',
+            } as any,
+            osxNotarize: process.env.APPLE_ID ? {
+                appleId: process.env.APPLE_ID,
+                appleIdPassword: process.env.APPLE_APP_PASSWORD,
+                teamId: process.env.APPLE_TEAM_ID,
+            } : undefined,
+        }),
     },
     rebuildConfig: {},
     publishers: [
