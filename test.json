@@ -1,0 +1,702 @@
+{
+  "chat_body": {
+    "chat_id": "6ab0013c-e4c2-11ef-8603-924fc26a4c98",
+    "date": "2025-02-06T19:41:53.647+00:00",
+    "description": "",
+    "dialogue": [
+      {
+        "answer": null,
+        "file_name": "instruction.txt",
+        "function": null,
+        "info": true,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "\n\ud83c\udf3f\ud83e\udeb7\ud83c\udff5\ufe0f\u269c\ufe0f\ud83c\udf3f\n",
+        "prompt": {},
+        "stack": "app_building_stack"
+      },
+      {
+        "answer": null,
+        "file_name": "instruction.txt",
+        "function": null,
+        "info": true,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "\n\ud83d\udc4b Welcome to Cyoda Application Builder! We\u2019re excited to build something amazing with you! \ud83d\ude04  \n\nWe\u2019re here to help with building and deploying on Cyoda Cloud! Reach out anytime! \ud83c\udf1f Your branch will be ready soon, and I\u2019ll notify you when I push changes. If you have suggestions, message me or use Canvas! \ud83d\ude0a  \n\nIn Canvas, you can code, edit, and improve around the main app build flow! It\u2019s a great way to collaborate and make changes! \ud83d\udcbb  \n\nIf you\u2019re happy with the progress or want me to pull your changes, just give me a thumbs up! \ud83d\udc4d  (currently approve button in the top panel)\n\nIf something goes wrong, no worries\u2014just roll back! \ud83d\ude2c Your app will be live on Cyoda Platform GitHub soon! \ud83d\ude80 Let\u2019s build your branch together! \ud83c\udf3f\n",
+        "prompt": {},
+        "publish": true,
+        "stack": "app_building_stack"
+      },
+      {
+        "answer": "",
+        "approve": true,
+        "context": {},
+        "data": {},
+        "editable": false,
+        "entity": {},
+        "file_name": "",
+        "flow_step": "Gathering requirements",
+        "function": {},
+        "index": 0,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "\ud83c\udf89 **Your branch is ready!** Please update the project and check it out when you get a chance. \ud83d\ude0a\n\nTo get started:\n\n1. **Clone the repository** using the following command:  \n   `git clone https://github.com/Cyoda-platform/quart-client-template/` \ud83d\ude80\n\n2. **Checkout your branch** using:  \n   `git checkout 6ab0013c-e4c2-11ef-8603-924fc26a4c98` \ud83d\udd04\n\nYou can access your branch directly on GitHub here: [Cyoda Platform GitHub](https://github.com/Cyoda-platform/quart-client-template/tree/6ab0013c-e4c2-11ef-8603-924fc26a4c98) \ud83d\ude04\n\nThis repository is a **starter template** for your app and has two main modules:\n\n- **Common Module**: This is all about integration with Cyoda! You don\u2019t need to edit it unless you want to \u2013 it\u2019s all done for you! \ud83c\udf89  \n- **Entity Module**: This is where your business logic and custom files will go. We'll add your files here, and you can track your progress. \ud83d\udcc8 Feel free to **add or edit** anything in the Entity module. I\u2019ll be pulling changes now and then, so just push your updates to let me know! \ud83d\ude80\n\nYou can ask **questions in the chat** or in your project files anytime. When I make changes, I\u2019ll let you know, and you can simply **pull** to sync with me! \ud83d\udd04\ud83d\udcac\n\nHappy coding! \ud83d\ude04\ud83c\udf89",
+        "prompt": {},
+        "publish": true,
+        "question": ""
+      },
+      {
+        "answer": null,
+        "approve": false,
+        "example_answers": [
+          "\n                              Hello, I would like to download the following data: [London Houses Data](https://raw.githubusercontent.com/Cyoda-platform/cyoda-ai/refs/heads/ai-2.x/data/test-inputs/v1/connections/london_houses.csv), analyze it using **pandas**, and save a report. \ud83d\udcca",
+          "\n                              Hello! \ud83d\udc4b\n                              I would like to develop an application that:\n                              1. Ingests data from a specified data source \ud83d\udce5\n                              2. Aggregates the data \ud83e\uddee\n                              3. Saves the aggregated data to a report \ud83d\udcc4\n                              Once the report is generated, the application should send it to the admin's email \ud83d\udce7. \n                              Additionally, the data ingestion process should be scheduled to run **once a day** \u23f0."
+        ],
+        "file_name": "entity/app_design.json",
+        "flow_step": "Gathering requirements",
+        "function": null,
+        "iteration": 0,
+        "max_iteration": 0,
+        "processed": true,
+        "prompt": {},
+        "publish": true,
+        "question": "\n\ud83d\udca1 What kind of application would you like to build? I'd love to hear your ideas! Feel free to share them with me! \ud83d\ude0a\n\n***Example answers***:\nHello, I would like to download the following data: [London Houses Data](https://raw.githubusercontent.com/Cyoda-platform/cyoda-ai/refs/heads/ai-2.x/data/test-inputs/v1/connections/london_houses.csv), analyze it using **pandas**, and save a report. \ud83d\udcca\n\nHello! \ud83d\udc4b\n                              I would like to develop an application that:\n                              1. Ingests data from a specified data source \ud83d\udce5\n                              2. Aggregates the data \ud83e\uddee\n                              3. Saves the aggregated data to a report \ud83d\udcc4\n                              Once the report is generated, the application should send it to the admin's email \ud83d\udce7. \n                              Additionally, the data ingestion process should be scheduled to run **once a day** \u23f0.\n",
+        "question_key": "\ud83d\udca1 What kind of application would you like to build? I'd love to hear your ideas! Feel free to share them with me! \ud83d\ude0a",
+        "stack": "app_building_stack"
+      },
+      {
+        "additional_questions": [
+          {
+            "approve": true,
+            "question": "Give a thumbs up \ud83d\udc4d if you'd like to proceed to the next question. If you'd like to discuss further, let's chat \ud83d\udcac"
+          }
+        ],
+        "answer": "User Directory Application Overview: Create a simple user directory that lists all users with their basic contact details. Features: Data Ingestion from api: Retrieve and display user data, including name, email, phone number, and website. User Interaction: Allow users to search and filter the directory by name or email. Additional Features: Include a detail view for each user, showing their address and company information.",
+        "flow_step": "Gathering requirements",
+        "function": null,
+        "iteration": 1,
+        "max_iteration": 15,
+        "prompt": {
+          "text": "We are in the loop of requirement validation. Talk to me like we are close friends. If I ask you a general question, just return an answer to this question. Start your answer with what you understood from my requirement. Help me improve my requirement, i.e. if any information is missing help me understand why we need it and ask for it very friendly, like api docs, my expectations, if we need ha, persistence, what api will the future application provide. Speak in simple words and remember - we are in a chat loop - so you do not have to ask all questions at once. Guide slowly, suggest to attach relevant doc files and user requirement as files. My requirement: "
+        },
+        "publish": true,
+        "question": null,
+        "stack": "app_building_stack"
+      },
+      {
+        "additional_questions": [
+          {
+            "approve": true,
+            "question": "Give a thumbs up \ud83d\udc4d if you'd like to proceed to the next question. If you'd like to discuss further, let's chat \ud83d\udcac"
+          }
+        ],
+        "answer": "",
+        "approve": true,
+        "context": {},
+        "data": {},
+        "editable": false,
+        "entity": {},
+        "file_name": "",
+        "flow_step": "Gathering requirements",
+        "function": {},
+        "index": 0,
+        "iteration": 1,
+        "max_iteration": 15,
+        "notification": "I understand that your current requirement focuses on developing a simple user directory application. This application aims to list users along with their basic contact details and includes features such as data ingestion from an API, user interactions for searching and filtering, and additional details for each user.\n\nTo improve and refine your requirement, I believe we need to consider a few important aspects:\n\n1. **API Documentation**: It would be helpful to have the documentation for the API we plan to use for data ingestion. This documentation typically includes details about the available endpoints, the data format returned, and any authentication required. Having this information will ensure that our application can effectively communicate with the API and retrieve the necessary user data.\n\n2. **Expectations for Performance and Availability**: Are there any specific expectations regarding the application's performance, such as how quickly it should return results after a user makes a request? Additionally, do we need to consider high availability (HA) for this application, meaning it should be accessible even if some components fail?\n\n3. **Data Persistence**: Should the application persist the user data it retrieves, or is it acceptable to fetch the data from the API each time the directory is accessed? Data persistence could impact how we design the application and the technologies we use.\n\n4. **Future API Capabilities**: What API will the future application provide? Understanding this will help us define the application's architecture and ensure it can meet user needs.\n\nBy addressing these points, we can create a more robust and effective requirement for the user directory application. If you have any documents or specific details related to these aspects, please feel free to share them. Alternatively, if you need assistance in finding relevant documents or have any questions, just let me know! I'm here to help and guide you through this process.",
+        "prompt": {},
+        "publish": true,
+        "question": ""
+      },
+      {
+        "approve": true,
+        "processed": true,
+        "question": "Give a thumbs up \ud83d\udc4d if you'd like to proceed to the next question. If you'd like to discuss further, let's chat \ud83d\udcac",
+        "question_key": "Give a thumbs up \ud83d\udc4d if you'd like to proceed to the next question. If you'd like to discuss further, let's chat \ud83d\udcac"
+      },
+      {
+        "additional_questions": [
+          {
+            "approve": true,
+            "question": "Give a thumbs up \ud83d\udc4d if you'd like to proceed to the next question. If you'd like to discuss further, let's chat \ud83d\udcac"
+          }
+        ],
+        "answer": "API Documentation: get endoint, url https://jsonplaceholder.typicode.com/users, [   {     \"id\": 1,     \"name\": \"Leanne Graham\",     \"username\": \"Bret\",     \"email\": \"Sincere@april.biz\",     \"address\": {       \"street\": \"Kulas Light\",       \"suite\": \"Apt. 556\",       \"city\": \"Gwenborough\",       \"zipcode\": \"92998-3874\",       \"geo\": {         \"lat\": \"-37.3159\",         \"lng\": \"81.1496\"       }     },     \"phone\": \"1-770-736-8031 x56442\",     \"website\": \"hildegard.org\",     \"company\": {       \"name\": \"Romaguera-Crona\",       \"catchPhrase\": \"Multi-layered client-server neural-net\",       \"bs\": \"harness real-time e-markets\"     }   },   {     \"id\": 2,     \"name\": \"Ervin Howell\",     \"username\": \"Antonette\",     \"email\": \"Shanna@melissa.tv\",     \"address\": {       \"street\": \"Victor Plains\",       \"suite\": \"Suite 879\",       \"city\": \"Wisokyburgh\",       \"zipcode\": \"90566-7771\",       \"geo\": {         \"lat\": \"-43.9509\",         \"lng\": \"-34.4618\"       }     },     \"phone\": \"010-692-6593 x09125\",     \"website\": \"anastasia.net\",     \"company\": {       \"name\": \"Deckow-Crist\",       \"catchPhrase\": \"Proactive didactic contingency\",       \"bs\": \"synergize scalable supply-chains\"     }   },   {     \"id\": 3,     \"name\": \"Clementine Bauch\",     \"username\": \"Samantha\",     \"email\": \"Nathan@yesenia.net\",     \"address\": {       \"street\": \"Douglas Extension\",       \"suite\": \"Suite 847\",       \"city\": \"McKenziehaven\",       \"zipcode\": \"59590-4157\",       \"geo\": {         \"lat\": \"-68.6102\",         \"lng\": \"-47.0653\"       }     },     \"phone\": \"1-463-123-4447\",     \"website\": \"ramiro.info\",     \"company\": {       \"name\": \"Romaguera-Jacobson\",       \"catchPhrase\": \"Face to face bifurcated interface\",       \"bs\": \"e-enable strategic applications\"     }   },   {     \"id\": 4,     \"name\": \"Patricia Lebsack\",     \"username\": \"Karianne\",     \"email\": \"Julianne.OConner@kory.org\",     \"address\": {       \"street\": \"Hoeger Mall\",       \"suite\": \"Apt. 692\",       \"city\": \"South Elvis\",       \"zipcode\": \"53919-4257\",       \"geo\": {         \"lat\": \"29.4572\",         \"lng\": \"-164.2990\"       }     },     \"phone\": \"493-170-9623 x156\",     \"website\": \"kale.biz\",     \"company\": {       \"name\": \"Robel-Corkery\",       \"catchPhrase\": \"Multi-tiered zero tolerance productivity\",       \"bs\": \"transition cutting-edge web services\"     }   },   {     \"id\": 5,     \"name\": \"Chelsey Dietrich\",     \"username\": \"Kamren\",     \"email\": \"Lucio_Hettinger@annie.ca\",     \"address\": {       \"street\": \"Skiles Walks\",       \"suite\": \"Suite 351\",       \"city\": \"Roscoeview\",       \"zipcode\": \"33263\",       \"geo\": {         \"lat\": \"-31.8129\",         \"lng\": \"62.5342\"       }     },     \"phone\": \"(254)954-1289\",     \"website\": \"demarco.info\",     \"company\": {       \"name\": \"Keebler LLC\",       \"catchPhrase\": \"User-centric fault-tolerant solution\",       \"bs\": \"revolutionize end-to-end systems\"     }   },   {     \"id\": 6,     \"name\": \"Mrs. Dennis Schulist\",     \"username\": \"Leopoldo_Corkery\",     \"email\": \"Karley_Dach@jasper.info\",     \"address\": {       \"street\": \"Norberto Crossing\",       \"suite\": \"Apt. 950\",       \"city\": \"South Christy\",       \"zipcode\": \"23505-1337\",       \"geo\": {         \"lat\": \"-71.4197\",         \"lng\": \"71.7478\"       }     },     \"phone\": \"1-477-935-8478 x6430\",     \"website\": \"ola.org\",     \"company\": {       \"name\": \"Considine-Lockman\",       \"catchPhrase\": \"Synchronised bottom-line interface\",       \"bs\": \"e-enable innovative applications\"     }   },   {     \"id\": 7,     \"name\": \"Kurtis Weissnat\",     \"username\": \"Elwyn.Skiles\",     \"email\": \"Telly.Hoeger@billy.biz\",     \"address\": {       \"street\": \"Rex Trail\",       \"suite\": \"Suite 280\",       \"city\": \"Howemouth\",       \"zipcode\": \"58804-1099\",       \"geo\": {         \"lat\": \"24.8918\",         \"lng\": \"21.8984\"       }     },     \"phone\": \"210.067.6132\",     \"website\": \"elvis.io\",     \"company\": {       \"name\": \"Johns Group\",       \"catchPhrase\": \"Configurable multimedia task-force\",       \"bs\": \"generate enterprise e-tailers\"     }   },   {     \"id\": 8,     \"name\": \"Nicholas Runolfsdottir V\",     \"username\": \"Maxime_Nienow\",     \"email\": \"Sherwood@rosamond.me\",     \"address\": {       \"street\": \"Ellsworth Summit\",       \"suite\": \"Suite 729\",       \"city\": \"Aliyaview\",       \"zipcode\": \"45169\",       \"geo\": {         \"lat\": \"-14.3990\",         \"lng\": \"-120.7677\"       }     },     \"phone\": \"586.493.6943 x140\",     \"website\": \"jacynthe.com\",     \"company\": {       \"name\": \"Abernathy Group\",       \"catchPhrase\": \"Implemented secondary concept\",       \"bs\": \"e-enable extensible e-tailers\"     }   },   {     \"id\": 9,     \"name\": \"Glenna Reichert\",     \"username\": \"Delphine\",     \"email\": \"Chaim_McDermott@dana.io\",     \"address\": {       \"street\": \"Dayna Park\",       \"suite\": \"Suite 449\",       \"city\": \"Bartholomebury\",       \"zipcode\": \"76495-3109\",       \"geo\": {         \"lat\": \"24.6463\",         \"lng\": \"-168.8889\"       }     },     \"phone\": \"(775)976-6794 x41206\",     \"website\": \"conrad.com\",     \"company\": {       \"name\": \"Yost and Sons\",       \"catchPhrase\": \"Switchable contextually-based project\",       \"bs\": \"aggregate real-time technologies\"     }   },   {     \"id\": 10,     \"name\": \"Clementina DuBuque\",     \"username\": \"Moriah.Stanton\",     \"email\": \"Rey.Padberg@karina.biz\",     \"address\": {       \"street\": \"Kattie Turnpike\",       \"suite\": \"Suite 198\",       \"city\": \"Lebsackbury\",       \"zipcode\": \"31428-2261\",       \"geo\": {         \"lat\": \"-38.2386\",         \"lng\": \"57.2232\"       }     },     \"phone\": \"024-648-3804\",     \"website\": \"ambrose.net\",     \"company\": {       \"name\": \"Hoeger LLC\",       \"catchPhrase\": \"Centralized empowering task-force\",       \"bs\": \"target end-to-end models\"     }   } ]",
+        "flow_step": "Gathering requirements",
+        "function": null,
+        "iteration": 2,
+        "max_iteration": 15,
+        "prompt": {
+          "text": "We are in the loop of requirement validation. Talk to me like we are close friends. If I ask you a general question, just return an answer to this question. Start your answer with what you understood from my requirement. Help me improve my requirement, i.e. if any information is missing help me understand why we need it and ask for it very friendly, like api docs, my expectations, if we need ha, persistence, what api will the future application provide. Speak in simple words and remember - we are in a chat loop - so you do not have to ask all questions at once. Guide slowly, suggest to attach relevant doc files and user requirement as files. My requirement: "
+        },
+        "publish": true,
+        "question": null,
+        "stack": "app_building_stack"
+      },
+      {
+        "additional_questions": [
+          {
+            "approve": true,
+            "question": "Give a thumbs up \ud83d\udc4d if you'd like to proceed to the next question. If you'd like to discuss further, let's chat \ud83d\udcac"
+          }
+        ],
+        "answer": "",
+        "approve": true,
+        "context": {},
+        "data": {},
+        "editable": false,
+        "entity": {},
+        "file_name": "",
+        "flow_step": "Gathering requirements",
+        "function": {},
+        "index": 0,
+        "iteration": 2,
+        "max_iteration": 15,
+        "notification": "I understand that you're providing the details for the API documentation related to the user directory application, specifically the endpoint for retrieving user data from the JSONPlaceholder service. This endpoint, located at `https://jsonplaceholder.typicode.com/users`, returns a list of users along with their details, such as name, email, phone number, address, and company information.\n\n### Improvement of Your Requirement\n\nTo ensure that our application can effectively utilize this API and meet your expectations, here are a few considerations:\n\n1. **Clarification of Features**: \n   - You mentioned features like data ingestion from the API and the ability to search and filter users. It would be helpful to specify how you envision these features working together. For example, do you want the application to automatically refresh the data from the API at certain intervals, or should it only fetch data when the user requests it?\n\n2. **Data Persistence**:\n   - Should the application store the retrieved user data in a database, or is it sufficient to pull the data directly from the API each time? Data persistence can affect the application's performance and how we handle user interactions.\n\n3. **High Availability (HA)**:\n   - Are there any specific requirements for the application's availability? For instance, if this application were to be used in a production environment, we might want to consider how to ensure it remains accessible even if some components fail.\n\n4. **Future API Capabilities**:\n   - What additional functionalities do you envision for the application's API in the future? This could include features like allowing users to add, update, or delete their contacts. Understanding this will help us design a more flexible and scalable application.\n\nBy addressing these points, we can create a more robust and effective requirement for the user directory application. If you have any further documents or details related to these aspects, please feel free to share them. Alternatively, if you have any questions or need clarification on anything, just let me know! I'm here to help and support you in this process.",
+        "prompt": {},
+        "publish": true,
+        "question": ""
+      },
+      {
+        "approve": true,
+        "processed": true,
+        "question": "Give a thumbs up \ud83d\udc4d if you'd like to proceed to the next question. If you'd like to discuss further, let's chat \ud83d\udcac",
+        "question_key": "Give a thumbs up \ud83d\udc4d if you'd like to proceed to the next question. If you'd like to discuss further, let's chat \ud83d\udcac"
+      },
+      {
+        "additional_questions": [
+          {
+            "approve": true,
+            "question": "Give a thumbs up \ud83d\udc4d if you'd like to proceed to the next question. If you'd like to discuss further, let's chat \ud83d\udcac"
+          }
+        ],
+        "answer": "approved",
+        "flow_step": "Gathering requirements",
+        "function": null,
+        "iteration": 2,
+        "max_iteration": -1,
+        "prompt": {
+          "text": "We are in the loop of requirement validation. Talk to me like we are close friends. If I ask you a general question, just return an answer to this question. Start your answer with what you understood from my requirement. Help me improve my requirement, i.e. if any information is missing help me understand why we need it and ask for it very friendly, like api docs, my expectations, if we need ha, persistence, what api will the future application provide. Speak in simple words and remember - we are in a chat loop - so you do not have to ask all questions at once. Guide slowly, suggest to attach relevant doc files and user requirement as files. My requirement: "
+        },
+        "publish": true,
+        "question": null,
+        "stack": "app_building_stack"
+      },
+      {
+        "answer": "",
+        "approve": true,
+        "context": {},
+        "data": {},
+        "editable": true,
+        "entity": {},
+        "file_name": "entity/user_requirement.md",
+        "flow_step": "Gathering requirements",
+        "function": {},
+        "index": 0,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "\n\n\ud83c\udf89 **Changes have been pushed!** \ud83c\udf89\n\nI\u2019ve submitted changes to the file: `entity/user_requirement.md` in your branch. You can check it out by either:\n\n1. **Pulling or fetching** the changes from the remote repository, or  \n2. **Opening the link** to view the file directly: [View changes here]( https://github.com/Cyoda-platform/quart-client-template/tree/6ab0013c-e4c2-11ef-8603-924fc26a4c98/entity/user_requirement.md) \ud83d\udd17 (this will open in a new tab).\n\nFeel free to **modify the file** as necessary\n\nI will proceed with my work... I'll let you know when we can discuss the changes and make necessary update.\n",
+        "prompt": {},
+        "publish": true,
+        "question": ""
+      },
+      {
+        "answer": "",
+        "approve": true,
+        "context": {},
+        "data": {},
+        "editable": false,
+        "entity": {},
+        "file_name": "entity/user_requirement.md",
+        "flow_step": "Gathering requirements",
+        "function": {},
+        "index": 0,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "I understand that you would like me to validate your requirement for the user directory application and create a detailed user requirement document. This document will include user stories, a journey diagram, and a sequence diagram, all formatted in markdown with the appropriate mermaid syntax for visual representations.\n\n### Validation of Your Requirement\n\nYour requirement clearly outlines the goal of creating a user directory that lists all users with their basic contact details. It also specifies important features such as data ingestion from an API, user interactions for searching and filtering, and the inclusion of additional details for each user. These aspects are crucial for ensuring that the application meets the needs of its users.\n\n### User Requirement Document\n\nI will proceed to create the user requirement document, which will consist of the following sections:\n\n1. **User Stories**: These will capture the specific needs and expectations of the users regarding the application.\n\n2. **Journey Diagram**: This diagram will illustrate the steps users take when interacting with the application to achieve their goals.\n\n3. **Sequence Diagram**: This diagram will depict the interactions between different components of the application as it processes user requests.\n\n#### 1. User Stories\n\n```markdown\n### User Stories\n\n- **As a user**, I want to view a list of all users with their basic contact details, so that I can easily find and access the information I need.\n- **As a user**, I want to search for specific users by name or email, so that I can quickly locate the contacts I am interested in.\n- **As a user**, I want to see additional details about each user, including their address and company information, so that I have a complete view of the contact.\n\n```\n\n#### 2. Journey Diagram\n\n```mermaid\njourney\n    title User Journey for the User Directory Application\n    section Access Directory\n      User opens the application: 5: User\n      System displays the list of users: 4: System\n    section Search Users\n      User enters a search term: 5: User\n      System filters the list based on the search term: 4: System\n    section View Details\n      User clicks on a user to view details: 5: User\n      System displays the user's address and company information: 4: System\n```\n\n#### 3. Sequence Diagram\n\n```mermaid\nsequenceDiagram\n    participant User\n    participant UI\n    participant API\n    participant Database\n\n    User->>UI: Opens the application\n    UI->>API: GET /users\n    API-->>UI: Returns user data\n    UI->>Database: Saves user data (if persistence is needed)\n    UI->>User: Displays user list\n    User->>UI: Searches for a user\n    UI->>UI: Filters user list based on search\n    User->>UI: Clicks on a user\n    UI->>Database: Retrieves user details\n    UI->>User: Shows user details\n```\n\n### Explanation of Choices\n\n- **User Stories**: These are essential for capturing the specific requirements of the users in their own words. They help ensure that the development team understands what features are necessary to meet user expectations.\n- **Journey Diagram**: This diagram visualizes the steps users take when interacting with the application. It highlights the key actions and the system's responses, making it easier to understand the user experience.\n- **Sequence Diagram**: This diagram illustrates the interactions between different components of the application as it processes user requests. It provides a clear picture of how the system operates behind the scenes to fulfill user needs.\n\nI hope this document meets your expectations and provides a comprehensive overview of the user requirement for the directory application. If you have any further questions or need additional details, please let me know! I'm here to help and support you in any way I can.",
+        "prompt": {},
+        "publish": true,
+        "question": ""
+      },
+      {
+        "answer": null,
+        "approve": true,
+        "file_name": "entity/app_design.json",
+        "flow_step": "Gathering requirements",
+        "function": null,
+        "iteration": 0,
+        "max_iteration": 0,
+        "processed": true,
+        "prompt": {},
+        "publish": true,
+        "question": "Give a thumbs up \ud83d\udc4d if you'd like to proceed to the next question. If you'd like to discuss further, let's chat \ud83d\udcac",
+        "question_key": "Give a thumbs up \ud83d\udc4d if you'd like to proceed to the next question. If you'd like to discuss further, let's chat \ud83d\udcac",
+        "stack": "app_building_stack"
+      },
+      {
+        "additional_questions": [
+          {
+            "approve": true,
+            "question": "Give a thumbs up \ud83d\udc4d if you'd like to proceed to the next question. If you'd like to discuss further, let's chat \ud83d\udcac"
+          }
+        ],
+        "answer": "approved",
+        "approve": true,
+        "flow_step": "Gathering requirements",
+        "function": null,
+        "iteration": 0,
+        "max_iteration": -1,
+        "prompt": {
+          "text": "Hi! This is a general question, but remember we are building Cyoda app, and currently we are designing my journey and sequence diagram, so if the user requirement is sufficient it's a nice idea to return these mermaid diagrams. If my question is completely irrelevant - answer it as is , but remind that we are building app here. I say:"
+        },
+        "publish": true,
+        "question": null,
+        "stack": "app_building_stack"
+      },
+      {
+        "answer": null,
+        "function": null,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "\nThanks for the go-ahead!\nThere are many ways to structure systems. We suggest using **event-driven design** with **entities** and **state machines**. This approach has proven to work exceptionally well for **high-availability** and **data-intensive** applications, ensuring scalability and simplicity.\n\n### What are **Entities**? \ud83e\udd14\nEntities are **data units** that represent real-world objects. Each entity has a **lifecycle**, **states**, and **transitions** that define how it evolves over time.\n\n### Our Approach: \ud83d\udca1\n- **Entities** represent things like a **Light Bulb** \ud83d\udca1.\n- **State Machines** visualize the **lifecycle** of entities (states + transitions) \ud83d\udd04.\n- **Event-Driven Architecture** triggers actions based on events, making systems responsive and scalable \u26a1.\n\n### Simple Light Bulb Example \ud83d\udca1:\n- **States**:  \n  - **OFF** \ud83d\udeab  \n  - **ON** \u2705\n\n- **Transitions**:  \n  - **New** \u2192 OFF (initial state)  \n  - **Flip Switch** \u2192 ON  \n  - **Flip Switch Again** \u2192 OFF\n---\n\n### Light Bulb Flowchart:\n\n```mermaid\nstateDiagram-v2\n    [*] --> OFF\n    OFF --> ON : Flip Switch\n    ON --> OFF : Flip Switch Again\n```    \n\ud83c\udf89 Let\u2019s dive into creating your project\u2019s **entities** and **workflow** to build a scalable and data-intensive system! \n\nFor more on entity databases, check out this article by [Paul Schleger](https://medium.com/@paul_42036/whats-an-entity-database-11f8538b631a) \ud83d\udcda.\n",
+        "prompt": {},
+        "publish": true,
+        "stack": "app_building_stack"
+      },
+      {
+        "answer": null,
+        "function": null,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "Please give me a moment to think everything over \ud83e\udd14\u23f3",
+        "prompt": {},
+        "publish": true,
+        "stack": "app_building_stack"
+      },
+      {
+        "answer": "",
+        "approve": true,
+        "context": {},
+        "data": {},
+        "editable": false,
+        "entity": {},
+        "file_name": "",
+        "flow_step": "Gathering requirements",
+        "function": {},
+        "index": 0,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "I understand that you would like me to outline the entities for the user directory application requirement, including an entities diagram, JSON examples of data models for each entity, and workflows associated with these entities. Additionally, you'll need flowcharts to represent the workflows visually. \n\n### Outline of Entities\n\n1. **User Entity**: Represents the basic information about users retrieved from the API.\n   - **Example JSON**:\n     ```json\n     {\n       \"id\": 1,\n       \"name\": \"Leanne Graham\",\n       \"username\": \"Bret\",\n       \"email\": \"Sincere@april.biz\",\n       \"address\": {\n         \"street\": \"Kulas Light\",\n         \"suite\": \"Apt. 556\",\n         \"city\": \"Gwenborough\",\n         \"zipcode\": \"92998-3874\",\n         \"geo\": {\n           \"lat\": \"-37.3159\",\n           \"lng\": \"81.1496\"\n         }\n       },\n       \"phone\": \"1-770-736-8031 x56442\",\n       \"website\": \"hildegard.org\",\n       \"company\": {\n         \"name\": \"Romaguera-Crona\",\n         \"catchPhrase\": \"Multi-layered client-server neural-net\",\n         \"bs\": \"harness real-time e-markets\"\n       }\n     }\n     ```\n   - **Saving Method**: Retrieved directly via an API call to the user data endpoint.\n\n2. **Directory Entity**: Represents the collection of users and any additional functionalities related to managing the user list.\n   - **Example JSON**:\n     ```json\n     {\n       \"directory_id\": \"dir_001\",\n       \"title\": \"User Directory\",\n       \"description\": \"A directory to manage and access user contacts.\",\n       \"users\": [\n         {\n           \"id\": 1,\n           \"name\": \"Leanne Graham\",\n           \"email\": \"Sincere@april.biz\"\n         }\n       ]\n     }\n     ```\n   - **Saving Method**: This could be saved as a secondary data entity (SECONDARY_DATA) after processing the user data.\n\n### Entities Diagram\n\n```mermaid\nclassDiagram\n    class User {\n      +int id\n      +String name\n      +String username\n      +String email\n      +String phone\n      +String website\n      +Address address\n      +Company company\n    }\n    class Directory {\n      +String directory_id\n      +String title\n      +String description\n      +List<User> users\n    }\n    User --> Directory : manages >\n```\n\n### Workflows and Flowcharts\n\n1. **Workflow for User Retrieval**:\n   - **Associated with**: User Entity\n   - **Flowchart**:\n     ```mermaid\n     flowchart TD\n       A[Start State] -->|transition: retrieve_users, processor: ingest_raw_data| B[Users Retrieved]\n       B --> C[End State]\n     ```\n\n2. **Workflow for Directory Management**:\n   - **Associated with**: Directory Entity\n   - **Flowchart**:\n     ```mermaid\n     flowchart TD\n       A[Initial State] -->|transition: add_user, processor: process_user_data| B[User Added]\n       B -->|transition: update_directory, processor: refresh_data| C[Directory Updated]\n       C --> D[End State]\n     ```\n\n### Explanation of Choices\n\n- The **User Entity** is crucial as it holds the primary data we will be working with. It is retrieved directly from the API, ensuring we have the most up-to-date information.\n- The **Directory Entity** represents the functionalities related to managing the user data, allowing for future enhancements such as adding, updating, or deleting user records.\n- The workflows and flowcharts provide a visual representation of how the application will process and manage the data, making it easier to understand the interactions between different components.\n\nIf you have any questions or need further modifications, please let me know! I'm here to help and ensure that everything meets your expectations.",
+        "prompt": {},
+        "publish": true,
+        "question": ""
+      },
+      {
+        "answer": null,
+        "approve": true,
+        "file_name": "entity/app_design.json",
+        "flow_step": "Gathering requirements",
+        "function": null,
+        "iteration": 0,
+        "max_iteration": 0,
+        "processed": true,
+        "prompt": {},
+        "publish": true,
+        "question": "I'm ready with the design - we can discuss our ideas in the chat \ud83d\udcac\ud83d\udcac, when you feel we are ready to start code generation - give me thumbs up \ud83d\udc4d",
+        "question_key": "I'm ready with the design - we can discuss our ideas in the chat \ud83d\udcac\ud83d\udcac, when you feel we are ready to start code generation - give me thumbs up \ud83d\udc4d",
+        "stack": "app_building_stack"
+      },
+      {
+        "additional_questions": [
+          {
+            "approve": true,
+            "question": "We can discuss our ideas in the chat \ud83d\udcac\ud83d\udcac, when you feel we are ready to start code generation - give me thumbs up \ud83d\udc4d"
+          }
+        ],
+        "answer": "approved",
+        "approve": true,
+        "flow_step": "Gathering requirements",
+        "function": null,
+        "iteration": 0,
+        "max_iteration": -1,
+        "prompt": {
+          "text": "Hi! "
+        },
+        "publish": true,
+        "question": null,
+        "stack": "app_building_stack"
+      },
+      {
+        "answer": null,
+        "file_name": "entity/app_design.json",
+        "flow_step": "Gathering requirements",
+        "function": null,
+        "info": true,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "\nAwesome! Let's dive into generating your application code! \ud83d\ude80 \n\nI'll keep you updated with notifications on my progress, and let you know when it's time to discuss any changes.\n \nFeel free to grab a coffee \u2615 while I work\u2014it's going to take about 2 minutes. \n \nJust relax and wait for the update!\n\nIn this process, we will walk through each stage of building an application, from gathering initial requirements to designing, coding, and implementing the final logic.\n\n### The stages of the process are as follows:\n\n1. **Application design**:  \n   Let's design the application using diagrams and chat. You'll receive a text document with the PRD as the output.  \n   *Output documents*: entity/app_design.md\n\n2. **Entities design**:  \n   Let's define the JSON data structure for each entity.\n   *Output documents*: entity/*\n\n3. **Workflow design**:  \n   Let's ensure our entity workflow is correctly defined.\n   *Output documents*: entity/*/workflow.json\n\n4. **Workflow processors code design**:  \n   Let's implement the workflow processors.\n   *Output documents*: entity/*/workflow.py\n\n5. **Additional logic code design**:  \n   Let's develop any additional business logic.\n   *Output documents*: entity/*/api.py or entity/*/logic.py\n\n---\n\n### Process Flow:\n\nGathering requirements --> **Application design** --> **Entities design** --> **Workflow design** --> **Workflow processors code design** --> **Additional logic code design**         \n                          ",
+        "prompt": {},
+        "publish": true,
+        "stack": "app_building_stack"
+      },
+      {
+        "answer": null,
+        "function": null,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "Please give me a moment to think everything over \ud83e\udd14\u23f3",
+        "prompt": {},
+        "publish": true,
+        "stack": "app_building_stack"
+      },
+      {
+        "answer": "",
+        "approve": true,
+        "context": {},
+        "data": {},
+        "editable": true,
+        "entity": {},
+        "file_name": "entity/app_design_prd.md",
+        "flow_step": "Gathering requirements",
+        "function": {},
+        "index": 0,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "\n\n\ud83c\udf89 **Changes have been pushed!** \ud83c\udf89\n\nI\u2019ve submitted changes to the file: `entity/app_design_prd.md` in your branch. You can check it out by either:\n\n1. **Pulling or fetching** the changes from the remote repository, or  \n2. **Opening the link** to view the file directly: [View changes here]( https://github.com/Cyoda-platform/quart-client-template/tree/6ab0013c-e4c2-11ef-8603-924fc26a4c98/entity/app_design_prd.md) \ud83d\udd17 (this will open in a new tab).\n\nFeel free to **modify the file** as necessary\n\nI will proceed with my work... I'll let you know when we can discuss the changes and make necessary update.\n",
+        "prompt": {},
+        "publish": true,
+        "question": ""
+      },
+      {
+        "answer": "",
+        "approve": true,
+        "context": {},
+        "data": {},
+        "editable": false,
+        "entity": {},
+        "file_name": "entity/app_design_prd.md",
+        "flow_step": "Gathering requirements",
+        "function": {},
+        "index": 0,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "Here\u2019s a detailed Product Requirement Document (PRD) for the user directory application, including user requirements, entity definitions, workflows, and supporting diagrams. This document aims to provide a comprehensive overview that will guide the development process.\n\n---\n\n# Product Requirement Document (PRD) for User Directory Application\n\n## Introduction\n\nThis document outlines the requirements for the user directory application, which aims to provide users with a simple interface to view, search, and manage contact information for various users. The application will retrieve data from a third-party API and offer functionalities to enhance the user experience.\n\n## User Requirement Overview\n\nThe user directory application will:\n\n- List all users with their basic contact details, including name, email, phone number, and address.\n- Allow users to search and filter the directory by name or email.\n- Provide a detailed view for each user, showing additional information such as company details.\n\n## User Stories\n\n```markdown\n### User Stories\n\n- **As a user**, I want to view a list of all users with their basic contact details, so that I can easily find and access the information I need.\n- **As a user**, I want to search for specific users by name or email, so that I can quickly locate the contacts I am interested in.\n- **As a user**, I want to see additional details about each user, including their address and company information, so that I have a complete view of the contact.\n```\n\n## Journey Diagram\n\n```mermaid\njourney\n    title User Journey for the User Directory Application\n    section Access Directory\n      User opens the application: 5: User\n      System displays the list of users: 4: System\n    section Search Users\n      User enters a search term: 5: User\n      System filters the list based on the search term: 4: System\n    section View Details\n      User clicks on a user to view details: 5: User\n      System displays the user's address and company information: 4: System\n```\n\n## Sequence Diagram\n\n```mermaid\nsequenceDiagram\n    participant User\n    participant UI\n    participant API\n    participant Database\n\n    User->>UI: Opens the application\n    UI->>API: GET /users\n    API-->>UI: Returns user data\n    UI->>Database: Saves user data (if persistence is needed)\n    UI->>User: Displays user list\n    User->>UI: Searches for a user\n    UI->>UI: Filters user list based on search\n    User->>UI: Clicks on a user\n    UI->>Database: Retrieves user details\n    UI->>User: Shows user details\n```\n\n## Entities Outline\n\n### 1. User Entity\n\n- **Description**: Represents the basic information about users retrieved from the API.\n- **Example JSON**:\n  ```json\n  {\n    \"id\": 1,\n    \"name\": \"Leanne Graham\",\n    \"username\": \"Bret\",\n    \"email\": \"Sincere@april.biz\",\n    \"address\": {\n      \"street\": \"Kulas Light\",\n      \"suite\": \"Apt. 556\",\n      \"city\": \"Gwenborough\",\n      \"zipcode\": \"92998-3874\",\n      \"geo\": {\n        \"lat\": \"-37.3159\",\n        \"lng\": \"81.1496\"\n      }\n    },\n    \"phone\": \"1-770-736-8031 x56442\",\n    \"website\": \"hildegard.org\",\n    \"company\": {\n      \"name\": \"Romaguera-Crona\",\n      \"catchPhrase\": \"Multi-layered client-server neural-net\",\n      \"bs\": \"harness real-time e-markets\"\n    }\n  }\n  ```\n\n- **Saving Method**: Retrieved directly via an API call to the user data endpoint.\n\n### 2. Directory Entity\n\n- **Description**: Represents the collection of users and any additional functionalities related to managing the user list.\n- **Example JSON**:\n  ```json\n  {\n    \"directory_id\": \"dir_001\",\n    \"title\": \"User Directory\",\n    \"description\": \"A directory to manage and access user contacts.\",\n    \"users\": [\n      {\n        \"id\": 1,\n        \"name\": \"Leanne Graham\",\n        \"email\": \"Sincere@april.biz\"\n      }\n    ]\n  }\n  ```\n\n- **Saving Method**: This could be saved as a secondary data entity (SECONDARY_DATA) after processing the user data.\n\n## Entities Diagram\n\n```mermaid\nclassDiagram\n    class User {\n      +int id\n      +String name\n      +String username\n      +String email\n      +String phone\n      +String website\n      +Address address\n      +Company company\n    }\n    class Directory {\n      +String directory_id\n      +String title\n      +String description\n      +List<User> users\n    }\n    User --> Directory : manages >\n```\n\n## Workflows and Flowcharts\n\n### 1. Workflow for User Retrieval\n\n- **Associated with**: User Entity\n- **Flowchart**:\n```mermaid\nflowchart TD\n  A[Start State] -->|transition: retrieve_users, processor: ingest_raw_data| B[Users Retrieved]\n  B --> C[End State]\n```\n\n### 2. Workflow for Directory Management\n\n- **Associated with**: Directory Entity\n- **Flowchart**:\n```mermaid\nflowchart TD\n  A[Initial State] -->|transition: add_user, processor: process_user_data| B[User Added]\n  B -->|transition: update_directory, processor: refresh_data| C[Directory Updated]\n  C --> D[End State]\n```\n\n## Conclusion\n\nThis PRD provides a comprehensive overview of the user directory application, including the user journeys, entity definitions, workflows, and visual representations of the processes involved. By following this document, the development team will be well-equipped to build an application that meets the specified requirements and enhances the user experience.\n\nIf you have any further questions or need additional modifications, please let me know! I'm here to help and ensure that everything aligns with your vision for the project.",
+        "prompt": {},
+        "publish": true,
+        "question": ""
+      },
+      {
+        "answer": null,
+        "function": null,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "Please give me a moment to think everything over \ud83e\udd14\u23f3",
+        "prompt": {},
+        "publish": true,
+        "stack": "app_building_stack"
+      },
+      {
+        "answer": "",
+        "approve": true,
+        "context": {},
+        "data": {},
+        "editable": true,
+        "entity": {},
+        "file_name": "entity/app_design.json",
+        "flow_step": "Application design",
+        "function": {},
+        "index": 0,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "\n\n\ud83c\udf89 **Changes have been pushed!** \ud83c\udf89\n\nI\u2019ve submitted changes to the file: `entity/app_design.json` in your branch. You can check it out by either:\n\n1. **Pulling or fetching** the changes from the remote repository, or  \n2. **Opening the link** to view the file directly: [View changes here]( https://github.com/Cyoda-platform/quart-client-template/tree/6ab0013c-e4c2-11ef-8603-924fc26a4c98/entity/app_design.json) \ud83d\udd17 (this will open in a new tab).\n\nFeel free to **modify the file** as necessary\n\nI will proceed with my work... I'll let you know when we can discuss the changes and make necessary update.\n",
+        "prompt": {},
+        "publish": true,
+        "question": "",
+        "ui_config": {
+          "format": "json"
+        }
+      },
+      {
+        "answer": "",
+        "approve": true,
+        "context": {},
+        "data": {},
+        "editable": false,
+        "entity": {},
+        "file_name": "entity/app_design.json",
+        "flow_step": "Application design",
+        "function": {},
+        "index": 0,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": {
+          "can_proceed": true,
+          "entities": [
+            {
+              "depends_on_entity": "None",
+              "entity_name": "data_ingestion_job",
+              "entity_source": "API_REQUEST",
+              "entity_type": "JOB",
+              "entity_workflow": {
+                "class_name": "com.cyoda.tdb.model.treenode.TreeNodeEntity",
+                "name": "data_ingestion_workflow",
+                "transitions": [
+                  {
+                    "criteria": {
+                      "description": "Triggered by an API request to fetch user data.",
+                      "name": "api_request"
+                    },
+                    "description": "Initiate the data ingestion process to retrieve users from the API.",
+                    "end_state": "users_retrieved",
+                    "end_state_description": "The user data has been successfully retrieved from the API.",
+                    "name": "start_ingestion",
+                    "process": {
+                      "adds_new_entites": "raw_data_entity",
+                      "description": "Process to ingest raw data from the specified user API.",
+                      "name": "ingest_raw_data"
+                    },
+                    "start_state": "None",
+                    "start_state_description": "Initial state before any data ingestion occurs."
+                  }
+                ]
+              }
+            },
+            {
+              "depends_on_entity": "data_ingestion_job",
+              "entity_name": "raw_data_entity",
+              "entity_source": "ENTITY_EVENT",
+              "entity_type": "EXTERNAL_SOURCES_PULL_BASED_RAW_DATA",
+              "entity_workflow": {
+                "class_name": "com.cyoda.tdb.model.treenode.TreeNodeEntity",
+                "name": "raw_data_entity_workflow",
+                "transitions": []
+              }
+            },
+            {
+              "depends_on_entity": "data_ingestion_job",
+              "entity_name": "directory_entity",
+              "entity_source": "ENTITY_EVENT",
+              "entity_type": "SECONDARY_DATA",
+              "entity_workflow": {
+                "class_name": "com.cyoda.tdb.model.treenode.TreeNodeEntity",
+                "name": "directory_entity_workflow",
+                "transitions": [
+                  {
+                    "description": "Add a new user to the directory after retrieving from the API.",
+                    "end_state": "user_added",
+                    "end_state_description": "A new user has been successfully added to the directory.",
+                    "name": "add_user",
+                    "process": {
+                      "adds_new_entites": "None",
+                      "description": "Process to handle the addition of a user to the directory.",
+                      "name": "process_user_data"
+                    },
+                    "start_state": "None",
+                    "start_state_description": "Initial state before adding any users."
+                  },
+                  {
+                    "description": "Update the directory with new user data when changes occur.",
+                    "end_state": "directory_updated",
+                    "end_state_description": "The directory has been updated with the latest user information.",
+                    "name": "update_directory",
+                    "process": {
+                      "adds_new_entites": "None",
+                      "description": "Process to refresh and update the directory with new data.",
+                      "name": "refresh_data"
+                    },
+                    "start_state": "user_added",
+                    "start_state_description": "The directory already contains added users."
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "prompt": {},
+        "publish": {},
+        "question": "",
+        "ui_config": {
+          "format": "json"
+        }
+      },
+      {
+        "answer": null,
+        "function": null,
+        "info": true,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "Proceeding to Entities design\n        \n        \nGathering requirements --> Application design --> ***Entities design*** --> Workflow design --> Workflow processors code design --> Additional logic code design",
+        "prompt": {},
+        "publish": true,
+        "stack": "data_ingestion_stack"
+      },
+      {
+        "answer": null,
+        "function": null,
+        "info": true,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "\nWe are currently generating templates for your data ingestion entities! \ud83c\udf89 Once I\u2019m done, you\u2019ll find each entity in a separate folder: `entity/{entity_name}/{entity_name}.json`. \ud83d\uddc2\ufe0f\nAlso you\u2019ll find connection folder for each entity where we'll configure code for the data ingestion: `entity/{entity_name}/connections/connection.py`. \ud83d\uddc2\ufe0f\n\nThis file will represent the **entity model** as semi-structured data (think of it as an example). For data ingestion, this model should either be:\n- **A golden JSON**: The raw data output from your data source, or\n- **A transformed version**: In which case, we\u2019ll automatically handle the mapping for you! \ud83d\udd04\n\nFor now, we just need you to either:\n- **Provide your own data example**, or\n- **Approve our example** if it works for you! \ud83d\udc4d Once you\u2019re happy with it, we can move forward!\n\nIf everything looks good, just give us a thumbs up! \ud83d\udc4d  \nIf you want to make any changes, feel free to edit the file in your IDE and **push the changes** so I can fetch them. Or, you can edit the models directly here, and I\u2019ll save them for you! \u270f\ufe0f\n\nAlso, feel free to use **Canvas** to collaborate and edit the models together! \ud83d\udd8c\ufe0f\ud83d\ude0a\n\nLooking forward to your feedback! \ud83c\udf1f\n",
+        "prompt": {},
+        "stack": "data_ingestion_stack"
+      },
+      {
+        "answer": "",
+        "approve": true,
+        "context": {
+          "files": []
+        },
+        "data": {},
+        "editable": true,
+        "entities": [
+          {
+            "depends_on_entity": "data_ingestion_job",
+            "entity_name": "raw_data_entity",
+            "entity_source": "ENTITY_EVENT",
+            "entity_type": "EXTERNAL_SOURCES_PULL_BASED_RAW_DATA",
+            "entity_workflow": {
+              "class_name": "com.cyoda.tdb.model.treenode.TreeNodeEntity",
+              "name": "raw_data_entity_workflow",
+              "transitions": []
+            }
+          }
+        ],
+        "entity": {},
+        "file_name": "entity/raw_data_entity/raw_data_entity.json",
+        "files_notifications": {
+          "code": {
+            "file_name": "entity/{entity_name}/connections/connections.py",
+            "text": "\ud83d\udd8c\ufe0f\ud83d\udcac"
+          },
+          "doc": {
+            "file_name": "entity/{entity_name}/connections/connections_input.md",
+            "text": "\ud83d\ude0a Could you please provide more details for the connection documentation? It would be super helpful! Please provide raw data for each endpoint if the final entity structure is different. You can paste all your data right here. Thanks so much!"
+          },
+          "entity": {
+            "file_name": "entity/{entity_name}/{entity_name}.json",
+            "text": "\ud83d\ude0a Could you please provide an example of the entity JSON? It will help us map the raw data to the entity or save the raw data as is. You can paste all your data right here. Thanks a lot!"
+          }
+        },
+        "flow_step": "Entities design",
+        "function": {},
+        "index": 0,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "\nThe entity has been saved to: https://github.com/Cyoda-platform/quart-client-template/tree/6ab0013c-e4c2-11ef-8603-924fc26a4c98/entity/raw_data_entity/raw_data_entity.json\n\n\ud83d\ude0a Could you please provide an example of the entity JSON? It will help us map the raw data to the entity or save the raw data as is. You can paste all your data right here. Thanks a lot!",
+        "prompt": {},
+        "publish": true,
+        "question": ""
+      },
+      {
+        "answer": "",
+        "approve": true,
+        "context": {
+          "files": []
+        },
+        "data": {},
+        "editable": true,
+        "entities": [
+          {
+            "depends_on_entity": "data_ingestion_job",
+            "entity_name": "raw_data_entity",
+            "entity_source": "ENTITY_EVENT",
+            "entity_type": "EXTERNAL_SOURCES_PULL_BASED_RAW_DATA",
+            "entity_workflow": {
+              "class_name": "com.cyoda.tdb.model.treenode.TreeNodeEntity",
+              "name": "raw_data_entity_workflow",
+              "transitions": []
+            }
+          }
+        ],
+        "entity": {},
+        "file_name": "entity/raw_data_entity/connections/connections_input.md",
+        "files_notifications": {
+          "code": {
+            "file_name": "entity/{entity_name}/connections/connections.py",
+            "text": "\ud83d\udd8c\ufe0f\ud83d\udcac"
+          },
+          "doc": {
+            "file_name": "entity/{entity_name}/connections/connections_input.md",
+            "text": "\ud83d\ude0a Could you please provide more details for the connection documentation? It would be super helpful! Please provide raw data for each endpoint if the final entity structure is different. You can paste all your data right here. Thanks so much!"
+          },
+          "entity": {
+            "file_name": "entity/{entity_name}/{entity_name}.json",
+            "text": "\ud83d\ude0a Could you please provide an example of the entity JSON? It will help us map the raw data to the entity or save the raw data as is. You can paste all your data right here. Thanks a lot!"
+          }
+        },
+        "flow_step": "Entities design",
+        "function": {},
+        "index": 0,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "\nThe entity has been saved to: https://github.com/Cyoda-platform/quart-client-template/tree/6ab0013c-e4c2-11ef-8603-924fc26a4c98/entity/raw_data_entity/connections/connections_input.md\n\n\ud83d\ude0a Could you please provide more details for the connection documentation? It would be super helpful! Please provide raw data for each endpoint if the final entity structure is different. You can paste all your data right here. Thanks so much!",
+        "prompt": {},
+        "publish": true,
+        "question": ""
+      },
+      {
+        "answer": "",
+        "approve": true,
+        "context": {
+          "files": []
+        },
+        "data": {},
+        "editable": true,
+        "entities": [
+          {
+            "depends_on_entity": "data_ingestion_job",
+            "entity_name": "raw_data_entity",
+            "entity_source": "ENTITY_EVENT",
+            "entity_type": "EXTERNAL_SOURCES_PULL_BASED_RAW_DATA",
+            "entity_workflow": {
+              "class_name": "com.cyoda.tdb.model.treenode.TreeNodeEntity",
+              "name": "raw_data_entity_workflow",
+              "transitions": []
+            }
+          }
+        ],
+        "entity": {},
+        "file_name": "entity/raw_data_entity/connections/connections.py",
+        "files_notifications": {
+          "code": {
+            "file_name": "entity/{entity_name}/connections/connections.py",
+            "text": "\ud83d\udd8c\ufe0f\ud83d\udcac"
+          },
+          "doc": {
+            "file_name": "entity/{entity_name}/connections/connections_input.md",
+            "text": "\ud83d\ude0a Could you please provide more details for the connection documentation? It would be super helpful! Please provide raw data for each endpoint if the final entity structure is different. You can paste all your data right here. Thanks so much!"
+          },
+          "entity": {
+            "file_name": "entity/{entity_name}/{entity_name}.json",
+            "text": "\ud83d\ude0a Could you please provide an example of the entity JSON? It will help us map the raw data to the entity or save the raw data as is. You can paste all your data right here. Thanks a lot!"
+          }
+        },
+        "flow_step": "Entities design",
+        "function": {},
+        "index": 0,
+        "iteration": 0,
+        "max_iteration": 0,
+        "notification": "\nThe entity has been saved to: https://github.com/Cyoda-platform/quart-client-template/tree/6ab0013c-e4c2-11ef-8603-924fc26a4c98/entity/raw_data_entity/connections/connections.py\n\n\ud83d\udd8c\ufe0f\ud83d\udcac",
+        "prompt": {},
+        "publish": true,
+        "question": ""
+      },
+      {
+        "answer": null,
+        "approve": true,
+        "flow_step": "Entities design",
+        "function": null,
+        "index": 0,
+        "iteration": 0,
+        "max_iteration": 0,
+        "processed": true,
+        "prompt": {},
+        "publish": true,
+        "question": "\ud83d\ude0a Could you please update the files with the necessary information? Once you're done, just click 'Approve' \ud83d\udc4d. Thanks so much!",
+        "question_key": "\ud83d\ude0a Could you please update the files with the necessary information? Once you're done, just click 'Approve' \ud83d\udc4d. Thanks so much!",
+        "stack": "data_ingestion_stack"
+      }
+    ],
+    "name": "victoria test 19-2",
+    "technical_id": "6ab0013c-e4c2-11ef-8603-924fc26a4c98"
+  }
+}

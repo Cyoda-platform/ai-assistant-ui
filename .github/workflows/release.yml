@@ -67,19 +67,19 @@ jobs:
           $COMMITS
           
           ### 📦 Downloads
-          - **macOS**: Download the DMG and use the included install-macos.sh script
+          - **macOS**: Download the DMG file and follow simple installation guide
           - **Linux**: Use the .deb, .rpm, or .AppImage file depending on your distribution  
           - **Windows**: Use the .exe installer
           
           ### ⚠️ Installation Notes
-          - **macOS users**: May need to approve unsigned application in System Preferences → Security & Privacy
+          - **macOS users**: Right-click app → Open (or use System Preferences → Security & Privacy)
           - **Linux users**: Choose the package format that matches your distribution
           - **Windows users**: Run the .exe installer with administrator privileges if needed
           
           ### 🔧 Technical Details
           - Built with Electron Forge
           - Cross-platform support (Linux x64/arm64, macOS arm64, Windows x64)
-          - Unsigned macOS build with automated installation script
+          - Unsigned macOS build with simple right-click installation
           EOF
           
           echo "✅ Release notes generated"
@@ -115,7 +115,6 @@ jobs:
             files: |
               packages/desktop/out/cyoda-build/make/*.dmg
               packages/desktop/out/cyoda-build/make/*.zip
-              packages/desktop/scripts/install-macos.sh
               packages/desktop/out/cyoda-build/make/README-INSTALLATION.md
           - os: windows-latest
             platform: win32
@@ -176,6 +175,14 @@ jobs:
         working-directory: packages/desktop
         run: yarn install
 
+      - name: Update package version
+        working-directory: packages/desktop
+        run: |
+          VERSION="${{ needs.create-tag.outputs.version }}"
+          echo "🔄 Updating package.json version to $VERSION"
+          npm version $VERSION --no-git-tag-version
+          echo "✅ Version updated to $VERSION"
+
       - name: Download release notes
         if: needs.create-tag.outputs.new_tag != ''
         uses: actions/download-artifact@v4
@@ -200,65 +207,72 @@ jobs:
           # Find and process .app files
           find out -name "*.app" -type d | while read APP_PATH; do
             echo "📱 Processing: $APP_PATH"
-            sudo xattr -rd com.apple.quarantine "$APP_PATH" 2>/dev/null || true
+            # Remove extended attributes (quarantine)
+            sudo xattr -rc "$APP_PATH" 2>/dev/null || true
+            sudo xattr -d com.apple.quarantine "$APP_PATH" 2>/dev/null || true
+            # Make executable
             chmod +x "$APP_PATH/Contents/MacOS/"* 2>/dev/null || true
+            # Remove quarantine from all files in the app bundle
+            find "$APP_PATH" -type f -exec sudo xattr -d com.apple.quarantine {} \; 2>/dev/null || true
             echo "✅ Processed: $APP_PATH"
           done
           
           # Process .dmg files
           find out -name "*.dmg" -type f | while read DMG_PATH; do
             echo "💿 Processing DMG: $DMG_PATH"
-            sudo xattr -rd com.apple.quarantine "$DMG_PATH" 2>/dev/null || true
+            sudo xattr -rc "$DMG_PATH" 2>/dev/null || true
+            sudo xattr -d com.apple.quarantine "$DMG_PATH" 2>/dev/null || true
             echo "✅ DMG processed: $DMG_PATH"
           done
           
-          # Copy installation script and create README
-          cp scripts/install-macos.sh out/cyoda-build/make/ 2>/dev/null || true
-          cp scripts/install-macos.sh . 2>/dev/null || true
+          # Process .zip files
+          find out -name "*.zip" -type f | while read ZIP_PATH; do
+            echo "📦 Processing ZIP: $ZIP_PATH"
+            sudo xattr -rc "$ZIP_PATH" 2>/dev/null || true
+            sudo xattr -d com.apple.quarantine "$ZIP_PATH" 2>/dev/null || true
+            echo "✅ ZIP processed: $ZIP_PATH"
+          done
           
+          # Copy installation script and create README
           cat > out/cyoda-build/make/README-INSTALLATION.md << 'EOF'
           # 🚀 Installing Cyoda on macOS
           
-          ## 🎯 Automatic Installation (Recommended)
+          ## 📥 Simple Installation (No Terminal Required!)
+          
+          1. **Download** `Cyoda-*.dmg` file
+          2. **Double-click** the DMG file to open it
+          3. **Drag** Cyoda.app to Applications folder
+          4. **Right-click** on Cyoda.app in Applications → **Open**
+          5. **Click "Open"** when macOS asks for confirmation
+          
+          ## 🎯 Alternative Method (Command Line)
+          
+          If the app shows "damaged" error:
           
           ```bash
-          # Make script executable and run
-          chmod +x install-macos.sh
-          ./install-macos.sh
-          ```
+          # Remove quarantine (one-time only)
+          sudo xattr -d com.apple.quarantine /Applications/Cyoda.app
           
-          ## 📥 Manual Installation from DMG
-          
-          1. Download `Cyoda-*.dmg` file
-          2. Run command: `sudo xattr -rd com.apple.quarantine Cyoda-*.dmg`
-          3. Open DMG file
-          4. Drag Cyoda.app to Applications folder
-          5. Run: `sudo xattr -rd com.apple.quarantine /Applications/Cyoda.app`
-          
-          ## 🔧 If Application Won't Start
-          
-          ```bash
-          # Complete security attributes cleanup
-          sudo xattr -rd com.apple.quarantine /Applications/Cyoda.app
-          sudo chmod +x /Applications/Cyoda.app/Contents/MacOS/cyoda
-          
-          # Launch
+          # Launch normally
           open /Applications/Cyoda.app
           ```
           
-          ## ❓ Why Are Additional Steps Needed?
+          ## ❓ Why These Steps?
           
-          - Application is not signed with Apple Developer certificate (saves $99/year)
-          - macOS blocks unsigned applications by default
-          - This is safe - just requires one-time approval
-          - After installation, application works normally
+          - **Cyoda is not signed** with Apple Developer certificate (saves $99/year)
+          - **macOS protects** you by blocking unsigned apps by default
+          - **This is safe** - just requires one-time approval
+          - **After approval** - app works normally like any other app
           
-          ## 🆘 Having Issues?
+          ## � Pro Tip
           
-          If nothing helps:
-          1. Try automatic installer: `./install-macos.sh`
-          2. Check System Preferences → Security & Privacy
-          3. Click "Open Anyway" next to blocked application
+          **Use Cmd+Right-Click** on the app → **Open** to bypass the warning instantly!
+          
+          ## 🆘 Still Having Issues?
+          
+          1. Try: **System Preferences** → **Security & Privacy** → **General**
+          2. Look for message about "Cyoda" → **Click "Open Anyway"**
+          3. Or contact support if needed
           EOF
           
           echo "🎉 All artifacts prepared for distribution!"

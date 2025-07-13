@@ -1,0 +1,77 @@
+{
+  "version": "1.0",
+  "description": "Template FSM with structured states, transitions, actions, and conditions",
+  "initial_state": "state_initial",
+  "workflow_name": "template_workflow",
+  "states": {
+    "state_initial": {
+      "transitions": {
+        "transition_to_01": {
+          "next": "state_01"
+        }
+      }
+    },
+    "state_01": {
+      "transitions": {
+        "transition_to_02": {
+          "next": "state_02",
+          "action": {
+            "name": "example_function_name"
+          }
+        },
+        "loopback_to_self": {
+          "next": "state_01",
+          "action": {
+            "name": "log_reentry"
+          }
+        }
+      }
+    },
+    "state_02": {
+      "transitions": {
+        "transition_with_condition_simple": {
+          "next": "state_condition_check_01",
+          "condition": {
+            "type": "function",
+            "function": {
+              "name": "example_function_name_returns_bool"
+            }
+          }
+        },
+        "transition_back_to_01": {
+          "next": "state_01"
+        }
+      }
+    },
+    "state_condition_check_01": {
+      "transitions": {
+        "transition_with_condition_group": {
+          "next": "state_terminal",
+          "condition": {
+            "type": "group",
+            "name": "condition_group_gamma",
+            "operator": "AND",
+            "parameters": [
+              {
+                "jsonPath": "sampleFieldA",
+                "operatorType": "equals (disregard case)",
+                "value": "template_value_01",
+                "type": "simple"
+              }
+            ]
+          }
+        },
+        "transition_to_initial": {
+          "next": "state_initial"
+        }
+      }
+    },
+    "state_terminal": {
+      "transitions": {
+        "restart_to_initial": {
+          "next": "state_initial"
+        }
+      }
+    }
+  }
+}
