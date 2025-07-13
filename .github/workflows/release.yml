@@ -174,6 +174,7 @@ jobs:
           corepack prepare yarn@4.5.3 --activate
           yarn --version
           echo "✅ Yarn version ready"
+        shell: bash
 
       - name: Install workspace dependencies
         run: |
@@ -182,16 +183,22 @@ jobs:
           echo "✅ Workspace dependencies installed"
           echo "📋 Workspace info:"
           yarn workspaces list
+        shell: bash
 
       - name: Update package version
         run: |
           VERSION="${{ needs.create-tag.outputs.version }}"
           echo "🔄 Updating package.json version to $VERSION"
-          # Update version in packages/desktop/package.json
-          sed -i.bak "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" packages/desktop/package.json
-          echo "✅ Version updated to $VERSION"
-          echo "📋 New version in package.json:"
-          grep '"version"' packages/desktop/package.json
+          # Update version in packages/desktop/package.json (cross-platform)
+          node -e "
+            const fs = require('fs');
+            const path = 'packages/desktop/package.json';
+            const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
+            pkg.version = process.argv[1];
+            fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
+            console.log('✅ Version updated to', pkg.version);
+          " "$VERSION"
+        shell: bash
 
       - name: Download release notes
         if: needs.create-tag.outputs.new_tag != ''
@@ -206,6 +213,7 @@ jobs:
           echo "🔧 Building for Linux..."
           yarn workspace desktop make --platform=linux --arch=${{ matrix.arch }}
         timeout-minutes: 10
+        shell: bash
 
       - name: Build for macOS (unsigned)
         if: matrix.platform == 'darwin'
@@ -302,6 +310,7 @@ jobs:
           find packages/desktop/out -name "*.dmg" -type f || echo "No DMG files found"
           echo "ZIP files:"
           find packages/desktop/out -name "*.zip" -type f || echo "No ZIP files found"
+        shell: bash
 
       - name: Build for Windows
         if: matrix.platform == 'win32'
@@ -309,6 +318,7 @@ jobs:
           echo "🔧 Building for Windows..."
           yarn workspace desktop make --platform=win32 --arch=${{ matrix.arch }}
         timeout-minutes: 10
+        shell: bash
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
