@@ -2,39 +2,20 @@ name: Build and Publish Electron App
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - main
-  workflow_dispatch:
-    inputs:
-      create_release:
-        description: 'Create a new release'
-        required: false
-        default: 'true'
-        type: boolean
-      version_type:
-        description: 'Version bump type'
-        required: false
-        default: 'patch'
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
-      custom_version:
-        description: 'Custom version (optional, overrides version_type)'
-        required: false
-        type: string
 
 jobs:
   create-tag:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_release == 'true'
+    # Run only when pushing tags
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     outputs:
-      new_tag: ${{ steps.create_tag.outputs.new_tag }}
-      version: ${{ steps.create_tag.outputs.version }}
+      new_tag: ${{ steps.existing_tag.outputs.new_tag }}
+      version: ${{ steps.existing_tag.outputs.version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -47,95 +28,19 @@ jobs:
         with:
           node-version: 22
 
-      - name: Get package version and create tag
-        id: create_tag
+      - name: Use existing tag info
+        id: existing_tag
         run: |
-          # Get current version from package.json
-          CURRENT_VERSION=$(node -p "require('./packages/desktop/package.json').version")
-          echo "Current version: $CURRENT_VERSION"
+          # Extract tag from ref
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG_NAME#v}
           
-          # Validate current version format
-          if ! echo "$CURRENT_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "❌ Invalid version format in package.json: $CURRENT_VERSION"
-            exit 1
-          fi
+          echo "🏷️ Using existing tag: $TAG_NAME"
+          echo "📋 Version: $VERSION"
           
-          # Check if custom version is provided
-          if [ -n "${{ github.event.inputs.custom_version }}" ]; then
-            NEW_VERSION="${{ github.event.inputs.custom_version }}"
-            echo "Using custom version: $NEW_VERSION"
-          
-            # Validate custom version format
-            if ! echo "$NEW_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-              echo "❌ Invalid custom version format: $NEW_VERSION (expected: x.y.z)"
-              exit 1
-            fi
-          else
-            # Auto-increment version based on type
-            VERSION_TYPE="${{ github.event.inputs.version_type }}"
-            echo "Auto-incrementing version with type: $VERSION_TYPE"
-          
-            # Parse current version
-            IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT_VERSION"
-            MAJOR=${VERSION_PARTS[0]}
-            MINOR=${VERSION_PARTS[1]}
-            PATCH=${VERSION_PARTS[2]}
-          
-            case $VERSION_TYPE in
-              "major")
-                MAJOR=$((MAJOR + 1))
-                MINOR=0
-                PATCH=0
-                ;;
-              "minor")
-                MINOR=$((MINOR + 1))
-                PATCH=0
-                ;;
-              "patch")
-                PATCH=$((PATCH + 1))
-                ;;
-            esac
-          
-            NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-          fi
-          
-          NEW_TAG="v$NEW_VERSION"
-          echo "New tag will be: $NEW_TAG"
-          
-          # Check if tag already exists
-          if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
-            echo "❌ Tag $NEW_TAG already exists!"
-            exit 1
-          fi
-          
-          # Check if new version is greater than current
-          if [ "$NEW_VERSION" = "$CURRENT_VERSION" ]; then
-            echo "❌ New version ($NEW_VERSION) must be different from current version ($CURRENT_VERSION)"
-            exit 1
-          fi
-          
-          # Update package.json version
-          cd packages/desktop
-          npm version $NEW_VERSION --no-git-tag-version
-          
-          # Configure git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Commit version change
-          git add package.json
-          git commit -m "chore: bump version to $NEW_VERSION"
-          
-          # Create and push tag
-          git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
-          git push origin main
-          git push origin "$NEW_TAG"
-          
-          # Set outputs
-          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          
-          echo "✅ Created and pushed tag: $NEW_TAG"
+          # Set outputs for existing tag
+          echo "new_tag=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Generate Release Notes
         id: release_notes
@@ -155,8 +60,9 @@ jobs:
           fi
           
           # Create release notes
+          VERSION="${{ steps.existing_tag.outputs.version }}"
           cat > release_notes.md << EOF
-          ## 🚀 What's New in ${{ steps.create_tag.outputs.version }}
+          ## 🚀 What's New in $VERSION
           
           This release includes the following changes:
           
@@ -191,7 +97,7 @@ jobs:
   # Cross-platform build with matrix strategy
   build:
     needs: [ create-tag ]
-    if: always() && (needs.create-tag.result == 'success' || needs.create-tag.result == 'skipped')
+    if: always() && needs.create-tag.result == 'success' && startsWith(github.ref, 'refs/tags/')
     strategy:
       fail-fast: false
       matrix:
@@ -391,7 +297,7 @@ jobs:
           retention-days: 30
 
       - name: Set release body (Linux only)
-        if: matrix.platform == 'linux' && (startsWith(github.ref, 'refs/tags/') || (needs.create-tag.outputs.new_tag != '' && github.event_name == 'workflow_dispatch'))
+        if: matrix.platform == 'linux' && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.create-tag.outputs.new_tag || github.ref_name }}
@@ -401,9 +307,10 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           draft: false
           prerelease: false
+          generate_release_notes: false
 
       - name: Upload to GitHub Releases (macOS/Windows)
-        if: matrix.platform != 'linux' && (startsWith(github.ref, 'refs/tags/') || (needs.create-tag.outputs.new_tag != '' && github.event_name == 'workflow_dispatch'))
+        if: matrix.platform != 'linux' && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.create-tag.outputs.new_tag || github.ref_name }}
@@ -412,3 +319,4 @@ jobs:
           draft: false
           prerelease: false
           append_body: true
+          generate_release_notes: false
