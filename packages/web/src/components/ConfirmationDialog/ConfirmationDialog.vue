@@ -11,9 +11,13 @@
     <div class="confirmation-dialog__text">
       <el-checkbox v-model="checkbox">
         By using this service, you confirm that you have read and agree to our
-        <a target="_blank" href="https://www.cyoda.com/terms-of-service">Terms & Conditions</a> and <a target="_blank"
-                                                                                                       href="https://www.cyoda.com/privacy-policy">Privacy
-        Policy</a>.
+        <a target="_blank" href="https://www.cyoda.com/terms-of-service">
+          Terms & Conditions
+        </a>
+        and
+        <a target="_blank" href="https://www.cyoda.com/privacy-policy">
+          Privacy Policy
+        </a>.
       </el-checkbox>
     </div>
     <template #footer>

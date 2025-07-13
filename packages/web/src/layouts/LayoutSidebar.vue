@@ -1,9 +1,9 @@
 <template>
   <div class="layout-sidebar">
     <div class="layout-sidebar__sidebar hidden-below-md" :class="{'hidden':isSidebarHidden}">
-      <SideBar/>
+      <SideBar ref="sidebarRef"/>
     </div>
-    <div class="layout-sidebar__main">
+    <div ref="mainRef" class="layout-sidebar__main">
       <slot/>
     </div>
   </div>
@@ -11,12 +11,16 @@
 
 <script setup lang="ts">
 import SideBar from "@/components/SideBar/SideBar.vue";
-import {computed, onMounted} from "vue";
+import {computed, nextTick, onMounted, useTemplateRef} from "vue";
 import useAppStore from "@/stores/app";
 import useAssistantStore from "@/stores/assistant";
 
 const appStore = useAppStore();
 const assistantStore = useAssistantStore();
+
+const sidebarRef = useTemplateRef('sidebarRef');
+const mainRef = useTemplateRef('mainRef');
+let resizeObserver: ResizeObserver | null = null;
 
 onMounted(()=>{
   loadChats();
@@ -27,6 +31,18 @@ async function loadChats() {
 }
 
 const isSidebarHidden = computed(() => appStore.isSidebarHidden);
+
+onMounted(async () => {
+  await nextTick();
+  if (!sidebarRef.value.rootRef || !mainRef.value) return;
+
+  resizeObserver = new ResizeObserver(() => {
+    const height = sidebarRef.value.rootRef!.offsetHeight;
+    mainRef.value!.style.maxHeight = `${height}px`;
+  });
+
+  resizeObserver.observe(sidebarRef.value.rootRef);
+})
 </script>
 
 <style scoped lang="scss">

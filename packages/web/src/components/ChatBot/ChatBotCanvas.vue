@@ -1,9 +1,9 @@
 <template>
   <div class="chat-bot-canvas" :class="{'hidden':isSidebarHidden}">
     <div class="chat-bot-canvas__sidebar hidden-below-md" :class="{'hidden':isSidebarHidden}">
-      <SideBar/>
+      <SideBar ref="sidebarRef"/>
     </div>
-    <div class="chat-bot-canvas__main">
+    <div ref="mainRef" class="chat-bot-canvas__main">
       <ChatBotTopActions @toggleCanvas="emit('toggleCanvas')">
         <template #left-side>
           <el-radio-group v-model="canvasType" size="large">
@@ -12,10 +12,12 @@
           </el-radio-group>
         </template>
         <template #modal-preview>
-          <el-button v-if="canvasType==='markdown'" @click="onClickMarkdownSideBar" class="btn btn-default btn-icon hidden-above-md">
+          <el-button v-if="canvasType==='markdown'" @click="onClickMarkdownSideBar"
+                     class="btn btn-default btn-icon hidden-above-md">
             <MarkdownIcon/>
           </el-button>
-          <el-button v-if="canvasType==='workflow'" @click="onClickVueFlowSideBar" class="btn btn-default btn-icon hidden-above-md">
+          <el-button v-if="canvasType==='workflow'" @click="onClickVueFlowSideBar"
+                     class="btn btn-default btn-icon hidden-above-md">
             <GraphIcon/>
           </el-button>
         </template>
@@ -32,7 +34,7 @@
 
 <script lang="ts" setup>
 import ChatBotEditorMarkdown from "@/components/ChatBot/ChatBotEditorMarkdown.vue";
-import {computed, ref, watch} from "vue";
+import {computed, nextTick, onMounted, ref, useTemplateRef, watch} from "vue";
 
 import ChatBotTopActions from "@/components/ChatBot/ChatBotTopActions.vue";
 import SideBar from "@/components/SideBar/SideBar.vue";
@@ -46,6 +48,10 @@ import GraphIcon from "@/assets/images/icons/graph.svg";
 const appStore = useAppStore();
 const isSidebarHidden = computed(() => appStore.isSidebarHidden);
 const canvasType = ref('markdown');
+
+const sidebarRef = useTemplateRef('sidebarRef');
+const mainRef = useTemplateRef('mainRef');
+let resizeObserver: ResizeObserver | null = null;
 
 const props = defineProps<{
   messages: any[],
@@ -75,6 +81,18 @@ function scrollDownMessages() {
   messagesHtml.scrollTo(0, messagesHtml.scrollHeight);
 }
 
+onMounted(async () => {
+  await nextTick();
+  if (!sidebarRef.value.rootRef || !mainRef.value) return;
+
+  resizeObserver = new ResizeObserver(() => {
+    const height = sidebarRef.value.rootRef!.offsetHeight;
+    mainRef.value!.style.maxHeight = `${height}px`;
+  });
+
+  resizeObserver.observe(sidebarRef.value.rootRef);
+})
+
 watch(() => props.isLoading, () => {
   if (props.isLoading) return;
   setTimeout(() => {
@@ -87,11 +105,12 @@ watch(() => props.isLoading, () => {
 <style lang="scss">
 .chat-bot-canvas {
   display: flex;
+  justify-content: stretch;
 
   &__sidebar {
     border-right: 1px solid var(--sidebar-border);
     background-color: var(--bg-sidebar);
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     width: 296px;
@@ -131,7 +150,7 @@ watch(() => props.isLoading, () => {
 
   &__main {
     flex: 1;
-    height: 100vh;
+    min-height: 100vh;
     transition: opacity 0.5s;
     background-color: var(--bg);
   }
