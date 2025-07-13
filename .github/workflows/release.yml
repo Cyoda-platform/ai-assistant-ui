@@ -172,6 +172,9 @@ jobs:
         run: corepack prepare yarn@4.5.3 --activate
 
       - name: Install dependencies
+        run: yarn install
+
+      - name: Install desktop dependencies
         working-directory: packages/desktop
         run: yarn install
 
@@ -193,7 +196,7 @@ jobs:
       - name: Build for Linux
         if: matrix.platform == 'linux'
         working-directory: packages/desktop
-        run: yarn publish --platform=linux --arch=${{ matrix.arch }}
+        run: yarn make --platform=linux --arch=${{ matrix.arch }}
         timeout-minutes: 10
 
       - name: Build for macOS (unsigned)
@@ -297,7 +300,7 @@ jobs:
       - name: Build for Windows
         if: matrix.platform == 'win32'
         working-directory: packages/desktop
-        run: yarn publish --platform=win32 --arch=${{ matrix.arch }}
+        run: yarn make --platform=win32 --arch=${{ matrix.arch }}
         timeout-minutes: 10
 
       - name: Upload artifacts
