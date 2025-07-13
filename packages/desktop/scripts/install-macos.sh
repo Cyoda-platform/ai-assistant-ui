@@ -31,14 +31,18 @@ if [ ${#DMG_FILES[@]} -gt 0 ]; then
         echo "📱 Found application: $MOUNTED_APP"
         
         echo "🔓 Removing quarantine from application..."
-        sudo xattr -rd com.apple.quarantine "$MOUNTED_APP" 2>/dev/null || true
+        sudo xattr -rc "$MOUNTED_APP" 2>/dev/null || true
+        sudo xattr -d com.apple.quarantine "$MOUNTED_APP" 2>/dev/null || true
+        find "$MOUNTED_APP" -type f -exec sudo xattr -d com.apple.quarantine {} \; 2>/dev/null || true
         
         echo "📂 Copying to Applications..."
         sudo cp -R "$MOUNTED_APP" /Applications/
         
         echo "🔧 Setting up permissions..."
         sudo chmod +x /Applications/Cyoda.app/Contents/MacOS/* 2>/dev/null || true
-        sudo xattr -rd com.apple.quarantine /Applications/Cyoda.app 2>/dev/null || true
+        sudo xattr -rc /Applications/Cyoda.app 2>/dev/null || true
+        sudo xattr -d com.apple.quarantine /Applications/Cyoda.app 2>/dev/null || true
+        find /Applications/Cyoda.app -type f -exec sudo xattr -d com.apple.quarantine {} \; 2>/dev/null || true
         
         echo "💿 Unmounting DMG..."
         hdiutil detach /Volumes/Cyoda* -quiet 2>/dev/null || true
@@ -58,7 +62,9 @@ elif [ ${#APP_FILES[@]} -gt 0 ]; then
     echo "📱 Found application: ${APP_FILES[0]}"
     
     echo "🔓 Removing quarantine..."
-    sudo xattr -rd com.apple.quarantine "${APP_FILES[0]}" 2>/dev/null || true
+    sudo xattr -rc "${APP_FILES[0]}" 2>/dev/null || true
+    sudo xattr -d com.apple.quarantine "${APP_FILES[0]}" 2>/dev/null || true
+    find "${APP_FILES[0]}" -type f -exec sudo xattr -d com.apple.quarantine {} \; 2>/dev/null || true
     
     echo "🔧 Setting up permissions..."
     sudo chmod +x "${APP_FILES[0]}/Contents/MacOS/"* 2>/dev/null || true
@@ -67,7 +73,9 @@ elif [ ${#APP_FILES[@]} -gt 0 ]; then
     sudo cp -R "${APP_FILES[0]}" /Applications/
     
     echo "🔓 Final setup..."
-    sudo xattr -rd com.apple.quarantine /Applications/Cyoda.app 2>/dev/null || true
+    sudo xattr -rc /Applications/Cyoda.app 2>/dev/null || true
+    sudo xattr -d com.apple.quarantine /Applications/Cyoda.app 2>/dev/null || true
+    find /Applications/Cyoda.app -type f -exec sudo xattr -d com.apple.quarantine {} \; 2>/dev/null || true
     
     echo "✅ Installation completed!"
     echo "🚀 Application installed at /Applications/Cyoda.app"
@@ -80,15 +88,19 @@ else
     echo ""
     echo "🛠️ Manual installation:"
     echo "1. If you have a DMG file:"
-    echo "   sudo xattr -rd com.apple.quarantine Cyoda-*.dmg"
+    echo "   sudo xattr -rc Cyoda-*.dmg"
+    echo "   sudo xattr -d com.apple.quarantine Cyoda-*.dmg"
     echo "   # Then open DMG and drag application to Applications"
     echo ""
     echo "2. If you have a .app file:"
-    echo "   sudo xattr -rd com.apple.quarantine Cyoda.app"
+    echo "   sudo xattr -rc Cyoda.app"
+    echo "   sudo xattr -d com.apple.quarantine Cyoda.app"
     echo "   sudo cp -R Cyoda.app /Applications/"
     echo ""
-    echo "3. Final command (in any case):"
-    echo "   sudo xattr -rd com.apple.quarantine /Applications/Cyoda.app"
+    echo "3. Final commands (in any case):"
+    echo "   sudo xattr -rc /Applications/Cyoda.app"
+    echo "   sudo xattr -d com.apple.quarantine /Applications/Cyoda.app"
+    echo "   find /Applications/Cyoda.app -type f -exec sudo xattr -d com.apple.quarantine {} \\;"
     echo "   sudo chmod +x /Applications/Cyoda.app/Contents/MacOS/*"
     
     exit 1
