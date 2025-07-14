@@ -158,34 +158,26 @@ jobs:
             artifact_name: cyoda-linux
             files: |
               packages/desktop/out/**/*.deb
-              packages/desktop/out/**/make/*.deb
-              packages/desktop/out/make/*.deb
               packages/desktop/out/**/*.rpm
-              packages/desktop/out/**/make/*.rpm
-              packages/desktop/out/make/*.rpm
               packages/desktop/out/**/*.tar.gz
-              packages/desktop/out/**/make/*.tar.gz
-              packages/desktop/out/make/*.tar.gz
               packages/desktop/out/**/*.AppImage
-              packages/desktop/out/**/make/*.AppImage
-              packages/desktop/out/make/*.AppImage
           - os: macos-latest
             platform: darwin
             arch: arm64
             artifact_name: cyoda-macos-arm64
             files: |
-              packages/desktop/out/**/make/*.zip
-              packages/desktop/out/make/*.zip
+              packages/desktop/out/**/*.zip
               !packages/desktop/out/**/Cyoda.Helper*.zip
-              !packages/desktop/out/**/Cyoda.zip
           - os: windows-latest
             platform: win32
             arch: x64
             artifact_name: cyoda-windows-x64
             files: |
-              packages/desktop/out/**/make/*Setup*.exe
-              packages/desktop/out/**/make/*.msi
-              packages/desktop/out/**/make/*-full.nupkg
+              packages/desktop/out/**/*.exe
+              packages/desktop/out/**/*.msi
+              packages/desktop/out/**/*.nupkg
+              !packages/desktop/out/**/cyoda.exe
+              !packages/desktop/out/**/Squirrel.exe
     runs-on: ${{ matrix.os }}
     env:
       NODE_OPTIONS: --disable-warning=DEP0174
@@ -346,8 +338,8 @@ jobs:
                   find "$APP_IN_ZIP/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null || true
                 fi
                 
-                # Ad-hoc sign
-                codesign --force --deep --sign - "$APP_IN_ZIP" 2>/dev/null || true
+                # Skip code signing for unsigned builds to avoid keychain prompts
+                echo "Skipping code signing for unsigned build (avoids keychain access)"
                 
                 echo "✅ Optimized app in ZIP: $APP_IN_ZIP"
               done
@@ -561,8 +553,7 @@ jobs:
                   (asset.name.endsWith('.zip') && asset.name.includes(tagName)) ||
                   asset.name.includes('Cyoda.Helper') ||
                   asset.name === 'cyoda.exe' ||
-                  asset.name === 'Squirrel.exe' ||
-                  asset.name === 'Cyoda.zip'
+                  asset.name === 'Squirrel.exe'
                 );
                 
                 if (shouldDelete) {
