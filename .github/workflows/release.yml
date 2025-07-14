@@ -385,36 +385,36 @@ jobs:
           cat > out/README-macOS-Installation.txt << 'EOF'
           🍎 macOS Installation Guide - Cyoda App
           
-          📦 ПРОСТАЯ УСТАНОВКА:
-          1. Скачайте файл Cyoda-macOS-[версия].zip
-          2. Дважды щелкните ZIP файл для распаковки
-          3. Перетащите Cyoda.app в папку Программы (Applications)
-          4. Запустите приложение
+          📦 SIMPLE INSTALLATION:
+          1. Download Cyoda-macOS-[version].zip file
+          2. Double-click ZIP file to extract
+          3. Drag Cyoda.app to Applications folder
+          4. Launch the application
           
-          🔧 ЕСЛИ НЕ ЗАПУСКАЕТСЯ (через Cmd+Open или обычный запуск):
+          🔧 IF IT DOESN'T OPEN (via Cmd+Open or normal launch):
           
-          Способ 1 - Через контекстное меню:
-          1. Правый клик на Cyoda.app → "Открыть" (Open)
-          2. Нажмите "Открыть" в диалоге безопасности
-          3. Приложение запустится
+          Method 1 - Via context menu:
+          1. Right-click on Cyoda.app → "Open"
+          2. Click "Open" in the security dialog
+          3. Application will launch
           
-          Способ 2 - Через Терминал (самый надежный):
-          1. Откройте Терминал (Terminal.app)
-          2. Выполните команду:
+          Method 2 - Via Terminal (most reliable):
+          1. Open Terminal (Terminal.app)
+          2. Run command:
              xattr -d com.apple.quarantine /Applications/Cyoda.app
-          3. Дважды щелкните на Cyoda.app для запуска
+          3. Double-click Cyoda.app to launch
           
-          Способ 3 - Через System Preferences:
+          Method 3 - Via System Preferences:
           1. System Preferences → Security & Privacy
-          2. Разрешите запуск приложения Cyoda
-          3. Попробуйте запустить снова
+          2. Allow Cyoda app to run
+          3. Try launching again
           
-          💡 ПОЧЕМУ ZIP ВМЕСТО DMG?
-          ZIP архивы обычно имеют меньше проблем с карантином macOS!
+          💡 WHY ZIP INSTEAD OF DMG?
+          ZIP archives typically have fewer macOS quarantine issues!
           
-          ⚠️ ПРИМЕЧАНИЕ:
-          Это приложение не подписано цифровой подписью, но безопасно для использования.
-          Мы не используем подпись, чтобы избежать запросов доступа к связке ключей.
+          ⚠️ NOTE:
+          This app is unsigned but safe to use.
+          We skip code signing to avoid keychain access requests during build.
           EOF
 
           echo "✅ macOS ZIP-only build processing complete"
@@ -426,30 +426,13 @@ jobs:
           # Get version from environment
           VERSION="${{ needs.create-tag.outputs.version }}"
           
-          # Find and rename ZIP files with clear macOS naming
-          find out -name "*.zip" -not -name "Cyoda.Helper*.zip" | while read ZIP_FILE; do
-            BASENAME=$(basename "$ZIP_FILE" .zip)
-            NEW_NAME="Cyoda-macOS-${VERSION}.zip"
-            
-            echo "📦 Renaming ZIP: $ZIP_FILE -> $NEW_NAME"
-            cp "$ZIP_FILE" "dist-release/$NEW_NAME"
-          done
-          
-          # Copy installation instructions
-          cp out/README-macOS-Installation.txt dist-release/ 2>/dev/null || true
-          
-          echo "✅ macOS release files prepared:"
-          ls -la dist-release/
-          
-          # Ensure ZIP files exist - create them if needed
+          # First, ensure we have ZIP files (create if they don't exist)
           echo "🔍 Ensuring ZIP files exist..."
-          
-          # Check if any ZIP files were created
-          ZIP_COUNT=$(find out -name "*.zip" -type f | wc -l)
-          echo "📊 Found $ZIP_COUNT ZIP files"
+          ZIP_COUNT=$(find out -name "*.zip" -not -name "Cyoda.Helper*.zip" -type f | wc -l)
+          echo "📊 Found $ZIP_COUNT existing ZIP files"
           
           if [ "$ZIP_COUNT" -eq 0 ]; then
-            echo "⚠️ No ZIP files found, attempting to create them manually..."
+            echo "⚠️ No ZIP files found, creating them manually..."
             
             # Look for .app files and create ZIP archives
             find out -name "*.app" -type d | while read APP_PATH; do
@@ -459,14 +442,75 @@ jobs:
               
               echo "📦 Creating ZIP for: $APP_PATH"
               cd "$ZIP_DIR"
-              zip -r "$ZIP_NAME" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+              
+              # Use ditto for better macOS compatibility if available
+              if command -v ditto >/dev/null 2>&1; then
+                ditto -c -k --keepParent "$APP_NAME" "$ZIP_NAME" 2>/dev/null || \
+                zip -r "$ZIP_NAME" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+              else
+                zip -r "$ZIP_NAME" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+              fi
+              
               echo "✅ Created: $ZIP_DIR/$ZIP_NAME"
               cd - >/dev/null
             done
             
             # Check again after manual creation
-            NEW_ZIP_COUNT=$(find out -name "*.zip" -type f | wc -l)
+            NEW_ZIP_COUNT=$(find out -name "*.zip" -not -name "Cyoda.Helper*.zip" -type f | wc -l)
             echo "📊 After manual creation: $NEW_ZIP_COUNT ZIP files"
+          fi
+          
+          # Now find and copy/rename ZIP files with clear macOS naming
+          find out -name "*.zip" -not -name "Cyoda.Helper*.zip" -type f | while read ZIP_FILE; do
+            if [ -f "$ZIP_FILE" ]; then
+              BASENAME=$(basename "$ZIP_FILE" .zip)
+              NEW_NAME="Cyoda-macOS-${VERSION}.zip"
+              
+              echo "📦 Copying and renaming ZIP: $ZIP_FILE -> dist-release/$NEW_NAME"
+              cp "$ZIP_FILE" "dist-release/$NEW_NAME"
+            fi
+          done
+          
+          # If still no files, create a fallback ZIP from any .app found
+          if [ ! -f dist-release/Cyoda-macOS-${VERSION}.zip ]; then
+            echo "🆘 No ZIP files copied, creating fallback..."
+            
+            APP_FILE=$(find out -name "*.app" -type d | head -1)
+            if [ -n "$APP_FILE" ] && [ -d "$APP_FILE" ]; then
+              echo "📱 Creating fallback ZIP from: $APP_FILE"
+              cd "$(dirname "$APP_FILE")"
+              
+              APP_NAME=$(basename "$APP_FILE")
+              if command -v ditto >/dev/null 2>&1; then
+                ditto -c -k --keepParent "$APP_NAME" "../dist-release/Cyoda-macOS-${VERSION}.zip" 2>/dev/null || \
+                zip -r "../dist-release/Cyoda-macOS-${VERSION}.zip" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+              else
+                zip -r "../dist-release/Cyoda-macOS-${VERSION}.zip" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+              fi
+              
+              cd - >/dev/null
+              echo "✅ Created fallback ZIP: dist-release/Cyoda-macOS-${VERSION}.zip"
+            else
+              echo "❌ No .app files found for fallback ZIP creation"
+            fi
+          fi
+          
+          # Copy installation instructions
+          cp out/README-macOS-Installation.txt dist-release/ 2>/dev/null || true
+          
+          echo "✅ macOS release files prepared:"
+          ls -la dist-release/
+          
+          # Final verification
+          if [ -f "dist-release/Cyoda-macOS-${VERSION}.zip" ]; then
+            echo "✅ SUCCESS: macOS ZIP file created: Cyoda-macOS-${VERSION}.zip"
+            echo "📊 File size: $(ls -lh dist-release/Cyoda-macOS-${VERSION}.zip | awk '{print $5}')"
+          else
+            echo "❌ FAILED: macOS ZIP file was not created"
+            echo "📂 Contents of dist-release directory:"
+            ls -la dist-release/ || echo "dist-release directory not found"
+            echo "📂 Contents of out directory:"
+            find out -type f | head -10 || echo "out directory not found"
           fi
         timeout-minutes: 10
         continue-on-error: true
