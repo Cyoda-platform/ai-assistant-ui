@@ -322,6 +322,23 @@ jobs:
             # Remove extended attributes that might cause issues
             find "$APP_PATH" -type f -exec xattr -c {} \; 2>/dev/null || true
             
+            # Code signing for macOS
+            if [[ "$ENABLE_CODE_SIGNING" == "true" ]] && [[ -n "$APPLE_IDENTITY" ]]; then
+              echo "🔐 Code signing app bundle..."
+              
+              # Sign all executables and frameworks first
+              find "$APP_PATH" \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) -exec codesign --force --verify --verbose --sign "$APPLE_IDENTITY" {} \; 2>/dev/null || true
+              
+              # Sign the main app bundle
+              codesign --force --verify --verbose --sign "$APPLE_IDENTITY" --entitlements "${PWD}/build/entitlements.mac.plist" "$APP_PATH" 2>/dev/null || {
+                echo "⚠️ Code signing failed, but continuing..."
+              }
+              
+              echo "✅ Code signing completed"
+            else
+              echo "ℹ️ Skipping code signing (ENABLE_CODE_SIGNING=${ENABLE_CODE_SIGNING})"
+            fi
+            
             echo "✅ Processed: $APP_PATH"
           done
 
@@ -360,6 +377,23 @@ jobs:
                 # Make sure Info.plist is readable
                 if [[ -f "$APP_IN_ZIP/Contents/Info.plist" ]]; then
                   chmod 644 "$APP_IN_ZIP/Contents/Info.plist" 2>/dev/null || true
+                fi
+                
+                # Code signing for macOS (in ZIP)
+                if [[ "$ENABLE_CODE_SIGNING" == "true" ]] && [[ -n "$APPLE_IDENTITY" ]]; then
+                  echo "🔐 Code signing app in ZIP..."
+                  
+                  # Sign all executables and frameworks first
+                  find "$APP_IN_ZIP" \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) -exec codesign --force --verify --verbose --sign "$APPLE_IDENTITY" {} \; 2>/dev/null || true
+                  
+                  # Sign the main app bundle
+                  codesign --force --verify --verbose --sign "$APPLE_IDENTITY" "$APP_IN_ZIP" 2>/dev/null || {
+                    echo "⚠️ Code signing failed in ZIP, but continuing..."
+                  }
+                  
+                  echo "✅ Code signing completed in ZIP"
+                else
+                  echo "ℹ️ Skipping code signing in ZIP (ENABLE_CODE_SIGNING=${ENABLE_CODE_SIGNING})"
                 fi
                 
                 echo "✅ Optimized app in ZIP: $APP_IN_ZIP"
