@@ -120,11 +120,13 @@ jobs:
           ### 🍎 macOS ZIP Installation (Simplified)
           1. Download and extract the ZIP file
           2. Drag Cyoda.app to Applications folder
-          3. **First launch**: Double-click the app (or right-click → "Open" if security dialog appears)
-          4. Click "Open" in any security dialog
+          3. **First launch**: Right-click Cyoda.app → "Open" (required for unsigned apps)
+          4. Click "Open" in the security dialog
           5. Subsequent launches work normally
           
           **Why ZIP instead of DMG?** ZIP archives typically have fewer macOS quarantine/security issues!
+          
+          **Note**: This app is unsigned but safe to run. We skip code signing to avoid keychain access requests during build.
           
           ### 🔧 Technical Details
           - Built with Electron Forge
@@ -172,23 +174,18 @@ jobs:
             arch: arm64
             artifact_name: cyoda-macos-arm64
             files: |
-              packages/desktop/out/**/*.zip
               packages/desktop/out/**/make/*.zip
               packages/desktop/out/make/*.zip
+              !packages/desktop/out/**/Cyoda.Helper*.zip
+              !packages/desktop/out/**/Cyoda.zip
           - os: windows-latest
             platform: win32
             arch: x64
             artifact_name: cyoda-windows-x64
             files: |
-              packages/desktop/out/**/*.exe
-              packages/desktop/out/**/make/*.exe
-              packages/desktop/out/make/*.exe
-              packages/desktop/out/**/*.msi
+              packages/desktop/out/**/make/*Setup*.exe
               packages/desktop/out/**/make/*.msi
-              packages/desktop/out/make/*.msi
-              packages/desktop/out/**/*.nupkg
-              packages/desktop/out/**/make/*.nupkg
-              packages/desktop/out/make/*.nupkg
+              packages/desktop/out/**/make/*-full.nupkg
     runs-on: ${{ matrix.os }}
     env:
       NODE_OPTIONS: --disable-warning=DEP0174
@@ -300,6 +297,10 @@ jobs:
           find out -name "*.dmg" -type f -delete 2>/dev/null || true
           echo "🗑️ Removed DMG files to ensure ZIP-only distribution"
           
+          # Remove helper ZIP files that are not needed for distribution
+          find out -name "Cyoda.Helper*.zip" -type f -delete 2>/dev/null || true
+          echo "🗑️ Removed Cyoda.Helper*.zip files (not needed for distribution)"
+          
           # Process .app files with improved signing
           find out -name "*.app" -type d | while read APP_PATH; do
             echo "📱 Processing app bundle: $APP_PATH"
@@ -314,9 +315,8 @@ jobs:
             echo "🧹 Removing quarantine attributes from app bundle..."
             xattr -cr "$APP_PATH" 2>/dev/null || true
             
-            # Ad-hoc sign the application (lightweight signing)
-            echo "🔏 Ad-hoc signing application..."
-            codesign --force --deep --sign - "$APP_PATH" 2>/dev/null || true
+            # Skip code signing for unsigned builds to avoid keychain prompts
+            echo "ℹ️ Skipping code signing for unsigned build (avoids keychain access)"
             
             echo "✅ Processed: $APP_PATH"
           done
@@ -458,28 +458,35 @@ jobs:
           echo "🔧 Building for Windows..."
           yarn workspace desktop make --platform=win32 --arch=${{ matrix.arch }}
           
+          # Remove unwanted Windows artifacts
+          cd packages/desktop
+          find out -name "Cyoda.Helper*.zip" -type f -delete 2>/dev/null || true
+          find out -name "Squirrel.exe" -type f -delete 2>/dev/null || true
+          find out -name "cyoda.exe" -type f -delete 2>/dev/null || true
+          echo "🗑️ Removed unwanted Windows artifacts"
+          
           # Diagnostic: List Windows build outputs
-          echo "📂 Listing ALL files in packages/desktop/out directory:"
-          find packages/desktop/out -type f 2>/dev/null || echo "out directory not found"
+          echo "📂 Listing ALL files in out directory:"
+          find out -type f 2>/dev/null || echo "out directory not found"
           
           echo ""
-          echo "🔍 Searching for executable files (.exe, .msi, .nupkg):"
-          find packages/desktop -name "*.exe" -type f 2>/dev/null || echo "No .exe files found"
-          find packages/desktop -name "*.msi" -type f 2>/dev/null || echo "No .msi files found"
-          find packages/desktop -name "*.nupkg" -type f 2>/dev/null || echo "No .nupkg files found"
+          echo "🔍 Searching for distribution files:"
+          find out -name "*Setup*.exe" -type f 2>/dev/null || echo "No Setup.exe files found"
+          find out -name "*.msi" -type f 2>/dev/null || echo "No .msi files found"
+          find out -name "*-full.nupkg" -type f 2>/dev/null || echo "No .nupkg files found"
           
           echo ""
-          echo "📂 Directory structure of packages/desktop/out:"
-          find packages/desktop/out -type d 2>/dev/null || echo "out directory not found"
+          echo "📂 Directory structure of out:"
+          find out -type d 2>/dev/null || echo "out directory not found"
           
-          # Ensure executables exist - create fallback if needed
-          EXE_COUNT=$(find packages/desktop/out -name "*.exe" -type f 2>/dev/null | wc -l)
-          echo "📊 Found $EXE_COUNT executable files"
+          # Count distribution files
+          SETUP_COUNT=$(find out -name "*Setup*.exe" -type f 2>/dev/null | wc -l)
+          MSI_COUNT=$(find out -name "*.msi" -type f 2>/dev/null | wc -l)
+          NUPKG_COUNT=$(find out -name "*-full.nupkg" -type f 2>/dev/null | wc -l)
           
-          if [ "$EXE_COUNT" -eq 0 ]; then
-            echo "⚠️ No executables found, checking for other Windows artifacts..."
-            find packages/desktop/out -name "*win*" -type f 2>/dev/null || echo "No Windows-specific files found"
-          fi
+          echo "📊 Found $SETUP_COUNT Setup.exe files"
+          echo "📊 Found $MSI_COUNT MSI files"
+          echo "📊 Found $NUPKG_COUNT NuPkg files"
         timeout-minutes: 10
         shell: bash
 
@@ -546,11 +553,20 @@ jobs:
                 release_id: release.data.id
               });
               
-              // Find and delete source code archives
+              // Find and delete unwanted files
               for (const asset of assets.data) {
-                if (asset.name.includes('Source code') || asset.name.endsWith('.tar.gz') || 
-                    (asset.name.endsWith('.zip') && asset.name.includes(tagName))) {
-                  console.log(`🗑️ Deleting source archive: ${asset.name}`);
+                const shouldDelete = (
+                  asset.name.includes('Source code') ||
+                  asset.name.endsWith('.tar.gz') ||
+                  (asset.name.endsWith('.zip') && asset.name.includes(tagName)) ||
+                  asset.name.includes('Cyoda.Helper') ||
+                  asset.name === 'cyoda.exe' ||
+                  asset.name === 'Squirrel.exe' ||
+                  asset.name === 'Cyoda.zip'
+                );
+                
+                if (shouldDelete) {
+                  console.log(`🗑️ Deleting unwanted file: ${asset.name}`);
                   await github.rest.repos.deleteReleaseAsset({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
