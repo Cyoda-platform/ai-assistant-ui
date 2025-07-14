@@ -56,13 +56,19 @@ jobs:
             # Create new tag with clean version (WITHOUT committing version change)
             TAG_NAME="v${NEW_VERSION}"
             
-            echo "📝 Creating new tag: $TAG_NAME"
-            git tag $TAG_NAME
-            
-            # Push only the tag (no commit)
-            git push origin $TAG_NAME
-            
-            echo "✅ Created and pushed tag: $TAG_NAME"
+            # Check if tag already exists
+            if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+              echo "🏷️ Tag $TAG_NAME already exists, using existing tag"
+              echo "📋 No new tag created"
+            else
+              echo "📝 Creating new tag: $TAG_NAME"
+              git tag $TAG_NAME
+              
+              # Push only the tag (no commit)
+              git push origin $TAG_NAME
+              
+              echo "✅ Created and pushed tag: $TAG_NAME"
+            fi
             
             # Use the new version
             VERSION=$NEW_VERSION
