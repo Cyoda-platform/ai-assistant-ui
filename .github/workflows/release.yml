@@ -36,30 +36,41 @@ jobs:
             VERSION=${TAG_NAME#v}
             echo "🏷️ Using existing tag: $TAG_NAME"
           else
-            # If this is a push to main, increment version and create a new tag
-            echo "🔄 Auto-incrementing version for main branch push..."
+            # If this is a push to main, find max version and increment
+            echo "🔄 Finding maximum version and incrementing..."
             
-            # Get current version from package.json
-            CURRENT_VERSION=$(node -e "console.log(require('./packages/desktop/package.json').version)")
-            echo "📋 Current version: $CURRENT_VERSION"
+            # Get all existing tags
+            git fetch --tags 2>/dev/null || true
             
-            # Auto-increment patch version (e.g., 1.0.3 → 1.0.4)
-            NEW_VERSION=$(node -e "
-              const version = '$CURRENT_VERSION';
-              const parts = version.split('.');
-              parts[2] = (parseInt(parts[2]) + 1).toString();
-              console.log(parts.join('.'));
-            ")
+            # Find the highest version tag (format: v1.2.3)
+            LATEST_TAG=$(git tag -l "v*" | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+$" | sort -V | tail -1)
+            
+            if [ -n "$LATEST_TAG" ]; then
+              LATEST_VERSION=${LATEST_TAG#v}
+              echo "📋 Latest existing version: $LATEST_VERSION"
+              
+              # Parse version components
+              IFS='.' read -ra VERSION_PARTS <<< "$LATEST_VERSION"
+              MAJOR=${VERSION_PARTS[0]}
+              MINOR=${VERSION_PARTS[1]}
+              PATCH=${VERSION_PARTS[2]}
+              
+              # Increment patch version
+              NEW_PATCH=$((PATCH + 1))
+              NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
+            else
+              echo "📋 No existing version tags found, starting with 1.0.0"
+              NEW_VERSION="1.0.0"
+            fi
             
             echo "⬆️ New version: $NEW_VERSION"
             
-            # Create new tag with clean version (WITHOUT committing version change)
+            # Create new tag
             TAG_NAME="v${NEW_VERSION}"
             
-            # Check if tag already exists
+            # Check if tag already exists (shouldn't happen with our logic)
             if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
               echo "🏷️ Tag $TAG_NAME already exists, using existing tag"
-              echo "📋 No new tag created"
             else
               echo "📝 Creating new tag: $TAG_NAME"
               git tag $TAG_NAME
