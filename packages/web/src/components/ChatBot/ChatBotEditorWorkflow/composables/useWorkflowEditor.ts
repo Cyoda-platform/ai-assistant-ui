@@ -127,8 +127,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                             // Check if there's a reverse transition to create curved paths
                             const reverseTransitionExists = Object.entries(states).some(([reverseStateName, reverseStateData]) => {
                                 const reverseState = reverseStateData as WorkflowState;
-                                return reverseStateName === transition.next && 
-                                       reverseState.transitions && 
+                                return reverseStateName === transition.next &&
+                                       reverseState.transitions &&
                                        Object.values(reverseState.transitions).some((t: any) => t.next === stateName);
                             });
 
@@ -343,7 +343,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     onUnmounted(() => {
         eventBus.$off('save-transition', handleSaveCondition);
-        
+
         // Clear debounce timer
         if (debounceTimer) {
             clearTimeout(debounceTimer);
@@ -357,7 +357,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         if (debounceTimer) {
             clearTimeout(debounceTimer);
         }
-        
+
         // Set new timer with 300ms debounce
         debounceTimer = setTimeout(() => {
             generateNodes();
