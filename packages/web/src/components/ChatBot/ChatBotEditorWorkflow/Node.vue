@@ -4,12 +4,14 @@
     :class="nodeTypeClass"
     ref="nodeRef"
   >
-    <Handle type="target" :position="Position.Left" id="left" />
-    <Handle type="source" :position="Position.Right" id="right" />
-    <Handle type="target" :position="Position.Top" id="top" :style="topHandleStyle" />
-    <Handle type="source" :position="Position.Bottom" id="bottom" :style="bottomHandleStyle" />
-    <Handle type="target" :position="Position.Bottom" id="bottom-target" :style="bottomHandleStyle" />
-    <Handle type="source" :position="Position.Top" id="top-source" :style="topHandleStyle" />
+    <Handle type="target" :position="Position.Left" id="left-target" />
+    <Handle type="source" :position="Position.Left" id="left-source" />
+    <Handle type="target" :position="Position.Right" id="right-target" />
+    <Handle type="source" :position="Position.Right" id="right-source" />
+    <Handle type="target" :position="Position.Top" id="top-target" />
+    <Handle type="source" :position="Position.Top" id="top-source" />
+    <Handle type="target" :position="Position.Bottom" id="bottom-target" />
+    <Handle type="source" :position="Position.Bottom" id="bottom-source" />
 
     <div class="node-title">{{ data.label }}</div>
     <div class="node-footer" v-if="hasTransitions">
@@ -19,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, nextTick, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { Handle, Position } from '@vue-flow/core'
 
 const props = defineProps<{
@@ -27,7 +29,6 @@ const props = defineProps<{
 }>()
 
 const nodeRef = ref()
-const nodeWidth = ref(0)
 
 const hasTransitions = computed(() => {
   return props.data.transitionCount > 0
@@ -41,46 +42,6 @@ const nodeTypeClass = computed(() => {
   if (props.data.isInitial) return 'node-initial'
   if (props.data.isTerminal) return 'node-terminal'
   return 'node-default'
-})
-
-const updateNodeWidth = () => {
-  if (nodeRef.value) {
-    nodeWidth.value = nodeRef.value.offsetWidth
-  }
-}
-
-const topHandleStyle = computed(() => ({
-  left: nodeWidth.value ? `${nodeWidth.value / 2}px` : '50%',
-  transform: nodeWidth.value ? 'translateX(-4px)' : 'translateX(-50%)',
-  top: '-4px',
-  position: 'absolute',
-  zIndex: 10
-}))
-
-const bottomHandleStyle = computed(() => ({
-  left: nodeWidth.value ? `${nodeWidth.value / 2}px` : '50%',
-  transform: nodeWidth.value ? 'translateX(-4px)' : 'translateX(-50%)',
-  bottom: '-4px',
-  position: 'absolute',
-  zIndex: 10
-}))
-
-onMounted(() => {
-  nextTick(() => {
-    updateNodeWidth()
-  })
-})
-
-watch(() => props.data.label, () => {
-  nextTick(() => {
-    updateNodeWidth()
-  })
-})
-
-watch(() => props.data.transitionCount, () => {
-  nextTick(() => {
-    updateNodeWidth()
-  })
 })
 </script>
 
@@ -131,25 +92,25 @@ watch(() => props.data.transitionCount, () => {
   opacity: 0;
 
   &.vue-flow__handle-left {
-    left: 0;
+    left: -4px;
     top: 50%;
     transform: translateY(-50%);
   }
 
   &.vue-flow__handle-right {
-    right: 0;
+    right: -4px;
     top: 50%;
     transform: translateY(-50%);
   }
 
   &.vue-flow__handle-top {
-    top: 0;
+    top: -4px;
     left: 50%;
     transform: translateX(-50%);
   }
 
   &.vue-flow__handle-bottom {
-    bottom: 0;
+    bottom: -4px;
     left: 50%;
     transform: translateX(-50%);
   }
