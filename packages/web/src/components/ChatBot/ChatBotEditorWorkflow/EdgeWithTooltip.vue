@@ -12,8 +12,8 @@
       v-if="data?.transitionData"
       :x="badgeX"
       :y="badgeY"
-      width="70"
-      height="20"
+      width="300"
+      height="30"
     >
       <div
         class="condition-badge-html"
@@ -21,7 +21,7 @@
         @mousedown="handleMouseDown"
         @mouseup="handleMouseUp"
       >
-       data
+        {{ data?.transitionName || 'Transition' }}
       </div>
     </foreignObject>
   </g>
@@ -53,11 +53,11 @@ const edgePath = computed(() => {
 })
 
 const badgeX = computed(() => {
-  return (props.sourceX + props.targetX) / 2 - 35;
+  return (props.sourceX + props.targetX) / 2 - 150; // Половина от ширины foreignObject (300/2)
 });
 
 const badgeY = computed(() => {
-  return (props.sourceY + props.targetY) / 2 - 10;
+  return (props.sourceY + props.targetY) / 2 - 15; // Центрируем по вертикали
 })
 
 function openConditionPopup() {
@@ -85,7 +85,7 @@ function handleMouseUp(event: MouseEvent) {
 .condition-badge-html {
   background-color: #ff6b35;
   color: white;
-  padding: 2px 6px;
+  padding: 4px 8px;
   border-radius: 10px;
   font-size: 12px;
   font-weight: bold;
@@ -94,18 +94,17 @@ function handleMouseUp(event: MouseEvent) {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
   text-align: center;
-  line-height: 16px;
-  width: 70px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
+  white-space: nowrap;
+  display: inline-block;
+  min-width: 40px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .condition-badge-html:hover {
   background-color: #e55a2b;
-  transform: scale(1.05);
+  transform: translateX(-50%) scale(1.05);
 }
 
 .condition-editor {
