@@ -301,9 +301,14 @@ jobs:
           find out -name "Cyoda.Helper*.zip" -type f -delete 2>/dev/null || true
           echo "🗑️ Removed Cyoda.Helper*.zip files (not needed for distribution)"
           
-          # Process .app files with improved signing
+          # Process .app files with improved signing and quarantine removal
           find out -name "*.app" -type d | while read APP_PATH; do
             echo "📱 Processing app bundle: $APP_PATH"
+            
+            # Remove quarantine attributes from the .app bundle entirely (before permissions)
+            echo "🧹 Removing quarantine attributes from app bundle..."
+            xattr -cr "$APP_PATH" 2>/dev/null || true
+            xattr -d com.apple.quarantine "$APP_PATH" 2>/dev/null || true
             
             # Make all executables in MacOS directory executable
             if [[ -d "$APP_PATH/Contents/MacOS" ]]; then
@@ -311,12 +316,11 @@ jobs:
               echo "✅ Made executables in MacOS directory executable"
             fi
             
-            # Remove quarantine attributes from the .app bundle entirely
-            echo "🧹 Removing quarantine attributes from app bundle..."
-            xattr -cr "$APP_PATH" 2>/dev/null || true
+            # Set proper permissions for the entire app bundle
+            chmod -R 755 "$APP_PATH" 2>/dev/null || true
             
-            # Skip code signing for unsigned builds to avoid keychain prompts
-            echo "ℹ️ Skipping code signing for unsigned build (avoids keychain access)"
+            # Remove extended attributes that might cause issues
+            find "$APP_PATH" -type f -exec xattr -c {} \; 2>/dev/null || true
             
             echo "✅ Processed: $APP_PATH"
           done
@@ -338,12 +342,14 @@ jobs:
               find . -name "*.app" -type d | while read APP_IN_ZIP; do
                 echo "🍎 Processing app in ZIP: $APP_IN_ZIP"
                 
-                # Remove ALL quarantine attributes recursively
+                # Remove ALL quarantine attributes recursively (multiple methods)
                 xattr -cr "$APP_IN_ZIP" 2>/dev/null || true
+                xattr -d com.apple.quarantine "$APP_IN_ZIP" 2>/dev/null || true
+                find "$APP_IN_ZIP" -type f -exec xattr -c {} \; 2>/dev/null || true
+                find "$APP_IN_ZIP" -type d -exec xattr -c {} \; 2>/dev/null || true
                 
-                # Make ALL files in the app bundle readable and executable as needed
-                find "$APP_IN_ZIP" -type f -exec chmod 644 {} \; 2>/dev/null || true
-                find "$APP_IN_ZIP" -type d -exec chmod 755 {} \; 2>/dev/null || true
+                # Set proper permissions for the entire app bundle
+                chmod -R 755 "$APP_IN_ZIP" 2>/dev/null || true
                 
                 # Make executables in MacOS directory properly executable
                 if [[ -d "$APP_IN_ZIP/Contents/MacOS" ]]; then
@@ -355,9 +361,6 @@ jobs:
                 if [[ -f "$APP_IN_ZIP/Contents/Info.plist" ]]; then
                   chmod 644 "$APP_IN_ZIP/Contents/Info.plist" 2>/dev/null || true
                 fi
-                
-                # Skip code signing for unsigned builds to avoid keychain prompts
-                echo "ℹ️ Skipping code signing for unsigned build (avoids keychain access)"
                 
                 echo "✅ Optimized app in ZIP: $APP_IN_ZIP"
               done
@@ -380,42 +383,6 @@ jobs:
             cd "$ORIGINAL_DIR"
             rm -rf "$TEMP_DIR"
           done
-
-          # Create simplified installation instructions for ZIP
-          cat > out/README-macOS-Installation.txt << 'EOF'
-          🍎 macOS Installation Guide - Cyoda App
-          
-          📦 SIMPLE INSTALLATION:
-          1. Download Cyoda-macOS-[version].zip file
-          2. Double-click ZIP file to extract
-          3. Drag Cyoda.app to Applications folder
-          4. Launch the application
-          
-          🔧 IF IT DOESN'T OPEN (via Cmd+Open or normal launch):
-          
-          Method 1 - Via context menu:
-          1. Right-click on Cyoda.app → "Open"
-          2. Click "Open" in the security dialog
-          3. Application will launch
-          
-          Method 2 - Via Terminal (most reliable):
-          1. Open Terminal (Terminal.app)
-          2. Run command:
-             xattr -d com.apple.quarantine /Applications/Cyoda.app
-          3. Double-click Cyoda.app to launch
-          
-          Method 3 - Via System Preferences:
-          1. System Preferences → Security & Privacy
-          2. Allow Cyoda app to run
-          3. Try launching again
-          
-          💡 WHY ZIP INSTEAD OF DMG?
-          ZIP archives typically have fewer macOS quarantine issues!
-          
-          ⚠️ NOTE:
-          This app is unsigned but safe to use.
-          We skip code signing to avoid keychain access requests during build.
-          EOF
 
           echo "✅ macOS ZIP-only build processing complete"
           
@@ -442,12 +409,21 @@ jobs:
             echo "📦 Creating ZIP for main app: $APP_PATH"
             cd "$ZIP_DIR"
             
+            # Remove quarantine attributes before zipping
+            xattr -cr "$APP_NAME" 2>/dev/null || true
+            find "$APP_NAME" -type f -exec xattr -c {} \; 2>/dev/null || true
+            
             # Use ditto for better macOS compatibility if available
             if command -v ditto >/dev/null 2>&1; then
               ditto -c -k --keepParent "$APP_NAME" "$ZIP_NAME" 2>/dev/null || \
               zip -r "$ZIP_NAME" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
             else
               zip -r "$ZIP_NAME" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+            fi
+            
+            # Remove quarantine from created ZIP
+            if [[ -f "$ZIP_NAME" ]]; then
+              xattr -c "$ZIP_NAME" 2>/dev/null || true
             fi
             
             echo "✅ Created: $ZIP_DIR/$ZIP_NAME"
@@ -480,11 +456,21 @@ jobs:
               cd "$(dirname "$APP_FILE")"
               
               APP_NAME=$(basename "$APP_FILE")
+              
+              # Remove quarantine attributes before zipping
+              xattr -cr "$APP_NAME" 2>/dev/null || true
+              find "$APP_NAME" -type f -exec xattr -c {} \; 2>/dev/null || true
+              
               if command -v ditto >/dev/null 2>&1; then
                 ditto -c -k --keepParent "$APP_NAME" "../dist-release/Cyoda-macOS-${VERSION}.zip" 2>/dev/null || \
                 zip -r "../dist-release/Cyoda-macOS-${VERSION}.zip" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
               else
                 zip -r "../dist-release/Cyoda-macOS-${VERSION}.zip" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+              fi
+              
+              # Remove quarantine from created ZIP
+              if [[ -f "../dist-release/Cyoda-macOS-${VERSION}.zip" ]]; then
+                xattr -c "../dist-release/Cyoda-macOS-${VERSION}.zip" 2>/dev/null || true
               fi
               
               cd - >/dev/null
@@ -493,9 +479,6 @@ jobs:
               echo "❌ No .app files found for fallback ZIP creation"
             fi
           fi
-          
-          # Copy installation instructions
-          cp out/README-macOS-Installation.txt dist-release/ 2>/dev/null || true
           
           echo "✅ macOS release files prepared:"
           ls -la dist-release/
