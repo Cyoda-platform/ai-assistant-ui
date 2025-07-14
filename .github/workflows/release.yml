@@ -155,24 +155,40 @@ jobs:
             arch: x64,arm64
             artifact_name: cyoda-linux
             files: |
-              packages/desktop/out/cyoda-build/make/*.deb
-              packages/desktop/out/cyoda-build/make/*.rpm
-              packages/desktop/out/cyoda-build/make/*.tar.gz
-              packages/desktop/out/cyoda-build/make/*.AppImage
+              packages/desktop/out/**/*.deb
+              packages/desktop/out/**/make/*.deb
+              packages/desktop/out/make/*.deb
+              packages/desktop/out/**/*.rpm
+              packages/desktop/out/**/make/*.rpm
+              packages/desktop/out/make/*.rpm
+              packages/desktop/out/**/*.tar.gz
+              packages/desktop/out/**/make/*.tar.gz
+              packages/desktop/out/make/*.tar.gz
+              packages/desktop/out/**/*.AppImage
+              packages/desktop/out/**/make/*.AppImage
+              packages/desktop/out/make/*.AppImage
           - os: macos-latest
             platform: darwin
             arch: arm64
             artifact_name: cyoda-macos-arm64
             files: |
-              packages/desktop/out/cyoda-build/make/*.zip
+              packages/desktop/out/**/*.zip
+              packages/desktop/out/**/make/*.zip
+              packages/desktop/out/make/*.zip
           - os: windows-latest
             platform: win32
             arch: x64
             artifact_name: cyoda-windows-x64
             files: |
-              packages/desktop/out/cyoda-build/make/*.exe
-              packages/desktop/out/cyoda-build/make/*.msi
-              packages/desktop/out/cyoda-build/make/*.nupkg
+              packages/desktop/out/**/*.exe
+              packages/desktop/out/**/make/*.exe
+              packages/desktop/out/make/*.exe
+              packages/desktop/out/**/*.msi
+              packages/desktop/out/**/make/*.msi
+              packages/desktop/out/make/*.msi
+              packages/desktop/out/**/*.nupkg
+              packages/desktop/out/**/make/*.nupkg
+              packages/desktop/out/make/*.nupkg
     runs-on: ${{ matrix.os }}
     env:
       NODE_OPTIONS: --disable-warning=DEP0174
@@ -372,20 +388,68 @@ jobs:
           EOF
 
           echo "✅ macOS ZIP-only build processing complete"
+          
+          # Ensure ZIP files exist - create them if needed
+          echo "🔍 Ensuring ZIP files exist..."
+          
+          # Check if any ZIP files were created
+          ZIP_COUNT=$(find out -name "*.zip" -type f | wc -l)
+          echo "📊 Found $ZIP_COUNT ZIP files"
+          
+          if [ "$ZIP_COUNT" -eq 0 ]; then
+            echo "⚠️ No ZIP files found, attempting to create them manually..."
+            
+            # Look for .app files and create ZIP archives
+            find out -name "*.app" -type d | while read APP_PATH; do
+              APP_NAME=$(basename "$APP_PATH")
+              ZIP_NAME="${APP_NAME%.app}.zip"
+              ZIP_DIR=$(dirname "$APP_PATH")
+              
+              echo "📦 Creating ZIP for: $APP_PATH"
+              cd "$ZIP_DIR"
+              zip -r "$ZIP_NAME" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+              echo "✅ Created: $ZIP_DIR/$ZIP_NAME"
+              cd - >/dev/null
+            done
+            
+            # Check again after manual creation
+            NEW_ZIP_COUNT=$(find out -name "*.zip" -type f | wc -l)
+            echo "📊 After manual creation: $NEW_ZIP_COUNT ZIP files"
+          fi
         timeout-minutes: 10
         continue-on-error: true
 
       - name: List macOS build artifacts
         if: matrix.platform == 'darwin'
         run: |
-          echo "📂 Listing all files in packages/desktop/out directory:"
-          find packages/desktop/out -type f -name "*" | head -20
+          echo "📂 Listing ALL files in packages/desktop/out directory:"
+          find packages/desktop/out -type f | head -30
           
-          echo "📦 Checking specific file types:"
-          echo "DMG files:"
-          find packages/desktop/out -name "*.dmg" -type f || echo "No DMG files found"
-          echo "ZIP files:"
-          find packages/desktop/out -name "*.zip" -type f || echo "No ZIP files found"
+          echo ""
+          echo "🔍 Searching for ZIP files in all subdirectories:"
+          find packages/desktop -name "*.zip" -type f 2>/dev/null || echo "No ZIP files found anywhere"
+          
+          echo ""
+          echo "📂 Directory structure of packages/desktop/out:"
+          find packages/desktop/out -type d 2>/dev/null || echo "out directory not found"
+          
+          echo ""
+          echo "🔍 Looking for make directory and contents:"
+          if [ -d "packages/desktop/out/make" ]; then
+            echo "✅ make directory exists"
+            ls -la packages/desktop/out/make/
+          else
+            echo "❌ make directory not found"
+          fi
+          
+          echo ""
+          echo "🔍 Checking for cyoda-build directory:"
+          if [ -d "packages/desktop/out/cyoda-build" ]; then
+            echo "✅ cyoda-build directory exists"
+            find packages/desktop/out/cyoda-build -type f | head -20
+          else
+            echo "❌ cyoda-build directory not found"
+          fi
         shell: bash
 
       - name: Build for Windows
@@ -393,6 +457,29 @@ jobs:
         run: |
           echo "🔧 Building for Windows..."
           yarn workspace desktop make --platform=win32 --arch=${{ matrix.arch }}
+          
+          # Diagnostic: List Windows build outputs
+          echo "📂 Listing ALL files in packages/desktop/out directory:"
+          find packages/desktop/out -type f 2>/dev/null || echo "out directory not found"
+          
+          echo ""
+          echo "🔍 Searching for executable files (.exe, .msi, .nupkg):"
+          find packages/desktop -name "*.exe" -type f 2>/dev/null || echo "No .exe files found"
+          find packages/desktop -name "*.msi" -type f 2>/dev/null || echo "No .msi files found"
+          find packages/desktop -name "*.nupkg" -type f 2>/dev/null || echo "No .nupkg files found"
+          
+          echo ""
+          echo "📂 Directory structure of packages/desktop/out:"
+          find packages/desktop/out -type d 2>/dev/null || echo "out directory not found"
+          
+          # Ensure executables exist - create fallback if needed
+          EXE_COUNT=$(find packages/desktop/out -name "*.exe" -type f 2>/dev/null | wc -l)
+          echo "📊 Found $EXE_COUNT executable files"
+          
+          if [ "$EXE_COUNT" -eq 0 ]; then
+            echo "⚠️ No executables found, checking for other Windows artifacts..."
+            find packages/desktop/out -name "*win*" -type f 2>/dev/null || echo "No Windows-specific files found"
+          fi
         timeout-minutes: 10
         shell: bash
 
