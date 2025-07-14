@@ -156,28 +156,17 @@ jobs:
             platform: linux
             arch: x64,arm64
             artifact_name: cyoda-linux
-            files: |
-              packages/desktop/out/**/*.deb
-              packages/desktop/out/**/*.rpm
-              packages/desktop/out/**/*.tar.gz
-              packages/desktop/out/**/*.AppImage
+            files: packages/desktop/dist-release/*
           - os: macos-latest
             platform: darwin
             arch: arm64
             artifact_name: cyoda-macos-arm64
-            files: |
-              packages/desktop/out/**/*.zip
-              !packages/desktop/out/**/Cyoda.Helper*.zip
+            files: packages/desktop/dist-release/*
           - os: windows-latest
             platform: win32
             arch: x64
             artifact_name: cyoda-windows-x64
-            files: |
-              packages/desktop/out/**/*.exe
-              packages/desktop/out/**/*.msi
-              packages/desktop/out/**/*.nupkg
-              !packages/desktop/out/**/cyoda.exe
-              !packages/desktop/out/**/Squirrel.exe
+            files: packages/desktop/dist-release/*
     runs-on: ${{ matrix.os }}
     env:
       NODE_OPTIONS: --disable-warning=DEP0174
@@ -276,6 +265,25 @@ jobs:
         timeout-minutes: 10
         shell: bash
 
+      - name: Prepare Linux Release Files
+        if: matrix.platform == 'linux'
+        run: |
+          echo "📦 Preparing Linux release files..."
+          cd packages/desktop
+          
+          # Create release directory
+          mkdir -p dist-release
+          
+          # Copy only the files we want
+          find out -name "*.deb" -exec cp {} dist-release/ \;
+          find out -name "*.rpm" -exec cp {} dist-release/ \;
+          find out -name "*.AppImage" -exec cp {} dist-release/ \;
+          find out -name "*.tar.gz" -exec cp {} dist-release/ \;
+          
+          echo "✅ Linux release files prepared:"
+          ls -la dist-release/
+        shell: bash
+
       - name: Build for macOS (ZIP-only)
         if: matrix.platform == 'darwin'
         run: |
@@ -328,26 +336,43 @@ jobs:
               
               # Process any .app bundles in the ZIP
               find . -name "*.app" -type d | while read APP_IN_ZIP; do
-                echo "� Processing app in ZIP: $APP_IN_ZIP"
+                echo "🍎 Processing app in ZIP: $APP_IN_ZIP"
                 
-                # Remove quarantine attributes
+                # Remove ALL quarantine attributes recursively
                 xattr -cr "$APP_IN_ZIP" 2>/dev/null || true
                 
-                # Make executables executable
+                # Make ALL files in the app bundle readable and executable as needed
+                find "$APP_IN_ZIP" -type f -exec chmod 644 {} \; 2>/dev/null || true
+                find "$APP_IN_ZIP" -type d -exec chmod 755 {} \; 2>/dev/null || true
+                
+                # Make executables in MacOS directory properly executable
                 if [[ -d "$APP_IN_ZIP/Contents/MacOS" ]]; then
                   find "$APP_IN_ZIP/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null || true
+                  echo "✅ Made MacOS executables executable"
+                fi
+                
+                # Make sure Info.plist is readable
+                if [[ -f "$APP_IN_ZIP/Contents/Info.plist" ]]; then
+                  chmod 644 "$APP_IN_ZIP/Contents/Info.plist" 2>/dev/null || true
                 fi
                 
                 # Skip code signing for unsigned builds to avoid keychain prompts
-                echo "Skipping code signing for unsigned build (avoids keychain access)"
+                echo "ℹ️ Skipping code signing for unsigned build (avoids keychain access)"
                 
                 echo "✅ Optimized app in ZIP: $APP_IN_ZIP"
               done
               
               # Recreate ZIP with better compression and no extra attributes
               rm -f "$ORIGINAL_DIR/$ZIP_PATH"
-              zip -r "$ORIGINAL_DIR/$ZIP_PATH" . -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
-              echo "✅ Recreated optimized ZIP"
+              # Use ditto for better macOS compatibility
+              if command -v ditto >/dev/null 2>&1; then
+                # Create ZIP using ditto for better macOS attribute preservation
+                ditto -c -k --keepParent . "$ORIGINAL_DIR/$ZIP_PATH" 2>/dev/null || \
+                zip -r "$ORIGINAL_DIR/$ZIP_PATH" . -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+              else
+                zip -r "$ORIGINAL_DIR/$ZIP_PATH" . -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+              fi
+              echo "✅ Recreated optimized ZIP with better macOS compatibility"
             else
               echo "⚠️ Could not extract ZIP, keeping original"
             fi
@@ -358,28 +383,63 @@ jobs:
 
           # Create simplified installation instructions for ZIP
           cat > out/README-macOS-Installation.txt << 'EOF'
-          macOS Installation from ZIP
+          🍎 macOS Installation Guide - Cyoda App
           
-          SIMPLE INSTALLATION:
-          1. Download the .zip file
-          2. Double-click to extract -> Cyoda.app appears
-          3. Drag Cyoda.app to Applications folder  
-          4. Double-click Cyoda.app to launch
+          📦 ПРОСТАЯ УСТАНОВКА:
+          1. Скачайте файл Cyoda-macOS-[версия].zip
+          2. Дважды щелкните ZIP файл для распаковки
+          3. Перетащите Cyoda.app в папку Программы (Applications)
+          4. Запустите приложение
           
-          If macOS shows security warning:
-          1. Right-click Cyoda.app -> "Open"
-          2. Click "Open" in the dialog
-          3. App will launch normally
+          🔧 ЕСЛИ НЕ ЗАПУСКАЕТСЯ (через Cmd+Open или обычный запуск):
           
-          ZIP archives typically have fewer quarantine issues than DMG files!
+          Способ 1 - Через контекстное меню:
+          1. Правый клик на Cyoda.app → "Открыть" (Open)
+          2. Нажмите "Открыть" в диалоге безопасности
+          3. Приложение запустится
           
-          If you still have issues:
-          Run in Terminal: xattr -d com.apple.quarantine /Applications/Cyoda.app
+          Способ 2 - Через Терминал (самый надежный):
+          1. Откройте Терминал (Terminal.app)
+          2. Выполните команду:
+             xattr -d com.apple.quarantine /Applications/Cyoda.app
+          3. Дважды щелкните на Cyoda.app для запуска
           
-          Note: This app is unsigned but safe to run.
+          Способ 3 - Через System Preferences:
+          1. System Preferences → Security & Privacy
+          2. Разрешите запуск приложения Cyoda
+          3. Попробуйте запустить снова
+          
+          💡 ПОЧЕМУ ZIP ВМЕСТО DMG?
+          ZIP архивы обычно имеют меньше проблем с карантином macOS!
+          
+          ⚠️ ПРИМЕЧАНИЕ:
+          Это приложение не подписано цифровой подписью, но безопасно для использования.
+          Мы не используем подпись, чтобы избежать запросов доступа к связке ключей.
           EOF
 
           echo "✅ macOS ZIP-only build processing complete"
+          
+          # Prepare macOS Release Files
+          echo "📦 Preparing macOS release files..."
+          mkdir -p dist-release
+          
+          # Get version from environment
+          VERSION="${{ needs.create-tag.outputs.version }}"
+          
+          # Find and rename ZIP files with clear macOS naming
+          find out -name "*.zip" -not -name "Cyoda.Helper*.zip" | while read ZIP_FILE; do
+            BASENAME=$(basename "$ZIP_FILE" .zip)
+            NEW_NAME="Cyoda-macOS-${VERSION}.zip"
+            
+            echo "📦 Renaming ZIP: $ZIP_FILE -> $NEW_NAME"
+            cp "$ZIP_FILE" "dist-release/$NEW_NAME"
+          done
+          
+          # Copy installation instructions
+          cp out/README-macOS-Installation.txt dist-release/ 2>/dev/null || true
+          
+          echo "✅ macOS release files prepared:"
+          ls -la dist-release/
           
           # Ensure ZIP files exist - create them if needed
           echo "🔍 Ensuring ZIP files exist..."
@@ -482,6 +542,25 @@ jobs:
         timeout-minutes: 10
         shell: bash
 
+      - name: Prepare Windows Release Files
+        if: matrix.platform == 'win32'
+        run: |
+          echo "📦 Preparing Windows release files..."
+          cd packages/desktop
+          
+          # Create release directory
+          mkdir -p dist-release
+          
+          # Copy only the files we want (excluding unwanted ones)
+          find out -name "*.exe" -not -name "cyoda.exe" -not -name "Squirrel.exe" -exec cp {} dist-release/ \;
+          find out -name "*.msi" -exec cp {} dist-release/ \;
+          find out -name "*.nupkg" -exec cp {} dist-release/ \;
+          
+          echo "✅ Windows release files prepared:"
+          ls -la dist-release/
+        timeout-minutes: 10
+        shell: bash
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -545,19 +624,16 @@ jobs:
                 release_id: release.data.id
               });
               
-              // Find and delete unwanted files
+              // Find and delete only source code archives (our files are now clean)
               for (const asset of assets.data) {
                 const shouldDelete = (
                   asset.name.includes('Source code') ||
-                  asset.name.endsWith('.tar.gz') ||
-                  (asset.name.endsWith('.zip') && asset.name.includes(tagName)) ||
-                  asset.name.includes('Cyoda.Helper') ||
-                  asset.name === 'cyoda.exe' ||
-                  asset.name === 'Squirrel.exe'
+                  (asset.name.endsWith('.tar.gz') && asset.name.includes(tagName)) ||
+                  (asset.name.endsWith('.zip') && asset.name.includes(tagName))
                 );
                 
                 if (shouldDelete) {
-                  console.log(`🗑️ Deleting unwanted file: ${asset.name}`);
+                  console.log(`🗑️ Deleting source archive: ${asset.name}`);
                   await github.rest.repos.deleteReleaseAsset({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
