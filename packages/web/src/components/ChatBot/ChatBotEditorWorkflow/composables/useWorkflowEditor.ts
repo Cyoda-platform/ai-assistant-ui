@@ -111,32 +111,60 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     let targetHandle = 'left';
 
                     if (sourceNode && targetNode) {
-                        const sourceY = sourceNode.position.y;
-                        const targetY = targetNode.position.y;
-                        const sourceX = sourceNode.position.x;
-                        const targetX = targetNode.position.x;
+                        // Special handling for self-loops
+                        if (stateName === transition.next) {
+                            sourceHandle = 'right-source';
+                            targetHandle = 'top-target';
+                        } else {
+                            const sourceY = sourceNode.position.y;
+                            const targetY = targetNode.position.y;
+                            const sourceX = sourceNode.position.x;
+                            const targetX = targetNode.position.x;
 
-                        const deltaY = Math.abs(targetY - sourceY);
-                        const deltaX = Math.abs(targetX - sourceX);
+                            const deltaY = Math.abs(targetY - sourceY);
+                            const deltaX = Math.abs(targetX - sourceX);
 
-                        if (deltaY > 80 && deltaX < 200) {
-                            if (targetY > sourceY) {
-                                sourceHandle = 'bottom';
-                                targetHandle = 'top';
+                            // Check if there's a reverse transition to create curved paths
+                            const reverseTransitionExists = Object.entries(states).some(([reverseStateName, reverseStateData]) => {
+                                const reverseState = reverseStateData as WorkflowState;
+                                return reverseStateName === transition.next && 
+                                       reverseState.transitions && 
+                                       Object.values(reverseState.transitions).some((t: any) => t.next === stateName);
+                            });
+
+                            if (reverseTransitionExists) {
+                                // For bidirectional edges, use different handles to create curved paths
+                                if (sourceX < targetX) {
+                                    // Going left to right - use bottom handles for curve
+                                    sourceHandle = 'bottom-source';
+                                    targetHandle = 'bottom-target';
+                                } else {
+                                    // Going right to left - use top handles for curve
+                                    sourceHandle = 'top-source';
+                                    targetHandle = 'top-target';
+                                }
                             } else {
-                                sourceHandle = 'top-source';
-                                targetHandle = 'bottom-target';
-                            }
-                        } else if (targetX < sourceX) {
-                            if (targetY > sourceY + 50) {
-                                sourceHandle = 'bottom';
-                                targetHandle = 'top';
-                            } else if (targetY < sourceY - 50) {
-                                sourceHandle = 'top-source';
-                                targetHandle = 'bottom-target';
-                            } else {
-                                sourceHandle = 'left';
-                                targetHandle = 'right';
+                                // Standard logic for single-direction edges
+                                if (deltaY > 80 && deltaX < 200) {
+                                    if (targetY > sourceY) {
+                                        sourceHandle = 'bottom';
+                                        targetHandle = 'top';
+                                    } else {
+                                        sourceHandle = 'top-source';
+                                        targetHandle = 'bottom-target';
+                                    }
+                                } else if (targetX < sourceX) {
+                                    if (targetY > sourceY + 50) {
+                                        sourceHandle = 'bottom';
+                                        targetHandle = 'top';
+                                    } else if (targetY < sourceY - 50) {
+                                        sourceHandle = 'top-source';
+                                        targetHandle = 'bottom-target';
+                                    } else {
+                                        sourceHandle = 'left';
+                                        targetHandle = 'right';
+                                    }
+                                }
                             }
                         }
                     }

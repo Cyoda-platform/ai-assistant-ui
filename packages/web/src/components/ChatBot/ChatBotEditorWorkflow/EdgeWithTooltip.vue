@@ -52,11 +52,42 @@ const edgePath = computed(() => {
   return path
 })
 
+const isSelfLoop = computed(() => {
+  return props.source === props.target;
+});
+
 const badgeX = computed(() => {
+  // Special positioning for self-loops - calculate point on Bezier curve
+  if (isSelfLoop.value) {
+    // For self-loops, calculate the midpoint of the curve
+    // Self-loop goes from right handle to top handle
+    const [, labelX] = getBezierPath({
+      sourceX: props.sourceX,
+      sourceY: props.sourceY,
+      sourcePosition: props.sourcePosition,
+      targetX: props.targetX,
+      targetY: props.targetY,
+      targetPosition: props.targetPosition,
+    });
+    return labelX - 150; // Center the badge on the curve (300/2 = 150)
+  }
   return (props.sourceX + props.targetX) / 2 - 150; // Половина от ширины foreignObject (300/2)
 });
 
 const badgeY = computed(() => {
+  // Special positioning for self-loops - calculate point on Bezier curve
+  if (isSelfLoop.value) {
+    // For self-loops, calculate the midpoint of the curve
+    const [, , labelY] = getBezierPath({
+      sourceX: props.sourceX,
+      sourceY: props.sourceY,
+      sourcePosition: props.sourcePosition,
+      targetX: props.targetX,
+      targetY: props.targetY,
+      targetPosition: props.targetPosition,
+    });
+    return labelY - 25; // Position badge slightly higher
+  }
   return (props.sourceY + props.targetY) / 2 - 15; // Центрируем по вертикали
 })
 
