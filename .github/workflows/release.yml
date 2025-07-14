@@ -428,40 +428,39 @@ jobs:
           
           # First, ensure we have ZIP files (create if they don't exist)
           echo "🔍 Ensuring ZIP files exist..."
-          ZIP_COUNT=$(find out -name "*.zip" -not -name "Cyoda.Helper*.zip" -type f | wc -l)
+          ZIP_COUNT=$(find out -name "*.zip" -not -name "*Helper*.zip" -type f | wc -l)
           echo "📊 Found $ZIP_COUNT existing ZIP files"
           
           if [ "$ZIP_COUNT" -eq 0 ]; then
             echo "⚠️ No ZIP files found, creating them manually..."
+               # Look for MAIN .app files and create ZIP archives (exclude Helper apps)
+          find out -name "*.app" -type d -not -name "*Helper*" | while read APP_PATH; do
+            APP_NAME=$(basename "$APP_PATH")
+            ZIP_NAME="${APP_NAME%.app}.zip"
+            ZIP_DIR=$(dirname "$APP_PATH")
             
-            # Look for .app files and create ZIP archives
-            find out -name "*.app" -type d | while read APP_PATH; do
-              APP_NAME=$(basename "$APP_PATH")
-              ZIP_NAME="${APP_NAME%.app}.zip"
-              ZIP_DIR=$(dirname "$APP_PATH")
-              
-              echo "📦 Creating ZIP for: $APP_PATH"
-              cd "$ZIP_DIR"
-              
-              # Use ditto for better macOS compatibility if available
-              if command -v ditto >/dev/null 2>&1; then
-                ditto -c -k --keepParent "$APP_NAME" "$ZIP_NAME" 2>/dev/null || \
-                zip -r "$ZIP_NAME" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
-              else
-                zip -r "$ZIP_NAME" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
-              fi
-              
-              echo "✅ Created: $ZIP_DIR/$ZIP_NAME"
-              cd - >/dev/null
-            done
+            echo "📦 Creating ZIP for main app: $APP_PATH"
+            cd "$ZIP_DIR"
+            
+            # Use ditto for better macOS compatibility if available
+            if command -v ditto >/dev/null 2>&1; then
+              ditto -c -k --keepParent "$APP_NAME" "$ZIP_NAME" 2>/dev/null || \
+              zip -r "$ZIP_NAME" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+            else
+              zip -r "$ZIP_NAME" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+            fi
+            
+            echo "✅ Created: $ZIP_DIR/$ZIP_NAME"
+            cd - >/dev/null
+          done
             
             # Check again after manual creation
-            NEW_ZIP_COUNT=$(find out -name "*.zip" -not -name "Cyoda.Helper*.zip" -type f | wc -l)
+            NEW_ZIP_COUNT=$(find out -name "*.zip" -not -name "*Helper*.zip" -type f | wc -l)
             echo "📊 After manual creation: $NEW_ZIP_COUNT ZIP files"
           fi
           
           # Now find and copy/rename ZIP files with clear macOS naming
-          find out -name "*.zip" -not -name "Cyoda.Helper*.zip" -type f | while read ZIP_FILE; do
+          find out -name "*.zip" -not -name "*Helper*.zip" -type f | while read ZIP_FILE; do
             if [ -f "$ZIP_FILE" ]; then
               BASENAME=$(basename "$ZIP_FILE" .zip)
               NEW_NAME="Cyoda-macOS-${VERSION}.zip"
@@ -475,7 +474,7 @@ jobs:
           if [ ! -f dist-release/Cyoda-macOS-${VERSION}.zip ]; then
             echo "🆘 No ZIP files copied, creating fallback..."
             
-            APP_FILE=$(find out -name "*.app" -type d | head -1)
+            APP_FILE=$(find out -name "*.app" -type d -not -name "*Helper*" | head -1)
             if [ -n "$APP_FILE" ] && [ -d "$APP_FILE" ]; then
               echo "📱 Creating fallback ZIP from: $APP_FILE"
               cd "$(dirname "$APP_FILE")"
