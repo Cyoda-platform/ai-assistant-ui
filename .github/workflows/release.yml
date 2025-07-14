@@ -333,21 +333,32 @@ jobs:
             # Remove extended attributes that might cause issues
             find "$APP_PATH" -type f -exec xattr -c {} \; 2>/dev/null || true
             
-            # Code signing for macOS
+            # Code signing for macOS - always sign with ad-hoc if no identity specified
             if [[ "$ENABLE_CODE_SIGNING" == "true" ]] && [[ -n "$APPLE_IDENTITY" ]]; then
-              echo "🔐 Code signing app bundle..."
+              echo "🔐 Code signing app bundle with Apple Developer certificate..."
               
               # Sign all executables and frameworks first
               find "$APP_PATH" \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) -exec codesign --force --verify --verbose --sign "$APPLE_IDENTITY" {} \; 2>/dev/null || true
               
               # Sign the main app bundle
               codesign --force --verify --verbose --sign "$APPLE_IDENTITY" --entitlements "${PWD}/build/entitlements.mac.plist" "$APP_PATH" 2>/dev/null || {
-                echo "⚠️ Code signing failed, but continuing..."
+                echo "⚠️ Code signing with Apple cert failed, falling back to ad-hoc..."
+                codesign --force --sign "-" "$APP_PATH" 2>/dev/null || true
               }
               
               echo "✅ Code signing completed"
             else
-              echo "ℹ️ Skipping code signing (ENABLE_CODE_SIGNING=${ENABLE_CODE_SIGNING})"
+              echo "🔐 Code signing app bundle with ad-hoc signature..."
+              
+              # Sign all executables and frameworks with ad-hoc signature
+              find "$APP_PATH" \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) -exec codesign --force --sign "-" {} \; 2>/dev/null || true
+              
+              # Sign the main app bundle with ad-hoc signature
+              codesign --force --sign "-" "$APP_PATH" 2>/dev/null || {
+                echo "⚠️ Ad-hoc code signing failed, but continuing..."
+              }
+              
+              echo "✅ Ad-hoc code signing completed"
             fi
             
             echo "✅ Processed: $APP_PATH"
@@ -390,21 +401,32 @@ jobs:
                   chmod 644 "$APP_IN_ZIP/Contents/Info.plist" 2>/dev/null || true
                 fi
                 
-                # Code signing for macOS (in ZIP)
+                # Code signing for macOS (in ZIP) - always sign with ad-hoc if no identity specified
                 if [[ "$ENABLE_CODE_SIGNING" == "true" ]] && [[ -n "$APPLE_IDENTITY" ]]; then
-                  echo "🔐 Code signing app in ZIP..."
+                  echo "🔐 Code signing app in ZIP with Apple Developer certificate..."
                   
                   # Sign all executables and frameworks first
                   find "$APP_IN_ZIP" \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) -exec codesign --force --verify --verbose --sign "$APPLE_IDENTITY" {} \; 2>/dev/null || true
                   
                   # Sign the main app bundle
                   codesign --force --verify --verbose --sign "$APPLE_IDENTITY" "$APP_IN_ZIP" 2>/dev/null || {
-                    echo "⚠️ Code signing failed in ZIP, but continuing..."
+                    echo "⚠️ Code signing with Apple cert failed, falling back to ad-hoc..."
+                    codesign --force --sign "-" "$APP_IN_ZIP" 2>/dev/null || true
                   }
                   
                   echo "✅ Code signing completed in ZIP"
                 else
-                  echo "ℹ️ Skipping code signing in ZIP (ENABLE_CODE_SIGNING=${ENABLE_CODE_SIGNING})"
+                  echo "🔐 Code signing app in ZIP with ad-hoc signature..."
+                  
+                  # Sign all executables and frameworks with ad-hoc signature
+                  find "$APP_IN_ZIP" \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) -exec codesign --force --sign "-" {} \; 2>/dev/null || true
+                  
+                  # Sign the main app bundle with ad-hoc signature
+                  codesign --force --sign "-" "$APP_IN_ZIP" 2>/dev/null || {
+                    echo "⚠️ Ad-hoc code signing failed in ZIP, but continuing..."
+                  }
+                  
+                  echo "✅ Ad-hoc code signing completed in ZIP"
                 fi
                 
                 echo "✅ Optimized app in ZIP: $APP_IN_ZIP"
@@ -458,6 +480,12 @@ jobs:
             xattr -cr "$APP_NAME" 2>/dev/null || true
             find "$APP_NAME" -type f -exec xattr -c {} \; 2>/dev/null || true
             
+            # Always perform ad-hoc code signing before zipping
+            echo "🔐 Ad-hoc code signing before ZIP creation..."
+            find "$APP_NAME" \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) -exec codesign --force --sign "-" {} \; 2>/dev/null || true
+            codesign --force --sign "-" "$APP_NAME" 2>/dev/null || true
+            echo "✅ Ad-hoc code signing completed"
+            
             # Use ditto for better macOS compatibility if available
             if command -v ditto >/dev/null 2>&1; then
               ditto -c -k --keepParent "$APP_NAME" "$ZIP_NAME" 2>/dev/null || \
@@ -505,6 +533,12 @@ jobs:
               # Remove quarantine attributes before zipping
               xattr -cr "$APP_NAME" 2>/dev/null || true
               find "$APP_NAME" -type f -exec xattr -c {} \; 2>/dev/null || true
+              
+              # Always perform ad-hoc code signing before zipping
+              echo "🔐 Ad-hoc code signing before fallback ZIP creation..."
+              find "$APP_NAME" \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) -exec codesign --force --sign "-" {} \; 2>/dev/null || true
+              codesign --force --sign "-" "$APP_NAME" 2>/dev/null || true
+              echo "✅ Ad-hoc code signing completed"
               
               if command -v ditto >/dev/null 2>&1; then
                 ditto -c -k --keepParent "$APP_NAME" "../dist-release/Cyoda-macOS-${VERSION}.zip" 2>/dev/null || \
