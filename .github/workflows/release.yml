@@ -102,21 +102,23 @@ jobs:
           $COMMITS
           
           ### 📦 Downloads
-          - **macOS**: Download the DMG file and use the included installation helper if needed
+          - **macOS**: Download the ZIP file for easier installation (no DMG quarantine issues)
           - **Linux**: Use the .deb, .rpm, or .AppImage file depending on your distribution  
           - **Windows**: Use the .exe installer
           
           ### ⚠️ Installation Notes
-          - **macOS users**: DMG opens normally → drag app to Applications → right-click app → Open (first time)
+          - **macOS users**: Extract ZIP → drag app to Applications → double-click to launch (or right-click → Open if needed)
           - **Linux users**: Choose the package format that matches your distribution
           - **Windows users**: Run the .exe installer with administrator privileges if needed
           
-          ### 🍎 macOS Security Process
-          1. Open the downloaded DMG file
+          ### 🍎 macOS ZIP Installation (Simplified)
+          1. Download and extract the ZIP file
           2. Drag Cyoda.app to Applications folder
-          3. **First launch**: Right-click the app → "Open" (not double-click)
-          4. Click "Open" in the security dialog
+          3. **First launch**: Double-click the app (or right-click → "Open" if security dialog appears)
+          4. Click "Open" in any security dialog
           5. Subsequent launches work normally
+          
+          **Why ZIP instead of DMG?** ZIP archives typically have fewer macOS quarantine/security issues!
           
           ### 🔧 Technical Details
           - Built with Electron Forge
@@ -156,7 +158,6 @@ jobs:
             arch: arm64
             artifact_name: cyoda-macos-arm64
             files: |
-              packages/desktop/out/cyoda-build/make/*.dmg
               packages/desktop/out/cyoda-build/make/*.zip
           - os: windows-latest
             platform: win32
@@ -264,130 +265,107 @@ jobs:
         timeout-minutes: 10
         shell: bash
 
-      - name: Build for macOS (unsigned)
+      - name: Build for macOS (ZIP-only)
         if: matrix.platform == 'darwin'
         run: |
-          echo "🔧 Building for macOS (unsigned)..."
+          echo "🔧 Building for macOS (ZIP-only distribution)..."
           yarn workspace desktop make:unsigned
           
-          echo "🔧 Preparing unsigned app for distribution..."
+          echo "🔧 Preparing ZIP archives for better macOS compatibility..."
           cd packages/desktop
           
-          # Find and process .app files with ad-hoc signing
+          # Remove DMG files to force ZIP-only distribution
+          find out -name "*.dmg" -type f -delete 2>/dev/null || true
+          echo "🗑️ Removed DMG files to ensure ZIP-only distribution"
+          
+          # Process .app files with improved signing
           find out -name "*.app" -type d | while read APP_PATH; do
-            echo "📱 Processing: $APP_PATH"
+            echo "📱 Processing app bundle: $APP_PATH"
             
-            # Find the main executable and make it executable
-            MAIN_EXEC=$(find "$APP_PATH/Contents/MacOS" -type f -executable | head -1)
-            if [ -n "$MAIN_EXEC" ]; then
-              echo "🔍 Found main executable: $MAIN_EXEC"
-              chmod +x "$MAIN_EXEC"
+            # Make all executables in MacOS directory executable
+            if [[ -d "$APP_PATH/Contents/MacOS" ]]; then
+              find "$APP_PATH/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null || true
+              echo "✅ Made executables in MacOS directory executable"
             fi
             
-            # Make all files in MacOS directory executable
-            find "$APP_PATH/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null || true
+            # Remove quarantine attributes from the .app bundle entirely
+            echo "🧹 Removing quarantine attributes from app bundle..."
+            xattr -cr "$APP_PATH" 2>/dev/null || true
             
-            # Ad-hoc sign the application (this allows macOS Security to show proper dialog)
+            # Ad-hoc sign the application (lightweight signing)
             echo "🔏 Ad-hoc signing application..."
             codesign --force --deep --sign - "$APP_PATH" 2>/dev/null || true
             
-            echo "✅ Processed and signed: $APP_PATH"
-          done
-          
-          # Process and sign .dmg files (simple approach)
-          find out -name "*.dmg" -type f | while read DMG_PATH; do
-            echo "💿 Processing DMG: $DMG_PATH"
-            # Just ad-hoc sign the DMG - no quarantine removal
-            codesign --force --sign - "$DMG_PATH" 2>/dev/null || true
-            echo "✅ DMG signed: $DMG_PATH"
+            echo "✅ Processed: $APP_PATH"
           done
 
-          # Process .zip archives for macOS (they may contain .app bundles)
-          find out -name "*darwin*.zip" -o -name "*mac*.zip" -o -name "*osx*.zip" | while read ZIP_PATH; do
-            echo "📦 Processing macOS ZIP: $ZIP_PATH"
+          # Process and optimize .zip archives for macOS
+          find out -name "*.zip" -type f | while read ZIP_PATH; do
+            echo "📦 Optimizing ZIP for macOS: $ZIP_PATH"
             
-            # Create temp directory for extraction
+            # Create temp directory for ZIP processing
             TEMP_DIR=$(mktemp -d)
+            ORIGINAL_DIR=$(pwd)
             cd "$TEMP_DIR"
             
-            # Extract and sign .app bundles
-            if unzip -q "$OLDPWD/$ZIP_PATH" 2>/dev/null; then
+            # Extract the ZIP
+            if unzip -q "$ORIGINAL_DIR/$ZIP_PATH" 2>/dev/null; then
+              echo "📂 Extracted ZIP contents"
+              
+              # Process any .app bundles in the ZIP
               find . -name "*.app" -type d | while read APP_IN_ZIP; do
-                echo "🔏 Signing app in ZIP: $APP_IN_ZIP"
+                echo "� Processing app in ZIP: $APP_IN_ZIP"
+                
+                # Remove quarantine attributes
+                xattr -cr "$APP_IN_ZIP" 2>/dev/null || true
                 
                 # Make executables executable
                 if [[ -d "$APP_IN_ZIP/Contents/MacOS" ]]; then
                   find "$APP_IN_ZIP/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null || true
                 fi
                 
-                # Ad-hoc sign the app (keeps quarantine for proper macOS security dialog)
+                # Ad-hoc sign
                 codesign --force --deep --sign - "$APP_IN_ZIP" 2>/dev/null || true
+                
+                echo "✅ Optimized app in ZIP: $APP_IN_ZIP"
               done
               
-              # Recreate the ZIP
-              rm -f "$OLDPWD/$ZIP_PATH"
-              zip -r "$OLDPWD/$ZIP_PATH" . 2>/dev/null || true
+              # Recreate ZIP with better compression and no extra attributes
+              rm -f "$ORIGINAL_DIR/$ZIP_PATH"
+              zip -r "$ORIGINAL_DIR/$ZIP_PATH" . -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+              echo "✅ Recreated optimized ZIP"
+            else
+              echo "⚠️ Could not extract ZIP, keeping original"
             fi
             
-            cd "$OLDPWD"
+            cd "$ORIGINAL_DIR"
             rm -rf "$TEMP_DIR"
-            
-            echo "✅ ZIP processed: $ZIP_PATH"
           done
 
-          # Create installation script for macOS
-          cat > out/install-macos.sh << 'INSTALL_SCRIPT'
-          #!/bin/bash
-          echo "🍎 macOS Installation Helper"
-          echo "This script helps with the initial app launch process"
-          echo ""
-          echo "ℹ️  Standard macOS Security Process:"
-          echo "   1. Open the DMG file normally"
-          echo "   2. Drag the app to Applications folder"
-          echo "   3. Right-click the app → Open (first time only)"
-          echo "   4. Click 'Open' in the security dialog"
-          echo ""
-          echo "If you need to force-remove quarantine attributes, use this script:"
-          echo ""
+          # Create simplified installation instructions for ZIP
+          cat > out/README-macOS-Installation.txt << 'EOF'
+          macOS Installation from ZIP
           
-          # Function to clean an app (for troubleshooting only)
-          clean_app() {
-              local app_path="$1"
-              if [[ -d "$app_path" ]]; then
-                  echo "🧹 Removing quarantine from: $app_path"
-                  sudo xattr -d com.apple.quarantine "$app_path" 2>/dev/null || true
-                  find "$app_path/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null || true
-                  echo "✅ Quarantine removed"
-              else
-                  echo "❌ App not found: $app_path"
-              fi
-          }
+          SIMPLE INSTALLATION:
+          1. Download the .zip file
+          2. Double-click to extract -> Cyoda.app appears
+          3. Drag Cyoda.app to Applications folder  
+          4. Double-click Cyoda.app to launch
           
-          # Check if argument provided
-          if [[ $# -eq 0 ]]; then
-              echo "💡 For normal installation, just right-click the app and select 'Open'"
-              echo ""
-              echo "For troubleshooting, use: $0 <path-to-app>"
-              echo "Example: $0 /Applications/cyoda.app"
-              exit 0
-          fi
+          If macOS shows security warning:
+          1. Right-click Cyoda.app -> "Open"
+          2. Click "Open" in the dialog
+          3. App will launch normally
           
-          TARGET="$1"
+          ZIP archives typically have fewer quarantine issues than DMG files!
           
-          if [[ "$TARGET" == *.app ]]; then
-              clean_app "$TARGET"
-              echo ""
-              echo "🎉 Try launching the app now!"
-          else
-              echo "❌ Please provide a .app file"
-              echo "Example: $0 /Applications/cyoda.app"
-              exit 1
-          fi
-          INSTALL_SCRIPT
+          If you still have issues:
+          Run in Terminal: xattr -d com.apple.quarantine /Applications/Cyoda.app
+          
+          Note: This app is unsigned but safe to run.
+          EOF
 
-          chmod +x out/install-macos.sh
-
-          echo "✅ macOS build processing complete"
+          echo "✅ macOS ZIP-only build processing complete"
         timeout-minutes: 10
         continue-on-error: true
 
