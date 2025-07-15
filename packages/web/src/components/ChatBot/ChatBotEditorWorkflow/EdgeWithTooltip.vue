@@ -26,21 +26,16 @@ const props = defineProps<EdgeProps<EdgeData>>()
 const { highlightedTransition } = useTransitionHighlight()
 
 const edgePath = computed(() => {
-  // Проверяем, является ли это self-loop (переход в себя)
   if (props.source === props.target) {
-    // Для self-loop создаем дугу, которая выходит из правой точки и возвращается в левую
     const startX = props.sourceX
     const startY = props.sourceY
     const endX = props.targetX
     const endY = props.targetY
-    
-    // Радиус для self-loop дуги
+
     const radius = 80
     const offset = 120
-    
-    // Если у нас right-source и left-target (стандартная self-loop конфигурация)
+
     if (props.sourcePosition === 'right' && props.targetPosition === 'left') {
-      // Создаем дугу справа, которая огибает узел и возвращается слева
       const controlX1 = startX + offset
       const controlY1 = startY - radius
       const controlX2 = endX - offset
@@ -48,10 +43,8 @@ const edgePath = computed(() => {
       
       return `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`
     }
-    
-    // Для других конфигураций self-loop
+
     if (props.sourcePosition === 'left' && props.targetPosition === 'right') {
-      // Дуга слева направо
       const controlX1 = startX - offset
       const controlY1 = startY - radius
       const controlX2 = endX + offset
@@ -61,7 +54,6 @@ const edgePath = computed(() => {
     }
     
     if (props.sourcePosition === 'top' && props.targetPosition === 'bottom') {
-      // Дуга сверху вниз
       const controlX1 = startX - radius
       const controlY1 = startY - offset
       const controlX2 = endX - radius
@@ -71,7 +63,6 @@ const edgePath = computed(() => {
     }
     
     if (props.sourcePosition === 'bottom' && props.targetPosition === 'top') {
-      // Дуга снизу вверх
       const controlX1 = startX + radius
       const controlY1 = startY + offset
       const controlX2 = endX + radius
@@ -79,8 +70,7 @@ const edgePath = computed(() => {
       
       return `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`
     }
-    
-    // Фолбэк - дуга справа (если конфигурация не распознана)
+
     const controlX1 = startX + offset
     const controlY1 = startY - radius
     const controlX2 = endX - offset
@@ -89,7 +79,6 @@ const edgePath = computed(() => {
     return `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`
   }
 
-  // Для обычных edges используем стандартный bezier path
   const [path] = getBezierPath({
     sourceX: props.sourceX,
     sourceY: props.sourceY,
@@ -101,7 +90,6 @@ const edgePath = computed(() => {
   return path
 })
 
-// Создаем уникальный ID для перехода на основе source и target
 const transitionId = computed(() => {
   return `${props.source}-${props.data?.transitionName || 'unnamed'}`
 })

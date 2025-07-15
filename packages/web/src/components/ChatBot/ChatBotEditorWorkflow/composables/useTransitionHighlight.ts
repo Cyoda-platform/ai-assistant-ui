@@ -1,6 +1,5 @@
 import { ref } from 'vue'
 
-// Глобальное состояние для подсветки переходов
 const highlightedTransition = ref<string | null>(null)
 const highlightedSourceNode = ref<string | null>(null)
 const highlightedTargetNode = ref<string | null>(null)

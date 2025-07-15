@@ -51,7 +51,7 @@ interface Transition {
   id: string
   name?: string
   direction: string
-  fullData?: unknown // Полные данные перехода из workflow
+  fullData?: unknown
 }
 
 interface NodeData {
@@ -68,7 +68,6 @@ const props = defineProps<{
 
 const nodeRef = ref()
 
-// Use dropdown manager with unique node ID
 const nodeId = computed(() => props.data.label || 'unknown')
 const { 
   isOpen: isDropdownOpen, 
@@ -78,7 +77,6 @@ const {
   activeDropdownId 
 } = useDropdownManager(nodeId.value)
 
-// Use transition highlight composable
 const {
   setHighlight,
   clearHighlight,
@@ -86,12 +84,10 @@ const {
   shouldDimNode
 } = useTransitionHighlight()
 
-// Watch for changes in active dropdown to update local state
 watch(activeDropdownId, () => {
   updateState()
 })
 
-// Close dropdown when clicking outside
 const handleDocumentClick = (event: Event) => {
   const target = event.target as Element
   if (nodeRef.value && !nodeRef.value.contains(target)) {
@@ -126,13 +122,10 @@ const nodeTypeClass = computed(() => {
 })
 
 const editTransition = (transition: Transition) => {
-  // Закрыть dropdown перед открытием диалога
   closeOnClickOutside()
-  
-  // Найти данные перехода в состоянии текущей node
+
   const stateName = nodeId.value
-  
-  // Создаем структуру с именем перехода как ключом для правильного отображения в редакторе
+
   const transitionStructure = transition.fullData || {
     next: transition.direction
   }
@@ -140,8 +133,7 @@ const editTransition = (transition: Transition) => {
   const fullTransitionStructure: Record<string, unknown> = {
     [transition.name as string]: transitionStructure
   }
-  
-  // Открыть диалог редактирования через eventBus
+
   eventBus.$emit('show-condition-popup', {
     stateName: stateName,
     transitionName: transition.name,
@@ -150,7 +142,6 @@ const editTransition = (transition: Transition) => {
 }
 
 const handleTransitionHover = (transition: Transition) => {
-  // Находим целевую ноду по направлению перехода
   const targetNodeId = transition.direction
   setHighlight(transition.id, nodeId.value, targetNodeId)
 }
