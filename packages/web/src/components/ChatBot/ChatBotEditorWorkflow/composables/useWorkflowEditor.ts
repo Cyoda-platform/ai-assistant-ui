@@ -111,8 +111,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     const sourceNode = nodes.value.find(n => n.id === stateName);
                     const targetNode = nodes.value.find(n => n.id === transition.next);
 
-                    let sourceHandle = 'right';
-                    let targetHandle = 'left';
+                    let sourceHandle = 'right-source';
+                    let targetHandle = 'left-target';
 
                     if (sourceNode && targetNode) {
                         if (stateName === transition.next) {
@@ -125,23 +125,22 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                             const targetX = targetNode.position.x;
 
                             const deltaY = Math.abs(targetY - sourceY);
-                            const deltaX = Math.abs(targetX - sourceX);
 
-                            if (deltaY > deltaX && deltaY > 60) {
+                            if (deltaY > 30) {
                                 if (targetY > sourceY) {
-                                    sourceHandle = 'bottom';
-                                    targetHandle = 'top';
+                                    sourceHandle = 'bottom-source';
+                                    targetHandle = 'top-target';
                                 } else {
-                                    sourceHandle = 'top';
-                                    targetHandle = 'bottom';
+                                    sourceHandle = 'top-source';
+                                    targetHandle = 'bottom-target';
                                 }
                             } else {
                                 if (targetX > sourceX) {
-                                    sourceHandle = 'right';
-                                    targetHandle = 'left';
+                                    sourceHandle = 'right-source';
+                                    targetHandle = 'left-target';
                                 } else {
-                                    sourceHandle = 'left';
-                                    targetHandle = 'right';
+                                    sourceHandle = 'left-source';
+                                    targetHandle = 'right-target';
                                 }
                             }
                         }
