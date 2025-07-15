@@ -252,6 +252,7 @@ const handleTransitionLeave = () => {
   transition: all 0.2s ease;
   white-space: nowrap;
   min-width: 0;
+  border-left: 3px solid transparent;
   
   &:last-child {
     border-bottom: none;
