@@ -127,41 +127,21 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                             const deltaY = Math.abs(targetY - sourceY);
                             const deltaX = Math.abs(targetX - sourceX);
 
-                            const reverseTransitionExists = Object.entries(states).some(([reverseStateName, reverseStateData]) => {
-                                const reverseState = reverseStateData as WorkflowState;
-                                return reverseStateName === transition.next &&
-                                       reverseState.transitions &&
-                                       Object.values(reverseState.transitions).some((t: any) => t.next === stateName);
-                            });
-
-                            if (reverseTransitionExists) {
-                                if (sourceX < targetX) {
-                                    sourceHandle = 'bottom-source';
-                                    targetHandle = 'bottom-target';
+                            if (deltaY > deltaX && deltaY > 60) {
+                                if (targetY > sourceY) {
+                                    sourceHandle = 'bottom';
+                                    targetHandle = 'top';
                                 } else {
-                                    sourceHandle = 'top-source';
-                                    targetHandle = 'top-target';
+                                    sourceHandle = 'top';
+                                    targetHandle = 'bottom';
                                 }
                             } else {
-                                if (deltaY > 80 && deltaX < 200) {
-                                    if (targetY > sourceY) {
-                                        sourceHandle = 'bottom';
-                                        targetHandle = 'top';
-                                    } else {
-                                        sourceHandle = 'top-source';
-                                        targetHandle = 'bottom-target';
-                                    }
-                                } else if (targetX < sourceX) {
-                                    if (targetY > sourceY + 50) {
-                                        sourceHandle = 'bottom';
-                                        targetHandle = 'top';
-                                    } else if (targetY < sourceY - 50) {
-                                        sourceHandle = 'top-source';
-                                        targetHandle = 'bottom-target';
-                                    } else {
-                                        sourceHandle = 'left';
-                                        targetHandle = 'right';
-                                    }
+                                if (targetX > sourceX) {
+                                    sourceHandle = 'right';
+                                    targetHandle = 'left';
+                                } else {
+                                    sourceHandle = 'left';
+                                    targetHandle = 'right';
                                 }
                             }
                         }
