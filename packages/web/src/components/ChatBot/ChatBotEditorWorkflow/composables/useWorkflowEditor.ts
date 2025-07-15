@@ -33,6 +33,12 @@ export interface WorkflowNode {
         label: string;
         stateName: string;
         transitionCount: number;
+        transitions: Array<{
+            id: string;
+            name: string;
+            direction: string;
+            fullData: any;
+        }>;
         isInitial: boolean;
         isTerminal: boolean;
     };
@@ -86,7 +92,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     // Computed edges
     const edges = computed<WorkflowEdge[]>(() => {
-        if (!canvasData.value) return;
+        if (!canvasData.value) return [];
         const result: WorkflowEdge[] = [];
         let parsed: WorkflowData;
 
@@ -224,6 +230,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             const transitionCount = Object.keys(state.transitions || {}).length;
             const isTerminal = transitionCount === 0;
 
+            // Prepare transitions data for the dropdown
+            const transitions = state.transitions ? Object.entries(state.transitions).map(([transitionName, transitionData]: [string, any]) => ({
+                id: `${stateName}-${transitionName}`,
+                name: transitionName,
+                direction: transitionData.next || 'Unknown',
+                fullData: transitionData // Сохраняем полные данные перехода
+            })) : [];
+
             // Use saved positions if available, otherwise calculate smart layout
             const position = hasSavedPositions
                 ? savedPositions[stateName] || calculateSmartPosition(stateName, states, initialState)
@@ -236,6 +250,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     label: stateName,
                     stateName,
                     transitionCount,
+                    transitions,
                     isInitial: stateName === initialState,
                     isTerminal,
                 },
@@ -267,7 +282,42 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             state.transitions = {};
         }
 
-        state.transitions[transitionName] = transitionData;
+        // Сохраняем порядок переходов
+        const transitionEntries = Object.entries(state.transitions);
+        const oldTransitionIndex = transitionEntries.findIndex(([key]) => key === transitionName);
+        
+        // Создаем новый объект переходов с сохранением порядка
+        const newTransitions: Record<string, unknown> = {};
+        
+        if (transitionData && typeof transitionData === 'object') {
+            const newTransitionEntries = Object.entries(transitionData);
+            
+            // Если редактируем существующий переход
+            if (oldTransitionIndex !== -1) {
+                // Копируем переходы до редактируемого
+                for (let i = 0; i < oldTransitionIndex; i++) {
+                    const [key, value] = transitionEntries[i];
+                    newTransitions[key] = value;
+                }
+                
+                // Добавляем новые/измененные переходы в той же позиции
+                for (const [key, value] of newTransitionEntries) {
+                    newTransitions[key] = value;
+                }
+                
+                // Копируем переходы после редактируемого (кроме старого)
+                for (let i = oldTransitionIndex + 1; i < transitionEntries.length; i++) {
+                    const [key, value] = transitionEntries[i];
+                    newTransitions[key] = value;
+                }
+            } else {
+                // Если добавляем новый переход, добавляем в конец
+                Object.assign(newTransitions, state.transitions);
+                Object.assign(newTransitions, transitionData);
+            }
+        }
+        
+        state.transitions = newTransitions;
         canvasData.value = JSON.stringify(parsed, null, 2);
     }
 
@@ -332,7 +382,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function onResize() {
-        fitView();
+        // fitView();
     }
 
     // Setup event listeners
