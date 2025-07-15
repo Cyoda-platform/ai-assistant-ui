@@ -119,8 +119,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     if (sourceNode && targetNode) {
                         // Special handling for self-loops
                         if (stateName === transition.next) {
+                            // Для self-loop переходов используем right-source и left-target
+                            // чтобы создать красивую дугу вокруг узла
                             sourceHandle = 'right-source';
-                            targetHandle = 'top-target';
+                            targetHandle = 'left-target';
                         } else {
                             const sourceY = sourceNode.position.y;
                             const targetY = targetNode.position.y;
