@@ -1,7 +1,7 @@
 <template>
   <div
     class="workflow-node"
-    :class="nodeTypeClass"
+    :class="[nodeTypeClass, { 'dimmed': shouldDimNode(nodeId) }]"
     ref="nodeRef"
   >
     <Handle type="target" :position="Position.Left" id="left-target" />
@@ -26,7 +26,10 @@
             v-for="transition in transitions" 
             :key="transition.id"
             class="transition-item"
+            :class="{ 'highlighted': isTransitionHighlighted(transition.id) }"
             @click="editTransition(transition)"
+            @mouseenter="handleTransitionHover(transition)"
+            @mouseleave="handleTransitionLeave"
           >
             <span class="transition-name">{{ transition.name || 'Unnamed' }}</span>
             <span class="transition-direction">→ {{ transition.direction }}</span>
@@ -41,13 +44,14 @@
 import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { Handle, Position } from '@vue-flow/core'
 import { useDropdownManager } from './composables/useDropdownManager'
+import { useTransitionHighlight } from './composables/useTransitionHighlight'
 import eventBus from '../../../plugins/eventBus'
 
 interface Transition {
   id: string
   name?: string
   direction: string
-  fullData?: any // Полные данные перехода из workflow
+  fullData?: unknown // Полные данные перехода из workflow
 }
 
 interface NodeData {
@@ -73,6 +77,14 @@ const {
   closeOnClickOutside,
   activeDropdownId 
 } = useDropdownManager(nodeId.value)
+
+// Use transition highlight composable
+const {
+  setHighlight,
+  clearHighlight,
+  isTransitionHighlighted,
+  shouldDimNode
+} = useTransitionHighlight()
 
 // Watch for changes in active dropdown to update local state
 watch(activeDropdownId, () => {
@@ -136,6 +148,16 @@ const editTransition = (transition: Transition) => {
     transitionData: fullTransitionStructure
   })
 }
+
+const handleTransitionHover = (transition: Transition) => {
+  // Находим целевую ноду по направлению перехода
+  const targetNodeId = transition.direction
+  setHighlight(transition.id, nodeId.value, targetNodeId)
+}
+
+const handleTransitionLeave = () => {
+  clearHighlight()
+}
 </script>
 
 <style scoped lang="scss">
@@ -149,10 +171,15 @@ const editTransition = (transition: Transition) => {
   border: none;
   white-space: nowrap;
   background-color: var(--color-primary);
+  opacity: 1;
 
   &:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+
+  &.dimmed {
+    opacity: 0.5;
   }
 }
 
@@ -231,7 +258,7 @@ const editTransition = (transition: Transition) => {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #f0f2f5;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
   min-width: 0;
   
@@ -241,6 +268,11 @@ const editTransition = (transition: Transition) => {
   
   &:hover {
     background-color: #f8f9fa;
+  }
+
+  &.highlighted {
+    background-color: #e3f2fd;
+    border-left: 3px solid var(--color-primary);
   }
 }
 
