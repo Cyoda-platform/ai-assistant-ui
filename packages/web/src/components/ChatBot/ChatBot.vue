@@ -240,7 +240,6 @@ watch(isLastMessageAnswer, async (value) => {
     @include breakpoints.respond-max('md') {
       width: 100vw;
     }
-    //padding-left: 5px;
   }
 
   &__inner-messages-col {
@@ -288,8 +287,5 @@ watch(isLastMessageAnswer, async (value) => {
     fill: rgb(230, 162, 60);
   }
 
-  &__placeholder {
-    //transition: all 1s linear;
-  }
 }
 </style>

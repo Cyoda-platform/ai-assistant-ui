@@ -33,6 +33,12 @@ export interface WorkflowNode {
         label: string;
         stateName: string;
         transitionCount: number;
+        transitions: Array<{
+            id: string;
+            name: string;
+            direction: string;
+            fullData: any;
+        }>;
         isInitial: boolean;
         isTerminal: boolean;
     };
@@ -80,13 +86,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     const {setViewport, fitView} = useVueFlow();
 
-    // Initialize node position storage
     const nodePositionStorage = new NodePositionStorage(helperStorage, props.technicalId);
     const workflowMetaData = ref(nodePositionStorage.loadPositions());
 
-    // Computed edges
     const edges = computed<WorkflowEdge[]>(() => {
-        if (!canvasData.value) return;
+        if (!canvasData.value) return [];
         const result: WorkflowEdge[] = [];
         let parsed: WorkflowData;
 
@@ -107,14 +111,13 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     const sourceNode = nodes.value.find(n => n.id === stateName);
                     const targetNode = nodes.value.find(n => n.id === transition.next);
 
-                    let sourceHandle = 'right';
-                    let targetHandle = 'left';
+                    let sourceHandle = 'right-source';
+                    let targetHandle = 'left-target';
 
                     if (sourceNode && targetNode) {
-                        // Special handling for self-loops
                         if (stateName === transition.next) {
                             sourceHandle = 'right-source';
-                            targetHandle = 'top-target';
+                            targetHandle = 'left-target';
                         } else {
                             const sourceY = sourceNode.position.y;
                             const targetY = targetNode.position.y;
@@ -122,48 +125,22 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                             const targetX = targetNode.position.x;
 
                             const deltaY = Math.abs(targetY - sourceY);
-                            const deltaX = Math.abs(targetX - sourceX);
 
-                            // Check if there's a reverse transition to create curved paths
-                            const reverseTransitionExists = Object.entries(states).some(([reverseStateName, reverseStateData]) => {
-                                const reverseState = reverseStateData as WorkflowState;
-                                return reverseStateName === transition.next &&
-                                       reverseState.transitions &&
-                                       Object.values(reverseState.transitions).some((t: any) => t.next === stateName);
-                            });
-
-                            if (reverseTransitionExists) {
-                                // For bidirectional edges, use different handles to create curved paths
-                                if (sourceX < targetX) {
-                                    // Going left to right - use bottom handles for curve
+                            if (deltaY > 30) {
+                                if (targetY > sourceY) {
                                     sourceHandle = 'bottom-source';
-                                    targetHandle = 'bottom-target';
-                                } else {
-                                    // Going right to left - use top handles for curve
-                                    sourceHandle = 'top-source';
                                     targetHandle = 'top-target';
+                                } else {
+                                    sourceHandle = 'top-source';
+                                    targetHandle = 'bottom-target';
                                 }
                             } else {
-                                // Standard logic for single-direction edges
-                                if (deltaY > 80 && deltaX < 200) {
-                                    if (targetY > sourceY) {
-                                        sourceHandle = 'bottom';
-                                        targetHandle = 'top';
-                                    } else {
-                                        sourceHandle = 'top-source';
-                                        targetHandle = 'bottom-target';
-                                    }
-                                } else if (targetX < sourceX) {
-                                    if (targetY > sourceY + 50) {
-                                        sourceHandle = 'bottom';
-                                        targetHandle = 'top';
-                                    } else if (targetY < sourceY - 50) {
-                                        sourceHandle = 'top-source';
-                                        targetHandle = 'bottom-target';
-                                    } else {
-                                        sourceHandle = 'left';
-                                        targetHandle = 'right';
-                                    }
+                                if (targetX > sourceX) {
+                                    sourceHandle = 'right-source';
+                                    targetHandle = 'left-target';
+                                } else {
+                                    sourceHandle = 'left-source';
+                                    targetHandle = 'right-target';
                                 }
                             }
                         }
@@ -216,7 +193,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const states = parsed.states || {};
         const initialState = parsed.initial_state;
 
-        // Check if we have saved positions, if so use them
         const hasSavedPositions = Object.keys(savedPositions).length > 0;
 
         for (const [stateName, stateData] of Object.entries(states)) {
@@ -224,7 +200,13 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             const transitionCount = Object.keys(state.transitions || {}).length;
             const isTerminal = transitionCount === 0;
 
-            // Use saved positions if available, otherwise calculate smart layout
+            const transitions = state.transitions ? Object.entries(state.transitions).map(([transitionName, transitionData]: [string, any]) => ({
+                id: `${stateName}-${transitionName}`,
+                name: transitionName,
+                direction: transitionData.next || 'Unknown',
+                fullData: transitionData
+            })) : [];
+
             const position = hasSavedPositions
                 ? savedPositions[stateName] || calculateSmartPosition(stateName, states, initialState)
                 : calculateSmartPosition(stateName, states, initialState);
@@ -236,6 +218,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     label: stateName,
                     stateName,
                     transitionCount,
+                    transitions,
                     isInitial: stateName === initialState,
                     isTerminal,
                 },
@@ -267,7 +250,35 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             state.transitions = {};
         }
 
-        state.transitions[transitionName] = transitionData;
+        const transitionEntries = Object.entries(state.transitions);
+        const oldTransitionIndex = transitionEntries.findIndex(([key]) => key === transitionName);
+
+        const newTransitions: Record<string, unknown> = {};
+        
+        if (transitionData && typeof transitionData === 'object') {
+            const newTransitionEntries = Object.entries(transitionData);
+
+            if (oldTransitionIndex !== -1) {
+                for (let i = 0; i < oldTransitionIndex; i++) {
+                    const [key, value] = transitionEntries[i];
+                    newTransitions[key] = value;
+                }
+
+                for (const [key, value] of newTransitionEntries) {
+                    newTransitions[key] = value;
+                }
+
+                for (let i = oldTransitionIndex + 1; i < transitionEntries.length; i++) {
+                    const [key, value] = transitionEntries[i];
+                    newTransitions[key] = value;
+                }
+            } else {
+                Object.assign(newTransitions, state.transitions);
+                Object.assign(newTransitions, transitionData);
+            }
+        }
+        
+        state.transitions = newTransitions;
         canvasData.value = JSON.stringify(parsed, null, 2);
     }
 
@@ -308,15 +319,12 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         const positions: Record<string, { x: number; y: number }> = {};
 
-        // Apply smart positioning to all nodes
         for (const stateName of Object.keys(states)) {
             positions[stateName] = calculateSmartPosition(stateName, states, initialState);
         }
 
-        // Apply force-directed adjustments for better spacing
         optimizePositions(positions);
 
-        // Update node positions
         nodes.value = nodes.value.map((node: WorkflowNode) => ({
             ...node,
             position: positions[node.id] || node.position
@@ -332,10 +340,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function onResize() {
-        fitView();
+        // fitView();
     }
 
-    // Setup event listeners
     onMounted(() => {
         eventBus.$on('save-transition', handleSaveCondition);
         generateNodes();
@@ -344,27 +351,22 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     onUnmounted(() => {
         eventBus.$off('save-transition', handleSaveCondition);
 
-        // Clear debounce timer
         if (debounceTimer) {
             clearTimeout(debounceTimer);
         }
     });
 
-    // Watch for changes in canvasData and regenerate nodes/edges
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     watch(canvasData, () => {
-        // Clear previous timer
         if (debounceTimer) {
             clearTimeout(debounceTimer);
         }
 
-        // Set new timer with 300ms debounce
         debounceTimer = setTimeout(() => {
             generateNodes();
         }, 300);
     });
 
-    // Provide condition change handler
     provide('onConditionChange', onEdgeConditionChange);
 
     return {

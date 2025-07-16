@@ -115,7 +115,6 @@ function onClickSupport() {
     gap: 12px;
     align-items: center;
     @include breakpoints.respond-max('md') {
-      //width: 100vw;
       flex: 1;
       min-width: 0;
     }

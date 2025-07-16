@@ -107,7 +107,6 @@ const edgesLocal = computed({
   flex: 1;
   min-height: 0;
 
-  // Ensure nodes can be dragged properly
   .vue-flow__node {
     cursor: grab;
 

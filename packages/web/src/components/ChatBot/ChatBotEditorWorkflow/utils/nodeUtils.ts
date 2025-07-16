@@ -84,15 +84,12 @@ export function applyAutoLayout(
   const initialState = workflowData.initial_state;
   const positions: NodePositionsMap = {};
 
-  // Apply smart positioning to all nodes
   for (const node of nodes) {
     positions[node.id] = calculatePosition(node.id, states, initialState);
   }
 
-  // Apply force-directed adjustments for better spacing
   optimizePositions(positions);
 
-  // Update node positions
   const updatedNodes = nodes.map((node: WorkflowNode) => ({
     ...node,
     position: positions[node.id] || node.position
@@ -101,23 +98,14 @@ export function applyAutoLayout(
   return { nodes: updatedNodes, positions };
 }
 
-/**
- * Reset viewport to default position
- */
 export function resetViewport(setViewport: (viewport: any) => void): void {
   setViewport({ x: 0, y: 0, zoom: 1 });
 }
 
-/**
- * Get node by ID
- */
 export function findNodeById(nodes: WorkflowNode[], nodeId: string): WorkflowNode | undefined {
   return nodes.find(node => node.id === nodeId);
 }
 
-/**
- * Get nodes by level (for layout purposes)
- */
 export function getNodesByLevel(nodes: WorkflowNode[], levels: Record<string, number>): Record<number, WorkflowNode[]> {
   const nodesByLevel: Record<number, WorkflowNode[]> = {};
 
@@ -132,9 +120,6 @@ export function getNodesByLevel(nodes: WorkflowNode[], levels: Record<string, nu
   return nodesByLevel;
 }
 
-/**
- * Calculate bounding box for a set of nodes
- */
 export function calculateBoundingBox(nodes: WorkflowNode[]): {
   minX: number;
   maxX: number;
