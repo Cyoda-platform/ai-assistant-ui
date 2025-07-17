@@ -20,10 +20,10 @@
           <span class="transition-count">{{ transitionCount }} {{ transitionCount === 1 ? 'transition' : 'transitions' }}</span>
           <span class="dropdown-arrow" :class="{ 'rotated': isDropdownOpen }">▼</span>
         </div>
-        
+
         <div class="dropdown-content" v-show="isDropdownOpen">
-          <div 
-            v-for="transition in transitions" 
+          <div
+            v-for="transition in transitions"
             :key="transition.id"
             class="transition-item"
             :class="{ 'highlighted': isTransitionHighlighted(transition.id) }"
@@ -69,12 +69,12 @@ const props = defineProps<{
 const nodeRef = ref()
 
 const nodeId = computed(() => props.data.label || 'unknown')
-const { 
-  isOpen: isDropdownOpen, 
-  toggleDropdown, 
-  updateState, 
+const {
+  isOpen: isDropdownOpen,
+  toggleDropdown,
+  updateState,
   closeOnClickOutside,
-  activeDropdownId 
+  activeDropdownId
 } = useDropdownManager(nodeId.value)
 
 const {
@@ -126,18 +126,15 @@ const editTransition = (transition: Transition) => {
 
   const stateName = nodeId.value
 
-  const transitionStructure = transition.fullData || {
+  const transitionData = transition.fullData || {
+    id: transition.name,
     next: transition.direction
-  }
-  
-  const fullTransitionStructure: Record<string, unknown> = {
-    [transition.name as string]: transitionStructure
   }
 
   eventBus.$emit('show-condition-popup', {
     stateName: stateName,
     transitionName: transition.name,
-    transitionData: fullTransitionStructure
+    transitionData: transitionData
   })
 }
 
@@ -201,7 +198,7 @@ const handleTransitionLeave = () => {
   padding: 4px 8px;
   border-radius: 4px;
   transition: background-color 0.2s ease;
-  
+
   &:hover {
     background-color: rgba(255, 255, 255, 0.1);
   }
@@ -218,7 +215,7 @@ const handleTransitionLeave = () => {
   font-size: 10px;
   margin-left: 8px;
   transition: transform 0.2s ease;
-  
+
   &.rotated {
     transform: rotate(180deg);
   }
@@ -253,11 +250,11 @@ const handleTransitionLeave = () => {
   white-space: nowrap;
   min-width: 0;
   border-left: 3px solid transparent;
-  
+
   &:last-child {
     border-bottom: none;
   }
-  
+
   &:hover {
     background-color: #f8f9fa;
   }

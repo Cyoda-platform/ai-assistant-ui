@@ -51,7 +51,15 @@ onUnmounted(() => {
 
 function openDialog(data: any) {
   currentEdgeData.value = data
-  conditionText.value = data.transitionData ? JSON.stringify(data.transitionData, null, 2) : '{\n  "next": ""\n}'
+
+  const defaultTransition = {
+    id: data.transitionName || "",
+    next: ""
+  }
+  
+  const transitionToEdit = data.transitionData || defaultTransition
+  
+  conditionText.value = JSON.stringify(transitionToEdit, null, 2)
   originalConditionText.value = conditionText.value
   dialogVisible.value = true
 }
@@ -70,6 +78,10 @@ function saveCondition() {
   if (conditionText.value.trim() !== '') {
     try {
       parsedTransitionData = JSON.parse(conditionText.value)
+
+      if (parsedTransitionData && typeof parsedTransitionData === 'object' && !(parsedTransitionData as any).id) {
+        (parsedTransitionData as any).id = (currentEdgeData.value as any)?.transitionName || ''
+      }
     } catch (error: unknown) {
       jsonError.value = (error as Error).message
       return
@@ -77,7 +89,8 @@ function saveCondition() {
   }
 
   eventBus.$emit('save-transition', {
-    ...currentEdgeData.value,
+    stateName: (currentEdgeData.value as any)?.stateName,
+    transitionName: (currentEdgeData.value as any)?.transitionName,
     transitionData: parsedTransitionData
   })
 
