@@ -23,7 +23,7 @@
 
         <div class="dropdown-content" v-show="isDropdownOpen">
           <div
-            v-for="transition in transitions"
+            v-for="(transition, index) in transitions"
             :key="transition.id"
             class="transition-item"
             :class="{ 'highlighted': isTransitionHighlighted(transition.id) }"
@@ -31,6 +31,7 @@
             @mouseenter="handleTransitionHover(transition)"
             @mouseleave="handleTransitionLeave"
           >
+            <span class="transition-order">{{ index + 1 }}.</span>
             <span class="transition-name">{{ transition.name || 'Unnamed' }}</span>
             <span class="transition-direction">→ {{ transition.direction }}</span>
           </div>
@@ -263,6 +264,14 @@ const handleTransitionLeave = () => {
     background-color: #e3f2fd;
     border-left: 3px solid var(--color-primary);
   }
+}
+
+.transition-order {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 11px;
+  margin-right: 8px;
+  flex-shrink: 0;
 }
 
 .transition-name {
