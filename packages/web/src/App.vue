@@ -35,7 +35,17 @@ const detectTheme = useDetectTheme();
 
 onMounted(() => {
   const {getAccessTokenSilently} = useAuth0()
-  setTokenGetter(() => getAccessTokenSilently())
+
+  setTokenGetter(async () => {
+    try {
+      return await getAccessTokenSilently({
+        cacheMode: 'off'
+      });
+    } catch (error) {
+      console.error('Error getting access token:', error);
+      throw error;
+    }
+  });
 })
 
 const {user, getAccessTokenSilently, isAuthenticated} = useAuth0();
