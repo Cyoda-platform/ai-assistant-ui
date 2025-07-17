@@ -40,7 +40,7 @@ const edgePath = computed(() => {
       const controlY1 = startY - radius
       const controlX2 = endX - offset
       const controlY2 = endY - radius
-      
+
       return `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`
     }
 
@@ -49,25 +49,25 @@ const edgePath = computed(() => {
       const controlY1 = startY - radius
       const controlX2 = endX + offset
       const controlY2 = endY - radius
-      
+
       return `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`
     }
-    
+
     if (props.sourcePosition === 'top' && props.targetPosition === 'bottom') {
       const controlX1 = startX - radius
       const controlY1 = startY - offset
       const controlX2 = endX - radius
       const controlY2 = endY + offset
-      
+
       return `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`
     }
-    
+
     if (props.sourcePosition === 'bottom' && props.targetPosition === 'top') {
       const controlX1 = startX + radius
       const controlY1 = startY + offset
       const controlX2 = endX + radius
       const controlY2 = endY - offset
-      
+
       return `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`
     }
 
@@ -75,7 +75,7 @@ const edgePath = computed(() => {
     const controlY1 = startY - radius
     const controlX2 = endX - offset
     const controlY2 = endY - radius
-    
+
     return `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`
   }
 

@@ -223,7 +223,6 @@ export function groupNodesByLevel(levels: NodeLevels, states: any): NodesByLevel
 export function optimizePositions(positions: { [key: string]: NodePosition }): void {
   const positionArray = Object.entries(positions);
 
-  // Multiple passes for better distribution
   for (let pass = 0; pass < LAYOUT_CONFIG.OPTIMIZATION_PASSES; pass++) {
     for (let i = 0; i < positionArray.length; i++) {
       for (let j = i + 1; j < positionArray.length; j++) {

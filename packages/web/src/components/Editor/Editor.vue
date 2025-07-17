@@ -9,7 +9,6 @@ import {ref, watch, onMounted, onBeforeUnmount, nextTick} from "vue";
 import * as monaco from 'monaco-editor';
 import type { EditorAction } from '../../utils/editorUtils';
 
-// Configure Monaco environment for Vite - without worker imports
 if (typeof window !== 'undefined') {
   (window as any).MonacoEnvironment = {
     getWorkerUrl: function (_moduleId: string, _label: string) {
