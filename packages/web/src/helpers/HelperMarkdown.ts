@@ -2,6 +2,7 @@ import {marked} from "marked";
 import {renderMermaid} from "./markdown/mermaid";
 import {renderPlantUML} from "./markdown/plantuml";
 import {renderBash} from "./markdown/bash";
+import {renderCodeHighlight} from "./markdown/codeHighlight";
 
 export default class HelperMarkdown {
     static parseMarkdown(text) {
@@ -27,7 +28,7 @@ export default class HelperMarkdown {
                 return renderBash(text, raw);
             }
 
-            return `<pre><code>${text}</code></pre>`;
+            return renderCodeHighlight(text, lang);
         };
 
         return marked.parse(text, {renderer, breaks: true});

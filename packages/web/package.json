@@ -21,6 +21,7 @@
     "dayjs": "^1.11.13",
     "element-plus": "^2.10.4",
     "file-saver": "^2.0.5",
+    "highlight.js": "^11.11.1",
     "marked": "^16.1.1",
     "mermaid": "^11.9.0",
     "modern-normalize": "^3.0.1",
