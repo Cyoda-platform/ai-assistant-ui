@@ -1,7 +1,7 @@
 <template>
   <div class="chat-bot-mobile-menu">
     <el-dropdown popperClass="chat-bot-mobile-menu__dropdown" @command="handleCommand">
-      <VerticalDotsIcon/>
+      <VerticalDotsIcon class="chat-bot-mobile-menu__icon"/>
       <template #dropdown>
         <el-dropdown-menu>
           <el-dropdown-item command="toggleCanvas">
@@ -48,10 +48,17 @@ const toggleCanvasTitle = computed(() => {
 </script>
 
 <style lang="scss">
-.chat-bot-mobile-menu__dropdown {
-  .el-dropdown-menu__item {
-    svg {
-      margin-right: 12px;
+.chat-bot-mobile-menu {
+  &__icon {
+    cursor: pointer;
+  }
+
+  &__dropdown {
+
+    .el-dropdown-menu__item {
+      svg {
+        margin-right: 12px;
+      }
     }
   }
 }
