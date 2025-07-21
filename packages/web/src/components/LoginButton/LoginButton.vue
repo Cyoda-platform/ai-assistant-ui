@@ -14,7 +14,7 @@ const {loginWithRedirect} = useAuth0();
 function onClick() {
   helperStorage.set(LOGIN_REDIRECT_URL, '/home');
   loginWithRedirect({
-    authorizationParams: { 
+    authorizationParams: {
       prompt: 'login',
       scope: 'openid profile email offline_access'
     }

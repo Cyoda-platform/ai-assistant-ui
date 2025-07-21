@@ -144,11 +144,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 for (const transition of state.transitions) {
                     if (transition && transition.next) {
                         const edgeKey = `${stateName}->${transition.next}`;
-                        
+
                         if (!edgeGroups.has(edgeKey)) {
                             edgeGroups.set(edgeKey, []);
                         }
-                        
+
                         edgeGroups.get(edgeKey)!.push({
                             stateName,
                             transition
@@ -162,7 +162,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             const firstTransition = transitions[0];
             const stateName = firstTransition.stateName;
             const target = firstTransition.transition.next;
-            
+
             const sourceNode = nodes.value.find(n => n.id === stateName);
             const targetNode = nodes.value.find(n => n.id === target);
 
@@ -351,12 +351,12 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         const transitionIndex = state.transitions.findIndex(t => t.id === transitionName);
         if (transitionIndex !== -1) {
-            state.transitions[transitionIndex] = { 
-                ...state.transitions[transitionIndex], 
-                ...transitionData 
+            state.transitions[transitionIndex] = {
+                ...state.transitions[transitionIndex],
+                ...transitionData
             } as WorkflowTransition;
         }
-        
+
         canvasData.value = JSON.stringify(parsed, null, 2);
     }
 

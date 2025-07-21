@@ -56,9 +56,9 @@ function openDialog(data: any) {
     id: data.transitionName || "",
     next: ""
   }
-  
+
   const transitionToEdit = data.transitionData || defaultTransition
-  
+
   conditionText.value = JSON.stringify(transitionToEdit, null, 2)
   originalConditionText.value = conditionText.value
   dialogVisible.value = true

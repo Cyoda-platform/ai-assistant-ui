@@ -3,7 +3,7 @@ import hljs from 'highlight.js';
 export function renderCodeHighlight(text: string, lang?: string): string {
   try {
     let highlightedCode: string;
-    
+
     if (lang && hljs.getLanguage(lang)) {
       const result = hljs.highlight(text, { language: lang });
       highlightedCode = result.value;
@@ -28,7 +28,7 @@ function escapeHtml(text: string): string {
     '"': '&quot;',
     "'": '&#39;'
   };
-  
+
   return text.replace(/[&<>"']/g, (char) => map[char]);
 }
 
