@@ -8,7 +8,7 @@ import {MarkerType} from '@vue-flow/core';
 import eventBus from '@/plugins/eventBus';
 import HelperStorage from '@/helpers/HelperStorage';
 import {NodePositionStorage} from '../utils/nodeUtils';
-import {optimizePositions, calculateSmartPosition} from '../utils/smartLayout';
+import {calculateSmartPosition, applyAutoLayout} from '../utils/smartLayout';
 import {type EditorAction, createWorkflowEditorActions} from '@/utils/editorUtils';
 
 export interface WorkflowEditorProps {
@@ -373,13 +373,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const states = parsed.states || {};
         const initialState = parsed.initial_state;
 
-        const positions: Record<string, { x: number; y: number }> = {};
-
-        for (const stateName of Object.keys(states)) {
-            positions[stateName] = calculateSmartPosition(stateName, states, initialState);
-        }
-
-        optimizePositions(positions);
+        // Используем новую функцию applyAutoLayout
+        const positions = applyAutoLayout(states, initialState);
 
         nodes.value = nodes.value.map((node: WorkflowNode) => ({
             ...node,

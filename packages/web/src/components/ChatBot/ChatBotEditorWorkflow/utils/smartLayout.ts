@@ -75,7 +75,10 @@ export function calculateSmartPosition(
 
   const currentState = states[stateName];
   if (currentState?.transitions) {
-    const transitions = Object.values(currentState.transitions);
+    const transitions = Array.isArray(currentState.transitions) 
+      ? currentState.transitions 
+      : Object.values(currentState.transitions);
+      
     const hasSelfLoop = transitions.some((t: any) => t.next === stateName);
     const hasBackwardTransition = transitions.some((t: any) => {
       const targetLevel = levels[t.next];
@@ -103,10 +106,17 @@ export function buildGraph(states: any): GraphNode {
     const state = stateData as any;
     graph[stateName] = [];
 
-    if (state.transitions) {
-      for (const [, transitionData] of Object.entries(state.transitions)) {
-        const transition = transitionData as any;
-        if (transition.next && transition.next !== stateName) {
+    if (state && state.transitions) {
+      let transitionsArray: any[] = [];
+      
+      if (Array.isArray(state.transitions)) {
+        transitionsArray = state.transitions;
+      } else if (typeof state.transitions === 'object') {
+        transitionsArray = Object.values(state.transitions);
+      }
+      
+      for (const transition of transitionsArray) {
+        if (transition && transition.next && transition.next !== stateName) {
           graph[stateName].push(transition.next);
         }
       }
@@ -121,18 +131,27 @@ export function calculateLevels(graph: GraphNode, initialState: string): NodeLev
   const visited = new Set<string>();
   const queue: { node: string; level: number }[] = [];
 
-  if (initialState && graph[initialState]) {
+  if (initialState && graph[initialState] !== undefined) {
     queue.push({ node: initialState, level: 0 });
     levels[initialState] = 0;
+  } else {
+    const firstNode = Object.keys(graph)[0];
+    if (firstNode) {
+      queue.push({ node: firstNode, level: 0 });
+      levels[firstNode] = 0;
+    }
   }
 
   while (queue.length > 0) {
     const { node, level } = queue.shift()!;
 
-    if (visited.has(node)) continue;
+    if (visited.has(node)) {
+      continue;
+    }
     visited.add(node);
 
     const neighbors = graph[node] || [];
+    
     for (const neighbor of neighbors) {
       if (neighbor === node) continue;
 
@@ -156,6 +175,7 @@ export function calculateLevels(graph: GraphNode, initialState: string): NodeLev
   }
 
   let maxLevel = Math.max(...Object.values(levels));
+  
   for (const nodeName of Object.keys(graph)) {
     if (levels[nodeName] === undefined) {
       maxLevel += 1;
@@ -177,6 +197,7 @@ export function groupNodesByLevel(levels: NodeLevels, states: any): NodesByLevel
   }
 
   for (const level of Object.keys(nodesByLevel)) {
+      if(!nodesByLevel[parseInt(level)]) continue;
     nodesByLevel[parseInt(level)].sort((a, b) => {
       const stateA = states[a] as any;
       const stateB = states[b] as any;
@@ -187,12 +208,20 @@ export function groupNodesByLevel(levels: NodeLevels, states: any): NodesByLevel
         if (stateName.includes('initial')) return 100;
 
         if (state.transitions) {
-          const hasCondition = Object.values(state.transitions).some((t: any) => t.condition);
+          const transitionsArray = Array.isArray(state.transitions) 
+            ? state.transitions 
+            : Object.values(state.transitions);
+          
+          const hasCondition = transitionsArray.some((t: any) => t.condition || t.criteria || t.criterion);
           if (hasCondition) return 80;
         }
 
         if (state.transitions) {
-          const hasSelfLoop = Object.values(state.transitions).some((t: any) => t.next === stateName);
+          const transitionsArray = Array.isArray(state.transitions) 
+            ? state.transitions 
+            : Object.values(state.transitions);
+          
+          const hasSelfLoop = transitionsArray.some((t: any) => t.next === stateName);
           if (hasSelfLoop) return 60;
         }
 
@@ -206,8 +235,15 @@ export function groupNodesByLevel(levels: NodeLevels, states: any): NodesByLevel
         return priorityB - priorityA;
       }
 
-      const transitionsA = Object.keys(stateA.transitions || {}).length;
-      const transitionsB = Object.keys(stateB.transitions || {}).length;
+      const getTransitionsCount = (state: any) => {
+        if (!state.transitions) return 0;
+        return Array.isArray(state.transitions) 
+          ? state.transitions.length 
+          : Object.keys(state.transitions).length;
+      };
+
+      const transitionsA = getTransitionsCount(stateA);
+      const transitionsB = getTransitionsCount(stateB);
 
       if (transitionsA !== transitionsB) {
         return transitionsB - transitionsA;
@@ -269,12 +305,32 @@ export function optimizePositions(positions: { [key: string]: NodePosition }): v
 
 export function applyAutoLayout(states: any, initialState: string): { [key: string]: NodePosition } {
   const positions: { [key: string]: NodePosition } = {};
-
-  for (const stateName of Object.keys(states)) {
-    positions[stateName] = calculateSmartPosition(stateName, states, initialState);
+  const stateNames = Object.keys(states);
+  
+  let actualInitialState = initialState;
+  if (!actualInitialState || !states[actualInitialState]) {
+    actualInitialState = stateNames[0];
   }
-
-  optimizePositions(positions);
-
+  
+  const graph = buildGraph(states);
+  const levels = calculateLevels(graph, actualInitialState);
+  
+  const hasValidLevels = Object.values(levels).some(level => level > 0);
+  
+  if (!hasValidLevels) {
+    stateNames.forEach((stateName, index) => {
+      positions[stateName] = {
+        x: index * LAYOUT_CONFIG.LEVEL_SPACING,
+        y: 0
+      };
+    });
+  } else {
+    for (const stateName of stateNames) {
+      positions[stateName] = calculateSmartPosition(stateName, states, actualInitialState);
+    }
+    
+    optimizePositions(positions);
+  }
+  
   return positions;
 }
