@@ -39,6 +39,18 @@
         </el-button>
       </div>
     </div>
+    <div class="new-chat__footer">
+      By using this service, you confirm that you have read and agree to our<br/>
+      <a target="_blank" href="https://www.cyoda.com/terms-of-service">
+        Terms & Conditions
+      </a>
+      and
+      <a target="_blank" href="https://www.cyoda.com/privacy-policy">
+        Privacy Policy
+      </a>
+
+      <p>Copyright © {{ year }} <a target="_blank" href="https://www.cyoda.com/">CYODA Ltd.</a></p>
+    </div>
   </div>
 </template>
 <script setup lang="ts">
@@ -81,6 +93,10 @@ const examples = computed(() => {
     )
   }
   return items;
+});
+
+const year = computed(() => {
+  return new Date().getFullYear();
 });
 
 function onClickExample(example) {
@@ -233,6 +249,12 @@ async function onClickSend() {
         height: auto;
       }
     }
+  }
+
+  &__footer {
+    margin-top: 20px;
+    font-size: 12px;
+    text-align: center;
   }
 }
 </style>
