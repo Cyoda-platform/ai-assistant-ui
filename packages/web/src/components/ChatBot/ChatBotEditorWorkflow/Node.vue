@@ -59,13 +59,19 @@
             :key="transition.id"
             class="transition-item"
             :class="{ 'highlighted': isTransitionHighlighted(transition.id) }"
-            @click="editTransition(transition)"
-            @mouseenter="handleTransitionHover(transition)"
-            @mouseleave="handleTransitionLeave"
           >
-            <span class="transition-order">{{ index + 1 }}.</span>
-            <span class="transition-name">{{ transition.name || 'Unnamed' }}</span>
-            <span class="transition-direction">→ {{ transition.direction }}</span>
+            <div class="transition-content" @click="editTransition(transition)" @mouseenter="handleTransitionHover(transition)" @mouseleave="handleTransitionLeave">
+              <span class="transition-order">{{ index + 1 }}.</span>
+              <span class="transition-name">{{ transition.name || 'Unnamed' }}</span>
+              <span class="transition-direction">→ {{ transition.direction }}</span>
+            </div>
+            <button 
+              class="delete-transition-btn" 
+              @click.stop="deleteTransition(transition)"
+              title="Delete transition"
+            >
+              ×
+            </button>
           </div>
         </div>
       </div>
@@ -76,6 +82,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { Handle, Position } from '@vue-flow/core'
+import { ElMessageBox } from 'element-plus'
 import { useDropdownManager } from './composables/useDropdownManager'
 import { useTransitionHighlight } from './composables/useTransitionHighlight'
 import eventBus from '../../../plugins/eventBus'
@@ -170,6 +177,29 @@ const editTransition = (transition: Transition) => {
     transitionName: transition.name,
     transitionData: transitionData
   })
+}
+
+const deleteTransition = async (transition: Transition) => {
+  try {
+    await ElMessageBox.confirm(
+      `Are you sure you want to delete the transition "${transition.name || 'Unnamed'}"?`,
+      'Delete Transition',
+      {
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+        confirmButtonClass: 'el-button--danger'
+      }
+    )
+    
+    // Emit event to delete transition
+    eventBus.$emit('delete-transition', {
+      stateName: nodeId.value,
+      transitionName: transition.name
+    })
+  } catch {
+    // User cancelled the deletion
+  }
 }
 
 const handleTransitionHover = (transition: Transition) => {
@@ -297,6 +327,42 @@ const handleTransitionLeave = () => {
     background-color: #e3f2fd;
     border-left: 3px solid var(--color-primary);
   }
+}
+
+.transition-content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.delete-transition-btn {
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-left: 8px;
+  opacity: 0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: #dc3545;
+    color: white;
+  }
+}
+
+.transition-item:hover .delete-transition-btn {
+  opacity: 1;
 }
 
 .transition-order {
