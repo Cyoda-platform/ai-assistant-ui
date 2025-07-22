@@ -1,21 +1,53 @@
 <template>
   <div
     class="workflow-node"
-    :class="[nodeTypeClass, { 'dimmed': shouldDimNode(nodeId) }]"
+    :class="[nodeTypeClass, { 
+      'dimmed': shouldDimNode(nodeId),
+      'dropdown-open': isDropdownOpen,
+      'hovering-dropdown': isHoveringDropdown 
+    }]"
     ref="nodeRef"
   >
-    <Handle type="target" :position="Position.Left" id="left-target" />
-    <Handle type="source" :position="Position.Left" id="left-source" />
-    <Handle type="target" :position="Position.Right" id="right-target" />
-    <Handle type="source" :position="Position.Right" id="right-source" />
-    <Handle type="target" :position="Position.Top" id="top-target" />
-    <Handle type="source" :position="Position.Top" id="top-source" />
-    <Handle type="target" :position="Position.Bottom" id="bottom-target" />
-    <Handle type="source" :position="Position.Bottom" id="bottom-source" />
+    <!-- Connection points for creating transitions -->
+    <Handle 
+      type="target" 
+      :position="Position.Left" 
+      id="left-target" 
+      class="connection-handle target-handle"
+      title="Drop connections here"
+    />
+    <Handle 
+      type="source" 
+      :position="Position.Right" 
+      id="right-source" 
+      class="connection-handle source-handle"
+      title="Drag to create new transition"
+    />
+    
+    <!-- Additional connection points for flexibility -->
+    <Handle 
+      type="target" 
+      :position="Position.Top" 
+      id="top-target" 
+      class="connection-handle target-handle secondary"
+      title="Drop connections here"
+    />
+    <Handle 
+      type="source" 
+      :position="Position.Bottom" 
+      id="bottom-source" 
+      class="connection-handle source-handle secondary"
+      title="Drag to create new transition"
+    />
 
     <div class="node-title">{{ data.label }}</div>
     <div class="node-footer" v-if="hasTransitions">
-      <div class="transitions-dropdown" :class="{ 'expanded': isDropdownOpen }">
+      <div 
+        class="transitions-dropdown" 
+        :class="{ 'expanded': isDropdownOpen }"
+        @mouseenter="isHoveringDropdown = true"
+        @mouseleave="isHoveringDropdown = false"
+      >
         <div class="dropdown-trigger" @click="toggleDropdown">
           <span class="transition-count">{{ transitionCount }} {{ transitionCount === 1 ? 'transition' : 'transitions' }}</span>
           <span class="dropdown-arrow" :class="{ 'rotated': isDropdownOpen }">▼</span>
@@ -68,6 +100,7 @@ const props = defineProps<{
 }>()
 
 const nodeRef = ref()
+const isHoveringDropdown = ref(false)
 
 const nodeId = computed(() => props.data.label || 'unknown')
 const {
@@ -295,34 +328,110 @@ const handleTransitionLeave = () => {
 }
 
 :deep(.vue-flow__handle) {
-  width: 1px;
-  height: 1px;
-  background: transparent;
-  border: none;
+  width: 10px;
+  height: 10px;
+  border: 2px solid #fff;
+  border-radius: 50%;
   opacity: 0;
+  transition: all 0.2s ease;
+  cursor: crosshair;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.3);
+
+  &.connection-handle {
+    &.target-handle {
+      background: #52c41a;
+      
+      &:hover {
+        background: #73d13d;
+        box-shadow: 0 0 12px rgba(82, 196, 26, 0.6);
+      }
+    }
+
+    &.source-handle {
+      background: #1890ff;
+      
+      &:hover {
+        background: #40a9ff;
+        box-shadow: 0 0 12px rgba(24, 144, 255, 0.6);
+      }
+    }
+
+    &.secondary {
+      width: 8px;
+      height: 8px;
+      opacity: 0.5;
+    }
+  }
+
+  &:hover {
+    opacity: 1 !important;
+    transform: scale(1.3);
+  }
 
   &.vue-flow__handle-left {
-    left: -4px;
+    left: -7px;
     top: 50%;
     transform: translateY(-50%);
   }
 
   &.vue-flow__handle-right {
-    right: -4px;
+    right: -7px;
     top: 50%;
     transform: translateY(-50%);
   }
 
   &.vue-flow__handle-top {
-    top: -4px;
+    top: -7px;
     left: 50%;
     transform: translateX(-50%);
   }
 
   &.vue-flow__handle-bottom {
-    bottom: -4px;
+    bottom: -7px;
     left: 50%;
     transform: translateX(-50%);
+  }
+}
+
+.workflow-node:hover :deep(.vue-flow__handle) {
+  opacity: 0.8;
+  
+  &.secondary {
+    opacity: 0.6;
+  }
+}
+
+.workflow-node:hover :deep(.vue-flow__handle.source-handle) {
+  animation: pulse-source 2s infinite;
+}
+
+.workflow-node:hover :deep(.vue-flow__handle.target-handle) {
+  animation: pulse-target 2s infinite;
+}
+
+/* Hide handles when dropdown is open or being hovered */
+.workflow-node.dropdown-open :deep(.vue-flow__handle),
+.workflow-node.hovering-dropdown :deep(.vue-flow__handle) {
+  opacity: 0 !important;
+  animation: none !important;
+  pointer-events: none;
+}
+
+@keyframes pulse-source {
+  0%, 100% { 
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 0 6px rgba(24, 144, 255, 0.1);
+  }
+}
+
+@keyframes pulse-target {
+  0%, 100% { 
+    box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 0 6px rgba(82, 196, 26, 0.1);
   }
 }
 </style>

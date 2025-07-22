@@ -11,6 +11,8 @@
             :fit-view-on-init="true"
             :zoom-on-scroll="false"
             @nodeDragStop="onNodeDragStop"
+            @connect="onConnect"
+            :connection-mode="ConnectionMode.Loose"
             v-model:nodes="nodes"
             v-model:edges="edges"
             :edge-types="edgeTypes"
@@ -48,6 +50,7 @@
         :edges="edges"
         :edge-types="edgeTypes"
         @onNodeDragStop="onNodeDragStop"
+        @onConnect="onConnect"
         @resetTransform="resetTransform"
         @autoLayout="autoLayout"
         @workflowMeta="workflowMeta"
@@ -57,7 +60,7 @@
 
 <script setup lang="ts">
 import {templateRef} from "@vueuse/core";
-import {VueFlow} from '@vue-flow/core'
+import {VueFlow, ConnectionMode} from '@vue-flow/core'
 import {Background} from '@vue-flow/background'
 import {ControlButton, Controls} from '@vue-flow/controls'
 import Editor from "@/components/Editor/Editor.vue";
@@ -91,6 +94,7 @@ const {
   edges,
   workflowMetaData,
   onNodeDragStop,
+  onConnect,
   resetTransform,
   autoLayout,
   onUpdateWorkflowMetaDialog,

@@ -8,7 +8,7 @@ import {MarkerType} from '@vue-flow/core';
 import eventBus from '@/plugins/eventBus';
 import HelperStorage from '@/helpers/HelperStorage';
 import {NodePositionStorage} from '../utils/nodeUtils';
-import {calculateSmartPosition, applyAutoLayout} from '../utils/smartLayout';
+import {calculateSmartPosition, applyAutoLayout, NodePosition} from '../utils/smartLayout';
 import {type EditorAction, createWorkflowEditorActions} from '@/utils/editorUtils';
 
 export interface WorkflowEditorProps {
@@ -293,7 +293,13 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function handleSaveCondition(eventData: any) {
-        const {stateName, transitionName, transitionData} = eventData;
+        const {stateName, transitionName, transitionData, oldTransitionName, isNewTransition} = eventData;
+
+        // Сохраняем текущие позиции узлов перед изменением данных
+        const currentPositions: { [key: string]: NodePosition } = {};
+        nodes.value.forEach(node => {
+            currentPositions[node.id] = { x: node.position.x, y: node.position.y };
+        });
 
         let parsed: WorkflowData;
         try {
@@ -313,25 +319,40 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             state.transitions = [];
         }
 
-        const transitionIndex = state.transitions.findIndex(t => t.id === transitionName);
+        if (isNewTransition) {
+            // Это новый переход - просто добавляем его
+            if (transitionData && typeof transitionData === 'object') {
+                const newTransition = {
+                    id: transitionName,
+                    ...transitionData
+                } as WorkflowTransition;
 
-        if (transitionData && typeof transitionData === 'object') {
-            const updatedTransition = {
-                id: transitionName,
-                ...transitionData
-            } as WorkflowTransition;
+                state.transitions.push(newTransition);
+            }
+        } else {
+            // Это существующий переход - обновляем его
+            const searchName = oldTransitionName && oldTransitionName !== transitionName ? oldTransitionName : transitionName;
+            const transitionIndex = state.transitions.findIndex(t => t.id === searchName);
 
-            if (transitionIndex !== -1) {
-                state.transitions[transitionIndex] = updatedTransition;
-            } else {
-                state.transitions.push(updatedTransition);
+            if (transitionData && typeof transitionData === 'object') {
+                const updatedTransition = {
+                    id: transitionName,
+                    ...transitionData
+                } as WorkflowTransition;
+
+                if (transitionIndex !== -1) {
+                    state.transitions[transitionIndex] = updatedTransition;
+                } else {
+                    state.transitions.push(updatedTransition);
+                }
             }
         }
 
-        canvasData.value = JSON.stringify(parsed, null, 2);
-    }
+        // Сохраняем текущие позиции в storage перед обновлением canvasData
+        nodePositionStorage.savePositions(currentPositions);
 
-    function onEdgeConditionChange(event: any) {
+        canvasData.value = JSON.stringify(parsed, null, 2);
+    }    function onEdgeConditionChange(event: any) {
         const {stateName, transitionName, transitionData} = event;
 
         let parsed: WorkflowData;
@@ -362,6 +383,63 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     function onNodeDragStop(event: any) {
         nodePositionStorage.updatePositionsFromDrag(event);
+    }
+
+    function onConnect(params: any) {
+        const { source, target } = params;
+        
+        if (!source || !target) {
+            return;
+        }
+
+        // Сохраняем текущие позиции узлов перед показом диалога
+        const currentPositions: { [key: string]: NodePosition } = {};
+        nodes.value.forEach(node => {
+            currentPositions[node.id] = { x: node.position.x, y: node.position.y };
+        });
+        nodePositionStorage.savePositions(currentPositions);
+
+        // Парсим текущие данные workflow для проверки существования состояний
+        let parsed: WorkflowData;
+        try {
+            parsed = JSON.parse(canvasData.value);
+        } catch (e) {
+            console.error('Invalid JSON in canvasData:', e);
+            return;
+        }
+
+        const sourceState = parsed.states[source];
+        if (!sourceState) {
+            console.error('Source state not found:', source);
+            return;
+        }
+
+        // Проверяем, что целевое состояние существует
+        if (!parsed.states[target]) {
+            console.error('Target state not found:', target);
+            return;
+        }
+
+        // Генерируем уникальное имя для нового перехода с timestamp
+        const timestamp = Date.now();
+        const newTransitionName = `${source}_${target}_${timestamp}`;
+
+        // Создаем предварительные данные перехода (НЕ добавляем в workflow)
+        const proposedTransition = {
+            id: newTransitionName,
+            next: target,
+            processors: []
+        };
+
+        // Показываем диалог редактирования для НОВОГО перехода
+        setTimeout(() => {
+            eventBus.$emit('show-condition-popup', {
+                stateName: source,
+                transitionName: newTransitionName,
+                transitionData: proposedTransition,
+                isNewTransition: true // Флаг для обозначения нового перехода
+            });
+        }, 100);
     }
 
     function resetTransform() {
@@ -430,6 +508,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         workflowMetaData,
         generateNodes,
         onNodeDragStop,
+        onConnect,
         resetTransform,
         autoLayout,
         onUpdateWorkflowMetaDialog,

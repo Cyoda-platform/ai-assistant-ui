@@ -7,10 +7,15 @@
       width="600px"
       :before-close="handleClosePopup"
   >
-    <div class="edit-edge-conditional-dialog__editor">
-      <Editor language="json" v-model="conditionText"/>
-      <div v-if="hasJsonError" class="edit-edge-conditional-dialog__error-message">
-        Error in JSON: {{ jsonError }}
+    <div class="edit-edge-conditional-dialog__form">
+      <div class="edit-edge-conditional-dialog__field">
+        <label class="edit-edge-conditional-dialog__label">Transition Data (JSON):</label>
+        <div class="edit-edge-conditional-dialog__editor">
+          <Editor language="json" v-model="conditionText"/>
+          <div v-if="hasJsonError" class="edit-edge-conditional-dialog__error-message">
+            Error in JSON: {{ jsonError }}
+          </div>
+        </div>
       </div>
     </div>
 
@@ -78,20 +83,27 @@ function saveCondition() {
   if (conditionText.value.trim() !== '') {
     try {
       parsedTransitionData = JSON.parse(conditionText.value)
-
-      if (parsedTransitionData && typeof parsedTransitionData === 'object' && !(parsedTransitionData as any).id) {
-        (parsedTransitionData as any).id = (currentEdgeData.value as any)?.transitionName || ''
-      }
     } catch (error: unknown) {
       jsonError.value = (error as Error).message
       return
     }
   }
 
+  // Проверяем, что в JSON есть поле id
+  if (!parsedTransitionData || typeof parsedTransitionData !== 'object' || !parsedTransitionData.id) {
+    jsonError.value = 'Transition data must contain an "id" field'
+    return
+  }
+
+  const originalTransitionName = (currentEdgeData.value as any)?.transitionName
+  const newTransitionName = parsedTransitionData.id
+
   eventBus.$emit('save-transition', {
     stateName: (currentEdgeData.value as any)?.stateName,
-    transitionName: (currentEdgeData.value as any)?.transitionName,
-    transitionData: parsedTransitionData
+    transitionName: newTransitionName,
+    transitionData: parsedTransitionData,
+    oldTransitionName: originalTransitionName !== newTransitionName ? originalTransitionName : undefined,
+    isNewTransition: (currentEdgeData.value as any)?.isNewTransition || false
   })
 
   dialogVisible.value = false
@@ -110,8 +122,12 @@ watch(conditionText, (newValue) => {
   }
 
   try {
-    JSON.parse(newValue)
-    jsonError.value = ''
+    const parsed = JSON.parse(newValue)
+    if (!parsed || typeof parsed !== 'object' || !parsed.id) {
+      jsonError.value = 'Transition data must contain an "id" field'
+    } else {
+      jsonError.value = ''
+    }
   } catch (error: unknown) {
     jsonError.value = (error as Error).message
   }
@@ -120,6 +136,28 @@ watch(conditionText, (newValue) => {
 
 <style scoped lang="scss">
 .edit-edge-conditional-dialog {
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__label {
+    font-weight: 500;
+    font-size: 14px;
+    color: #333;
+  }
+
+  &__editor {
+    min-height: 200px;
+  }
+
   &__error-message {
     color: #f56c6c;
     font-size: 12px;

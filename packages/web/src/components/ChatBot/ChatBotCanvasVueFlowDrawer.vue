@@ -11,6 +11,8 @@
         :fit-view-on-init="true"
         :zoom-on-scroll="false"
         @nodeDragStop="emit('onNodeDragStop', $event)"
+        @connect="emit('onConnect', $event)"
+        :connection-mode="ConnectionMode.Loose"
         v-model:nodes="nodesLocal"
         v-model:edges="edgesLocal"
         :edge-types="edgeTypes"
@@ -41,7 +43,7 @@
 
 <script setup lang="ts">
 import {computed, ref} from "vue";
-import {VueFlow} from "@vue-flow/core";
+import {VueFlow, ConnectionMode} from "@vue-flow/core";
 import {Background} from "@vue-flow/background";
 import Icon from "@/components/ChatBot/ChatBotEditorWorkflow/Icon.vue";
 import {ControlButton, Controls} from "@vue-flow/controls";
@@ -53,6 +55,7 @@ defineExpose({drawerVisible});
 
 const emit = defineEmits([
   'onNodeDragStop',
+  'onConnect',
   'resetTransform',
   'autoLayout',
   'workflowMeta',
