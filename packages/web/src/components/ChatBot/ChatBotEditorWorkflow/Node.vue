@@ -40,7 +40,16 @@
       title="Drag to create new transition"
     />
 
-    <div class="node-title">{{ data.label }}</div>
+    <div class="node-header">
+      <div class="node-title">{{ data.label }}</div>
+      <button 
+        class="delete-state-btn" 
+        @click.stop="deleteState"
+        title="Delete state"
+      >
+        ×
+      </button>
+    </div>
     <div class="node-footer" v-if="hasTransitions">
       <div 
         class="transitions-dropdown" 
@@ -211,6 +220,28 @@ const deleteTransition = async (transition: Transition) => {
   }
 }
 
+const deleteState = async () => {
+  try {
+    await ElMessageBox.confirm(
+      `Are you sure you want to delete the state "${props.data.label}"? This will also delete all transitions to and from this state.`,
+      'Delete State',
+      {
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+        confirmButtonClass: 'el-button--danger'
+      }
+    )
+    
+    // Emit event to delete state
+    eventBus.$emit('delete-state', {
+      stateName: nodeId.value
+    })
+  } catch {
+    // User cancelled the deletion
+  }
+}
+
 const changeTransitionTarget = async (transition: Transition) => {
   // Получаем список всех доступных нод из родительского компонента
   eventBus.$emit('get-available-nodes', {
@@ -317,6 +348,38 @@ const handleTransitionLeave = () => {
   line-height: 1.2;
   white-space: nowrap;
   overflow: visible;
+  flex: 1;
+}
+
+.node-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.delete-state-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+  
+  &:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: rgba(239, 68, 68, 0.9);
+    transform: scale(1.1);
+  }
 }
 
 .node-footer {

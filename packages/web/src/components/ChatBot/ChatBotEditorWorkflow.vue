@@ -29,6 +29,10 @@
               <Icon name="update"/>
             </ControlButton>
 
+            <ControlButton @click="addNewState">
+              <Icon name="plus"/>
+            </ControlButton>
+
             <ControlButton @click="workflowMeta">
               <Icon name="cogs"/>
             </ControlButton>
@@ -96,6 +100,7 @@ const {
   onNodeDragStop,
   onConnect,
   resetTransform,
+  addNewState,
   autoLayout,
   onUpdateWorkflowMetaDialog,
   onResize,

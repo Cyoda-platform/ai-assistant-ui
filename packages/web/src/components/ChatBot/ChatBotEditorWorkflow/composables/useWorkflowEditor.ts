@@ -2,9 +2,10 @@
  * Composable for workflow editor functionality
  */
 
-import {ref, computed, provide, onMounted, onUnmounted, watch} from 'vue';
+import {ref, computed, provide, onMounted, onUnmounted, watch, nextTick} from 'vue';
 import {useVueFlow} from '@vue-flow/core';
 import {MarkerType} from '@vue-flow/core';
+import {ElMessageBox} from 'element-plus';
 import eventBus from '@/plugins/eventBus';
 import HelperStorage from '@/helpers/HelperStorage';
 import {NodePositionStorage} from '../utils/nodeUtils';
@@ -41,13 +42,14 @@ export interface WorkflowTransition {
 
 export interface WorkflowState {
     transitions?: WorkflowTransition[];
+
     [key: string]: any;
 }
 
 export interface WorkflowData {
     version?: string;
     description?: string;
-    initial_state?: string;
+    initialState?: string;
     workflow_name?: string;
     states: Record<string, WorkflowState>;
 }
@@ -240,7 +242,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     });
 
     function generateNodes() {
-        if (!canvasData.value) return;
+        if (!canvasData.value || canvasData.value.trim() === '') {
+            nodes.value = [];
+            return;
+        }
+
         const result: WorkflowNode[] = [];
         let parsed: WorkflowData;
         const savedPositions = nodePositionStorage.loadPositions();
@@ -253,8 +259,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             return;
         }
 
+        // Проверяем наличие states
         const states = parsed.states || {};
-        const initialState = parsed.initial_state;
+        if (Object.keys(states).length === 0) {
+            nodes.value = [];
+            return;
+        }
+
+        const initialState = parsed.initialState;
 
         const hasSavedPositions = Object.keys(savedPositions).length > 0;
 
@@ -271,8 +283,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             })) : [];
 
             const position = hasSavedPositions
-                ? savedPositions[stateName] || calculateSmartPosition(stateName, states, parsed.initial_state || 'state_initial')
-                : calculateSmartPosition(stateName, states, parsed.initial_state || 'state_initial');
+                ? savedPositions[stateName] || calculateSmartPosition(stateName, states, parsed.initialState || 'state_initial')
+                : calculateSmartPosition(stateName, states, parsed.initialState || 'state_initial');
 
             result.push({
                 id: stateName,
@@ -298,7 +310,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         // Сохраняем текущие позиции узлов перед изменением данных
         const currentPositions: { [key: string]: NodePosition } = {};
         nodes.value.forEach(node => {
-            currentPositions[node.id] = { x: node.position.x, y: node.position.y };
+            currentPositions[node.id] = {x: node.position.x, y: node.position.y};
         });
 
         let parsed: WorkflowData;
@@ -355,12 +367,12 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function handleDeleteTransition(eventData: any) {
-        const { stateName, transitionName } = eventData;
+        const {stateName, transitionName} = eventData;
 
         // Сохраняем текущие позиции узлов перед изменением данных
         const currentPositions: { [key: string]: NodePosition } = {};
         nodes.value.forEach(node => {
-            currentPositions[node.id] = { x: node.position.x, y: node.position.y };
+            currentPositions[node.id] = {x: node.position.x, y: node.position.y};
         });
 
         let parsed: WorkflowData;
@@ -386,23 +398,77 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const transitionIndex = state.transitions.findIndex(t => t.id === transitionName);
         if (transitionIndex !== -1) {
             state.transitions.splice(transitionIndex, 1);
-            
+
             // Сохраняем текущие позиции в storage перед обновлением canvasData
             nodePositionStorage.savePositions(currentPositions);
-            
+
             canvasData.value = JSON.stringify(parsed, null, 2);
         } else {
             console.warn('Transition not found:', transitionName, 'in state:', stateName);
         }
     }
 
-    function handleChangeTransitionTarget(eventData: any) {
-        const { stateName, transitionName, newTarget } = eventData;
+    function handleDeleteState(eventData: any) {
+        const {stateName} = eventData;
 
         // Сохраняем текущие позиции узлов перед изменением данных
         const currentPositions: { [key: string]: NodePosition } = {};
         nodes.value.forEach(node => {
-            currentPositions[node.id] = { x: node.position.x, y: node.position.y };
+            currentPositions[node.id] = {x: node.position.x, y: node.position.y};
+        });
+
+        let parsed: WorkflowData;
+        try {
+            parsed = JSON.parse(canvasData.value);
+        } catch (e) {
+            console.error('Invalid JSON in canvasData:', e);
+            return;
+        }
+
+        if (!parsed.states[stateName]) {
+            console.warn('State not found:', stateName);
+            return;
+        }
+
+        // Удаляем состояние
+        delete parsed.states[stateName];
+
+        // Удаляем все переходы, указывающие на это состояние
+        Object.values(parsed.states).forEach((state: any) => {
+            if (state.transitions) {
+                state.transitions = state.transitions.filter((t: any) => t.next !== stateName);
+            }
+        });
+
+        // Если удаляемое состояние было начальным, назначаем новое начальное состояние
+        if (parsed.initialState === stateName) {
+            const remainingStates = Object.keys(parsed.states);
+            if (remainingStates.length > 0) {
+                parsed.initialState = remainingStates[0];
+            } else {
+                delete parsed.initialState;
+            }
+        }
+
+        // Удаляем позицию из storage
+        delete currentPositions[stateName];
+        nodePositionStorage.savePositions(currentPositions);
+
+        canvasData.value = JSON.stringify(parsed, null, 2);
+
+        // Обновляем store
+        if (assistantStore) {
+            assistantStore.setWorkflowData(canvasData.value);
+        }
+    }
+
+    function handleChangeTransitionTarget(eventData: any) {
+        const {stateName, transitionName, newTarget} = eventData;
+
+        // Сохраняем текущие позиции узлов перед изменением данных
+        const currentPositions: { [key: string]: NodePosition } = {};
+        nodes.value.forEach(node => {
+            currentPositions[node.id] = {x: node.position.x, y: node.position.y};
         });
 
         let parsed: WorkflowData;
@@ -428,10 +494,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const transitionIndex = state.transitions.findIndex(t => t.id === transitionName);
         if (transitionIndex !== -1) {
             state.transitions[transitionIndex].next = newTarget;
-            
+
             // Сохраняем текущие позиции в storage перед обновлением canvasData
             nodePositionStorage.savePositions(currentPositions);
-            
+
             canvasData.value = JSON.stringify(parsed, null, 2);
         } else {
             console.warn('Transition not found:', transitionName, 'in state:', stateName);
@@ -439,8 +505,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function handleGetAvailableNodes(eventData: any) {
-        const { callback } = eventData;
-        
+        const {callback} = eventData;
+
         let parsed: WorkflowData;
         try {
             parsed = JSON.parse(canvasData.value);
@@ -488,8 +554,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function onConnect(params: any) {
-        const { source, target } = params;
-        
+        const {source, target} = params;
+
         if (!source || !target) {
             return;
         }
@@ -497,7 +563,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         // Сохраняем текущие позиции узлов перед показом диалога
         const currentPositions: { [key: string]: NodePosition } = {};
         nodes.value.forEach(node => {
-            currentPositions[node.id] = { x: node.position.x, y: node.position.y };
+            currentPositions[node.id] = {x: node.position.x, y: node.position.y};
         });
         nodePositionStorage.savePositions(currentPositions);
 
@@ -548,10 +614,81 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         setViewport({x: 0, y: 0, zoom: 1});
     }
 
+    async function addNewState() {
+        try {
+            const {value: stateName} = await ElMessageBox.prompt('Enter state name:', 'Add New State', {
+                confirmButtonText: 'OK',
+                cancelButtonText: 'Cancel',
+                inputPattern: /^[a-zA-Z_][a-zA-Z0-9_]*$/,
+                inputErrorMessage: 'State name should be alphanumeric and start with a letter or underscore'
+            });
+
+            if (!stateName || stateName.trim() === '') {
+                return;
+            }
+
+            // Парсим текущие данные workflow
+            let parsed: WorkflowData;
+            try {
+                // Если canvasData пустой или некорректный, инициализируем базовую структуру
+                if (!canvasData.value || canvasData.value.trim() === '' || canvasData.value.trim() === '{}') {
+                    parsed = {
+                        states: {}
+                    };
+                } else {
+                    parsed = JSON.parse(canvasData.value);
+                    // Убеждаемся что структура корректная
+                    if (!parsed.states) {
+                        parsed.states = {};
+                    }
+                }
+            } catch (e) {
+                console.error('Invalid JSON in canvasData:', e);
+                // При ошибке парсинга инициализируем новую структуру
+                parsed = {
+                    states: {}
+                };
+            }
+
+            // Проверяем, что состояние не существует
+            if (parsed.states[stateName]) {
+                await ElMessageBox.alert(`State "${stateName}" already exists!`, 'Error', {
+                    type: 'error'
+                });
+                return;
+            }
+
+            // Создаем новое состояние
+            parsed.states[stateName] = {
+                transitions: []
+            };
+
+            // Если это первое состояние и нет initialState, делаем его начальным
+            if (Object.keys(parsed.states).length === 1 && !parsed.initialState) {
+                parsed.initialState = stateName;
+            }
+
+            // Сохраняем обновленные данные
+            canvasData.value = JSON.stringify(parsed, null, 2);
+
+            // Принудительно обновляем узлы на canvas и подгоняем вид
+            generateNodes();
+
+            // Используем nextTick для ожидания обновления DOM
+            setTimeout(() => {
+                fitView();
+            }, 300);
+
+        } catch (error) {
+            // Пользователь отменил ввод
+            console.log('User cancelled state creation');
+        }
+    }
+
     function autoLayout() {
         const parsed = JSON.parse(canvasData.value);
         const states = parsed.states || {};
-        const initialState = parsed.initial_state;
+        const initialState = parsed.initialState;
 
         // Используем новую функцию applyAutoLayout
         const positions = applyAutoLayout(states, initialState);
@@ -575,16 +712,36 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     onMounted(() => {
+        // Инициализируем данные из assistant store
+        if (assistantStore && assistantStore.selectedAssistant && assistantStore.selectedAssistant.workflow_data) {
+            canvasData.value = assistantStore.selectedAssistant.workflow_data;
+        }
+
         eventBus.$on('save-transition', handleSaveCondition);
         eventBus.$on('delete-transition', handleDeleteTransition);
+        eventBus.$on('delete-state', handleDeleteState);
         eventBus.$on('change-transition-target', handleChangeTransitionTarget);
         eventBus.$on('get-available-nodes', handleGetAvailableNodes);
         generateNodes();
     });
 
+    // Следим за изменениями в store
+    if (assistantStore) {
+        watch(
+            () => assistantStore.selectedAssistant?.workflow_data,
+            (newWorkflowData) => {
+                if (newWorkflowData !== undefined && newWorkflowData !== canvasData.value) {
+                    canvasData.value = newWorkflowData;
+                }
+            },
+            {immediate: true}
+        );
+    }
+
     onUnmounted(() => {
         eventBus.$off('save-transition', handleSaveCondition);
         eventBus.$off('delete-transition', handleDeleteTransition);
+        eventBus.$off('delete-state', handleDeleteState);
         eventBus.$off('change-transition-target', handleChangeTransitionTarget);
         eventBus.$off('get-available-nodes', handleGetAvailableNodes);
 
@@ -594,13 +751,18 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     });
 
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-    watch(canvasData, () => {
+    watch(canvasData, (newValue) => {
         if (debounceTimer) {
             clearTimeout(debounceTimer);
         }
 
         debounceTimer = setTimeout(() => {
             generateNodes();
+
+            // Обновляем store при изменении canvasData
+            if (assistantStore && newValue) {
+                assistantStore.setWorkflowData(newValue);
+            }
         }, 300);
     });
 
@@ -618,6 +780,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         onNodeDragStop,
         onConnect,
         resetTransform,
+        addNewState,
         autoLayout,
         onUpdateWorkflowMetaDialog,
         onResize,
