@@ -65,13 +65,22 @@
               <span class="transition-name">{{ transition.name || 'Unnamed' }}</span>
               <span class="transition-direction">→ {{ transition.direction }}</span>
             </div>
-            <button 
-              class="delete-transition-btn" 
-              @click.stop="deleteTransition(transition)"
-              title="Delete transition"
-            >
-              ×
-            </button>
+            <div class="transition-actions">
+              <button 
+                class="change-target-btn" 
+                @click.stop="changeTransitionTarget(transition)"
+                title="Change target node"
+              >
+                🔗
+              </button>
+              <button 
+                class="delete-transition-btn" 
+                @click.stop="deleteTransition(transition)"
+                title="Delete transition"
+              >
+                ×
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -80,9 +89,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted, h } from 'vue'
 import { Handle, Position } from '@vue-flow/core'
-import { ElMessageBox } from 'element-plus'
+import { ElMessageBox, ElSelect, ElOption } from 'element-plus'
 import { useDropdownManager } from './composables/useDropdownManager'
 import { useTransitionHighlight } from './composables/useTransitionHighlight'
 import eventBus from '../../../plugins/eventBus'
@@ -200,6 +209,72 @@ const deleteTransition = async (transition: Transition) => {
   } catch {
     // User cancelled the deletion
   }
+}
+
+const changeTransitionTarget = async (transition: Transition) => {
+  // Получаем список всех доступных нод из родительского компонента
+  eventBus.$emit('get-available-nodes', {
+    currentTransition: transition,
+    callback: async (availableNodes: string[]) => {
+      if (availableNodes.length === 0) {
+        ElMessageBox.alert('No other nodes available', 'Change Target Node', {
+          type: 'warning'
+        })
+        return
+      }
+
+      try {
+        const selectedValue = ref(transition.direction)
+
+        await ElMessageBox({
+          title: 'Change Target Node',
+          message: () => h('div', [
+            h('p', { style: { marginBottom: '15px' } }, 
+              `Select the new target node for transition "${transition.name || 'Unnamed'}":`
+            ),
+            h(ElSelect, {
+              modelValue: selectedValue.value,
+              'onUpdate:modelValue': (value: string) => {
+                selectedValue.value = value
+              },
+              placeholder: 'Select target node',
+              style: { width: '100%' },
+              filterable: true,
+            }, {
+              default: () => availableNodes.map(nodeName => 
+                h(ElOption, {
+                  key: nodeName,
+                  label: nodeName,
+                  value: nodeName
+                })
+              )
+            })
+          ]),
+          showCancelButton: true,
+          confirmButtonText: 'Change',
+          cancelButtonText: 'Cancel',
+          beforeClose: (action, instance, done) => {
+            if (action === 'confirm') {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (instance as any).inputValue = selectedValue.value
+            }
+            done()
+          }
+        })
+        
+        if (selectedValue.value && selectedValue.value !== transition.direction) {
+          // Emit event to change transition target
+          eventBus.$emit('change-transition-target', {
+            stateName: nodeId.value,
+            transitionName: transition.name,
+            newTarget: selectedValue.value
+          })
+        }
+      } catch {
+        // User cancelled the change
+      }
+    }
+  })
 }
 
 const handleTransitionHover = (transition: Transition) => {
@@ -336,17 +411,23 @@ const handleTransitionLeave = () => {
   min-width: 0;
 }
 
+.transition-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.change-target-btn,
 .delete-transition-btn {
   background: none;
   border: none;
-  color: #dc3545;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: bold;
-  padding: 4px 8px;
+  padding: 4px 6px;
   border-radius: 4px;
-  margin-left: 8px;
-  opacity: 0;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
@@ -354,6 +435,20 @@ const handleTransitionLeave = () => {
   width: 24px;
   height: 24px;
   flex-shrink: 0;
+}
+
+.change-target-btn {
+  color: #1890ff;
+  
+  &:hover {
+    background-color: #1890ff;
+    color: white;
+  }
+}
+
+.delete-transition-btn {
+  color: #dc3545;
+  font-size: 16px;
 
   &:hover {
     background-color: #dc3545;
@@ -361,7 +456,7 @@ const handleTransitionLeave = () => {
   }
 }
 
-.transition-item:hover .delete-transition-btn {
+.transition-item:hover .transition-actions {
   opacity: 1;
 }
 

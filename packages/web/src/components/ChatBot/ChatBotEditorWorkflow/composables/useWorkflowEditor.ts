@@ -396,6 +396,64 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
     }
 
+    function handleChangeTransitionTarget(eventData: any) {
+        const { stateName, transitionName, newTarget } = eventData;
+
+        // Сохраняем текущие позиции узлов перед изменением данных
+        const currentPositions: { [key: string]: NodePosition } = {};
+        nodes.value.forEach(node => {
+            currentPositions[node.id] = { x: node.position.x, y: node.position.y };
+        });
+
+        let parsed: WorkflowData;
+        try {
+            parsed = JSON.parse(canvasData.value);
+        } catch (e) {
+            console.error('Invalid JSON in canvasData:', e);
+            return;
+        }
+
+        const state = parsed.states[stateName];
+        if (!state) {
+            console.error('State not found:', stateName);
+            return;
+        }
+
+        if (!state.transitions) {
+            console.warn('No transitions found for state:', stateName);
+            return;
+        }
+
+        // Находим и обновляем переход
+        const transitionIndex = state.transitions.findIndex(t => t.id === transitionName);
+        if (transitionIndex !== -1) {
+            state.transitions[transitionIndex].next = newTarget;
+            
+            // Сохраняем текущие позиции в storage перед обновлением canvasData
+            nodePositionStorage.savePositions(currentPositions);
+            
+            canvasData.value = JSON.stringify(parsed, null, 2);
+        } else {
+            console.warn('Transition not found:', transitionName, 'in state:', stateName);
+        }
+    }
+
+    function handleGetAvailableNodes(eventData: any) {
+        const { callback } = eventData;
+        
+        let parsed: WorkflowData;
+        try {
+            parsed = JSON.parse(canvasData.value);
+        } catch (e) {
+            console.error('Invalid JSON in canvasData:', e);
+            callback([]);
+            return;
+        }
+
+        const availableNodes = Object.keys(parsed.states || {});
+        callback(availableNodes);
+    }
+
     function onEdgeConditionChange(event: any) {
         const {stateName, transitionName, transitionData} = event;
 
@@ -519,12 +577,16 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     onMounted(() => {
         eventBus.$on('save-transition', handleSaveCondition);
         eventBus.$on('delete-transition', handleDeleteTransition);
+        eventBus.$on('change-transition-target', handleChangeTransitionTarget);
+        eventBus.$on('get-available-nodes', handleGetAvailableNodes);
         generateNodes();
     });
 
     onUnmounted(() => {
         eventBus.$off('save-transition', handleSaveCondition);
         eventBus.$off('delete-transition', handleDeleteTransition);
+        eventBus.$off('change-transition-target', handleChangeTransitionTarget);
+        eventBus.$off('get-available-nodes', handleGetAvailableNodes);
 
         if (debounceTimer) {
             clearTimeout(debounceTimer);
