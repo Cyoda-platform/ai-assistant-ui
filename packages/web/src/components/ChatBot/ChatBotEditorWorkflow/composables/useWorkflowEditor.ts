@@ -11,6 +11,7 @@ import HelperStorage from '@/helpers/HelperStorage';
 import {NodePositionStorage} from '../utils/nodeUtils';
 import {calculateSmartPosition, applyAutoLayout, NodePosition} from '../utils/smartLayout';
 import {type EditorAction, createWorkflowEditorActions} from '@/utils/editorUtils';
+import {useUndoRedo} from './useUndoRedo';
 
 export interface WorkflowEditorProps {
     technicalId: string;
@@ -115,6 +116,24 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             : []
     );
     const nodes = ref<WorkflowNode[]>([]);
+
+    // Инициализация undo/redo системы
+    const {
+        history,
+        currentIndex,
+        canUndo,
+        canRedo,
+        saveState,
+        undo,
+        redo,
+        initialize
+    } = useUndoRedo();
+    
+    // Инициализируем историю с пустым состоянием
+    initialize('');
+
+    // Состояние для отслеживания drag connection
+    const isDraggingConnection = ref(false);
 
     const {setViewport, fitView} = useVueFlow();
 
@@ -553,6 +572,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         nodePositionStorage.updatePositionsFromDrag(event);
     }
 
+    function onConnectStart() {
+        isDraggingConnection.value = true;
+    }
+
+    function onConnectEnd() {
+        isDraggingConnection.value = false;
+    }
+
     function onConnect(params: any) {
         const {source, target} = params;
 
@@ -751,20 +778,46 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     });
 
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    let isUndoRedoOperation = false;
+
+    // Простой watcher для canvasData
     watch(canvasData, (newValue) => {
+        // Если это не операция undo/redo, сохраняем в историю
+        if (!isUndoRedoOperation) {
+            saveState(newValue || '');
+        }
+
+        // Debounce только для генерации узлов
         if (debounceTimer) {
             clearTimeout(debounceTimer);
         }
-
         debounceTimer = setTimeout(() => {
             generateNodes();
-
-            // Обновляем store при изменении canvasData
-            if (assistantStore && newValue) {
-                assistantStore.setWorkflowData(newValue);
-            }
         }, 300);
     });
+
+    // Функции undo/redo
+    function undoAction() {
+        const previousState = undo();
+        if (previousState !== null) {
+            isUndoRedoOperation = true;
+            canvasData.value = previousState;
+            nextTick(() => {
+                isUndoRedoOperation = false;
+            });
+        }
+    }
+
+    function redoAction() {
+        const nextState = redo();
+        if (nextState !== null) {
+            isUndoRedoOperation = true;
+            canvasData.value = nextState;
+            nextTick(() => {
+                isUndoRedoOperation = false;
+            });
+        }
+    }
 
     provide('onConditionChange', onEdgeConditionChange);
 
@@ -779,11 +832,20 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         generateNodes,
         onNodeDragStop,
         onConnect,
+        onConnectStart,
+        onConnectEnd,
         resetTransform,
         addNewState,
         autoLayout,
         onUpdateWorkflowMetaDialog,
         onResize,
         fitView,
+        // Undo/Redo функциональность
+        canUndo,
+        canRedo,
+        undoAction,
+        redoAction,
+        // Connection drag состояние
+        isDraggingConnection,
     };
 }

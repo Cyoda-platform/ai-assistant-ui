@@ -4,40 +4,73 @@
     :class="[nodeTypeClass, { 
       'dimmed': shouldDimNode(nodeId),
       'dropdown-open': isDropdownOpen,
-      'hovering-dropdown': isHoveringDropdown 
+      'hovering-dropdown': isHoveringDropdown,
+      'hovering-delete': isHoveringDeleteBtn
     }]"
     ref="nodeRef"
   >
-    <!-- Connection points for creating transitions -->
+    <!-- Universal connection points - one handle per side that works as both source and target -->
+    
+    <!-- Left side handle -->
     <Handle 
-      type="target" 
+      type="source" 
       :position="Position.Left" 
-      id="left-target" 
-      class="connection-handle target-handle"
-      title="Drop connections here"
+      id="left-source" 
+      class="connection-handle universal-handle"
+      title="Connection point"
     />
+    
+    <!-- Right side handle -->
     <Handle 
       type="source" 
       :position="Position.Right" 
       id="right-source" 
-      class="connection-handle source-handle"
-      title="Drag to create new transition"
+      class="connection-handle universal-handle"
+      title="Connection point"
     />
     
-    <!-- Additional connection points for flexibility -->
+    <!-- Top side handle -->
     <Handle 
-      type="target" 
+      type="source" 
       :position="Position.Top" 
-      id="top-target" 
-      class="connection-handle target-handle secondary"
-      title="Drop connections here"
+      id="top-source" 
+      class="connection-handle universal-handle"
+      title="Connection point"
     />
+    
+    <!-- Bottom side handle -->
     <Handle 
       type="source" 
       :position="Position.Bottom" 
       id="bottom-source" 
-      class="connection-handle source-handle secondary"
-      title="Drag to create new transition"
+      class="connection-handle universal-handle"
+      title="Connection point"
+    />
+
+    <!-- Target handles (invisible, for accepting connections) -->
+    <Handle 
+      type="target" 
+      :position="Position.Left" 
+      id="left-target" 
+      class="connection-handle target-invisible"
+    />
+    <Handle 
+      type="target" 
+      :position="Position.Right" 
+      id="right-target" 
+      class="connection-handle target-invisible"
+    />
+    <Handle 
+      type="target" 
+      :position="Position.Top" 
+      id="top-target" 
+      class="connection-handle target-invisible"
+    />
+    <Handle 
+      type="target" 
+      :position="Position.Bottom" 
+      id="bottom-target" 
+      class="connection-handle target-invisible"
     />
 
     <div class="node-header">
@@ -45,6 +78,8 @@
       <button 
         class="delete-state-btn" 
         @click.stop="deleteState"
+        @mouseenter="isHoveringDeleteBtn = true"
+        @mouseleave="isHoveringDeleteBtn = false"
         title="Delete state"
       >
         ×
@@ -142,6 +177,9 @@ const {
   isTransitionHighlighted,
   shouldDimNode
 } = useTransitionHighlight()
+
+// Состояние для отслеживания hover на кнопке удаления
+const isHoveringDeleteBtn = ref(false)
 
 watch(activeDropdownId, () => {
   updateState()
@@ -557,9 +595,11 @@ const handleTransitionLeave = () => {
   border: 2px solid #fff;
   border-radius: 50%;
   opacity: 0;
-  transition: all 0.2s ease;
+  visibility: hidden;
+  transition: all 0.3s ease;
   cursor: crosshair;
   box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.3);
+  pointer-events: none;
 
   &.connection-handle {
     &.target-handle {
@@ -580,6 +620,24 @@ const handleTransitionLeave = () => {
       }
     }
 
+    &.universal-handle {
+      background: #722ed1;
+      
+      &:hover {
+        background: #9254de;
+        box-shadow: 0 0 12px rgba(114, 46, 209, 0.6);
+      }
+    }
+
+    &.target-invisible {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: auto;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
+
     &.secondary {
       width: 8px;
       height: 8px;
@@ -587,41 +645,120 @@ const handleTransitionLeave = () => {
     }
   }
 
-  &:hover {
-    opacity: 1 !important;
-    transform: scale(1.3);
-  }
-
   &.vue-flow__handle-left {
     left: -7px;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(-50%) scale(0.5);
+    
+    &:hover:not(.target-invisible) {
+      transform: translateY(-50%) scale(1.1);
+    }
   }
 
   &.vue-flow__handle-right {
     right: -7px;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(-50%) scale(0.5);
+    
+    &:hover:not(.target-invisible) {
+      transform: translateY(-50%) scale(1.1);
+    }
   }
 
   &.vue-flow__handle-top {
     top: -7px;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) scale(0.5);
+    
+    &:hover:not(.target-invisible) {
+      transform: translateX(-50%) scale(1.1);
+    }
   }
 
   &.vue-flow__handle-bottom {
     bottom: -7px;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) scale(0.5);
+    
+    &:hover:not(.target-invisible) {
+      transform: translateX(-50%) scale(1.1);
+    }
+  }
+
+  // Invisible target handles should not interfere
+  &.target-invisible {
+    &.vue-flow__handle-left {
+      transform: translateY(-50%) scale(0) !important;
+    }
+    &.vue-flow__handle-right {
+      transform: translateY(-50%) scale(0) !important;
+    }
+    &.vue-flow__handle-top {
+      transform: translateX(-50%) scale(0) !important;
+    }
+    &.vue-flow__handle-bottom {
+      transform: translateX(-50%) scale(0) !important;
+    }
+  }
+}
+
+/* Show handles on all nodes when dragging connection */
+.vue-flow.connection-dragging .workflow-node :deep(.vue-flow__handle) {
+  opacity: 0.8 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  animation: pulse-universal 2s infinite;
+  
+  &.vue-flow__handle-left:not(.target-invisible) {
+    transform: translateY(-50%) scale(1) !important;
+  }
+  
+  &.vue-flow__handle-right:not(.target-invisible) {
+    transform: translateY(-50%) scale(1) !important;
+  }
+  
+  &.vue-flow__handle-top:not(.target-invisible) {
+    transform: translateX(-50%) scale(1) !important;
+  }
+  
+  &.vue-flow__handle-bottom:not(.target-invisible) {
+    transform: translateX(-50%) scale(1) !important;
+  }
+  
+  &.target-invisible {
+    opacity: 0 !important;
+    visibility: hidden !important;
   }
 }
 
 .workflow-node:hover :deep(.vue-flow__handle) {
   opacity: 0.8;
+  visibility: visible;
+  pointer-events: auto;
+  
+  &.vue-flow__handle-left:not(.target-invisible) {
+    transform: translateY(-50%) scale(1.1);
+  }
+  
+  &.vue-flow__handle-right:not(.target-invisible) {
+    transform: translateY(-50%) scale(1.1);
+  }
+  
+  &.vue-flow__handle-top:not(.target-invisible) {
+    transform: translateX(-50%) scale(1.1);
+  }
+  
+  &.vue-flow__handle-bottom:not(.target-invisible) {
+    transform: translateX(-50%) scale(1.1);
+  }
   
   &.secondary {
     opacity: 0.6;
+  }
+  
+  &.target-invisible {
+    opacity: 0 !important;
+    visibility: hidden !important;
   }
 }
 
@@ -633,12 +770,18 @@ const handleTransitionLeave = () => {
   animation: pulse-target 2s infinite;
 }
 
+.workflow-node:hover :deep(.vue-flow__handle.universal-handle) {
+  animation: pulse-universal 2s infinite;
+}
+
 /* Hide handles when dropdown is open or being hovered */
 .workflow-node.dropdown-open :deep(.vue-flow__handle),
-.workflow-node.hovering-dropdown :deep(.vue-flow__handle) {
+.workflow-node.hovering-dropdown :deep(.vue-flow__handle),
+.workflow-node.hovering-delete :deep(.vue-flow__handle) {
   opacity: 0 !important;
+  visibility: hidden !important;
   animation: none !important;
-  pointer-events: none;
+  pointer-events: none !important;
 }
 
 @keyframes pulse-source {
@@ -656,6 +799,15 @@ const handleTransitionLeave = () => {
   }
   50% { 
     box-shadow: 0 0 0 6px rgba(82, 196, 26, 0.1);
+  }
+}
+
+@keyframes pulse-universal {
+  0%, 100% { 
+    box-shadow: 0 0 0 2px rgba(114, 46, 209, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 0 6px rgba(114, 46, 209, 0.1);
   }
 }
 </style>
