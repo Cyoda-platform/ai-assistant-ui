@@ -82,7 +82,7 @@
         @mouseleave="isHoveringDeleteBtn = false"
         title="Delete state"
       >
-        ×
+        <TrashSmallIcon/>
       </button>
     </div>
     <div class="node-footer" v-if="hasTransitions">
@@ -117,14 +117,14 @@
                 @click.stop="changeTransitionTarget(transition)"
                 title="Change target node"
               >
-                🔗
+                <LinkSmallIcon/>
               </button>
               <button 
                 class="delete-transition-btn" 
                 @click.stop="deleteTransition(transition)"
                 title="Delete transition"
               >
-                ×
+                <TrashSmallIcon/>
               </button>
             </div>
           </div>
@@ -141,6 +141,8 @@ import { ElMessageBox, ElSelect, ElOption } from 'element-plus'
 import { useDropdownManager } from './composables/useDropdownManager'
 import { useTransitionHighlight } from './composables/useTransitionHighlight'
 import eventBus from '../../../plugins/eventBus'
+import TrashSmallIcon from "@/assets/images/icons/trash-small.svg";
+import LinkSmallIcon from "@/assets/images/icons/link-small.svg";
 
 interface Transition {
   id: string
@@ -414,12 +416,12 @@ const handleTransitionLeave = () => {
   line-height: 1;
   transition: all 0.2s ease;
   margin-left: 8px;
+  padding: 3px;
   
   &:hover {
     background: rgba(239, 68, 68, 0.2);
     border-color: rgba(239, 68, 68, 0.5);
     color: rgba(239, 68, 68, 0.9);
-    transform: scale(1.1);
   }
 }
 
@@ -521,6 +523,7 @@ const handleTransitionLeave = () => {
   gap: 4px;
   opacity: 0;
   transition: opacity 0.2s ease;
+  margin-left: 4px;
 }
 
 .change-target-btn,
@@ -542,7 +545,7 @@ const handleTransitionLeave = () => {
 }
 
 .change-target-btn {
-  color: #1890ff;
+  color: black;
   
   &:hover {
     background-color: #1890ff;
