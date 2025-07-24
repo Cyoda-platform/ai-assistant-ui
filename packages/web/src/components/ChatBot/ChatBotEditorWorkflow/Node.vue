@@ -640,7 +640,7 @@ const handleTransitionLeave = () => {
   }
 
   &.vue-flow__handle-left {
-    left: 0;
+    left: -5px;
     top: 50%;
     transform: translateY(-50%);
     
@@ -650,7 +650,7 @@ const handleTransitionLeave = () => {
   }
 
   &.vue-flow__handle-right {
-    right: 0;
+    right: -5px;
     top: 50%;
     transform: translateY(-50%);
     
@@ -660,7 +660,7 @@ const handleTransitionLeave = () => {
   }
 
   &.vue-flow__handle-top {
-    top: 0;
+    top: -5px;
     left: 50%;
     transform: translateX(-50%);
     
@@ -670,7 +670,7 @@ const handleTransitionLeave = () => {
   }
 
   &.vue-flow__handle-bottom {
-    bottom: 0;
+    bottom: -5px;
     left: 50%;
     transform: translateX(-50%);
     
