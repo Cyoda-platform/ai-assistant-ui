@@ -7,13 +7,10 @@ export function renderCodeHighlight(text: string, lang?: string): string {
     if (lang && hljs.getLanguage(lang)) {
       const result = hljs.highlight(text, { language: lang });
       highlightedCode = result.value;
+      return `<pre><code class="hljs language-${lang}">${highlightedCode}</code></pre>`;
     } else {
-      const result = hljs.highlightAuto(text);
-      highlightedCode = result.value;
-      lang = result.language || 'text';
+      return `<pre><code class="language-${lang || 'text'}">${escapeHtml(text)}</code></pre>`;
     }
-
-    return `<pre><code class="hljs language-${lang}">${highlightedCode}</code></pre>`;
   } catch (error) {
     console.warn('Code highlighting failed:', error);
     return `<pre><code class="language-${lang || 'text'}">${escapeHtml(text)}</code></pre>`;
