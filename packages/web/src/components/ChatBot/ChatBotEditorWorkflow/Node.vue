@@ -103,8 +103,10 @@
             :key="transition.id"
             class="transition-item"
             :class="{ 'highlighted': isTransitionHighlighted(transition.id) }"
+            @mouseenter="handleTransitionHover(transition)"
+            @mouseleave="handleTransitionLeave"
           >
-            <div class="transition-content" @click="editTransition(transition)" @mouseenter="handleTransitionHover(transition)" @mouseleave="handleTransitionLeave">
+            <div class="transition-content" @click="editTransition(transition)">
               <span class="transition-order">{{ index + 1 }}.</span>
               <span class="transition-name">{{ transition.name || 'Unnamed' }}</span>
               <span class="transition-direction">→ {{ transition.direction }}</span>

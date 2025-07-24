@@ -92,6 +92,12 @@ export interface WorkflowEdge {
         height: number;
         color: string;
     };
+    markerStart?: {
+        type: MarkerType;
+        width: number;
+        height: number;
+        color: string;
+    };
     data: {
         transitionData: any;
         stateName: string;
@@ -100,6 +106,7 @@ export interface WorkflowEdge {
             stateName: string;
             transition: WorkflowTransition;
         }>;
+        isBidirectional?: boolean;
     };
 }
 
@@ -164,13 +171,16 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             if (state.transitions && Array.isArray(state.transitions)) {
                 for (const transition of state.transitions) {
                     if (transition && transition.next) {
-                        const edgeKey = `${stateName}->${transition.next}`;
+                        // Создаем нормализованный ключ для пары нод (всегда в алфавитном порядке)
+                        const nodeA = stateName;
+                        const nodeB = transition.next;
+                        const normalizedKey = nodeA < nodeB ? `${nodeA}<->${nodeB}` : `${nodeB}<->${nodeA}`;
 
-                        if (!edgeGroups.has(edgeKey)) {
-                            edgeGroups.set(edgeKey, []);
+                        if (!edgeGroups.has(normalizedKey)) {
+                            edgeGroups.set(normalizedKey, []);
                         }
 
-                        edgeGroups.get(edgeKey)!.push({
+                        edgeGroups.get(normalizedKey)!.push({
                             stateName,
                             transition
                         });
@@ -179,19 +189,35 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             }
         }
 
-        for (const [, transitions] of edgeGroups.entries()) {
-            const firstTransition = transitions[0];
-            const stateName = firstTransition.stateName;
-            const target = firstTransition.transition.next;
+        for (const [normalizedKey, transitions] of edgeGroups.entries()) {
+            // Извлекаем имена нод из нормализованного ключа
+            const [nodeA, nodeB] = normalizedKey.split('<->');
+            
+            // Разделяем переходы по направлениям
+            const transitionsAtoB = transitions.filter(t => t.stateName === nodeA && t.transition.next === nodeB);
+            const transitionsBtoA = transitions.filter(t => t.stateName === nodeB && t.transition.next === nodeA);
+            
+            // Определяем основное направление и источник/цель
+            let source: string, target: string, mainTransitions: Array<{stateName: string; transition: WorkflowTransition}>;
+            
+            if (transitionsAtoB.length > 0) {
+                source = nodeA;
+                target = nodeB;
+                mainTransitions = transitionsAtoB;
+            } else {
+                source = nodeB;
+                target = nodeA;
+                mainTransitions = transitionsBtoA;
+            }
 
-            const sourceNode = nodes.value.find(n => n.id === stateName);
+            const sourceNode = nodes.value.find(n => n.id === source);
             const targetNode = nodes.value.find(n => n.id === target);
 
             let sourceHandle = 'right-source';
             let targetHandle = 'left-target';
 
             if (sourceNode && targetNode) {
-                if (stateName === target) {
+                if (source === target) {
                     sourceHandle = 'right-source';
                     targetHandle = 'left-target';
                 } else {
@@ -222,19 +248,30 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 }
             }
 
+            // Создаем метку с учетом двусторонности
             let edgeLabel = '';
-            if (transitions.length === 1) {
-                edgeLabel = transitions[0].transition.id;
-            } else if (transitions.length === 2) {
-                edgeLabel = `${transitions[0].transition.id}/${transitions[1].transition.id}`;
+            const isBidirectional = transitionsAtoB.length > 0 && transitionsBtoA.length > 0;
+            
+            if (isBidirectional) {
+                // Двусторонние переходы
+                const labelA = transitionsAtoB.length === 1 ? transitionsAtoB[0].transition.id : `${transitionsAtoB[0].transition.id}+${transitionsAtoB.length-1}`;
+                const labelB = transitionsBtoA.length === 1 ? transitionsBtoA[0].transition.id : `${transitionsBtoA[0].transition.id}+${transitionsBtoA.length-1}`;
+                edgeLabel = `${labelA} ⇄ ${labelB}`;
             } else {
-                edgeLabel = `${transitions[0].transition.id}/${transitions[1].transition.id}...`;
+                // Односторонние переходы
+                if (mainTransitions.length === 1) {
+                    edgeLabel = mainTransitions[0].transition.id;
+                } else if (mainTransitions.length === 2) {
+                    edgeLabel = `${mainTransitions[0].transition.id}, ${mainTransitions[1].transition.id}`;
+                } else {
+                    edgeLabel = `${mainTransitions[0].transition.id}, ${mainTransitions[1].transition.id}...`;
+                }
             }
 
             const edge: WorkflowEdge = {
-                id: `${stateName}-${target}`,
-                source: stateName,
-                target: target,
+                id: normalizedKey,
+                source,
+                target,
                 sourceHandle,
                 targetHandle,
                 label: edgeLabel,
@@ -247,16 +284,28 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     color: '#333',
                 },
                 data: {
-                    transitionData: firstTransition.transition,
-                    stateName,
-                    transitionName: firstTransition.transition.id,
+                    transitionData: mainTransitions[0].transition,
+                    stateName: source,
+                    transitionName: mainTransitions[0].transition.id,
                     allTransitions: transitions,
+                    isBidirectional,
                 },
             };
+            
+            // Добавляем стрелку в начало для двусторонних переходов
+            if (isBidirectional) {
+                edge.markerStart = {
+                    type: MarkerType.ArrowClosed,
+                    width: 20,
+                    height: 20,
+                    color: '#333',
+                };
+            }
 
             result.push(edge);
         }
 
+        console.log('Generated edges:', result.map(e => ({ id: e.id, source: e.source, target: e.target, label: e.label })));
         return result;
     });
 
