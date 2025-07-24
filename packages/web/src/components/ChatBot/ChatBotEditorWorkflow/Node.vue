@@ -619,11 +619,12 @@ const handleTransitionLeave = () => {
 
     &.target-invisible {
       opacity: 0 !important;
-      visibility: hidden !important;
-      pointer-events: auto;
+      pointer-events: auto !important;
       background: transparent;
       border: none;
       box-shadow: none;
+      width: 16px;
+      height: 16px;
     }
 
     &.secondary {
@@ -673,27 +674,35 @@ const handleTransitionLeave = () => {
     }
   }
 
-  // Invisible target handles should match source handles exactly
+  // Invisible target handles with larger hit area for better drop detection
   &.target-invisible {
     &.vue-flow__handle-left {
-      left: 0;
+      left: -3px;
       top: 50%;
       transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
     }
     &.vue-flow__handle-right {
-      right: 0;
+      right: -3px;
       top: 50%;
       transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
     }
     &.vue-flow__handle-top {
-      top: 0;
+      top: -3px;
       left: 50%;
       transform: translateX(-50%);
+      width: 18px;
+      height: 18px;
     }
     &.vue-flow__handle-bottom {
-      bottom: 0;
+      bottom: -3px;
       left: 50%;
       transform: translateX(-50%);
+      width: 18px;
+      height: 18px;
     }
   }
 }
@@ -723,7 +732,7 @@ const handleTransitionLeave = () => {
   
   &.target-invisible {
     opacity: 0 !important;
-    visibility: hidden !important;
+    visibility: visible !important;
   }
 }
 
