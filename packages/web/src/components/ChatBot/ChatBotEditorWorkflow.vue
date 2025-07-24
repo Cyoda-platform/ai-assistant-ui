@@ -15,7 +15,7 @@
             @connect="onConnect"
             @connectStart="onConnectStart"
             @connectEnd="onConnectEnd"
-            :connection-mode="ConnectionMode.Loose"
+            :connection-mode="ConnectionMode.Strict"
             v-model:nodes="nodes"
             v-model:edges="edges"
             :edge-types="edgeTypes"

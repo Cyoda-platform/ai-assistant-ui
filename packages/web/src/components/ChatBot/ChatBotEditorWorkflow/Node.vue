@@ -358,6 +358,7 @@ const handleTransitionLeave = () => {
 
 <style scoped lang="scss">
 .workflow-node {
+  position: relative;
   border-radius: 8px;
   padding: 8px 12px;
   min-width: fit-content;
@@ -590,43 +591,30 @@ const handleTransitionLeave = () => {
 }
 
 :deep(.vue-flow__handle) {
+  position: absolute;
   width: 10px;
   height: 10px;
   border: 2px solid #fff;
   border-radius: 50%;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.2s;
   cursor: crosshair;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.3);
   pointer-events: none;
+  z-index: 10;
+  background: #722ed1;
 
   &.connection-handle {
     &.target-handle {
       background: #52c41a;
-      
-      &:hover {
-        background: #73d13d;
-        box-shadow: 0 0 12px rgba(82, 196, 26, 0.6);
-      }
     }
 
     &.source-handle {
       background: #1890ff;
-      
-      &:hover {
-        background: #40a9ff;
-        box-shadow: 0 0 12px rgba(24, 144, 255, 0.6);
-      }
     }
 
     &.universal-handle {
       background: #722ed1;
-      
-      &:hover {
-        background: #9254de;
-        box-shadow: 0 0 12px rgba(114, 46, 209, 0.6);
-      }
     }
 
     &.target-invisible {
@@ -646,58 +634,66 @@ const handleTransitionLeave = () => {
   }
 
   &.vue-flow__handle-left {
-    left: -7px;
+    left: 0;
     top: 50%;
-    transform: translateY(-50%) scale(0.5);
+    transform: translateY(-50%);
     
     &:hover:not(.target-invisible) {
-      transform: translateY(-50%) scale(1.1);
+      background: #9254de;
     }
   }
 
   &.vue-flow__handle-right {
-    right: -7px;
+    right: 0;
     top: 50%;
-    transform: translateY(-50%) scale(0.5);
+    transform: translateY(-50%);
     
     &:hover:not(.target-invisible) {
-      transform: translateY(-50%) scale(1.1);
+      background: #9254de;
     }
   }
 
   &.vue-flow__handle-top {
-    top: -7px;
+    top: 0;
     left: 50%;
-    transform: translateX(-50%) scale(0.5);
+    transform: translateX(-50%);
     
     &:hover:not(.target-invisible) {
-      transform: translateX(-50%) scale(1.1);
+      background: #9254de;
     }
   }
 
   &.vue-flow__handle-bottom {
-    bottom: -7px;
+    bottom: 0;
     left: 50%;
-    transform: translateX(-50%) scale(0.5);
+    transform: translateX(-50%);
     
     &:hover:not(.target-invisible) {
-      transform: translateX(-50%) scale(1.1);
+      background: #9254de;
     }
   }
 
-  // Invisible target handles should not interfere
+  // Invisible target handles should match source handles exactly
   &.target-invisible {
     &.vue-flow__handle-left {
-      transform: translateY(-50%) scale(0) !important;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
     }
     &.vue-flow__handle-right {
-      transform: translateY(-50%) scale(0) !important;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
     }
     &.vue-flow__handle-top {
-      transform: translateX(-50%) scale(0) !important;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
     }
     &.vue-flow__handle-bottom {
-      transform: translateX(-50%) scale(0) !important;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
     }
   }
 }
@@ -710,19 +706,19 @@ const handleTransitionLeave = () => {
   animation: pulse-universal 2s infinite;
   
   &.vue-flow__handle-left:not(.target-invisible) {
-    transform: translateY(-50%) scale(1) !important;
+    transform: translateY(-50%) !important;
   }
   
   &.vue-flow__handle-right:not(.target-invisible) {
-    transform: translateY(-50%) scale(1) !important;
+    transform: translateY(-50%) !important;
   }
   
   &.vue-flow__handle-top:not(.target-invisible) {
-    transform: translateX(-50%) scale(1) !important;
+    transform: translateX(-50%) !important;
   }
   
   &.vue-flow__handle-bottom:not(.target-invisible) {
-    transform: translateX(-50%) scale(1) !important;
+    transform: translateX(-50%) !important;
   }
   
   &.target-invisible {
@@ -737,19 +733,19 @@ const handleTransitionLeave = () => {
   pointer-events: auto;
   
   &.vue-flow__handle-left:not(.target-invisible) {
-    transform: translateY(-50%) scale(1.1);
+    transform: translateY(-50%);
   }
   
   &.vue-flow__handle-right:not(.target-invisible) {
-    transform: translateY(-50%) scale(1.1);
+    transform: translateY(-50%);
   }
   
   &.vue-flow__handle-top:not(.target-invisible) {
-    transform: translateX(-50%) scale(1.1);
+    transform: translateX(-50%);
   }
   
   &.vue-flow__handle-bottom:not(.target-invisible) {
-    transform: translateX(-50%) scale(1.1);
+    transform: translateX(-50%);
   }
   
   &.secondary {
