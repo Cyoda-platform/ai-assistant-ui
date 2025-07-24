@@ -19,6 +19,14 @@ interface EdgeData {
   transitionData?: object
   stateName: string
   transitionName: string
+  allTransitions?: Array<{
+    stateName: string;
+    transition: {
+      id: string;
+      next: string;
+    };
+  }>;
+  isBidirectional?: boolean;
 }
 
 const props = defineProps<EdgeProps<EdgeData>>()
@@ -95,7 +103,23 @@ const transitionId = computed(() => {
 })
 
 const shouldDimEdge = computed(() => {
-  return highlightedTransition.value !== null && highlightedTransition.value !== transitionId.value
+  if (highlightedTransition.value === null) return false;
+  
+  // Проверяем, совпадает ли выделенный transition с основным transition этого edge
+  if (highlightedTransition.value === transitionId.value) {
+    return false;
+  }
+  
+  // Проверяем, содержится ли выделенный transition в allTransitions этого edge
+  if (props.data?.allTransitions) {
+    const isTransitionInThisEdge = props.data.allTransitions.some(t => {
+      const tId = `${t.stateName}-${t.transition.id}`;
+      return tId === highlightedTransition.value;
+    });
+    return !isTransitionInThisEdge;
+  }
+  
+  return true;
 })
 
 const edgeStyle = computed(() => {

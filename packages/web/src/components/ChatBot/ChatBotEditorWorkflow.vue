@@ -8,9 +8,14 @@
       <el-splitter-panel v-if="isShowVueFlow" class="chat-bot-editor-workflow__flow-wrapper">
         <VueFlow
             class="chat-bot-editor-workflow__vue-flow"
+            :class="{ 'connection-dragging': isDraggingConnection }"
             :fit-view-on-init="true"
             :zoom-on-scroll="false"
             @nodeDragStop="onNodeDragStop"
+            @connect="onConnect"
+            @connectStart="onConnectStart"
+            @connectEnd="onConnectEnd"
+            :connection-mode="ConnectionMode.Strict"
             v-model:nodes="nodes"
             v-model:edges="edges"
             :edge-types="edgeTypes"
@@ -19,12 +24,24 @@
             :max-zoom="4"
         >
           <Controls position="top-left">
+            <ControlButton @click="undoAction" :disabled="!canUndo">
+              <Icon name="undo"/>
+            </ControlButton>
+            
+            <ControlButton @click="redoAction" :disabled="!canRedo">
+              <Icon name="redo"/>
+            </ControlButton>
+
             <ControlButton @click="resetTransform">
               <Icon name="reset"/>
             </ControlButton>
 
             <ControlButton @click="autoLayout">
               <Icon name="update"/>
+            </ControlButton>
+
+            <ControlButton @click="addNewState">
+              <Icon name="plus"/>
             </ControlButton>
 
             <ControlButton @click="workflowMeta">
@@ -48,6 +65,7 @@
         :edges="edges"
         :edge-types="edgeTypes"
         @onNodeDragStop="onNodeDragStop"
+        @onConnect="onConnect"
         @resetTransform="resetTransform"
         @autoLayout="autoLayout"
         @workflowMeta="workflowMeta"
@@ -57,7 +75,7 @@
 
 <script setup lang="ts">
 import {templateRef} from "@vueuse/core";
-import {VueFlow} from '@vue-flow/core'
+import {VueFlow, ConnectionMode} from '@vue-flow/core'
 import {Background} from '@vue-flow/background'
 import {ControlButton, Controls} from '@vue-flow/controls'
 import Editor from "@/components/Editor/Editor.vue";
@@ -91,10 +109,21 @@ const {
   edges,
   workflowMetaData,
   onNodeDragStop,
+  onConnect,
+  onConnectStart,
+  onConnectEnd,
   resetTransform,
+  addNewState,
   autoLayout,
   onUpdateWorkflowMetaDialog,
   onResize,
+  // Undo/Redo функциональность
+  canUndo,
+  canRedo,
+  undoAction,
+  redoAction,
+  // Connection drag состояние
+  isDraggingConnection,
 } = useWorkflowEditor(props, assistantStore);
 
 onMounted(() => {

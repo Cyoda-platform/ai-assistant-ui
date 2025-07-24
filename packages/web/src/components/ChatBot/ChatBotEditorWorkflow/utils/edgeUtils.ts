@@ -6,9 +6,14 @@
 import { MarkerType } from '@vue-flow/core';
 
 export interface EdgeData {
-  transitionData: any;
+  transitionData: unknown;
   stateName: string;
   transitionName: string;
+  reverseTransitionData?: unknown;
+  reverseStateName?: string;
+  reverseTransitionName?: string;
+  isBidirectional?: boolean;
+  allTransitions?: Array<{ name: string, data: unknown, source: string, target: string }>;
 }
 
 export interface WorkflowEdge {
@@ -83,16 +88,17 @@ export function calculateEdgeHandles(
 export function createWorkflowEdge(
   stateName: string,
   transitionName: string,
-  transitionData: any,
+  transitionData: unknown,
   sourceNode: WorkflowNode,
   targetNode: WorkflowNode
 ): WorkflowEdge {
   const { sourceHandle, targetHandle } = calculateEdgeHandles(sourceNode, targetNode);
+  const transition = transitionData as { next: string };
 
   return {
     id: `${stateName}-${transitionName}`,
     source: stateName,
-    target: transitionData.next,
+    target: transition.next,
     sourceHandle,
     targetHandle,
     label: transitionName,
@@ -113,30 +119,84 @@ export function createWorkflowEdge(
 }
 
 export function generateWorkflowEdges(
-  states: any,
+  states: Record<string, unknown>,
   nodes: WorkflowNode[]
 ): WorkflowEdge[] {
   const result: WorkflowEdge[] = [];
+  const connectionMap = new Map<string, { transitions: Array<{ name: string, data: unknown, source: string, target: string }> }>();
 
+  // Сначала собираем все переходы между парами нод
   for (const [stateName, stateData] of Object.entries(states)) {
-    const state = stateData as any;
+    const state = stateData as { transitions?: Record<string, { next: string }> };
     if (state.transitions) {
       for (const [transitionName, transitionData] of Object.entries(state.transitions)) {
-        const transition = transitionData as any;
+        const transition = transitionData;
         const sourceNode = nodes.find(n => n.id === stateName);
         const targetNode = nodes.find(n => n.id === transition.next);
 
         if (sourceNode && targetNode) {
-          const edge = createWorkflowEdge(
-            stateName,
-            transitionName,
-            transition,
-            sourceNode,
-            targetNode
-          );
-          result.push(edge);
+          // Создаем ключ для пары нод (всегда в одном направлении: source -> target)
+          const connectionKey = `${stateName}->${transition.next}`;
+          
+          if (!connectionMap.has(connectionKey)) {
+            connectionMap.set(connectionKey, { transitions: [] });
+          }
+          
+          connectionMap.get(connectionKey)!.transitions.push({
+            name: transitionName,
+            data: transition,
+            source: stateName,
+            target: transition.next
+          });
         }
       }
+    }
+  }
+
+  // Теперь создаем edges для каждой уникальной пары нод
+  for (const [connectionKey, connectionData] of connectionMap.entries()) {
+    const [source, target] = connectionKey.split('->');
+    const sourceNode = nodes.find(n => n.id === source);
+    const targetNode = nodes.find(n => n.id === target);
+    
+    if (sourceNode && targetNode && connectionData.transitions.length > 0) {
+      const firstTransition = connectionData.transitions[0];
+      const { sourceHandle, targetHandle } = calculateEdgeHandles(sourceNode, targetNode);
+      
+      // Создаем метку в зависимости от количества переходов
+      let label: string;
+      if (connectionData.transitions.length === 1) {
+        label = firstTransition.name;
+      } else if (connectionData.transitions.length === 2) {
+        label = `${connectionData.transitions[0].name}, ${connectionData.transitions[1].name}`;
+      } else {
+        label = `${connectionData.transitions[0].name}, ${connectionData.transitions[1].name}...`;
+      }
+
+      const edge: WorkflowEdge = {
+        id: `${source}-${target}`,
+        source,
+        target,
+        sourceHandle,
+        targetHandle,
+        label,
+        animated: true,
+        type: 'custom',
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 20,
+          height: 20,
+          color: '#333',
+        },
+        data: {
+          transitionData: firstTransition.data,
+          stateName: source,
+          transitionName: firstTransition.name,
+          allTransitions: connectionData.transitions,
+        },
+      };
+      
+      result.push(edge);
     }
   }
 

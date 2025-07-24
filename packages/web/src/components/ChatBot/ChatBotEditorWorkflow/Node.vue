@@ -1,21 +1,97 @@
 <template>
   <div
     class="workflow-node"
-    :class="[nodeTypeClass, { 'dimmed': shouldDimNode(nodeId) }]"
+    :class="[nodeTypeClass, { 
+      'dimmed': shouldDimNode(nodeId),
+      'dropdown-open': isDropdownOpen,
+      'hovering-dropdown': isHoveringDropdown,
+      'hovering-delete': isHoveringDeleteBtn
+    }]"
     ref="nodeRef"
   >
-    <Handle type="target" :position="Position.Left" id="left-target" />
-    <Handle type="source" :position="Position.Left" id="left-source" />
-    <Handle type="target" :position="Position.Right" id="right-target" />
-    <Handle type="source" :position="Position.Right" id="right-source" />
-    <Handle type="target" :position="Position.Top" id="top-target" />
-    <Handle type="source" :position="Position.Top" id="top-source" />
-    <Handle type="target" :position="Position.Bottom" id="bottom-target" />
-    <Handle type="source" :position="Position.Bottom" id="bottom-source" />
+    <!-- Universal connection points - one handle per side that works as both source and target -->
+    
+    <!-- Left side handle -->
+    <Handle 
+      type="source" 
+      :position="Position.Left" 
+      id="left-source" 
+      class="connection-handle universal-handle"
+      title="Connection point"
+    />
+    
+    <!-- Right side handle -->
+    <Handle 
+      type="source" 
+      :position="Position.Right" 
+      id="right-source" 
+      class="connection-handle universal-handle"
+      title="Connection point"
+    />
+    
+    <!-- Top side handle -->
+    <Handle 
+      type="source" 
+      :position="Position.Top" 
+      id="top-source" 
+      class="connection-handle universal-handle"
+      title="Connection point"
+    />
+    
+    <!-- Bottom side handle -->
+    <Handle 
+      type="source" 
+      :position="Position.Bottom" 
+      id="bottom-source" 
+      class="connection-handle universal-handle"
+      title="Connection point"
+    />
 
-    <div class="node-title">{{ data.label }}</div>
+    <!-- Target handles (invisible, for accepting connections) -->
+    <Handle 
+      type="target" 
+      :position="Position.Left" 
+      id="left-target" 
+      class="connection-handle target-invisible"
+    />
+    <Handle 
+      type="target" 
+      :position="Position.Right" 
+      id="right-target" 
+      class="connection-handle target-invisible"
+    />
+    <Handle 
+      type="target" 
+      :position="Position.Top" 
+      id="top-target" 
+      class="connection-handle target-invisible"
+    />
+    <Handle 
+      type="target" 
+      :position="Position.Bottom" 
+      id="bottom-target" 
+      class="connection-handle target-invisible"
+    />
+
+    <div class="node-header">
+      <div class="node-title">{{ data.label }}</div>
+      <button 
+        class="delete-state-btn" 
+        @click.stop="deleteState"
+        @mouseenter="isHoveringDeleteBtn = true"
+        @mouseleave="isHoveringDeleteBtn = false"
+        title="Delete state"
+      >
+        <TrashSmallIcon/>
+      </button>
+    </div>
     <div class="node-footer" v-if="hasTransitions">
-      <div class="transitions-dropdown" :class="{ 'expanded': isDropdownOpen }">
+      <div 
+        class="transitions-dropdown" 
+        :class="{ 'expanded': isDropdownOpen }"
+        @mouseenter="isHoveringDropdown = true"
+        @mouseleave="isHoveringDropdown = false"
+      >
         <div class="dropdown-trigger" @click="toggleDropdown">
           <span class="transition-count">{{ transitionCount }} {{ transitionCount === 1 ? 'transition' : 'transitions' }}</span>
           <span class="dropdown-arrow" :class="{ 'rotated': isDropdownOpen }">▼</span>
@@ -27,13 +103,30 @@
             :key="transition.id"
             class="transition-item"
             :class="{ 'highlighted': isTransitionHighlighted(transition.id) }"
-            @click="editTransition(transition)"
             @mouseenter="handleTransitionHover(transition)"
             @mouseleave="handleTransitionLeave"
           >
-            <span class="transition-order">{{ index + 1 }}.</span>
-            <span class="transition-name">{{ transition.name || 'Unnamed' }}</span>
-            <span class="transition-direction">→ {{ transition.direction }}</span>
+            <div class="transition-content" @click="editTransition(transition)">
+              <span class="transition-order">{{ index + 1 }}.</span>
+              <span class="transition-name">{{ transition.name || 'Unnamed' }}</span>
+              <span class="transition-direction">→ {{ transition.direction }}</span>
+            </div>
+            <div class="transition-actions">
+              <button 
+                class="change-target-btn" 
+                @click.stop="changeTransitionTarget(transition)"
+                title="Change target node"
+              >
+                <LinkSmallIcon/>
+              </button>
+              <button 
+                class="delete-transition-btn" 
+                @click.stop="deleteTransition(transition)"
+                title="Delete transition"
+              >
+                <TrashSmallIcon/>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -42,11 +135,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted, h } from 'vue'
 import { Handle, Position } from '@vue-flow/core'
+import { ElMessageBox, ElSelect, ElOption } from 'element-plus'
 import { useDropdownManager } from './composables/useDropdownManager'
 import { useTransitionHighlight } from './composables/useTransitionHighlight'
 import eventBus from '../../../plugins/eventBus'
+import TrashSmallIcon from "@/assets/images/icons/trash-small.svg";
+import LinkSmallIcon from "@/assets/images/icons/link-small.svg";
 
 interface Transition {
   id: string
@@ -68,6 +164,7 @@ const props = defineProps<{
 }>()
 
 const nodeRef = ref()
+const isHoveringDropdown = ref(false)
 
 const nodeId = computed(() => props.data.label || 'unknown')
 const {
@@ -84,6 +181,9 @@ const {
   isTransitionHighlighted,
   shouldDimNode
 } = useTransitionHighlight()
+
+// Состояние для отслеживания hover на кнопке удаления
+const isHoveringDeleteBtn = ref(false)
 
 watch(activeDropdownId, () => {
   updateState()
@@ -139,6 +239,117 @@ const editTransition = (transition: Transition) => {
   })
 }
 
+const deleteTransition = async (transition: Transition) => {
+  try {
+    await ElMessageBox.confirm(
+      `Are you sure you want to delete the transition "${transition.name || 'Unnamed'}"?`,
+      'Delete Transition',
+      {
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+        confirmButtonClass: 'el-button--danger'
+      }
+    )
+    
+    // Emit event to delete transition
+    eventBus.$emit('delete-transition', {
+      stateName: nodeId.value,
+      transitionName: transition.name
+    })
+  } catch {
+    // User cancelled the deletion
+  }
+}
+
+const deleteState = async () => {
+  try {
+    await ElMessageBox.confirm(
+      `Are you sure you want to delete the state "${props.data.label}"? This will also delete all transitions to and from this state.`,
+      'Delete State',
+      {
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+        confirmButtonClass: 'el-button--danger'
+      }
+    )
+    
+    // Emit event to delete state
+    eventBus.$emit('delete-state', {
+      stateName: nodeId.value
+    })
+  } catch {
+    // User cancelled the deletion
+  }
+}
+
+const changeTransitionTarget = async (transition: Transition) => {
+  // Получаем список всех доступных нод из родительского компонента
+  eventBus.$emit('get-available-nodes', {
+    currentTransition: transition,
+    callback: async (availableNodes: string[]) => {
+      if (availableNodes.length === 0) {
+        ElMessageBox.alert('No other nodes available', 'Change Target Node', {
+          type: 'warning'
+        })
+        return
+      }
+
+      try {
+        const selectedValue = ref(transition.direction)
+
+        await ElMessageBox({
+          title: 'Change Target Node',
+          message: () => h('div', [
+            h('p', { style: { marginBottom: '15px' } }, 
+              `Select the new target node for transition "${transition.name || 'Unnamed'}":`
+            ),
+            h(ElSelect, {
+              modelValue: selectedValue.value,
+              'onUpdate:modelValue': (value: string) => {
+                selectedValue.value = value
+              },
+              placeholder: 'Select target node',
+              style: { width: '100%' },
+              filterable: true,
+            }, {
+              default: () => availableNodes.map(nodeName => 
+                h(ElOption, {
+                  key: nodeName,
+                  label: nodeName,
+                  value: nodeName
+                })
+              )
+            })
+          ]),
+          showCancelButton: true,
+          confirmButtonText: 'Change',
+          cancelButtonText: 'Cancel',
+          beforeClose: (action, instance, done) => {
+            if (action === 'confirm') {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (instance as any).inputValue = selectedValue.value
+            }
+            done()
+          }
+        })
+        
+        if (selectedValue.value && selectedValue.value !== transition.direction) {
+          // Emit event to change transition target
+          eventBus.$emit('change-transition-target', {
+            stateName: nodeId.value,
+            transitionName: transition.name,
+            newTarget: selectedValue.value
+          })
+        }
+      } catch {
+        // User cancelled the change
+      }
+    }
+  })
+}
+
 const handleTransitionHover = (transition: Transition) => {
   const targetNodeId = transition.direction
   setHighlight(transition.id, nodeId.value, targetNodeId)
@@ -151,6 +362,7 @@ const handleTransitionLeave = () => {
 
 <style scoped lang="scss">
 .workflow-node {
+  position: relative;
   border-radius: 8px;
   padding: 8px 12px;
   min-width: fit-content;
@@ -179,6 +391,38 @@ const handleTransitionLeave = () => {
   line-height: 1.2;
   white-space: nowrap;
   overflow: visible;
+  flex: 1;
+}
+
+.node-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.delete-state-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+  padding: 3px;
+  
+  &:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: rgba(239, 68, 68, 0.9);
+  }
 }
 
 .node-footer {
@@ -266,6 +510,63 @@ const handleTransitionLeave = () => {
   }
 }
 
+.transition-content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.transition-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  margin-left: 4px;
+}
+
+.change-target-btn,
+.delete-transition-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.change-target-btn {
+  color: black;
+  
+  &:hover {
+    background-color: #1890ff;
+    color: white;
+  }
+}
+
+.delete-transition-btn {
+  color: #dc3545;
+  font-size: 16px;
+
+  &:hover {
+    background-color: #dc3545;
+    color: white;
+  }
+}
+
+.transition-item:hover .transition-actions {
+  opacity: 1;
+}
+
 .transition-order {
   color: var(--color-primary);
   font-weight: 600;
@@ -295,34 +596,228 @@ const handleTransitionLeave = () => {
 }
 
 :deep(.vue-flow__handle) {
-  width: 1px;
-  height: 1px;
-  background: transparent;
-  border: none;
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 2px solid #fff;
+  border-radius: 50%;
   opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s;
+  cursor: crosshair;
+  pointer-events: none;
+  z-index: 10;
+  background: #722ed1;
+
+  &.connection-handle {
+    &.target-handle {
+      background: #52c41a;
+    }
+
+    &.source-handle {
+      background: #1890ff;
+    }
+
+    &.universal-handle {
+      background: #722ed1;
+    }
+
+    &.target-invisible {
+      opacity: 0 !important;
+      pointer-events: auto !important;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      width: 16px;
+      height: 16px;
+    }
+
+    &.secondary {
+      width: 8px;
+      height: 8px;
+      opacity: 0.5;
+    }
+  }
 
   &.vue-flow__handle-left {
-    left: -4px;
+    left: -5px;
     top: 50%;
     transform: translateY(-50%);
+    
+    &:hover:not(.target-invisible) {
+      background: #9254de;
+    }
   }
 
   &.vue-flow__handle-right {
-    right: -4px;
+    right: -5px;
     top: 50%;
     transform: translateY(-50%);
+    
+    &:hover:not(.target-invisible) {
+      background: #9254de;
+    }
   }
 
   &.vue-flow__handle-top {
-    top: -4px;
+    top: -5px;
     left: 50%;
     transform: translateX(-50%);
+    
+    &:hover:not(.target-invisible) {
+      background: #9254de;
+    }
   }
 
   &.vue-flow__handle-bottom {
-    bottom: -4px;
+    bottom: -5px;
     left: 50%;
     transform: translateX(-50%);
+    
+    &:hover:not(.target-invisible) {
+      background: #9254de;
+    }
+  }
+
+  // Invisible target handles with larger hit area for better drop detection
+  &.target-invisible {
+    &.vue-flow__handle-left {
+      left: -3px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+    }
+    &.vue-flow__handle-right {
+      right: -3px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+    }
+    &.vue-flow__handle-top {
+      top: -3px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 18px;
+      height: 18px;
+    }
+    &.vue-flow__handle-bottom {
+      bottom: -3px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+/* Show handles on all nodes when dragging connection */
+.vue-flow.connection-dragging .workflow-node :deep(.vue-flow__handle) {
+  opacity: 0.8 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  animation: pulse-universal 2s infinite;
+  
+  &.vue-flow__handle-left:not(.target-invisible) {
+    transform: translateY(-50%) !important;
+  }
+  
+  &.vue-flow__handle-right:not(.target-invisible) {
+    transform: translateY(-50%) !important;
+  }
+  
+  &.vue-flow__handle-top:not(.target-invisible) {
+    transform: translateX(-50%) !important;
+  }
+  
+  &.vue-flow__handle-bottom:not(.target-invisible) {
+    transform: translateX(-50%) !important;
+  }
+  
+  &.target-invisible {
+    opacity: 0 !important;
+    visibility: visible !important;
+  }
+}
+
+.workflow-node:hover :deep(.vue-flow__handle) {
+  opacity: 0.8;
+  visibility: visible;
+  pointer-events: auto;
+  
+  &.vue-flow__handle-left:not(.target-invisible) {
+    transform: translateY(-50%);
+  }
+  
+  &.vue-flow__handle-right:not(.target-invisible) {
+    transform: translateY(-50%);
+  }
+  
+  &.vue-flow__handle-top:not(.target-invisible) {
+    transform: translateX(-50%);
+  }
+  
+  &.vue-flow__handle-bottom:not(.target-invisible) {
+    transform: translateX(-50%);
+  }
+  
+  &.secondary {
+    opacity: 0.6;
+  }
+  
+  &.target-invisible {
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+}
+
+.workflow-node:hover :deep(.vue-flow__handle.source-handle) {
+  animation: pulse-source 2s infinite;
+}
+
+.workflow-node:hover :deep(.vue-flow__handle.target-handle) {
+  animation: pulse-target 2s infinite;
+}
+
+.workflow-node:hover :deep(.vue-flow__handle.universal-handle) {
+  animation: pulse-universal 2s infinite;
+}
+
+/* Hide handles when dropdown is open or being hovered */
+.workflow-node.dropdown-open :deep(.vue-flow__handle),
+.workflow-node.hovering-dropdown :deep(.vue-flow__handle),
+.workflow-node.hovering-delete :deep(.vue-flow__handle) {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  animation: none !important;
+  pointer-events: none !important;
+}
+
+@keyframes pulse-source {
+  0%, 100% { 
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 0 6px rgba(24, 144, 255, 0.1);
+  }
+}
+
+@keyframes pulse-target {
+  0%, 100% { 
+    box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 0 6px rgba(82, 196, 26, 0.1);
+  }
+}
+
+@keyframes pulse-universal {
+  0%, 100% { 
+    box-shadow: 0 0 0 2px rgba(114, 46, 209, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 0 6px rgba(114, 46, 209, 0.1);
   }
 }
 </style>
