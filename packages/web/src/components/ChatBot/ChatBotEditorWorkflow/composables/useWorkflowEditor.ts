@@ -124,7 +124,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     );
     const nodes = ref<WorkflowNode[]>([]);
 
-    // Инициализация undo/redo системы
     const {
         history,
         currentIndex,
@@ -135,11 +134,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         redo,
         initialize
     } = useUndoRedo();
-    
-    // Инициализируем историю с пустым состоянием
+
     initialize('');
 
-    // Состояние для отслеживания drag connection
     const isDraggingConnection = ref(false);
 
     const {setViewport, fitView} = useVueFlow();
@@ -171,7 +168,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             if (state.transitions && Array.isArray(state.transitions)) {
                 for (const transition of state.transitions) {
                     if (transition && transition.next) {
-                        // Создаем нормализованный ключ для пары нод (всегда в алфавитном порядке)
                         const nodeA = stateName;
                         const nodeB = transition.next;
                         const normalizedKey = nodeA < nodeB ? `${nodeA}<->${nodeB}` : `${nodeB}<->${nodeA}`;
@@ -190,14 +186,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
 
         for (const [normalizedKey, transitions] of edgeGroups.entries()) {
-            // Извлекаем имена нод из нормализованного ключа
             const [nodeA, nodeB] = normalizedKey.split('<->');
-            
-            // Разделяем переходы по направлениям
+
             const transitionsAtoB = transitions.filter(t => t.stateName === nodeA && t.transition.next === nodeB);
             const transitionsBtoA = transitions.filter(t => t.stateName === nodeB && t.transition.next === nodeA);
-            
-            // Определяем основное направление и источник/цель
+
             let source: string, target: string, mainTransitions: Array<{stateName: string; transition: WorkflowTransition}>;
             
             if (transitionsAtoB.length > 0) {
@@ -248,17 +241,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 }
             }
 
-            // Создаем метку с учетом двусторонности
             let edgeLabel = '';
             const isBidirectional = transitionsAtoB.length > 0 && transitionsBtoA.length > 0;
             
             if (isBidirectional) {
-                // Двусторонние переходы
                 const labelA = transitionsAtoB.length === 1 ? transitionsAtoB[0].transition.id : `${transitionsAtoB[0].transition.id}+${transitionsAtoB.length-1}`;
                 const labelB = transitionsBtoA.length === 1 ? transitionsBtoA[0].transition.id : `${transitionsBtoA[0].transition.id}+${transitionsBtoA.length-1}`;
                 edgeLabel = `${labelA} ⇄ ${labelB}`;
             } else {
-                // Односторонние переходы
                 if (mainTransitions.length === 1) {
                     edgeLabel = mainTransitions[0].transition.id;
                 } else if (mainTransitions.length === 2) {
@@ -291,8 +281,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     isBidirectional,
                 },
             };
-            
-            // Добавляем стрелку в начало для двусторонних переходов
+
             if (isBidirectional) {
                 edge.markerStart = {
                     type: MarkerType.ArrowClosed,
@@ -327,7 +316,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             return;
         }
 
-        // Проверяем наличие states
         const states = parsed.states || {};
         if (Object.keys(states).length === 0) {
             nodes.value = [];
@@ -375,7 +363,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     function handleSaveCondition(eventData: any) {
         const {stateName, transitionName, transitionData, oldTransitionName, isNewTransition} = eventData;
 
-        // Сохраняем текущие позиции узлов перед изменением данных
         const currentPositions: { [key: string]: NodePosition } = {};
         nodes.value.forEach(node => {
             currentPositions[node.id] = {x: node.position.x, y: node.position.y};
@@ -400,7 +387,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
 
         if (isNewTransition) {
-            // Это новый переход - просто добавляем его
             if (transitionData && typeof transitionData === 'object') {
                 const newTransition = {
                     id: transitionName,
@@ -410,7 +396,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 state.transitions.push(newTransition);
             }
         } else {
-            // Это существующий переход - обновляем его
             const searchName = oldTransitionName && oldTransitionName !== transitionName ? oldTransitionName : transitionName;
             const transitionIndex = state.transitions.findIndex(t => t.id === searchName);
 
@@ -428,7 +413,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             }
         }
 
-        // Сохраняем текущие позиции в storage перед обновлением canvasData
         nodePositionStorage.savePositions(currentPositions);
 
         canvasData.value = JSON.stringify(parsed, null, 2);
@@ -437,7 +421,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     function handleDeleteTransition(eventData: any) {
         const {stateName, transitionName} = eventData;
 
-        // Сохраняем текущие позиции узлов перед изменением данных
         const currentPositions: { [key: string]: NodePosition } = {};
         nodes.value.forEach(node => {
             currentPositions[node.id] = {x: node.position.x, y: node.position.y};
@@ -462,12 +445,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             return;
         }
 
-        // Находим и удаляем переход
         const transitionIndex = state.transitions.findIndex(t => t.id === transitionName);
         if (transitionIndex !== -1) {
             state.transitions.splice(transitionIndex, 1);
 
-            // Сохраняем текущие позиции в storage перед обновлением canvasData
             nodePositionStorage.savePositions(currentPositions);
 
             canvasData.value = JSON.stringify(parsed, null, 2);
@@ -479,7 +460,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     function handleDeleteState(eventData: any) {
         const {stateName} = eventData;
 
-        // Сохраняем текущие позиции узлов перед изменением данных
         const currentPositions: { [key: string]: NodePosition } = {};
         nodes.value.forEach(node => {
             currentPositions[node.id] = {x: node.position.x, y: node.position.y};
@@ -498,17 +478,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             return;
         }
 
-        // Удаляем состояние
         delete parsed.states[stateName];
 
-        // Удаляем все переходы, указывающие на это состояние
         Object.values(parsed.states).forEach((state: any) => {
             if (state.transitions) {
                 state.transitions = state.transitions.filter((t: any) => t.next !== stateName);
             }
         });
 
-        // Если удаляемое состояние было начальным, назначаем новое начальное состояние
         if (parsed.initialState === stateName) {
             const remainingStates = Object.keys(parsed.states);
             if (remainingStates.length > 0) {
@@ -518,13 +495,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             }
         }
 
-        // Удаляем позицию из storage
         delete currentPositions[stateName];
         nodePositionStorage.savePositions(currentPositions);
 
         canvasData.value = JSON.stringify(parsed, null, 2);
 
-        // Обновляем store
         if (assistantStore) {
             assistantStore.setWorkflowData(canvasData.value);
         }
@@ -533,7 +508,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     function handleChangeTransitionTarget(eventData: any) {
         const {stateName, transitionName, newTarget} = eventData;
 
-        // Сохраняем текущие позиции узлов перед изменением данных
         const currentPositions: { [key: string]: NodePosition } = {};
         nodes.value.forEach(node => {
             currentPositions[node.id] = {x: node.position.x, y: node.position.y};
@@ -558,12 +532,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             return;
         }
 
-        // Находим и обновляем переход
         const transitionIndex = state.transitions.findIndex(t => t.id === transitionName);
         if (transitionIndex !== -1) {
             state.transitions[transitionIndex].next = newTarget;
 
-            // Сохраняем текущие позиции в storage перед обновлением canvasData
             nodePositionStorage.savePositions(currentPositions);
 
             canvasData.value = JSON.stringify(parsed, null, 2);
@@ -636,14 +608,12 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             return;
         }
 
-        // Сохраняем текущие позиции узлов перед показом диалога
         const currentPositions: { [key: string]: NodePosition } = {};
         nodes.value.forEach(node => {
             currentPositions[node.id] = {x: node.position.x, y: node.position.y};
         });
         nodePositionStorage.savePositions(currentPositions);
 
-        // Парсим текущие данные workflow для проверки существования состояний
         let parsed: WorkflowData;
         try {
             parsed = JSON.parse(canvasData.value);
@@ -658,30 +628,26 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             return;
         }
 
-        // Проверяем, что целевое состояние существует
         if (!parsed.states[target]) {
             console.error('Target state not found:', target);
             return;
         }
 
-        // Генерируем уникальное имя для нового перехода с timestamp
         const timestamp = Date.now();
         const newTransitionName = `${source}_${target}_${timestamp}`;
 
-        // Создаем предварительные данные перехода (НЕ добавляем в workflow)
         const proposedTransition = {
             id: newTransitionName,
             next: target,
             processors: []
         };
 
-        // Показываем диалог редактирования для НОВОГО перехода
         setTimeout(() => {
             eventBus.$emit('show-condition-popup', {
                 stateName: source,
                 transitionName: newTransitionName,
                 transitionData: proposedTransition,
-                isNewTransition: true // Флаг для обозначения нового перехода
+                isNewTransition: true
             });
         }, 100);
     }
@@ -703,30 +669,25 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 return;
             }
 
-            // Парсим текущие данные workflow
             let parsed: WorkflowData;
             try {
-                // Если canvasData пустой или некорректный, инициализируем базовую структуру
                 if (!canvasData.value || canvasData.value.trim() === '' || canvasData.value.trim() === '{}') {
                     parsed = {
                         states: {}
                     };
                 } else {
                     parsed = JSON.parse(canvasData.value);
-                    // Убеждаемся что структура корректная
                     if (!parsed.states) {
                         parsed.states = {};
                     }
                 }
             } catch (e) {
                 console.error('Invalid JSON in canvasData:', e);
-                // При ошибке парсинга инициализируем новую структуру
                 parsed = {
                     states: {}
                 };
             }
 
-            // Проверяем, что состояние не существует
             if (parsed.states[stateName]) {
                 await ElMessageBox.alert(`State "${stateName}" already exists!`, 'Error', {
                     type: 'error'
@@ -734,29 +695,23 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 return;
             }
 
-            // Создаем новое состояние
             parsed.states[stateName] = {
                 transitions: []
             };
 
-            // Если это первое состояние и нет initialState, делаем его начальным
             if (Object.keys(parsed.states).length === 1 && !parsed.initialState) {
                 parsed.initialState = stateName;
             }
 
-            // Сохраняем обновленные данные
             canvasData.value = JSON.stringify(parsed, null, 2);
 
-            // Принудительно обновляем узлы на canvas и подгоняем вид
             generateNodes();
 
-            // Используем nextTick для ожидания обновления DOM
             setTimeout(() => {
                 fitView();
             }, 300);
 
         } catch (error) {
-            // Пользователь отменил ввод
             console.log('User cancelled state creation');
         }
     }
@@ -766,7 +721,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const states = parsed.states || {};
         const initialState = parsed.initialState;
 
-        // Используем новую функцию applyAutoLayout
         const positions = applyAutoLayout(states, initialState);
 
         nodes.value = nodes.value.map((node: WorkflowNode) => ({
@@ -788,7 +742,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     onMounted(() => {
-        // Инициализируем данные из assistant store
         if (assistantStore && assistantStore.selectedAssistant && assistantStore.selectedAssistant.workflow_data) {
             canvasData.value = assistantStore.selectedAssistant.workflow_data;
         }
@@ -801,7 +754,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         generateNodes();
     });
 
-    // Следим за изменениями в store
     if (assistantStore) {
         watch(
             () => assistantStore.selectedAssistant?.workflow_data,
@@ -829,14 +781,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     let isUndoRedoOperation = false;
 
-    // Простой watcher для canvasData
     watch(canvasData, (newValue) => {
-        // Если это не операция undo/redo, сохраняем в историю
         if (!isUndoRedoOperation) {
             saveState(newValue || '');
         }
 
-        // Debounce только для генерации узлов
         if (debounceTimer) {
             clearTimeout(debounceTimer);
         }
@@ -845,7 +794,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }, 300);
     });
 
-    // Функции undo/redo
     function undoAction() {
         const previousState = undo();
         if (previousState !== null) {
@@ -893,12 +841,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         onUpdateWorkflowMetaDialog,
         onResize,
         fitView,
-        // Undo/Redo функциональность
         canUndo,
         canRedo,
         undoAction,
         redoAction,
-        // Connection drag состояние
         isDraggingConnection,
     };
 }

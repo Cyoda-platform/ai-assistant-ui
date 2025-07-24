@@ -89,7 +89,6 @@ function saveCondition() {
     }
   }
 
-  // Проверяем, что в JSON есть поле id
   if (!parsedTransitionData || typeof parsedTransitionData !== 'object' || !parsedTransitionData.id) {
     jsonError.value = 'Transition data must contain an "id" field'
     return

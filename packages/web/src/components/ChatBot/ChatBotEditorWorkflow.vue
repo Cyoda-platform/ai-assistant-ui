@@ -117,12 +117,10 @@ const {
   autoLayout,
   onUpdateWorkflowMetaDialog,
   onResize,
-  // Undo/Redo функциональность
   canUndo,
   canRedo,
   undoAction,
   redoAction,
-  // Connection drag состояние
   isDraggingConnection,
 } = useWorkflowEditor(props, assistantStore);
 

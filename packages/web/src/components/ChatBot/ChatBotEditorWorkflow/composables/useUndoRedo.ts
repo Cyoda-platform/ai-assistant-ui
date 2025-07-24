@@ -11,20 +11,16 @@ export function useUndoRedo(maxHistorySize = 50) {
   const canRedo = computed(() => currentIndex.value < history.value.length - 1);
 
   function saveState(data: string) {
-    // Не сохраняем дубликаты подряд
     if (history.value.length > 0 && history.value[currentIndex.value] === data) {
       return;
     }
 
-    // Удаляем все состояния после текущего индекса (если мы в середине истории)
     if (currentIndex.value < history.value.length - 1) {
       history.value = history.value.slice(0, currentIndex.value + 1);
     }
 
-    // Добавляем новое состояние
     history.value.push(data);
 
-    // Ограничиваем размер истории
     if (history.value.length > maxHistorySize) {
       history.value = history.value.slice(-maxHistorySize);
     }

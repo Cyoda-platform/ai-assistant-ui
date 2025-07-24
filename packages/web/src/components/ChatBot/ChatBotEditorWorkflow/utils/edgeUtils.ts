@@ -125,7 +125,6 @@ export function generateWorkflowEdges(
   const result: WorkflowEdge[] = [];
   const connectionMap = new Map<string, { transitions: Array<{ name: string, data: unknown, source: string, target: string }> }>();
 
-  // Сначала собираем все переходы между парами нод
   for (const [stateName, stateData] of Object.entries(states)) {
     const state = stateData as { transitions?: Record<string, { next: string }> };
     if (state.transitions) {
@@ -135,7 +134,6 @@ export function generateWorkflowEdges(
         const targetNode = nodes.find(n => n.id === transition.next);
 
         if (sourceNode && targetNode) {
-          // Создаем ключ для пары нод (всегда в одном направлении: source -> target)
           const connectionKey = `${stateName}->${transition.next}`;
           
           if (!connectionMap.has(connectionKey)) {
@@ -153,7 +151,6 @@ export function generateWorkflowEdges(
     }
   }
 
-  // Теперь создаем edges для каждой уникальной пары нод
   for (const [connectionKey, connectionData] of connectionMap.entries()) {
     const [source, target] = connectionKey.split('->');
     const sourceNode = nodes.find(n => n.id === source);
@@ -162,8 +159,7 @@ export function generateWorkflowEdges(
     if (sourceNode && targetNode && connectionData.transitions.length > 0) {
       const firstTransition = connectionData.transitions[0];
       const { sourceHandle, targetHandle } = calculateEdgeHandles(sourceNode, targetNode);
-      
-      // Создаем метку в зависимости от количества переходов
+
       let label: string;
       if (connectionData.transitions.length === 1) {
         label = firstTransition.name;

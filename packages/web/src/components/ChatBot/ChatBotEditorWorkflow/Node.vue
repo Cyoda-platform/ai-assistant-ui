@@ -182,7 +182,6 @@ const {
   shouldDimNode
 } = useTransitionHighlight()
 
-// Состояние для отслеживания hover на кнопке удаления
 const isHoveringDeleteBtn = ref(false)
 
 watch(activeDropdownId, () => {
@@ -251,8 +250,7 @@ const deleteTransition = async (transition: Transition) => {
         confirmButtonClass: 'el-button--danger'
       }
     )
-    
-    // Emit event to delete transition
+
     eventBus.$emit('delete-transition', {
       stateName: nodeId.value,
       transitionName: transition.name
@@ -274,8 +272,7 @@ const deleteState = async () => {
         confirmButtonClass: 'el-button--danger'
       }
     )
-    
-    // Emit event to delete state
+
     eventBus.$emit('delete-state', {
       stateName: nodeId.value
     })
@@ -285,7 +282,6 @@ const deleteState = async () => {
 }
 
 const changeTransitionTarget = async (transition: Transition) => {
-  // Получаем список всех доступных нод из родительского компонента
   eventBus.$emit('get-available-nodes', {
     currentTransition: transition,
     callback: async (availableNodes: string[]) => {
@@ -336,7 +332,6 @@ const changeTransitionTarget = async (transition: Transition) => {
         })
         
         if (selectedValue.value && selectedValue.value !== transition.direction) {
-          // Emit event to change transition target
           eventBus.$emit('change-transition-target', {
             stateName: nodeId.value,
             transitionName: transition.name,
@@ -679,7 +674,6 @@ const handleTransitionLeave = () => {
     }
   }
 
-  // Invisible target handles with larger hit area for better drop detection
   &.target-invisible {
     &.vue-flow__handle-left {
       left: -3px;
