@@ -868,6 +868,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
     }
 
+    watch(editorSize, (value) => {
+        helperStorage.set(EDITOR_WIDTH, value);
+    })
+
     provide('onConditionChange', onEdgeConditionChange);
 
     return {
