@@ -5,10 +5,11 @@
 import {ref, computed, provide, onMounted, onUnmounted, watch, nextTick} from 'vue';
 import {useVueFlow} from '@vue-flow/core';
 import {MarkerType} from '@vue-flow/core';
-import {ElMessageBox} from 'element-plus';
+import {ElMessageBox, ElMessage} from 'element-plus';
 import eventBus from '@/plugins/eventBus';
 import HelperStorage from '@/helpers/HelperStorage';
 import {NodePositionStorage} from '../utils/nodeUtils';
+import {TransitionEdgePositionStorage} from '../utils/transitionEdgeStorage';
 import {calculateSmartPosition, applyAutoLayout, NodePosition} from '../utils/smartLayout';
 import {type EditorAction, createWorkflowEditorActions} from '@/utils/editorUtils';
 import {useUndoRedo} from './useUndoRedo';
@@ -102,6 +103,9 @@ export interface WorkflowEdge {
         transitionData: any;
         stateName: string;
         transitionName: string;
+        transitionId?: string;
+        sourceOffset?: { x: number; y: number };
+        targetOffset?: { x: number; y: number };
         allTransitions?: Array<{
             stateName: string;
             transition: WorkflowTransition;
@@ -112,10 +116,12 @@ export interface WorkflowEdge {
 
 export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: any) {
     const EDITOR_WIDTH = 'chatBotEditorWorkflow:width';
+    const EDITOR_MODE = 'chatBotEditorWorkflow:editorMode';
 
     const canvasData = ref('');
     const helperStorage = new HelperStorage();
     const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
+    const editorMode = ref(helperStorage.get(EDITOR_MODE, 'preview'));
     const isLoading = ref(false);
     const editorActions = ref<EditorAction[]>(
         assistantStore
@@ -142,6 +148,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     const {setViewport, fitView} = useVueFlow();
 
     const nodePositionStorage = new NodePositionStorage(helperStorage, props.technicalId);
+    const transitionEdgeStorage = new TransitionEdgePositionStorage(helperStorage, props.technicalId);
     const workflowMetaData = ref(nodePositionStorage.loadPositions());
 
     const edges = computed<WorkflowEdge[]>(() => {
@@ -158,143 +165,135 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         const states = parsed.states || {};
 
-        const edgeGroups = new Map<string, Array<{
-            stateName: string;
-            transition: WorkflowTransition;
+        // Группируем transitions между одинаковыми узлами для расчета offset'ов
+        const transitionGroups = new Map<string, Array<{
+            transitionId: string;
+            source: string;
+            target: string;
+            transitionData: WorkflowTransition;
         }>>();
 
+        // Собираем все transitions
         for (const [stateName, stateData] of Object.entries(states)) {
             const state = stateData as WorkflowState;
             if (state.transitions && Array.isArray(state.transitions)) {
                 for (const transition of state.transitions) {
                     if (transition && transition.next) {
-                        const nodeA = stateName;
-                        const nodeB = transition.next;
-                        const normalizedKey = nodeA < nodeB ? `${nodeA}<->${nodeB}` : `${nodeB}<->${nodeA}`;
+                        const source = stateName;
+                        const target = transition.next;
+                        const groupKey = `${source}->${target}`;
 
-                        if (!edgeGroups.has(normalizedKey)) {
-                            edgeGroups.set(normalizedKey, []);
+                        if (!transitionGroups.has(groupKey)) {
+                            transitionGroups.set(groupKey, []);
                         }
 
-                        edgeGroups.get(normalizedKey)!.push({
-                            stateName,
-                            transition
+                        transitionGroups.get(groupKey)!.push({
+                            transitionId: transition.id,
+                            source,
+                            target,
+                            transitionData: transition
                         });
                     }
                 }
             }
         }
 
-        for (const [normalizedKey, transitions] of edgeGroups.entries()) {
-            const [nodeA, nodeB] = normalizedKey.split('<->');
+        // Создаем отдельный edge для каждой transition
+        for (const [groupKey, transitions] of transitionGroups.entries()) {
+            transitions.forEach((transitionInfo, index) => {
+                const { transitionId, source, target, transitionData } = transitionInfo;
 
-            const transitionsAtoB = transitions.filter(t => t.stateName === nodeA && t.transition.next === nodeB);
-            const transitionsBtoA = transitions.filter(t => t.stateName === nodeB && t.transition.next === nodeA);
+                const sourceNode = nodes.value.find(n => n.id === source);
+                const targetNode = nodes.value.find(n => n.id === target);
 
-            let source: string, target: string, mainTransitions: Array<{stateName: string; transition: WorkflowTransition}>;
-            
-            if (transitionsAtoB.length > 0) {
-                source = nodeA;
-                target = nodeB;
-                mainTransitions = transitionsAtoB;
-            } else {
-                source = nodeB;
-                target = nodeA;
-                mainTransitions = transitionsBtoA;
-            }
+                let sourceHandle = 'right-source';
+                let targetHandle = 'left-target';
 
-            const sourceNode = nodes.value.find(n => n.id === source);
-            const targetNode = nodes.value.find(n => n.id === target);
-
-            let sourceHandle = 'right-source';
-            let targetHandle = 'left-target';
-
-            if (sourceNode && targetNode) {
-                if (source === target) {
-                    sourceHandle = 'right-source';
-                    targetHandle = 'left-target';
-                } else {
-                    const sourceY = sourceNode.position.y;
-                    const targetY = targetNode.position.y;
-                    const sourceX = sourceNode.position.x;
-                    const targetX = targetNode.position.x;
-
-                    const deltaY = Math.abs(targetY - sourceY);
-
-                    if (deltaY > 30) {
-                        if (targetY > sourceY) {
-                            sourceHandle = 'bottom-source';
-                            targetHandle = 'top-target';
-                        } else {
-                            sourceHandle = 'top-source';
-                            targetHandle = 'bottom-target';
-                        }
+                // Вычисляем лучшие handles на основе позиций узлов
+                if (sourceNode && targetNode) {
+                    if (source === target) {
+                        sourceHandle = 'right-source';
+                        targetHandle = 'left-target';
                     } else {
-                        if (targetX > sourceX) {
-                            sourceHandle = 'right-source';
-                            targetHandle = 'left-target';
+                        const sourceY = sourceNode.position.y;
+                        const targetY = targetNode.position.y;
+                        const sourceX = sourceNode.position.x;
+                        const targetX = targetNode.position.x;
+
+                        const deltaY = Math.abs(targetY - sourceY);
+
+                        if (deltaY > 30) {
+                            if (targetY > sourceY) {
+                                sourceHandle = 'bottom-source';
+                                targetHandle = 'top-target';
+                            } else {
+                                sourceHandle = 'top-source';
+                                targetHandle = 'bottom-target';
+                            }
                         } else {
-                            sourceHandle = 'left-source';
-                            targetHandle = 'right-target';
+                            if (targetX > sourceX) {
+                                sourceHandle = 'right-source';
+                                targetHandle = 'left-target';
+                            } else {
+                                sourceHandle = 'left-source';
+                                targetHandle = 'right-target';
+                            }
                         }
                     }
                 }
-            }
 
-            let edgeLabel = '';
-            const isBidirectional = transitionsAtoB.length > 0 && transitionsBtoA.length > 0;
-            
-            if (isBidirectional) {
-                const labelA = transitionsAtoB.length === 1 ? transitionsAtoB[0].transition.id : `${transitionsAtoB[0].transition.id}+${transitionsAtoB.length-1}`;
-                const labelB = transitionsBtoA.length === 1 ? transitionsBtoA[0].transition.id : `${transitionsBtoA[0].transition.id}+${transitionsBtoA.length-1}`;
-                edgeLabel = `${labelA} ⇄ ${labelB}`;
-            } else {
-                if (mainTransitions.length === 1) {
-                    edgeLabel = mainTransitions[0].transition.id;
-                } else if (mainTransitions.length === 2) {
-                    edgeLabel = `${mainTransitions[0].transition.id}, ${mainTransitions[1].transition.id}`;
-                } else {
-                    edgeLabel = `${mainTransitions[0].transition.id}, ${mainTransitions[1].transition.id}...`;
+                // Получаем сохраненную позицию для этой transition
+                const savedPosition = transitionEdgeStorage.getTransitionPosition(transitionId);
+                let sourceOffset = { x: 0, y: 0 };
+                let targetOffset = { x: 0, y: 0 };
+
+                if (savedPosition) {
+                    sourceOffset = savedPosition.sourceOffset;
+                    targetOffset = savedPosition.targetOffset;
+                } else if (transitions.length > 1) {
+                    // Автоматически генерируем offset для множественных transitions
+                    const autoOffset = transitionEdgeStorage.generateAutoOffset(
+                        source, target, index, transitions.length
+                    );
+                    sourceOffset = autoOffset.sourceOffset;
+                    targetOffset = autoOffset.targetOffset;
                 }
-            }
 
-            const edge: WorkflowEdge = {
-                id: normalizedKey,
-                source,
-                target,
-                sourceHandle,
-                targetHandle,
-                label: edgeLabel,
-                animated: true,
-                type: 'custom',
-                markerEnd: {
-                    type: MarkerType.ArrowClosed,
-                    width: 20,
-                    height: 20,
-                    color: '#333',
-                },
-                data: {
-                    transitionData: mainTransitions[0].transition,
-                    stateName: source,
-                    transitionName: mainTransitions[0].transition.id,
-                    allTransitions: transitions,
-                    isBidirectional,
-                },
-            };
-
-            if (isBidirectional) {
-                edge.markerStart = {
-                    type: MarkerType.ArrowClosed,
-                    width: 20,
-                    height: 20,
-                    color: '#333',
+                const edge: WorkflowEdge = {
+                    id: `${source}-${target}-${transitionId}`,
+                    source,
+                    target,
+                    sourceHandle,
+                    targetHandle,
+                    label: '', // Label теперь отображается внутри компонента
+                    animated: true,
+                    type: 'draggableTransition',
+                    markerEnd: {
+                        type: MarkerType.ArrowClosed,
+                        width: 20,
+                        height: 20,
+                        color: 'var(--text-color-regular)',
+                    },
+                    data: {
+                        transitionId,
+                        stateName: source,
+                        transitionName: transitionId, // Используем transitionId как transitionName
+                        transitionData,
+                        sourceOffset,
+                        targetOffset,
+                    },
                 };
-            }
 
-            result.push(edge);
+                result.push(edge);
+            });
         }
 
-        console.log('Generated edges:', result.map(e => ({ id: e.id, source: e.source, target: e.target, label: e.label })));
+        console.log('Generated individual transition edges:', result.map(e => ({
+            id: e.id,
+            source: e.source,
+            target: e.target,
+            transitionId: e.data.transitionId
+        })));
         return result;
     });
 
@@ -361,6 +360,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function handleSaveCondition(eventData: any) {
+        console.log('🔄 handleSaveCondition called with:', eventData);
+
         const {stateName, transitionName, transitionData, oldTransitionName, isNewTransition} = eventData;
 
         const currentPositions: { [key: string]: NodePosition } = {};
@@ -386,6 +387,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             state.transitions = [];
         }
 
+        console.log('Current state.transitions:', state.transitions);
+        console.log('Updating transition:', { transitionName, transitionData, oldTransitionName, isNewTransition });
+
         if (isNewTransition) {
             if (transitionData && typeof transitionData === 'object') {
                 const newTransition = {
@@ -393,11 +397,24 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     ...transitionData
                 } as WorkflowTransition;
 
+                // Проверяем, что целевое состояние существует
+                if (newTransition.next && !parsed.states[newTransition.next]) {
+                    console.error('Target state does not exist:', newTransition.next);
+                    console.log('Available states:', Object.keys(parsed.states));
+                    eventBus.$emit('validation-error', {
+                        message: `Target state "${newTransition.next}" does not exist. Available states: ${Object.keys(parsed.states).join(', ')}`
+                    });
+                    return; // Не сохраняем transition, если целевое состояние не существует
+                }
+
                 state.transitions.push(newTransition);
+                console.log('Added new transition:', newTransition);
             }
         } else {
             const searchName = oldTransitionName && oldTransitionName !== transitionName ? oldTransitionName : transitionName;
             const transitionIndex = state.transitions.findIndex(t => t.id === searchName);
+
+            console.log('Searching for transition with name:', searchName, 'found at index:', transitionIndex);
 
             if (transitionData && typeof transitionData === 'object') {
                 const updatedTransition = {
@@ -405,17 +422,39 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     ...transitionData
                 } as WorkflowTransition;
 
+                // Проверяем, что целевое состояние существует
+                if (updatedTransition.next && !parsed.states[updatedTransition.next]) {
+                    console.error('Target state does not exist:', updatedTransition.next);
+                    console.log('Available states:', Object.keys(parsed.states));
+                    eventBus.$emit('validation-error', {
+                        message: `Target state "${updatedTransition.next}" does not exist. Available states: ${Object.keys(parsed.states).join(', ')}`
+                    });
+                    return; // Не сохраняем transition, если целевое состояние не существует
+                }
+
                 if (transitionIndex !== -1) {
                     state.transitions[transitionIndex] = updatedTransition;
+                    console.log('Updated existing transition at index', transitionIndex, ':', updatedTransition);
                 } else {
                     state.transitions.push(updatedTransition);
+                    console.log('Added transition (not found):', updatedTransition);
                 }
             }
         }
 
+        console.log('Final state.transitions:', state.transitions);
+
         nodePositionStorage.savePositions(currentPositions);
 
         canvasData.value = JSON.stringify(parsed, null, 2);
+
+        if (assistantStore && assistantStore.selectedAssistant) {
+            assistantStore.selectedAssistant.workflow_data = canvasData.value;
+            console.log('Updated assistantStore.selectedAssistant.workflow_data');
+        }
+
+        // Уведомляем об успешном сохранении
+        eventBus.$emit('transition-saved-successfully');
     }
 
     function handleDeleteTransition(eventData: any) {
@@ -500,8 +539,96 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         canvasData.value = JSON.stringify(parsed, null, 2);
 
-        if (assistantStore) {
-            assistantStore.setWorkflowData(canvasData.value);
+        if (assistantStore && assistantStore.selectedAssistant) {
+            assistantStore.selectedAssistant.workflow_data = canvasData.value;
+        }
+    }
+
+    function handleGetTransitionData(eventData: any) {
+        const { stateName, transitionName, callback } = eventData;
+
+        let parsed: WorkflowData;
+        try {
+            parsed = JSON.parse(canvasData.value);
+        } catch (e) {
+            console.error('Invalid JSON in canvasData:', e);
+            callback(null);
+            return;
+        }
+
+        const state = parsed.states[stateName];
+        if (!state || !state.transitions) {
+            console.warn('State or transitions not found:', stateName);
+            callback(null);
+            return;
+        }
+
+        const transition = state.transitions.find(t => t.id === transitionName);
+        callback(transition || null);
+    }
+
+    function handleRenameState(eventData: any) {
+        const { oldName, newName } = eventData;
+
+        // Сохраняем текущие позиции узлов
+        const currentPositions: { [key: string]: NodePosition } = {};
+        nodes.value.forEach(node => {
+            currentPositions[node.id] = { x: node.position.x, y: node.position.y };
+        });
+
+        let parsed: WorkflowData;
+        try {
+            parsed = JSON.parse(canvasData.value);
+        } catch (e) {
+            console.error('Invalid JSON in canvasData:', e);
+            return;
+        }
+
+        // Проверяем, что старое состояние существует
+        if (!parsed.states[oldName]) {
+            console.warn('State not found:', oldName);
+            return;
+        }
+
+        // Проверяем, что новое имя не занято
+        if (parsed.states[newName]) {
+            console.error('State with new name already exists:', newName);
+            return;
+        }
+
+        // Переименовываем состояние
+        const stateData = parsed.states[oldName];
+        delete parsed.states[oldName];
+        parsed.states[newName] = stateData;
+
+        // Обновляем начальное состояние, если это оно
+        if (parsed.initialState === oldName) {
+            parsed.initialState = newName;
+        }
+
+        // Обновляем все ссылки на это состояние в переходах других состояний
+        Object.values(parsed.states).forEach((state: any) => {
+            if (state.transitions) {
+                state.transitions.forEach((transition: any) => {
+                    if (transition.next === oldName) {
+                        transition.next = newName;
+                    }
+                });
+            }
+        });
+
+        // Обновляем позиции узлов (переименовываем ключ)
+        if (currentPositions[oldName]) {
+            currentPositions[newName] = currentPositions[oldName];
+            delete currentPositions[oldName];
+        }
+
+        // Сохраняем позиции и обновляем данные
+        nodePositionStorage.savePositions(currentPositions);
+        canvasData.value = JSON.stringify(parsed, null, 2);
+
+        if (assistantStore && assistantStore.selectedAssistant) {
+            assistantStore.selectedAssistant.workflow_data = canvasData.value;
         }
     }
 
@@ -558,6 +685,165 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         const availableNodes = Object.keys(parsed.states || {});
         callback(availableNodes);
+    }
+
+    // Состояние для перетаскивания transition
+    const currentDraggedTransition = ref<{
+        transitionId: string;
+        sourceNode: string;
+        targetNode: string;
+        transitionData: any;
+    } | null>(null);
+
+    function handleTransitionDragStart(eventData: any) {
+        console.log('🔄 Transition drag started:', eventData);
+        currentDraggedTransition.value = {
+            transitionId: eventData.transitionId,
+            sourceNode: eventData.sourceNode,
+            targetNode: eventData.targetNode,
+            transitionData: eventData.transitionData
+        };
+
+        // Подсвечиваем все узлы как потенциальные targets
+        eventBus.$emit('highlight-drop-targets', true);
+    }
+
+    function handleTransitionDragging(eventData: any) {
+        // Можно добавить визуальную обратную связь во время перетаскивания
+        // Например, подсвечивание узлов под курсором
+    }
+
+    function handleTransitionDragEnd(eventData: any) {
+        console.log('🔄 Transition drag ended:', eventData);
+
+        if (!currentDraggedTransition.value) {
+            console.log('❌ No current dragged transition');
+            return;
+        }
+
+        // Убираем подсветку узлов
+        eventBus.$emit('highlight-drop-targets', false);
+
+        // Находим узел под курсором
+        const nodeUnderCursor = findNodeAtPosition(eventData.mouseX, eventData.mouseY);
+        console.log('🎯 Node under cursor:', nodeUnderCursor);
+        console.log('🎯 Source node:', currentDraggedTransition.value.sourceNode);
+
+        if (nodeUnderCursor && nodeUnderCursor !== currentDraggedTransition.value.sourceNode) {
+            console.log('✅ Moving transition to new node');
+            // Перемещаем transition к новому узлу
+            moveTransitionToNode(
+                currentDraggedTransition.value.transitionId,
+                currentDraggedTransition.value.sourceNode,
+                nodeUnderCursor
+            );
+        } else {
+            console.log('❌ Cannot move transition - same node or no target');
+        }
+
+        currentDraggedTransition.value = null;
+    }
+
+    function findNodeAtPosition(mouseX: number, mouseY: number): string | null {
+        // Получаем элемент под курсором
+        const elementUnderCursor = document.elementFromPoint(mouseX, mouseY);
+
+        if (elementUnderCursor) {
+            console.log('🎯 Element under cursor:', elementUnderCursor);
+
+            // Сначала проверяем, есть ли handler под курсором
+            const handlerElement = elementUnderCursor.closest('.vue-flow__handle');
+            if (handlerElement) {
+                // Если это handler, ищем его родительский узел
+                const nodeElement = handlerElement.closest('[data-id]');
+                if (nodeElement) {
+                    const nodeId = nodeElement.getAttribute('data-id');
+                    console.log('🎯 Found node via handler:', nodeId);
+                    return nodeId;
+                }
+            }
+
+            // Если handler не найден, ищем узел напрямую
+            let nodeElement = elementUnderCursor.closest('[data-id]');
+
+            // Если не нашли по data-id, попробуем найти по классу workflow-node
+            if (!nodeElement) {
+                nodeElement = elementUnderCursor.closest('.workflow-node');
+                if (nodeElement) {
+                    // Попробуем найти data-id в родительских элементах
+                    let parent = nodeElement.parentElement;
+                    while (parent && !parent.hasAttribute('data-id')) {
+                        parent = parent.parentElement;
+                    }
+                    if (parent) {
+                        nodeElement = parent;
+                    }
+                }
+            }
+
+            // Дополнительная проверка для Vue Flow узлов
+            if (!nodeElement) {
+                nodeElement = elementUnderCursor.closest('.vue-flow__node');
+            }
+
+            if (nodeElement) {
+                const nodeId = nodeElement.getAttribute('data-id');
+                console.log('🎯 Found node under cursor:', nodeId);
+                return nodeId;
+            }
+        }
+
+        console.log('❌ No node found under cursor at position:', mouseX, mouseY);
+        return null;
+    }
+
+    function moveTransitionToNode(transitionId: string, sourceNode: string, targetNode: string) {
+        console.log(`🔄 Reassigning transition "${transitionId}" from state "${sourceNode}" to point to "${targetNode}"`);
+
+        let parsed: WorkflowData;
+        try {
+            parsed = JSON.parse(canvasData.value);
+        } catch (e) {
+            console.error('Invalid JSON in canvasData:', e);
+            return;
+        }
+
+        const sourceState = parsed.states[sourceNode];
+        const targetState = parsed.states[targetNode];
+
+        if (!sourceState || !targetState) {
+            console.error('Source or target state not found');
+            return;
+        }
+
+        // Находим transition в исходном state и изменяем его поле "next"
+        if (sourceState.transitions) {
+            const transitionIndex = sourceState.transitions.findIndex(t => t.id === transitionId);
+            if (transitionIndex !== -1) {
+                // Изменяем только поле "next", оставляя transition в исходном state
+                sourceState.transitions[transitionIndex].next = targetNode;
+
+                console.log(`✅ Transition "${transitionId}" now points from "${sourceNode}" to "${targetNode}"`);
+            } else {
+                console.error('Transition not found in source state');
+                return;
+            }
+        } else {
+            console.error('Source state has no transitions');
+            return;
+        }
+
+        // Сохраняем изменения
+        canvasData.value = JSON.stringify(parsed, null, 2);
+
+        if (assistantStore && assistantStore.selectedAssistant) {
+            assistantStore.selectedAssistant.workflow_data = canvasData.value;
+        }
+
+        // Перегенерируем узлы и edges
+        generateNodes();
+
+        ElMessage.success(`Transition "${transitionId}" reassigned from "${sourceNode}" to "${targetNode}"`);
     }
 
     function onEdgeConditionChange(event: any) {
@@ -749,8 +1035,13 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         eventBus.$on('save-transition', handleSaveCondition);
         eventBus.$on('delete-transition', handleDeleteTransition);
         eventBus.$on('delete-state', handleDeleteState);
+        eventBus.$on('rename-state', handleRenameState);
+        eventBus.$on('get-transition-data', handleGetTransitionData);
         eventBus.$on('change-transition-target', handleChangeTransitionTarget);
         eventBus.$on('get-available-nodes', handleGetAvailableNodes);
+        eventBus.$on('transition-drag-start', handleTransitionDragStart);
+        eventBus.$on('transition-dragging', handleTransitionDragging);
+        eventBus.$on('transition-drag-end', handleTransitionDragEnd);
         generateNodes();
     });
 
@@ -770,8 +1061,13 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         eventBus.$off('save-transition', handleSaveCondition);
         eventBus.$off('delete-transition', handleDeleteTransition);
         eventBus.$off('delete-state', handleDeleteState);
+        eventBus.$off('rename-state', handleRenameState);
+        eventBus.$off('get-transition-data', handleGetTransitionData);
         eventBus.$off('change-transition-target', handleChangeTransitionTarget);
         eventBus.$off('get-available-nodes', handleGetAvailableNodes);
+        eventBus.$off('transition-drag-start', handleTransitionDragStart);
+        eventBus.$off('transition-dragging', handleTransitionDragging);
+        eventBus.$off('transition-drag-end', handleTransitionDragEnd);
 
         if (debounceTimer) {
             clearTimeout(debounceTimer);
@@ -820,11 +1116,31 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         helperStorage.set(EDITOR_WIDTH, value);
     })
 
+    watch(editorMode, (value) => {
+        helperStorage.set(EDITOR_MODE, value);
+    })
+
+    // Обработчик обновления позиций transition edges
+    function onUpdateTransitionPosition(transitionId: string, sourceOffset: { x: number; y: number }, targetOffset: { x: number; y: number }) {
+        transitionEdgeStorage.saveTransitionPosition(transitionId, {
+            sourceOffset,
+            targetOffset
+        });
+        console.log('Updated transition position:', { transitionId, sourceOffset, targetOffset });
+    }
+
+    // Сброс всех позиций transition edges
+    function resetAllTransitionPositions() {
+        transitionEdgeStorage.clearAllPositions();
+        console.log('All transition positions cleared');
+    }
+
     provide('onConditionChange', onEdgeConditionChange);
 
     return {
         canvasData,
         editorSize,
+        editorMode,
         isLoading,
         editorActions,
         nodes,
@@ -839,6 +1155,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         addNewState,
         autoLayout,
         onUpdateWorkflowMetaDialog,
+        onUpdateTransitionPosition,
+        resetAllTransitionPositions,
         onResize,
         fitView,
         canUndo,

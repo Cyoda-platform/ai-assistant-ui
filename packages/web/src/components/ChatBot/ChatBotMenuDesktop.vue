@@ -38,9 +38,7 @@
 
 <script setup lang="ts">
 import EntitiesDataIcon from "@/assets/images/icons/entities-data.svg";
-import TrashSmallIcon from "@/assets/images/icons/trash-small.svg";
 import SupportIcon from '@/assets/images/icons/support.svg';
-import EditIcon from '@/assets/images/icons/edit.svg';
 import ToggleCanvasIcon from "@/assets/images/icons/toggle-canvas.svg";
 import {computed, inject, provide} from "vue";
 

@@ -1,7 +1,8 @@
 <template>
   <div v-loading="isLoading" class="chat-bot-editor-workflow">
+    <EditorViewMode v-model="editorMode"/>
     <el-splitter @resize="onResize">
-      <el-splitter-panel v-model:size="editorSize" class="chat-bot-editor-workflow__editor-wrapper">
+      <el-splitter-panel v-if="isShowEditor" v-model:size="editorSize" class="chat-bot-editor-workflow__editor-wrapper">
         <Editor v-model="canvasData" language="json" class="chat-bot-editor-workflow__editor-inner"
                 :actions="editorActions"/>
       </el-splitter-panel>
@@ -15,9 +16,9 @@
             @connect="onConnect"
             @connectStart="onConnectStart"
             @connectEnd="onConnectEnd"
-            :connection-mode="ConnectionMode.Strict"
+            :connection-mode="ConnectionMode.Loose"
             v-model:nodes="nodes"
-            v-model:edges="edges"
+            :edges="edges"
             :edge-types="edgeTypes"
             :default-viewport="{ zoom: 1.5 }"
             :min-zoom="0.2"
@@ -27,7 +28,7 @@
             <ControlButton @click="undoAction" :disabled="!canUndo">
               <Icon name="undo"/>
             </ControlButton>
-            
+
             <ControlButton @click="redoAction" :disabled="!canRedo">
               <Icon name="redo"/>
             </ControlButton>
@@ -58,18 +59,6 @@
     <EditEdgeConditionalDialog/>
     <WorkflowMetaDialog @update="onUpdateWorkflowMetaDialog" ref="workflowMetaDialogRef"
                         :workflowMetaData="workflowMetaData"/>
-
-    <ChatBotCanvasVueFlowDrawer
-        ref="chatBotCanvasVueFlowDrawerRef"
-        :nodes="nodes"
-        :edges="edges"
-        :edge-types="edgeTypes"
-        @onNodeDragStop="onNodeDragStop"
-        @onConnect="onConnect"
-        @resetTransform="resetTransform"
-        @autoLayout="autoLayout"
-        @workflowMeta="workflowMeta"
-    />
   </div>
 </template>
 
@@ -82,15 +71,13 @@ import Editor from "@/components/Editor/Editor.vue";
 import Icon from "@/components/ChatBot/ChatBotEditorWorkflow/Icon.vue";
 import Node from "@/components/ChatBot/ChatBotEditorWorkflow/Node.vue";
 import EdgeWithTooltip from "@/components/ChatBot/ChatBotEditorWorkflow/EdgeWithTooltip.vue";
+import DraggableTransitionEdge from "@/components/ChatBot/ChatBotEditorWorkflow/DraggableTransitionEdge.vue";
 import EditEdgeConditionalDialog from "@/components/ChatBot/ChatBotEditorWorkflow/EditEdgeConditionalDialog.vue";
 import WorkflowMetaDialog from "@/components/ChatBot/ChatBotEditorWorkflow/WorkflowMetaDialog.vue";
 import {useWorkflowEditor} from './ChatBotEditorWorkflow/composables/useWorkflowEditor';
 import useAssistantStore from "@/stores/assistant.ts";
-import {computed, onMounted, onUnmounted, ref} from "vue";
-import helperBreakpoints from "@/helpers/HelperBreakpoints";
-import ChatBotCanvasVueFlowDrawer from "@/components/ChatBot/ChatBotCanvasVueFlowDrawer.vue";
-import eventBus from "@/plugins/eventBus";
-import {SHOW_MARKDOWN_DRAWER, SHOW_VUE_FLOW_DRAWER} from "@/helpers/HelperConstants";
+import {computed, provide, markRaw, ref} from "vue";
+import EditorViewMode from "@/components/ChatBot/EditorViewMode.vue";
 
 const props = defineProps<{
   technicalId: string,
@@ -98,11 +85,11 @@ const props = defineProps<{
 
 const workflowMetaDialogRef = templateRef('workflowMetaDialogRef');
 const assistantStore = useAssistantStore();
-const chatBotCanvasVueFlowDrawerRef = templateRef('chatBotCanvasVueFlowDrawerRef');
 
 const {
   canvasData,
   editorSize,
+  editorMode,
   isLoading,
   editorActions,
   nodes,
@@ -116,6 +103,7 @@ const {
   addNewState,
   autoLayout,
   onUpdateWorkflowMetaDialog,
+  onUpdateTransitionPosition,
   onResize,
   canUndo,
   canRedo,
@@ -124,16 +112,11 @@ const {
   isDraggingConnection,
 } = useWorkflowEditor(props, assistantStore);
 
-onMounted(() => {
-  eventBus.$on(SHOW_VUE_FLOW_DRAWER, showChatBotCanvasVueFlowDrawer);
-})
-
-onUnmounted(() => {
-  eventBus.$off(SHOW_MARKDOWN_DRAWER, showChatBotCanvasVueFlowDrawer);
-})
+provide('onUpdateTransitionPosition', onUpdateTransitionPosition);
 
 const edgeTypes = {
-  custom: EdgeWithTooltip
+  custom: markRaw(EdgeWithTooltip),
+  draggableTransition: markRaw(DraggableTransitionEdge)
 };
 
 function workflowMeta() {
@@ -141,12 +124,12 @@ function workflowMeta() {
 }
 
 const isShowVueFlow = computed(() => {
-  return !helperBreakpoints.smaller('md').value;
+  return ['preview', 'editorPreview'].includes(editorMode.value);
 })
 
-function showChatBotCanvasVueFlowDrawer() {
-  chatBotCanvasVueFlowDrawerRef.value.drawerVisible = true;
-}
+const isShowEditor = computed(() => {
+  return ['editor', 'editorPreview'].includes(editorMode.value);
+})
 </script>
 
 <style lang="scss">

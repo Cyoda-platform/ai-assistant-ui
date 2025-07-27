@@ -3,8 +3,9 @@
       v-loading="isLoading"
       class="chat-bot-editor-markdown"
   >
+    <EditorViewMode v-model="editorMode"/>
     <el-splitter>
-      <el-splitter-panel v-model:size="editorSize" class="chat-bot-editor-markdown__editor-wrapper">
+      <el-splitter-panel v-if="isShowEditor" v-model:size="editorSize" class="chat-bot-editor-markdown__editor-wrapper">
         <Editor v-model="canvasData" class="chat-bot-editor-markdown__editor-inner" :actions="editorActions"/>
         <div class="chat-bot-editor-markdown__actions">
           <div class="btn-action btn-block">
@@ -45,10 +46,6 @@
         ref="chatBotAttachFileRef"
         @file="onFile"
     />
-    <ChatBotCanvasMarkdownDrawer
-        ref="chatBotCanvasMarkdownDrawerRef"
-        :canvasDataWithMarkdown="canvasDataWithMarkdown"
-    />
   </div>
 </template>
 
@@ -56,17 +53,13 @@
 import Editor from "@/components/Editor/Editor.vue";
 import SendIcon from "@/assets/images/icons/send.svg";
 import AttachIcon from "@/assets/images/icons/attach.svg";
-import {computed, onMounted, ref, useTemplateRef, onUnmounted, watch} from "vue";
+import {computed, ref, useTemplateRef, watch} from "vue";
 import useAssistantStore from "@/stores/assistant.ts";
 import ChatBotAttachFile from "@/components/ChatBot/ChatBotAttachFile.vue";
 import HelperMarkdown from "@/helpers/HelperMarkdown";
 import HelperStorage from "@/helpers/HelperStorage";
-import helperBreakpoints from "@/helpers/HelperBreakpoints";
-import ChatBotCanvasMarkdownDrawer from "@/components/ChatBot/ChatBotCanvasMarkdownDrawer.vue";
-import {SHOW_MARKDOWN_DRAWER} from "@/helpers/HelperConstants";
-import eventBus from "@/plugins/eventBus";
-import {templateRef} from "@vueuse/core";
-import { createMarkdownEditorActions, type EditorAction } from "@/utils/editorUtils";
+import {createMarkdownEditorActions, type EditorAction} from "@/utils/editorUtils";
+import EditorViewMode from "@/components/ChatBot/EditorViewMode.vue";
 
 const canvasData = ref('');
 const editorActions = ref<EditorAction[]>([]);
@@ -76,32 +69,25 @@ const emit = defineEmits(['answer']);
 const chatBotAttachFileRef = useTemplateRef('chatBotAttachFileRef');
 const currentFile = ref<File | null>(null);
 const helperStorage = new HelperStorage();
-const chatBotCanvasMarkdownDrawerRef = templateRef('chatBotCanvasMarkdownDrawerRef');
 const EDITOR_WIDTH = 'chatBotEditorMarkdown:width';
+const EDITOR_MODE = 'chatBotEditorMarkdown:editorMode';
 
 const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
+const editorMode = ref(helperStorage.get(EDITOR_MODE, 'editorPreview'));
 
 const props = defineProps<{
   technicalId: string,
 }>();
 
 const isShowMarkdown = computed(() => {
-  return !helperBreakpoints.smaller('md').value;
+  return ['preview', 'editorPreview'].includes(editorMode.value);
 })
 
-onMounted(() => {
-  eventBus.$on(SHOW_MARKDOWN_DRAWER, showChatBotCanvasMarkdownDrawer);
+const isShowEditor = computed(() => {
+  return ['editor', 'editorPreview'].includes(editorMode.value);
 })
 
 initializeEditorActions();
-
-onUnmounted(() => {
-  eventBus.$off(SHOW_MARKDOWN_DRAWER, showChatBotCanvasMarkdownDrawer);
-})
-
-function showChatBotCanvasMarkdownDrawer() {
-  chatBotCanvasMarkdownDrawerRef.value.drawerVisible = true;
-}
 
 function onAttachFile() {
   chatBotAttachFileRef.value.openDialog(currentFile.value);
@@ -180,6 +166,10 @@ function onFile(file: File) {
 watch(editorSize, (value) => {
   helperStorage.set(EDITOR_WIDTH, value);
 })
+
+watch(editorMode, (value) => {
+  helperStorage.set(EDITOR_MODE, value);
+})
 </script>
 
 <style lang="scss">
@@ -193,7 +183,7 @@ watch(editorSize, (value) => {
     position: relative;
   }
 
-  &__markdown-wrapper{
+  &__markdown-wrapper {
     padding-left: 15px;
   }
 

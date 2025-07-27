@@ -1,160 +1,116 @@
 <template>
   <div
-    class="workflow-node"
-    :class="[nodeTypeClass, { 
+      class="workflow-node"
+      :class="[nodeTypeClass, {
       'dimmed': shouldDimNode(nodeId),
-      'dropdown-open': isDropdownOpen,
-      'hovering-dropdown': isHoveringDropdown,
       'hovering-delete': isHoveringDeleteBtn
     }]"
-    ref="nodeRef"
+      ref="nodeRef"
   >
-    <!-- Universal connection points - one handle per side that works as both source and target -->
-    
-    <!-- Left side handle -->
-    <Handle 
-      type="source" 
-      :position="Position.Left" 
-      id="left-source" 
-      class="connection-handle universal-handle"
-      title="Connection point"
+    <Handle
+        type="source"
+        :position="Position.Left"
+        id="left-source"
+        class="connection-handle universal-handle"
+        title="Connection point"
     />
-    
-    <!-- Right side handle -->
-    <Handle 
-      type="source" 
-      :position="Position.Right" 
-      id="right-source" 
-      class="connection-handle universal-handle"
-      title="Connection point"
+    <Handle
+        type="source"
+        :position="Position.Right"
+        id="right-source"
+        class="connection-handle universal-handle"
+        title="Connection point"
     />
-    
-    <!-- Top side handle -->
-    <Handle 
-      type="source" 
-      :position="Position.Top" 
-      id="top-source" 
-      class="connection-handle universal-handle"
-      title="Connection point"
+    <Handle
+        type="source"
+        :position="Position.Top"
+        id="top-source"
+        class="connection-handle universal-handle"
+        title="Connection point"
     />
-    
-    <!-- Bottom side handle -->
-    <Handle 
-      type="source" 
-      :position="Position.Bottom" 
-      id="bottom-source" 
-      class="connection-handle universal-handle"
-      title="Connection point"
+    <Handle
+        type="source"
+        :position="Position.Bottom"
+        id="bottom-source"
+        class="connection-handle universal-handle"
+        title="Connection point"
     />
-
-    <!-- Target handles (invisible, for accepting connections) -->
-    <Handle 
-      type="target" 
-      :position="Position.Left" 
-      id="left-target" 
-      class="connection-handle target-invisible"
+    <Handle
+        type="target"
+        :position="Position.Left"
+        id="left-target"
+        class="connection-handle target-invisible"
     />
-    <Handle 
-      type="target" 
-      :position="Position.Right" 
-      id="right-target" 
-      class="connection-handle target-invisible"
+    <Handle
+        type="target"
+        :position="Position.Right"
+        id="right-target"
+        class="connection-handle target-invisible"
     />
-    <Handle 
-      type="target" 
-      :position="Position.Top" 
-      id="top-target" 
-      class="connection-handle target-invisible"
+    <Handle
+        type="target"
+        :position="Position.Top"
+        id="top-target"
+        class="connection-handle target-invisible"
     />
-    <Handle 
-      type="target" 
-      :position="Position.Bottom" 
-      id="bottom-target" 
-      class="connection-handle target-invisible"
+    <Handle
+        type="target"
+        :position="Position.Bottom"
+        id="bottom-target"
+        class="connection-handle target-invisible"
     />
 
     <div class="node-header">
-      <div class="node-title">{{ data.label }}</div>
-      <button 
-        class="delete-state-btn" 
-        @click.stop="deleteState"
-        @mouseenter="isHoveringDeleteBtn = true"
-        @mouseleave="isHoveringDeleteBtn = false"
-        title="Delete state"
-      >
-        <TrashSmallIcon/>
-      </button>
-    </div>
-    <div class="node-footer" v-if="hasTransitions">
-      <div 
-        class="transitions-dropdown" 
-        :class="{ 'expanded': isDropdownOpen }"
-        @mouseenter="isHoveringDropdown = true"
-        @mouseleave="isHoveringDropdown = false"
-      >
-        <div class="dropdown-trigger" @click="toggleDropdown">
-          <span class="transition-count">{{ transitionCount }} {{ transitionCount === 1 ? 'transition' : 'transitions' }}</span>
-          <span class="dropdown-arrow" :class="{ 'rotated': isDropdownOpen }">▼</span>
-        </div>
-
-        <div class="dropdown-content" v-show="isDropdownOpen">
-          <div
-            v-for="(transition, index) in transitions"
-            :key="transition.id"
-            class="transition-item"
-            :class="{ 'highlighted': isTransitionHighlighted(transition.id) }"
-            @mouseenter="handleTransitionHover(transition)"
-            @mouseleave="handleTransitionLeave"
-          >
-            <div class="transition-content" @click="editTransition(transition)">
-              <span class="transition-order">{{ index + 1 }}.</span>
-              <span class="transition-name">{{ transition.name || 'Unnamed' }}</span>
-              <span class="transition-direction">→ {{ transition.direction }}</span>
-            </div>
-            <div class="transition-actions">
-              <button 
-                class="change-target-btn" 
-                @click.stop="changeTransitionTarget(transition)"
-                title="Change target node"
-              >
-                <LinkSmallIcon/>
-              </button>
-              <button 
-                class="delete-transition-btn" 
-                @click.stop="deleteTransition(transition)"
-                title="Delete transition"
-              >
-                <TrashSmallIcon/>
-              </button>
-            </div>
-          </div>
-        </div>
+      <div class="node-title">
+        <span v-if="data.isInitial" class="node-icon initial-icon" title="Initial state">
+          <PlayIcon/>
+        </span>
+        <span v-else-if="data.isTerminal" class="node-icon terminal-icon" title="Terminal state">
+          <StopIcon/>
+        </span>
+        <span v-else class="node-icon default-icon" title="State">
+          <CircleIcon/>
+        </span>
+        {{ data.label }}
+      </div>
+      <div class="node-actions">
+        <button
+            @click="editStateName"
+            class="edit-state-btn"
+            title="Edit state name"
+        >
+          <EditIcon/>
+        </button>
+        <button
+            @click="deleteState"
+            class="delete-state-btn"
+            title="Delete state"
+        >
+          <TrashSmallIcon/>
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, onMounted, onUnmounted, h } from 'vue'
-import { Handle, Position } from '@vue-flow/core'
-import { ElMessageBox, ElSelect, ElOption } from 'element-plus'
-import { useDropdownManager } from './composables/useDropdownManager'
-import { useTransitionHighlight } from './composables/useTransitionHighlight'
+import {computed, ref, onMounted, onUnmounted} from 'vue'
+import {Handle, Position} from '@vue-flow/core'
+import {ElMessageBox} from 'element-plus'
+import {useDropdownManager} from './composables/useDropdownManager'
+import {useTransitionHighlight} from './composables/useTransitionHighlight'
 import eventBus from '../../../plugins/eventBus'
-import TrashSmallIcon from "@/assets/images/icons/trash-small.svg";
-import LinkSmallIcon from "@/assets/images/icons/link-small.svg";
-
-interface Transition {
-  id: string
-  name?: string
-  direction: string
-  fullData?: unknown
-}
+// @ts-expect-error SVG import
+import TrashSmallIcon from "@/assets/images/icons/trash-small.svg"
+import EditIcon from '@/assets/images/icons/edit.svg';
+import PlayIcon from '@/assets/images/icons/play.svg';
+import CircleIcon from '@/assets/images/icons/circle.svg';
+import StopIcon from '@/assets/images/icons/stop.svg';
 
 interface NodeData {
   label: string
   transitionCount?: number
-  transitions?: Transition[]
+  transitions?: unknown[]
   isInitial?: boolean
   isTerminal?: boolean
 }
@@ -164,29 +120,17 @@ const props = defineProps<{
 }>()
 
 const nodeRef = ref()
-const isHoveringDropdown = ref(false)
 
 const nodeId = computed(() => props.data.label || 'unknown')
 const {
-  isOpen: isDropdownOpen,
-  toggleDropdown,
-  updateState,
   closeOnClickOutside,
-  activeDropdownId
 } = useDropdownManager(nodeId.value)
 
 const {
-  setHighlight,
-  clearHighlight,
-  isTransitionHighlighted,
   shouldDimNode
 } = useTransitionHighlight()
 
 const isHoveringDeleteBtn = ref(false)
-
-watch(activeDropdownId, () => {
-  updateState()
-})
 
 const handleDocumentClick = (event: Event) => {
   const target = event.target as Element
@@ -203,74 +147,23 @@ onUnmounted(() => {
   document.removeEventListener('click', handleDocumentClick)
 })
 
-const hasTransitions = computed(() => {
-  return (props.data.transitionCount || 0) > 0
-})
-
-const transitionCount = computed(() => {
-  return props.data.transitionCount || 0
-})
-
-const transitions = computed(() => {
-  return props.data.transitions || []
-})
-
 const nodeTypeClass = computed(() => {
   if (props.data.isInitial) return 'node-initial'
   if (props.data.isTerminal) return 'node-terminal'
   return 'node-default'
 })
 
-const editTransition = (transition: Transition) => {
-  closeOnClickOutside()
-
-  const stateName = nodeId.value
-
-  const transitionData = transition.fullData || {
-    id: transition.name,
-    next: transition.direction
-  }
-
-  eventBus.$emit('show-condition-popup', {
-    stateName: stateName,
-    transitionName: transition.name,
-    transitionData: transitionData
-  })
-}
-
-const deleteTransition = async (transition: Transition) => {
-  try {
-    await ElMessageBox.confirm(
-      `Are you sure you want to delete the transition "${transition.name || 'Unnamed'}"?`,
-      'Delete Transition',
-      {
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel',
-        type: 'warning',
-        confirmButtonClass: 'el-button--danger'
-      }
-    )
-
-    eventBus.$emit('delete-transition', {
-      stateName: nodeId.value,
-      transitionName: transition.name
-    })
-  } catch {
-    // User cancelled the deletion
-  }
-}
-
 const deleteState = async () => {
   try {
     await ElMessageBox.confirm(
-      `Are you sure you want to delete the state "${props.data.label}"? This will also delete all transitions to and from this state.`,
-      'Delete State',
-      {
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel',
-        type: 'warning',
-        confirmButtonClass: 'el-button--danger'
-      }
+        `Are you sure you want to delete the state "${props.data.label}"? This will also delete all transitions to and from this state.`,
+        'Delete State',
+        {
+          confirmButtonText: 'Delete',
+          cancelButtonText: 'Cancel',
+          type: 'warning',
+          confirmButtonClass: 'el-button--danger'
+        }
     )
 
     eventBus.$emit('delete-state', {
@@ -281,77 +174,37 @@ const deleteState = async () => {
   }
 }
 
-const changeTransitionTarget = async (transition: Transition) => {
-  eventBus.$emit('get-available-nodes', {
-    currentTransition: transition,
-    callback: async (availableNodes: string[]) => {
-      if (availableNodes.length === 0) {
-        ElMessageBox.alert('No other nodes available', 'Change Target Node', {
-          type: 'warning'
-        })
-        return
-      }
-
-      try {
-        const selectedValue = ref(transition.direction)
-
-        await ElMessageBox({
-          title: 'Change Target Node',
-          message: () => h('div', [
-            h('p', { style: { marginBottom: '15px' } }, 
-              `Select the new target node for transition "${transition.name || 'Unnamed'}":`
-            ),
-            h(ElSelect, {
-              modelValue: selectedValue.value,
-              'onUpdate:modelValue': (value: string) => {
-                selectedValue.value = value
-              },
-              placeholder: 'Select target node',
-              style: { width: '100%' },
-              filterable: true,
-            }, {
-              default: () => availableNodes.map(nodeName => 
-                h(ElOption, {
-                  key: nodeName,
-                  label: nodeName,
-                  value: nodeName
-                })
-              )
-            })
-          ]),
-          showCancelButton: true,
-          confirmButtonText: 'Change',
+const editStateName = async () => {
+  try {
+    const {value: newName} = await ElMessageBox.prompt(
+        'Enter new state name:',
+        'Edit State Name',
+        {
+          confirmButtonText: 'Save',
           cancelButtonText: 'Cancel',
-          beforeClose: (action, instance, done) => {
-            if (action === 'confirm') {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (instance as any).inputValue = selectedValue.value
+          inputValue: props.data.label,
+          inputValidator: (value: string) => {
+            if (!value || value.trim() === '') {
+              return 'State name cannot be empty'
             }
-            done()
-          }
-        })
-        
-        if (selectedValue.value && selectedValue.value !== transition.direction) {
-          eventBus.$emit('change-transition-target', {
-            stateName: nodeId.value,
-            transitionName: transition.name,
-            newTarget: selectedValue.value
-          })
+            if (value.trim().length < 2) {
+              return 'State name must be at least 2 characters long'
+            }
+            return true
+          },
+          inputErrorMessage: 'Invalid state name'
         }
-      } catch {
-        // User cancelled the change
-      }
+    )
+
+    if (newName && newName.trim() !== props.data.label) {
+      eventBus.$emit('rename-state', {
+        oldName: props.data.label,
+        newName: newName.trim()
+      })
     }
-  })
-}
-
-const handleTransitionHover = (transition: Transition) => {
-  const targetNodeId = transition.direction
-  setHighlight(transition.id, nodeId.value, targetNodeId)
-}
-
-const handleTransitionLeave = () => {
-  clearHighlight()
+  } catch {
+    // User cancelled the edit
+  }
 }
 </script>
 
@@ -369,11 +222,6 @@ const handleTransitionLeave = () => {
   background-color: var(--color-primary);
   opacity: 1;
 
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  }
-
   &.dimmed {
     opacity: 0.5;
   }
@@ -387,6 +235,31 @@ const handleTransitionLeave = () => {
   white-space: nowrap;
   overflow: visible;
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.node-icon {
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  color: white;
+
+  &.initial-icon {
+    font-weight: bold;
+  }
+
+  &.terminal-icon {
+    font-weight: bold;
+  }
+
+  &.default-icon {
+    font-size: 8px;
+  }
 }
 
 .node-header {
@@ -396,6 +269,13 @@ const handleTransitionLeave = () => {
   width: 100%;
 }
 
+.node-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.edit-state-btn,
 .delete-state-btn {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -410,14 +290,25 @@ const handleTransitionLeave = () => {
   font-size: 14px;
   line-height: 1;
   transition: all 0.2s ease;
-  margin-left: 8px;
   padding: 3px;
-  
-  &:hover {
-    background: rgba(239, 68, 68, 0.2);
-    border-color: rgba(239, 68, 68, 0.5);
-    color: rgba(239, 68, 68, 0.9);
+
+  svg {
+    width: 12px;
+    height: auto;
+    fill: currentColor;
   }
+}
+
+.edit-state-btn:hover {
+  background: rgba(24, 144, 255, 0.2);
+  border-color: rgba(24, 144, 255, 0.5);
+  color: rgba(24, 144, 255, 0.9);
+}
+
+.delete-state-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: rgba(239, 68, 68, 0.9);
 }
 
 .node-footer {
@@ -541,7 +432,7 @@ const handleTransitionLeave = () => {
 
 .change-target-btn {
   color: black;
-  
+
   &:hover {
     background-color: #1890ff;
     color: white;
@@ -638,7 +529,7 @@ const handleTransitionLeave = () => {
     left: -5px;
     top: 50%;
     transform: translateY(-50%);
-    
+
     &:hover:not(.target-invisible) {
       background: #9254de;
     }
@@ -648,7 +539,7 @@ const handleTransitionLeave = () => {
     right: -5px;
     top: 50%;
     transform: translateY(-50%);
-    
+
     &:hover:not(.target-invisible) {
       background: #9254de;
     }
@@ -658,7 +549,7 @@ const handleTransitionLeave = () => {
     top: -5px;
     left: 50%;
     transform: translateX(-50%);
-    
+
     &:hover:not(.target-invisible) {
       background: #9254de;
     }
@@ -668,7 +559,7 @@ const handleTransitionLeave = () => {
     bottom: -5px;
     left: 50%;
     transform: translateX(-50%);
-    
+
     &:hover:not(.target-invisible) {
       background: #9254de;
     }
@@ -682,6 +573,7 @@ const handleTransitionLeave = () => {
       width: 18px;
       height: 18px;
     }
+
     &.vue-flow__handle-right {
       right: -3px;
       top: 50%;
@@ -689,6 +581,7 @@ const handleTransitionLeave = () => {
       width: 18px;
       height: 18px;
     }
+
     &.vue-flow__handle-top {
       top: -3px;
       left: 50%;
@@ -696,6 +589,7 @@ const handleTransitionLeave = () => {
       width: 18px;
       height: 18px;
     }
+
     &.vue-flow__handle-bottom {
       bottom: -3px;
       left: 50%;
@@ -706,29 +600,28 @@ const handleTransitionLeave = () => {
   }
 }
 
-/* Show handles on all nodes when dragging connection */
 .vue-flow.connection-dragging .workflow-node :deep(.vue-flow__handle) {
   opacity: 0.8 !important;
   visibility: visible !important;
   pointer-events: auto !important;
   animation: pulse-universal 2s infinite;
-  
+
   &.vue-flow__handle-left:not(.target-invisible) {
     transform: translateY(-50%) !important;
   }
-  
+
   &.vue-flow__handle-right:not(.target-invisible) {
     transform: translateY(-50%) !important;
   }
-  
+
   &.vue-flow__handle-top:not(.target-invisible) {
     transform: translateX(-50%) !important;
   }
-  
+
   &.vue-flow__handle-bottom:not(.target-invisible) {
     transform: translateX(-50%) !important;
   }
-  
+
   &.target-invisible {
     opacity: 0 !important;
     visibility: visible !important;
@@ -739,27 +632,27 @@ const handleTransitionLeave = () => {
   opacity: 0.8;
   visibility: visible;
   pointer-events: auto;
-  
+
   &.vue-flow__handle-left:not(.target-invisible) {
     transform: translateY(-50%);
   }
-  
+
   &.vue-flow__handle-right:not(.target-invisible) {
     transform: translateY(-50%);
   }
-  
+
   &.vue-flow__handle-top:not(.target-invisible) {
     transform: translateX(-50%);
   }
-  
+
   &.vue-flow__handle-bottom:not(.target-invisible) {
     transform: translateX(-50%);
   }
-  
+
   &.secondary {
     opacity: 0.6;
   }
-  
+
   &.target-invisible {
     opacity: 0 !important;
     visibility: hidden !important;
@@ -778,7 +671,6 @@ const handleTransitionLeave = () => {
   animation: pulse-universal 2s infinite;
 }
 
-/* Hide handles when dropdown is open or being hovered */
 .workflow-node.dropdown-open :deep(.vue-flow__handle),
 .workflow-node.hovering-dropdown :deep(.vue-flow__handle),
 .workflow-node.hovering-delete :deep(.vue-flow__handle) {
@@ -789,28 +681,28 @@ const handleTransitionLeave = () => {
 }
 
 @keyframes pulse-source {
-  0%, 100% { 
+  0%, 100% {
     box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.3);
   }
-  50% { 
+  50% {
     box-shadow: 0 0 0 6px rgba(24, 144, 255, 0.1);
   }
 }
 
 @keyframes pulse-target {
-  0%, 100% { 
+  0%, 100% {
     box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.3);
   }
-  50% { 
+  50% {
     box-shadow: 0 0 0 6px rgba(82, 196, 26, 0.1);
   }
 }
 
 @keyframes pulse-universal {
-  0%, 100% { 
+  0%, 100% {
     box-shadow: 0 0 0 2px rgba(114, 46, 209, 0.3);
   }
-  50% { 
+  50% {
     box-shadow: 0 0 0 6px rgba(114, 46, 209, 0.1);
   }
 }

@@ -135,11 +135,11 @@ export function generateWorkflowEdges(
 
         if (sourceNode && targetNode) {
           const connectionKey = `${stateName}->${transition.next}`;
-          
+
           if (!connectionMap.has(connectionKey)) {
             connectionMap.set(connectionKey, { transitions: [] });
           }
-          
+
           connectionMap.get(connectionKey)!.transitions.push({
             name: transitionName,
             data: transition,
@@ -155,7 +155,7 @@ export function generateWorkflowEdges(
     const [source, target] = connectionKey.split('->');
     const sourceNode = nodes.find(n => n.id === source);
     const targetNode = nodes.find(n => n.id === target);
-    
+
     if (sourceNode && targetNode && connectionData.transitions.length > 0) {
       const firstTransition = connectionData.transitions[0];
       const { sourceHandle, targetHandle } = calculateEdgeHandles(sourceNode, targetNode);
@@ -191,7 +191,7 @@ export function generateWorkflowEdges(
           allTransitions: connectionData.transitions,
         },
       };
-      
+
       result.push(edge);
     }
   }

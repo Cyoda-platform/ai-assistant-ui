@@ -75,10 +75,10 @@ export function calculateSmartPosition(
 
   const currentState = states[stateName];
   if (currentState?.transitions) {
-    const transitions = Array.isArray(currentState.transitions) 
-      ? currentState.transitions 
+    const transitions = Array.isArray(currentState.transitions)
+      ? currentState.transitions
       : Object.values(currentState.transitions);
-      
+
     const hasSelfLoop = transitions.some((t: any) => t.next === stateName);
     const hasBackwardTransition = transitions.some((t: any) => {
       const targetLevel = levels[t.next];
@@ -108,13 +108,13 @@ export function buildGraph(states: any): GraphNode {
 
     if (state && state.transitions) {
       let transitionsArray: any[] = [];
-      
+
       if (Array.isArray(state.transitions)) {
         transitionsArray = state.transitions;
       } else if (typeof state.transitions === 'object') {
         transitionsArray = Object.values(state.transitions);
       }
-      
+
       for (const transition of transitionsArray) {
         if (transition && transition.next && transition.next !== stateName) {
           graph[stateName].push(transition.next);
@@ -151,7 +151,7 @@ export function calculateLevels(graph: GraphNode, initialState: string): NodeLev
     visited.add(node);
 
     const neighbors = graph[node] || [];
-    
+
     for (const neighbor of neighbors) {
       if (neighbor === node) continue;
 
@@ -175,7 +175,7 @@ export function calculateLevels(graph: GraphNode, initialState: string): NodeLev
   }
 
   let maxLevel = Math.max(...Object.values(levels));
-  
+
   for (const nodeName of Object.keys(graph)) {
     if (levels[nodeName] === undefined) {
       maxLevel += 1;
@@ -208,19 +208,19 @@ export function groupNodesByLevel(levels: NodeLevels, states: any): NodesByLevel
         if (stateName.includes('initial')) return 100;
 
         if (state.transitions) {
-          const transitionsArray = Array.isArray(state.transitions) 
-            ? state.transitions 
+          const transitionsArray = Array.isArray(state.transitions)
+            ? state.transitions
             : Object.values(state.transitions);
-          
+
           const hasCondition = transitionsArray.some((t: any) => t.condition || t.criteria || t.criterion);
           if (hasCondition) return 80;
         }
 
         if (state.transitions) {
-          const transitionsArray = Array.isArray(state.transitions) 
-            ? state.transitions 
+          const transitionsArray = Array.isArray(state.transitions)
+            ? state.transitions
             : Object.values(state.transitions);
-          
+
           const hasSelfLoop = transitionsArray.some((t: any) => t.next === stateName);
           if (hasSelfLoop) return 60;
         }
@@ -237,8 +237,8 @@ export function groupNodesByLevel(levels: NodeLevels, states: any): NodesByLevel
 
       const getTransitionsCount = (state: any) => {
         if (!state.transitions) return 0;
-        return Array.isArray(state.transitions) 
-          ? state.transitions.length 
+        return Array.isArray(state.transitions)
+          ? state.transitions.length
           : Object.keys(state.transitions).length;
       };
 
@@ -306,17 +306,17 @@ export function optimizePositions(positions: { [key: string]: NodePosition }): v
 export function applyAutoLayout(states: any, initialState: string): { [key: string]: NodePosition } {
   const positions: { [key: string]: NodePosition } = {};
   const stateNames = Object.keys(states);
-  
+
   let actualInitialState = initialState;
   if (!actualInitialState || !states[actualInitialState]) {
     actualInitialState = stateNames[0];
   }
-  
+
   const graph = buildGraph(states);
   const levels = calculateLevels(graph, actualInitialState);
-  
+
   const hasValidLevels = Object.values(levels).some(level => level > 0);
-  
+
   if (!hasValidLevels) {
     stateNames.forEach((stateName, index) => {
       positions[stateName] = {
@@ -328,9 +328,9 @@ export function applyAutoLayout(states: any, initialState: string): { [key: stri
     for (const stateName of stateNames) {
       positions[stateName] = calculateSmartPosition(stateName, states, actualInitialState);
     }
-    
+
     optimizePositions(positions);
   }
-  
+
   return positions;
 }

@@ -116,7 +116,7 @@ const shouldDimEdge = computed(() => {
     });
     return !isTransitionInThisEdge;
   }
-  
+
   return true;
 })
 

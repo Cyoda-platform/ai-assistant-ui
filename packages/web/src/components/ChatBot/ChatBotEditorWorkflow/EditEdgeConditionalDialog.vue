@@ -12,8 +12,11 @@
         <label class="edit-edge-conditional-dialog__label">Transition Data (JSON):</label>
         <div class="edit-edge-conditional-dialog__editor">
           <Editor language="json" v-model="conditionText"/>
-          <div v-if="hasJsonError" class="edit-edge-conditional-dialog__error-message">
-            Error in JSON: {{ jsonError }}
+          <div v-if="jsonError" class="edit-edge-conditional-dialog__error-message">
+            JSON Error: {{ jsonError }}
+          </div>
+          <div v-if="validationError" class="edit-edge-conditional-dialog__error-message edit-edge-conditional-dialog__validation-error">
+            Validation Error: {{ validationError }}
           </div>
         </div>
       </div>
@@ -39,19 +42,24 @@ const originalConditionText = ref('')
 const dialogVisible = ref(false)
 const conditionText = ref('')
 const jsonError = ref('')
+const validationError = ref('')
 
 const currentEdgeData = ref(null)
 
 const hasJsonError = computed(() => {
-  return jsonError.value !== ''
+  return jsonError.value !== '' || validationError.value !== ''
 })
 
 onMounted(() => {
   eventBus.$on('show-condition-popup', openDialog)
+  eventBus.$on('validation-error', handleValidationError)
+  eventBus.$on('transition-saved-successfully', handleTransitionSaved)
 })
 
 onUnmounted(() => {
   eventBus.$off('show-condition-popup', openDialog)
+  eventBus.$off('validation-error', handleValidationError)
+  eventBus.$off('transition-saved-successfully', handleTransitionSaved)
 })
 
 function openDialog(data: any) {
@@ -66,11 +74,23 @@ function openDialog(data: any) {
 
   conditionText.value = JSON.stringify(transitionToEdit, null, 2)
   originalConditionText.value = conditionText.value
+  validationError.value = '' // Сбрасываем ошибку валидации
   dialogVisible.value = true
 }
 
 function cancelEdit() {
   handleClosePopup()
+}
+
+function handleValidationError(errorData: any) {
+  if (errorData && errorData.message) {
+    validationError.value = errorData.message
+  }
+}
+
+function handleTransitionSaved() {
+  // Закрываем диалог только при успешном сохранении
+  dialogVisible.value = false
 }
 
 function saveCondition() {
@@ -105,18 +125,20 @@ function saveCondition() {
     isNewTransition: (currentEdgeData.value as any)?.isNewTransition || false
   })
 
-  dialogVisible.value = false
+  // Не закрываем диалог сразу - ждем подтверждения сохранения или ошибки валидации
 }
 
 function handleClosePopup() {
   dialogVisible.value = false
   conditionText.value = originalConditionText.value
   jsonError.value = ''
+  validationError.value = '' // Сбрасываем ошибку валидации
 }
 
 watch(conditionText, (newValue) => {
   if (newValue.trim() === '') {
     jsonError.value = ''
+    validationError.value = '' // Очищаем и ошибку валидации
     return
   }
 
@@ -127,8 +149,11 @@ watch(conditionText, (newValue) => {
     } else {
       jsonError.value = ''
     }
+    // Очищаем ошибку валидации при успешном парсинге JSON
+    validationError.value = ''
   } catch (error: unknown) {
     jsonError.value = (error as Error).message
+    // При ошибке JSON не очищаем validationError - пусть пользователь сначала исправит JSON
   }
 })
 </script>
@@ -150,7 +175,7 @@ watch(conditionText, (newValue) => {
   &__label {
     font-weight: 500;
     font-size: 14px;
-    color: #333;
+    color: var(--text-color-regular);
   }
 
   &__editor {
@@ -161,6 +186,16 @@ watch(conditionText, (newValue) => {
     color: #f56c6c;
     font-size: 12px;
     margin-top: 8px;
+  }
+
+  &__validation-error {
+    color: #f56c6c;
+    font-size: 12px;
+    margin-top: 8px;
+    background-color: #fef0f0;
+    border: 1px solid #fbc4c4;
+    border-radius: 4px;
+    padding: 8px;
   }
 
   &__dialog-footer {
