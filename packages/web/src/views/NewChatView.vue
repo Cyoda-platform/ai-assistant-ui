@@ -11,13 +11,12 @@
         <el-tooltip
             class="box-item"
             effect="dark"
-            content="GitHub Stars"
+            content="Documentation"
             :show-after="1000"
             placement="top"
         >
-          <el-button class="btn-border-github hidden-below-sm" v-show="stars>0" @click="onClickGithub">
-            <GithubIcon class="icon-github"/>
-            {{ stars }}
+          <el-button @click="onClickDocs" class="btn btn-default btn-icon large">
+            <DocsIcon class="fill-stroke"/>
           </el-button>
         </el-tooltip>
         <AuthState/>
@@ -32,9 +31,8 @@
 <script setup lang="ts">
 import LogoUrl from '@/assets/images/logo.svg?url';
 import LogoUrlSmall from '@/assets/images/logo-small.svg?url';
-import GithubIcon from '@/assets/images/icons/github.svg';
+import DocsIcon from '@/assets/images/icons/docs.svg';
 import NewChat from "@/components/NewChat/NewChat.vue";
-import {computed, onMounted, ref} from "vue";
 import type {CreateChatResponse} from "@/types/chat.d";
 import {useRouter, useRoute} from "vue-router";
 import useAuthStore from "@/stores/auth";
@@ -43,22 +41,11 @@ import {isInIframe} from "@/helpers/HelperIframe";
 import AuthState from "@/components/AuthState/AuthState.vue";
 import Support from "@/components/Support/Support.vue";
 
-const stars = ref(0);
 const router = useRouter();
 const authStore = useAuthStore();
 
-onMounted(async () => {
-  stars.value = await getStars();
-})
-
-async function getStars() {
-  const response = await fetch(`https://api.github.com/repos/Cyoda-platform/cyoda-ai`);
-  const data = await response.json();
-  return data.stargazers_count;
-}
-
-function onClickGithub() {
-  window.open('https://github.com/Cyoda-platform/cyoda-ai', '_blank').focus();
+function onClickDocs() {
+  window.open('https://docs.cyoda.net/', '_blank').focus();
 }
 
 function onCreated(data: CreateChatResponse) {
