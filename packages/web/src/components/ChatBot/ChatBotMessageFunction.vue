@@ -22,6 +22,26 @@
         {{ serverResponse }}
       </div>
     </div>
+    <div class="chat-bot-message-function__bottom-actions">
+      <el-tooltip
+          v-if="message.approve"
+          class="box-item"
+          effect="dark"
+          content="Approve"
+          placement="top"
+          :show-after="1000"
+      >
+        <el-button
+            @click="onClickApproveQuestion"
+            size="small"
+            :disabled="isLoading"
+            class="btn btn-primary btn-icon"
+            :loading="isLoadingApprove"
+        >
+          <CheckIcon class="fill-stroke"/>
+        </el-button>
+      </el-tooltip>
+    </div>
   </div>
 </template>
 
@@ -34,6 +54,7 @@ import privateClient from "@/clients/private";
 import dayjs from "dayjs";
 import FileSaver from "file-saver";
 import {ElMessage} from "element-plus";
+import CheckIcon from "@/assets/images/icons/check.svg";
 
 const props = defineProps<{
   message: any,
@@ -46,8 +67,9 @@ const computedMessage = computed(() => {
 const serverResponse = ref(null);
 const authStore = useAuthStore();
 const isLoading = ref(false);
+const isLoadingApprove = ref(false);
 
-const emit = defineEmits(['updateNotification']);
+const emit = defineEmits(['updateNotification', 'approveQuestion']);
 
 const endpointUrl = computed(() => {
   return `https://${import.meta.env.VITE_APP_CYODA_CLIENT_ENV_PREFIX}${authStore.parsedToken.caas_org_id}.${import.meta.env.VITE_APP_CYODA_CLIENT_HOST}${computedMessage.value.path}`;
@@ -73,6 +95,14 @@ function responseHandler(data) {
   }
 
   serverResponse.value = data;
+}
+
+function onClickApproveQuestion() {
+  isLoadingApprove.value = true;
+  emit('approveQuestion', props.message.raw);
+  setTimeout(() => {
+    isLoadingApprove.value = false;
+  }, 2000);
 }
 
 </script>
@@ -120,6 +150,13 @@ function responseHandler(data) {
 
     svg {
       fill: var(--color-primary);
+    }
+  }
+
+  &__bottom-actions {
+    text-align: right;
+    .btn-primary svg{
+      stroke: var(--color-icon-submit) !important;
     }
   }
 
