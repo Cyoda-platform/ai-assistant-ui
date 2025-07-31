@@ -29,7 +29,9 @@
                     :message="message"/>
                 <ChatBotMessageFunction
                     v-if="message.type === 'ui_function'"
-                    :message="message"/>
+                    :message="message"
+                    @approveQuestion="emit('approveQuestion', $event)"
+                />
               </el-col>
             </el-row>
           </template>
