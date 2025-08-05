@@ -1,68 +1,68 @@
 <template>
   <g
-    class="draggable-transition-edge"
-    :class="{
+      class="draggable-transition-edge"
+      :class="{
       'dimmed': shouldDimEdge,
       'highlighted': isHighlighted,
       'dragging': isDragging,
       'dragging-transition': isDraggingTransition
     }"
-    @mousedown="onGroupMouseDown"
+      @mousedown="onGroupMouseDown"
   >
     <path
-      :id="id"
-      :d="edgePath"
-      :style="edgeStyle"
-      :marker-end="markerEnd"
-      :marker-start="markerStart"
-      fill="none"
+        :id="id"
+        :d="edgePath"
+        :style="edgeStyle"
+        :marker-end="markerEnd"
+        :marker-start="markerStart"
+        fill="none"
     />
 
     <path
-      :d="edgePath"
-      fill="none"
-      stroke="transparent"
-      stroke-width="20"
-      style="cursor: grab;"
-      @mousedown="startTransitionDrag"
-      @mouseenter="onPathHover"
-      @mouseleave="onPathLeave"
+        :d="edgePath"
+        fill="none"
+        stroke="transparent"
+        stroke-width="20"
+        style="cursor: grab;"
+        @mousedown="startTransitionDrag"
+        @mouseenter="onPathHover"
+        @mouseleave="onPathLeave"
     />
 
     <foreignObject
-      :x="labelPosition.x - labelWidth/2 - 15"
-      :y="labelPosition.y - 15"
-      :width="labelWidth + 30"
-      :height="30"
+        :x="labelPosition.x - labelWidth/2 - 15"
+        :y="labelPosition.y - 15"
+        :width="labelWidth + 30"
+        :height="30"
     >
       <div
-        class="transition-label-container"
-        @mouseenter="isHoveringLabel = true"
-        @mouseleave="isHoveringLabel = false"
+          class="transition-label-container"
+          @mouseenter="isHoveringLabel = true"
+          @mouseleave="isHoveringLabel = false"
       >
         <div
-          class="transition-label"
-          @mousedown="startDrag"
-          @dragstart.prevent
+            class="transition-label"
+            @mousedown="startDrag"
+            @dragstart.prevent
         >
           {{ transitionId }}
         </div>
         <div class="transition-actions">
           <button
-            class="edit-edge-btn"
-            @click.stop="editTransition"
-            @mousedown.stop
-            title="Edit transition"
+              class="edit-edge-btn"
+              @click.stop="editTransition"
+              @mousedown.stop
+              title="Edit transition"
           >
             <EditIcon/>
           </button>
           <button
-            class="delete-edge-btn"
-            @click.stop="deleteEdge"
-            @mousedown.stop
-            title="Delete transition"
+              class="delete-edge-btn"
+              @click.stop="deleteEdge"
+              @mousedown.stop
+              title="Delete transition"
           >
-            <TrashSmallIcon />
+            <TrashSmallIcon/>
           </button>
         </div>
       </div>
@@ -71,29 +71,33 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
-import { EdgeProps, useVueFlow } from '@vue-flow/core'
-import { useTransitionHighlight } from './composables/useTransitionHighlight'
-import { ElMessageBox } from 'element-plus'
+import {computed, ref, onMounted} from 'vue'
+import {EdgeProps, useVueFlow} from '@vue-flow/core'
+import {useTransitionHighlight} from './composables/useTransitionHighlight'
+import {ElMessageBox} from 'element-plus'
 import eventBus from '../../../plugins/eventBus'
 import EditIcon from '@/assets/images/icons/edit.svg';
-// @ts-expect-error SVG import
 import TrashSmallIcon from "@/assets/images/icons/trash-small.svg"
 
-// Props
+interface TransitionDataType {
+  name?: string;
+  next?: string;
+  manual?: boolean;
+
+  [key: string]: unknown;
+}
+
 interface CustomEdgeData {
   sourceOffset?: { x: number; y: number }
   targetOffset?: { x: number; y: number }
   customPath?: Array<{ x: number; y: number }>
-  transitionData?: object
+  transitionData?: TransitionDataType
 }
 
 const props = defineProps<EdgeProps<CustomEdgeData>>()
 
-// Vue Flow
-const { viewport } = useVueFlow()
+const {viewport} = useVueFlow()
 
-// Composables
 const {
   isTransitionHighlighted,
   highlightedTransition
@@ -101,21 +105,23 @@ const {
 
 const isDragging = ref(false)
 const isHoveringLabel = ref(false)
-const dragOffset = ref({ x: 0, y: 0 })
-const dragStartMouse = ref({ x: 0, y: 0 })
-const savedLabelOffset = ref({ x: 0, y: 0 })
+const dragOffset = ref({x: 0, y: 0})
+const dragStartMouse = ref({x: 0, y: 0})
+const savedLabelOffset = ref({x: 0, y: 0})
 
 const isDraggingTransition = ref(false)
-const transitionDragStart = ref({ x: 0, y: 0 })
+const transitionDragStart = ref({x: 0, y: 0})
 const hoveredNodeId = ref<string | null>(null)
-const currentMousePosition = ref({ x: 0, y: 0 })
+const currentMousePosition = ref({x: 0, y: 0})
 const svgElementRef = ref<SVGSVGElement | null>(null)
 
-const transitionId = computed(() => props.id.split('-').pop() || props.id)
+const transitionId = computed(() => {
+  return props.data.transitionData.name;
+})
 
 const isHighlighted = computed(() => isTransitionHighlighted(transitionId.value))
 const shouldDimEdge = computed(() =>
-  highlightedTransition.value !== null && !isHighlighted.value
+    highlightedTransition.value !== null && !isHighlighted.value
 )
 
 const edgePath = computed(() => {
@@ -136,7 +142,7 @@ const edgePath = computed(() => {
     const dx = endX - startX
     const dy = endY - startY
     const length = Math.sqrt(dx * dx + dy * dy)
-    
+
     if (length === 0) {
       return `M ${startX},${startY} L ${endX},${endY}`
     }
@@ -147,7 +153,7 @@ const edgePath = computed(() => {
     const offset = Math.min(length * 0.3, 50)
     const controlX = midX + perpX * offset
     const controlY = midY + perpY * offset
-    
+
     return `M ${startX},${startY} Q ${controlX},${controlY} ${endX},${endY}`
   }
 
@@ -188,7 +194,7 @@ const labelPosition = computed(() => {
     const sourceY = props.sourceY
     const targetX = currentMousePosition.value.x
     const targetY = currentMousePosition.value.y
-    
+
     return {
       x: (sourceX + targetX) / 2,
       y: (sourceY + targetY) / 2
@@ -256,17 +262,14 @@ function saveLabelPosition() {
   localStorage.setItem(key, JSON.stringify(savedLabelOffset.value))
 }
 
-// Инициализация при монтировании
 onMounted(() => {
   loadSavedLabelPosition()
 })
 
-// Methods
 function startDrag(event: MouseEvent) {
   isDragging.value = true
-  
-  // Используем простые экранные координаты
-  dragStartMouse.value = { x: event.clientX, y: event.clientY }
+
+  dragStartMouse.value = {x: event.clientX, y: event.clientY}
 
   document.addEventListener('mousemove', onDrag)
   document.addEventListener('mouseup', endDrag)
@@ -278,13 +281,11 @@ function startDrag(event: MouseEvent) {
 function onDrag(event: MouseEvent) {
   if (!isDragging.value) return
 
-  // Вычисляем смещение в экранных координатах
   const mouseDeltaX = event.clientX - dragStartMouse.value.x
   const mouseDeltaY = event.clientY - dragStartMouse.value.y
-  
-  // Используем зум из viewport для правильного масштабирования
+
   const zoom = viewport.value.zoom || 1
-  
+
   dragOffset.value = {
     x: mouseDeltaX / zoom,
     y: mouseDeltaY / zoom
@@ -293,17 +294,14 @@ function onDrag(event: MouseEvent) {
 
 function endDrag() {
   if (isDragging.value) {
-    // Добавляем текущий offset к сохранённой позиции
     savedLabelOffset.value = {
       x: savedLabelOffset.value.x + dragOffset.value.x,
       y: savedLabelOffset.value.y + dragOffset.value.y
     }
 
-    // Сохраняем новую позицию в localStorage
     saveLabelPosition()
 
-    // Сбрасываем временный offset
-    dragOffset.value = { x: 0, y: 0 }
+    dragOffset.value = {x: 0, y: 0}
   }
 
   isDragging.value = false
@@ -314,14 +312,14 @@ function endDrag() {
 
 function deleteEdge() {
   ElMessageBox.confirm(
-    `Are you sure you want to delete the transition "${transitionId.value}"?`,
-    'Delete Transition',
-    {
-      confirmButtonText: 'Delete',
-      cancelButtonText: 'Cancel',
-      type: 'warning',
-      confirmButtonClass: 'el-button--danger'
-    }
+      `Are you sure you want to delete the transition "${transitionId.value}"?`,
+      'Delete Transition',
+      {
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+        confirmButtonClass: 'el-button--danger'
+      }
   ).then(() => {
     eventBus.$emit('delete-transition', {
       stateName: props.source,
@@ -371,19 +369,19 @@ function startTransitionDrag(event: MouseEvent) {
 
   const svgElement = (event.target as Element)?.closest('svg') as SVGSVGElement
   svgElementRef.value = svgElement
-  
+
   if (svgElement) {
     const svgPoint = svgElement.createSVGPoint()
     svgPoint.x = event.clientX
     svgPoint.y = event.clientY
-    
+
     const svgCoords = svgPoint.matrixTransform(svgElement.getScreenCTM()?.inverse())
-    
+
     transitionDragStart.value = {
       x: svgCoords.x,
       y: svgCoords.y
     }
-    
+
     currentMousePosition.value = {
       x: svgCoords.x,
       y: svgCoords.y
@@ -393,7 +391,7 @@ function startTransitionDrag(event: MouseEvent) {
       x: event.clientX,
       y: event.clientY
     }
-    
+
     currentMousePosition.value = {
       x: event.clientX,
       y: event.clientY
@@ -424,7 +422,7 @@ function onTransitionDrag(event: MouseEvent) {
     svgPoint.y = event.clientY
 
     const svgCoords = svgPoint.matrixTransform(svgElement.getScreenCTM()?.inverse())
-    
+
     currentMousePosition.value = {
       x: svgCoords.x,
       y: svgCoords.y
@@ -459,7 +457,7 @@ function endTransitionDrag(event: MouseEvent) {
 
   isDraggingTransition.value = false
   hoveredNodeId.value = null
-  svgElementRef.value = null // Очищаем ссылку на SVG
+  svgElementRef.value = null
 
   document.removeEventListener('mousemove', onTransitionDrag)
   document.removeEventListener('mouseup', endTransitionDrag)

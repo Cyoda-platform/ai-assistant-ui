@@ -38,13 +38,18 @@ import {computed, onMounted, onUnmounted, ref, watch} from "vue";
 import eventBus from "@/plugins/eventBus";
 import Editor from "@/components/Editor/Editor.vue";
 
+interface TransitionDataType {
+  name: string;
+  next?: string;
+}
+
 const originalConditionText = ref('')
 const dialogVisible = ref(false)
 const conditionText = ref('')
 const jsonError = ref('')
 const validationError = ref('')
 
-const currentEdgeData = ref(null)
+const currentEdgeData = ref<any>(null)
 
 const hasJsonError = computed(() => {
   return jsonError.value !== '' || validationError.value !== ''
@@ -66,7 +71,7 @@ function openDialog(data: any) {
   currentEdgeData.value = data
 
   const defaultTransition = {
-    id: data.transitionName || "",
+    name: data.transitionName || "",
     next: ""
   }
 
@@ -74,7 +79,7 @@ function openDialog(data: any) {
 
   conditionText.value = JSON.stringify(transitionToEdit, null, 2)
   originalConditionText.value = conditionText.value
-  validationError.value = '' // Сбрасываем ошибку валидации
+  validationError.value = ''
   dialogVisible.value = true
 }
 
@@ -89,7 +94,6 @@ function handleValidationError(errorData: any) {
 }
 
 function handleTransitionSaved() {
-  // Закрываем диалог только при успешном сохранении
   dialogVisible.value = false
 }
 
@@ -98,7 +102,7 @@ function saveCondition() {
     return
   }
 
-  let parsedTransitionData = null
+  let parsedTransitionData: TransitionDataType | null = null
 
   if (conditionText.value.trim() !== '') {
     try {
@@ -109,51 +113,47 @@ function saveCondition() {
     }
   }
 
-  if (!parsedTransitionData || typeof parsedTransitionData !== 'object' || !parsedTransitionData.id) {
-    jsonError.value = 'Transition data must contain an "id" field'
+  if (!parsedTransitionData || typeof parsedTransitionData !== 'object' || !parsedTransitionData.name) {
+    jsonError.value = 'Transition data must contain a "name" field'
     return
   }
 
-  const originalTransitionName = (currentEdgeData.value as any)?.transitionName
-  const newTransitionName = parsedTransitionData.id
+  const originalTransitionName = currentEdgeData.value?.transitionName
+  const newTransitionName = parsedTransitionData.name
 
   eventBus.$emit('save-transition', {
-    stateName: (currentEdgeData.value as any)?.stateName,
+    stateName: currentEdgeData.value?.stateName,
     transitionName: newTransitionName,
     transitionData: parsedTransitionData,
     oldTransitionName: originalTransitionName !== newTransitionName ? originalTransitionName : undefined,
-    isNewTransition: (currentEdgeData.value as any)?.isNewTransition || false
+    isNewTransition: currentEdgeData.value?.isNewTransition || false
   })
-
-  // Не закрываем диалог сразу - ждем подтверждения сохранения или ошибки валидации
 }
 
 function handleClosePopup() {
   dialogVisible.value = false
   conditionText.value = originalConditionText.value
   jsonError.value = ''
-  validationError.value = '' // Сбрасываем ошибку валидации
+  validationError.value = ''
 }
 
 watch(conditionText, (newValue) => {
   if (newValue.trim() === '') {
     jsonError.value = ''
-    validationError.value = '' // Очищаем и ошибку валидации
+    validationError.value = ''
     return
   }
 
   try {
     const parsed = JSON.parse(newValue)
-    if (!parsed || typeof parsed !== 'object' || !parsed.id) {
-      jsonError.value = 'Transition data must contain an "id" field'
+    if (!parsed || typeof parsed !== 'object' || !parsed.name) {
+      jsonError.value = 'Transition data must contain a "name" field'
     } else {
       jsonError.value = ''
     }
-    // Очищаем ошибку валидации при успешном парсинге JSON
     validationError.value = ''
   } catch (error: unknown) {
     jsonError.value = (error as Error).message
-    // При ошибке JSON не очищаем validationError - пусть пользователь сначала исправит JSON
   }
 })
 </script>

@@ -7,7 +7,7 @@ export interface TransitionEdgePosition {
   sourceOffset: { x: number; y: number };
   targetOffset: { x: number; y: number };
   curvature?: number;
-  customPath?: Array<{ x: number; y: number }>; // Для кастомных путей
+  customPath?: Array<{ x: number; y: number }>;
 }
 
 export interface TransitionEdgeStorage {
@@ -68,10 +68,8 @@ export class TransitionEdgePositionStorage {
     transitionIndex: number,
     totalTransitions: number
   ): { sourceOffset: { x: number; y: number }; targetOffset: { x: number; y: number } } {
-    // Базовое расстояние между линиями
     const baseOffset = 20;
 
-    // Если transition единственная, никакого offset не нужно
     if (totalTransitions === 1) {
       return {
         sourceOffset: { x: 0, y: 0 },
@@ -79,7 +77,6 @@ export class TransitionEdgePositionStorage {
       };
     }
 
-    // Для множественных transitions создаем веер
     const centerIndex = (totalTransitions - 1) / 2;
     const relativeIndex = transitionIndex - centerIndex;
     const offsetValue = relativeIndex * baseOffset;

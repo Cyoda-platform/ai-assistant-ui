@@ -19,7 +19,7 @@ export interface WorkflowEditorProps {
 }
 
 export interface WorkflowTransition {
-    id: string;
+    name: string;
     next: string;
     manual?: boolean;
     processors?: Array<{
@@ -165,7 +165,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         const states = parsed.states || {};
 
-        // Группируем transitions между одинаковыми узлами для расчета offset'ов
         const transitionGroups = new Map<string, Array<{
             transitionId: string;
             source: string;
@@ -173,7 +172,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             transitionData: WorkflowTransition;
         }>>();
 
-        // Собираем все transitions
         for (const [stateName, stateData] of Object.entries(states)) {
             const state = stateData as WorkflowState;
             if (state.transitions && Array.isArray(state.transitions)) {
@@ -188,7 +186,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                         }
 
                         transitionGroups.get(groupKey)!.push({
-                            transitionId: transition.id,
+                            transitionId: transition.name,
                             source,
                             target,
                             transitionData: transition
@@ -198,10 +196,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             }
         }
 
-        // Создаем отдельный edge для каждой transition
         for (const [groupKey, transitions] of transitionGroups.entries()) {
             transitions.forEach((transitionInfo, index) => {
-                const { transitionId, source, target, transitionData } = transitionInfo;
+                const {transitionId, source, target, transitionData} = transitionInfo;
 
                 const sourceNode = nodes.value.find(n => n.id === source);
                 const targetNode = nodes.value.find(n => n.id === target);
@@ -209,7 +206,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 let sourceHandle = 'right-source';
                 let targetHandle = 'left-target';
 
-                // Вычисляем лучшие handles на основе позиций узлов
                 if (sourceNode && targetNode) {
                     if (source === target) {
                         sourceHandle = 'right-source';
@@ -242,16 +238,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     }
                 }
 
-                // Получаем сохраненную позицию для этой transition
                 const savedPosition = transitionEdgeStorage.getTransitionPosition(transitionId);
-                let sourceOffset = { x: 0, y: 0 };
-                let targetOffset = { x: 0, y: 0 };
+                let sourceOffset = {x: 0, y: 0};
+                let targetOffset = {x: 0, y: 0};
 
                 if (savedPosition) {
                     sourceOffset = savedPosition.sourceOffset;
                     targetOffset = savedPosition.targetOffset;
                 } else if (transitions.length > 1) {
-                    // Автоматически генерируем offset для множественных transitions
                     const autoOffset = transitionEdgeStorage.generateAutoOffset(
                         source, target, index, transitions.length
                     );
@@ -265,7 +259,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     target,
                     sourceHandle,
                     targetHandle,
-                    label: '', // Label теперь отображается внутри компонента
+                    label: '',
                     animated: true,
                     type: 'draggableTransition',
                     markerEnd: {
@@ -277,7 +271,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     data: {
                         transitionId,
                         stateName: source,
-                        transitionName: transitionId, // Используем transitionId как transitionName
+                        transitionName: transitionId,
                         transitionData,
                         sourceOffset,
                         targetOffset,
@@ -331,8 +325,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             const isTerminal = transitionCount === 0;
 
             const transitions = state.transitions ? state.transitions.map((transition) => ({
-                id: `${stateName}-${transition.id}`,
-                name: transition.id,
+                id: `${stateName}-${transition.name}`,
+                name: transition.name,
                 direction: transition.next || 'Unknown',
                 fullData: transition
             })) : [];
@@ -388,12 +382,12 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
 
         console.log('Current state.transitions:', state.transitions);
-        console.log('Updating transition:', { transitionName, transitionData, oldTransitionName, isNewTransition });
+        console.log('Updating transition:', {transitionName, transitionData, oldTransitionName, isNewTransition});
 
         if (isNewTransition) {
             if (transitionData && typeof transitionData === 'object') {
                 const newTransition = {
-                    id: transitionName,
+                    name: transitionName,
                     ...transitionData
                 } as WorkflowTransition;
 
@@ -404,7 +398,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     eventBus.$emit('validation-error', {
                         message: `Target state "${newTransition.next}" does not exist. Available states: ${Object.keys(parsed.states).join(', ')}`
                     });
-                    return; // Не сохраняем transition, если целевое состояние не существует
+                    return;
                 }
 
                 state.transitions.push(newTransition);
@@ -412,24 +406,23 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             }
         } else {
             const searchName = oldTransitionName && oldTransitionName !== transitionName ? oldTransitionName : transitionName;
-            const transitionIndex = state.transitions.findIndex(t => t.id === searchName);
+            const transitionIndex = state.transitions.findIndex(t => t.name === searchName);
 
             console.log('Searching for transition with name:', searchName, 'found at index:', transitionIndex);
 
             if (transitionData && typeof transitionData === 'object') {
                 const updatedTransition = {
-                    id: transitionName,
+                    name: transitionName,
                     ...transitionData
                 } as WorkflowTransition;
 
-                // Проверяем, что целевое состояние существует
                 if (updatedTransition.next && !parsed.states[updatedTransition.next]) {
                     console.error('Target state does not exist:', updatedTransition.next);
                     console.log('Available states:', Object.keys(parsed.states));
                     eventBus.$emit('validation-error', {
                         message: `Target state "${updatedTransition.next}" does not exist. Available states: ${Object.keys(parsed.states).join(', ')}`
                     });
-                    return; // Не сохраняем transition, если целевое состояние не существует
+                    return;
                 }
 
                 if (transitionIndex !== -1) {
@@ -453,7 +446,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             console.log('Updated assistantStore.selectedAssistant.workflow_data');
         }
 
-        // Уведомляем об успешном сохранении
         eventBus.$emit('transition-saved-successfully');
     }
 
@@ -484,7 +476,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             return;
         }
 
-        const transitionIndex = state.transitions.findIndex(t => t.id === transitionName);
+        const transitionIndex = state.transitions.findIndex(t => t.name === transitionName);
         if (transitionIndex !== -1) {
             state.transitions.splice(transitionIndex, 1);
 
@@ -545,7 +537,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function handleGetTransitionData(eventData: any) {
-        const { stateName, transitionName, callback } = eventData;
+        const {stateName, transitionName, callback} = eventData;
 
         let parsed: WorkflowData;
         try {
@@ -563,17 +555,16 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             return;
         }
 
-        const transition = state.transitions.find(t => t.id === transitionName);
+        const transition = state.transitions.find(t => t.name === transitionName);
         callback(transition || null);
     }
 
     function handleRenameState(eventData: any) {
-        const { oldName, newName } = eventData;
+        const {oldName, newName} = eventData;
 
-        // Сохраняем текущие позиции узлов
         const currentPositions: { [key: string]: NodePosition } = {};
         nodes.value.forEach(node => {
-            currentPositions[node.id] = { x: node.position.x, y: node.position.y };
+            currentPositions[node.id] = {x: node.position.x, y: node.position.y};
         });
 
         let parsed: WorkflowData;
@@ -584,29 +575,24 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             return;
         }
 
-        // Проверяем, что старое состояние существует
         if (!parsed.states[oldName]) {
             console.warn('State not found:', oldName);
             return;
         }
 
-        // Проверяем, что новое имя не занято
         if (parsed.states[newName]) {
             console.error('State with new name already exists:', newName);
             return;
         }
 
-        // Переименовываем состояние
         const stateData = parsed.states[oldName];
         delete parsed.states[oldName];
         parsed.states[newName] = stateData;
 
-        // Обновляем начальное состояние, если это оно
         if (parsed.initialState === oldName) {
             parsed.initialState = newName;
         }
 
-        // Обновляем все ссылки на это состояние в переходах других состояний
         Object.values(parsed.states).forEach((state: any) => {
             if (state.transitions) {
                 state.transitions.forEach((transition: any) => {
@@ -617,13 +603,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             }
         });
 
-        // Обновляем позиции узлов (переименовываем ключ)
         if (currentPositions[oldName]) {
             currentPositions[newName] = currentPositions[oldName];
             delete currentPositions[oldName];
         }
 
-        // Сохраняем позиции и обновляем данные
         nodePositionStorage.savePositions(currentPositions);
         canvasData.value = JSON.stringify(parsed, null, 2);
 
@@ -659,7 +643,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             return;
         }
 
-        const transitionIndex = state.transitions.findIndex(t => t.id === transitionName);
+        const transitionIndex = state.transitions.findIndex(t => t.name === transitionName);
         if (transitionIndex !== -1) {
             state.transitions[transitionIndex].next = newTarget;
 
@@ -687,7 +671,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         callback(availableNodes);
     }
 
-    // Состояние для перетаскивания transition
     const currentDraggedTransition = ref<{
         transitionId: string;
         sourceNode: string;
@@ -704,13 +687,12 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             transitionData: eventData.transitionData
         };
 
-        // Подсвечиваем все узлы как потенциальные targets
         eventBus.$emit('highlight-drop-targets', true);
     }
 
     function handleTransitionDragging(eventData: any) {
-        // Можно добавить визуальную обратную связь во время перетаскивания
-        // Например, подсвечивание узлов под курсором
+        // You can add visual feedback while dragging
+        // For example, highlighting nodes under the cursor
     }
 
     function handleTransitionDragEnd(eventData: any) {
@@ -721,17 +703,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             return;
         }
 
-        // Убираем подсветку узлов
         eventBus.$emit('highlight-drop-targets', false);
 
-        // Находим узел под курсором
         const nodeUnderCursor = findNodeAtPosition(eventData.mouseX, eventData.mouseY);
-        console.log('🎯 Node under cursor:', nodeUnderCursor);
-        console.log('🎯 Source node:', currentDraggedTransition.value.sourceNode);
 
         if (nodeUnderCursor && nodeUnderCursor !== currentDraggedTransition.value.sourceNode) {
-            console.log('✅ Moving transition to new node');
-            // Перемещаем transition к новому узлу
             moveTransitionToNode(
                 currentDraggedTransition.value.transitionId,
                 currentDraggedTransition.value.sourceNode,
@@ -745,16 +721,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function findNodeAtPosition(mouseX: number, mouseY: number): string | null {
-        // Получаем элемент под курсором
         const elementUnderCursor = document.elementFromPoint(mouseX, mouseY);
 
         if (elementUnderCursor) {
-            console.log('🎯 Element under cursor:', elementUnderCursor);
-
-            // Сначала проверяем, есть ли handler под курсором
             const handlerElement = elementUnderCursor.closest('.vue-flow__handle');
             if (handlerElement) {
-                // Если это handler, ищем его родительский узел
                 const nodeElement = handlerElement.closest('[data-id]');
                 if (nodeElement) {
                     const nodeId = nodeElement.getAttribute('data-id');
@@ -763,14 +734,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 }
             }
 
-            // Если handler не найден, ищем узел напрямую
             let nodeElement = elementUnderCursor.closest('[data-id]');
 
-            // Если не нашли по data-id, попробуем найти по классу workflow-node
             if (!nodeElement) {
                 nodeElement = elementUnderCursor.closest('.workflow-node');
                 if (nodeElement) {
-                    // Попробуем найти data-id в родительских элементах
                     let parent = nodeElement.parentElement;
                     while (parent && !parent.hasAttribute('data-id')) {
                         parent = parent.parentElement;
@@ -781,14 +749,12 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 }
             }
 
-            // Дополнительная проверка для Vue Flow узлов
             if (!nodeElement) {
                 nodeElement = elementUnderCursor.closest('.vue-flow__node');
             }
 
             if (nodeElement) {
                 const nodeId = nodeElement.getAttribute('data-id');
-                console.log('🎯 Found node under cursor:', nodeId);
                 return nodeId;
             }
         }
@@ -816,11 +782,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             return;
         }
 
-        // Находим transition в исходном state и изменяем его поле "next"
         if (sourceState.transitions) {
-            const transitionIndex = sourceState.transitions.findIndex(t => t.id === transitionId);
+            const transitionIndex = sourceState.transitions.findIndex(t => t.name === transitionId);
             if (transitionIndex !== -1) {
-                // Изменяем только поле "next", оставляя transition в исходном state
                 sourceState.transitions[transitionIndex].next = targetNode;
 
                 console.log(`✅ Transition "${transitionId}" now points from "${sourceNode}" to "${targetNode}"`);
@@ -833,14 +797,12 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             return;
         }
 
-        // Сохраняем изменения
         canvasData.value = JSON.stringify(parsed, null, 2);
 
         if (assistantStore && assistantStore.selectedAssistant) {
             assistantStore.selectedAssistant.workflow_data = canvasData.value;
         }
 
-        // Перегенерируем узлы и edges
         generateNodes();
 
         ElMessage.success(`Transition "${transitionId}" reassigned from "${sourceNode}" to "${targetNode}"`);
@@ -864,7 +826,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             state.transitions = [];
         }
 
-        const transitionIndex = state.transitions.findIndex(t => t.id === transitionName);
+        const transitionIndex = state.transitions.findIndex(t => t.name === transitionName);
         if (transitionIndex !== -1) {
             state.transitions[transitionIndex] = {
                 ...state.transitions[transitionIndex],
@@ -923,7 +885,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const newTransitionName = `${source}_${target}_${timestamp}`;
 
         const proposedTransition = {
-            id: newTransitionName,
+            name: newTransitionName,
             next: target,
             processors: []
         };
@@ -1120,16 +1082,17 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         helperStorage.set(EDITOR_MODE, value);
     })
 
-    // Обработчик обновления позиций transition edges
-    function onUpdateTransitionPosition(transitionId: string, sourceOffset: { x: number; y: number }, targetOffset: { x: number; y: number }) {
+    function onUpdateTransitionPosition(transitionId: string, sourceOffset: { x: number; y: number }, targetOffset: {
+        x: number;
+        y: number
+    }) {
         transitionEdgeStorage.saveTransitionPosition(transitionId, {
             sourceOffset,
             targetOffset
         });
-        console.log('Updated transition position:', { transitionId, sourceOffset, targetOffset });
+        console.log('Updated transition position:', {transitionId, sourceOffset, targetOffset});
     }
 
-    // Сброс всех позиций transition edges
     function resetAllTransitionPositions() {
         transitionEdgeStorage.clearAllPositions();
         console.log('All transition positions cleared');

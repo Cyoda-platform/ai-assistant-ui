@@ -22,7 +22,7 @@ interface EdgeData {
   allTransitions?: Array<{
     stateName: string;
     transition: {
-      id: string;
+      name: string;
       next: string;
     };
   }>;
@@ -111,7 +111,7 @@ const shouldDimEdge = computed(() => {
 
   if (props.data?.allTransitions) {
     const isTransitionInThisEdge = props.data.allTransitions.some(t => {
-      const tId = `${t.stateName}-${t.transition.id}`;
+      const tId = `${t.stateName}-${t.transition.name}`;
       return tId === highlightedTransition.value;
     });
     return !isTransitionInThisEdge;

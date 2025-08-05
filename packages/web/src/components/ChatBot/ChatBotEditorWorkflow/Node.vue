@@ -100,7 +100,6 @@ import {ElMessageBox} from 'element-plus'
 import {useDropdownManager} from './composables/useDropdownManager'
 import {useTransitionHighlight} from './composables/useTransitionHighlight'
 import eventBus from '../../../plugins/eventBus'
-// @ts-expect-error SVG import
 import TrashSmallIcon from "@/assets/images/icons/trash-small.svg"
 import EditIcon from '@/assets/images/icons/edit.svg';
 import PlayIcon from '@/assets/images/icons/play.svg';
@@ -273,6 +272,7 @@ const editStateName = async () => {
   display: flex;
   align-items: center;
   gap: 4px;
+  margin-left: 8px;
 }
 
 .edit-state-btn,
