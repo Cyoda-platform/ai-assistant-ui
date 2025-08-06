@@ -64,7 +64,7 @@
 
 <script setup lang="ts">
 import {templateRef} from "@vueuse/core";
-import {VueFlow, ConnectionMode} from '@vue-flow/core'
+import {VueFlow, ConnectionMode, useVueFlow} from '@vue-flow/core'
 import {Background} from '@vue-flow/background'
 import {ControlButton, Controls} from '@vue-flow/controls'
 import Editor from "@/components/Editor/Editor.vue";
@@ -76,7 +76,7 @@ import EditEdgeConditionalDialog from "@/components/ChatBot/ChatBotEditorWorkflo
 import WorkflowMetaDialog from "@/components/ChatBot/ChatBotEditorWorkflow/WorkflowMetaDialog.vue";
 import {useWorkflowEditor} from './ChatBotEditorWorkflow/composables/useWorkflowEditor';
 import useAssistantStore from "@/stores/assistant.ts";
-import {computed, provide, markRaw, ref} from "vue";
+import {computed, provide, markRaw, ref, watch, nextTick} from "vue";
 import EditorViewMode from "@/components/ChatBot/EditorViewMode.vue";
 
 const props = defineProps<{
@@ -126,6 +126,14 @@ const isShowVueFlow = computed(() => {
 
 const isShowEditor = computed(() => {
   return ['editor', 'editorPreview'].includes(editorMode.value);
+})
+
+const {fitView} = useVueFlow();
+
+watch(editorMode, ()=>{
+  nextTick(()=>{
+    fitView();
+  })
 })
 </script>
 
