@@ -960,6 +960,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             
             workflowMetaData.value = restoredMetaData;
             
+            // Уведомляем все рёбра о необходимости сброса их позиций
+            eventBus.$emit('reset-edge-positions');
+            
             console.log('Reset to initial state completed');
         } else {
             console.warn('No initial state saved');
@@ -1186,6 +1189,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             delete metaData.transitionLabels;
             workflowMetaData.value = metaData;
         }
+        
+        // Уведомляем все рёбра о необходимости сброса их позиций
+        eventBus.$emit('reset-edge-positions');
         
         console.log('All transition positions and labels cleared');
     }

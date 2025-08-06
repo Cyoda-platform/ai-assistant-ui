@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref, onMounted} from 'vue'
+import {computed, ref, onMounted, onUnmounted, watch} from 'vue'
 import {EdgeProps, useVueFlow} from '@vue-flow/core'
 import {useTransitionHighlight} from './composables/useTransitionHighlight'
 import {ElMessageBox} from 'element-plus'
@@ -242,12 +242,33 @@ const edgeStyle = computed(() => ({
 }))
 
 onMounted(() => {
-  // Загружаем позицию метки из Workflow Meta Data если она есть
-  if (props.data?.labelOffset) {
-    savedLabelOffset.value = props.data.labelOffset;
-    console.log(`📍 Loaded label position for ${transitionId.value}:`, savedLabelOffset.value);
-  }
+  // Слушаем событие сброса позиций рёбер
+  eventBus.$on('reset-edge-positions', handleResetEdgePositions);
 })
+
+onUnmounted(() => {
+  // Отписываемся от события
+  eventBus.$off('reset-edge-positions', handleResetEdgePositions);
+})
+
+function handleResetEdgePositions() {
+  console.log(`🔄 Resetting edge position for ${transitionId.value}`);
+  // Сбрасываем локальную позицию метки к нулю или начальной позиции
+  savedLabelOffset.value = { x: 0, y: 0 };
+  dragOffset.value = { x: 0, y: 0 };
+}
+
+// Отслеживаем изменения в labelOffset из props
+watch(() => props.data?.labelOffset, (newLabelOffset) => {
+  if (newLabelOffset) {
+    savedLabelOffset.value = newLabelOffset;
+    console.log(`📍 Updated label position for ${transitionId.value}:`, savedLabelOffset.value);
+  } else {
+    // Если labelOffset сброшен в undefined/null, сбрасываем позицию
+    savedLabelOffset.value = { x: 0, y: 0 };
+    console.log(`📍 Reset label position for ${transitionId.value}`);
+  }
+}, { deep: true, immediate: true });
 
 function startDrag(event: MouseEvent) {
   isDragging.value = true
