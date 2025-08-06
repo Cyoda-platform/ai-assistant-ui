@@ -92,6 +92,11 @@
   border: none;
   color: #000;
 
+  svg {
+    width: 18px;
+    height: auto;
+  }
+
   &:hover {
     background-color: var(--bg-btn-default-hover);
   }
