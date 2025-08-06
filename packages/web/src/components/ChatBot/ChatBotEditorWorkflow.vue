@@ -103,7 +103,6 @@ const {
   addNewState,
   autoLayout,
   onUpdateWorkflowMetaDialog,
-  onUpdateTransitionPosition,
   onResize,
   canUndo,
   canRedo,
@@ -111,8 +110,6 @@ const {
   redoAction,
   isDraggingConnection,
 } = useWorkflowEditor(props, assistantStore);
-
-provide('onUpdateTransitionPosition', onUpdateTransitionPosition);
 
 const edgeTypes = {
   custom: markRaw(EdgeWithTooltip),

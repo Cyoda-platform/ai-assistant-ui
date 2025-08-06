@@ -8,8 +8,6 @@ import {MarkerType} from '@vue-flow/core';
 import {ElMessageBox, ElMessage} from 'element-plus';
 import eventBus from '@/plugins/eventBus';
 import HelperStorage from '@/helpers/HelperStorage';
-import {NodePositionStorage} from '../utils/nodeUtils';
-import {TransitionEdgePositionStorage} from '../utils/transitionEdgeStorage';
 import {calculateSmartPosition, applyAutoLayout, NodePosition} from '../utils/smartLayout';
 import {type EditorAction, createWorkflowEditorActions} from '@/utils/editorUtils';
 import {useUndoRedo} from './useUndoRedo';
@@ -148,8 +146,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     const {setViewport, fitView} = useVueFlow();
 
-    const nodePositionStorage = new NodePositionStorage(helperStorage, props.technicalId);
-    const transitionEdgeStorage = new TransitionEdgePositionStorage(helperStorage, props.technicalId);
     // Инициализируем workflowMetaData как пустой объект - позиции теперь хранятся в Workflow Meta Data
     const workflowMetaData = ref({});
     
@@ -244,23 +240,29 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     }
                 }
 
-                const savedPosition = transitionEdgeStorage.getTransitionPosition(transitionId);
+                // Получаем позиции transition edges из workflowMetaData (если сохранены)
+                const metaData: any = workflowMetaData.value;
                 let sourceOffset = {x: 0, y: 0};
                 let targetOffset = {x: 0, y: 0};
 
-                if (savedPosition) {
-                    sourceOffset = savedPosition.sourceOffset;
-                    targetOffset = savedPosition.targetOffset;
-                } else if (transitions.length > 1) {
-                    const autoOffset = transitionEdgeStorage.generateAutoOffset(
-                        source, target, index, transitions.length
-                    );
-                    sourceOffset = autoOffset.sourceOffset;
-                    targetOffset = autoOffset.targetOffset;
+                // Автоматическое смещение для множественных переходов между одними и теми же узлами
+                if (transitions.length > 1) {
+                    const baseOffset = 30; // Базовое смещение
+                    const spacing = 20; // Расстояние между переходами
+                    const totalOffset = (transitions.length - 1) * spacing;
+                    const startOffset = -totalOffset / 2;
+                    
+                    sourceOffset = {
+                        x: startOffset + index * spacing,
+                        y: baseOffset + index * 10
+                    };
+                    targetOffset = {
+                        x: startOffset + index * spacing,
+                        y: baseOffset + index * 10
+                    };
                 }
 
                 // Получаем позицию метки из workflowMetaData
-                const metaData: any = workflowMetaData.value;
                 const labelOffset = metaData?.transitionLabels?.[transitionId] || { x: 0, y: 0 };
 
                 const edge: WorkflowEdge = {
@@ -1171,17 +1173,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         helperStorage.set(EDITOR_MODE, value);
     })
 
-    function onUpdateTransitionPosition(transitionId: string, sourceOffset: { x: number; y: number }, targetOffset: {
-        x: number;
-        y: number
-    }) {
-        transitionEdgeStorage.saveTransitionPosition(transitionId, {
-            sourceOffset,
-            targetOffset
-        });
-        console.log('Updated transition position:', {transitionId, sourceOffset, targetOffset});
-    }
-
     function resetAllTransitionPositions() {
         // Очищаем transition labels в workflowMetaData
         const metaData: any = { ...workflowMetaData.value };
@@ -1216,7 +1207,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         addNewState,
         autoLayout,
         onUpdateWorkflowMetaDialog,
-        onUpdateTransitionPosition,
         resetAllTransitionPositions,
         onResize,
         fitView,
