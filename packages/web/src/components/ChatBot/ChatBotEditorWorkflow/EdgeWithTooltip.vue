@@ -40,8 +40,8 @@ const edgePath = computed(() => {
     const endX = props.targetX
     const endY = props.targetY
 
-    const radius = 80
-    const offset = 120
+    const radius = 100 // Увеличен радиус для лучшей видимости
+    const offset = 150 // Увеличен отступ
 
     if (props.sourcePosition === 'right' && props.targetPosition === 'left') {
       const controlX1 = startX + offset
@@ -79,6 +79,7 @@ const edgePath = computed(() => {
       return `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`
     }
 
+    // Стандартная петля для self-loops
     const controlX1 = startX + offset
     const controlY1 = startY - radius
     const controlX2 = endX - offset
@@ -87,6 +88,7 @@ const edgePath = computed(() => {
     return `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`
   }
 
+  // Для обычных рёбер используем улучшенные Bezier кривые
   const [path] = getBezierPath({
     sourceX: props.sourceX,
     sourceY: props.sourceY,
@@ -94,6 +96,7 @@ const edgePath = computed(() => {
     targetX: props.targetX,
     targetY: props.targetY,
     targetPosition: props.targetPosition,
+    curvature: 0.25, // Добавляем кривизну для более плавных переходов
   })
   return path
 })
@@ -123,8 +126,10 @@ const shouldDimEdge = computed(() => {
 const edgeStyle = computed(() => {
   return {
     ...props.style,
-    opacity: shouldDimEdge.value ? 0.5 : 1,
-    transition: 'opacity 0.3s ease'
+    opacity: shouldDimEdge.value ? 0.3 : 1,
+    stroke: shouldDimEdge.value ? '#ccc' : (props.style?.stroke || '#666'),
+    strokeWidth: shouldDimEdge.value ? 1 : (props.style?.strokeWidth || 2),
+    transition: 'opacity 0.3s ease, stroke 0.3s ease, stroke-width 0.3s ease'
   }
 })
 </script>
@@ -132,10 +137,15 @@ const edgeStyle = computed(() => {
 <style scoped>
 .edge-with-tooltip {
   position: relative;
-  transition: opacity 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .edge-with-tooltip.dimmed {
-  opacity: 0.5;
+  opacity: 0.3;
+}
+
+.edge-with-tooltip:hover {
+  stroke-width: 3px !important;
+  z-index: 10;
 }
 </style>

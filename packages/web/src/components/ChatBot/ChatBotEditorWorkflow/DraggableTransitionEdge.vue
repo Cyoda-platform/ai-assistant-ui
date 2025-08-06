@@ -92,6 +92,7 @@ interface CustomEdgeData {
   targetOffset?: { x: number; y: number }
   customPath?: Array<{ x: number; y: number }>
   transitionData?: TransitionDataType
+  labelOffset?: { x: number; y: number } // Добавляем позицию метки из Workflow Meta Data
 }
 
 const props = defineProps<EdgeProps<CustomEdgeData>>()
@@ -116,7 +117,7 @@ const currentMousePosition = ref({x: 0, y: 0})
 const svgElementRef = ref<SVGSVGElement | null>(null)
 
 const transitionId = computed(() => {
-  return props.data.transitionData.name;
+  return props.data?.transitionData?.name || 'unnamed';
 })
 
 const isHighlighted = computed(() => isTransitionHighlighted(transitionId.value))
@@ -240,30 +241,12 @@ const edgeStyle = computed(() => ({
   fill: 'none'
 }))
 
-function getLabelPositionKey() {
-  return `transition-label-${transitionId.value}`
-}
-
-function loadSavedLabelPosition() {
-  const key = getLabelPositionKey()
-  const saved = localStorage.getItem(key)
-  if (saved) {
-    try {
-      const position = JSON.parse(saved)
-      savedLabelOffset.value = position
-    } catch (e) {
-      console.warn('Failed to parse saved label position:', e)
-    }
-  }
-}
-
-function saveLabelPosition() {
-  const key = getLabelPositionKey()
-  localStorage.setItem(key, JSON.stringify(savedLabelOffset.value))
-}
-
 onMounted(() => {
-  loadSavedLabelPosition()
+  // Загружаем позицию метки из Workflow Meta Data если она есть
+  if (props.data?.labelOffset) {
+    savedLabelOffset.value = props.data.labelOffset;
+    console.log(`📍 Loaded label position for ${transitionId.value}:`, savedLabelOffset.value);
+  }
 })
 
 function startDrag(event: MouseEvent) {
@@ -299,7 +282,12 @@ function endDrag() {
       y: savedLabelOffset.value.y + dragOffset.value.y
     }
 
-    saveLabelPosition()
+    // Эмитим событие об изменении позиции метки для сохранения в Workflow Meta Data
+    console.log(`📍 Saving label position for ${transitionId.value}:`, savedLabelOffset.value);
+    eventBus.$emit('update-transition-label-position', {
+      transitionId: transitionId.value,
+      offset: savedLabelOffset.value
+    })
 
     dragOffset.value = {x: 0, y: 0}
   }

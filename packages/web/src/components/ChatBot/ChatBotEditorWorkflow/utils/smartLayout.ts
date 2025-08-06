@@ -21,17 +21,18 @@ export interface NodeLevels {
 }
 
 const LAYOUT_CONFIG = {
-  LEVEL_SPACING: 300,
-  NODE_SPACING: 150,
-  VERTICAL_SPREAD: 200,
-  MIN_DISTANCE: 120,
-  PREFERRED_DISTANCE: 180,
-  OPTIMIZATION_PASSES: 3,
-  CENTER_PULL_FORCE: 0.3,
-  MAX_CENTER_DISTANCE: 300,
-  RANDOM_OFFSET_RANGE: 50,
-  SELF_LOOP_OFFSET: 30,
+  LEVEL_SPACING: 400, // Увеличено для лучшей читаемости
+  NODE_SPACING: 200,  // Увеличено расстояние между узлами
+  VERTICAL_SPREAD: 250, // Больше вертикального пространства
+  MIN_DISTANCE: 150,  // Минимальное расстояние между узлами
+  PREFERRED_DISTANCE: 220, // Предпочтительное расстояние
+  OPTIMIZATION_PASSES: 5, // Больше проходов оптимизации
+  CENTER_PULL_FORCE: 0.2, // Меньшая сила притяжения к центру
+  MAX_CENTER_DISTANCE: 400, // Больше допустимое расстояние от центра
+  RANDOM_OFFSET_RANGE: 30, // Меньше случайных смещений
+  SELF_LOOP_OFFSET: 40, // Больше отступ для self-loops
   TERMINAL_MIN_LEVEL: 4,
+  EDGE_SEPARATION: 80, // Новый параметр для разделения рёбер
 };
 
 export function calculateSmartPosition(
@@ -303,6 +304,65 @@ export function optimizePositions(positions: { [key: string]: NodePosition }): v
   }
 }
 
+// Функция для предотвращения пересечения рёбер
+function avoidEdgeCrossings(positions: { [key: string]: NodePosition }, graph: GraphNode): void {
+  const stateNames = Object.keys(positions);
+  
+  // Проходим несколько раз для оптимизации
+  for (let pass = 0; pass < 3; pass++) {
+    for (const stateName of stateNames) {
+      const connections = graph[stateName] || [];
+      
+      // Если у узла есть соединения, стараемся расположить их так, чтобы избежать пересечений
+      if (connections.length > 1) {
+        // Сортируем целевые узлы по их Y координатам
+        const sortedConnections = connections
+          .filter(target => positions[target])
+          .sort((a, b) => positions[a].y - positions[b].y);
+        
+        // Распределяем узлы равномерно по вертикали
+        const currentPos = positions[stateName];
+        const spread = LAYOUT_CONFIG.EDGE_SEPARATION * (sortedConnections.length - 1);
+        
+        sortedConnections.forEach((target, index) => {
+          const targetPos = positions[target];
+          const desiredY = currentPos.y - spread/2 + index * LAYOUT_CONFIG.EDGE_SEPARATION;
+          
+          // Плавное смещение к желаемой позиции
+          positions[target].y = targetPos.y * 0.7 + desiredY * 0.3;
+        });
+      }
+    }
+  }
+}
+
+// Улучшенная функция размещения в форме дерева
+function arrangeAsTree(positions: { [key: string]: NodePosition }, graph: GraphNode, levels: NodeLevels): void {
+  const nodesByLevel = groupNodesByLevel(levels, null);
+  
+  Object.keys(nodesByLevel).forEach(levelStr => {
+    const level = parseInt(levelStr);
+    const nodesInLevel = nodesByLevel[level];
+    
+    if (nodesInLevel.length <= 1) return;
+    
+    // Сортируем узлы в уровне по количеству соединений (больше соединений - ближе к центру)
+    const sortedNodes = nodesInLevel.sort((a, b) => {
+      const connectionsA = (graph[a] || []).length;
+      const connectionsB = (graph[b] || []).length;
+      return connectionsB - connectionsA;
+    });
+    
+    // Размещаем узлы равномерно по вертикали
+    const totalHeight = (sortedNodes.length - 1) * LAYOUT_CONFIG.NODE_SPACING;
+    const startY = -totalHeight / 2;
+    
+    sortedNodes.forEach((nodeName, index) => {
+      positions[nodeName].y = startY + index * LAYOUT_CONFIG.NODE_SPACING;
+    });
+  });
+}
+
 export function applyAutoLayout(states: any, initialState: string): { [key: string]: NodePosition } {
   const positions: { [key: string]: NodePosition } = {};
   const stateNames = Object.keys(states);
@@ -318,6 +378,7 @@ export function applyAutoLayout(states: any, initialState: string): { [key: stri
   const hasValidLevels = Object.values(levels).some(level => level > 0);
 
   if (!hasValidLevels) {
+    // Линейное размещение если нет уровней
     stateNames.forEach((stateName, index) => {
       positions[stateName] = {
         x: index * LAYOUT_CONFIG.LEVEL_SPACING,
@@ -325,10 +386,14 @@ export function applyAutoLayout(states: any, initialState: string): { [key: stri
       };
     });
   } else {
+    // Размещение на основе уровней
     for (const stateName of stateNames) {
       positions[stateName] = calculateSmartPosition(stateName, states, actualInitialState);
     }
 
+    // Применяем улучшения для лучшей читаемости
+    arrangeAsTree(positions, graph, levels);
+    avoidEdgeCrossings(positions, graph);
     optimizePositions(positions);
   }
 

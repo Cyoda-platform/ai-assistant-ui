@@ -106,6 +106,7 @@ export interface WorkflowEdge {
         transitionId?: string;
         sourceOffset?: { x: number; y: number };
         targetOffset?: { x: number; y: number };
+        labelOffset?: { x: number; y: number };
         allTransitions?: Array<{
             stateName: string;
             transition: WorkflowTransition;
@@ -149,7 +150,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     const nodePositionStorage = new NodePositionStorage(helperStorage, props.technicalId);
     const transitionEdgeStorage = new TransitionEdgePositionStorage(helperStorage, props.technicalId);
-    const workflowMetaData = ref(nodePositionStorage.loadPositions());
+    // Инициализируем workflowMetaData как пустой объект - позиции теперь хранятся в Workflow Meta Data
+    const workflowMetaData = ref({});
 
     const edges = computed<WorkflowEdge[]>(() => {
         if (!canvasData.value) return [];
@@ -253,6 +255,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     targetOffset = autoOffset.targetOffset;
                 }
 
+                // Получаем позицию метки из workflowMetaData
+                const metaData: any = workflowMetaData.value;
+                const labelOffset = metaData?.transitionLabels?.[transitionId] || { x: 0, y: 0 };
+
                 const edge: WorkflowEdge = {
                     id: `${source}-${target}-${transitionId}`,
                     source,
@@ -275,6 +281,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                         transitionData,
                         sourceOffset,
                         targetOffset,
+                        labelOffset,
                     },
                 };
 
@@ -299,7 +306,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         const result: WorkflowNode[] = [];
         let parsed: WorkflowData;
-        const savedPositions = nodePositionStorage.loadPositions();
+        // Используем workflowMetaData вместо loadPositions из localStorage
+        const savedPositions = workflowMetaData.value;
 
         try {
             parsed = JSON.parse(canvasData.value);
@@ -437,7 +445,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         console.log('Final state.transitions:', state.transitions);
 
-        nodePositionStorage.savePositions(currentPositions);
+        // Обновляем workflowMetaData вместо localStorage
+        workflowMetaData.value = { ...workflowMetaData.value, ...currentPositions };
 
         canvasData.value = JSON.stringify(parsed, null, 2);
 
@@ -480,7 +489,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         if (transitionIndex !== -1) {
             state.transitions.splice(transitionIndex, 1);
 
-            nodePositionStorage.savePositions(currentPositions);
+            // Обновляем workflowMetaData вместо localStorage
+            workflowMetaData.value = { ...workflowMetaData.value, ...currentPositions };
 
             canvasData.value = JSON.stringify(parsed, null, 2);
         } else {
@@ -527,7 +537,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
 
         delete currentPositions[stateName];
-        nodePositionStorage.savePositions(currentPositions);
+        // Обновляем workflowMetaData вместо localStorage
+        workflowMetaData.value = { ...workflowMetaData.value, ...currentPositions };
 
         canvasData.value = JSON.stringify(parsed, null, 2);
 
@@ -608,7 +619,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             delete currentPositions[oldName];
         }
 
-        nodePositionStorage.savePositions(currentPositions);
+        // Обновляем workflowMetaData вместо localStorage
+        workflowMetaData.value = { ...workflowMetaData.value, ...currentPositions };
         canvasData.value = JSON.stringify(parsed, null, 2);
 
         if (assistantStore && assistantStore.selectedAssistant) {
@@ -647,7 +659,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         if (transitionIndex !== -1) {
             state.transitions[transitionIndex].next = newTarget;
 
-            nodePositionStorage.savePositions(currentPositions);
+            // Обновляем workflowMetaData вместо localStorage
+            workflowMetaData.value = { ...workflowMetaData.value, ...currentPositions };
 
             canvasData.value = JSON.stringify(parsed, null, 2);
         } else {
@@ -838,7 +851,12 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function onNodeDragStop(event: any) {
-        nodePositionStorage.updatePositionsFromDrag(event);
+        // Обновляем workflowMetaData вместо localStorage
+        const positions = {};
+        event.nodes.forEach((node: WorkflowNode) => {
+            positions[node.id] = node.position;
+        });
+        workflowMetaData.value = { ...workflowMetaData.value, ...positions };
     }
 
     function onConnectStart() {
@@ -860,7 +878,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         nodes.value.forEach(node => {
             currentPositions[node.id] = {x: node.position.x, y: node.position.y};
         });
-        nodePositionStorage.savePositions(currentPositions);
+        // Обновляем workflowMetaData вместо localStorage
+        workflowMetaData.value = { ...workflowMetaData.value, ...currentPositions };
 
         let parsed: WorkflowData;
         try {
@@ -976,12 +995,32 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             position: positions[node.id] || node.position
         }));
 
-        nodePositionStorage.savePositions(positions);
+        // Обновляем workflowMetaData вместо localStorage
+        workflowMetaData.value = { ...workflowMetaData.value, ...positions };
+    }
+
+    function handleUpdateTransitionLabelPosition(eventData: any) {
+        const { transitionId, offset } = eventData;
+        
+        console.log(`📍 Updating transition label position: ${transitionId}`, offset);
+        
+        // Создаем копию workflowMetaData как any чтобы добавить transitionLabels
+        const metaData: any = { ...workflowMetaData.value };
+        
+        if (!metaData.transitionLabels) {
+            metaData.transitionLabels = {};
+        }
+        
+        metaData.transitionLabels[transitionId] = offset;
+        workflowMetaData.value = metaData;
+        
+        // Больше не сохраняем в localStorage
+        console.log(`💾 Updated transition labels in workflowMetaData:`, metaData.transitionLabels);
     }
 
     function onUpdateWorkflowMetaDialog(data: any) {
         workflowMetaData.value = data;
-        nodePositionStorage.savePositions(data);
+        // Больше не сохраняем в localStorage
         generateNodes();
     }
 
@@ -1004,6 +1043,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         eventBus.$on('transition-drag-start', handleTransitionDragStart);
         eventBus.$on('transition-dragging', handleTransitionDragging);
         eventBus.$on('transition-drag-end', handleTransitionDragEnd);
+        eventBus.$on('update-transition-label-position', handleUpdateTransitionLabelPosition);
         generateNodes();
     });
 
