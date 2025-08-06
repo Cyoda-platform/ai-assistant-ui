@@ -152,6 +152,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     const transitionEdgeStorage = new TransitionEdgePositionStorage(helperStorage, props.technicalId);
     // Инициализируем workflowMetaData как пустой объект - позиции теперь хранятся в Workflow Meta Data
     const workflowMetaData = ref({});
+    
+    // Сохраняем исходное состояние при загрузке JSON для восстановления через resetTransform
+    const initialPositions = ref<{ [key: string]: NodePosition }>({});
+    const initialTransitionLabels = ref<{ [key: string]: { x: number; y: number } }>({});
 
     const edges = computed<WorkflowEdge[]>(() => {
         if (!canvasData.value) return [];
@@ -326,6 +330,17 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const initialState = parsed.initialState;
 
         const hasSavedPositions = Object.keys(savedPositions).length > 0;
+        
+        // Проверяем, нужно ли сохранить исходное состояние (при первой загрузке JSON)
+        const shouldSaveInitialState = Object.keys(initialPositions.value).length === 0;
+        
+        // Сохраняем исходные transition labels, если они есть
+        if (shouldSaveInitialState) {
+            const metaData: any = workflowMetaData.value;
+            if (metaData?.transitionLabels) {
+                initialTransitionLabels.value = { ...metaData.transitionLabels };
+            }
+        }
 
         for (const [stateName, stateData] of Object.entries(states)) {
             const state = stateData as WorkflowState;
@@ -342,6 +357,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             const position = hasSavedPositions
                 ? savedPositions[stateName] || calculateSmartPosition(stateName, states, parsed.initialState || 'state_initial')
                 : calculateSmartPosition(stateName, states, parsed.initialState || 'state_initial');
+
+            // Сохраняем исходную позицию при первой загрузке
+            if (shouldSaveInitialState) {
+                initialPositions.value[stateName] = { ...position };
+            }
 
             result.push({
                 id: stateName,
@@ -920,7 +940,30 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function resetTransform() {
-        setViewport({x: 0, y: 0, zoom: 1});
+        fitView();
+
+        // Восстанавливаем исходные позиции узлов и transition labels
+        if (Object.keys(initialPositions.value).length > 0) {
+            console.log('Restoring initial positions:', initialPositions.value);
+            console.log('Restoring initial transition labels:', initialTransitionLabels.value);
+            
+            nodes.value = nodes.value.map((node: WorkflowNode) => ({
+                ...node,
+                position: initialPositions.value[node.id] || node.position
+            }));
+
+            // Восстанавливаем исходное состояние workflowMetaData
+            const restoredMetaData: any = { ...initialPositions.value };
+            if (Object.keys(initialTransitionLabels.value).length > 0) {
+                restoredMetaData.transitionLabels = { ...initialTransitionLabels.value };
+            }
+            
+            workflowMetaData.value = restoredMetaData;
+            
+            console.log('Reset to initial state completed');
+        } else {
+            console.warn('No initial state saved');
+        }
     }
 
     async function addNewState() {
@@ -1052,6 +1095,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             () => assistantStore.selectedAssistant?.workflow_data,
             (newWorkflowData) => {
                 if (newWorkflowData !== undefined && newWorkflowData !== canvasData.value) {
+                    // Очищаем исходное состояние при загрузке нового workflow
+                    initialPositions.value = {};
+                    initialTransitionLabels.value = {};
                     canvasData.value = newWorkflowData;
                 }
             },
@@ -1134,8 +1180,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function resetAllTransitionPositions() {
-        transitionEdgeStorage.clearAllPositions();
-        console.log('All transition positions cleared');
+        // Очищаем transition labels в workflowMetaData
+        const metaData: any = { ...workflowMetaData.value };
+        if (metaData.transitionLabels) {
+            delete metaData.transitionLabels;
+            workflowMetaData.value = metaData;
+        }
+        
+        console.log('All transition positions and labels cleared');
     }
 
     provide('onConditionChange', onEdgeConditionChange);

@@ -200,13 +200,16 @@ export function groupNodesByLevel(levels: NodeLevels, states: any): NodesByLevel
   for (const level of Object.keys(nodesByLevel)) {
       if(!nodesByLevel[parseInt(level)]) continue;
     nodesByLevel[parseInt(level)].sort((a, b) => {
-      const stateA = states[a] as any;
-      const stateB = states[b] as any;
+      const stateA = states && states[a] as any;
+      const stateB = states && states[b] as any;
 
       const getNodePriority = (stateName: string, state: any) => {
         if (stateName.includes('terminal')) return 0;
 
         if (stateName.includes('initial')) return 100;
+
+        // Добавляем защиту от null/undefined состояний
+        if (!state) return 40;
 
         if (state.transitions) {
           const transitionsArray = Array.isArray(state.transitions)
@@ -237,7 +240,8 @@ export function groupNodesByLevel(levels: NodeLevels, states: any): NodesByLevel
       }
 
       const getTransitionsCount = (state: any) => {
-        if (!state.transitions) return 0;
+        // Добавляем защиту от null/undefined состояний
+        if (!state || !state.transitions) return 0;
         return Array.isArray(state.transitions)
           ? state.transitions.length
           : Object.keys(state.transitions).length;
@@ -322,10 +326,14 @@ function avoidEdgeCrossings(positions: { [key: string]: NodePosition }, graph: G
         
         // Распределяем узлы равномерно по вертикали
         const currentPos = positions[stateName];
+        if (!currentPos) continue; // Защита от отсутствия позиции
+        
         const spread = LAYOUT_CONFIG.EDGE_SEPARATION * (sortedConnections.length - 1);
         
         sortedConnections.forEach((target, index) => {
           const targetPos = positions[target];
+          if (!targetPos) return; // Защита от отсутствия позиции цели
+          
           const desiredY = currentPos.y - spread/2 + index * LAYOUT_CONFIG.EDGE_SEPARATION;
           
           // Плавное смещение к желаемой позиции
@@ -338,13 +346,21 @@ function avoidEdgeCrossings(positions: { [key: string]: NodePosition }, graph: G
 
 // Улучшенная функция размещения в форме дерева
 function arrangeAsTree(positions: { [key: string]: NodePosition }, graph: GraphNode, levels: NodeLevels): void {
-  const nodesByLevel = groupNodesByLevel(levels, null);
+  // Создаем локальную версию groupNodesByLevel без зависимости от states
+  const nodesByLevel: NodesByLevel = {};
+  
+  for (const [stateName, level] of Object.entries(levels)) {
+    if (!nodesByLevel[level]) {
+      nodesByLevel[level] = [];
+    }
+    nodesByLevel[level].push(stateName);
+  }
   
   Object.keys(nodesByLevel).forEach(levelStr => {
     const level = parseInt(levelStr);
     const nodesInLevel = nodesByLevel[level];
     
-    if (nodesInLevel.length <= 1) return;
+    if (!nodesInLevel || nodesInLevel.length <= 1) return;
     
     // Сортируем узлы в уровне по количеству соединений (больше соединений - ближе к центру)
     const sortedNodes = nodesInLevel.sort((a, b) => {
@@ -358,14 +374,27 @@ function arrangeAsTree(positions: { [key: string]: NodePosition }, graph: GraphN
     const startY = -totalHeight / 2;
     
     sortedNodes.forEach((nodeName, index) => {
-      positions[nodeName].y = startY + index * LAYOUT_CONFIG.NODE_SPACING;
+      if (positions[nodeName]) {
+        positions[nodeName].y = startY + index * LAYOUT_CONFIG.NODE_SPACING;
+      }
     });
   });
 }
 
 export function applyAutoLayout(states: any, initialState: string): { [key: string]: NodePosition } {
   const positions: { [key: string]: NodePosition } = {};
+  
+  // Защита от null/undefined states
+  if (!states || typeof states !== 'object') {
+    return positions;
+  }
+  
   const stateNames = Object.keys(states);
+  
+  // Защита от пустого списка состояний
+  if (stateNames.length === 0) {
+    return positions;
+  }
 
   let actualInitialState = initialState;
   if (!actualInitialState || !states[actualInitialState]) {
