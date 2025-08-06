@@ -11,9 +11,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { BaseEdge, EdgeProps, getBezierPath } from '@vue-flow/core'
 import { useTransitionHighlight } from './composables/useTransitionHighlight'
+import eventBus from '../../../plugins/eventBus'
 
 interface EdgeData {
   transitionData?: object
@@ -33,6 +34,31 @@ const props = defineProps<EdgeProps<EdgeData>>()
 
 const { highlightedTransition } = useTransitionHighlight()
 
+// Создаем реактивные значения для случайных параметров
+const randomRadius = ref(100 + (Math.random() - 0.5) * 40) // 80-120px
+const randomOffset = ref(150 + (Math.random() - 0.5) * 60) // 120-180px
+const randomCurvature = ref(0.25 + (Math.random() - 0.5) * 0.2) // 0.15-0.35
+
+// Функция для генерации новых случайных значений
+function generateNewRandomValues() {
+  randomRadius.value = 100 + (Math.random() - 0.5) * 40
+  randomOffset.value = 150 + (Math.random() - 0.5) * 60
+  randomCurvature.value = 0.25 + (Math.random() - 0.5) * 0.2
+}
+
+// Обработчик события сброса позиций рёбер
+function handleResetEdgePositions() {
+  generateNewRandomValues()
+}
+
+onMounted(() => {
+  eventBus.$on('reset-edge-positions', handleResetEdgePositions)
+})
+
+onUnmounted(() => {
+  eventBus.$off('reset-edge-positions', handleResetEdgePositions)
+})
+
 const edgePath = computed(() => {
   if (props.source === props.target) {
     const startX = props.sourceX
@@ -40,8 +66,8 @@ const edgePath = computed(() => {
     const endX = props.targetX
     const endY = props.targetY
 
-    const radius = 100 + (Math.random() - 0.5) * 40 // Случайный радиус 80-120px для разнообразия
-    const offset = 150 + (Math.random() - 0.5) * 60 // Случайный отступ 120-180px для разнообразия
+    const radius = randomRadius.value // Используем реактивное значение
+    const offset = randomOffset.value // Используем реактивное значение
 
     if (props.sourcePosition === 'right' && props.targetPosition === 'left') {
       const controlX1 = startX + offset
@@ -88,8 +114,7 @@ const edgePath = computed(() => {
     return `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`
   }
 
-  // Для обычных рёбер используем улучшенные Bezier кривые со случайной кривизной
-  const randomCurvature = 0.25 + (Math.random() - 0.5) * 0.2; // Случайная кривизна 0.15-0.35
+  // Для обычных рёбер используем улучшенные Bezier кривые с реактивной кривизной
   const [path] = getBezierPath({
     sourceX: props.sourceX,
     sourceY: props.sourceY,
@@ -97,7 +122,7 @@ const edgePath = computed(() => {
     targetX: props.targetX,
     targetY: props.targetY,
     targetPosition: props.targetPosition,
-    curvature: randomCurvature, // Случайная кривизна для разнообразия форм
+    curvature: randomCurvature.value, // Используем реактивное значение
   })
   return path
 })

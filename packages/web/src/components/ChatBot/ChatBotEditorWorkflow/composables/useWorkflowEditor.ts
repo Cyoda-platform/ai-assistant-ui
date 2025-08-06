@@ -1063,6 +1063,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         // Обновляем workflowMetaData вместо localStorage
         workflowMetaData.value = { ...workflowMetaData.value, ...randomizedPositions };
+        
+        // Уведомляем все рёбра о необходимости генерации новых случайных значений
+        eventBus.$emit('reset-edge-positions');
     }
 
     function handleUpdateTransitionLabelPosition(eventData: any) {
