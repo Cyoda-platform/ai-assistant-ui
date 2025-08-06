@@ -252,13 +252,17 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     const totalOffset = (transitions.length - 1) * spacing;
                     const startOffset = -totalOffset / 2;
                     
+                    // Добавляем небольшую случайность к позициям рёбер
+                    const randomVariationX = (Math.random() - 0.5) * 20; // ±10px
+                    const randomVariationY = (Math.random() - 0.5) * 16; // ±8px
+                    
                     sourceOffset = {
-                        x: startOffset + index * spacing,
-                        y: baseOffset + index * 10
+                        x: startOffset + index * spacing + randomVariationX,
+                        y: baseOffset + index * 10 + randomVariationY
                     };
                     targetOffset = {
-                        x: startOffset + index * spacing,
-                        y: baseOffset + index * 10
+                        x: startOffset + index * spacing + randomVariationX,
+                        y: baseOffset + index * 10 + randomVariationY
                     };
                 }
 
@@ -1038,13 +1042,27 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         const positions = applyAutoLayout(states, initialState);
 
+        // Добавляем разумную случайность к позициям узлов
+        const randomizedPositions = {};
+        Object.keys(positions).forEach(nodeId => {
+            const basePosition = positions[nodeId];
+            // Случайное смещение в диапазоне ±100px по X и ±80px по Y
+            const randomOffsetX = (Math.random() - 0.5) * 200; // ±100px
+            const randomOffsetY = (Math.random() - 0.5) * 160; // ±80px
+            
+            randomizedPositions[nodeId] = {
+                x: basePosition.x + randomOffsetX,
+                y: basePosition.y + randomOffsetY
+            };
+        });
+
         nodes.value = nodes.value.map((node: WorkflowNode) => ({
             ...node,
-            position: positions[node.id] || node.position
+            position: randomizedPositions[node.id] || node.position
         }));
 
         // Обновляем workflowMetaData вместо localStorage
-        workflowMetaData.value = { ...workflowMetaData.value, ...positions };
+        workflowMetaData.value = { ...workflowMetaData.value, ...randomizedPositions };
     }
 
     function handleUpdateTransitionLabelPosition(eventData: any) {

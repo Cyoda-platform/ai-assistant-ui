@@ -40,8 +40,8 @@ const edgePath = computed(() => {
     const endX = props.targetX
     const endY = props.targetY
 
-    const radius = 100 // Увеличен радиус для лучшей видимости
-    const offset = 150 // Увеличен отступ
+    const radius = 100 + (Math.random() - 0.5) * 40 // Случайный радиус 80-120px для разнообразия
+    const offset = 150 + (Math.random() - 0.5) * 60 // Случайный отступ 120-180px для разнообразия
 
     if (props.sourcePosition === 'right' && props.targetPosition === 'left') {
       const controlX1 = startX + offset
@@ -88,7 +88,8 @@ const edgePath = computed(() => {
     return `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`
   }
 
-  // Для обычных рёбер используем улучшенные Bezier кривые
+  // Для обычных рёбер используем улучшенные Bezier кривые со случайной кривизной
+  const randomCurvature = 0.25 + (Math.random() - 0.5) * 0.2; // Случайная кривизна 0.15-0.35
   const [path] = getBezierPath({
     sourceX: props.sourceX,
     sourceY: props.sourceY,
@@ -96,7 +97,7 @@ const edgePath = computed(() => {
     targetX: props.targetX,
     targetY: props.targetY,
     targetPosition: props.targetPosition,
-    curvature: 0.25, // Добавляем кривизну для более плавных переходов
+    curvature: randomCurvature, // Случайная кривизна для разнообразия форм
   })
   return path
 })

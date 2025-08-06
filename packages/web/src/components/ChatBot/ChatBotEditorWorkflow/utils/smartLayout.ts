@@ -29,7 +29,7 @@ const LAYOUT_CONFIG = {
   OPTIMIZATION_PASSES: 5, // Больше проходов оптимизации
   CENTER_PULL_FORCE: 0.2, // Меньшая сила притяжения к центру
   MAX_CENTER_DISTANCE: 400, // Больше допустимое расстояние от центра
-  RANDOM_OFFSET_RANGE: 30, // Меньше случайных смещений
+  RANDOM_OFFSET_RANGE: 80, // Увеличено для большей случайности при каждом autoLayout
   SELF_LOOP_OFFSET: 40, // Больше отступ для self-loops
   TERMINAL_MIN_LEVEL: 4,
   EDGE_SEPARATION: 80, // Новый параметр для разделения рёбер
@@ -73,6 +73,10 @@ export function calculateSmartPosition(
     const randomOffset = (Math.random() - 0.5) * LAYOUT_CONFIG.RANDOM_OFFSET_RANGE;
     y += randomOffset;
   }
+
+  // Добавляем случайное смещение к X-координате для разнообразия
+  const randomXOffset = (Math.random() - 0.5) * (LAYOUT_CONFIG.RANDOM_OFFSET_RANGE * 0.6); // 60% от Y вариации
+  x += randomXOffset;
 
   const currentState = states[stateName];
   if (currentState?.transitions) {
@@ -424,6 +428,15 @@ export function applyAutoLayout(states: any, initialState: string): { [key: stri
     arrangeAsTree(positions, graph, levels);
     avoidEdgeCrossings(positions, graph);
     optimizePositions(positions);
+    
+    // Добавляем финальную случайность для разнообразия макетов при каждом вызове autoLayout
+    for (const stateName of stateNames) {
+      const finalRandomX = (Math.random() - 0.5) * 40; // ±20px
+      const finalRandomY = (Math.random() - 0.5) * 40; // ±20px
+      
+      positions[stateName].x += finalRandomX;
+      positions[stateName].y += finalRandomY;
+    }
   }
 
   return positions;
