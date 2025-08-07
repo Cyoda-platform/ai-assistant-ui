@@ -32,9 +32,9 @@
     />
 
     <foreignObject
-        :x="labelPosition.x - labelWidth/2 - 15"
+        :x="labelPosition.x - labelWidth/2 - 10"
         :y="labelPosition.y - 15"
-        :width="labelWidth + 30"
+        :width="labelWidth + 20"
         :height="30"
     >
     <div
@@ -254,7 +254,15 @@ const labelPosition = computed(() => {
   }
 })
 
-const labelWidth = computed(() => Math.max(transitionId.value.length * 8 + 16, 60))
+const labelWidth = computed(() => {
+  // Calculate based on original transition name length, not internal ID
+  const textLength = originalTransitionName.value.length
+  // More accurate calculation: 7px per char + padding for actions + some margin
+  const textWidth = textLength * 7
+  const actionsWidth = 50 // space for edit/delete buttons
+  const padding = 16 // container padding
+  return Math.max(textWidth + actionsWidth + padding, 80) // minimum 80px for buttons
+})
 
 const edgeStyle = computed(() => ({
   stroke: isHighlighted.value ? '#1890ff' : '#999',
@@ -529,6 +537,8 @@ function endTransitionDrag(event: MouseEvent) {
   min-height: 20px;
   transition: all 0.2s ease;
   cursor: grab;
+  width: fit-content;
+  min-width: 80px;
 }
 
 .transition-label-container:active {
