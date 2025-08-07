@@ -67,6 +67,14 @@
   --radio-bg-color: #27273C;
   --radio-border-color: #27273C;
   --vue-flow-button-color: #27273C;
+  /* Workflow: transition label colors (customizable) */
+  --workflow-transition-auto-bg: var(--color-primary);
+  --workflow-transition-auto-border: var(--color-primary);
+  --workflow-transition-auto-text: #ffffff;
+  /* Dark manual variant - slightly brighter amber for contrast on dark */
+  --workflow-transition-manual-bg: #D07A23;
+  --workflow-transition-manual-border: #C26A17;
+  --workflow-transition-manual-text: #ffffff;
 }
 
 .only-theme-dark {

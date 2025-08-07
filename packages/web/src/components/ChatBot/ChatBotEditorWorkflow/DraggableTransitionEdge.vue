@@ -35,11 +35,12 @@
         :width="labelWidth + 30"
         :height="30"
     >
-      <div
-          class="transition-label-container"
-          @mouseenter="isHoveringLabel = true"
-          @mouseleave="isHoveringLabel = false"
-      >
+    <div
+      class="transition-label-container"
+      :class="isManual ? 'manual' : 'auto'"
+      @mouseenter="isHoveringLabel = true"
+      @mouseleave="isHoveringLabel = false"
+    >
         <div
             class="transition-label"
             @mousedown="startDrag"
@@ -240,6 +241,9 @@ const edgeStyle = computed(() => ({
   opacity: shouldDimEdge.value ? 0.3 : 1,
   fill: 'none'
 }))
+
+// Определяем manual / auto стиль перехода
+const isManual = computed(() => !!props.data?.transitionData?.manual)
 
 onMounted(() => {
   // Слушаем событие сброса позиций рёбер
@@ -511,14 +515,20 @@ function endTransitionDrag(event: MouseEvent) {
   transition: all 0.2s ease;
 }
 
-.transition-label-container:hover {
-  border-color: #1890ff;
+.transition-label-container.manual {
+  background: var(--workflow-transition-manual-bg, var(--color-primary-darken));
+  color: var(--workflow-transition-manual-text, #fff);
+  border-color: var(--workflow-transition-manual-border, var(--color-primary-darken));
+}
+
+.transition-label-container.auto .transition-label {
+  color: #333;
 }
 
 .transition-label {
   font-size: 12px;
   font-weight: 500;
-  color: #333;
+  color: #fff;
   cursor: grab;
   user-select: none;
   display: flex;
@@ -596,6 +606,18 @@ function endTransitionDrag(event: MouseEvent) {
 .theme-dark .transition-label-container {
   background: rgba(0, 0, 0, 0.9);
   border-color: #434343;
+}
+
+.theme-dark .transition-label-container.manual {
+  background: var(--workflow-transition-manual-bg, var(--color-primary-dark-active));
+  border-color: var(--workflow-transition-manual-border, var(--color-primary-dark-active));
+  color: var(--workflow-transition-manual-text, #fff);
+}
+
+.theme-dark .transition-label-container.auto {
+  background: var(--workflow-transition-auto-bg, var(--color-primary));
+  border-color: var(--workflow-transition-auto-border, var(--color-primary));
+  color: var(--workflow-transition-auto-text, #fff);
 }
 
 .theme-dark .transition-label {
