@@ -482,6 +482,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
 
         eventBus.$emit('transition-saved-successfully');
+
+        // Сохраняем состояние для undo/redo (вызов уже происходит в performManualChange)
+        setTimeout(() => saveState(createSnapshot()), 0);
     }
 
     function handleDeleteTransition(eventData: any) {
@@ -519,6 +522,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             workflowMetaData.value = { ...workflowMetaData.value, ...currentPositions };
 
             canvasData.value = JSON.stringify(parsed, null, 2);
+            
+            // Сохраняем состояние для undo/redo
+            saveState(createSnapshot());
         } else {
             console.warn('Transition not found:', transitionName, 'in state:', stateName);
         }
@@ -591,6 +597,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         if (assistantStore && assistantStore.selectedAssistant) {
             assistantStore.selectedAssistant.workflow_data = canvasData.value;
         }
+        
+        // Сохраняем состояние для undo/redo
+        saveState(createSnapshot());
     }
 
     function handleGetTransitionData(eventData: any) {
@@ -691,6 +700,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         if (assistantStore && assistantStore.selectedAssistant) {
             assistantStore.selectedAssistant.workflow_data = canvasData.value;
         }
+        
+        // Сохраняем состояние для undo/redo
+        saveState(createSnapshot());
     }
 
     function handleChangeTransitionTarget(eventData: any) {
@@ -728,6 +740,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             workflowMetaData.value = { ...workflowMetaData.value, ...currentPositions };
 
             canvasData.value = JSON.stringify(parsed, null, 2);
+            
+            // Сохраняем состояние для undo/redo
+            saveState(createSnapshot());
         } else {
             console.warn('Transition not found:', transitionName, 'in state:', stateName);
         }
@@ -823,7 +838,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     }
                     if (parent) {
                         nodeElement = parent;
-                    }
+                      }
                 }
             }
 
@@ -884,6 +899,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         generateNodes();
 
         ElMessage.success(`Transition "${transitionId}" reassigned from "${sourceNode}" to "${targetNode}"`);
+        
+        // Сохраняем состояние для undo/redo
+        saveState(createSnapshot());
     }
 
     function onEdgeConditionChange(event: any) {
@@ -913,15 +931,19 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
 
         canvasData.value = JSON.stringify(parsed, null, 2);
+        
+        // Сохраняем состояние для undo/redo
+        saveState(createSnapshot());
     }
 
     function onNodeDragStop(event: any) {
-        // Обновляем workflowMetaData вместо localStorage
-        const positions = {};
+        const positions: Record<string, { x: number; y: number }> = {};
         event.nodes.forEach((node: WorkflowNode) => {
-            positions[node.id] = node.position;
+            positions[node.id] = { ...node.position };
         });
         workflowMetaData.value = { ...workflowMetaData.value, ...positions };
+        // сохраняем snapshot
+        saveState(createSnapshot());
     }
 
     function onConnectStart() {
@@ -1073,6 +1095,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     maxZoom: 1
                 });
             }, 50);
+            
+            // Сохраняем состояние для undo/redo после добавления нового состояния
+            saveState(createSnapshot());
 
         } catch (error) {
             console.log('User cancelled state creation');
@@ -1110,6 +1135,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         // Уведомляем все рёбра о необходимости генерации новых случайных значений
         eventBus.$emit('reset-edge-positions');
+        
+        // Сохраняем состояние для undo/redo после автолейаута
+        saveState(createSnapshot());
     }
 
     function handleUpdateTransitionLabelPosition(eventData: any) {
@@ -1129,6 +1157,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         // Больше не сохраняем в localStorage
         console.log(`💾 Updated transition labels in workflowMetaData:`, metaData.transitionLabels);
+        
+        // Сохраняем состояние для undo/redo после перемещения метки перехода
+        saveState(createSnapshot());
     }
 
     function onUpdateWorkflowMetaDialog(data: any) {
@@ -1195,27 +1226,38 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     let isUndoRedoOperation = false;
 
+    function createSnapshot(): string {
+        return JSON.stringify({
+            canvas: canvasData.value,
+            meta: workflowMetaData.value
+        });
+    }
+
+    function loadSnapshot(snapshot: string) {
+        try {
+            const parsed = JSON.parse(snapshot);
+            canvasData.value = parsed.canvas || '';
+            workflowMetaData.value = parsed.meta || {};
+            generateNodes();
+        } catch (e) {
+            console.error('Failed to load snapshot', e);
+        }
+    }
+
     watch(canvasData, (newValue) => {
         if (!isUndoRedoOperation) {
-            saveState(newValue || '');
+            // не сохраняем тут snapshot, отдельные операции сохраняют
         }
-
-        if (debounceTimer) {
-            clearTimeout(debounceTimer);
-        }
-        debounceTimer = setTimeout(() => {
-            generateNodes();
-        }, 300);
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => { generateNodes(); }, 300);
     });
 
     function undoAction() {
         const previousState = undo();
         if (previousState !== null) {
             isUndoRedoOperation = true;
-            canvasData.value = previousState;
-            nextTick(() => {
-                isUndoRedoOperation = false;
-            });
+            loadSnapshot(previousState);
+            nextTick(() => { isUndoRedoOperation = false; });
         }
     }
 
@@ -1223,10 +1265,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const nextState = redo();
         if (nextState !== null) {
             isUndoRedoOperation = true;
-            canvasData.value = nextState;
-            nextTick(() => {
-                isUndoRedoOperation = false;
-            });
+            loadSnapshot(nextState);
+            nextTick(() => { isUndoRedoOperation = false; });
         }
     }
 
@@ -1280,5 +1320,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         undoAction,
         redoAction,
         isDraggingConnection,
+        createSnapshot,
+        loadSnapshot,
     };
 }
