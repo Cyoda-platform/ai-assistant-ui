@@ -1002,28 +1002,25 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     function resetTransform() {
         fitView();
 
-        if (Object.keys(initialPositions.value).length > 0) {
-            console.log('Restoring initial positions:', initialPositions.value);
-            console.log('Restoring initial transition labels:', initialTransitionLabels.value);
+        console.log('Clearing all meta information (positions and transition labels)');
+        
+        // Очищаем все meta данные
+        workflowMetaData.value = {};
+        
+        // Очищаем сохраненные исходные позиции
+        initialPositions.value = {};
+        initialTransitionLabels.value = {};
+        
+        // Перегенерируем nodes без сохраненных позиций
+        generateNodes();
 
-            nodes.value = nodes.value.map((node: WorkflowNode) => ({
-                ...node,
-                position: initialPositions.value[node.id] || node.position
-            }));
+        // Уведомляем все рёбра о необходимости сброса позиций
+        eventBus.$emit('reset-edge-positions');
 
-            const restoredMetaData: any = {...initialPositions.value};
-            if (Object.keys(initialTransitionLabels.value).length > 0) {
-                restoredMetaData.transitionLabels = {...initialTransitionLabels.value};
-            }
-
-            workflowMetaData.value = restoredMetaData;
-
-            eventBus.$emit('reset-edge-positions');
-
-            console.log('Reset to initial state completed');
-        } else {
-            console.warn('No initial state saved');
-        }
+        console.log('Reset to default state completed - all meta data cleared');
+        
+        // Сохраняем состояние для undo/redo после сброса
+        saveState(createSnapshot());
     }
 
     async function addNewState() {
