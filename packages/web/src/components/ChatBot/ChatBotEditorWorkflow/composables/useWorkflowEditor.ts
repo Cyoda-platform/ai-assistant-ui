@@ -563,8 +563,28 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
 
         delete currentPositions[stateName];
-        // Обновляем workflowMetaData вместо localStorage
-        workflowMetaData.value = { ...workflowMetaData.value, ...currentPositions };
+        
+        // Обновляем workflowMetaData с удалением узла и связанных данных
+        const updatedMetaData: any = { ...workflowMetaData.value, ...currentPositions };
+        
+        // Удаляем узел из метаданных
+        if (updatedMetaData[stateName]) {
+            delete updatedMetaData[stateName];
+        }
+        
+        // Также удаляем все transition labels, которые связаны с удаляемым состоянием
+        if (updatedMetaData.transitionLabels) {
+            const updatedTransitionLabels = {};
+            Object.keys(updatedMetaData.transitionLabels).forEach(transitionId => {
+                // Сохраняем только те transition labels, которые не связаны с удаляемым состоянием
+                if (!transitionId.includes(stateName)) {
+                    updatedTransitionLabels[transitionId] = updatedMetaData.transitionLabels[transitionId];
+                }
+            });
+            updatedMetaData.transitionLabels = updatedTransitionLabels;
+        }
+        
+        workflowMetaData.value = updatedMetaData;
 
         canvasData.value = JSON.stringify(parsed, null, 2);
 
@@ -645,8 +665,27 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             delete currentPositions[oldName];
         }
 
-        // Обновляем workflowMetaData вместо localStorage
-        workflowMetaData.value = { ...workflowMetaData.value, ...currentPositions };
+        // Обновляем workflowMetaData с переименованием узла
+        const updatedMetaData: any = { ...workflowMetaData.value, ...currentPositions };
+        
+        // Переименовываем ключ в метаданных если он существует
+        if (updatedMetaData[oldName]) {
+            updatedMetaData[newName] = updatedMetaData[oldName];
+            delete updatedMetaData[oldName];
+        }
+        
+        // Также обновляем transition labels если они ссылаются на старое имя
+        if (updatedMetaData.transitionLabels) {
+            const updatedTransitionLabels = {};
+            Object.keys(updatedMetaData.transitionLabels).forEach(transitionId => {
+                // Обновляем transitionId если он содержит старое имя состояния
+                const newTransitionId = transitionId.replace(new RegExp(`\\b${oldName}\\b`, 'g'), newName);
+                updatedTransitionLabels[newTransitionId] = updatedMetaData.transitionLabels[transitionId];
+            });
+            updatedMetaData.transitionLabels = updatedTransitionLabels;
+        }
+        
+        workflowMetaData.value = updatedMetaData;
         canvasData.value = JSON.stringify(parsed, null, 2);
 
         if (assistantStore && assistantStore.selectedAssistant) {
