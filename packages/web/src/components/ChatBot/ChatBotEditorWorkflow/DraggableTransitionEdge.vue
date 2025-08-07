@@ -8,6 +8,8 @@
       'dragging-transition': isDraggingTransition
     }"
       @mousedown="onGroupMouseDown"
+  @mouseenter="handleEdgeMouseEnter"
+  @mouseleave="handleEdgeMouseLeave"
   >
     <path
         :id="id"
@@ -93,7 +95,7 @@ interface CustomEdgeData {
   targetOffset?: { x: number; y: number }
   customPath?: Array<{ x: number; y: number }>
   transitionData?: TransitionDataType
-  labelOffset?: { x: number; y: number } // Добавляем позицию метки из Workflow Meta Data
+  labelOffset?: { x: number; y: number }
 }
 
 const props = defineProps<EdgeProps<CustomEdgeData>>()
@@ -122,9 +124,27 @@ const transitionId = computed(() => {
 })
 
 const isHighlighted = computed(() => isTransitionHighlighted(transitionId.value))
-const shouldDimEdge = computed(() =>
-    highlightedTransition.value !== null && !isHighlighted.value
-)
+const hoveredEdgeGlobal = ref<string | null>(null)
+
+function handleEdgeMouseEnter() {
+  eventBus.$emit('edge-hover', { edgeId: props.id })
+}
+function handleEdgeMouseLeave() {
+  eventBus.$emit('edge-hover-clear')
+}
+
+function onEdgeHover(event: { edgeId: string }) {
+  hoveredEdgeGlobal.value = event.edgeId
+}
+function onEdgeHoverClear() {
+  hoveredEdgeGlobal.value = null
+}
+
+const shouldDimEdge = computed(() => {
+  const dimBySearch = highlightedTransition.value !== null && !isHighlighted.value
+  const dimByHover = hoveredEdgeGlobal.value !== null && hoveredEdgeGlobal.value !== props.id
+  return dimBySearch || dimByHover
+})
 
 const edgePath = computed(() => {
   if (isDraggingTransition.value && currentMousePosition.value) {
@@ -238,39 +258,35 @@ const labelWidth = computed(() => Math.max(transitionId.value.length * 8 + 16, 6
 const edgeStyle = computed(() => ({
   stroke: isHighlighted.value ? '#1890ff' : '#999',
   strokeWidth: isHighlighted.value ? 2 : 1,
-  opacity: shouldDimEdge.value ? 0.3 : 1,
-  fill: 'none'
+  opacity: shouldDimEdge.value ? 0.8 : 1,
+  fill: 'none',
+  transition: 'opacity 0.2s ease, stroke 0.2s ease'
 }))
 
-// Определяем manual / auto стиль перехода
 const isManual = computed(() => !!props.data?.transitionData?.manual)
 
 onMounted(() => {
-  // Слушаем событие сброса позиций рёбер
   eventBus.$on('reset-edge-positions', handleResetEdgePositions);
+  eventBus.$on('edge-hover', onEdgeHover)
+  eventBus.$on('edge-hover-clear', onEdgeHoverClear)
 })
 
 onUnmounted(() => {
-  // Отписываемся от события
   eventBus.$off('reset-edge-positions', handleResetEdgePositions);
+  eventBus.$off('edge-hover', onEdgeHover)
+  eventBus.$off('edge-hover-clear', onEdgeHoverClear)
 })
 
 function handleResetEdgePositions() {
-  console.log(`🔄 Resetting edge position for ${transitionId.value}`);
-  // Сбрасываем локальную позицию метки к нулю или начальной позиции
   savedLabelOffset.value = { x: 0, y: 0 };
   dragOffset.value = { x: 0, y: 0 };
 }
 
-// Отслеживаем изменения в labelOffset из props
 watch(() => props.data?.labelOffset, (newLabelOffset) => {
   if (newLabelOffset) {
     savedLabelOffset.value = newLabelOffset;
-    console.log(`📍 Updated label position for ${transitionId.value}:`, savedLabelOffset.value);
   } else {
-    // Если labelOffset сброшен в undefined/null, сбрасываем позицию
     savedLabelOffset.value = { x: 0, y: 0 };
-    console.log(`📍 Reset label position for ${transitionId.value}`);
   }
 }, { deep: true, immediate: true });
 
@@ -307,8 +323,6 @@ function endDrag() {
       y: savedLabelOffset.value.y + dragOffset.value.y
     }
 
-    // Эмитим событие об изменении позиции метки для сохранения в Workflow Meta Data
-    console.log(`📍 Saving label position for ${transitionId.value}:`, savedLabelOffset.value);
     eventBus.$emit('update-transition-label-position', {
       transitionId: transitionId.value,
       offset: savedLabelOffset.value
@@ -483,7 +497,7 @@ function endTransitionDrag(event: MouseEvent) {
 }
 
 .draggable-transition-edge.dimmed {
-  opacity: 0.3;
+  opacity: 0.8;
 }
 
 .draggable-transition-edge.highlighted path {

@@ -1,5 +1,5 @@
 <template>
-  <g class="edge-with-tooltip" :class="{ 'dimmed': shouldDimEdge }">
+  <g class="edge-with-tooltip" :class="{ 'dimmed': shouldDimEdge }" @mouseenter="onEdgeEnter" @mouseleave="onEdgeLeave">
     <BaseEdge
       :id="id"
       :style="edgeStyle"
@@ -53,10 +53,14 @@ function handleResetEdgePositions() {
 
 onMounted(() => {
   eventBus.$on('reset-edge-positions', handleResetEdgePositions)
+  eventBus.$on('edge-hover', onEdgeHover)
+  eventBus.$on('edge-hover-clear', onEdgeHoverClear)
 })
 
 onUnmounted(() => {
   eventBus.$off('reset-edge-positions', handleResetEdgePositions)
+  eventBus.$off('edge-hover', onEdgeHover)
+  eventBus.$off('edge-hover-clear', onEdgeHoverClear)
 })
 
 const edgePath = computed(() => {
@@ -69,10 +73,12 @@ const edgePath = computed(() => {
     const radius = randomRadius.value // Используем реактивное значение
     const offset = randomOffset.value // Используем реактивное значение
 
+  // stray event lines removed
     if (props.sourcePosition === 'right' && props.targetPosition === 'left') {
       const controlX1 = startX + offset
       const controlY1 = startY - radius
       const controlX2 = endX - offset
+  // stray event lines removed
       const controlY2 = endY - radius
 
       return `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`
@@ -127,32 +133,32 @@ const edgePath = computed(() => {
   return path
 })
 
-const transitionId = computed(() => {
-  return `${props.source}-${props.data?.transitionName || 'unnamed'}`
-})
+const hoveredEdgeGlobal = ref<string | null>(null)
+function onEdgeEnter() { eventBus.$emit('edge-hover', { edgeId: props.id }) }
+function onEdgeLeave() { eventBus.$emit('edge-hover-clear') }
+function onEdgeHover(event: { edgeId: string }) { hoveredEdgeGlobal.value = event.edgeId }
+function onEdgeHoverClear() { hoveredEdgeGlobal.value = null }
+
+const transitionId = computed(() => `${props.source}-${props.data?.transitionName || 'unnamed'}`)
 
 const shouldDimEdge = computed(() => {
-  if (highlightedTransition.value === null) return false;
-
-  if (highlightedTransition.value === transitionId.value) {
-    return false;
+  let dimBySearch = false
+  if (highlightedTransition.value !== null && highlightedTransition.value !== transitionId.value) {
+    if (props.data?.allTransitions) {
+      const isIn = props.data.allTransitions.some(t => `${t.stateName}-${t.transition.name}` === highlightedTransition.value)
+      dimBySearch = !isIn
+    } else {
+      dimBySearch = true
+    }
   }
-
-  if (props.data?.allTransitions) {
-    const isTransitionInThisEdge = props.data.allTransitions.some(t => {
-      const tId = `${t.stateName}-${t.transition.name}`;
-      return tId === highlightedTransition.value;
-    });
-    return !isTransitionInThisEdge;
-  }
-
-  return true;
+  const dimByHover = hoveredEdgeGlobal.value !== null && hoveredEdgeGlobal.value !== props.id
+  return dimBySearch || dimByHover
 })
 
 const edgeStyle = computed(() => {
   return {
     ...props.style,
-    opacity: shouldDimEdge.value ? 0.3 : 1,
+  opacity: shouldDimEdge.value ? 0.8 : 1,
     stroke: shouldDimEdge.value ? '#ccc' : (props.style?.stroke || '#666'),
     strokeWidth: shouldDimEdge.value ? 1 : (props.style?.strokeWidth || 2),
     transition: 'opacity 0.3s ease, stroke 0.3s ease, stroke-width 0.3s ease'
@@ -166,9 +172,7 @@ const edgeStyle = computed(() => {
   transition: all 0.3s ease;
 }
 
-.edge-with-tooltip.dimmed {
-  opacity: 0.3;
-}
+.edge-with-tooltip.dimmed { opacity: 0.8; }
 
 .edge-with-tooltip:hover {
   stroke-width: 3px !important;
