@@ -8,6 +8,8 @@
       'dragging-transition': isDraggingTransition
     }"
       @mousedown="onGroupMouseDown"
+  @mouseenter="handleEdgeMouseEnter"
+  @mouseleave="handleEdgeMouseLeave"
   >
     <path
         :id="id"
@@ -30,22 +32,23 @@
     />
 
     <foreignObject
-        :x="labelPosition.x - labelWidth/2 - 15"
+        :x="labelPosition.x - labelWidth/2 - 10"
         :y="labelPosition.y - 15"
-        :width="labelWidth + 30"
+        :width="labelWidth + 20"
         :height="30"
     >
-      <div
-          class="transition-label-container"
-          @mouseenter="isHoveringLabel = true"
-          @mouseleave="isHoveringLabel = false"
-      >
+    <div
+      class="transition-label-container"
+      :class="isManual ? 'manual' : 'auto'"
+      @mouseenter="isHoveringLabel = true"
+      @mouseleave="isHoveringLabel = false"
+      @mousedown="startDrag"
+      @dragstart.prevent
+    >
         <div
             class="transition-label"
-            @mousedown="startDrag"
-            @dragstart.prevent
         >
-          {{ transitionId }}
+          {{ originalTransitionName }}
         </div>
         <div class="transition-actions">
           <button
@@ -71,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref, onMounted} from 'vue'
+import {computed, ref, onMounted, onUnmounted, watch} from 'vue'
 import {EdgeProps, useVueFlow} from '@vue-flow/core'
 import {useTransitionHighlight} from './composables/useTransitionHighlight'
 import {ElMessageBox} from 'element-plus'
@@ -92,6 +95,7 @@ interface CustomEdgeData {
   targetOffset?: { x: number; y: number }
   customPath?: Array<{ x: number; y: number }>
   transitionData?: TransitionDataType
+  labelOffset?: { x: number; y: number }
 }
 
 const props = defineProps<EdgeProps<CustomEdgeData>>()
@@ -115,14 +119,33 @@ const hoveredNodeId = ref<string | null>(null)
 const currentMousePosition = ref({x: 0, y: 0})
 const svgElementRef = ref<SVGSVGElement | null>(null)
 
-const transitionId = computed(() => {
-  return props.data.transitionData.name;
-})
+// Original transition name (may repeat across states)
+const originalTransitionName = computed(() => props.data?.transitionData?.name || 'unnamed')
+// Internal unique id scoped by source state to avoid collisions
+const transitionId = computed(() => `${props.source}-${originalTransitionName.value}`)
 
 const isHighlighted = computed(() => isTransitionHighlighted(transitionId.value))
-const shouldDimEdge = computed(() =>
-    highlightedTransition.value !== null && !isHighlighted.value
-)
+const hoveredEdgeGlobal = ref<string | null>(null)
+
+function handleEdgeMouseEnter() {
+  eventBus.$emit('edge-hover', { edgeId: props.id })
+}
+function handleEdgeMouseLeave() {
+  eventBus.$emit('edge-hover-clear')
+}
+
+function onEdgeHover(event: { edgeId: string }) {
+  hoveredEdgeGlobal.value = event.edgeId
+}
+function onEdgeHoverClear() {
+  hoveredEdgeGlobal.value = null
+}
+
+const shouldDimEdge = computed(() => {
+  const dimBySearch = highlightedTransition.value !== null && !isHighlighted.value
+  const dimByHover = hoveredEdgeGlobal.value !== null && hoveredEdgeGlobal.value !== props.id
+  return dimBySearch || dimByHover
+})
 
 const edgePath = computed(() => {
   if (isDraggingTransition.value && currentMousePosition.value) {
@@ -231,40 +254,50 @@ const labelPosition = computed(() => {
   }
 })
 
-const labelWidth = computed(() => Math.max(transitionId.value.length * 8 + 16, 60))
+const labelWidth = computed(() => {
+  // Calculate based on original transition name length, not internal ID
+  const textLength = originalTransitionName.value.length
+  // More accurate calculation: 7px per char + padding for actions + some margin
+  const textWidth = textLength * 7
+  const actionsWidth = 50 // space for edit/delete buttons
+  const padding = 16 // container padding
+  return Math.max(textWidth + actionsWidth + padding, 80) // minimum 80px for buttons
+})
 
 const edgeStyle = computed(() => ({
   stroke: isHighlighted.value ? '#1890ff' : '#999',
   strokeWidth: isHighlighted.value ? 2 : 1,
-  opacity: shouldDimEdge.value ? 0.3 : 1,
-  fill: 'none'
+  opacity: shouldDimEdge.value ? 0.8 : 1,
+  fill: 'none',
+  transition: 'opacity 0.2s ease, stroke 0.2s ease'
 }))
 
-function getLabelPositionKey() {
-  return `transition-label-${transitionId.value}`
-}
-
-function loadSavedLabelPosition() {
-  const key = getLabelPositionKey()
-  const saved = localStorage.getItem(key)
-  if (saved) {
-    try {
-      const position = JSON.parse(saved)
-      savedLabelOffset.value = position
-    } catch (e) {
-      console.warn('Failed to parse saved label position:', e)
-    }
-  }
-}
-
-function saveLabelPosition() {
-  const key = getLabelPositionKey()
-  localStorage.setItem(key, JSON.stringify(savedLabelOffset.value))
-}
+const isManual = computed(() => !!props.data?.transitionData?.manual)
 
 onMounted(() => {
-  loadSavedLabelPosition()
+  eventBus.$on('reset-edge-positions', handleResetEdgePositions);
+  eventBus.$on('edge-hover', onEdgeHover)
+  eventBus.$on('edge-hover-clear', onEdgeHoverClear)
 })
+
+onUnmounted(() => {
+  eventBus.$off('reset-edge-positions', handleResetEdgePositions);
+  eventBus.$off('edge-hover', onEdgeHover)
+  eventBus.$off('edge-hover-clear', onEdgeHoverClear)
+})
+
+function handleResetEdgePositions() {
+  savedLabelOffset.value = { x: 0, y: 0 };
+  dragOffset.value = { x: 0, y: 0 };
+}
+
+watch(() => props.data?.labelOffset, (newLabelOffset) => {
+  if (newLabelOffset) {
+    savedLabelOffset.value = newLabelOffset;
+  } else {
+    savedLabelOffset.value = { x: 0, y: 0 };
+  }
+}, { deep: true, immediate: true });
 
 function startDrag(event: MouseEvent) {
   isDragging.value = true
@@ -299,7 +332,10 @@ function endDrag() {
       y: savedLabelOffset.value.y + dragOffset.value.y
     }
 
-    saveLabelPosition()
+    eventBus.$emit('update-transition-label-position', {
+      transitionId: transitionId.value,
+      offset: savedLabelOffset.value
+    })
 
     dragOffset.value = {x: 0, y: 0}
   }
@@ -312,7 +348,7 @@ function endDrag() {
 
 function deleteEdge() {
   ElMessageBox.confirm(
-      `Are you sure you want to delete the transition "${transitionId.value}"?`,
+      `Are you sure you want to delete the transition "${originalTransitionName.value}"?`,
       'Delete Transition',
       {
         confirmButtonText: 'Delete',
@@ -323,7 +359,7 @@ function deleteEdge() {
   ).then(() => {
     eventBus.$emit('delete-transition', {
       stateName: props.source,
-      transitionName: transitionId.value
+      transitionName: originalTransitionName.value
     })
   }).catch(() => {
     console.log('Transition deletion cancelled')
@@ -333,14 +369,14 @@ function deleteEdge() {
 function editTransition() {
   eventBus.$emit('get-transition-data', {
     stateName: props.source,
-    transitionName: transitionId.value,
+    transitionName: originalTransitionName.value,
     callback: (transitionData: object | null) => {
       eventBus.$emit('show-condition-popup', {
         id: props.id,
         source: props.source,
         target: props.target,
         stateName: props.source,
-        transitionName: transitionId.value,
+        transitionName: originalTransitionName.value,
         transitionData: transitionData || props.data?.transitionData || null
       })
     }
@@ -399,7 +435,7 @@ function startTransitionDrag(event: MouseEvent) {
   }
 
   eventBus.$emit('transition-drag-start', {
-    transitionId: transitionId.value,
+    transitionId: originalTransitionName.value, // use original name for workflow operations
     sourceNode: props.source,
     targetNode: props.target,
     transitionData: props.data?.transitionData
@@ -435,7 +471,7 @@ function onTransitionDrag(event: MouseEvent) {
   }
 
   eventBus.$emit('transition-dragging', {
-    transitionId: transitionId.value,
+    transitionId: originalTransitionName.value, // use original name for workflow operations
     mouseX: event.clientX,
     mouseY: event.clientY,
     startX: transitionDragStart.value.x,
@@ -447,7 +483,7 @@ function endTransitionDrag(event: MouseEvent) {
   if (!isDraggingTransition.value) return
 
   eventBus.$emit('transition-drag-end', {
-    transitionId: transitionId.value,
+    transitionId: originalTransitionName.value, // use original name for workflow operations
     sourceNode: props.source,
     targetNode: props.target,
     mouseX: event.clientX,
@@ -470,7 +506,7 @@ function endTransitionDrag(event: MouseEvent) {
 }
 
 .draggable-transition-edge.dimmed {
-  opacity: 0.3;
+  opacity: 0.8;
 }
 
 .draggable-transition-edge.highlighted path {
@@ -500,17 +536,29 @@ function endTransitionDrag(event: MouseEvent) {
   padding: 4px 8px;
   min-height: 20px;
   transition: all 0.2s ease;
+  cursor: grab;
+  width: fit-content;
+  min-width: 80px;
 }
 
-.transition-label-container:hover {
-  border-color: #1890ff;
+.transition-label-container:active {
+  cursor: grabbing;
+}
+
+.transition-label-container.manual {
+  background: var(--workflow-transition-manual-bg, var(--color-primary-darken));
+  color: var(--workflow-transition-manual-text, #fff);
+  border-color: var(--workflow-transition-manual-border, var(--color-primary-darken));
+}
+
+.transition-label-container.auto .transition-label {
+  color: #333;
 }
 
 .transition-label {
   font-size: 12px;
   font-weight: 500;
-  color: #333;
-  cursor: grab;
+  color: #fff;
   user-select: none;
   display: flex;
   align-items: center;
@@ -519,10 +567,6 @@ function endTransitionDrag(event: MouseEvent) {
   white-space: nowrap;
   background: transparent;
   border: none;
-}
-
-.transition-label:active {
-  cursor: grabbing;
 }
 
 .transition-actions {
@@ -587,6 +631,18 @@ function endTransitionDrag(event: MouseEvent) {
 .theme-dark .transition-label-container {
   background: rgba(0, 0, 0, 0.9);
   border-color: #434343;
+}
+
+.theme-dark .transition-label-container.manual {
+  background: var(--workflow-transition-manual-bg, var(--color-primary-dark-active));
+  border-color: var(--workflow-transition-manual-border, var(--color-primary-dark-active));
+  color: var(--workflow-transition-manual-text, #fff);
+}
+
+.theme-dark .transition-label-container.auto {
+  background: var(--workflow-transition-auto-bg, var(--color-primary));
+  border-color: var(--workflow-transition-auto-border, var(--color-primary));
+  color: var(--workflow-transition-auto-text, #fff);
 }
 
 .theme-dark .transition-label {

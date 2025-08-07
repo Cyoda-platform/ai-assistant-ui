@@ -25,7 +25,7 @@ export interface WorkflowNode {
 }
 
 /**
- * Storage helper for node positions
+ * Storage helper for node positions - now uses workflow meta data instead of localStorage
  */
 export class NodePositionStorage {
   private helperStorage: any;
@@ -37,37 +37,39 @@ export class NodePositionStorage {
   }
 
   /**
-   * Load saved node positions
+   * Load saved node positions - returns empty object, use workflowMetaData instead
+   * @deprecated Use workflowMetaData directly instead
    */
   loadPositions(): NodePositionsMap {
-    return this.helperStorage.get(this.storageKey, {});
+    // Возвращаем пустой объект, позиции теперь загружаются из workflowMetaData
+    return {};
   }
 
   /**
-   * Save node positions
+   * Save node positions - no-op, use workflowMetaData instead
+   * @deprecated Use workflowMetaData directly instead
    */
   savePositions(positions: NodePositionsMap): void {
-    this.helperStorage.set(this.storageKey, positions);
+    // Больше не сохраняем в localStorage
+    console.log('📍 NodePositionStorage.savePositions() is deprecated, use workflowMetaData instead');
   }
 
   /**
-   * Update positions from node drag event
+   * Update positions from node drag event - no-op, use workflowMetaData instead
+   * @deprecated Use workflowMetaData directly instead
    */
   updatePositionsFromDrag(event: any): void {
-    const positions = this.loadPositions();
-
-    event.nodes.forEach((node: WorkflowNode) => {
-      positions[node.id] = node.position;
-    });
-
-    this.savePositions(positions);
+    // Больше не обновляем localStorage
+    console.log('📍 NodePositionStorage.updatePositionsFromDrag() is deprecated, use workflowMetaData instead');
   }
 
   /**
-   * Clear all saved positions
+   * Clear all saved positions - no-op, use workflowMetaData instead
+   * @deprecated Use workflowMetaData directly instead
    */
   clearPositions(): void {
-    this.helperStorage.remove(this.storageKey);
+    // Больше не очищаем localStorage
+    console.log('📍 NodePositionStorage.clearPositions() is deprecated, use workflowMetaData instead');
   }
 }
 

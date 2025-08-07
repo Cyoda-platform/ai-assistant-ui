@@ -175,8 +175,8 @@ watch(editorMode, (value) => {
 <style lang="scss">
 .chat-bot-editor-markdown {
   position: relative;
-  min-height: calc(100vh - 81px);
-  height: calc(100% - 81px);
+  min-height: calc(100vh - 137px);
+  height: calc(100% - 137px);
 
   &__editor-wrapper {
     padding-right: 15px;

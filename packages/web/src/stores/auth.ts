@@ -50,6 +50,7 @@ const useAuthStore = defineStore('auth', {
       }
       this.$patch(defaultState);
       helperStorage.set("auth", defaultState);
+      helperStorage.clear();
     },
 
     async refreshAccessToken() {

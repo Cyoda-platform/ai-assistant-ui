@@ -21,17 +21,18 @@ export interface NodeLevels {
 }
 
 const LAYOUT_CONFIG = {
-  LEVEL_SPACING: 300,
-  NODE_SPACING: 150,
-  VERTICAL_SPREAD: 200,
-  MIN_DISTANCE: 120,
-  PREFERRED_DISTANCE: 180,
-  OPTIMIZATION_PASSES: 3,
-  CENTER_PULL_FORCE: 0.3,
-  MAX_CENTER_DISTANCE: 300,
-  RANDOM_OFFSET_RANGE: 50,
-  SELF_LOOP_OFFSET: 30,
+  LEVEL_SPACING: 400, // Увеличено для лучшей читаемости
+  NODE_SPACING: 200,  // Увеличено расстояние между узлами
+  VERTICAL_SPREAD: 250, // Больше вертикального пространства
+  MIN_DISTANCE: 150,  // Минимальное расстояние между узлами
+  PREFERRED_DISTANCE: 220, // Предпочтительное расстояние
+  OPTIMIZATION_PASSES: 5, // Больше проходов оптимизации
+  CENTER_PULL_FORCE: 0.2, // Меньшая сила притяжения к центру
+  MAX_CENTER_DISTANCE: 400, // Больше допустимое расстояние от центра
+  RANDOM_OFFSET_RANGE: 80, // Увеличено для большей случайности при каждом autoLayout
+  SELF_LOOP_OFFSET: 40, // Больше отступ для self-loops
   TERMINAL_MIN_LEVEL: 4,
+  EDGE_SEPARATION: 80, // Новый параметр для разделения рёбер
 };
 
 export function calculateSmartPosition(
@@ -72,6 +73,10 @@ export function calculateSmartPosition(
     const randomOffset = (Math.random() - 0.5) * LAYOUT_CONFIG.RANDOM_OFFSET_RANGE;
     y += randomOffset;
   }
+
+  // Добавляем случайное смещение к X-координате для разнообразия
+  const randomXOffset = (Math.random() - 0.5) * (LAYOUT_CONFIG.RANDOM_OFFSET_RANGE * 0.6); // 60% от Y вариации
+  x += randomXOffset;
 
   const currentState = states[stateName];
   if (currentState?.transitions) {
@@ -199,13 +204,16 @@ export function groupNodesByLevel(levels: NodeLevels, states: any): NodesByLevel
   for (const level of Object.keys(nodesByLevel)) {
       if(!nodesByLevel[parseInt(level)]) continue;
     nodesByLevel[parseInt(level)].sort((a, b) => {
-      const stateA = states[a] as any;
-      const stateB = states[b] as any;
+      const stateA = states && states[a] as any;
+      const stateB = states && states[b] as any;
 
       const getNodePriority = (stateName: string, state: any) => {
         if (stateName.includes('terminal')) return 0;
 
         if (stateName.includes('initial')) return 100;
+
+        // Добавляем защиту от null/undefined состояний
+        if (!state) return 40;
 
         if (state.transitions) {
           const transitionsArray = Array.isArray(state.transitions)
@@ -236,7 +244,8 @@ export function groupNodesByLevel(levels: NodeLevels, states: any): NodesByLevel
       }
 
       const getTransitionsCount = (state: any) => {
-        if (!state.transitions) return 0;
+        // Добавляем защиту от null/undefined состояний
+        if (!state || !state.transitions) return 0;
         return Array.isArray(state.transitions)
           ? state.transitions.length
           : Object.keys(state.transitions).length;
@@ -303,9 +312,93 @@ export function optimizePositions(positions: { [key: string]: NodePosition }): v
   }
 }
 
+// Функция для предотвращения пересечения рёбер
+function avoidEdgeCrossings(positions: { [key: string]: NodePosition }, graph: GraphNode): void {
+  const stateNames = Object.keys(positions);
+  
+  // Проходим несколько раз для оптимизации
+  for (let pass = 0; pass < 3; pass++) {
+    for (const stateName of stateNames) {
+      const connections = graph[stateName] || [];
+      
+      // Если у узла есть соединения, стараемся расположить их так, чтобы избежать пересечений
+      if (connections.length > 1) {
+        // Сортируем целевые узлы по их Y координатам
+        const sortedConnections = connections
+          .filter(target => positions[target])
+          .sort((a, b) => positions[a].y - positions[b].y);
+        
+        // Распределяем узлы равномерно по вертикали
+        const currentPos = positions[stateName];
+        if (!currentPos) continue; // Защита от отсутствия позиции
+        
+        const spread = LAYOUT_CONFIG.EDGE_SEPARATION * (sortedConnections.length - 1);
+        
+        sortedConnections.forEach((target, index) => {
+          const targetPos = positions[target];
+          if (!targetPos) return; // Защита от отсутствия позиции цели
+          
+          const desiredY = currentPos.y - spread/2 + index * LAYOUT_CONFIG.EDGE_SEPARATION;
+          
+          // Плавное смещение к желаемой позиции
+          positions[target].y = targetPos.y * 0.7 + desiredY * 0.3;
+        });
+      }
+    }
+  }
+}
+
+// Улучшенная функция размещения в форме дерева
+function arrangeAsTree(positions: { [key: string]: NodePosition }, graph: GraphNode, levels: NodeLevels): void {
+  // Создаем локальную версию groupNodesByLevel без зависимости от states
+  const nodesByLevel: NodesByLevel = {};
+  
+  for (const [stateName, level] of Object.entries(levels)) {
+    if (!nodesByLevel[level]) {
+      nodesByLevel[level] = [];
+    }
+    nodesByLevel[level].push(stateName);
+  }
+  
+  Object.keys(nodesByLevel).forEach(levelStr => {
+    const level = parseInt(levelStr);
+    const nodesInLevel = nodesByLevel[level];
+    
+    if (!nodesInLevel || nodesInLevel.length <= 1) return;
+    
+    // Сортируем узлы в уровне по количеству соединений (больше соединений - ближе к центру)
+    const sortedNodes = nodesInLevel.sort((a, b) => {
+      const connectionsA = (graph[a] || []).length;
+      const connectionsB = (graph[b] || []).length;
+      return connectionsB - connectionsA;
+    });
+    
+    // Размещаем узлы равномерно по вертикали
+    const totalHeight = (sortedNodes.length - 1) * LAYOUT_CONFIG.NODE_SPACING;
+    const startY = -totalHeight / 2;
+    
+    sortedNodes.forEach((nodeName, index) => {
+      if (positions[nodeName]) {
+        positions[nodeName].y = startY + index * LAYOUT_CONFIG.NODE_SPACING;
+      }
+    });
+  });
+}
+
 export function applyAutoLayout(states: any, initialState: string): { [key: string]: NodePosition } {
   const positions: { [key: string]: NodePosition } = {};
+  
+  // Защита от null/undefined states
+  if (!states || typeof states !== 'object') {
+    return positions;
+  }
+  
   const stateNames = Object.keys(states);
+  
+  // Защита от пустого списка состояний
+  if (stateNames.length === 0) {
+    return positions;
+  }
 
   let actualInitialState = initialState;
   if (!actualInitialState || !states[actualInitialState]) {
@@ -318,6 +411,7 @@ export function applyAutoLayout(states: any, initialState: string): { [key: stri
   const hasValidLevels = Object.values(levels).some(level => level > 0);
 
   if (!hasValidLevels) {
+    // Линейное размещение если нет уровней
     stateNames.forEach((stateName, index) => {
       positions[stateName] = {
         x: index * LAYOUT_CONFIG.LEVEL_SPACING,
@@ -325,11 +419,24 @@ export function applyAutoLayout(states: any, initialState: string): { [key: stri
       };
     });
   } else {
+    // Размещение на основе уровней
     for (const stateName of stateNames) {
       positions[stateName] = calculateSmartPosition(stateName, states, actualInitialState);
     }
 
+    // Применяем улучшения для лучшей читаемости
+    arrangeAsTree(positions, graph, levels);
+    avoidEdgeCrossings(positions, graph);
     optimizePositions(positions);
+    
+    // Добавляем финальную случайность для разнообразия макетов при каждом вызове autoLayout
+    for (const stateName of stateNames) {
+      const finalRandomX = (Math.random() - 0.5) * 40; // ±20px
+      const finalRandomY = (Math.random() - 0.5) * 40; // ±20px
+      
+      positions[stateName].x += finalRandomX;
+      positions[stateName].y += finalRandomY;
+    }
   }
 
   return positions;

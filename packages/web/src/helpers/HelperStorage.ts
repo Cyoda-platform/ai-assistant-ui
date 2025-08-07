@@ -23,7 +23,21 @@ export default class HelperStorage {
   }
 
   public clear(): void {
+    const keysToKeep = ['app:consentDialog'];
+
+    const preserved = {};
+    keysToKeep.forEach(key => {
+      const value = this.storage.getItem(key);
+      if (value !== null) {
+        preserved[key] = value;
+      }
+    });
+
     this.storage.clear();
+
+    Object.keys(preserved).forEach(key => {
+      this.storage.setItem(key, preserved[key]);
+    });
   }
 
   private isJsonString(str: string): boolean {

@@ -64,7 +64,7 @@
 
 <script setup lang="ts">
 import {templateRef} from "@vueuse/core";
-import {VueFlow, ConnectionMode} from '@vue-flow/core'
+import {VueFlow, ConnectionMode, useVueFlow} from '@vue-flow/core'
 import {Background} from '@vue-flow/background'
 import {ControlButton, Controls} from '@vue-flow/controls'
 import Editor from "@/components/Editor/Editor.vue";
@@ -76,7 +76,7 @@ import EditEdgeConditionalDialog from "@/components/ChatBot/ChatBotEditorWorkflo
 import WorkflowMetaDialog from "@/components/ChatBot/ChatBotEditorWorkflow/WorkflowMetaDialog.vue";
 import {useWorkflowEditor} from './ChatBotEditorWorkflow/composables/useWorkflowEditor';
 import useAssistantStore from "@/stores/assistant.ts";
-import {computed, provide, markRaw, ref} from "vue";
+import {computed, provide, markRaw, ref, watch, nextTick} from "vue";
 import EditorViewMode from "@/components/ChatBot/EditorViewMode.vue";
 
 const props = defineProps<{
@@ -103,7 +103,6 @@ const {
   addNewState,
   autoLayout,
   onUpdateWorkflowMetaDialog,
-  onUpdateTransitionPosition,
   onResize,
   canUndo,
   canRedo,
@@ -111,8 +110,6 @@ const {
   redoAction,
   isDraggingConnection,
 } = useWorkflowEditor(props, assistantStore);
-
-provide('onUpdateTransitionPosition', onUpdateTransitionPosition);
 
 const edgeTypes = {
   custom: markRaw(EdgeWithTooltip),
@@ -130,13 +127,21 @@ const isShowVueFlow = computed(() => {
 const isShowEditor = computed(() => {
   return ['editor', 'editorPreview'].includes(editorMode.value);
 })
+
+const {fitView} = useVueFlow();
+
+watch(editorMode, ()=>{
+  nextTick(()=>{
+    fitView();
+  })
+})
 </script>
 
 <style lang="scss">
 .chat-bot-editor-workflow {
   width: 100%;
-  min-height: calc(100vh - 81px);
-  height: calc(100% - 81px);
+  min-height: calc(100vh - 137px);
+  height: calc(100% - 137px);
 
   .vue-flow__controls {
     display: flex;
