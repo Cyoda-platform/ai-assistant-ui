@@ -201,6 +201,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         for (const [groupKey, transitions] of transitionGroups.entries()) {
             transitions.forEach((transitionInfo, index) => {
                 const {transitionId, source, target, transitionData} = transitionInfo;
+                // Create internal unique id to distinguish transitions with same name in different states
+                const internalTransitionId = `${source}-${transitionId}`;
 
                 const sourceNode = nodes.value.find(n => n.id === source);
                 const targetNode = nodes.value.find(n => n.id === target);
@@ -267,10 +269,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 }
 
                 // Получаем позицию метки из workflowMetaData
-                const labelOffset = metaData?.transitionLabels?.[transitionId] || { x: 0, y: 0 };
+                const labelOffset = metaData?.transitionLabels?.[internalTransitionId] || { x: 0, y: 0 };
 
                 const edge: WorkflowEdge = {
-                    id: `${source}-${target}-${transitionId}`,
+                    id: `${source}-${target}-${internalTransitionId}`,
                     source,
                     target,
                     sourceHandle,
@@ -285,9 +287,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                         color: 'var(--text-color-regular)',
                     },
                     data: {
-                        transitionId,
+                        transitionId: internalTransitionId, // internal unique id
                         stateName: source,
-                        transitionName: transitionId,
+                        transitionName: transitionId, // original name preserved separately
                         transitionData,
                         sourceOffset,
                         targetOffset,

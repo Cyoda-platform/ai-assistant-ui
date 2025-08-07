@@ -42,13 +42,13 @@
       :class="isManual ? 'manual' : 'auto'"
       @mouseenter="isHoveringLabel = true"
       @mouseleave="isHoveringLabel = false"
+      @mousedown="startDrag"
+      @dragstart.prevent
     >
         <div
             class="transition-label"
-            @mousedown="startDrag"
-            @dragstart.prevent
         >
-          {{ transitionId }}
+          {{ originalTransitionName }}
         </div>
         <div class="transition-actions">
           <button
@@ -119,9 +119,10 @@ const hoveredNodeId = ref<string | null>(null)
 const currentMousePosition = ref({x: 0, y: 0})
 const svgElementRef = ref<SVGSVGElement | null>(null)
 
-const transitionId = computed(() => {
-  return props.data?.transitionData?.name || 'unnamed';
-})
+// Original transition name (may repeat across states)
+const originalTransitionName = computed(() => props.data?.transitionData?.name || 'unnamed')
+// Internal unique id scoped by source state to avoid collisions
+const transitionId = computed(() => `${props.source}-${originalTransitionName.value}`)
 
 const isHighlighted = computed(() => isTransitionHighlighted(transitionId.value))
 const hoveredEdgeGlobal = ref<string | null>(null)
@@ -339,7 +340,7 @@ function endDrag() {
 
 function deleteEdge() {
   ElMessageBox.confirm(
-      `Are you sure you want to delete the transition "${transitionId.value}"?`,
+      `Are you sure you want to delete the transition "${originalTransitionName.value}"?`,
       'Delete Transition',
       {
         confirmButtonText: 'Delete',
@@ -350,7 +351,7 @@ function deleteEdge() {
   ).then(() => {
     eventBus.$emit('delete-transition', {
       stateName: props.source,
-      transitionName: transitionId.value
+      transitionName: originalTransitionName.value
     })
   }).catch(() => {
     console.log('Transition deletion cancelled')
@@ -360,14 +361,14 @@ function deleteEdge() {
 function editTransition() {
   eventBus.$emit('get-transition-data', {
     stateName: props.source,
-    transitionName: transitionId.value,
+    transitionName: originalTransitionName.value,
     callback: (transitionData: object | null) => {
       eventBus.$emit('show-condition-popup', {
         id: props.id,
         source: props.source,
         target: props.target,
         stateName: props.source,
-        transitionName: transitionId.value,
+        transitionName: originalTransitionName.value,
         transitionData: transitionData || props.data?.transitionData || null
       })
     }
@@ -426,7 +427,7 @@ function startTransitionDrag(event: MouseEvent) {
   }
 
   eventBus.$emit('transition-drag-start', {
-    transitionId: transitionId.value,
+    transitionId: originalTransitionName.value, // use original name for workflow operations
     sourceNode: props.source,
     targetNode: props.target,
     transitionData: props.data?.transitionData
@@ -462,7 +463,7 @@ function onTransitionDrag(event: MouseEvent) {
   }
 
   eventBus.$emit('transition-dragging', {
-    transitionId: transitionId.value,
+    transitionId: originalTransitionName.value, // use original name for workflow operations
     mouseX: event.clientX,
     mouseY: event.clientY,
     startX: transitionDragStart.value.x,
@@ -474,7 +475,7 @@ function endTransitionDrag(event: MouseEvent) {
   if (!isDraggingTransition.value) return
 
   eventBus.$emit('transition-drag-end', {
-    transitionId: transitionId.value,
+    transitionId: originalTransitionName.value, // use original name for workflow operations
     sourceNode: props.source,
     targetNode: props.target,
     mouseX: event.clientX,
@@ -527,6 +528,11 @@ function endTransitionDrag(event: MouseEvent) {
   padding: 4px 8px;
   min-height: 20px;
   transition: all 0.2s ease;
+  cursor: grab;
+}
+
+.transition-label-container:active {
+  cursor: grabbing;
 }
 
 .transition-label-container.manual {
@@ -543,7 +549,6 @@ function endTransitionDrag(event: MouseEvent) {
   font-size: 12px;
   font-weight: 500;
   color: #fff;
-  cursor: grab;
   user-select: none;
   display: flex;
   align-items: center;
@@ -552,10 +557,6 @@ function endTransitionDrag(event: MouseEvent) {
   white-space: nowrap;
   background: transparent;
   border: none;
-}
-
-.transition-label:active {
-  cursor: grabbing;
 }
 
 .transition-actions {
