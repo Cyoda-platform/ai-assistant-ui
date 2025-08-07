@@ -140,8 +140,8 @@ watch(editorMode, ()=>{
 <style lang="scss">
 .chat-bot-editor-workflow {
   width: 100%;
-  min-height: calc(100vh - 81px);
-  height: calc(100% - 81px);
+  min-height: calc(100vh - 137px);
+  height: calc(100% - 137px);
 
   .vue-flow__controls {
     display: flex;
