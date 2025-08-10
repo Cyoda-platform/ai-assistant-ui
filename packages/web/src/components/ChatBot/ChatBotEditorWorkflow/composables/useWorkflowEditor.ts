@@ -732,8 +732,18 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
 
         const stateData = parsed.states[oldName];
-        delete parsed.states[oldName];
-        parsed.states[newName] = stateData;
+        
+        // Создаем новый объект states с сохранением порядка
+        const newStates = {};
+        Object.keys(parsed.states).forEach(stateName => {
+            if (stateName === oldName) {
+                // Заменяем старое имя на новое в том же месте
+                newStates[newName] = stateData;
+            } else {
+                newStates[stateName] = parsed.states[stateName];
+            }
+        });
+        parsed.states = newStates;
 
         if (parsed.initialState === oldName) {
             parsed.initialState = newName;

@@ -296,19 +296,10 @@ const editStateName = async () => {
     width: 12px;
     height: auto;
     fill: currentColor;
+    &:hover {
+      opacity: 0.5;
+    }
   }
-}
-
-.edit-state-btn:hover {
-  background: rgba(24, 144, 255, 0.2);
-  border-color: rgba(24, 144, 255, 0.5);
-  color: rgba(24, 144, 255, 0.9);
-}
-
-.delete-state-btn:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.5);
-  color: rgba(239, 68, 68, 0.9);
 }
 
 .node-footer {
