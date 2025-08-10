@@ -35,7 +35,12 @@ const jsonError = ref('')
 const emit = defineEmits(['update'])
 
 function openDialog(data) {
-  localData.value = JSON.stringify(data, null, 2);
+  const dataStr = JSON.stringify(data, null, 2);
+  if (dataStr == '{}') {
+    localData.value = '';
+  } else {
+    localData.value = dataStr;
+  }
   dialogVisible.value = true;
 }
 

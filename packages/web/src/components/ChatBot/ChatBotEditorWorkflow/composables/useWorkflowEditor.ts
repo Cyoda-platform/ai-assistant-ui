@@ -125,26 +125,29 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     
     // Функция загрузки данных для текущего technicalId
     const loadDataForCurrentId = () => {
-        const canvasDataFromStorage = helperStorage.get(workflowCanvasDataKey.value, '');
-        const metaDataFromStorage = helperStorage.get(workflowMetaDataKey.value, {});
+        const canvasDataFromStorage = helperStorage.get(workflowCanvasDataKey.value, null);
+        const metaDataFromStorage = helperStorage.get(workflowMetaDataKey.value, null);
         
         // Если canvasDataFromStorage уже строка - используем как есть, иначе stringify
         const canvasDataString = typeof canvasDataFromStorage === 'string' 
             ? canvasDataFromStorage 
-            : JSON.stringify(canvasDataFromStorage, null, 2);
-            
-        canvasData.value = canvasDataString;
-        workflowMetaData.value = metaDataFromStorage;
+            : (canvasDataFromStorage ? JSON.stringify(canvasDataFromStorage, null, 2) : null);
+
+        canvasData.value = canvasDataString || '';
+        workflowMetaData.value = metaDataFromStorage || '';
         
-        // Очищаем undo/redo историю при смене чата
-        initialize('');
+        // Очищаем undo/redo историю при смене чата - инициализируем с текущими данными
+        initialize(canvasData.value);
         
         // Очищаем позиции для нового чата
         initialPositions.value = {};
         initialTransitionLabels.value = {};
     };
     
-    const canvasData = ref(JSON.stringify(helperStorage.get(workflowCanvasDataKey.value, ''), null, 2));
+    const initialCanvasData = helperStorage.get(workflowCanvasDataKey.value, null);
+    const canvasData = ref(
+        initialCanvasData ? JSON.stringify(initialCanvasData, null, 2) : ''
+    );
     const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
     const editorMode = ref(helperStorage.get(EDITOR_MODE, 'preview'));
     const isLoading = ref(false);
@@ -166,13 +169,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         initialize
     } = useUndoRedo();
 
-    initialize('');
+    // Инициализируем undo/redo с текущими данными canvasData вместо пустой строки
+    initialize(canvasData.value);
 
     const isDraggingConnection = ref(false);
 
     const {setViewport, fitView} = useVueFlow();
 
-    const workflowMetaData = ref(helperStorage.get(workflowMetaDataKey.value, {}));
+    const workflowMetaData = ref(helperStorage.get(workflowMetaDataKey.value, null) || {});
 
     const initialPositions = ref<{ [key: string]: NodePosition }>({});
     const initialTransitionLabels = ref<{ [key: string]: { x: number; y: number } }>({});
@@ -265,7 +269,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     }
                 }
 
-                const metaData: any = workflowMetaData.value;
+                const metaData: any = workflowMetaData.value || {};
                 let sourceOffset = {x: 0, y: 0};
                 let targetOffset = {x: 0, y: 0};
 
@@ -338,7 +342,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const result: WorkflowNode[] = [];
         let parsed: WorkflowData;
 
-        const savedPositions = workflowMetaData.value;
+        const savedPositions = workflowMetaData.value || {};
 
         try {
             parsed = JSON.parse(canvasData.value);
@@ -361,7 +365,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const shouldSaveInitialState = Object.keys(initialPositions.value).length === 0;
 
         if (shouldSaveInitialState) {
-            const metaData: any = workflowMetaData.value;
+            const metaData: any = workflowMetaData.value || {};
             if (metaData?.transitionLabels) {
                 initialTransitionLabels.value = {...metaData.transitionLabels};
             }
@@ -486,7 +490,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         console.log('Final state.transitions:', state.transitions);
 
-        workflowMetaData.value = {...workflowMetaData.value, ...currentPositions};
+        workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
 
         canvasData.value = JSON.stringify(parsed, null, 2);
 
@@ -531,7 +535,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         if (transitionIndex !== -1) {
             state.transitions.splice(transitionIndex, 1);
 
-            workflowMetaData.value = {...workflowMetaData.value, ...currentPositions};
+            workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
 
             canvasData.value = JSON.stringify(parsed, null, 2);
 
@@ -581,7 +585,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         delete currentPositions[stateName];
 
-        const updatedMetaData: any = {...workflowMetaData.value, ...currentPositions};
+        const updatedMetaData: any = {...(workflowMetaData.value || {}), ...currentPositions};
 
         if (updatedMetaData[stateName]) {
             delete updatedMetaData[stateName];
@@ -680,7 +684,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             delete currentPositions[oldName];
         }
 
-        const updatedMetaData: any = {...workflowMetaData.value, ...currentPositions};
+        const updatedMetaData: any = {...(workflowMetaData.value || {}), ...currentPositions};
 
         if (updatedMetaData[oldName]) {
             updatedMetaData[newName] = updatedMetaData[oldName];
@@ -737,7 +741,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         if (transitionIndex !== -1) {
             state.transitions[transitionIndex].next = newTarget;
 
-            workflowMetaData.value = {...workflowMetaData.value, ...currentPositions};
+            workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
 
             canvasData.value = JSON.stringify(parsed, null, 2);
 
@@ -936,7 +940,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         event.nodes.forEach((node: WorkflowNode) => {
             positions[node.id] = {...node.position};
         });
-        workflowMetaData.value = {...workflowMetaData.value, ...positions};
+        workflowMetaData.value = {...(workflowMetaData.value || {}), ...positions};
         saveState(createSnapshot());
     }
 
@@ -959,7 +963,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         nodes.value.forEach(node => {
             currentPositions[node.id] = {x: node.position.x, y: node.position.y};
         });
-        workflowMetaData.value = {...workflowMetaData.value, ...currentPositions};
+        workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
 
         let parsed: WorkflowData;
         try {
@@ -1004,8 +1008,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         console.log('Clearing all meta information (positions and transition labels)');
         
-        // Очищаем все meta данные
-        workflowMetaData.value = {};
+        // Очищаем все meta данные - сбрасываем до null, а fallback в компонентах даст {}
+        workflowMetaData.value = null;
         
         // Очищаем сохраненные исходные позиции
         initialPositions.value = {};
@@ -1115,7 +1119,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             position: randomizedPositions[node.id] || node.position
         }));
 
-        workflowMetaData.value = {...workflowMetaData.value, ...randomizedPositions};
+        workflowMetaData.value = {...(workflowMetaData.value || {}), ...randomizedPositions};
 
         eventBus.$emit('reset-edge-positions');
 
@@ -1125,7 +1129,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     function handleUpdateTransitionLabelPosition(eventData: any) {
         const {transitionId, offset} = eventData;
 
-        const metaData: any = {...workflowMetaData.value};
+        const metaData: any = {...(workflowMetaData.value || {})};
 
         if (!metaData.transitionLabels) {
             metaData.transitionLabels = {};
@@ -1298,7 +1302,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     })
 
     function resetAllTransitionPositions() {
-        const metaData: any = {...workflowMetaData.value};
+        const metaData: any = {...(workflowMetaData.value || {})};
         if (metaData.transitionLabels) {
             delete metaData.transitionLabels;
             workflowMetaData.value = metaData;
