@@ -36,7 +36,7 @@ const emit = defineEmits(['update'])
 
 function openDialog(data) {
   const dataStr = JSON.stringify(data, null, 2);
-  if (['{}', 'null'].includes(dataStr)) {
+  if (['{}', 'null', '""'].includes(dataStr)) {
     localData.value = '';
   } else {
     localData.value = dataStr;
