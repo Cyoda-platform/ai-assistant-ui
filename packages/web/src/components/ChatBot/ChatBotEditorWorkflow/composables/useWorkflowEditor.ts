@@ -333,9 +333,59 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         return result;
     });
 
+    function cleanupStaleMetadata(currentStates: Record<string, any>) {
+        const currentMetaData = workflowMetaData.value || {};
+        let hasChanges = false;
+        const cleanedMetaData = {...currentMetaData};
+
+        // Получаем все текущие состояния и их переходы
+        const currentStateNames = new Set(Object.keys(currentStates));
+        const currentTransitionIds = new Set<string>();
+        
+        for (const [stateName, stateData] of Object.entries(currentStates)) {
+            const state = stateData as WorkflowState;
+            if (state.transitions) {
+                state.transitions.forEach(transition => {
+                    currentTransitionIds.add(`${stateName}-${transition.name}`);
+                });
+            }
+        }
+
+        // Очищаем позиции несуществующих состояний
+        for (const stateKey of Object.keys(cleanedMetaData)) {
+            if (stateKey !== 'transitionLabels' && !currentStateNames.has(stateKey)) {
+                delete cleanedMetaData[stateKey];
+                hasChanges = true;
+            }
+        }
+
+        // Очищаем позиции несуществующих переходов
+        if (cleanedMetaData.transitionLabels) {
+            const cleanedTransitionLabels = {...cleanedMetaData.transitionLabels};
+            for (const transitionId of Object.keys(cleanedTransitionLabels)) {
+                if (!currentTransitionIds.has(transitionId)) {
+                    delete cleanedTransitionLabels[transitionId];
+                    hasChanges = true;
+                }
+            }
+            cleanedMetaData.transitionLabels = cleanedTransitionLabels;
+        }
+
+        // Обновляем метаданные если были изменения
+        if (hasChanges) {
+            workflowMetaData.value = Object.keys(cleanedMetaData).length > 0 ? cleanedMetaData : null;
+            helperStorage.set(workflowMetaDataKey.value, workflowMetaData.value);
+        }
+    }
+
     function generateNodes() {
         if (!canvasData.value || canvasData.value.trim() === '') {
             nodes.value = [];
+            // Очищаем метаданные при пустом редакторе
+            if (workflowMetaData.value) {
+                workflowMetaData.value = null;
+                helperStorage.set(workflowMetaDataKey.value, null);
+            }
             return;
         }
 
@@ -357,6 +407,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             nodes.value = [];
             return;
         }
+
+        // Очищаем устаревшие метаданные
+        cleanupStaleMetadata(states);
 
         const initialState = parsed.initialState;
 
@@ -491,6 +544,23 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         console.log('Final state.transitions:', state.transitions);
 
         workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
+
+        // Обновляем transitionLabels при переименовании transition
+        if (!isNewTransition && oldTransitionName && oldTransitionName !== transitionName) {
+            const currentMetaData = workflowMetaData.value || {};
+            if (currentMetaData.transitionLabels) {
+                const oldTransitionId = `${stateName}-${oldTransitionName}`;
+                const newTransitionId = `${stateName}-${transitionName}`;
+                
+                if (currentMetaData.transitionLabels[oldTransitionId]) {
+                    // Переносим позицию на новый ключ
+                    currentMetaData.transitionLabels[newTransitionId] = currentMetaData.transitionLabels[oldTransitionId];
+                    delete currentMetaData.transitionLabels[oldTransitionId];
+                    workflowMetaData.value = currentMetaData;
+                    // Метаданные автоматически сохранятся через watch
+                }
+            }
+        }
 
         canvasData.value = JSON.stringify(parsed, null, 2);
 
