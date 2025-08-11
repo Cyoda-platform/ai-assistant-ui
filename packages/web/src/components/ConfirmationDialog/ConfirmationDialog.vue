@@ -3,7 +3,7 @@
       modal-class="confirmation-dialog"
       v-model="dialogVisible"
       title="Consent Dialog"
-      width="500"
+      :width="widthComputed"
       :close-on-click-modal="false"
       :close-on-press-escape="false"
       :show-close="false"
@@ -31,8 +31,9 @@
 </template>
 
 <script setup lang="ts">
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import useAppStore from "@/stores/app";
+import helperBreakpoints from "@/helpers/HelperBreakpoints";
 
 const appStore = useAppStore();
 const dialogVisible = ref(appStore.consentDialog);
@@ -42,6 +43,13 @@ function onClickClose() {
   dialogVisible.value = false;
   appStore.setConsentDialog(false);
 }
+
+const widthComputed = computed(() => {
+  if (helperBreakpoints.smaller('md').value) {
+    return '90%';
+  }
+  return '500px';
+})
 </script>
 
 <style lang="scss">

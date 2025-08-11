@@ -1,3 +1,5 @@
+@use '@/assets/css/particular/breakpoints';
+
 @mixin bubble_body {
   font-size: 16px;
   line-height: 1.5;
@@ -5,6 +7,10 @@
   padding-bottom: 0;
   overflow-wrap: break-word;
   color: var(--bubble-text-color);
+
+  @include breakpoints.respond-max('md') {
+    padding-right: 0;
+  }
 
   ul, ol {
     padding: 0 0 0 20px;

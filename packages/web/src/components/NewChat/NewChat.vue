@@ -255,6 +255,7 @@ async function onClickSend() {
     margin-top: 20px;
     font-size: 12px;
     text-align: center;
+    color: var(--text-color-regular);
   }
 }
 </style>
