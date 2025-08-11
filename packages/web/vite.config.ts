@@ -12,12 +12,6 @@ export default defineConfig({
     vueJsx(),
     svgLoader(),
   ],
-  server: {
-    https: {
-      key: fs.readFileSync('./cert/localhost-key.pem'),
-      cert: fs.readFileSync('./cert/localhost-cert.pem')
-    },
-  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
