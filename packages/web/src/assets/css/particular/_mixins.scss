@@ -10,6 +10,7 @@
 
   @include breakpoints.respond-max('md') {
     padding-right: 0;
+    margin-left: -52px;
   }
 
   ul, ol {

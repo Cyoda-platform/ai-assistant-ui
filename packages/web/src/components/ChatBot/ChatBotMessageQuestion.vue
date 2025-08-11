@@ -108,6 +108,9 @@ function onClickCopy() {
 
   @include breakpoints.respond-max('md') {
     padding: 24px 8px 8px 68px;
+    @include breakpoints.respond-max('md') {
+      padding-right: 18px;
+    }
   }
 
   &__cyoda-wrapper-icon {
