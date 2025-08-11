@@ -8,6 +8,7 @@ export default class HelperMarkdown {
     static parseMarkdown(text) {
 
         const renderer = new marked.Renderer();
+        const defaultTable = renderer.table.bind(renderer);
 
         renderer.link = function ({href, title, text}) {
             const target = '_blank';
@@ -15,36 +16,8 @@ export default class HelperMarkdown {
             return `<a href="${href}" title="${title || ''}" target="${target}" rel="${rel}">${text}</a>`;
         };
 
-        renderer.table = function (token) {
-            const header = token.header;
-            const body = token.rows;
-            
-            let headerHTML = '';
-            if (header && header.length > 0) {
-                const headerCells = header.map(cell => `<th>${cell.text}</th>`).join('');
-                headerHTML = `<thead><tr>${headerCells}</tr></thead>`;
-            }
-            
-            let bodyHTML = '';
-            if (body && body.length > 0) {
-                const bodyRows = body.map(row => {
-                    const rowCells = row.map(cell => `<td>${cell.text}</td>`).join('');
-                    return `<tr>${rowCells}</tr>`;
-                }).join('');
-                bodyHTML = `<tbody>${bodyRows}</tbody>`;
-            }
-            
-            return `<div class="table-wrap"><table class="markdown-table">${headerHTML}${bodyHTML}</table></div>`;
-        };
-
-        renderer.tablerow = function (token) {
-            return `<tr>${token.text}</tr>`;
-        };
-
-        renderer.tablecell = function (token) {
-            const tag = token.header ? 'th' : 'td';
-            const align = token.align ? ` style="text-align: ${token.align}"` : '';
-            return `<${tag}${align}>${token.text}</${tag}>`;
+        renderer.table = (tokens) => {
+            return `<div class="markdown-table-wrap">${defaultTable(tokens)}</div>`;
         };
 
         renderer.code = function ({text, lang, raw}) {
@@ -66,7 +39,7 @@ export default class HelperMarkdown {
         };
 
         return marked.parse(text, {
-            renderer, 
+            renderer,
             breaks: true,
             gfm: true
         });

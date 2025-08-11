@@ -11,11 +11,11 @@
   background-color: var(--bubble-question-bg-color);
 }
 
-.table-wrap {
+.markdown-table-wrap {
   overflow-x: auto;
-  margin: 1rem 0;
+  margin: 16px 0 !important;
 
-  .markdown-table {
+  table {
     width: 100%;
     border-collapse: collapse;
     border: 1px solid var(--input-border-color);
