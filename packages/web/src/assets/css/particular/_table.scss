@@ -10,3 +10,35 @@
 .el-table--enable-row-hover .el-table__body tr:hover>td.el-table__cell {
   background-color: var(--bubble-question-bg-color);
 }
+
+.table-wrap {
+  overflow-x: auto;
+  margin: 1rem 0;
+
+  .markdown-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--input-border-color);
+    background-color: var(--bg-color);
+    color: var(--text-color-regular);
+
+    th, td {
+      padding: 8px 12px;
+      border: 1px solid var(--input-border-color);
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--bubble-notification-bg-color);
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background-color: var(--bubble-question-bg-color);
+    }
+
+    tr:hover {
+      background-color: var(--bubble-notification-bg-color);
+    }
+  }
+}
