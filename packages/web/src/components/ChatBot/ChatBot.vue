@@ -221,6 +221,11 @@ watch(isLastMessageAnswer, async (value) => {
   height: calc(100% - 60px);
   overflow: hidden;
 
+  @include breakpoints.respond-max('md') {
+    min-height: unset;
+    max-height: calc(100dvh - 60px);
+  }
+
   &__body {
     flex-grow: 1;
     margin-bottom: 20px;

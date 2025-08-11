@@ -159,23 +159,27 @@ async function pollChat() {
 
 async function onAnswer(answer: any) {
   disabled.value = true;
-  let response;
-  if (answer.file) {
-    const formData = new FormData();
-    formData.append('file', answer.file);
-    formData.append('answer', answer.answer);
+  try {
+    let response;
+    if (answer.file) {
+      const formData = new FormData();
+      formData.append('file', answer.file);
+      formData.append('answer', answer.answer);
 
-    const {data} = await assistantStore.postAnswers(technicalId.value, formData);
-    response = data;
-  } else {
-    const {data} = await assistantStore.postTextAnswers(technicalId.value, answer);
-    response = data;
+      const {data} = await assistantStore.postAnswers(technicalId.value, formData);
+      response = data;
+    } else {
+      const {data} = await assistantStore.postTextAnswers(technicalId.value, answer);
+      response = data;
+    }
+    if (!response.answer_technical_id) return;
+    answer.technical_id = response.answer_technical_id;
+    addMessage(answer);
+    isLoading.value = true;
+    loadChatHistory();
+  } catch {
+    disabled.value = false;
   }
-  if (!response.answer_technical_id) return;
-  answer.technical_id = response.answer_technical_id;
-  addMessage(answer);
-  isLoading.value = true;
-  loadChatHistory();
 }
 
 function addMessage(el) {
