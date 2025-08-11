@@ -109,6 +109,7 @@ function onClickApproveQuestion() {
 
 <style lang="scss">
 @use '@/assets/css/particular/mixins';
+@use '@/assets/css/particular/breakpoints';
 
 .chat-bot-message-function {
   background: var(--bubble-notification-bg-color);
@@ -119,6 +120,9 @@ function onClickApproveQuestion() {
   position: relative;
   margin-bottom: 25px;
   box-shadow: -1px 1px 20px var(--bubble-box-shadow-color);
+  @include breakpoints.respond-max('md') {
+    padding-right: 16px;
+  }
 
   &__edit_icon_wrapper {
     position: absolute;
@@ -160,7 +164,7 @@ function onClickApproveQuestion() {
     }
   }
 
-  &__body {
+  &__item {
     margin-top: 12px;
     @include mixins.bubble_body;
   }

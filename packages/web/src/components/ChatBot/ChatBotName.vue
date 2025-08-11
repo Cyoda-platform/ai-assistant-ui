@@ -38,7 +38,7 @@ const chatName = computed(() => {
     text-overflow: ellipsis;
     overflow: hidden;
     @include breakpoints.respond-max('md') {
-      max-width: calc(100vw - 180px);
+      max-width: calc(100vw - 220px);
     }
   }
 }

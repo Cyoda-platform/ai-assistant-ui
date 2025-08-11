@@ -117,6 +117,7 @@ function resetForm() {
 
 <style lang="scss">
 @use '@/assets/css/particular/mixins';
+@use '@/assets/css/particular/breakpoints';
 
 .chat-bot-message-notification {
   background: var(--bubble-notification-bg-color);
@@ -127,6 +128,10 @@ function resetForm() {
   position: relative;
   margin-bottom: 25px;
   box-shadow: -1px 1px 20px var(--bubble-box-shadow-color);
+
+  @include breakpoints.respond-max('md') {
+    padding-right: 18px;
+  }
 
   &__edit_icon_wrapper {
     position: absolute;

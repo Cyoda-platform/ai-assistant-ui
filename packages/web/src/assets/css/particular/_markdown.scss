@@ -1,7 +1,13 @@
+@use '@/assets/css/particular/breakpoints';
+
 .wrapper-mermaid, .wrapper-plantuml, .wrapper-bash, .uuid-block {
   .actions {
     text-align: right;
     margin-bottom: 16px;
+
+    @include breakpoints.respond-max('md') {
+      text-align: center;
+    }
   }
 
   .copy, .zoom-in, .zoom-out, .zoom-reset {
@@ -15,6 +21,10 @@
     width: 70px;
     text-align: center;
     font-weight: normal;
+
+    @include breakpoints.respond-max('md') {
+      margin-top: 15px;
+    }
   }
 
   .mermaid {

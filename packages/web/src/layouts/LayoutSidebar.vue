@@ -14,6 +14,7 @@ import SideBar from "@/components/SideBar/SideBar.vue";
 import {computed, nextTick, onMounted, useTemplateRef} from "vue";
 import useAppStore from "@/stores/app";
 import useAssistantStore from "@/stores/assistant";
+import helperBreakpoints from "@/helpers/HelperBreakpoints";
 
 const appStore = useAppStore();
 const assistantStore = useAssistantStore();
@@ -22,7 +23,7 @@ const sidebarRef = useTemplateRef('sidebarRef');
 const mainRef = useTemplateRef('mainRef');
 let resizeObserver: ResizeObserver | null = null;
 
-onMounted(()=>{
+onMounted(() => {
   loadChats();
 })
 
@@ -37,6 +38,7 @@ onMounted(async () => {
   if (!sidebarRef.value.rootRef || !mainRef.value) return;
 
   resizeObserver = new ResizeObserver(() => {
+    if (helperBreakpoints.smaller('md').value) return;
     const height = sidebarRef.value.rootRef!.offsetHeight;
     mainRef.value!.style.maxHeight = `${height}px`;
   });
@@ -48,6 +50,7 @@ onMounted(async () => {
 <style scoped lang="scss">
 .layout-sidebar {
   display: flex;
+
   &__sidebar {
     min-height: 100vh;
     height: auto;
