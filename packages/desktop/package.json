@@ -29,14 +29,14 @@
     "@electron-forge/publisher-github": "^7.8.3",
     "@electron/fuses": "^2.0.0",
     "@types/electron-squirrel-startup": "^1.0.2",
-    "@typescript-eslint/eslint-plugin": "^8.39.0",
-    "@typescript-eslint/parser": "^8.39.0",
+    "@typescript-eslint/eslint-plugin": "^8.39.1",
+    "@typescript-eslint/parser": "^8.39.1",
     "electron": "37.2.6",
-    "eslint": "^9.32.0",
+    "eslint": "^9.33.0",
     "eslint-plugin-import": "^2.32.0",
     "ts-node": "^10.9.2",
     "typescript": "~5.9.2",
-    "vite": "^7.0.6"
+    "vite": "^7.1.2"
   },
   "keywords": [],
   "author": {
