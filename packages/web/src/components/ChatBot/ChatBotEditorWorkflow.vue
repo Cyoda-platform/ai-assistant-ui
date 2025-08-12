@@ -12,6 +12,7 @@
             :class="{ 'connection-dragging': isDraggingConnection }"
             :fit-view-on-init="true"
             :zoom-on-scroll="false"
+            :zoom-on-double-click="false"
             @nodeDragStop="onNodeDragStop"
             @connect="onConnect"
             @connectStart="onConnectStart"
