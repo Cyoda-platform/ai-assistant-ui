@@ -3,10 +3,26 @@
       class="edit-edge-conditional-dialog"
       :close-on-click-modal="false"
       v-model="dialogVisible"
-      title="Edit Transition Data"
       width="600px"
       :before-close="handleClosePopup"
   >
+    <template #header>
+      <div class="edit-edge-conditional-dialog__header">
+        <span class="edit-edge-conditional-dialog__title">Edit Transition Data</span>
+        <div class="edit-edge-conditional-dialog__mode-toggle">
+          <span class="edit-edge-conditional-dialog__mode-label">Mode:</span>
+          <el-switch
+              v-model="isManualMode"
+              @change="onModeChange"
+              active-text="Manual"
+              inactive-text="Automatic"
+              :active-value="true"
+              :inactive-value="false"
+              class="edit-edge-conditional-dialog__switch"
+          />
+        </div>
+      </div>
+    </template>
     <div class="edit-edge-conditional-dialog__form">
       <div class="edit-edge-conditional-dialog__field">
         <label class="edit-edge-conditional-dialog__label">Transition Data (JSON):</label>
@@ -37,10 +53,21 @@
 import {computed, onMounted, onUnmounted, ref, watch} from "vue";
 import eventBus from "@/plugins/eventBus";
 import Editor from "@/components/Editor/Editor.vue";
+import type { EdgeData } from "./utils/edgeUtils";
+
+interface ExtendedEdgeData extends EdgeData {
+  isNewTransition?: boolean;
+}
+
+interface ValidationErrorData {
+  message?: string;
+}
 
 interface TransitionDataType {
   name: string;
   next?: string;
+  manual?: boolean;
+  [key: string]: unknown;
 }
 
 const originalConditionText = ref('')
@@ -48,8 +75,9 @@ const dialogVisible = ref(false)
 const conditionText = ref('')
 const jsonError = ref('')
 const validationError = ref('')
+const isManualMode = ref(false)
 
-const currentEdgeData = ref<any>(null)
+const currentEdgeData = ref<ExtendedEdgeData | null>(null)
 
 const hasJsonError = computed(() => {
   return jsonError.value !== '' || validationError.value !== ''
@@ -67,15 +95,24 @@ onUnmounted(() => {
   eventBus.$off('transition-saved-successfully', handleTransitionSaved)
 })
 
-function openDialog(data: any) {
+function openDialog(data: ExtendedEdgeData) {
   currentEdgeData.value = data
 
-  const defaultTransition = {
+  const defaultTransition: TransitionDataType = {
     name: data.transitionName || "",
-    next: ""
+    next: "",
+    manual: false
   }
 
-  const transitionToEdit = data.transitionData || defaultTransition
+  const transitionToEdit: TransitionDataType = (data.transitionData as TransitionDataType) || defaultTransition
+
+  // Ensure manual field exists with boolean value
+  if (typeof transitionToEdit.manual === 'undefined') {
+    transitionToEdit.manual = false
+  }
+
+  // Set manual mode based on existing data
+  isManualMode.value = !!transitionToEdit.manual
 
   conditionText.value = JSON.stringify(transitionToEdit, null, 2)
   originalConditionText.value = conditionText.value
@@ -83,11 +120,31 @@ function openDialog(data: any) {
   dialogVisible.value = true
 }
 
+function onModeChange(isManual: boolean) {
+  try {
+    const currentData = JSON.parse(conditionText.value)
+    
+    // Always set manual field with boolean value
+    currentData.manual = isManual
+    
+    conditionText.value = JSON.stringify(currentData, null, 2)
+  } catch {
+    // If JSON is invalid, create new object with the mode
+    const transitionName = currentEdgeData.value?.transitionName || "transition"
+    const newData = {
+      name: transitionName,
+      next: "",
+      manual: isManual
+    }
+    conditionText.value = JSON.stringify(newData, null, 2)
+  }
+}
+
 function cancelEdit() {
   handleClosePopup()
 }
 
-function handleValidationError(errorData: any) {
+function handleValidationError(errorData: ValidationErrorData) {
   if (errorData && errorData.message) {
     validationError.value = errorData.message
   }
@@ -141,6 +198,7 @@ watch(conditionText, (newValue) => {
   if (newValue.trim() === '') {
     jsonError.value = ''
     validationError.value = ''
+    isManualMode.value = false
     return
   }
 
@@ -151,6 +209,10 @@ watch(conditionText, (newValue) => {
     } else {
       jsonError.value = ''
     }
+    
+    // Update manual mode based on parsed data - handle both boolean and undefined
+    isManualMode.value = parsed.manual === true
+    
     validationError.value = ''
   } catch (error: unknown) {
     jsonError.value = (error as Error).message
@@ -160,6 +222,36 @@ watch(conditionText, (newValue) => {
 
 <style scoped lang="scss">
 .edit-edge-conditional-dialog {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+  }
+
+  &__title {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-color-regular);
+  }
+
+  &__mode-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__mode-label {
+    font-size: 14px;
+    color: var(--text-color-regular);
+    font-weight: 500;
+  }
+
+  &__switch {
+    --el-switch-on-color: var(--color-primary);
+    --el-switch-off-color: #dcdfe6;
+  }
+
   &__form {
     display: flex;
     flex-direction: column;
