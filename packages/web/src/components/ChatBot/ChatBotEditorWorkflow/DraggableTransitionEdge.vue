@@ -558,7 +558,6 @@ function endTransitionDrag(event: MouseEvent) {
 .transition-label {
   font-size: 12px;
   font-weight: 500;
-  color: #fff;
   user-select: none;
   display: flex;
   align-items: center;
@@ -602,7 +601,7 @@ function endTransitionDrag(event: MouseEvent) {
 }
 
 .edit-edge-btn {
-  background: #1890ff;
+  background: var(--color-primary);
   color: white;
 
   &:hover {
@@ -611,7 +610,7 @@ function endTransitionDrag(event: MouseEvent) {
 }
 
 .delete-edge-btn {
-  background: #ff4d4f;
+  background: var(--color-primary);
   color: white;
 
   &:hover {
@@ -626,40 +625,6 @@ function endTransitionDrag(event: MouseEvent) {
 .draggable-transition-edge.highlighted .transition-label {
   color: #1890ff;
   font-weight: 600;
-}
-
-.theme-dark .transition-label-container {
-  background: rgba(0, 0, 0, 0.9);
-  border-color: #434343;
-}
-
-.theme-dark .transition-label-container.manual {
-  background: var(--workflow-transition-manual-bg, var(--color-primary-dark-active));
-  border-color: var(--workflow-transition-manual-border, var(--color-primary-dark-active));
-  color: var(--workflow-transition-manual-text, #fff);
-}
-
-.theme-dark .transition-label-container.auto {
-  background: var(--workflow-transition-auto-bg, var(--color-primary));
-  border-color: var(--workflow-transition-auto-border, var(--color-primary));
-  color: var(--workflow-transition-auto-text, #fff);
-}
-
-.theme-dark .transition-label {
-  color: var(--text-color-regular);
-}
-
-.theme-dark .transition-label-container:hover {
-  border-color: #1890ff;
-}
-
-.theme-dark .draggable-transition-edge.highlighted .transition-label-container {
-  background: rgba(24, 144, 255, 0.2);
-  border-color: #1890ff;
-}
-
-.theme-dark .draggable-transition-edge.highlighted .transition-label {
-  color: #1890ff;
 }
 </style>
 
