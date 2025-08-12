@@ -85,6 +85,14 @@
       </div>
       <div class="node-actions">
         <button
+            v-if="!isEditing"
+            @click="startInlineEdit"
+            class="edit-state-btn"
+            title="Edit state name"
+        >
+          <EditIcon/>
+        </button>
+        <button
             v-if="isEditing"
             @click="finishEdit"
             class="confirm-edit-btn"
@@ -121,6 +129,7 @@ import {useDropdownManager} from './composables/useDropdownManager'
 import {useTransitionHighlight} from './composables/useTransitionHighlight'
 import eventBus from '../../../plugins/eventBus'
 import TrashSmallIcon from "@/assets/images/icons/trash-small.svg"
+import EditIcon from '@/assets/images/icons/edit.svg';
 import CheckIcon from '@/assets/images/icons/check.svg';
 import CloseIcon from '@/assets/images/icons/close.svg';
 import PlayIcon from '@/assets/images/icons/play.svg';
@@ -209,7 +218,6 @@ const startInlineEdit = () => {
   nextTick(() => {
     if (editInput.value?.focus) {
       editInput.value.focus()
-      editInput.value.select()
     }
   })
 }
@@ -350,6 +358,7 @@ const cancelEdit = () => {
   margin-left: 8px;
 }
 
+.edit-state-btn,
 .delete-state-btn,
 .confirm-edit-btn,
 .cancel-edit-btn {
