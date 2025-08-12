@@ -267,9 +267,10 @@ const labelWidth = computed(() => {
 const edgeStyle = computed(() => ({
   stroke: isHighlighted.value ? '#1890ff' : '#999',
   strokeWidth: isHighlighted.value ? 2 : 1,
+  strokeDasharray: isManual.value ? '5,5' : 'none', // Manual transitions dashed, automatic solid
   opacity: shouldDimEdge.value ? 0.8 : 1,
   fill: 'none',
-  transition: 'opacity 0.2s ease, stroke 0.2s ease'
+  transition: 'opacity 0.2s ease, stroke 0.2s ease, stroke-dasharray 0.2s ease'
 }))
 
 const isManual = computed(() => !!props.data?.transitionData?.manual)
@@ -595,7 +596,6 @@ function endTransitionDrag(event: MouseEvent) {
 
   :deep(path) {
     animation: none !important;
-    stroke-dasharray: none !important;
     stroke-dashoffset: 0 !important;
   }
 }
@@ -605,7 +605,7 @@ function endTransitionDrag(event: MouseEvent) {
   color: white;
 
   &:hover {
-    background: #40a9ff;
+    opacity: 0.8;
   }
 }
 
@@ -614,7 +614,7 @@ function endTransitionDrag(event: MouseEvent) {
   color: white;
 
   &:hover {
-    background: #ff7875;
+    opacity: 0.8;
   }
 }
 
@@ -642,5 +642,10 @@ function endTransitionDrag(event: MouseEvent) {
   animation: none !important;
   stroke-dasharray: none !important;
   stroke-dashoffset: 0 !important;
+}
+
+/* Allow transition lines to use stroke-dasharray for manual/automatic differentiation */
+.draggable-transition-edge path:first-child {
+  /* Main transition path - allow dasharray styling */
 }
 </style>
