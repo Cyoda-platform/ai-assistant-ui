@@ -72,9 +72,9 @@
   --workflow-transition-auto-border: var(--color-primary);
   --workflow-transition-auto-text: #ffffff;
   /* Dark manual variant - slightly brighter amber for contrast on dark */
-  --workflow-transition-manual-bg: #D07A23;
-  --workflow-transition-manual-border: #C26A17;
-  --workflow-transition-manual-text: #ffffff;
+  --workflow-transition-manual-bg: #dcdcdc;
+  --workflow-transition-manual-border: #dcdcdc;
+  --workflow-transition-manual-text: #333333;
 }
 
 .only-theme-dark {
