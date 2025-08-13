@@ -84,38 +84,38 @@
         />
       </div>
       <div class="node-actions">
-        <button
-            v-if="!isEditing"
-            @click="startInlineEdit"
-            class="edit-state-btn"
-            title="Edit state name"
-        >
-          <EditIcon/>
-        </button>
-        <button
-            v-if="isEditing"
-            @click="finishEdit"
-            class="confirm-edit-btn"
-            title="Confirm changes"
-        >
-          <CheckIcon/>
-        </button>
-        <button
-            v-if="isEditing"
-            @click="cancelEdit"
-            class="cancel-edit-btn"
-            title="Cancel editing"
-        >
-          <CloseIcon/>
-        </button>
-        <button
-            v-if="!isEditing"
-            @click="deleteState"
-            class="delete-state-btn"
-            title="Delete state"
-        >
-          <TrashSmallIcon/>
-        </button>
+        <template v-if="isEditing">
+          <button
+              @click="finishEdit"
+              class="confirm-edit-btn"
+              title="Confirm changes"
+          >
+            <CheckIcon/>
+          </button>
+          <button
+              @click="cancelEdit"
+              class="cancel-edit-btn"
+              title="Cancel editing"
+          >
+            <CloseSmallIcon/>
+          </button>
+        </template>
+        <template v-else>
+          <button
+              @click="startInlineEdit"
+              class="edit-state-btn"
+              title="Edit state name"
+          >
+            <EditIcon/>
+          </button>
+          <button
+              @click="deleteState"
+              class="delete-state-btn"
+              title="Delete state"
+          >
+            <TrashSmallIcon/>
+          </button>
+        </template>
       </div>
     </div>
   </div>
@@ -131,7 +131,7 @@ import eventBus from '../../../plugins/eventBus'
 import TrashSmallIcon from "@/assets/images/icons/trash-small.svg"
 import EditIcon from '@/assets/images/icons/edit.svg';
 import CheckIcon from '@/assets/images/icons/check.svg';
-import CloseIcon from '@/assets/images/icons/close.svg';
+import CloseSmallIcon from '@/assets/images/icons/close-small.svg';
 import PlayIcon from '@/assets/images/icons/play.svg';
 import CircleIcon from '@/assets/images/icons/circle.svg';
 import StopIcon from '@/assets/images/icons/stop.svg';
@@ -211,10 +211,10 @@ const deleteState = async () => {
 // Inline editing methods
 const startInlineEdit = () => {
   if (isEditing.value) return
-  
+
   isEditing.value = true
   editingName.value = props.data.label
-  
+
   nextTick(() => {
     if (editInput.value?.focus) {
       editInput.value.focus()
@@ -224,27 +224,27 @@ const startInlineEdit = () => {
 
 const finishEdit = () => {
   if (!isEditing.value) return
-  
+
   const newName = editingName.value.trim()
-  
+
   // Validate the name
   if (!newName) {
     cancelEdit()
     return
   }
-  
+
   if (newName.length < 2) {
     cancelEdit()
     return
   }
-  
+
   if (newName !== props.data.label) {
     eventBus.$emit('rename-state', {
       oldName: props.data.label,
       newName: newName
     })
   }
-  
+
   isEditing.value = false
   editingName.value = ''
 }
@@ -286,9 +286,10 @@ const cancelEdit = () => {
   align-items: center;
   gap: 6px;
   cursor: text;
-  
+
   &:hover .node-name {
     text-decoration: underline;
+    cursor: pointer;
   }
 }
 
@@ -298,14 +299,14 @@ const cancelEdit = () => {
 
 .inline-edit-input {
   width: 150px;
-  
+
   :deep(.el-input__wrapper) {
     background-color: rgba(255, 255, 255, 0.9) !important;
     border-radius: 3px;
     padding: 2px 6px;
     box-shadow: none;
     border: 1px solid rgba(255, 255, 255, 0.3);
-    
+
     .el-input__inner {
       color: #333 !important;
       font-size: 13px;
@@ -315,7 +316,7 @@ const cancelEdit = () => {
       line-height: 18px;
     }
   }
-  
+
   :deep(.el-input__wrapper:focus) {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
@@ -380,7 +381,7 @@ const cancelEdit = () => {
   svg {
     width: 12px;
     height: auto;
-    fill: currentColor;
+
     &:hover {
       opacity: 0.5;
     }
@@ -388,25 +389,11 @@ const cancelEdit = () => {
 }
 
 .confirm-edit-btn {
-  background: rgba(76, 175, 80, 0.2);
-  border-color: rgba(76, 175, 80, 0.4);
-  color: rgba(76, 175, 80, 1);
-  
-  &:hover {
-    background: rgba(76, 175, 80, 0.3);
-    border-color: rgba(76, 175, 80, 0.6);
-  }
+
 }
 
 .cancel-edit-btn {
-  background: rgba(244, 67, 54, 0.2);
-  border-color: rgba(244, 67, 54, 0.4);
-  color: rgba(244, 67, 54, 1);
-  
-  &:hover {
-    background: rgba(244, 67, 54, 0.3);
-    border-color: rgba(244, 67, 54, 0.6);
-  }
+
 }
 
 .node-footer {
