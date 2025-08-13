@@ -9,6 +9,7 @@
     <template #header>
       <div class="edit-edge-conditional-dialog__header">
         <span class="edit-edge-conditional-dialog__title">Edit Transition Data</span>
+        <el-divider direction="vertical" />
         <div class="edit-edge-conditional-dialog__mode-toggle">
           <span class="edit-edge-conditional-dialog__mode-label">Mode:</span>
           <el-switch
@@ -224,7 +225,6 @@ watch(conditionText, (newValue) => {
 .edit-edge-conditional-dialog {
   &__header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     padding: 0;
   }
@@ -245,11 +245,6 @@ watch(conditionText, (newValue) => {
     font-size: 14px;
     color: var(--text-color-regular);
     font-weight: 500;
-  }
-
-  &__switch {
-    --el-switch-on-color: var(--color-primary);
-    --el-switch-off-color: #dcdfe6;
   }
 
   &__form {

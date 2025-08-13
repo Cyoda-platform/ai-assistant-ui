@@ -47,6 +47,7 @@
     >
         <div
             class="transition-label"
+            @dblclick="editTransition"
         >
           {{ originalTransitionName }}
         </div>
@@ -567,6 +568,10 @@ function endTransitionDrag(event: MouseEvent) {
   white-space: nowrap;
   background: transparent;
   border: none;
+  &:hover{
+    text-decoration: underline;
+    cursor: pointer;
+  }
 }
 
 .transition-actions {
