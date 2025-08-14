@@ -566,12 +566,6 @@ function endTransitionDrag(event: MouseEvent) {
   cursor: grab;
   width: fit-content;
   min-width: 80px;
-  
-  &:hover {
-    border-color: #1890ff;
-    box-shadow: 0 3px 6px rgba(24, 144, 255, 0.15);
-    transform: translateY(-1px);
-  }
 }
 
 .transition-label-container:active {
