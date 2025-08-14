@@ -324,12 +324,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             });
         }
 
-        console.log('Generated individual transition edges:', result.map(e => ({
-            id: e.id,
-            source: e.source,
-            target: e.target,
-            transitionId: e.data.transitionId
-        })));
         return result;
     });
 
@@ -1086,19 +1080,13 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     function resetTransform() {
         fitView();
 
-        console.log('Clearing all meta information (positions and transition labels)');
-        
-        // Очищаем все meta данные - сбрасываем до null, а fallback в компонентах даст {}
         workflowMetaData.value = null;
-        
-        // Очищаем сохраненные исходные позиции
+
         initialPositions.value = {};
         initialTransitionLabels.value = {};
-        
-        // Перегенерируем nodes без сохраненных позиций
+
         generateNodes();
 
-        // Уведомляем все рёбра о необходимости сброса позиций
         eventBus.$emit('reset-edge-positions');
 
         console.log('Reset to default state completed - all meta data cleared');

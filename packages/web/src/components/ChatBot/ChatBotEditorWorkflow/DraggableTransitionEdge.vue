@@ -43,13 +43,15 @@
       :class="isManual ? 'manual' : 'auto'"
       @mouseenter="isHoveringLabel = true"
       @mouseleave="isHoveringLabel = false"
-      @mousedown="startDrag"
+      @mousedown="onLabelMouseDown"
       @dragstart.prevent
-      style="margin: 0 auto; position: relative;"
+      style="margin: 0 auto; position: relative; cursor: grab;"
     >
         <div
             class="transition-label"
             @dblclick="editTransition"
+            @mousedown="onLabelMouseDown"
+            style="cursor: grab; user-select: none;"
         >
           {{ originalTransitionName }}
         </div>
@@ -99,6 +101,8 @@ interface CustomEdgeData {
   customPath?: Array<{ x: number; y: number }>
   transitionData?: TransitionDataType
   labelOffset?: { x: number; y: number }
+  transitionId?: string // Уникальный ID для этого конкретного transition edge
+  layoutMode?: 'horizontal' | 'vertical' // Добавляем информацию о режиме layout
 }
 
 const props = defineProps<EdgeProps<CustomEdgeData>>()
@@ -114,7 +118,11 @@ const isDragging = ref(false)
 const isHoveringLabel = ref(false)
 const dragOffset = ref({x: 0, y: 0})
 const dragStartMouse = ref({x: 0, y: 0})
-const savedLabelOffset = ref({x: 0, y: 0})
+// Инициализируем savedLabelOffset из props.data.labelOffset
+const savedLabelOffset = ref({
+  x: props.data?.labelOffset?.x || 0, 
+  y: props.data?.labelOffset?.y || 0
+})
 
 const isDraggingTransition = ref(false)
 const transitionDragStart = ref({x: 0, y: 0})
@@ -124,8 +132,10 @@ const svgElementRef = ref<SVGSVGElement | null>(null)
 
 // Original transition name (may repeat across states)
 const originalTransitionName = computed(() => props.data?.transitionData?.name || 'unnamed')
-// Internal unique id scoped by source state to avoid collisions
-const transitionId = computed(() => `${props.source}-${originalTransitionName.value}`)
+// Unique transition ID - use from props.data or fallback to constructed one
+const transitionId = computed(() => 
+  props.data?.transitionId || `${props.source}-${originalTransitionName.value}`
+)
 
 const isHighlighted = computed(() => isTransitionHighlighted(transitionId.value))
 const hoveredEdgeGlobal = ref<string | null>(null)
@@ -247,22 +257,11 @@ const labelPosition = computed(() => {
     }
   }
 
-  // Точный геометрический центр без учета сохраненных смещений при первоначальном расчете
+  // Точный геометрический центр как базовая позиция
   const baseLabelX = (sourceX + targetX) / 2
   const baseLabelY = (sourceY + targetY) / 2
 
-  // Проверяем, есть ли сохраненное смещение для этого конкретного перехода
-  const hasCustomOffset = savedLabelOffset.value.x !== 0 || savedLabelOffset.value.y !== 0
-  
-  if (!hasCustomOffset) {
-    // Если смещения нет - возвращаем точный центр
-    return {
-      x: baseLabelX,
-      y: baseLabelY
-    }
-  }
-
-  // Если есть пользовательское смещение - применяем его
+  // Всегда применяем смещения (как сохраненные, так и текущие при перетаскивании)
   const offsetX = savedLabelOffset.value.x + dragOffset.value.x
   const offsetY = savedLabelOffset.value.y + dragOffset.value.y
 
@@ -317,6 +316,16 @@ watch(() => props.data?.labelOffset, (newLabelOffset) => {
     savedLabelOffset.value = { x: 0, y: 0 };
   }
 }, { deep: true, immediate: true });
+
+function onLabelMouseDown(event: MouseEvent) {
+  // Проверяем, что клик не по кнопкам
+  const target = event.target as HTMLElement;
+  if (target.closest('button')) {
+    return; // Игнорируем клики по кнопкам
+  }
+  
+  startDrag(event);
+}
 
 function startDrag(event: MouseEvent) {
   isDragging.value = true
@@ -403,17 +412,16 @@ function editTransition() {
 }
 
 function onPathHover() {
-  console.log('🎯 Hovering over path:', transitionId.value)
+  // Path hover logic can be added here if needed
 }
 
 function onPathLeave() {
-  console.log('🎯 Left path:', transitionId.value)
+  // Path leave logic can be added here if needed
 }
 
 function onGroupMouseDown(event: MouseEvent) {
   const target = event.target as HTMLElement
   if (target.closest('.transition-label-container') || target.closest('button')) {
-    console.log('🎯 Ignoring click on label/button')
     return
   }
   startTransitionDrag(event)
@@ -558,6 +566,12 @@ function endTransitionDrag(event: MouseEvent) {
   cursor: grab;
   width: fit-content;
   min-width: 80px;
+  
+  &:hover {
+    border-color: #1890ff;
+    box-shadow: 0 3px 6px rgba(24, 144, 255, 0.15);
+    transform: translateY(-1px);
+  }
 }
 
 .transition-label-container:active {
@@ -585,6 +599,14 @@ function endTransitionDrag(event: MouseEvent) {
   white-space: nowrap;
   background: transparent;
   border: none;
+  cursor: grab;
+  /* Увеличиваем область захвата */
+  padding: 4px 6px;
+  margin: -4px -6px;
+  
+  &:active {
+    cursor: grabbing;
+  }
   &:hover{
     text-decoration: underline;
     cursor: pointer;
