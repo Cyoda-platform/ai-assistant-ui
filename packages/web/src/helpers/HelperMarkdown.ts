@@ -21,7 +21,6 @@ export default class HelperMarkdown {
         };
 
         renderer.code = function ({text, lang, raw}) {
-            // Специальные языки с кастомным рендерингом
             if (lang === "mermaid") {
                 return renderMermaid(text, raw);
             }
@@ -30,11 +29,10 @@ export default class HelperMarkdown {
                 return renderPlantUML(text, raw);
             }
 
-            if (lang === "bash") {
+            if (['bash', 'markdown'].includes("bash")) {
                 return renderBash(text, raw);
             }
 
-            // Обычные языки программирования - подсветка применяется только если язык указан и поддерживается
             return renderCodeHighlight(text, lang);
         };
 
