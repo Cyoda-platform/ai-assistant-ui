@@ -36,6 +36,7 @@
         :y="labelPosition.y - 15"
         :width="labelWidth + 20"
         :height="30"
+        style="overflow: visible;"
     >
     <div
       class="transition-label-container"
@@ -44,6 +45,7 @@
       @mouseleave="isHoveringLabel = false"
       @mousedown="startDrag"
       @dragstart.prevent
+      style="margin: 0 auto; position: relative;"
     >
         <div
             class="transition-label"
@@ -204,6 +206,8 @@ const edgePath = computed(() => {
   const labelX = labelPosition.value.x
   const labelY = labelPosition.value.y
 
+  // Восстанавливаем оригинальную математику, но с правильными коэффициентами
+  // Формула должна обеспечить прохождение кривой через позицию лейбла
   const controlX = 2 * labelX - 0.5 * (sourceX + targetX)
   const controlY = 2 * labelY - 0.5 * (sourceY + targetY)
 
@@ -243,9 +247,22 @@ const labelPosition = computed(() => {
     }
   }
 
+  // Точный геометрический центр без учета сохраненных смещений при первоначальном расчете
   const baseLabelX = (sourceX + targetX) / 2
   const baseLabelY = (sourceY + targetY) / 2
 
+  // Проверяем, есть ли сохраненное смещение для этого конкретного перехода
+  const hasCustomOffset = savedLabelOffset.value.x !== 0 || savedLabelOffset.value.y !== 0
+  
+  if (!hasCustomOffset) {
+    // Если смещения нет - возвращаем точный центр
+    return {
+      x: baseLabelX,
+      y: baseLabelY
+    }
+  }
+
+  // Если есть пользовательское смещение - применяем его
   const offsetX = savedLabelOffset.value.x + dragOffset.value.x
   const offsetY = savedLabelOffset.value.y + dragOffset.value.y
 
@@ -256,13 +273,13 @@ const labelPosition = computed(() => {
 })
 
 const labelWidth = computed(() => {
-  // Calculate based on original transition name length, not internal ID
+  // Более точный расчет ширины с учетом реального размера шрифта
   const textLength = originalTransitionName.value.length
-  // More accurate calculation: 7px per char + padding for actions + some margin
-  const textWidth = textLength * 7
-  const actionsWidth = 50 // space for edit/delete buttons
-  const padding = 16 // container padding
-  return Math.max(textWidth + actionsWidth + padding, 80) // minimum 80px for buttons
+  // Увеличиваем до 9px на символ для большинства шрифтов + учитываем кириллицу
+  const textWidth = textLength * 9
+  const actionsWidth = 60 // увеличиваем место для кнопок (edit + delete)
+  const padding = 24 // больше отступов для комфорта
+  return Math.max(textWidth + actionsWidth + padding, 100) // минимум 100px
 })
 
 const edgeStyle = computed(() => ({
