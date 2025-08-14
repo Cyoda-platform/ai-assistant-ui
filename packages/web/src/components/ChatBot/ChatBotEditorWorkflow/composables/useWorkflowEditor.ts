@@ -8,7 +8,7 @@ import {MarkerType} from '@vue-flow/core';
 import {ElMessageBox, ElMessage} from 'element-plus';
 import eventBus from '@/plugins/eventBus';
 import HelperStorage from '@/helpers/HelperStorage';
-import {calculateSmartPosition, applyAutoLayout, NodePosition} from '../utils/smartLayout';
+import {calculateSmartPosition, applyAutoLayout, NodePosition, generateSeparatedLabelPositions} from '../utils/smartLayout';
 import {type EditorAction, createWorkflowEditorActions} from '@/utils/editorUtils';
 import {useUndoRedo} from './useUndoRedo';
 
@@ -454,6 +454,39 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
 
         nodes.value = result;
+        
+        // Применяем разделение labels после генерации nodes для предотвращения слипания при вставке JSON
+        nextTick(() => {
+            // Проверяем, есть ли edges с потенциальными конфликтами labels
+            if (edges.value.length > 1) {
+                const edgeData = edges.value.map(edge => {
+                    const sourceNode = nodes.value.find(n => n.id === edge.source);
+                    const targetNode = nodes.value.find(n => n.id === edge.target);
+                    
+                    return {
+                        id: edge.data?.transitionId || edge.id,
+                        sourceX: sourceNode?.position.x || 0,
+                        sourceY: sourceNode?.position.y || 0,
+                        targetX: targetNode?.position.x || 0,
+                        targetY: targetNode?.position.y || 0
+                    };
+                });
+
+                const existingLabels = workflowMetaData.value?.transitionLabels || {};
+                const separatedLabelPositions = generateSeparatedLabelPositions(edgeData, existingLabels);
+
+                // Обновляем метаданные с новыми позициями labels
+                const updatedMetaData = {...(workflowMetaData.value || {})};
+                if (!updatedMetaData.transitionLabels) {
+                    updatedMetaData.transitionLabels = {};
+                }
+                
+                Object.assign(updatedMetaData.transitionLabels, separatedLabelPositions);
+                workflowMetaData.value = updatedMetaData;
+                
+                console.log('📝 Applied label separation after JSON paste for', Object.keys(separatedLabelPositions).length, 'edges');
+            }
+        });
     }
 
     function handleSaveCondition(eventData: any) {
@@ -1087,7 +1120,37 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         generateNodes();
 
-        eventBus.$emit('reset-edge-positions');
+        // Используем nextTick для ожидания завершения generateNodes
+        nextTick(() => {
+            console.log('🔄 Edges found:', edges.value.length);
+            console.log('🔄 Edges data:', edges.value.map(e => ({id: e.id, transitionId: e.data?.transitionId, source: e.source, target: e.target})));
+            
+            const edgeData = edges.value.map(edge => {
+                const sourceNode = nodes.value.find(n => n.id === edge.source);
+                const targetNode = nodes.value.find(n => n.id === edge.target);
+                
+                return {
+                    id: edge.data?.transitionId || edge.id,
+                    sourceX: sourceNode?.position.x || 0,
+                    sourceY: sourceNode?.position.y || 0,
+                    targetX: targetNode?.position.x || 0,
+                    targetY: targetNode?.position.y || 0
+                };
+            });
+
+            const separatedLabelPositions = generateSeparatedLabelPositions(edgeData, {});
+
+            // Обновляем метаданные с новыми позициями labels
+            const updatedMetaData = {...(workflowMetaData.value || {})};
+            if (!updatedMetaData.transitionLabels) {
+                updatedMetaData.transitionLabels = {};
+            }
+            
+            Object.assign(updatedMetaData.transitionLabels, separatedLabelPositions);
+            workflowMetaData.value = updatedMetaData;
+            
+            console.log('🔄 Reset transform applied label separation for', Object.keys(separatedLabelPositions).length, 'edges');
+        });
 
         console.log('Reset to default state completed - all meta data cleared');
         
@@ -1189,7 +1252,32 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         workflowMetaData.value = {...(workflowMetaData.value || {}), ...randomizedPositions};
 
-        eventBus.$emit('reset-edge-positions');
+        // Генерируем разделенные позиции для transition labels вместо сброса
+        const edgeData = edges.value.map(edge => {
+            const sourceNode = nodes.value.find(n => n.id === edge.source);
+            const targetNode = nodes.value.find(n => n.id === edge.target);
+            
+            return {
+                id: edge.data?.transitionId || edge.id,
+                sourceX: sourceNode?.position.x || 0,
+                sourceY: sourceNode?.position.y || 0,
+                targetX: targetNode?.position.x || 0,
+                targetY: targetNode?.position.y || 0
+            };
+        });
+
+        const existingLabels = workflowMetaData.value.transitionLabels || {};
+        const separatedLabelPositions = generateSeparatedLabelPositions(edgeData, existingLabels);
+
+        // Обновляем метаданные с новыми позициями labels
+        const updatedMetaData = {...workflowMetaData.value};
+        if (!updatedMetaData.transitionLabels) {
+            updatedMetaData.transitionLabels = {};
+        }
+        
+        // Объединяем существующие и новые позиции labels
+        Object.assign(updatedMetaData.transitionLabels, separatedLabelPositions);
+        workflowMetaData.value = updatedMetaData;
 
         saveState(createSnapshot());
     }

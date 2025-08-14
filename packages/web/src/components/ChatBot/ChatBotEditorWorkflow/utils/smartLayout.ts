@@ -441,3 +441,124 @@ export function applyAutoLayout(states: any, initialState: string): { [key: stri
 
   return positions;
 }
+
+/**
+ * Функция для автоматического разделения позиций transition labels
+ * чтобы они не накладывались друг на друга
+ */
+export function generateSeparatedLabelPositions(
+  edges: Array<{id: string, sourceX: number, sourceY: number, targetX: number, targetY: number}>,
+  existingLabels: {[key: string]: {x: number, y: number}} = {}
+): {[key: string]: {x: number, y: number}} {
+  const labelPositions: {[key: string]: {x: number, y: number}} = {};
+  
+  console.log('🔍 Generating separated labels for edges:', edges.map(e => e.id));
+  console.log('🔍 Existing labels:', Object.keys(existingLabels));
+  
+  // Группируем edges по координатам connection для разделения labels между одинаковыми connections
+  const edgeGroups: {[key: string]: Array<{id: string, sourceX: number, sourceY: number, targetX: number, targetY: number}>} = {};
+  
+  for (const edge of edges) {
+    // Используем более грубую группировку по координатам (округляем до 50px)
+    const sourceKey = `${Math.round(edge.sourceX / 50) * 50},${Math.round(edge.sourceY / 50) * 50}`;
+    const targetKey = `${Math.round(edge.targetX / 50) * 50},${Math.round(edge.targetY / 50) * 50}`;
+    const groupKey = `${sourceKey}-${targetKey}`;
+    
+    if (!edgeGroups[groupKey]) {
+      edgeGroups[groupKey] = [];
+    }
+    edgeGroups[groupKey].push(edge);
+  }
+  
+  console.log('🔍 Edge groups:', Object.keys(edgeGroups).map(key => `${key}: ${edgeGroups[key].length} edges`));
+  
+  // Размещаем labels для каждой группы
+  for (const groupEdges of Object.values(edgeGroups)) {
+    if (groupEdges.length === 1) {
+      // Единственный edge - размещаем в центре
+      const edge = groupEdges[0];
+      
+      // Проверяем, есть ли уже сохраненная позиция
+      if (existingLabels[edge.id]) {
+        labelPositions[edge.id] = existingLabels[edge.id];
+      } else {
+        labelPositions[edge.id] = {x: 0, y: 0}; // Относительное смещение от центра
+      }
+    } else {
+      // Несколько edges между близкими узлами - размещаем их веерообразно
+      const radius = 120; // Еще больше увеличиваем радиус размещения labels
+      const maxAngle = Math.PI * 0.75; // 135 градусов максимальный разброс
+      const angleStep = groupEdges.length > 1 ? maxAngle / (groupEdges.length - 1) : 0;
+      const startAngle = -maxAngle / 2;
+      
+      groupEdges.forEach((edge, index) => {
+        if (existingLabels[edge.id]) {
+          // Используем существующую позицию только если она достаточно далеко от других
+          labelPositions[edge.id] = existingLabels[edge.id];
+        } else {
+          // Создаем новую позицию веерообразно с увеличенным разбросом
+          const angle = startAngle + index * angleStep;
+          const baseRadius = radius + (index * 30); // Увеличиваем радиус для каждого следующего label
+          const offsetX = Math.cos(angle) * baseRadius;
+          const offsetY = Math.sin(angle) * baseRadius;
+          
+          labelPositions[edge.id] = {x: offsetX, y: offsetY};
+        }
+      });
+    }
+  }
+  
+  console.log('🔍 Generated label positions:', Object.keys(labelPositions).length);
+  
+  // Дополнительная проверка и корректировка всех позиций для предотвращения пересечений
+  const MIN_DISTANCE = 80; // Увеличиваем минимальное расстояние между любыми labels
+  const labelKeys = Object.keys(labelPositions);
+  
+  for (let i = 0; i < labelKeys.length; i++) {
+    const keyA = labelKeys[i];
+    const edgeA = edges.find(e => e.id === keyA);
+    if (!edgeA) continue;
+    
+    const posA = labelPositions[keyA];
+    const absolutePosA = {
+      x: (edgeA.sourceX + edgeA.targetX) / 2 + posA.x,
+      y: (edgeA.sourceY + edgeA.targetY) / 2 + posA.y
+    };
+    
+    for (let j = i + 1; j < labelKeys.length; j++) {
+      const keyB = labelKeys[j];
+      const edgeB = edges.find(e => e.id === keyB);
+      if (!edgeB) continue;
+      
+      const posB = labelPositions[keyB];
+      const absolutePosB = {
+        x: (edgeB.sourceX + edgeB.targetX) / 2 + posB.x,
+        y: (edgeB.sourceY + edgeB.targetY) / 2 + posB.y
+      };
+      
+      const distance = Math.sqrt(
+        Math.pow(absolutePosA.x - absolutePosB.x, 2) + 
+        Math.pow(absolutePosA.y - absolutePosB.y, 2)
+      );
+      
+      if (distance < MIN_DISTANCE) {
+        // Labels слишком близко - разносим их в разные стороны
+        const angle = Math.atan2(absolutePosB.y - absolutePosA.y, absolutePosB.x - absolutePosA.x);
+        const pushDistance = MIN_DISTANCE * 1.5; // Увеличиваем расстояние в 1.5 раза
+        
+        const edgeCenterB = {
+          x: (edgeB.sourceX + edgeB.targetX) / 2,
+          y: (edgeB.sourceY + edgeB.targetY) / 2
+        };
+        
+        // Отталкиваем label B от label A
+        labelPositions[keyB] = {
+          x: Math.cos(angle) * pushDistance - (edgeCenterB.x - absolutePosA.x),
+          y: Math.sin(angle) * pushDistance - (edgeCenterB.y - absolutePosA.y)
+        };
+      }
+    }
+  }
+  
+  return labelPositions;
+}
