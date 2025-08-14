@@ -17,7 +17,10 @@ import { useTransitionHighlight } from './composables/useTransitionHighlight'
 import eventBus from '../../../plugins/eventBus'
 
 interface EdgeData {
-  transitionData?: object
+  transitionData?: {
+    manual?: boolean;
+    [key: string]: any;
+  }
   stateName: string
   transitionName: string
   allTransitions?: Array<{
@@ -155,13 +158,16 @@ const shouldDimEdge = computed(() => {
   return dimBySearch || dimByHover
 })
 
+const isManual = computed(() => !!props.data?.transitionData?.manual)
+
 const edgeStyle = computed(() => {
   return {
     ...props.style,
-  opacity: shouldDimEdge.value ? 0.8 : 1,
+    opacity: shouldDimEdge.value ? 0.8 : 1,
     stroke: shouldDimEdge.value ? '#ccc' : (props.style?.stroke || '#666'),
     strokeWidth: shouldDimEdge.value ? 1 : (props.style?.strokeWidth || 2),
-    transition: 'opacity 0.3s ease, stroke 0.3s ease, stroke-width 0.3s ease'
+    strokeDasharray: isManual.value ? '5,5' : 'none', // Manual transitions dashed, automatic solid
+    transition: 'opacity 0.3s ease, stroke 0.3s ease, stroke-width 0.3s ease, stroke-dasharray 0.3s ease'
   }
 })
 </script>

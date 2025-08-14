@@ -61,7 +61,7 @@
     />
 
     <div class="node-header">
-      <div class="node-title">
+      <div class="node-title" @dblclick="startInlineEdit">
         <span v-if="data.isInitial" class="node-icon initial-icon" title="Initial state">
           <PlayIcon/>
         </span>
@@ -71,37 +71,67 @@
         <span v-else class="node-icon default-icon" title="State">
           <CircleIcon/>
         </span>
-        {{ data.label }}
+        <span v-if="!isEditing" class="node-name">{{ data.label }}</span>
+        <el-input
+            v-if="isEditing"
+            v-model="editingName"
+            @blur="finishEdit"
+            @keyup.enter="finishEdit"
+            @keyup.escape="cancelEdit"
+            size="small"
+            class="inline-edit-input"
+            ref="editInput"
+        />
       </div>
       <div class="node-actions">
-        <button
-            @click="editStateName"
-            class="edit-state-btn"
-            title="Edit state name"
-        >
-          <EditIcon/>
-        </button>
-        <button
-            @click="deleteState"
-            class="delete-state-btn"
-            title="Delete state"
-        >
-          <TrashSmallIcon/>
-        </button>
+        <template v-if="isEditing">
+          <button
+              @click="finishEdit"
+              class="confirm-edit-btn"
+              title="Confirm changes"
+          >
+            <CheckIcon/>
+          </button>
+          <button
+              @click="cancelEdit"
+              class="cancel-edit-btn"
+              title="Cancel editing"
+          >
+            <CloseSmallIcon/>
+          </button>
+        </template>
+        <template v-else>
+          <button
+              @click="startInlineEdit"
+              class="edit-state-btn"
+              title="Edit state name"
+          >
+            <EditIcon/>
+          </button>
+          <button
+              @click="deleteState"
+              class="delete-state-btn"
+              title="Delete state"
+          >
+            <TrashSmallIcon/>
+          </button>
+        </template>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {computed, ref, onMounted, onUnmounted} from 'vue'
+import {computed, ref, onMounted, onUnmounted, nextTick} from 'vue'
 import {Handle, Position} from '@vue-flow/core'
-import {ElMessageBox} from 'element-plus'
+import {ElMessageBox, ElInput} from 'element-plus'
 import {useDropdownManager} from './composables/useDropdownManager'
 import {useTransitionHighlight} from './composables/useTransitionHighlight'
 import eventBus from '../../../plugins/eventBus'
 import TrashSmallIcon from "@/assets/images/icons/trash-small.svg"
 import EditIcon from '@/assets/images/icons/edit.svg';
+import CheckIcon from '@/assets/images/icons/check.svg';
+import CloseSmallIcon from '@/assets/images/icons/close-small.svg';
 import PlayIcon from '@/assets/images/icons/play.svg';
 import CircleIcon from '@/assets/images/icons/circle.svg';
 import StopIcon from '@/assets/images/icons/stop.svg';
@@ -130,6 +160,11 @@ const {
 } = useTransitionHighlight()
 
 const isHoveringDeleteBtn = ref(false)
+
+// Inline editing state
+const isEditing = ref(false)
+const editingName = ref('')
+const editInput = ref()
 
 const handleDocumentClick = (event: Event) => {
   const target = event.target as Element
@@ -173,37 +208,50 @@ const deleteState = async () => {
   }
 }
 
-const editStateName = async () => {
-  try {
-    const {value: newName} = await ElMessageBox.prompt(
-        'Enter new state name:',
-        'Edit State Name',
-        {
-          confirmButtonText: 'Save',
-          cancelButtonText: 'Cancel',
-          inputValue: props.data.label,
-          inputValidator: (value: string) => {
-            if (!value || value.trim() === '') {
-              return 'State name cannot be empty'
-            }
-            if (value.trim().length < 2) {
-              return 'State name must be at least 2 characters long'
-            }
-            return true
-          },
-          inputErrorMessage: 'Invalid state name'
-        }
-    )
+// Inline editing methods
+const startInlineEdit = () => {
+  if (isEditing.value) return
 
-    if (newName && newName.trim() !== props.data.label) {
-      eventBus.$emit('rename-state', {
-        oldName: props.data.label,
-        newName: newName.trim()
-      })
+  isEditing.value = true
+  editingName.value = props.data.label
+
+  nextTick(() => {
+    if (editInput.value?.focus) {
+      editInput.value.focus()
     }
-  } catch {
-    // User cancelled the edit
+  })
+}
+
+const finishEdit = () => {
+  if (!isEditing.value) return
+
+  const newName = editingName.value.trim()
+
+  // Validate the name
+  if (!newName) {
+    cancelEdit()
+    return
   }
+
+  if (newName.length < 2) {
+    cancelEdit()
+    return
+  }
+
+  if (newName !== props.data.label) {
+    eventBus.$emit('rename-state', {
+      oldName: props.data.label,
+      newName: newName
+    })
+  }
+
+  isEditing.value = false
+  editingName.value = ''
+}
+
+const cancelEdit = () => {
+  isEditing.value = false
+  editingName.value = ''
 }
 </script>
 
@@ -237,6 +285,42 @@ const editStateName = async () => {
   display: flex;
   align-items: center;
   gap: 6px;
+  cursor: text;
+
+  &:hover .node-name {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}
+
+.node-name {
+  user-select: none;
+}
+
+.inline-edit-input {
+  width: 150px;
+
+  :deep(.el-input__wrapper) {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 3px;
+    padding: 2px 6px;
+    box-shadow: none;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+
+    .el-input__inner {
+      color: #333 !important;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 0;
+      height: 18px;
+      line-height: 18px;
+    }
+  }
+
+  :deep(.el-input__wrapper:focus) {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+  }
 }
 
 .node-icon {
@@ -276,7 +360,9 @@ const editStateName = async () => {
 }
 
 .edit-state-btn,
-.delete-state-btn {
+.delete-state-btn,
+.confirm-edit-btn,
+.cancel-edit-btn {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: rgba(255, 255, 255, 0.7);
@@ -295,11 +381,19 @@ const editStateName = async () => {
   svg {
     width: 12px;
     height: auto;
-    fill: currentColor;
+
     &:hover {
       opacity: 0.5;
     }
   }
+}
+
+.confirm-edit-btn {
+
+}
+
+.cancel-edit-btn {
+
 }
 
 .node-footer {

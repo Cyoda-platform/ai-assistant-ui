@@ -47,6 +47,7 @@
     >
         <div
             class="transition-label"
+            @dblclick="editTransition"
         >
           {{ originalTransitionName }}
         </div>
@@ -267,9 +268,10 @@ const labelWidth = computed(() => {
 const edgeStyle = computed(() => ({
   stroke: isHighlighted.value ? '#1890ff' : '#999',
   strokeWidth: isHighlighted.value ? 2 : 1,
+  strokeDasharray: isManual.value ? '5,5' : 'none', // Manual transitions dashed, automatic solid
   opacity: shouldDimEdge.value ? 0.8 : 1,
   fill: 'none',
-  transition: 'opacity 0.2s ease, stroke 0.2s ease'
+  transition: 'opacity 0.2s ease, stroke 0.2s ease, stroke-dasharray 0.2s ease'
 }))
 
 const isManual = computed(() => !!props.data?.transitionData?.manual)
@@ -558,7 +560,6 @@ function endTransitionDrag(event: MouseEvent) {
 .transition-label {
   font-size: 12px;
   font-weight: 500;
-  color: #fff;
   user-select: none;
   display: flex;
   align-items: center;
@@ -567,6 +568,10 @@ function endTransitionDrag(event: MouseEvent) {
   white-space: nowrap;
   background: transparent;
   border: none;
+  &:hover{
+    text-decoration: underline;
+    cursor: pointer;
+  }
 }
 
 .transition-actions {
@@ -596,26 +601,25 @@ function endTransitionDrag(event: MouseEvent) {
 
   :deep(path) {
     animation: none !important;
-    stroke-dasharray: none !important;
     stroke-dashoffset: 0 !important;
   }
 }
 
 .edit-edge-btn {
-  background: #1890ff;
+  background: var(--color-primary);
   color: white;
 
   &:hover {
-    background: #40a9ff;
+    opacity: 0.8;
   }
 }
 
 .delete-edge-btn {
-  background: #ff4d4f;
+  background: var(--color-primary);
   color: white;
 
   &:hover {
-    background: #ff7875;
+    opacity: 0.8;
   }
 }
 
@@ -626,40 +630,6 @@ function endTransitionDrag(event: MouseEvent) {
 .draggable-transition-edge.highlighted .transition-label {
   color: #1890ff;
   font-weight: 600;
-}
-
-.theme-dark .transition-label-container {
-  background: rgba(0, 0, 0, 0.9);
-  border-color: #434343;
-}
-
-.theme-dark .transition-label-container.manual {
-  background: var(--workflow-transition-manual-bg, var(--color-primary-dark-active));
-  border-color: var(--workflow-transition-manual-border, var(--color-primary-dark-active));
-  color: var(--workflow-transition-manual-text, #fff);
-}
-
-.theme-dark .transition-label-container.auto {
-  background: var(--workflow-transition-auto-bg, var(--color-primary));
-  border-color: var(--workflow-transition-auto-border, var(--color-primary));
-  color: var(--workflow-transition-auto-text, #fff);
-}
-
-.theme-dark .transition-label {
-  color: var(--text-color-regular);
-}
-
-.theme-dark .transition-label-container:hover {
-  border-color: #1890ff;
-}
-
-.theme-dark .draggable-transition-edge.highlighted .transition-label-container {
-  background: rgba(24, 144, 255, 0.2);
-  border-color: #1890ff;
-}
-
-.theme-dark .draggable-transition-edge.highlighted .transition-label {
-  color: #1890ff;
 }
 </style>
 
@@ -677,5 +647,10 @@ function endTransitionDrag(event: MouseEvent) {
   animation: none !important;
   stroke-dasharray: none !important;
   stroke-dashoffset: 0 !important;
+}
+
+/* Allow transition lines to use stroke-dasharray for manual/automatic differentiation */
+.draggable-transition-edge path:first-child {
+  /* Main transition path - allow dasharray styling */
 }
 </style>
