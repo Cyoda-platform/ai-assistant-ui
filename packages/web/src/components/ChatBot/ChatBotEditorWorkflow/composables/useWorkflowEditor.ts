@@ -8,7 +8,12 @@ import {MarkerType} from '@vue-flow/core';
 import {ElMessageBox, ElMessage} from 'element-plus';
 import eventBus from '@/plugins/eventBus';
 import HelperStorage from '@/helpers/HelperStorage';
-import {calculateSmartPosition, applyAutoLayout, NodePosition, generateSeparatedLabelPositions} from '../utils/smartLayout';
+import {
+    calculateSmartPosition,
+    applyAutoLayout,
+    NodePosition,
+    generateSeparatedLabelPositions
+} from '../utils/smartLayout';
 import {type EditorAction, createWorkflowEditorActions} from '@/utils/editorUtils';
 import {useUndoRedo} from './useUndoRedo';
 
@@ -116,40 +121,42 @@ export interface WorkflowEdge {
 export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: any) {
     const EDITOR_WIDTH = 'chatBotEditorWorkflow:width';
     const EDITOR_MODE = 'chatBotEditorWorkflow:editorMode';
-    
+    const LAYOUT_DIRECTION = 'chatBotEditorWorkflow:layoutDirection';
+
     // Реактивные ключи для localStorage, обновляются при изменении technicalId
     const workflowCanvasDataKey = computed(() => `chatBotEditorWorkflow:canvasData:${props.technicalId}`);
     const workflowMetaDataKey = computed(() => `chatBotEditorWorkflow:metaData:${props.technicalId}`);
 
     const helperStorage = new HelperStorage();
-    
+
     // Функция загрузки данных для текущего technicalId
     const loadDataForCurrentId = () => {
         const canvasDataFromStorage = helperStorage.get(workflowCanvasDataKey.value, null);
         const metaDataFromStorage = helperStorage.get(workflowMetaDataKey.value, null);
-        
+
         // Если canvasDataFromStorage уже строка - используем как есть, иначе stringify
-        const canvasDataString = typeof canvasDataFromStorage === 'string' 
-            ? canvasDataFromStorage 
+        const canvasDataString = typeof canvasDataFromStorage === 'string'
+            ? canvasDataFromStorage
             : (canvasDataFromStorage ? JSON.stringify(canvasDataFromStorage, null, 2) : null);
 
         canvasData.value = canvasDataString || '';
         workflowMetaData.value = metaDataFromStorage || '';
-        
+
         // Очищаем undo/redo историю при смене чата - инициализируем с текущими данными
         initialize(canvasData.value);
-        
+
         // Очищаем позиции для нового чата
         initialPositions.value = {};
         initialTransitionLabels.value = {};
     };
-    
+
     const initialCanvasData = helperStorage.get(workflowCanvasDataKey.value, null);
     const canvasData = ref(
         initialCanvasData ? JSON.stringify(initialCanvasData, null, 2) : ''
     );
     const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
     const editorMode = ref(helperStorage.get(EDITOR_MODE, 'preview'));
+    const layoutDirection = ref<'horizontal' | 'vertical'>(helperStorage.get(LAYOUT_DIRECTION, 'horizontal'));
     const isLoading = ref(false);
     const editorActions = ref<EditorAction[]>(
         assistantStore
@@ -335,7 +342,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         // Получаем все текущие состояния и их переходы
         const currentStateNames = new Set(Object.keys(currentStates));
         const currentTransitionIds = new Set<string>();
-        
+
         for (const [stateName, stateData] of Object.entries(currentStates)) {
             const state = stateData as WorkflowState;
             if (state.transitions) {
@@ -454,7 +461,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
 
         nodes.value = result;
-        
+
         // Применяем разделение labels после генерации nodes для предотвращения слипания при вставке JSON
         nextTick(() => {
             // Проверяем, есть ли edges с потенциальными конфликтами labels
@@ -462,7 +469,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 const edgeData = edges.value.map(edge => {
                     const sourceNode = nodes.value.find(n => n.id === edge.source);
                     const targetNode = nodes.value.find(n => n.id === edge.target);
-                    
+
                     return {
                         id: edge.data?.transitionId || edge.id,
                         sourceX: sourceNode?.position.x || 0,
@@ -480,10 +487,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 if (!updatedMetaData.transitionLabels) {
                     updatedMetaData.transitionLabels = {};
                 }
-                
+
                 Object.assign(updatedMetaData.transitionLabels, separatedLabelPositions);
                 workflowMetaData.value = updatedMetaData;
-                
+
                 console.log('📝 Applied label separation after JSON paste for', Object.keys(separatedLabelPositions).length, 'edges');
             }
         });
@@ -578,7 +585,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             if (currentMetaData.transitionLabels) {
                 const oldTransitionId = `${stateName}-${oldTransitionName}`;
                 const newTransitionId = `${stateName}-${transitionName}`;
-                
+
                 if (currentMetaData.transitionLabels[oldTransitionId]) {
                     // Переносим позицию на новый ключ
                     currentMetaData.transitionLabels[newTransitionId] = currentMetaData.transitionLabels[oldTransitionId];
@@ -759,7 +766,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
 
         const stateData = parsed.states[oldName];
-        
+
         // Создаем новый объект states с сохранением порядка
         const newStates = {};
         Object.keys(parsed.states).forEach(stateName => {
@@ -1123,12 +1130,17 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         // Используем nextTick для ожидания завершения generateNodes
         nextTick(() => {
             console.log('🔄 Edges found:', edges.value.length);
-            console.log('🔄 Edges data:', edges.value.map(e => ({id: e.id, transitionId: e.data?.transitionId, source: e.source, target: e.target})));
-            
+            console.log('🔄 Edges data:', edges.value.map(e => ({
+                id: e.id,
+                transitionId: e.data?.transitionId,
+                source: e.source,
+                target: e.target
+            })));
+
             const edgeData = edges.value.map(edge => {
                 const sourceNode = nodes.value.find(n => n.id === edge.source);
                 const targetNode = nodes.value.find(n => n.id === edge.target);
-                
+
                 return {
                     id: edge.data?.transitionId || edge.id,
                     sourceX: sourceNode?.position.x || 0,
@@ -1145,15 +1157,15 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             if (!updatedMetaData.transitionLabels) {
                 updatedMetaData.transitionLabels = {};
             }
-            
+
             Object.assign(updatedMetaData.transitionLabels, separatedLabelPositions);
             workflowMetaData.value = updatedMetaData;
-            
+
             console.log('🔄 Reset transform applied label separation for', Object.keys(separatedLabelPositions).length, 'edges');
         });
 
         console.log('Reset to default state completed - all meta data cleared');
-        
+
         // Сохраняем состояние для undo/redo после сброса
         saveState(createSnapshot());
     }
@@ -1226,11 +1238,16 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function autoLayout() {
+        // Переключаем направление при каждом вызове autoLayout
+        layoutDirection.value = layoutDirection.value === 'horizontal' ? 'vertical' : 'horizontal';
+        helperStorage.set(LAYOUT_DIRECTION, layoutDirection.value);
+
         const parsed = JSON.parse(canvasData.value);
         const states = parsed.states || {};
         const initialState = parsed.initialState;
+        const isVertical = layoutDirection.value === 'vertical';
 
-        const positions = applyAutoLayout(states, initialState);
+        const positions = applyAutoLayout(states, initialState, isVertical);
 
         const randomizedPositions = {};
         Object.keys(positions).forEach(nodeId => {
@@ -1256,7 +1273,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const edgeData = edges.value.map(edge => {
             const sourceNode = nodes.value.find(n => n.id === edge.source);
             const targetNode = nodes.value.find(n => n.id === edge.target);
-            
+
             return {
                 id: edge.data?.transitionId || edge.id,
                 sourceX: sourceNode?.position.x || 0,
@@ -1274,12 +1291,16 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         if (!updatedMetaData.transitionLabels) {
             updatedMetaData.transitionLabels = {};
         }
-        
+
         // Объединяем существующие и новые позиции labels
         Object.assign(updatedMetaData.transitionLabels, separatedLabelPositions);
         workflowMetaData.value = updatedMetaData;
 
         saveState(createSnapshot());
+
+        nextTick(() => {
+            fitView()
+        })
     }
 
     function handleUpdateTransitionLabelPosition(eventData: any) {
@@ -1406,14 +1427,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     watch(workflowMetaData, (newValue) => {
         if (isUndoRedoOperation || isMetaDataSaving) return;
-        
+
         if (metaDataDebounceTimer) clearTimeout(metaDataDebounceTimer);
         metaDataDebounceTimer = setTimeout(() => {
             isMetaDataSaving = true;
             helperStorage.set(workflowMetaDataKey.value, newValue);
             isMetaDataSaving = false;
         }, 100);
-    }, { deep: true })
+    }, {deep: true})
 
     // Watch на изменение technicalId для загрузки данных соответствующего чата
     watch(() => props.technicalId, (newTechnicalId, oldTechnicalId) => {
@@ -1425,7 +1446,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 generateNodes();
             });
         }
-    }, { immediate: false })
+    }, {immediate: false})
 
     function undoAction() {
         const previousState = undo();

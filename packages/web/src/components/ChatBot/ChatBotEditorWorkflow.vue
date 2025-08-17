@@ -107,6 +107,7 @@ const {
   canvasData,
   editorSize,
   editorMode,
+  layoutDirection,
   isLoading,
   editorActions,
   nodes,
