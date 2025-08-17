@@ -70,6 +70,18 @@
     <path d="M6 8.25a2.25 2.25 0 1 1 2.25 -2.25 2.2275 2.2275 0 0 1 -2.25 2.25Zm0 -3.75a1.46625 1.46625 0 0 0 -1.5 1.5 1.46625 1.46625 0 0 0 1.5 1.5 1.46625 1.46625 0 0 0 1.5 -1.5 1.46625 1.46625 0 0 0 -1.5 -1.5Z" fill="#000000" stroke-width="0.375"></path>
     <path id="_Transparent_Rectangle_" d="M0 0h12v12H0Z" fill="none" stroke-width="0.375"></path>
   </svg>
+
+  <svg v-if="name === 'vertical'" id="Pan-Vertical--Streamline-Carbon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" height="12" width="12">
+    <defs></defs>
+    <path d="m3.75 3 0.53025 0.53025L5.625 2.1855l0 7.6290000000000004 -1.34475 -1.34475L3.75 9l2.25 2.25 2.25 -2.25 -0.53025 -0.53025L6.375 9.8145l0 -7.6290000000000004 1.34475 1.34475L8.25 3l-2.25 -2.25 -2.25 2.25z" fill="#000000" stroke-width="0.375"></path>
+    <path id="_Transparent_Rectangle_" d="M0 0h12v12H0Z" fill="none" stroke-width="0.375"></path>
+  </svg>
+
+  <svg  v-if="name === 'horizontal'" id="Pan-Horizontal--Streamline-Carbon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" height="12" width="12">
+    <defs></defs>
+    <path d="m9 3.75 -0.53025 0.53025L9.8145 5.625 2.1855 5.625l1.34475 -1.34475L3 3.75l-2.25 2.25 2.25 2.25 0.53025 -0.53025L2.1855 6.375l7.6290000000000004 0 -1.34475 1.34475L9 8.25l2.25 -2.25 -2.25 -2.25z" fill="#000000" stroke-width="0.375"></path>
+    <path id="_Transparent_Rectangle_" d="M0 0h12v12H0Z" fill="none" stroke-width="0.375"></path>
+  </svg>
 </template>
 
 <script setup lang="ts">

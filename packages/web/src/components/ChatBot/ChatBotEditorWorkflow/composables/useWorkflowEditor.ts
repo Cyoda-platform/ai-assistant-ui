@@ -185,8 +185,26 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     const workflowMetaData = ref(helperStorage.get(workflowMetaDataKey.value, null) || {});
 
+    // Инициализируем layoutDirection из метаданных, если есть
+    const metaLayoutDirection = workflowMetaData.value?.layoutDirection;
+    if (metaLayoutDirection && (metaLayoutDirection === 'horizontal' || metaLayoutDirection === 'vertical')) {
+        layoutDirection.value = metaLayoutDirection;
+        helperStorage.set(LAYOUT_DIRECTION, metaLayoutDirection);
+    }
+
     const initialPositions = ref<{ [key: string]: NodePosition }>({});
     const initialTransitionLabels = ref<{ [key: string]: { x: number; y: number } }>({});
+
+    // Вспомогательная функция для обновления метаданных с сохранением layoutDirection
+    const updateWorkflowMetaData = (newData: any) => {
+        const updatedData = {
+            ...workflowMetaData.value,
+            ...newData,
+            layoutDirection: layoutDirection.value
+        };
+        workflowMetaData.value = updatedData;
+        return updatedData;
+    };
 
     const edges = computed<WorkflowEdge[]>(() => {
         if (!canvasData.value) return [];
@@ -1118,8 +1136,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function resetTransform() {
-        fitView();
-
         workflowMetaData.value = null;
 
         initialPositions.value = {};
@@ -1162,12 +1178,16 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             workflowMetaData.value = updatedMetaData;
 
             console.log('🔄 Reset transform applied label separation for', Object.keys(separatedLabelPositions).length, 'edges');
+
+            layoutDirection.value = 'horizontal';
+            nextTick(() => fitView());
         });
 
         console.log('Reset to default state completed - all meta data cleared');
 
         // Сохраняем состояние для undo/redo после сброса
         saveState(createSnapshot());
+        layoutDirection.value = 'horizontal';
     }
 
     async function addNewState() {
@@ -1247,27 +1267,36 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const initialState = parsed.initialState;
         const isVertical = layoutDirection.value === 'vertical';
 
-        const positions = applyAutoLayout(states, initialState, isVertical);
+        const finalPositions = {};
 
-        const randomizedPositions = {};
-        Object.keys(positions).forEach(nodeId => {
-            const basePosition = positions[nodeId];
-
-            const randomOffsetX = (Math.random() - 0.5) * 200; // ±100px
-            const randomOffsetY = (Math.random() - 0.5) * 160; // ±80px
-
-            randomizedPositions[nodeId] = {
-                x: basePosition.x + randomOffsetX,
-                y: basePosition.y + randomOffsetY
-            };
-        });
+        if (isVertical) {
+            // Вертикальный режим: используем applyAutoLayout с точными позициями
+            const positions = applyAutoLayout(states, initialState, true);
+            Object.keys(positions).forEach(nodeId => {
+                const basePosition = positions[nodeId];
+                finalPositions[nodeId] = {
+                    x: basePosition.x,
+                    y: basePosition.y
+                };
+            });
+        } else {
+            // Горизонтальный режим: используем calculateSmartPosition как в resetTransform
+            const stateNames = Object.keys(states);
+            stateNames.forEach(stateName => {
+                const position = calculateSmartPosition(stateName, states, initialState);
+                finalPositions[stateName] = position;
+            });
+        }
 
         nodes.value = nodes.value.map((node: WorkflowNode) => ({
             ...node,
-            position: randomizedPositions[node.id] || node.position
+            position: finalPositions[node.id] || node.position
         }));
 
-        workflowMetaData.value = {...(workflowMetaData.value || {}), ...randomizedPositions};
+        workflowMetaData.value = {
+            ...(workflowMetaData.value || {}), ...finalPositions,
+            layoutDirection: layoutDirection.value
+        };
 
         // Генерируем разделенные позиции для transition labels вместо сброса
         const edgeData = edges.value.map(edge => {
@@ -1286,7 +1315,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const existingLabels = workflowMetaData.value.transitionLabels || {};
         const separatedLabelPositions = generateSeparatedLabelPositions(edgeData, existingLabels);
 
-        // Обновляем метаданные с новыми позициями labels
+        // Обновляем метаданные с новыми позициями labels и направлением макета
         const updatedMetaData = {...workflowMetaData.value};
         if (!updatedMetaData.transitionLabels) {
             updatedMetaData.transitionLabels = {};
@@ -1294,6 +1323,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         // Объединяем существующие и новые позиции labels
         Object.assign(updatedMetaData.transitionLabels, separatedLabelPositions);
+
+        // Сохраняем текущее направление макета
+        updatedMetaData.layoutDirection = layoutDirection.value;
         workflowMetaData.value = updatedMetaData;
 
         saveState(createSnapshot());
@@ -1501,6 +1533,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         nodes,
         edges,
         workflowMetaData,
+        layoutDirection,
         generateNodes,
         onNodeDragStop,
         onConnect,

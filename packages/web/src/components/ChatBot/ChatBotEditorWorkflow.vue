@@ -55,7 +55,12 @@
             </ControlButton>
 
             <ControlButton @click="autoLayout">
-              <Icon name="update"/>
+              <template v-if="layoutDirection==='horizontal'">
+                <Icon name="vertical"/>
+              </template>
+              <template v-else>
+                <Icon name="horizontal"/>
+              </template>
             </ControlButton>
 
             <ControlButton @click="addNewState">
