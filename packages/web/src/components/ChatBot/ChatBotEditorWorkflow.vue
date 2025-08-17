@@ -26,6 +26,22 @@
             :max-zoom="4"
         >
           <Controls position="top-left">
+            <template #icon-zoom-in>
+              <Icon name="zoom-in"/>
+            </template>
+            <template #icon-zoom-out>
+              <Icon name="zoom-out"/>
+            </template>
+            <template #icon-fit-view>
+              <Icon name="fit-view"/>
+            </template>
+            <template #icon-lock>
+              <Icon name="lock"/>
+            </template>
+            <template #icon-unlock>
+              <Icon name="unlock"/>
+            </template>
+
             <ControlButton @click="undoAction" :disabled="!canUndo">
               <Icon name="undo"/>
             </ControlButton>

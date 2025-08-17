@@ -19,3 +19,8 @@
     fill: var(--text-color-regular);
   }
 }
+
+.vue-flow__controls-button svg {
+  max-width: 16px;
+  max-height: 16px;
+}
