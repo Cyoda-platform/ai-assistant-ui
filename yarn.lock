@@ -2482,19 +2482,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^24.2.1":
-  version: 24.2.1
-  resolution: "@types/node@npm:24.2.1"
+"@types/node@npm:^24.3.0":
+  version: 24.3.0
+  resolution: "@types/node@npm:24.3.0"
   dependencies:
     undici-types: "npm:~7.10.0"
-  checksum: 10c0/439a3c7edf88a298e0c92e46f670234070b892589c3b06e82cc86c47a7e1cf220f4a4b4736ec6ac7e4b9e1c40d7b6d443a1e22f99dd17f13f9dd15de3b32011b
+  checksum: 10c0/96bdeca01f690338957c2dcc92cb9f76c262c10398f8d91860865464412b0f9d309c24d9b03d0bdd26dd47fa7ee3f8227893d5c89bc2009d919a525a22512030
   languageName: node
   linkType: hard
 
-"@types/pako@npm:^2.0.3":
-  version: 2.0.3
-  resolution: "@types/pako@npm:2.0.3"
-  checksum: 10c0/45119ac3c4e8a77317c35493327039b74e333562f06ce038048228918d8ddfaa7958125aab960d1565b3861046022754c414dba1eecb210c44a32c415956bee2
+"@types/pako@npm:^2.0.4":
+  version: 2.0.4
+  resolution: "@types/pako@npm:2.0.4"
+  checksum: 10c0/5765bf8bc7e77ee141c454118f03e544b8f6cb51eb257d82dc5830feeab8cd00818af3a1eabefdfbe8dd3ae9916ed5403937bf1031a0ee51deea27fdf4dccdfb
   languageName: node
   linkType: hard
 
@@ -2898,9 +2898,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vue-flow/core@npm:^1.45.1":
-  version: 1.45.1
-  resolution: "@vue-flow/core@npm:1.45.1"
+"@vue-flow/core@npm:^1.46.0":
+  version: 1.46.0
+  resolution: "@vue-flow/core@npm:1.46.0"
   dependencies:
     "@vueuse/core": "npm:^10.5.0"
     d3-drag: "npm:^3.0.0"
@@ -2909,7 +2909,7 @@ __metadata:
     d3-zoom: "npm:^3.0.0"
   peerDependencies:
     vue: ^3.3.0
-  checksum: 10c0/603249a37a99056a5bd1e0265043f553208f982090bf38b2606febdecce3077f22830589a1ca5fa2c24039c5cb48ee3e9da454bc81a03d72909b4985f06f4f0f
+  checksum: 10c0/ebe57245639a5c9ef5462e28cb7f91e425b4b0f381a447810accc7475a0ea81dbdc574f0dbdb10f9933fcb90cd2077d6ee1e53966618c10d1fdd5149cf5655bb
   languageName: node
   linkType: hard
 
@@ -3287,9 +3287,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vue/tsconfig@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "@vue/tsconfig@npm:0.7.0"
+"@vue/tsconfig@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@vue/tsconfig@npm:0.8.0"
   peerDependencies:
     typescript: 5.x
     vue: ^3.4.0
@@ -3298,7 +3298,7 @@ __metadata:
       optional: true
     vue:
       optional: true
-  checksum: 10c0/5b36db5ee9e14b47e516164a21ebbf24e558042a16162a69291fe3dc0dcdf598bc0d9dada1b1008d95afab97a22396e8579e4f0df141a015ffa0837bf6ccbf2f
+  checksum: 10c0/a79ec3ab30c92d161b675a112dc9aa12074224a7c97b586c25293bb0febfd1f9fd8865e1723f084760f56aa7f05f4cbe5ab14a8c381b4cc16158f2719cad833c
   languageName: node
   linkType: hard
 
@@ -3477,16 +3477,16 @@ __metadata:
     "@auth0/auth0-vue": "npm:^2.4.0"
     "@tsconfig/node22": "npm:^22.0.2"
     "@types/file-saver": "npm:^2.0.7"
-    "@types/node": "npm:^24.2.1"
-    "@types/pako": "npm:^2.0.3"
+    "@types/node": "npm:^24.3.0"
+    "@types/pako": "npm:^2.0.4"
     "@types/tinycon": "npm:^0.6.7"
     "@vitejs/plugin-vue": "npm:^6.0.1"
     "@vitejs/plugin-vue-jsx": "npm:^5.0.1"
     "@vue-flow/background": "npm:^1.3.2"
     "@vue-flow/controls": "npm:^1.1.3"
-    "@vue-flow/core": "npm:^1.45.1"
+    "@vue-flow/core": "npm:^1.46.0"
     "@vue/eslint-config-typescript": "npm:^14.6.0"
-    "@vue/tsconfig": "npm:^0.7.0"
+    "@vue/tsconfig": "npm:^0.8.0"
     "@vueuse/core": "npm:^13.6.0"
     axios: "npm:^1.11.0"
     axios-retry: "npm:^4.5.0"
@@ -5051,7 +5051,7 @@ __metadata:
     "@types/electron-squirrel-startup": "npm:^1.0.2"
     "@typescript-eslint/eslint-plugin": "npm:^8.39.1"
     "@typescript-eslint/parser": "npm:^8.39.1"
-    electron: "npm:37.2.6"
+    electron: "npm:37.3.0"
     electron-squirrel-startup: "npm:^1.0.1"
     eslint: "npm:^9.33.0"
     eslint-plugin-import: "npm:^2.32.0"
@@ -5296,16 +5296,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:37.2.6":
-  version: 37.2.6
-  resolution: "electron@npm:37.2.6"
+"electron@npm:37.3.0":
+  version: 37.3.0
+  resolution: "electron@npm:37.3.0"
   dependencies:
     "@electron/get": "npm:^2.0.0"
     "@types/node": "npm:^22.7.7"
     extract-zip: "npm:^2.0.1"
   bin:
     electron: cli.js
-  checksum: 10c0/d0653bbaf6b449260d65d51aa12717ad8acaffce337d32e9892aea5cb70e1dc70f0da54393548595dd3a57cce1dbf699e3fa5d9155427f4151ada572f4430778
+  checksum: 10c0/6f08ca2955c65591368cb0dadbd637d86749040c8d4cd616d7265e1c71ece854f23c678b7cfc23746100327dcdb34f4815504745e97ca3ac2f40c72b951e1044
   languageName: node
   linkType: hard
 
