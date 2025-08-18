@@ -32,7 +32,7 @@ const router = useRouter();
 const drawerSidebarVisible = ref(false);
 
 function onCreated(data: CreateChatResponse) {
-  router.push(`/chat-bot/view/${data.technical_id}?isNew=true`);
+  router.push(`/chat-bot/view/${data.technical_id}`);
 }
 
 const BODY_CLASS_NAME = 'body-dashboard-view';
@@ -59,7 +59,7 @@ function onClickDrawerSideBar() {
   padding-right: 29px;
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 60px);
+  min-height: 100vh;
 
   &__actions {
     display: flex;

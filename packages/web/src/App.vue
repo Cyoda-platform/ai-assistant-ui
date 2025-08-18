@@ -1,7 +1,5 @@
 <template>
   <component v-loading="isLoading" :is="layout">
-    <el-alert class="alert" title="Not Live Yet, user beware, here be dragons" type="info" show-icon
-              :closable="false"/>
     <RouterView/>
     <LoginPopUp/>
     <ChatBotRenameDialog ref="chatBotRenameDialogRef" />
@@ -103,15 +101,4 @@ watch(isAuthenticated, async (value) => {
 </script>
 
 <style scoped lang="scss">
-.alert {
-  border-radius: 0;
-  display: flex;
-  justify-content: center;
-  height: 60px;
-  font-weight: 600;
-  background: var(--bg-sidebar) !important;
-  ::v-deep(.el-alert__title){
-    font-size: 28px !important;
-  }
-}
 </style>

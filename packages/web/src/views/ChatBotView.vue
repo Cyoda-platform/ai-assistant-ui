@@ -110,12 +110,6 @@ function init() {
     url.searchParams.delete('authState')
     window.history.replaceState({}, '', url)
   }
-
-  if (route.query.isNew) {
-    const url = new URL(window.location.href)
-    url.searchParams.delete('isNew')
-    window.history.replaceState({}, '', url)
-  }
   pollChat();
 }
 

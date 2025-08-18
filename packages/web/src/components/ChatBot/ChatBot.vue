@@ -217,13 +217,13 @@ watch(isLastMessageAnswer, async (value) => {
 .chat-bot {
   display: flex;
   flex-direction: column;
-  min-height: calc(100dvh - 60px);
-  height: calc(100% - 60px);
+  min-height: 100dvh;
+  height: 100%;
   overflow: hidden;
 
   @include breakpoints.respond-max('md') {
     min-height: unset;
-    max-height: calc(100dvh - 60px);
+    max-height: 100dvh;
   }
 
   &__body {

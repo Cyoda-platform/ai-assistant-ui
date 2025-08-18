@@ -19,10 +19,17 @@
           :autosize="{ minRows: 1, maxRows: 10 }"
           :placeholder="t('new_chat.input.placeholder')"
       />
-      <el-button :loading="isLoading" class="btn btn-primary btn-icon"
-                 @click.prevent="onClickSend">
-        <SendIcon/>
-      </el-button>
+      <template v-if="isInIframe">
+        <a :href="linkToMainSite" class="btn btn-primary btn-icon" target="_blank">
+          <SendIcon/>
+        </a>
+      </template>
+      <template v-else>
+        <el-button :loading="isLoading" class="btn btn-primary btn-icon"
+                   @click.prevent="onClickSend">
+          <SendIcon/>
+        </el-button>
+      </template>
     </div>
 
     <div class="new-chat__examples">
@@ -56,13 +63,14 @@
 <script setup lang="ts">
 import SendIcon from '@/assets/images/icons/send.svg';
 
-import {computed, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import eventBus from "@/plugins/eventBus";
 import {UPDATE_CHAT_LIST} from "@/helpers/HelperConstants";
 import useAssistantStore from "@/stores/assistant";
 import type {CreateChatResponse} from "@/types/chat.d";
 import {useI18n} from "vue-i18n";
 import useAuthStore from "@/stores/auth";
+import {isInIframe} from "@/helpers/HelperIframe";
 
 const assistantStore = useAssistantStore();
 const form = ref({
@@ -76,6 +84,38 @@ const emit = defineEmits<{
 
 const isLoading = ref(false);
 const {t, tm} = useI18n();
+const authStore = useAuthStore();
+
+onMounted(() => {
+  init();
+});
+
+function init() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('name')) {
+    form.value.name = params.get('name');
+    onClickSend();
+
+    const url = new URL(window.location.href)
+    url.searchParams.delete('name')
+    window.history.replaceState({}, '', url);
+  }
+}
+
+async function onClickSend() {
+  isLoading.value = true;
+  try {
+    const {data} = await assistantStore.postChats(form.value);
+    const authStore = useAuthStore();
+    if (!authStore.isLoggedIn) {
+      assistantStore.setGuestChatsExist(true);
+    }
+    emit('created', data);
+    eventBus.$emit(UPDATE_CHAT_LIST);
+  } finally {
+    isLoading.value = false;
+  }
+}
 
 const examples = computed(() => {
   const items = tm('examples.items.clickable').map(el => {
@@ -105,20 +145,10 @@ function onClickExample(example) {
   form.value.name = example.text;
 }
 
-async function onClickSend() {
-  isLoading.value = true;
-  try {
-    const {data} = await assistantStore.postChats(form.value);
-    const authStore = useAuthStore();
-    if (!authStore.isLoggedIn) {
-      assistantStore.setGuestChatsExist(true);
-    }
-    emit('created', data);
-    eventBus.$emit(UPDATE_CHAT_LIST);
-  } finally {
-    isLoading.value = false;
-  }
-}
+const linkToMainSite = computed(() => {
+  const baseUrl = window.location.origin;
+  return `${baseUrl}/?authState=${encodeURIComponent(JSON.stringify(authStore.$state))}&name=${encodeURIComponent(form.value.name)}`;
+})
 </script>
 
 <style lang="scss">
