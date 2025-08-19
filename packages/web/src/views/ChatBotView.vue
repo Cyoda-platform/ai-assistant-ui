@@ -186,7 +186,7 @@ function addMessage(el) {
 
   messages.value.push({
     id: el.technical_id,
-    text: el.question || el.notification || el.answer || el.message,
+    text: el.message || el.answer,
     file: el.file,
     editable: !!el.editable,
     approve: !!el.approve,

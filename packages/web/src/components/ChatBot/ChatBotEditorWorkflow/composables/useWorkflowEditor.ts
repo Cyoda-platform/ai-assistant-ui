@@ -118,7 +118,7 @@ export interface WorkflowEdge {
     };
 }
 
-export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: any) {
+export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: any, emit?: any) {
     const EDITOR_WIDTH = 'chatBotEditorWorkflow:width';
     const EDITOR_MODE = 'chatBotEditorWorkflow:editorMode';
     const LAYOUT_DIRECTION = 'chatBotEditorWorkflow:layoutDirection';
@@ -158,11 +158,29 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     const editorMode = ref(helperStorage.get(EDITOR_MODE, 'preview'));
     const layoutDirection = ref<'horizontal' | 'vertical'>(helperStorage.get(LAYOUT_DIRECTION, 'horizontal'));
     const isLoading = ref(false);
-    const editorActions = ref<EditorAction[]>(
-        assistantStore
-            ? createWorkflowEditorActions(props.technicalId, assistantStore, isLoading)
-            : []
-    );
+    const editorActions = ref<EditorAction[]>([]);
+    
+    // Initialize editor actions
+    function initializeEditorActions() {
+        if (!assistantStore) {
+            editorActions.value = [];
+            return;
+        }
+
+        const actions = createWorkflowEditorActions({
+            technicalId: props.technicalId,
+            assistantStore,
+            isLoading,
+            currentFile: ref(null), // Workflow editor doesn't support file attachments yet
+            onAnswer: emit ? (data) => {
+                emit('answer', data);
+            } : undefined
+        });
+
+        editorActions.value = actions;
+    }
+
+    initializeEditorActions();
     const nodes = ref<WorkflowNode[]>([]);
 
     const {
@@ -1524,6 +1542,21 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     provide('onConditionChange', onEdgeConditionChange);
 
+    async function onSubmitQuestion() {
+        try {
+            isLoading.value = true;
+
+            const dataRequest = {
+                question: canvasData.value
+            };
+
+            const {data} = await assistantStore.postTextQuestions(props.technicalId, dataRequest);
+            canvasData.value += `\n/*\n${data.message}\n*/`;
+        } finally {
+            isLoading.value = false;
+        }
+    }
+
     return {
         canvasData,
         editorSize,
@@ -1553,5 +1586,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         isDraggingConnection,
         createSnapshot,
         loadSnapshot,
+        onSubmitQuestion,
     };
 }
