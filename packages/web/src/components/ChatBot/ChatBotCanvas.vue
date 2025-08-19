@@ -7,8 +7,8 @@
       <ChatBotTopActions @toggleCanvas="emit('toggleCanvas')">
         <template #left-side>
           <el-radio-group v-model="canvasType" size="large">
-            <el-radio-button label="Markdown" value="markdown"/>
             <el-radio-button label="Workflow" value="workflow"/>
+            <el-radio-button label="Markdown" value="markdown"/>
           </el-radio-group>
         </template>
       </ChatBotTopActions>
@@ -33,7 +33,7 @@ import ChatBotEditorWorkflow from "@/components/ChatBot/ChatBotEditorWorkflow.vu
 
 const appStore = useAppStore();
 const isSidebarHidden = computed(() => appStore.isSidebarHidden);
-const canvasType = ref('markdown');
+const canvasType = ref('workflow');
 
 const sidebarRef = useTemplateRef('sidebarRef');
 const mainRef = useTemplateRef('mainRef');

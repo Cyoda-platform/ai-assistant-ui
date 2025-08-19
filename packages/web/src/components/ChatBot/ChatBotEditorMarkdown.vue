@@ -61,7 +61,10 @@ import HelperStorage from "@/helpers/HelperStorage";
 import {createMarkdownEditorActions, type EditorAction} from "@/utils/editorUtils";
 import EditorViewMode from "@/components/ChatBot/EditorViewMode.vue";
 
-const canvasData = ref('');
+const props = defineProps<{
+  technicalId: string,
+}>();
+
 const editorActions = ref<EditorAction[]>([]);
 const isLoading = ref(false);
 const assistantStore = useAssistantStore();
@@ -75,9 +78,9 @@ const EDITOR_MODE = 'chatBotEditorMarkdown:editorMode';
 const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
 const editorMode = ref(helperStorage.get(EDITOR_MODE, 'editorPreview'));
 
-const props = defineProps<{
-  technicalId: string,
-}>();
+
+const markdownCanvasDataKey = computed(() => `chatBotEditorMarkdown:canvasData:${props.technicalId}`);
+const canvasData = ref(helperStorage.get(markdownCanvasDataKey.value, '')?.toString());
 
 const isShowMarkdown = computed(() => {
   return ['preview', 'editorPreview'].includes(editorMode.value);
@@ -170,6 +173,10 @@ watch(editorSize, (value) => {
 watch(editorMode, (value) => {
   helperStorage.set(EDITOR_MODE, value);
 })
+
+watch(canvasData, (value) => {
+  helperStorage.set(markdownCanvasDataKey.value.toString(), value);
+})
 </script>
 
 <style lang="scss">
@@ -217,6 +224,13 @@ watch(editorMode, (value) => {
   &__markdown-inner {
     height: 100%;
     overflow-y: auto;
+  }
+
+  &.el-loading-parent--relative {
+    .el-loading-mask{
+      top: -15px;
+      bottom: -55px;
+    }
   }
 }
 </style>

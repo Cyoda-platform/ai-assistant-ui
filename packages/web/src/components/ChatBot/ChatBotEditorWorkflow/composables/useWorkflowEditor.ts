@@ -1524,6 +1524,21 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     provide('onConditionChange', onEdgeConditionChange);
 
+    async function onSubmitQuestion() {
+        try {
+            isLoading.value = true;
+
+            const dataRequest = {
+                question: canvasData.value
+            };
+
+            const {data} = await assistantStore.postTextQuestions(props.technicalId, dataRequest);
+            canvasData.value += `\n/*\n${data.message}\n*/`;
+        } finally {
+            isLoading.value = false;
+        }
+    }
+
     return {
         canvasData,
         editorSize,
@@ -1553,5 +1568,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         isDraggingConnection,
         createSnapshot,
         loadSnapshot,
+        onSubmitQuestion,
     };
 }

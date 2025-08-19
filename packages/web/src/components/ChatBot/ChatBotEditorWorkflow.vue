@@ -5,6 +5,21 @@
       <el-splitter-panel v-if="isShowEditor" v-model:size="editorSize" class="chat-bot-editor-workflow__editor-wrapper">
         <Editor v-model="canvasData" language="json" class="chat-bot-editor-workflow__editor-inner"
                 :actions="editorActions"/>
+        <div class="chat-bot-editor-workflow__actions">
+          <div class="btn-action btn-block">
+            <el-tooltip
+                class="box-item"
+                effect="dark"
+                content="Send Answer"
+                placement="left"
+                :show-after="1000"
+            >
+              <el-button @click="onSubmitQuestion" class="btn-white btn-icon">
+                <SendIcon/>
+              </el-button>
+            </el-tooltip>
+          </div>
+        </div>
       </el-splitter-panel>
       <el-splitter-panel v-if="isShowVueFlow" class="chat-bot-editor-workflow__flow-wrapper">
         <VueFlow
@@ -85,7 +100,6 @@
 </template>
 
 <script setup lang="ts">
-import {templateRef} from "@vueuse/core";
 import {VueFlow, ConnectionMode, useVueFlow} from '@vue-flow/core'
 import {Background} from '@vue-flow/background'
 import {ControlButton, Controls} from '@vue-flow/controls'
@@ -98,14 +112,15 @@ import EditEdgeConditionalDialog from "@/components/ChatBot/ChatBotEditorWorkflo
 import WorkflowMetaDialog from "@/components/ChatBot/ChatBotEditorWorkflow/WorkflowMetaDialog.vue";
 import {useWorkflowEditor} from './ChatBotEditorWorkflow/composables/useWorkflowEditor';
 import useAssistantStore from "@/stores/assistant.ts";
-import {computed, provide, markRaw, ref, watch, nextTick} from "vue";
+import {computed, markRaw, watch, nextTick, useTemplateRef} from "vue";
 import EditorViewMode from "@/components/ChatBot/EditorViewMode.vue";
+import SendIcon from "@/assets/images/icons/send.svg";
 
 const props = defineProps<{
   technicalId: string,
 }>();
 
-const workflowMetaDialogRef = templateRef('workflowMetaDialogRef');
+const workflowMetaDialogRef = useTemplateRef('workflowMetaDialogRef');
 const assistantStore = useAssistantStore();
 
 const {
@@ -132,6 +147,7 @@ const {
   undoAction,
   redoAction,
   isDraggingConnection,
+  onSubmitQuestion,
 } = useWorkflowEditor(props, assistantStore);
 
 const edgeTypes = {
@@ -174,6 +190,7 @@ watch(editorMode, ()=>{
 
   &__editor-wrapper {
     padding-right: 15px;
+    position: relative;
   }
 
   &__flow-wrapper {
@@ -182,6 +199,32 @@ watch(editorMode, ()=>{
 
   &__editor-inner {
     min-height: 100%;
+  }
+
+  &__actions {
+    position: absolute;
+    right: 15px;
+    bottom: 20px;
+    z-index: 100;
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-new-chat);
+    border: 1px solid var(--input-border);
+    padding: 9px 12px;
+    border-radius: 4px;
+
+    button {
+      margin: 0 !important;
+    }
+  }
+
+  &.el-loading-parent--relative {
+    .el-loading-mask{
+      top: -15px;
+      bottom: -55px;
+    }
   }
 }
 </style>
