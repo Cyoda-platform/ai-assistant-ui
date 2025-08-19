@@ -17,7 +17,11 @@
           @answer="emit('answer', $event)"
           :technicalId="technicalId"
       />
-      <ChatBotEditorWorkflow v-if="canvasType === 'workflow'" :technicalId="technicalId"/>
+      <ChatBotEditorWorkflow
+          v-if="canvasType === 'workflow'"
+          @answer="emit('answer', $event)"
+          :technicalId="technicalId"
+      />
     </div>
   </div>
 </template>

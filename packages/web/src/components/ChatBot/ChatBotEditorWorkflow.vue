@@ -120,6 +120,8 @@ const props = defineProps<{
   technicalId: string,
 }>();
 
+const emit = defineEmits(['answer']);
+
 const workflowMetaDialogRef = useTemplateRef('workflowMetaDialogRef');
 const assistantStore = useAssistantStore();
 
@@ -148,7 +150,7 @@ const {
   redoAction,
   isDraggingConnection,
   onSubmitQuestion,
-} = useWorkflowEditor(props, assistantStore);
+} = useWorkflowEditor(props, assistantStore, emit);
 
 const edgeTypes = {
   custom: markRaw(EdgeWithTooltip),

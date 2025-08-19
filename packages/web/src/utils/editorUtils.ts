@@ -143,6 +143,11 @@ export function createSubmitAnswerAction(config: EditorActionConfig): EditorActi
             }
 
             config.onAnswer(dataRequest);
+            ElNotification({
+                title: 'Success',
+                message: 'The answer was sent in the main window chat.',
+                type: 'success',
+            });
             config.currentFile.value = null;
         }
     };
@@ -168,98 +173,80 @@ export function createMarkdownEditorActions(config: EditorActionConfig): EditorA
 /**
  * Create editor actions for workflow editor (JSON editor)
  */
-export function createWorkflowEditorActions(
-    technicalId: string,
-    assistantStore: any,
-    isLoading: Ref<boolean>,
-    onAnswer: (data: AnswerRequestData) => void,
-): EditorAction[] {
-    return [
-        {
-            id: "submitQuestion",
-            label: "Submit Question",
-            contextMenuGroupId: "chatbot",
-            keybindings: [
-                monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyQ,
-            ],
-            run: async (editor: monaco.editor.IStandaloneCodeEditor) => {
-                const selectedValue = editor.getModel()?.getValueInRange(editor.getSelection()!);
+export function createWorkflowEditorActions(config: EditorActionConfig & {
+    technicalId: string;
+    assistantStore: any;
+}): EditorAction[] {
+    const actions: EditorAction[] = [];
 
-                if (!selectedValue) {
-                    ElMessageBox.alert('Please select text before use it', 'Warning');
-                    return;
-                }
+    actions.push({
+        id: "submitQuestion",
+        label: "Submit Question",
+        contextMenuGroupId: "chatbot",
+        keybindings: [
+            monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyQ,
+        ],
+        run: async (editor: monaco.editor.IStandaloneCodeEditor) => {
+            const selectedValue = editor.getModel()?.getValueInRange(editor.getSelection()!);
 
-                try {
-                    isLoading.value = true;
-
-                    const dataRequest = {
-                        question: selectedValue
-                    };
-
-                    const {data} = await assistantStore.postTextQuestions(technicalId, dataRequest);
-
-                    const position = editor.getPosition();
-                    const lineCount = editor.getModel()?.getLineCount() || 0;
-                    const message = data.message.replaceAll('```json', '').replaceAll('```', '').trim();
-                    let textToInsert = `/*\n${message}\n*/`;
-
-                    if (position && position.lineNumber === lineCount) {
-                        textToInsert = '\n' + textToInsert;
-                    } else {
-                        textToInsert = textToInsert + '\n';
-                    }
-
-                    const range = new monaco.Range(
-                        (position?.lineNumber || 0) + 1,
-                        1,
-                        (position?.lineNumber || 0) + 1,
-                        1
-                    );
-
-                    editor.executeEdits('WorkflowEditor', [
-                        {
-                            range,
-                            text: textToInsert,
-                        },
-                    ]);
-
-                    editor.setPosition({
-                        lineNumber: (position?.lineNumber || 0) + 1,
-                        column: textToInsert.length + 1
-                    });
-
-                    ElNotification({
-                        title: 'Success',
-                        message: 'The workflow suggestion was generated',
-                        type: 'success',
-                    });
-                } finally {
-                    isLoading.value = false;
-                }
+            if (!selectedValue) {
+                ElMessageBox.alert('Please select text before use it', 'Warning');
+                return;
             }
-        },
-        {
-            id: "submitAnswer",
-            label: "Submit Answer",
-            contextMenuGroupId: "chatbot",
-            keybindings: [
-                monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyA,
-            ],
-            run: async (editor: monaco.editor.IStandaloneCodeEditor) => {
-                const selectedValue = editor.getModel()?.getValueInRange(editor.getSelection()!);
 
-                if (!selectedValue) {
-                    ElMessageBox.alert('Please select text before use it', 'Warning');
-                    return;
-                }
+            try {
+                config.isLoading.value = true;
 
-                const dataRequest: AnswerRequestData = {
-                    answer: selectedValue
+                const dataRequest = {
+                    question: selectedValue
                 };
 
-                onAnswer(dataRequest);
+                const {data} = await config.assistantStore.postTextQuestions(config.technicalId, dataRequest);
+
+                const position = editor.getPosition();
+                const lineCount = editor.getModel()?.getLineCount() || 0;
+                const message = data.message.replaceAll('```json', '').replaceAll('```', '').trim();
+                let textToInsert = `/*\n${message}\n*/`;
+
+                if (position && position.lineNumber === lineCount) {
+                    textToInsert = '\n' + textToInsert;
+                } else {
+                    textToInsert = textToInsert + '\n';
+                }
+
+                const range = new monaco.Range(
+                    (position?.lineNumber || 0) + 1,
+                    1,
+                    (position?.lineNumber || 0) + 1,
+                    1
+                );
+
+                editor.executeEdits('WorkflowEditor', [
+                    {
+                        range,
+                        text: textToInsert,
+                    },
+                ]);
+
+                editor.setPosition({
+                    lineNumber: (position?.lineNumber || 0) + 1,
+                    column: textToInsert.length + 1
+                });
+
+                ElNotification({
+                    title: 'Success',
+                    message: 'The workflow suggestion was generated',
+                    type: 'success',
+                });
+            } finally {
+                config.isLoading.value = false;
             }
         }
-    ];
+    });
+
+    if (config.onAnswer) {
+        actions.push(createSubmitAnswerAction(config));
+    }
+
+    return actions;
 }
