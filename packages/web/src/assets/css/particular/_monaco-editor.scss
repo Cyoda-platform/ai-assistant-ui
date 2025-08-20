@@ -2,11 +2,22 @@
   .cursor {
     background-color: var(--text-color-regular) !important;
   }
+
   .monaco-editor-background, div.overflow-guard > div.margin {
     background-color: var(--bg) !important;
   }
 
   .line-numbers, .mtk1 {
+    color: var(--text-color-regular) !important;
+  }
+}
+
+.theme-dark {
+  .mtk20 {
+    color: var(--color-primary-ligter) !important;
+  }
+
+  .mtk5 {
     color: var(--text-color-regular) !important;
   }
 }
