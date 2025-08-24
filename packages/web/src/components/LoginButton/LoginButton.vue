@@ -9,11 +9,11 @@ import {LOGIN_REDIRECT_URL} from "@/helpers/HelperConstants";
 
 const helperStorage = new HelperStorage();
 
-const {loginWithRedirect} = useAuth0();
+const {loginWithRedirect, loginWithPopup} = useAuth0();
 
 function onClick() {
   helperStorage.set(LOGIN_REDIRECT_URL, '/home');
-  loginWithRedirect({
+  loginWithPopup({
     authorizationParams: {
       prompt: 'login',
       scope: 'openid profile email offline_access'
