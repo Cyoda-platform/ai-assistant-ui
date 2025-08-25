@@ -1,4 +1,4 @@
-import {app, BrowserWindow, screen, Notification} from 'electron';
+import {app, BrowserWindow, screen, Notification, globalShortcut} from 'electron';
 import path from 'path';
 import started from 'electron-squirrel-startup';
 import {updateElectronApp} from 'update-electron-app';
@@ -56,6 +56,14 @@ if (started) {
     app.quit();
 }
 
+function loadAppUrl(){
+    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+        mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    } else {
+        mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+    }
+}
+
 const createWindow = () => {
     const {width, height} = screen.getPrimaryDisplay().workAreaSize;
     // Create the browser window.
@@ -68,16 +76,12 @@ const createWindow = () => {
     });
 
     // and load the index.html of the app.
-    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-        mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
-    } else {
-        mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
-    }
+    loadAppUrl();
 
     // Open the DevTools.
-    // if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development') {
         mainWindow.webContents.openDevTools();
-    // }
+    }
     
     // Создаем сервер для Auth0 callback после создания окна
     createAuthCallbackServer();
@@ -86,7 +90,18 @@ const createWindow = () => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', () => {
+    createWindow();
+    
+    // Регистрируем глобальный shortcut Escape для отмены авторизации
+    globalShortcut.register('Escape', () => {
+        const url = mainWindow.webContents.getURL();
+        if (mainWindow && !url.includes('file:')) {
+            console.log('🔥 Escape pressed, closing auth window');
+            loadAppUrl();
+        }
+    });
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -97,6 +112,9 @@ app.on('window-all-closed', () => {
         authCallbackServer.close();
         authCallbackServer = null;
     }
+    
+    // Отменяем глобальные shortcuts
+    globalShortcut.unregisterAll();
     
     if (process.platform !== 'darwin') {
         app.quit();
