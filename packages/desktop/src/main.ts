@@ -78,7 +78,7 @@ const createWindow = () => {
     // and load the index.html of the app.
     loadAppUrl();
 
-        // Open the DevTools.
+        // Open the DevTools for development env
     if (process.env.NODE_ENV === 'development') {
         mainWindow.webContents.openDevTools();
     }
