@@ -84,14 +84,21 @@ function onClickSettings() {
 
 function onClickLogout() {
   visibleCard.value = false;
-  authStore.logout(() => {
-    logout({
-      logoutParams: {
-        returnTo: window.location.origin
-      }
+  const isElectron = import.meta.env.VITE_IS_ELECTRON;
+  
+  if (isElectron) {
+    authStore.logout();
+    router.push('/');
+  } else {
+    authStore.logout(() => {
+      logout({
+        logoutParams: {
+          returnTo: window.location.origin
+        }
+      });
     });
-  });
-  router.push('/');
+    router.push('/');
+  }
 }
 
 function onToggleCard() {
