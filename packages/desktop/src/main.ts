@@ -82,33 +82,24 @@ const createWindow = () => {
     // if (process.env.NODE_ENV === 'development') {
         mainWindow.webContents.openDevTools();
     // }
-    
-    // Отслеживаем навигацию для инжекции кастомных элементов на Auth0 страницы
+
     mainWindow.webContents.on('did-finish-load', () => {
         const currentUrl = mainWindow.webContents.getURL();
-        console.log('🔥 Page loaded:', currentUrl);
 
-        // Проверяем, если это страница Auth0 login
         if (currentUrl.includes('auth0.com') && currentUrl.includes('/u/login')) {
-            console.log('🔥 Detected Auth0 login page, injecting custom message...');
-
             const jsCode = `
-                // Проверяем, не добавили ли уже сообщение
                 if (document.getElementById('electron-auth-message')) {
                     console.log('Custom message already exists');
                 } else {
                     console.log('Adding custom message to Auth0 page');
-                    
-                    // Создаем кастомное сообщение
+      
                     const customMessage = document.createElement('div');
                     customMessage.id = 'electron-auth-message';
                     customMessage.style = 'background: #0D8484; color: #fff; padding: 15px 20px; text-align: center; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; font-size: 15px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.2);';
                     customMessage.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; gap: 10px;"><span style="font-size: 20px;">🚀</span><span>Authorization</span></div><div style="font-size: 13px; margin-top: 5px; opacity: 0.95; font-weight: 400;">Sign in to access your personal AI assistant • Press ESC to cancel</div>';
                     
-                    // Вставляем в начало body
                     document.body.insertBefore(customMessage, document.body.firstChild);
                     
-                    console.log('✅ Custom message added to Auth0 login page');
                 }
             `;
 
@@ -142,13 +133,11 @@ app.on('ready', () => {
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
-    // Закрываем сервер при выходе
     if (authCallbackServer) {
         authCallbackServer.close();
         authCallbackServer = null;
     }
-    
-    // Отменяем глобальные shortcuts
+
     globalShortcut.unregisterAll();
     
     if (process.platform !== 'darwin') {
