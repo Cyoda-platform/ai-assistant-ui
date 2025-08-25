@@ -79,9 +79,9 @@ const createWindow = () => {
     loadAppUrl();
 
         // Open the DevTools.
-    // if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development') {
         mainWindow.webContents.openDevTools();
-    // }
+    }
 
     mainWindow.webContents.on('did-finish-load', () => {
         const currentUrl = mainWindow.webContents.getURL();
