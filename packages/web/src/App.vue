@@ -32,6 +32,7 @@ const assistantStore = useAssistantStore();
 const detectTheme = useDetectTheme();
 
 onMounted(() => {
+  console.log('localtion', window.location);
   const {getAccessTokenSilently} = useAuth0()
 
   setTokenGetter(async () => {

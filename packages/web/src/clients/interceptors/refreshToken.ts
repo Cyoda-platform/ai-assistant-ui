@@ -27,7 +27,7 @@ const refreshToken = (instance: AxiosInstance): void => {
 
                     autoLogoutTimeout = setTimeout(() => {
                         authStore.logout();
-                        window.location.href = "/";
+                        window.location.href = window.location.origin + "/";
                     }, 10000);
 
                     await refreshAccessTokenPromise;
@@ -48,14 +48,14 @@ const refreshToken = (instance: AxiosInstance): void => {
                     return instance.request(originalConfig);
                 } catch (e) {
                     authStore.logout();
-                    window.location.href = "/";
+                    window.location.href = window.location.origin + "/";
                 } finally {
                     if (autoLogoutTimeout) clearTimeout(autoLogoutTimeout);
                     autoLogoutTimeout = null;
                 }
             } else if (response?.status === 401 && originalConfig?.__isRetryRequest) {
                 authStore.logout();
-                window.location.href = "/";
+                window.location.href = window.location.origin + "/";
             }
 
             return Promise.reject(error);
