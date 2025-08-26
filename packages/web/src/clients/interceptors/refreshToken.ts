@@ -6,6 +6,18 @@ import type {Auth} from "@/types/auth";
 let refreshAccessTokenPromise: Promise<void> | null = null;
 const helperStorage = new HelperStorage();
 
+const handleLogoutAndRedirect = () => {
+    const authStore = useAuthStore();
+    authStore.logout();
+    
+    // Проверяем, работаем ли мы в Electron
+    if (import.meta.env.VITE_IS_ELECTRON && window.electronAPI?.reloadMainWindow) {
+        window.electronAPI.reloadMainWindow();
+    } else {
+        window.location.href = window.location.origin + "/";
+    }
+};
+
 const refreshToken = (instance: AxiosInstance): void => {
     instance.interceptors.response.use(
         undefined,
@@ -26,13 +38,7 @@ const refreshToken = (instance: AxiosInstance): void => {
                     }
 
                     autoLogoutTimeout = setTimeout(() => {
-                        authStore.logout();
-                        // Проверяем, работаем ли мы в Electron
-                        if (import.meta.env.VITE_IS_ELECTRON && window.electronAPI?.reloadMainWindow) {
-                            window.electronAPI.reloadMainWindow();
-                        } else {
-                            window.location.href = window.location.origin + "/";
-                        }
+                        handleLogoutAndRedirect();
                     }, 10000);
 
                     await refreshAccessTokenPromise;
@@ -52,25 +58,13 @@ const refreshToken = (instance: AxiosInstance): void => {
                     // @ts-ignore
                     return instance.request(originalConfig);
                 } catch (e) {
-                    authStore.logout();
-                    // Проверяем, работаем ли мы в Electron
-                    if (import.meta.env.VITE_IS_ELECTRON && window.electronAPI?.reloadMainWindow) {
-                        window.electronAPI.reloadMainWindow();
-                    } else {
-                        window.location.href = window.location.origin + "/";
-                    }
+                    handleLogoutAndRedirect();
                 } finally {
                     if (autoLogoutTimeout) clearTimeout(autoLogoutTimeout);
                     autoLogoutTimeout = null;
                 }
             } else if (response?.status === 401 && originalConfig?.__isRetryRequest) {
-                authStore.logout();
-                // Проверяем, работаем ли мы в Electron
-                if (import.meta.env.VITE_IS_ELECTRON && window.electronAPI?.reloadMainWindow) {
-                    window.electronAPI.reloadMainWindow();
-                } else {
-                    window.location.href = window.location.origin + "/";
-                }
+                handleLogoutAndRedirect();
             }
 
             return Promise.reject(error);
