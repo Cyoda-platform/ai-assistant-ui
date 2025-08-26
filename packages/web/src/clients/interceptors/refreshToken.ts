@@ -9,8 +9,7 @@ const helperStorage = new HelperStorage();
 const handleLogoutAndRedirect = () => {
     const authStore = useAuthStore();
     authStore.logout();
-    
-    // Проверяем, работаем ли мы в Electron
+
     if (import.meta.env.VITE_IS_ELECTRON && window.electronAPI?.reloadMainWindow) {
         window.electronAPI.reloadMainWindow();
     } else {

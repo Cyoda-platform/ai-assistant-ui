@@ -10,10 +10,10 @@ if (started) {
 
 let mainWindow: BrowserWindow | null = null;
 
-// Регистрируем кастомную URL схему для Auth0 callback
+// Register custom URL scheme for Auth0 callback
 const PROTOCOL_NAME = 'cyoda-desktop';
 
-// Устанавливаем приложение как обработчик для нашего протокола
+// Set up the application as handler for our protocol
 if (process.defaultApp) {
     if (process.argv.length >= 2) {
         app.setAsDefaultProtocolClient(PROTOCOL_NAME, process.execPath, [path.resolve(process.argv[1])]);
@@ -22,19 +22,19 @@ if (process.defaultApp) {
     app.setAsDefaultProtocolClient(PROTOCOL_NAME);
 }
 
-// Обработка single instance - если приложение уже запущено, передаем URL в существующий процесс
+// Handle single instance - if app is already running, pass URL to existing process
 const gotTheLock = app.requestSingleInstanceLock();
 
 if (!gotTheLock) {
     app.quit();
 } else {
     app.on('second-instance', (event, commandLine, workingDirectory) => {
-        // Кто-то пытался запустить второй экземпляр, фокусируемся на нашем окне
+        // Someone tried to run a second instance, focus our window instead
         if (mainWindow) {
             if (mainWindow.isMinimized()) mainWindow.restore();
             mainWindow.focus();
             
-            // Ищем URL с нашим протоколом в аргументах командной строки
+            // Look for URL with our protocol in command line arguments
             const authUrl = commandLine.find((arg) => arg.startsWith(`${PROTOCOL_NAME}://`));
             if (authUrl) {
                 console.log('🔥 Received auth callback URL:', authUrl);
@@ -44,7 +44,7 @@ if (!gotTheLock) {
     });
 }
 
-// Обработчик для полученных auth callback URL
+// Handler for received auth callback URLs
 function handleAuthCallback(url: string) {
     console.log('🔄 Processing auth callback:', url);
     
@@ -53,24 +53,24 @@ function handleAuthCallback(url: string) {
         console.log('📝 Callback URL params:', callbackUrl.searchParams.toString());
         
         if (mainWindow && !mainWindow.isDestroyed()) {
-            // Формируем правильный URL для приложения с параметрами auth callback
+            // Build correct URL for the app with auth callback parameters
             const baseUrl = MAIN_WINDOW_VITE_DEV_SERVER_URL || 
                 `file://${path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)}`;
             
-            // Добавляем параметры auth callback к корневому URL
+            // Add auth callback parameters to root URL
             const appUrl = `${baseUrl}${callbackUrl.search}&auth0=true`;
             
             console.log('🚀 Loading app URL:', appUrl);
             mainWindow.loadURL(appUrl);
             
-            // Фокусируемся на основном окне
+            // Focus on main window
             if (mainWindow.isMinimized()) mainWindow.restore();
             mainWindow.focus();
         }
     } catch (error) {
         console.error('❌ Error processing auth callback:', error);
         
-        // Fallback - просто загружаем главную страницу
+        // Fallback - just load main page
         if (mainWindow && !mainWindow.isDestroyed()) {
             loadAppUrl();
         }
@@ -85,7 +85,7 @@ function loadAppUrl(){
     }
 }
 
-// Обработчик IPC сообщений для перезагрузки главного окна
+// IPC handler for reloading main window
 ipcMain.handle('reload-main-window', () => {
     console.log('🔄 Reloading main window by request');
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -145,7 +145,7 @@ const createWindow = () => {
 app.on('ready', () => {
     createWindow();
     
-    // Регистрируем глобальный shortcut Escape для отмены авторизации
+    // Register global Escape shortcut for auth cancellation
     globalShortcut.register('Escape', () => {
         const url = mainWindow.webContents.getURL();
         if (mainWindow && !url.includes('file:')) {
@@ -154,11 +154,11 @@ app.on('ready', () => {
         }
     });
     
-    // Проверяем аргументы командной строки на наличие нашего протокола
+    // Check command line arguments for our protocol
     const authUrl = process.argv.find((arg) => arg.startsWith(`${PROTOCOL_NAME}://`));
     if (authUrl) {
         console.log('🔥 Received auth callback URL from command line:', authUrl);
-        // Задержка, чтобы окно успело создаться
+        // Delay so the window has time to be created
         setTimeout(() => handleAuthCallback(authUrl), 1000);
     }
 });
@@ -182,7 +182,7 @@ app.on('activate', () => {
     }
 });
 
-// Обработка кастомных URL (для macOS)
+// Handle custom URLs (for macOS)
 app.on('open-url', (event, url) => {
     event.preventDefault();
     console.log('🔗 Received URL:', url);
