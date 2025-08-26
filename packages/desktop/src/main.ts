@@ -1,4 +1,4 @@
-import {app, BrowserWindow, screen, Notification, globalShortcut} from 'electron';
+import {app, BrowserWindow, screen, Notification, globalShortcut, ipcMain} from 'electron';
 import path from 'path';
 import started from 'electron-squirrel-startup';
 import {updateElectronApp} from 'update-electron-app';
@@ -84,6 +84,14 @@ function loadAppUrl(){
         mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
     }
 }
+
+// Обработчик IPC сообщений для перезагрузки главного окна
+ipcMain.handle('reload-main-window', () => {
+    console.log('🔄 Reloading main window by request');
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        loadAppUrl();
+    }
+});
 
 const createWindow = () => {
     const {width, height} = screen.getPrimaryDisplay().workAreaSize;
