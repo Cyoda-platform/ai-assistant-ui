@@ -29,6 +29,7 @@ const useAuthStore = defineStore('auth', {
     parsedToken: (state) => {
       return state.token ? parseJwt(state.token) : null;
     },
+    hasToken: (state) => !!state.token,
   },
 
   actions: {

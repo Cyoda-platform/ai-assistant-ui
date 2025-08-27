@@ -1,8 +1,11 @@
 import type {AxiosInstance} from "axios";
 import useAuthStore from "../../stores/auth";
+import type {Auth} from "@/types/auth";
+import HelperStorage from "../../helpers/HelperStorage";
 
 let tokenPromise = null;
 
+const helperStorage = new HelperStorage();
 const jwtInterceptor = (instance: AxiosInstance): void => {
   instance.interceptors.request.use(async (config) => {
 
@@ -11,12 +14,14 @@ const jwtInterceptor = (instance: AxiosInstance): void => {
     }
 
     const authStore = useAuthStore();
-    if (!authStore.token) {
+    if (!authStore.hasToken) {
       if (!tokenPromise) tokenPromise = authStore.getGuestToken();
       await tokenPromise;
       tokenPromise = null;
     }
-    config.headers.Authorization = `Bearer ${authStore.token}`;
+
+    const token = helperStorage.get<Auth>("auth")?.token;
+    config.headers.Authorization = `Bearer ${token}`;
     return config;
   });
 };

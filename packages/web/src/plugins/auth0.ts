@@ -8,11 +8,8 @@ export default {
       authorizationParams: {
         redirect_uri: `${import.meta.env.VITE_APP_AUTH0_REDIRECT_URI}?auth0=true`,
         audience: import.meta.env.VITE_APP_AUTH0_AUDIENCE,
-        organization: import.meta.env.VITE_APP_AUTH0_ORGANIZATION,
-        scope: 'openid profile email offline_access'
-      },
-      useRefreshTokens: true,
-      cacheLocation: 'localstorage'
+        organization: import.meta.env.VITE_APP_AUTH0_ORGANIZATION
+      }
     });
     app.use(auth0);
     window.$auth0 = auth0;

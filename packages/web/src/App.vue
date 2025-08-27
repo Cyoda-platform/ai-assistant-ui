@@ -36,9 +36,7 @@ onMounted(() => {
 
   setTokenGetter(async () => {
     try {
-      return await getAccessTokenSilently({
-        cacheMode: 'off'
-      });
+      return await getAccessTokenSilently();
     } catch (error) {
       console.error('Error getting access token:', error);
       throw error;

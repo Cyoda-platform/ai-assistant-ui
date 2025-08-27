@@ -7,6 +7,7 @@ let refreshAccessTokenPromise: Promise<void> | null = null;
 const helperStorage = new HelperStorage();
 
 const handleLogoutAndRedirect = () => {
+    debugger;
     const authStore = useAuthStore();
     authStore.logout();
 
@@ -42,7 +43,6 @@ const refreshToken = (instance: AxiosInstance): void => {
 
                     await refreshAccessTokenPromise;
                     refreshAccessTokenPromise = null;
-                    autoLogoutTimeout = null;
 
                     // @ts-ignore
                     originalConfig.__isRetryRequest = true;
