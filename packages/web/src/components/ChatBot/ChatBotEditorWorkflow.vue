@@ -172,9 +172,9 @@ const isShowEditor = computed(() => {
 const {fitView} = useVueFlow();
 
 watch(editorMode, ()=>{
-  nextTick(()=>{
+  setTimeout(()=>{
     fitView();
-  })
+  }, 10)
 })
 </script>
 

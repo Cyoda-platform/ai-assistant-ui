@@ -29,7 +29,7 @@ export default class HelperMarkdown {
                 return renderPlantUML(text, raw);
             }
 
-            if (lang && ['bash', 'shell'].includes(lang)) {
+            if (lang && ['bash', 'shell', 'markdown'].includes(lang)) {
                 return renderBash(text, raw);
             }
 

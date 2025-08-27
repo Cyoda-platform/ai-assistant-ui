@@ -71,10 +71,10 @@
       </template>
       <template v-else>
         <li class="side-bar__li side-bar__li-action">
-          <el-button @click="onClickCreate" class="btn-primary side-bar__create_new">{{
+          <router-link to="/home" class="el-button el-button--large btn-primary side-bar__create_new">{{
               t('side_bar.create_new')
             }}
-          </el-button>
+          </router-link>
         </li>
       </template>
     </ul>
@@ -209,10 +209,6 @@ const isDrawer = computed(() => {
 const isLogoutVisible = computed(() => {
   return authStore.isLoggedIn;
 })
-
-function onClickCreate() {
-  router.push('/home');
-}
 
 function onClickSettings() {
   settingsDialogRef.value.openDialog();

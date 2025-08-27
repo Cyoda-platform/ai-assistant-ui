@@ -15,9 +15,11 @@ import {computed, nextTick, onMounted, useTemplateRef} from "vue";
 import useAppStore from "@/stores/app";
 import useAssistantStore from "@/stores/assistant";
 import helperBreakpoints from "@/helpers/HelperBreakpoints";
+import {useRoute} from "vue-router";
 
 const appStore = useAppStore();
 const assistantStore = useAssistantStore();
+const route = useRoute();
 
 const sidebarRef = useTemplateRef('sidebarRef');
 const mainRef = useTemplateRef('mainRef');
@@ -38,7 +40,7 @@ onMounted(async () => {
   if (!sidebarRef.value.rootRef || !mainRef.value) return;
 
   resizeObserver = new ResizeObserver(() => {
-    if (helperBreakpoints.smaller('md').value) return;
+    if (helperBreakpoints.smaller('md').value || route.path==='/home') return;
     const height = sidebarRef.value.rootRef!.offsetHeight;
     mainRef.value!.style.maxHeight = `${height}px`;
   });
