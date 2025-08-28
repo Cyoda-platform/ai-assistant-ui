@@ -126,6 +126,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     // Реактивные ключи для localStorage, обновляются при изменении technicalId
     const workflowCanvasDataKey = computed(() => `chatBotEditorWorkflow:canvasData:${props.technicalId}`);
     const workflowMetaDataKey = computed(() => `chatBotEditorWorkflow:metaData:${props.technicalId}`);
+    const workflowViewportKey = computed(() => `chatBotEditorWorkflow:viewport:${props.technicalId}`);
 
     const helperStorage = new HelperStorage();
 
@@ -199,9 +200,22 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     const isDraggingConnection = ref(false);
 
-    const {setViewport, fitView} = useVueFlow();
+    const {setViewport, fitView, getViewport, vueFlowRef} = useVueFlow();
 
     const workflowMetaData = ref(helperStorage.get(workflowMetaDataKey.value, null) || {});
+
+    // Сохраняем и восстанавливаем viewport (zoom и позиция)
+    const saveViewport = () => {
+        const viewport = getViewport();
+        helperStorage.set(workflowViewportKey.value, viewport);
+    };
+
+    const restoreViewport = () => {
+        const savedViewport = helperStorage.get(workflowViewportKey.value, null);
+        if (savedViewport) {
+            setViewport(savedViewport);
+        }
+    };
 
     // Инициализируем layoutDirection из метаданных, если есть
     const metaLayoutDirection = workflowMetaData.value?.layoutDirection;
@@ -1382,6 +1396,13 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             canvasData.value = assistantStore.selectedAssistant.workflow_data;
         }
 
+        // Восстанавливаем сохраненный viewport после монтирования
+        nextTick(() => {
+            if (['preview', 'editorPreview'].includes(editorMode.value)) {
+                restoreViewport();
+            }
+        });
+
         eventBus.$on('save-transition', handleSaveCondition);
         eventBus.$on('delete-transition', handleDeleteTransition);
         eventBus.$on('delete-state', handleDeleteState);
@@ -1427,6 +1448,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
         if (metaDataDebounceTimer) {
             clearTimeout(metaDataDebounceTimer);
+        }
+        if (viewportSaveTimeout) {
+            clearTimeout(viewportSaveTimeout);
         }
     });
 
@@ -1524,8 +1548,20 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         helperStorage.set(EDITOR_WIDTH, value);
     })
 
-    watch(editorMode, (value) => {
+    watch(editorMode, (value, oldValue) => {
+        // Сохраняем текущий viewport перед сменой режима
+        if (oldValue && ['preview', 'editorPreview'].includes(oldValue)) {
+            saveViewport();
+        }
+        
         helperStorage.set(EDITOR_MODE, value);
+        
+        // Восстанавливаем viewport после смены режима
+        if (['preview', 'editorPreview'].includes(value)) {
+            nextTick(() => {
+                restoreViewport();
+            });
+        }
     })
 
     function resetAllTransitionPositions() {
@@ -1541,6 +1577,17 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     provide('onConditionChange', onEdgeConditionChange);
+
+    // Обработчик изменения viewport (zoom, pan)
+    const onViewportChange = (viewport: { x: number; y: number; zoom: number }) => {
+        // Сохраняем viewport с небольшой задержкой чтобы не спамить localStorage
+        clearTimeout(viewportSaveTimeout);
+        viewportSaveTimeout = setTimeout(() => {
+            saveViewport();
+        }, 500);
+    };
+
+    let viewportSaveTimeout: NodeJS.Timeout;
 
     async function onSubmitQuestion() {
         try {
@@ -1579,6 +1626,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         resetAllTransitionPositions,
         onResize,
         fitView,
+        onViewportChange,
         canUndo,
         canRedo,
         undoAction,

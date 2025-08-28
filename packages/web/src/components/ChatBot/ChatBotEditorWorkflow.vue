@@ -32,6 +32,7 @@
             @connect="onConnect"
             @connectStart="onConnectStart"
             @connectEnd="onConnectEnd"
+            @viewportChange="onViewportChange"
             :connection-mode="ConnectionMode.Loose"
             v-model:nodes="nodes"
             :edges="edges"
@@ -100,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import {VueFlow, ConnectionMode, useVueFlow} from '@vue-flow/core'
+import {VueFlow, ConnectionMode} from '@vue-flow/core'
 import {Background} from '@vue-flow/background'
 import {ControlButton, Controls} from '@vue-flow/controls'
 import Editor from "@/components/Editor/Editor.vue";
@@ -112,7 +113,7 @@ import EditEdgeConditionalDialog from "@/components/ChatBot/ChatBotEditorWorkflo
 import WorkflowMetaDialog from "@/components/ChatBot/ChatBotEditorWorkflow/WorkflowMetaDialog.vue";
 import {useWorkflowEditor} from './ChatBotEditorWorkflow/composables/useWorkflowEditor';
 import useAssistantStore from "@/stores/assistant.ts";
-import {computed, markRaw, watch, nextTick, useTemplateRef} from "vue";
+import {computed, markRaw, useTemplateRef} from "vue";
 import EditorViewMode from "@/components/ChatBot/EditorViewMode.vue";
 import SendIcon from "@/assets/images/icons/send.svg";
 
@@ -139,6 +140,7 @@ const {
   onConnect,
   onConnectStart,
   onConnectEnd,
+  onViewportChange,
   resetTransform,
   addNewState,
   autoLayout,
@@ -169,13 +171,15 @@ const isShowEditor = computed(() => {
   return ['editor', 'editorPreview'].includes(editorMode.value);
 })
 
-const {fitView} = useVueFlow();
+// Не нужен fitView из главного компонента, так как viewport теперь восстанавливается в композабле
+// const {fitView} = useVueFlow();
 
-watch(editorMode, ()=>{
-  setTimeout(()=>{
-    fitView();
-  }, 10)
-})
+// Удаляем старый watcher который сбрасывал zoom - теперь мы сохраняем и восстанавливаем viewport
+// watch(editorMode, ()=>{
+//   setTimeout(()=>{
+//     fitView();
+//   }, 10)
+// })
 </script>
 
 <style lang="scss">
