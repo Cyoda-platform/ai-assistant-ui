@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 import SideBar from "@/components/SideBar/SideBar.vue";
-import {computed, nextTick, onMounted, useTemplateRef} from "vue";
+import {computed, nextTick, onMounted, useTemplateRef, watch} from "vue";
 import useAppStore from "@/stores/app";
 import useAssistantStore from "@/stores/assistant";
 import helperBreakpoints from "@/helpers/HelperBreakpoints";
@@ -35,18 +35,29 @@ async function loadChats() {
 
 const isSidebarHidden = computed(() => appStore.isSidebarHidden);
 
+const handleResize = () => {
+  if (!sidebarRef.value?.rootRef || !mainRef.value) return
+  if (helperBreakpoints.smaller('md').value || route.path === '/home') return
+
+  const height = sidebarRef.value.rootRef.offsetHeight
+  mainRef.value.style.maxHeight = `${height}px`
+}
+
 onMounted(async () => {
   await nextTick();
   if (!sidebarRef.value.rootRef || !mainRef.value) return;
 
-  resizeObserver = new ResizeObserver(() => {
-    if (helperBreakpoints.smaller('md').value || route.path==='/home') return;
-    const height = sidebarRef.value.rootRef!.offsetHeight;
-    mainRef.value!.style.maxHeight = `${height}px`;
-  });
+  resizeObserver = new ResizeObserver(handleResize);
 
   resizeObserver.observe(sidebarRef.value.rootRef);
 })
+
+watch(
+    () => route.fullPath,
+    () => {
+      handleResize()
+    }
+)
 </script>
 
 <style scoped lang="scss">

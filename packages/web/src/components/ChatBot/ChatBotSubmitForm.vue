@@ -221,8 +221,6 @@ function handleKeyDown(event) {
     }
 
     svg {
-      position: relative;
-      top: 2px;
       fill: var(--color-icon-submit) !important;
     }
   }
