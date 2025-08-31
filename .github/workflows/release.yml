@@ -924,73 +924,18 @@ jobs:
             done
           fi
 
-          # Process and optimize .zip archives for macOS (same as main desktop app)
-          find out -name "*.zip" -type f | while read ZIP_PATH; do
-            echo "📦 Optimizing ZIP for macOS: $ZIP_PATH"
-            
-            # Create temp directory for ZIP processing
-            TEMP_DIR=$(mktemp -d)
-            ORIGINAL_DIR=$(pwd)
-            cd "$TEMP_DIR"
-            
-            # Extract the ZIP
-            if unzip -q "$ORIGINAL_DIR/$ZIP_PATH" 2>/dev/null; then
-              echo "📂 Extracted ZIP contents"
-              
-              # Process any .app bundles in the ZIP
-              find . -name "*.app" -type d | while read APP_IN_ZIP; do
-                echo "🍎 Processing app in ZIP: $APP_IN_ZIP"
-                
-                # Remove ALL quarantine attributes recursively
-                xattr -cr "$APP_IN_ZIP" 2>/dev/null || true
-                xattr -d com.apple.quarantine "$APP_IN_ZIP" 2>/dev/null || true
-                find "$APP_IN_ZIP" -type f -exec xattr -c {} \; 2>/dev/null || true
-                find "$APP_IN_ZIP" -type d -exec xattr -c {} \; 2>/dev/null || true
-                
-                # Set proper permissions
-                chmod -R 755 "$APP_IN_ZIP" 2>/dev/null || true
-                
-                # Make executables in MacOS directory properly executable
-                if [[ -d "$APP_IN_ZIP/Contents/MacOS" ]]; then
-                  find "$APP_IN_ZIP/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null || true
-                fi
-                
-                # Make sure Info.plist is readable
-                if [[ -f "$APP_IN_ZIP/Contents/Info.plist" ]]; then
-                  chmod 644 "$APP_IN_ZIP/Contents/Info.plist" 2>/dev/null || true
-                fi
-                
-                # Code signing for macOS (in ZIP)
-                if [[ "$ENABLE_CODE_SIGNING" == "true" ]] && [[ -n "$APPLE_IDENTITY" ]]; then
-                  echo "🔐 Code signing app in ZIP with Apple Developer certificate..."
-                  find "$APP_IN_ZIP" \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) -exec codesign --force --verify --verbose --sign "$APPLE_IDENTITY" {} \; 2>/dev/null || true
-                  codesign --force --verify --verbose --sign "$APPLE_IDENTITY" "$APP_IN_ZIP" 2>/dev/null || {
-                    echo "⚠️ Code signing with Apple cert failed, falling back to ad-hoc..."
-                    codesign --force --sign "-" "$APP_IN_ZIP" 2>/dev/null || true
-                  }
-                else
-                  echo "🔐 Code signing app in ZIP with ad-hoc signature..."
-                  find "$APP_IN_ZIP" \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) -exec codesign --force --sign "-" {} \; 2>/dev/null || true
-                  codesign --force --sign "-" "$APP_IN_ZIP" 2>/dev/null || true
-                fi
-              done
-              
-              # Recreate ZIP with better compression
-              rm -f "$ORIGINAL_DIR/$ZIP_PATH"
-              if command -v ditto >/dev/null 2>&1; then
-                ditto -c -k --keepParent . "$ORIGINAL_DIR/$ZIP_PATH" 2>/dev/null || \
-                zip -r "$ORIGINAL_DIR/$ZIP_PATH" . -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
-              else
-                zip -r "$ORIGINAL_DIR/$ZIP_PATH" . -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
-              fi
-              echo "✅ Recreated optimized ZIP"
-            fi
-            
-            cd "$ORIGINAL_DIR"
-            rm -rf "$TEMP_DIR"
-          done
+          # Переименовать ZIP файл в единый шаблон: CyodaWorkflow-macOS-${VERSION}.zip
+          VERSION="${{ needs.create-tag.outputs.version }}"
+          FOUND_ZIP=$(find out -name "*.zip" -not -name "*Helper*.zip" -type f | head -1)
+          if [ -n "$FOUND_ZIP" ]; then
+            NEW_NAME="CyodaWorkflow-macOS-${VERSION}.zip"
+            echo "� Copying ZIP: $FOUND_ZIP -> dist-release/$NEW_NAME"
+            cp "$FOUND_ZIP" "dist-release/$NEW_NAME"
+          else
+            echo "❌ No ZIPs found even after fallback"
+          fi
 
-          # Переименовать в единый шаблон: CyodaWorkflow-macOS-${VERSION}.zip
+          # Переименовать ZIP файл в единый шаблон: CyodaWorkflow-macOS-${VERSION}.zip
           VERSION="${{ needs.create-tag.outputs.version }}"
           FOUND_ZIP=$(find out -name "*.zip" -not -name "*Helper*.zip" -type f | head -1)
           if [ -n "$FOUND_ZIP" ]; then
