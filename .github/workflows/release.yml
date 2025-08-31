@@ -734,6 +734,7 @@ jobs:
       VITE_APP_AUTH0_REDIRECT_URI: ${{ vars.VITE_APP_AUTH0_REDIRECT_URI }}
       VITE_APP_AUTH0_ORGANIZATION: ${{ vars.VITE_APP_AUTH0_ORGANIZATION }}
       VITE_IS_ELECTRON: true
+      VITE_IS_WORKFLOW_ELECTRON: true
       # Apple signing credentials (optional for macOS)
       ENABLE_CODE_SIGNING: ${{ secrets.ENABLE_CODE_SIGNING || 'false' }}
       APPLE_ID: ${{ secrets.APPLE_ID }}
