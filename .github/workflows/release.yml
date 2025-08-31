@@ -814,11 +814,11 @@ jobs:
       - name: Check desktop-workflow setup
         id: check_workflow_setup
         run: |
-          if [ -f "packages/desktop-workflow/package.json" ] && [ -f "packages/desktop-workflow/forge.config.ts" ]; then
-            echo "✅ desktop-workflow is properly configured"
+          if [ -f "packages/desktop-workflow/package.json" ]; then
+            echo "✅ desktop-workflow is configured (package.json found)"
             echo "setup_complete=true" >> $GITHUB_OUTPUT
           else
-            echo "⚠️ desktop-workflow is not properly configured, skipping build"
+            echo "⚠️ desktop-workflow package.json not found, skipping build"
             echo "setup_complete=false" >> $GITHUB_OUTPUT
           fi
         shell: bash
@@ -840,11 +840,34 @@ jobs:
           # Create release directory
           mkdir -p dist-release
           
-          # Copy only the files we want
-          find out -name "*.deb" -exec cp {} dist-release/ \;
-          find out -name "*.rpm" -exec cp {} dist-release/ \;
-          find out -name "*.AppImage" -exec cp {} dist-release/ \;
-          find out -name "*.tar.gz" -exec cp {} dist-release/ \;
+          # Copy and rename files to avoid conflicts with main desktop app
+          find out -name "*.deb" | while read debfile; do
+            filename=$(basename "$debfile")
+            new_filename="${filename/cyoda/cyoda-workflow}"
+            cp "$debfile" "dist-release/${new_filename}"
+            echo "📦 Renamed: $filename -> $new_filename"
+          done
+          
+          find out -name "*.rpm" | while read rpmfile; do
+            filename=$(basename "$rpmfile")
+            new_filename="${filename/cyoda/cyoda-workflow}"
+            cp "$rpmfile" "dist-release/${new_filename}"
+            echo "📦 Renamed: $filename -> $new_filename"
+          done
+          
+          find out -name "*.AppImage" | while read appimage; do
+            filename=$(basename "$appimage")
+            new_filename="${filename/cyoda/cyoda-workflow}"
+            cp "$appimage" "dist-release/${new_filename}"
+            echo "📦 Renamed: $filename -> $new_filename"
+          done
+          
+          find out -name "*.tar.gz" | while read tarfile; do
+            filename=$(basename "$tarfile")
+            new_filename="${filename/cyoda/cyoda-workflow}"
+            cp "$tarfile" "dist-release/${new_filename}"
+            echo "📦 Renamed: $filename -> $new_filename"
+          done
           
           echo "✅ Linux release files prepared:"
           ls -la dist-release/
@@ -866,8 +889,14 @@ jobs:
           # Create release directory
           mkdir -p dist-release
           
-          # Copy ZIP files
-          find out -name "*.zip" -not -name "*Helper*.zip" -exec cp {} dist-release/ \;
+          # Copy and rename ZIP files to avoid conflicts with main desktop app
+          find out -name "*.zip" -not -name "*Helper*.zip" | while read zipfile; do
+            filename=$(basename "$zipfile")
+            # Replace "Cyoda Workflow" with "CyodaWorkflow" to avoid duplication
+            new_filename="${filename/Cyoda Workflow/CyodaWorkflow}"
+            cp "$zipfile" "dist-release/${new_filename}"
+            echo "📦 Renamed: $filename -> $new_filename"
+          done
           
           echo "✅ macOS release files prepared:"
           ls -la dist-release/
@@ -890,10 +919,27 @@ jobs:
           # Create release directory
           mkdir -p dist-release
           
-          # Copy installer files
-          find out -name "*.exe" -exec cp {} dist-release/ \;
-          find out -name "*.msi" -exec cp {} dist-release/ \;
-          find out -name "*.zip" -exec cp {} dist-release/ \;
+          # Copy and rename installer files to avoid conflicts
+          find out -name "*.exe" | while read exefile; do
+            filename=$(basename "$exefile")
+            new_filename="${filename/Cyoda Workflow/CyodaWorkflow}"
+            cp "$exefile" "dist-release/${new_filename}"
+            echo "📦 Renamed: $filename -> $new_filename"
+          done
+          
+          find out -name "*.msi" | while read msifile; do
+            filename=$(basename "$msifile")
+            new_filename="${filename/Cyoda Workflow/CyodaWorkflow}"
+            cp "$msifile" "dist-release/${new_filename}"
+            echo "📦 Renamed: $filename -> $new_filename"
+          done
+          
+          find out -name "*.zip" | while read zipfile; do
+            filename=$(basename "$zipfile")
+            new_filename="${filename/Cyoda Workflow/CyodaWorkflow}"
+            cp "$zipfile" "dist-release/${new_filename}"
+            echo "📦 Renamed: $filename -> $new_filename"
+          done
           
           echo "✅ Windows release files prepared:"
           ls -la dist-release/
