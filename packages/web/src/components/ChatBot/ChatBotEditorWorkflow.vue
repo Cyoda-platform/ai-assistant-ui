@@ -113,7 +113,7 @@ import EditEdgeConditionalDialog from "@/components/ChatBot/ChatBotEditorWorkflo
 import WorkflowMetaDialog from "@/components/ChatBot/ChatBotEditorWorkflow/WorkflowMetaDialog.vue";
 import {useWorkflowEditor} from './ChatBotEditorWorkflow/composables/useWorkflowEditor';
 import useAssistantStore from "@/stores/assistant.ts";
-import {computed, markRaw, useTemplateRef} from "vue";
+import {computed, markRaw, useTemplateRef, onMounted, nextTick} from "vue";
 import EditorViewMode from "@/components/ChatBot/EditorViewMode.vue";
 import SendIcon from "@/assets/images/icons/send.svg";
 
@@ -141,6 +141,8 @@ const {
   onConnectStart,
   onConnectEnd,
   onViewportChange,
+  saveViewport,
+  restoreViewport,
   resetTransform,
   addNewState,
   autoLayout,
@@ -153,6 +155,31 @@ const {
   isDraggingConnection,
   onSubmitQuestion,
 } = useWorkflowEditor(props, assistantStore, emit);
+
+// Export methods for viewport management from parent component
+const saveCurrentViewport = () => {
+  saveViewport();
+};
+
+const restoreCurrentViewport = () => {
+  restoreViewport();
+};
+
+// Restore viewport when component loads
+onMounted(() => {
+  // Small delay for complete VueFlow initialization
+  nextTick(() => {
+    setTimeout(() => {
+      restoreViewport();
+    }, 50);
+  });
+});
+
+// Expose methods to parent component
+defineExpose({
+  saveCurrentViewport,
+  restoreViewport: restoreCurrentViewport
+});
 
 const edgeTypes = {
   custom: markRaw(EdgeWithTooltip),
@@ -176,10 +203,10 @@ const hasWorkflowActions = computed(() => {
   return true;
 })
 
-// Не нужен fitView из главного компонента, так как viewport теперь восстанавливается в композабле
+// No need for fitView from main component since viewport is now restored in composable
 // const {fitView} = useVueFlow();
 
-// Удаляем старый watcher который сбрасывал zoom - теперь мы сохраняем и восстанавливаем viewport
+// Remove old watcher that reset zoom - now we save and restore viewport
 // watch(editorMode, ()=>{
 //   setTimeout(()=>{
 //     fitView();

@@ -13,12 +13,13 @@
         </template>
       </ChatBotTopActions>
       <ChatBotEditorMarkdown
-          v-if="canvasType==='markdown'"
+          v-show="canvasType==='markdown'"
           @answer="emit('answer', $event)"
           :technicalId="technicalId"
       />
       <ChatBotEditorWorkflow
-          v-if="canvasType === 'workflow'"
+          v-show="canvasType === 'workflow'"
+          ref="workflowRef"
           @answer="emit('answer', $event)"
           :technicalId="technicalId"
       />
@@ -38,6 +39,9 @@ import ChatBotEditorWorkflow from "@/components/ChatBot/ChatBotEditorWorkflow.vu
 const appStore = useAppStore();
 const isSidebarHidden = computed(() => appStore.isSidebarHidden);
 const canvasType = ref('workflow');
+
+// Reference to workflow component for viewport management
+const workflowRef = useTemplateRef('workflowRef');
 
 const sidebarRef = useTemplateRef('sidebarRef');
 const mainRef = useTemplateRef('mainRef');
@@ -73,14 +77,40 @@ onMounted(async () => {
   });
 
   resizeObserver.observe(sidebarRef.value.rootRef);
+  
+  // Restore viewport on load if workflow is active
+  if (canvasType.value === 'workflow') {
+    setTimeout(() => {
+      if (workflowRef.value?.restoreViewport) {
+        workflowRef.value.restoreViewport();
+      }
+    }, 100);
+  }
 })
 
 watch(() => props.isLoading, () => {
   if (props.isLoading) return;
   setTimeout(() => {
     scrollDownMessages();
-    window.getSelection().removeAllRanges();
+    window.getSelection()?.removeAllRanges();
   }, 500)
+})
+
+// Watcher for saving and restoring viewport when switching canvasType
+watch(canvasType, (newType, oldType) => {
+  // If switching FROM workflow - save viewport
+  if (oldType === 'workflow' && workflowRef.value?.saveCurrentViewport) {
+    workflowRef.value.saveCurrentViewport();
+  }
+  
+  // If switching TO workflow - restore viewport
+  if (newType === 'workflow') {
+    nextTick(() => {
+      if (workflowRef.value?.restoreViewport) {
+        workflowRef.value.restoreViewport();
+      }
+    });
+  }
 })
 </script>
 
@@ -135,6 +165,12 @@ watch(() => props.isLoading, () => {
     min-height: 100vh;
     transition: opacity 0.5s;
     background-color: var(--bg);
+    
+    // Smooth transitions for switching between components
+    .chat-bot-editor-markdown,
+    .chat-bot-editor-workflow {
+      transition: opacity 0.2s ease-in-out;
+    }
   }
 
   &__top_actions {
