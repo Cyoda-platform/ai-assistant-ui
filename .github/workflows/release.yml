@@ -878,28 +878,65 @@ jobs:
         run: |
           echo "🔧 Building desktop-workflow for macOS..."
           yarn workspace desktop-workflow make:unsigned
-          
-          echo "🔧 Preparing ZIP archives for better macOS compatibility..."
+
           cd packages/desktop-workflow
-          
-          # Remove DMG files to force ZIP-only distribution
-          find out -name "*.dmg" -type f -delete 2>/dev/null || true
-          echo "🗑️ Removed DMG files to ensure ZIP-only distribution"
-          
-          # Create release directory
           mkdir -p dist-release
-          
-          # Copy and rename ZIP files to avoid conflicts with main desktop app
-          find out -name "*.zip" -not -name "*Helper*.zip" | while read zipfile; do
-            filename=$(basename "$zipfile")
-            # Replace "Cyoda Workflow" with "CyodaWorkflow" to avoid duplication
-            new_filename="${filename/Cyoda Workflow/CyodaWorkflow}"
-            cp "$zipfile" "dist-release/${new_filename}"
-            echo "📦 Renamed: $filename -> $new_filename"
+
+          # Удаляем DMG, чтобы форсировать ZIP-дистрибуцию
+          find out -name "*.dmg" -type f -delete 2>/dev/null || true
+          echo "🗑️ Removed DMG files"
+
+          # Обработка .app (xattr/chmod/ad-hoc sign), как у основного приложения
+          find out -name "*.app" -type d -not -name "*Helper*" | while read APP_PATH; do
+            echo "📱 Processing app bundle: $APP_PATH"
+            xattr -cr "$APP_PATH" 2>/dev/null || true
+            find "$APP_PATH" -type f -exec xattr -c {} \; 2>/dev/null || true
+            chmod -R 755 "$APP_PATH" 2>/dev/null || true
+            if [[ -d "$APP_PATH/Contents/MacOS" ]]; then
+              find "$APP_PATH/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null || true
+            fi
+            # ad-hoc codesign (или с ID, если задан)
+            if [[ "$ENABLE_CODE_SIGNING" == "true" && -n "$APPLE_IDENTITY" ]]; then
+              find "$APP_PATH" \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) -exec codesign --force --verify --verbose --sign "$APPLE_IDENTITY" {} \; 2>/dev/null || true
+              codesign --force --verify --verbose --sign "$APPLE_IDENTITY" "$APP_PATH" 2>/dev/null || codesign --force --sign "-" "$APP_PATH" 2>/dev/null || true
+            else
+              find "$APP_PATH" \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) -exec codesign --force --sign "-" {} \; 2>/dev/null || true
+              codesign --force --sign "-" "$APP_PATH" 2>/dev/null || true
+            fi
           done
-          
-          echo "✅ macOS release files prepared:"
-          ls -la dist-release/
+
+          # Если ZIP-ов нет, создать их из .app (fallback)
+          ZIP_COUNT=$(find out -name "*.zip" -not -name "*Helper*.zip" -type f | wc -l)
+          if [ "$ZIP_COUNT" -eq 0 ]; then
+            echo "⚠️ No ZIP files found, creating from .app..."
+            find out -name "*.app" -type d -not -name "*Helper*" | while read APP_PATH; do
+              APP_DIR=$(dirname "$APP_PATH")
+              APP_NAME=$(basename "$APP_PATH")
+              cd "$APP_DIR"
+              xattr -cr "$APP_NAME" 2>/dev/null || true
+              if command -v ditto >/dev/null 2>&1; then
+                ditto -c -k --keepParent "$APP_NAME" "${APP_NAME%.app}.zip" 2>/dev/null || zip -r "${APP_NAME%.app}.zip" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+              else
+                zip -r "${APP_NAME%.app}.zip" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+              fi
+              xattr -c "${APP_NAME%.app}.zip" 2>/dev/null || true
+              cd - >/dev/null
+            done
+          fi
+
+          # Переименовать в единый шаблон: CyodaWorkflow-macOS-${VERSION}.zip
+          VERSION="${{ needs.create-tag.outputs.version }}"
+          FOUND_ZIP=$(find out -name "*.zip" -not -name "*Helper*.zip" -type f | head -1)
+          if [ -n "$FOUND_ZIP" ]; then
+            NEW_NAME="CyodaWorkflow-macOS-${VERSION}.zip"
+            echo "📦 Copying ZIP: $FOUND_ZIP -> dist-release/$NEW_NAME"
+            cp "$FOUND_ZIP" "dist-release/$NEW_NAME"
+          else
+            echo "❌ No ZIPs found even after fallback"
+          fi
+
+          echo "✅ desktop-workflow macOS release files:"
+          ls -la dist-release/ || true
         shell: bash
 
       - name: Build for Windows (desktop-workflow)
