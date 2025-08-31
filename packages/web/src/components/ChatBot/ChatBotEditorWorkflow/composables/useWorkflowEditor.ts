@@ -163,6 +163,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     
     // Initialize editor actions
     function initializeEditorActions() {
+        if (import.meta.env.VITE_IS_WORKFLOW_ELECTRON) return false;
         if (!assistantStore) {
             editorActions.value = [];
             return;

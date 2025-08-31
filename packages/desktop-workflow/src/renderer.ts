@@ -26,8 +26,6 @@
  * ```
  */
 
-// import './index.css';
-
 import 'modern-normalize/modern-normalize.css';
 
 import LayoutSidebar from "@/layouts/LayoutSidebar.vue";
@@ -37,7 +35,7 @@ import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 
 import App from '@/App.vue';
-import router from '@/router';
+import router from './router';
 
 // Plugins
 import elementUi from "@/plugins/element-ui.ts";
