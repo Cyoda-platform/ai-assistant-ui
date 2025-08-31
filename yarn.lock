@@ -5033,6 +5033,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"desktop-workflow@workspace:packages/desktop-workflow":
+  version: 0.0.0-use.local
+  resolution: "desktop-workflow@workspace:packages/desktop-workflow"
+  dependencies:
+    "@electron-forge/cli": "npm:^7.8.3"
+    "@electron-forge/maker-deb": "npm:^7.8.3"
+    "@electron-forge/maker-dmg": "npm:^7.8.3"
+    "@electron-forge/maker-rpm": "npm:^7.8.3"
+    "@electron-forge/maker-squirrel": "npm:^7.8.3"
+    "@electron-forge/maker-zip": "npm:^7.8.3"
+    "@electron-forge/plugin-auto-unpack-natives": "npm:^7.8.3"
+    "@electron-forge/plugin-fuses": "npm:^7.8.3"
+    "@electron-forge/plugin-vite": "npm:^7.8.3"
+    "@electron-forge/publisher-github": "npm:^7.8.3"
+    "@electron/fuses": "npm:^2.0.0"
+    "@types/electron-squirrel-startup": "npm:^1.0.2"
+    "@typescript-eslint/eslint-plugin": "npm:^8.39.1"
+    "@typescript-eslint/parser": "npm:^8.39.1"
+    electron: "npm:37.3.0"
+    electron-squirrel-startup: "npm:^1.0.1"
+    eslint: "npm:^9.33.0"
+    eslint-plugin-import: "npm:^2.32.0"
+    ts-node: "npm:^10.9.2"
+    typescript: "npm:~5.9.2"
+    update-electron-app: "npm:^3.1.1"
+    vite: "npm:^7.1.2"
+  languageName: unknown
+  linkType: soft
+
 "desktop@workspace:packages/desktop":
   version: 0.0.0-use.local
   resolution: "desktop@workspace:packages/desktop"
