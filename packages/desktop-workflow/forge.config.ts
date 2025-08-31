@@ -12,7 +12,7 @@ const config: ForgeConfig = {
     packagerConfig: {
         asar: true,
         icon: 'src/assets/icons/app-icon',
-        executableName: 'cyoda',
+        executableName: 'cyoda-workflow',
         // macOS code signing configuration (only if certificate is available)
         ...(process.platform === 'darwin' && process.env.ENABLE_CODE_SIGNING === 'true' && {
             osxSign: {
@@ -71,13 +71,13 @@ const config: ForgeConfig = {
         new MakerRpm({
             options: {
                 icon: 'src/assets/icons/png/256x256.png',
-                bin: 'cyoda'
+                bin: 'cyoda-workflow'
             },
         }),
         new MakerDeb({
             options: {
                 icon: 'src/assets/icons/png/256x256.png',
-                bin: 'cyoda'
+                bin: 'cyoda-workflow'
             },
         })
     ],
@@ -117,7 +117,7 @@ const config: ForgeConfig = {
             [FuseV1Options.OnlyLoadAppFromAsar]: true,
         }),
     ],
-    buildIdentifier: 'cyoda-build'
+    buildIdentifier: 'cyoda-workflow-build'
 };
 
 export default config;

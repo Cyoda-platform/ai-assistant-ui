@@ -1,8 +1,8 @@
 {
   "name": "desktop-workflow",
-  "productName": "Cyoda",
+  "productName": "Cyoda Workflow",
   "version": "1.0.5",
-  "description": "My Electron application description",
+  "description": "Cyoda Workflow Desktop Application",
   "main": ".vite/build/main.js",
   "scripts": {
     "dev": "electron-forge start",
@@ -38,7 +38,7 @@
     "typescript": "~5.9.2",
     "vite": "^7.1.2"
   },
-  "keywords": [],
+  "keywords": ["workflow", "automation", "desktop"],
   "author": {
     "name": "alexander.savenko",
     "email": "alexander.savenko@cyoda.com"
