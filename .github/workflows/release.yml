@@ -699,9 +699,228 @@ jobs:
           append_body: true
           make_latest: true
 
+  # Build desktop-workflow package
+  build-workflow:
+    needs: [ create-tag ]
+    if: always() && needs.create-tag.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64,arm64
+            artifact_name: cyoda-workflow-linux
+            files: packages/desktop-workflow/dist-release/*
+          - os: macos-latest
+            platform: darwin
+            arch: arm64
+            artifact_name: cyoda-workflow-macos-arm64
+            files: packages/desktop-workflow/dist-release/*
+          - os: windows-latest
+            platform: win32
+            arch: x64
+            artifact_name: cyoda-workflow-windows-x64
+            files: packages/desktop-workflow/dist-release/*
+    runs-on: ${{ matrix.os }}
+    env:
+      NODE_OPTIONS: --disable-warning=DEP0174
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      VITE_APP_API_BASE: ${{ vars.VITE_APP_API_BASE }}
+      VITE_APP_BASE_URL: ${{ vars.VITE_APP_BASE_URL }}
+      VITE_APP_AUTH0_DOMAIN: ${{ vars.VITE_APP_AUTH0_DOMAIN }}
+      VITE_APP_AUTH0_CLIENT_ID: ${{ vars.VITE_APP_AUTH0_CLIENT_ID }}
+      VITE_APP_AUTH0_AUDIENCE: ${{ vars.VITE_APP_AUTH0_AUDIENCE }}
+      VITE_APP_AUTH0_REDIRECT_URI: ${{ vars.VITE_APP_AUTH0_REDIRECT_URI }}
+      VITE_APP_AUTH0_ORGANIZATION: ${{ vars.VITE_APP_AUTH0_ORGANIZATION }}
+      VITE_IS_ELECTRON: true
+      # Apple signing credentials (optional for macOS)
+      ENABLE_CODE_SIGNING: ${{ secrets.ENABLE_CODE_SIGNING || 'false' }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_IDENTITY: ${{ secrets.APPLE_IDENTITY }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.create-tag.outputs.new_tag || github.ref }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.yarn/cache
+            node_modules
+            packages/desktop-workflow/node_modules
+          key: ${{ runner.os }}-yarn-workflow-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-workflow-
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Prepare Yarn version
+        run: |
+          echo "🔄 Setting up Yarn..."
+          corepack prepare yarn@4.5.3 --activate
+          yarn --version
+          echo "✅ Yarn version ready"
+        shell: bash
+
+      - name: Install workspace dependencies
+        run: |
+          echo "🔄 Installing workspace dependencies..."
+          yarn install
+          echo "✅ Workspace dependencies installed"
+          echo "📋 Workspace info:"
+          yarn workspaces list
+        shell: bash
+
+      - name: Validate package version (desktop-workflow)
+        run: |
+          if [ ! -f "packages/desktop-workflow/package.json" ]; then
+            echo "⚠️ packages/desktop-workflow/package.json not found, skipping version validation"
+            exit 0
+          fi
+          
+          VERSION="${{ needs.create-tag.outputs.version }}"
+          PACKAGE_VERSION=$(node -e "console.log(require('./packages/desktop-workflow/package.json').version)" 2>/dev/null || echo "0.0.0")
+          echo "🔄 Expected version: $VERSION"
+          echo "📦 Package.json version: $PACKAGE_VERSION"
+          
+          if [ "$VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "⚠️ Version mismatch detected, updating package.json..."
+            node -e "
+              const fs = require('fs');
+              const path = 'packages/desktop-workflow/package.json';
+              const pkg = JSON.parse(fs.readFileSync(path, 'utf8'));
+              pkg.version = process.argv[1];
+              fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
+              console.log('✅ Version updated to', pkg.version);
+            " "$VERSION"
+          else
+            echo "✅ Version is already correct"
+          fi
+        shell: bash
+
+      - name: Check desktop-workflow setup
+        id: check_workflow_setup
+        run: |
+          if [ -f "packages/desktop-workflow/package.json" ] && [ -f "packages/desktop-workflow/forge.config.ts" ]; then
+            echo "✅ desktop-workflow is properly configured"
+            echo "setup_complete=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ desktop-workflow is not properly configured, skipping build"
+            echo "setup_complete=false" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+      - name: Build for Linux (desktop-workflow)
+        if: matrix.platform == 'linux' && steps.check_workflow_setup.outputs.setup_complete == 'true'
+        run: |
+          echo "🔧 Building desktop-workflow for Linux..."
+          yarn workspace desktop-workflow make --platform=linux --arch=${{ matrix.arch }}
+        timeout-minutes: 10
+        shell: bash
+
+      - name: Prepare Linux Release Files (desktop-workflow)
+        if: matrix.platform == 'linux' && steps.check_workflow_setup.outputs.setup_complete == 'true'
+        run: |
+          echo "📦 Preparing Linux release files for desktop-workflow..."
+          cd packages/desktop-workflow
+          
+          # Create release directory
+          mkdir -p dist-release
+          
+          # Copy only the files we want
+          find out -name "*.deb" -exec cp {} dist-release/ \;
+          find out -name "*.rpm" -exec cp {} dist-release/ \;
+          find out -name "*.AppImage" -exec cp {} dist-release/ \;
+          find out -name "*.tar.gz" -exec cp {} dist-release/ \;
+          
+          echo "✅ Linux release files prepared:"
+          ls -la dist-release/
+        shell: bash
+
+      - name: Build for macOS (desktop-workflow)
+        if: matrix.platform == 'darwin' && steps.check_workflow_setup.outputs.setup_complete == 'true'
+        run: |
+          echo "🔧 Building desktop-workflow for macOS..."
+          yarn workspace desktop-workflow make:unsigned
+          
+          echo "🔧 Preparing ZIP archives for better macOS compatibility..."
+          cd packages/desktop-workflow
+          
+          # Remove DMG files to force ZIP-only distribution
+          find out -name "*.dmg" -type f -delete 2>/dev/null || true
+          echo "🗑️ Removed DMG files to ensure ZIP-only distribution"
+          
+          # Create release directory
+          mkdir -p dist-release
+          
+          # Copy ZIP files
+          find out -name "*.zip" -not -name "*Helper*.zip" -exec cp {} dist-release/ \;
+          
+          echo "✅ macOS release files prepared:"
+          ls -la dist-release/
+        shell: bash
+
+      - name: Build for Windows (desktop-workflow)
+        if: matrix.platform == 'win32' && steps.check_workflow_setup.outputs.setup_complete == 'true'
+        run: |
+          echo "🔧 Building desktop-workflow for Windows..."
+          yarn workspace desktop-workflow make --platform=win32 --arch=${{ matrix.arch }}
+        timeout-minutes: 10
+        shell: bash
+
+      - name: Prepare Windows Release Files (desktop-workflow)
+        if: matrix.platform == 'win32' && steps.check_workflow_setup.outputs.setup_complete == 'true'
+        run: |
+          echo "📦 Preparing Windows release files for desktop-workflow..."
+          cd packages/desktop-workflow
+          
+          # Create release directory
+          mkdir -p dist-release
+          
+          # Copy installer files
+          find out -name "*.exe" -exec cp {} dist-release/ \;
+          find out -name "*.msi" -exec cp {} dist-release/ \;
+          find out -name "*.zip" -exec cp {} dist-release/ \;
+          
+          echo "✅ Windows release files prepared:"
+          ls -la dist-release/
+        shell: bash
+
+      - name: Upload artifacts (desktop-workflow)
+        if: steps.check_workflow_setup.outputs.setup_complete == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.files }}
+          retention-days: 1
+
+      - name: Upload to GitHub Releases (desktop-workflow)
+        if: steps.check_workflow_setup.outputs.setup_complete == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.create-tag.outputs.new_tag || github.ref_name }}
+          files: ${{ matrix.files }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: true
+          prerelease: false
+          append_body: true
+          make_latest: true
+
   # Cleanup source code archives from release
   cleanup-release:
-    needs: [ create-tag, build ]
+    needs: [ create-tag, build, build-workflow ]
     if: always() && needs.create-tag.result == 'success'
     runs-on: ubuntu-latest
     steps:

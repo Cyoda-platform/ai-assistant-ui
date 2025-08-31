@@ -1,0 +1,56 @@
+{
+  "name": "desktop-workflow",
+  "productName": "Cyoda Workflow",
+  "version": "1.0.5",
+  "description": "Cyoda Workflow Desktop Application",
+  "main": ".vite/build/main.js",
+  "scripts": {
+    "dev": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "NODE_OPTIONS=--disable-warning=DEP0174 electron-forge make",
+    "make:signed": "NODE_OPTIONS=--disable-warning=DEP0174 ENABLE_CODE_SIGNING=true APPLE_IDENTITY='Apple Development: sovahome85@gmail.com (LLS5C7RYR4)' electron-forge make",
+    "make:unsigned": "NODE_OPTIONS=--disable-warning=DEP0174 electron-forge make",
+    "publish": "electron-forge publish",
+    "publish:signed": "NODE_OPTIONS=--disable-warning=DEP0174 ENABLE_CODE_SIGNING=true electron-forge publish",
+    "lint": "eslint --ext .ts,.tsx .",
+    "create-dev-cert": "./scripts/create-dev-certificate.sh",
+    "allow-unsigned": "./scripts/allow-unsigned-app.sh",
+    "setup-macos": "npm run create-dev-cert && npm run make:signed"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.8.3",
+    "@electron-forge/maker-deb": "^7.8.3",
+    "@electron-forge/maker-dmg": "^7.8.3",
+    "@electron-forge/maker-rpm": "^7.8.3",
+    "@electron-forge/maker-squirrel": "^7.8.3",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.8.3",
+    "@electron-forge/plugin-fuses": "^7.8.3",
+    "@electron-forge/plugin-vite": "^7.8.3",
+    "@electron-forge/publisher-github": "^7.8.3",
+    "@electron/fuses": "^2.0.0",
+    "@types/electron-squirrel-startup": "^1.0.2",
+    "@typescript-eslint/eslint-plugin": "^8.39.1",
+    "@typescript-eslint/parser": "^8.39.1",
+    "electron": "37.3.0",
+    "eslint": "^9.33.0",
+    "eslint-plugin-import": "^2.32.0",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.9.2",
+    "vite": "^7.1.2"
+  },
+  "keywords": ["workflow", "automation", "desktop"],
+  "author": {
+    "name": "alexander.savenko",
+    "email": "alexander.savenko@cyoda.com"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@electron-forge/maker-zip": "^7.8.3",
+    "electron-squirrel-startup": "^1.0.1",
+    "update-electron-app": "^3.1.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Cyoda-platform/ai-assistant-ui.git"
+  }
+}

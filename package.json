@@ -4,7 +4,8 @@
   "repository": "git@bitbucket.org:cyoda/cyoda-ui.git",
   "workspaces": [
     "packages/web",
-    "packages/desktop"
+    "packages/desktop",
+    "packages/desktop-workflow"
   ],
   "author": "Cyoda",
   "packageManager": "yarn@4.9.2"

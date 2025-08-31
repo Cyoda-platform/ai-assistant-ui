@@ -5,7 +5,7 @@
       <el-splitter-panel v-if="isShowEditor" v-model:size="editorSize" class="chat-bot-editor-workflow__editor-wrapper">
         <Editor v-model="canvasData" language="json" class="chat-bot-editor-workflow__editor-inner"
                 :actions="editorActions"/>
-        <div class="chat-bot-editor-workflow__actions">
+        <div v-if="hasWorkflowActions" class="chat-bot-editor-workflow__actions">
           <div class="btn-action btn-block">
             <el-tooltip
                 class="box-item"
@@ -198,6 +198,11 @@ const isShowEditor = computed(() => {
   return ['editor', 'editorPreview'].includes(editorMode.value);
 })
 
+const hasWorkflowActions = computed(() => {
+  if (import.meta.env.VITE_IS_WORKFLOW_ELECTRON) return false
+  return true;
+})
+
 // No need for fitView from main component since viewport is now restored in composable
 // const {fitView} = useVueFlow();
 
@@ -254,7 +259,7 @@ const isShowEditor = computed(() => {
   }
 
   &.el-loading-parent--relative {
-    .el-loading-mask{
+    .el-loading-mask {
       top: -15px;
       bottom: -55px;
     }
