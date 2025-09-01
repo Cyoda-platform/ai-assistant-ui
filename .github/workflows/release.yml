@@ -876,67 +876,220 @@ jobs:
       - name: Build for macOS (desktop-workflow)
         if: matrix.platform == 'darwin' && steps.check_workflow_setup.outputs.setup_complete == 'true'
         run: |
-          echo "🔧 Building desktop-workflow for macOS..."
+          echo "🔧 Building desktop-workflow for macOS (ZIP-only distribution)..."
           yarn workspace desktop-workflow make:unsigned
-
+          
+          echo "🔧 Preparing ZIP archives for better macOS compatibility..."
           cd packages/desktop-workflow
-          mkdir -p dist-release
-
-          # Удаляем DMG, чтобы форсировать ZIP-дистрибуцию
+          
+          # Remove DMG files to force ZIP-only distribution
           find out -name "*.dmg" -type f -delete 2>/dev/null || true
-          echo "🗑️ Removed DMG files"
-
-          # Обработка .app (xattr/chmod/ad-hoc sign), как у основного приложения
-          find out -name "*.app" -type d -not -name "*Helper*" | while read APP_PATH; do
+          echo "🗑️ Removed DMG files to ensure ZIP-only distribution"
+          
+          # Remove helper ZIP files that are not needed for distribution
+          find out -name "CyodaWorkflow.Helper*.zip" -type f -delete 2>/dev/null || true
+          echo "🗑️ Removed CyodaWorkflow.Helper*.zip files (not needed for distribution)"
+          
+          # Process .app files with improved signing and quarantine removal
+          find out -name "*.app" -type d | while read APP_PATH; do
             echo "📱 Processing app bundle: $APP_PATH"
+            
+            # Remove quarantine attributes from the .app bundle entirely (before permissions)
+            echo "🧹 Removing quarantine attributes from app bundle..."
             xattr -cr "$APP_PATH" 2>/dev/null || true
-            find "$APP_PATH" -type f -exec xattr -c {} \; 2>/dev/null || true
-            chmod -R 755 "$APP_PATH" 2>/dev/null || true
+            xattr -d com.apple.quarantine "$APP_PATH" 2>/dev/null || true
+            
+            # Make all executables in MacOS directory executable
             if [[ -d "$APP_PATH/Contents/MacOS" ]]; then
               find "$APP_PATH/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null || true
+              echo "✅ Made executables in MacOS directory executable"
             fi
-            # ad-hoc codesign (или с ID, если задан)
-            if [[ "$ENABLE_CODE_SIGNING" == "true" && -n "$APPLE_IDENTITY" ]]; then
+            
+            # Set proper permissions for the entire app bundle
+            chmod -R 755 "$APP_PATH" 2>/dev/null || true
+            
+            # Remove extended attributes that might cause issues
+            find "$APP_PATH" -type f -exec xattr -c {} \; 2>/dev/null || true
+            
+            # Code signing for macOS - always sign with ad-hoc if no identity specified
+            if [[ "$ENABLE_CODE_SIGNING" == "true" ]] && [[ -n "$APPLE_IDENTITY" ]]; then
+              echo "🔐 Code signing app bundle with Apple Developer certificate..."
+              
+              # Sign all executables and frameworks first
               find "$APP_PATH" \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) -exec codesign --force --verify --verbose --sign "$APPLE_IDENTITY" {} \; 2>/dev/null || true
-              codesign --force --verify --verbose --sign "$APPLE_IDENTITY" "$APP_PATH" 2>/dev/null || codesign --force --sign "-" "$APP_PATH" 2>/dev/null || true
+              
+              # Sign the main app bundle
+              codesign --force --verify --verbose --sign "$APPLE_IDENTITY" --entitlements "${PWD}/build/entitlements.mac.plist" "$APP_PATH" 2>/dev/null || {
+                echo "⚠️ Code signing with Apple cert failed, falling back to ad-hoc..."
+                codesign --force --sign "-" "$APP_PATH" 2>/dev/null || true
+              }
+              
+              echo "✅ Code signing completed"
             else
+              echo "🔐 Code signing app bundle with ad-hoc signature..."
+              
+              # Sign all executables and frameworks with ad-hoc signature
               find "$APP_PATH" \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) -exec codesign --force --sign "-" {} \; 2>/dev/null || true
-              codesign --force --sign "-" "$APP_PATH" 2>/dev/null || true
+              
+              # Sign the main app bundle with ad-hoc signature
+              codesign --force --sign "-" "$APP_PATH" 2>/dev/null || {
+                echo "⚠️ Ad-hoc code signing failed, but continuing..."
+              }
+              
+              echo "✅ Ad-hoc code signing completed"
             fi
+            
+            echo "✅ Processed: $APP_PATH"
           done
 
-          # Всегда пересоздаем ZIP из обработанного .app, чтобы гарантировать снятие quarantine и подпись
-          # Сначала удалим любые старые ZIP'ы от forge
-          find out -name "*.zip" -not -name "*Helper*.zip" -type f -delete 2>/dev/null || true
-
-          echo "📦 Creating fresh ZIP from processed .app..."
-          find out -name "*.app" -type d -not -name "*Helper*" | while read APP_PATH; do
-            APP_DIR=$(dirname "$APP_PATH")
-            APP_NAME=$(basename "$APP_PATH")
-            cd "$APP_DIR"
-            # На всякий случай еще раз очистим xattr у бандла
-            xattr -cr "$APP_NAME" 2>/dev/null || true
-            # Создаем ZIP рядом с .app
-            if command -v ditto >/dev/null 2>&1; then
-              ditto -c -k --keepParent "$APP_NAME" "${APP_NAME%.app}.zip" 2>/dev/null || zip -r "${APP_NAME%.app}.zip" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+          # Process and optimize .zip archives for macOS
+          find out -name "*.zip" -type f | while read ZIP_PATH; do
+            echo "📦 Optimizing ZIP for macOS: $ZIP_PATH"
+            
+            # Create temp directory for ZIP processing
+            TEMP_DIR=$(mktemp -d)
+            ORIGINAL_DIR=$(pwd)
+            cd "$TEMP_DIR"
+            
+            # Extract the ZIP
+            if unzip -q "$ORIGINAL_DIR/$ZIP_PATH" 2>/dev/null; then
+              echo "📂 Extracted ZIP contents"
+              
+              # Process any .app bundles in the ZIP
+              find . -name "*.app" -type d | while read APP_IN_ZIP; do
+                echo "🍎 Processing app in ZIP: $APP_IN_ZIP"
+                
+                # Remove ALL quarantine attributes recursively (multiple methods)
+                xattr -cr "$APP_IN_ZIP" 2>/dev/null || true
+                xattr -d com.apple.quarantine "$APP_IN_ZIP" 2>/dev/null || true
+                find "$APP_IN_ZIP" -type f -exec xattr -c {} \; 2>/dev/null || true
+                find "$APP_IN_ZIP" -type d -exec xattr -c {} \; 2>/dev/null || true
+                
+                # Set proper permissions for the entire app bundle
+                chmod -R 755 "$APP_IN_ZIP" 2>/dev/null || true
+                
+                # Make executables in MacOS directory properly executable
+                if [[ -d "$APP_IN_ZIP/Contents/MacOS" ]]; then
+                  find "$APP_IN_ZIP/Contents/MacOS" -type f -exec chmod +x {} \; 2>/dev/null || true
+                  echo "✅ Made MacOS executables executable"
+                fi
+                
+                # Make sure Info.plist is readable
+                if [[ -f "$APP_IN_ZIP/Contents/Info.plist" ]]; then
+                  chmod 644 "$APP_IN_ZIP/Contents/Info.plist" 2>/dev/null || true
+                fi
+                
+                # Code signing for macOS (in ZIP) - always sign with ad-hoc if no identity specified
+                if [[ "$ENABLE_CODE_SIGNING" == "true" ]] && [[ -n "$APPLE_IDENTITY" ]]; then
+                  echo "🔐 Code signing app in ZIP with Apple Developer certificate..."
+                  
+                  # Sign all executables and frameworks first
+                  find "$APP_IN_ZIP" \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) -exec codesign --force --verify --verbose --sign "$APPLE_IDENTITY" {} \; 2>/dev/null || true
+                  
+                  # Sign the main app bundle
+                  codesign --force --verify --verbose --sign "$APPLE_IDENTITY" "$APP_IN_ZIP" 2>/dev/null || {
+                    echo "⚠️ Code signing with Apple cert failed, falling back to ad-hoc..."
+                    codesign --force --sign "-" "$APP_IN_ZIP" 2>/dev/null || true
+                  }
+                  
+                  echo "✅ Code signing completed in ZIP"
+                else
+                  echo "🔐 Code signing app in ZIP with ad-hoc signature..."
+                  
+                  # Sign all executables and frameworks with ad-hoc signature
+                  find "$APP_IN_ZIP" \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) -exec codesign --force --sign "-" {} \; 2>/dev/null || true
+                  
+                  # Sign the main app bundle with ad-hoc signature
+                  codesign --force --sign "-" "$APP_IN_ZIP" 2>/dev/null || {
+                    echo "⚠️ Ad-hoc code signing failed in ZIP, but continuing..."
+                  }
+                  
+                  echo "✅ Ad-hoc code signing completed in ZIP"
+                fi
+                
+                echo "✅ Optimized app in ZIP: $APP_IN_ZIP"
+              done
+              
+              # Recreate ZIP with better compression and no extra attributes
+              rm -f "$ORIGINAL_DIR/$ZIP_PATH"
+              # Use ditto for better macOS compatibility
+              if command -v ditto >/dev/null 2>&1; then
+                # Create ZIP using ditto for better macOS attribute preservation
+                ditto -c -k --keepParent . "$ORIGINAL_DIR/$ZIP_PATH" 2>/dev/null || \
+                zip -r "$ORIGINAL_DIR/$ZIP_PATH" . -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+              else
+                zip -r "$ORIGINAL_DIR/$ZIP_PATH" . -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+              fi
+              echo "✅ Recreated optimized ZIP with better macOS compatibility"
             else
-              zip -r "${APP_NAME%.app}.zip" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+              echo "⚠️ Could not extract ZIP, keeping original"
             fi
-            # Очистим атрибуты у итогового архива
-            xattr -c "${APP_NAME%.app}.zip" 2>/dev/null || true
+            
+            cd "$ORIGINAL_DIR"
+            rm -rf "$TEMP_DIR"
+          done
+
+          echo "✅ macOS ZIP-only build processing complete"
+          
+          # Prepare macOS Release Files
+          echo "📦 Preparing macOS release files..."
+          mkdir -p dist-release
+          
+          # Get version from environment
+          VERSION="${{ needs.create-tag.outputs.version }}"
+          
+          # First, ensure we have ZIP files (create if they don't exist)
+          echo "🔍 Ensuring ZIP files exist..."
+          ZIP_COUNT=$(find out -name "*.zip" -not -name "*Helper*.zip" -type f | wc -l)
+          echo "📊 Found $ZIP_COUNT existing ZIP files"
+          
+          if [ "$ZIP_COUNT" -eq 0 ]; then
+            echo "⚠️ No ZIP files found, creating them manually..."
+               # Look for MAIN .app files and create ZIP archives (exclude Helper apps)
+          find out -name "*.app" -type d -not -name "*Helper*" | while read APP_PATH; do
+            APP_NAME=$(basename "$APP_PATH")
+            ZIP_NAME="${APP_NAME%.app}.zip"
+            ZIP_DIR=$(dirname "$APP_PATH")
+            
+            echo "📦 Creating ZIP for main app: $APP_PATH"
+            cd "$ZIP_DIR"
+            
+            # Remove quarantine attributes before zipping
+            xattr -cr "$APP_NAME" 2>/dev/null || true
+            find "$APP_NAME" -type f -exec xattr -c {} \; 2>/dev/null || true
+            
+            # Always perform ad-hoc code signing before zipping
+            echo "🔐 Ad-hoc code signing before ZIP creation..."
+            find "$APP_NAME" \( -name "*.dylib" -o -name "*.framework" -o -name "*.so" \) -exec codesign --force --sign "-" {} \; 2>/dev/null || true
+            codesign --force --sign "-" "$APP_NAME" 2>/dev/null || true
+            echo "✅ Ad-hoc code signing completed"
+            
+            # Use ditto for better macOS compatibility if available
+            if command -v ditto >/dev/null 2>&1; then
+              ditto -c -k --keepParent "$APP_NAME" "$ZIP_NAME" 2>/dev/null || \
+              zip -r "$ZIP_NAME" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+            else
+              zip -r "$ZIP_NAME" "$APP_NAME" -x "*.DS_Store" "__MACOSX/*" 2>/dev/null || true
+            fi
+            
+            # Remove quarantine from created ZIP
+            if [[ -f "$ZIP_NAME" ]]; then
+              xattr -c "$ZIP_NAME" 2>/dev/null || true
+            fi
+            
+            echo "✅ Created ZIP: $ZIP_NAME"
             cd - >/dev/null
           done
-
-          # Переименовать ZIP файл в единый шаблон: CyodaWorkflow-macOS-${VERSION}.zip
-          VERSION="${{ needs.create-tag.outputs.version }}"
-          FOUND_ZIP=$(find out -name "*.zip" -not -name "*Helper*.zip" -type f | head -1)
-          if [ -n "$FOUND_ZIP" ]; then
-            NEW_NAME="CyodaWorkflow-macOS-${VERSION}.zip"
-            echo "📦 Copying ZIP: $FOUND_ZIP -> dist-release/$NEW_NAME"
-            cp "$FOUND_ZIP" "dist-release/$NEW_NAME"
-          else
-            echo "❌ No ZIPs found even after fallback"
           fi
+          
+          # Copy all ZIP files to distribution directory with proper naming
+          find out -name "*.zip" -not -name "*Helper*.zip" -type f | while read ZIP_FILE; do
+            BASENAME=$(basename "$ZIP_FILE")
+            # Replace "Cyoda" with "CyodaWorkflow" for consistent naming
+            NEW_NAME="CyodaWorkflow-macOS-${VERSION}.zip"
+            echo "📦 Copying: $BASENAME -> $NEW_NAME"
+            cp "$ZIP_FILE" "dist-release/$NEW_NAME"
+          done
 
           echo "✅ desktop-workflow macOS release files:"
           ls -la dist-release/ || true
