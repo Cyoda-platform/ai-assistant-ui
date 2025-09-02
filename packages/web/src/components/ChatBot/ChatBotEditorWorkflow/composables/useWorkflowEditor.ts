@@ -200,6 +200,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     initialize(canvasData.value);
 
     const isDraggingConnection = ref(false);
+    const pendingHandleConnections = ref<Record<string, { sourceHandle: string; targetHandle: string }>>({});
 
     const {setViewport, fitView, getViewport, vueFlowRef} = useVueFlow();
 
@@ -296,7 +297,13 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 let sourceHandle = 'right-source';
                 let targetHandle = 'left-target';
 
-                if (sourceNode && targetNode) {
+                // Prefer per-transition saved handles (only set for newly created transitions)
+                const savedHandles = (workflowMetaData.value as any)?.handleConnectionsByTransition?.[internalTransitionId];
+                if (savedHandles?.sourceHandle && savedHandles?.targetHandle) {
+                    sourceHandle = savedHandles.sourceHandle;
+                    targetHandle = savedHandles.targetHandle;
+                } else if (sourceNode && targetNode) {
+                    // Otherwise, auto-detect based on relative positions
                     if (source === target) {
                         sourceHandle = 'right-source';
                         targetHandle = 'left-target';
@@ -404,15 +411,16 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             }
         }
 
-        // Clear positions of non-existent states
+        // Clear positions of non-existent states (preserve special meta sections)
         for (const stateKey of Object.keys(cleanedMetaData)) {
-            if (stateKey !== 'transitionLabels' && !currentStateNames.has(stateKey)) {
+            if (stateKey === 'transitionLabels' || stateKey === 'handleConnectionsByTransition' || stateKey === 'layoutDirection') continue;
+            if (!currentStateNames.has(stateKey)) {
                 delete cleanedMetaData[stateKey];
                 hasChanges = true;
             }
         }
 
-        // Clear positions of non-existent transitions
+        // Clear metadata of non-existent transitions
         if (cleanedMetaData.transitionLabels) {
             const cleanedTransitionLabels = {...cleanedMetaData.transitionLabels};
             for (const transitionId of Object.keys(cleanedTransitionLabels)) {
@@ -422,6 +430,18 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 }
             }
             cleanedMetaData.transitionLabels = cleanedTransitionLabels;
+        }
+
+        // Prune saved handle connections for transitions that no longer exist
+        if (cleanedMetaData.handleConnectionsByTransition) {
+            const cleanedHandles = {...cleanedMetaData.handleConnectionsByTransition};
+            for (const transitionId of Object.keys(cleanedHandles)) {
+                if (!currentTransitionIds.has(transitionId)) {
+                    delete cleanedHandles[transitionId];
+                    hasChanges = true;
+                }
+            }
+            cleanedMetaData.handleConnectionsByTransition = cleanedHandles;
         }
 
         // Update metadata if there were changes
@@ -629,6 +649,27 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         console.log('Final state.transitions:', state.transitions);
 
+
+        // If this is a newly created transition, persist the chosen handle points (if captured during connect)
+        if (isNewTransition && transitionData?.next) {
+            const connectionKey = `${stateName}-${transitionData.next}`;
+            const pending = pendingHandleConnections.value[connectionKey];
+            if (pending) {
+                const meta = (workflowMetaData.value || {}) as any;
+                if (!meta.handleConnectionsByTransition) meta.handleConnectionsByTransition = {};
+                const internalTransitionId = `${stateName}-${transitionName}`;
+                meta.handleConnectionsByTransition[internalTransitionId] = {
+                    sourceHandle: pending.sourceHandle,
+                    targetHandle: pending.targetHandle,
+                };
+                // assign back
+                workflowMetaData.value = meta;
+                // clear pending
+                delete pendingHandleConnections.value[connectionKey];
+            }
+        }
+
+        // Save current node positions too
         workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
 
         // Update transitionLabels when renaming transition
@@ -1119,11 +1160,18 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function onConnect(params: any) {
-        const {source, target} = params;
+        const {source, target, sourceHandle, targetHandle} = params;
 
         if (!source || !target) {
             return;
         }
+
+        // Cache the handle pair used during this drag-connect so we can persist it on save
+        const key = `${source}-${target}`;
+        pendingHandleConnections.value[key] = {
+            sourceHandle: sourceHandle || 'right-source',
+            targetHandle: targetHandle || 'left-target',
+        };
 
         const currentPositions: { [key: string]: NodePosition } = {};
         nodes.value.forEach(node => {
