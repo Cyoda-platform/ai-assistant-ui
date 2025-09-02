@@ -40,6 +40,7 @@
             :default-viewport="{ zoom: 1.5 }"
             :min-zoom="0.2"
             :max-zoom="4"
+            :elements-selectable="false"
         >
           <Controls position="top-left">
             <template #icon-zoom-in>
