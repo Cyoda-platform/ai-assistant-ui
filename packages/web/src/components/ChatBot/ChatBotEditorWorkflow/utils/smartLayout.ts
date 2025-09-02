@@ -1,7 +1,10 @@
 /**
- * Smart node positioning algorithm inspired by Cytoscape.js
- * Handles automatic layout generation for workflow nodes
+ * Layout utilities. Now powered by ELK for deterministic hierarchical layouts.
  */
+// ELK in-browser bundle
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore - elkjs has no bundled types for the default export path
+import ELK from 'elkjs/lib/elk.bundled.js';
 
 export interface NodePosition {
   x: number;
@@ -56,6 +59,9 @@ const LAYOUT_CONFIG = {
   VERTICAL_NODE_SPACING: 80, // Reduced spacing between nodes horizontally in vertical mode
   VERTICAL_LEVEL_SPACING: 200, // Reduced spacing between levels in vertical mode
   VERTICAL_CENTER_ALIGNMENT: true, // Strict center alignment in vertical mode
+  // Node dimensions used for ELK (px)
+  ELK_NODE_WIDTH: 220,
+  ELK_NODE_HEIGHT: 100,
 };
 
 export function calculateSmartPosition(
@@ -399,282 +405,148 @@ export function optimizePositions(positions: { [key: string]: NodePosition }): v
   }
 }
 
-// Function to prevent edge crossings
-function avoidEdgeCrossings(positions: { [key: string]: NodePosition }, graph: GraphNode): void {
-  const stateNames = Object.keys(positions);
-
-  // Iterate several times for optimization
-  for (let pass = 0; pass < 3; pass++) {
-    for (const stateName of stateNames) {
-      const connections = graph[stateName] || [];
-
-      // If the node has connections, try to place them to avoid crossings
-      if (connections.length > 1) {
-        // Sort target nodes by their Y coordinates
-        const sortedConnections = connections
-            .filter(target => positions[target])
-            .sort((a, b) => positions[a].y - positions[b].y);
-
-        // Distribute nodes evenly vertically
-        const currentPos = positions[stateName];
-        if (!currentPos) continue; // Protection against missing position
-
-        const spread = LAYOUT_CONFIG.EDGE_SEPARATION * (sortedConnections.length - 1);
-
-        sortedConnections.forEach((target, index) => {
-          const targetPos = positions[target];
-          if (!targetPos) return; // Protection against missing target position
-
-          const desiredY = currentPos.y - spread/2 + index * LAYOUT_CONFIG.EDGE_SEPARATION;
-
-          // Smooth shift towards the desired position
-          positions[target].y = targetPos.y * 0.7 + desiredY * 0.3;
-        });
-      }
-    }
-  }
-}
 
 // Improved tree-like placement function
-function arrangeAsTree(positions: { [key: string]: NodePosition }, graph: GraphNode, levels: NodeLevels): void {
-  // Create local version of groupNodesByLevel without dependency on states
-  const nodesByLevel: NodesByLevel = {};
-
-  for (const [stateName, level] of Object.entries(levels)) {
-    if (!nodesByLevel[level]) {
-      nodesByLevel[level] = [];
-    }
-    nodesByLevel[level].push(stateName);
-  }
-
-  Object.keys(nodesByLevel).forEach(levelStr => {
-    const level = parseInt(levelStr);
-    const nodesInLevel = nodesByLevel[level];
-
-    if (!nodesInLevel || nodesInLevel.length <= 1) return;
-
-    // Sort nodes in level by number of connections (more connections - closer to center)
-    const sortedNodes = nodesInLevel.sort((a, b) => {
-      const connectionsA = (graph[a] || []).length;
-      const connectionsB = (graph[b] || []).length;
-      return connectionsB - connectionsA;
-    });
-
-    // Place nodes evenly vertically
-    const totalHeight = (sortedNodes.length - 1) * LAYOUT_CONFIG.NODE_SPACING;
-    const startY = -totalHeight / 2;
-
-    sortedNodes.forEach((nodeName, index) => {
-      if (positions[nodeName]) {
-        positions[nodeName].y = startY + index * LAYOUT_CONFIG.NODE_SPACING;
-      }
-    });
-  });
-}
 
 // Function for arranging a vertical tree with STRICT alignment
-function arrangeAsVerticalTree(positions: { [key: string]: NodePosition }, graph: GraphNode, levels: NodeLevels): void {
-  // Create local version of groupNodesByLevel without dependency on states
-  const nodesByLevel: NodesByLevel = {};
+// ELK handles ordering/crossing and spacing.
 
-  for (const [stateName, level] of Object.entries(levels)) {
-    if (!nodesByLevel[level]) {
-      nodesByLevel[level] = [];
+export async function applyAutoLayout(states: WorkflowStates, initialState: string, isVertical: boolean = false): Promise<{ [key: string]: NodePosition }> {
+  const positions: { [key: string]: NodePosition } = {};
+  if (!states || typeof states !== 'object') return positions;
+
+  const stateNames = Object.keys(states);
+  if (stateNames.length === 0) return positions;
+
+  // Build ELK graph
+  const elk = new ELK();
+  // Use `any` to avoid strict ELK types friction and allow port definitions
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const elkGraph: any = {
+    id: 'root',
+    layoutOptions: {
+      'elk.algorithm': 'layered',
+      'elk.direction': isVertical ? 'DOWN' : 'RIGHT',
+  // Spacing & routing
+  'elk.spacing.nodeNode': isVertical ? 80 : 100,
+  'elk.spacing.componentComponent': 80,
+  'elk.spacing.edgeEdge': 50,
+  'elk.spacing.edgeNode': 40,
+  'elk.layered.spacing.nodeNodeBetweenLayers': isVertical ? 180 : 200,
+  'elk.layered.spacing.edgeEdgeBetweenLayers': 50,
+  'elk.layered.spacing.edgeNodeBetweenLayers': 40,
+  'elk.edgeRouting': 'ORTHOGONAL',
+
+  // Layering & placement: favor readability and straight edges
+  'elk.layered.layering.strategy': 'NETWORK_SIMPLEX',
+  'elk.layered.nodePlacement.strategy': 'BRANDES_KOEPF',
+  'elk.layered.nodePlacement.favorStraightEdges': true,
+  'elk.layered.compaction.strategy': 'NONE',
+  'elk.layered.mergeEdges': false,
+
+  // Reduce crossings and respect model order (states + transitions)
+  'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES',
+  'elk.layered.crossingMinimization.semiInteractive': true,
+
+  // Keep ports on expected sides (top/bottom for vertical, left/right for horizontal)
+      'elk.portConstraints': 'FIXED_SIDE',
+      'elk.layered.nodePlacement.bk.fixedAlignment': 'CENTER',
+      'elk.layered.thoroughness': 50,
+      'elk.layered.layering.cycleBreaking.strategy': 'DEPTH_FIRST',
+    },
+    children: stateNames.map((id) => ({
+      id,
+      width: LAYOUT_CONFIG.ELK_NODE_WIDTH,
+      height: LAYOUT_CONFIG.ELK_NODE_HEIGHT,
+      ports: [
+        { id: `${id}_IN`, properties: { 'org.eclipse.elk.port.side': isVertical ? 'NORTH' : 'WEST' } },
+        { id: `${id}_OUT`, properties: { 'org.eclipse.elk.port.side': isVertical ? 'SOUTH' : 'EAST' } },
+      ],
+    })),
+    edges: [] as Array<{ id: string; sources: string[]; targets: string[] }>,
+  };
+
+  // Add edges from transitions
+  for (const [source, state] of Object.entries(states)) {
+    const t = state.transitions;
+    if (!t) continue;
+    const list = Array.isArray(t) ? t : Object.values(t);
+    for (const transition of list) {
+      if (!transition?.next) continue;
+      const target = transition.next as string;
+      if (!stateNames.includes(target)) continue;
+      elkGraph.edges.push({ id: `${source}->${target}`,
+        sources: [`${source}_OUT`],
+        targets: [`${target}_IN`],
+      });
     }
-    nodesByLevel[level].push(stateName);
   }
 
-  const levelKeys = Object.keys(nodesByLevel).map(k => parseInt(k)).sort((a,b)=>a-b);
+  const layout = await elk.layout(elkGraph);
+  // Normalize positions so the minimum x/y is near 0
+  const xs = (layout.children as Array<{ x?: number }> | undefined)?.map((n) => n.x ?? 0) || [0];
+  const ys = (layout.children as Array<{ y?: number }> | undefined)?.map((n) => n.y ?? 0) || [0];
+  const minX = Math.min(...xs, 0);
+  const minY = Math.min(...ys, 0);
 
-  levelKeys.forEach(level => {
-    const nodesInLevel = nodesByLevel[level];
-    if (!nodesInLevel || nodesInLevel.length === 0) return;
+  for (const child of layout.children || []) {
+    positions[child.id] = {
+      x: Math.round(((child.x ?? 0) - minX)),
+      y: Math.round(((child.y ?? 0) - minY)),
+    };
+  }
 
-    // Horizontal step of the row: take approximate node width into account so edges don’t overlap neighboring blocks
-    const spacing = Math.max(
-        LAYOUT_CONFIG.VERTICAL_NODE_SPACING,
-        Math.round(LAYOUT_CONFIG.NODE_WIDTH * 1.4 + 40)
-    );
-    const taken = new Set<number>();
-    const placed = new Set<string>();
+  // Post-process to enforce strict vertical/horizontal layers so rows/columns align neatly
+  try {
+    const graph = buildGraph(states);
+    const levels = calculateLevels(graph, initialState);
 
-    // Parent map of current level (including parents from previous levels)
-    const parentsMap: Record<string, string[]> = {};
-    const prevLevels = levelKeys.filter(l => l < level);
-    const allPrevNodes = prevLevels.flatMap(l => nodesByLevel[l] || []);
-    for (const parent of allPrevNodes) {
-      const children = graph[parent] || [];
-      for (const child of children) {
-        if ((nodesInLevel as string[]).includes(child)) {
-          if (!parentsMap[child]) parentsMap[child] = [];
-          parentsMap[child].push(parent);
-        }
-      }
+    const levelMap: Record<number, string[]> = {};
+    for (const [node, lvl] of Object.entries(levels)) {
+      if (!levelMap[lvl]) levelMap[lvl] = [];
+      levelMap[lvl].push(node);
     }
 
-    // Groups with one parent: place strictly under the parent
-    const childrenByParent: Record<string, string[]> = {};
-    for (const child of nodesInLevel) {
-      const parents = parentsMap[child] || [];
-      if (parents.length === 1) {
-        const p = parents[0];
-        if (!childrenByParent[p]) childrenByParent[p] = [];
-        childrenByParent[p].push(child);
-      }
-    }
+    const sortedLevels = Object.keys(levelMap)
+      .map((l) => parseInt(l, 10))
+      .sort((a, b) => a - b);
 
-    // First place single chains and fan-out from one parent
-    for (const [parent, childs] of Object.entries(childrenByParent)) {
-      if (!positions[parent] || childs.length === 0) continue;
-      const px = positions[parent].x;
-      if (childs.length === 1) {
-        // Single child — place strictly under the parent
-        positions[childs[0]].x = px;
-        positions[childs[0]].y = level * LAYOUT_CONFIG.VERTICAL_LEVEL_SPACING;
-        taken.add(px);
-        placed.add(childs[0]);
-      } else {
-        // Multiple children — place symmetrically around parent X
-        const count = childs.length;
-        const start = px - ((count - 1) / 2) * spacing;
-        childs.sort((a,b)=>a.localeCompare(b)).forEach((c, idx) => {
-          const cx = Math.round(start + idx * spacing);
-          positions[c].x = cx;
-          positions[c].y = level * LAYOUT_CONFIG.VERTICAL_LEVEL_SPACING;
-          taken.add(cx);
-          placed.add(c);
+    if (isVertical) {
+      const ySpacing = 220; // strict distance between layers
+      const xSpacing = 260; // spacing between nodes within the same layer
+
+      for (const lvl of sortedLevels) {
+        const nodesInLevel = (levelMap[lvl] || []).filter((id) => positions[id] !== undefined);
+        // Preserve ELK ordering by current x
+        nodesInLevel.sort((a, b) => (positions[a].x - positions[b].x));
+
+        const totalWidth = (nodesInLevel.length - 1) * xSpacing;
+        const startX = -totalWidth / 2;
+        nodesInLevel.forEach((id, idx) => {
+          positions[id].y = lvl * ySpacing;
+          positions[id].x = startX + idx * xSpacing;
+        });
+      }
+    } else {
+      const xSpacing = 280; // strict distance between layers
+      const ySpacing = 240; // spacing between nodes within the same layer
+
+      for (const lvl of sortedLevels) {
+        const nodesInLevel = (levelMap[lvl] || []).filter((id) => positions[id] !== undefined);
+        // Preserve ELK ordering by current y
+        nodesInLevel.sort((a, b) => (positions[a].y - positions[b].y));
+
+        const totalHeight = (nodesInLevel.length - 1) * ySpacing;
+        const startY = -totalHeight / 2;
+        nodesInLevel.forEach((id, idx) => {
+          positions[id].x = lvl * xSpacing;
+          positions[id].y = startY + idx * ySpacing;
         });
       }
     }
-
-    // Remaining nodes: use barycenter of parents and snap to nearest free grid
-    const remaining = nodesInLevel.filter(n => !placed.has(n));
-    if (remaining.length > 0) {
-      const parentXSum: Record<string, number> = {};
-      const parentCount: Record<string, number> = {};
-      for (const n of remaining) {
-        const parents = parentsMap[n] || [];
-        for (const p of parents) {
-          if (!positions[p]) continue;
-          parentXSum[n] = (parentXSum[n] || 0) + positions[p].x;
-          parentCount[n] = (parentCount[n] || 0) + 1;
-        }
-      }
-
-      const desired = remaining.map(n => ({
-        n,
-        x: parentCount[n] ? parentXSum[n] / parentCount[n] : 0,
-      })).sort((a,b)=> a.x - b.x || a.n.localeCompare(b.n));
-
-      // Grid around 0: ..., -2s, -1s, 0, 1s, 2s, ...
-      const snapToFree = (targetX: number): number => {
-        // Index of cell relative to 0
-        const baseIdx = Math.round(targetX / spacing);
-        // Check nearest free positions
-        for (let d = 0; d < 1000; d++) {
-          const candidates = d === 0 ? [baseIdx] : [baseIdx - d, baseIdx + d];
-          for (const idx of candidates) {
-            const x = idx * spacing;
-            if (!taken.has(x)) return x;
-          }
-        }
-        return baseIdx * spacing;
-      };
-
-      desired.forEach(({n, x}) => {
-        const snapped = snapToFree(x);
-        positions[n].x = snapped;
-        positions[n].y = level * LAYOUT_CONFIG.VERTICAL_LEVEL_SPACING;
-        taken.add(snapped);
-      });
-    }
-  });
-
-  // Remove all additional optimization that might break alignment
-  // Object.keys(positions).forEach(nodeName => { ... }); // DISABLED
-}
-
-export function applyAutoLayout(states: WorkflowStates, initialState: string, isVertical: boolean = false): { [key: string]: NodePosition } {
-  const positions: { [key: string]: NodePosition } = {};
-
-  // Protection against null/undefined states
-  if (!states || typeof states !== 'object') {
-    return positions;
-  }
-
-  const stateNames = Object.keys(states);
-
-  // Protection against empty state list
-  if (stateNames.length === 0) {
-    return positions;
-  }
-
-  let actualInitialState = initialState;
-  if (!actualInitialState || !states[actualInitialState]) {
-    actualInitialState = stateNames[0];
-  }
-
-  const graph = buildGraph(states);
-  const levels = calculateLevels(graph, actualInitialState);
-
-  const hasValidLevels = Object.values(levels).some(level => level > 0);
-
-  if (!hasValidLevels) {
-    // Linear placement if no levels exist
-    stateNames.forEach((stateName, index) => {
-      if (isVertical) {
-        positions[stateName] = {
-          x: 0,
-          y: index * LAYOUT_CONFIG.LEVEL_SPACING
-        };
-      } else {
-        positions[stateName] = {
-          x: index * LAYOUT_CONFIG.LEVEL_SPACING,
-          y: 0
-        };
-      }
-    });
-  } else {
-    // Placement based on levels
-    for (const stateName of stateNames) {
-      if (isVertical) {
-        positions[stateName] = calculateVerticalPosition(stateName, states, actualInitialState);
-      } else {
-        positions[stateName] = calculateSmartPosition(stateName, states, actualInitialState);
-      }
-    }
-
-    // Apply improvements for better readability
-    if (isVertical) {
-      arrangeAsVerticalTree(positions, graph, levels);
-      // In vertical mode DO NOT apply optimizations that break alignment
-      // avoidEdgeCrossings(positions, graph); // DISABLED for strict alignment
-      // optimizePositions(positions); // DISABLED for strict alignment
-    } else {
-      arrangeAsTree(positions, graph, levels);
-      avoidEdgeCrossings(positions, graph);
-      optimizePositions(positions);
-    }
-
-    // Add final randomness only for horizontal layout
-    if (!isVertical) {
-      for (const stateName of stateNames) {
-        const finalRandomX = (Math.random() - 0.5) * 40; // ±20px
-        const finalRandomY = (Math.random() - 0.5) * 40; // ±20px
-
-        positions[stateName].x += finalRandomX;
-        positions[stateName].y += finalRandomY;
-      }
-    } else {
-      // In vertical mode DO NOT apply even minimal offsets
-      // for (const stateName of stateNames) {
-      //   const minimalRandomX = (Math.random() - 0.5) * 10; // DISABLED
-      //   const minimalRandomY = (Math.random() - 0.5) * 10; // DISABLED
-      //
-      //   positions[stateName].x += minimalRandomX;
-      //   positions[stateName].y += minimalRandomY;
-      // }
-    }
+  } catch (e) {
+    // Fallback to raw ELK positions if any post-processing fails
+    console.warn('ELK post-alignment failed, using raw positions', e);
   }
 
   return positions;

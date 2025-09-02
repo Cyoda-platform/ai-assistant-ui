@@ -3632,6 +3632,7 @@ __metadata:
     axios-retry: "npm:^4.5.0"
     dayjs: "npm:^1.11.18"
     element-plus: "npm:^2.11.1"
+    elkjs: "npm:^0.9.2"
     eslint: "npm:^9.34.0"
     eslint-plugin-vue: "npm:^10.4.0"
     file-saver: "npm:^2.0.5"
@@ -5507,6 +5508,13 @@ __metadata:
   peerDependencies:
     vue: ^3.2.0
   checksum: 10c0/b0deaf12c3e026f5d56ca0d54298d6038249687fec3a10eed636b199ac6e4153c1b9d1deb8c2d7abd490fd52e46ec8de5758302deae1a45db4b8d4135c4ed6f5
+  languageName: node
+  linkType: hard
+
+"elkjs@npm:^0.9.2":
+  version: 0.9.3
+  resolution: "elkjs@npm:0.9.3"
+  checksum: 10c0/caf544ff4fce8442d1d3dd6dface176c9b2fe26fc1e34f56122828e6eef7d2d7fe70d3202f9f3ecf0feb6287d4c8430949f483e63e450a7454bb39ccffab3808
   languageName: node
   linkType: hard
 

@@ -1339,7 +1339,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
     }
 
-    function autoLayout() {
+    async function autoLayout() {
         // Toggle direction on each autoLayout call
         layoutDirection.value = layoutDirection.value === 'horizontal' ? 'vertical' : 'horizontal';
         helperStorage.set(LAYOUT_DIRECTION, layoutDirection.value);
@@ -1349,11 +1349,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const initialState = parsed.initialState;
         const isVertical = layoutDirection.value === 'vertical';
 
-        const finalPositions = {};
+    const finalPositions: Record<string, { x: number; y: number }> = {};
 
         if (isVertical) {
-            // Vertical mode: use applyAutoLayout with precise positions
-            const positions = applyAutoLayout(states, initialState, true);
+            // Vertical mode: ELK vertical
+            const positions = await applyAutoLayout(states, initialState, true);
             Object.keys(positions).forEach(nodeId => {
                 const basePosition = positions[nodeId];
                 finalPositions[nodeId] = {
@@ -1362,11 +1362,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 };
             });
         } else {
-            // Horizontal mode: use calculateSmartPosition like in resetTransform
-            const stateNames = Object.keys(states);
-            stateNames.forEach(stateName => {
-                const position = calculateSmartPosition(stateName, states, initialState);
-                finalPositions[stateName] = position;
+            // Horizontal mode: ELK horizontal
+            const positions = await applyAutoLayout(states, initialState, false);
+            Object.keys(positions).forEach(nodeId => {
+                finalPositions[nodeId] = positions[nodeId];
             });
         }
 
