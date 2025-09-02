@@ -37,24 +37,24 @@ export interface WorkflowState {
 export type WorkflowStates = Record<string, WorkflowState>;
 
 const LAYOUT_CONFIG = {
-  LEVEL_SPACING: 400, // Increased for better readability
-  NODE_SPACING: 200,  // Increased spacing between nodes
-  VERTICAL_SPREAD: 250, // More vertical space
-  MIN_DISTANCE: 150,  // Minimum distance between nodes
-  PREFERRED_DISTANCE: 220, // Preferred distance
+  LEVEL_SPACING: 400, // Original spacing for horizontal layout
+  NODE_SPACING: 200,  // Original spacing between nodes for horizontal
+  VERTICAL_SPREAD: 250, // Original vertical space for horizontal
+  MIN_DISTANCE: 150,  // Original minimum distance between nodes
+  PREFERRED_DISTANCE: 220, // Original preferred distance
   OPTIMIZATION_PASSES: 5, // More optimization passes
   CENTER_PULL_FORCE: 0.2, // Lower pull force to the center
-  MAX_CENTER_DISTANCE: 400, // Larger allowed distance from the center
-  RANDOM_OFFSET_RANGE: 80, // Increased for more randomness on each autoLayout
-  SELF_LOOP_OFFSET: 40, // Larger offset for self-loops
+  MAX_CENTER_DISTANCE: 400, // Original allowed distance from the center
+  RANDOM_OFFSET_RANGE: 80, // Original randomness for autoLayout
+  SELF_LOOP_OFFSET: 40, // Original offset for self-loops
   TERMINAL_MIN_LEVEL: 4,
-  EDGE_SEPARATION: 80, // New parameter for edge separation
+  EDGE_SEPARATION: 80, // Original edge separation
 
-  // Parameters for vertical alignment
+  // Parameters for vertical alignment - more compact
   NODE_WIDTH: 180, // Approximate node width
   NODE_HEIGHT: 80, // Approximate node height
-  VERTICAL_NODE_SPACING: 120, // Spacing between nodes horizontally in vertical mode
-  VERTICAL_LEVEL_SPACING: 300, // Spacing between levels in vertical mode
+  VERTICAL_NODE_SPACING: 80, // Reduced spacing between nodes horizontally in vertical mode
+  VERTICAL_LEVEL_SPACING: 200, // Reduced spacing between levels in vertical mode
   VERTICAL_CENTER_ALIGNMENT: true, // Strict center alignment in vertical mode
 };
 
