@@ -41,15 +41,12 @@
             :min-zoom="0.2"
             :max-zoom="4"
         >
-          <Controls position="top-left">
+          <Controls position="top-left" :show-fit-view="false">
             <template #icon-zoom-in>
               <Icon name="zoom-in"/>
             </template>
             <template #icon-zoom-out>
               <Icon name="zoom-out"/>
-            </template>
-            <template #icon-fit-view>
-              <Icon name="fit-view"/>
             </template>
             <template #icon-lock>
               <Icon name="lock"/>
@@ -57,6 +54,10 @@
             <template #icon-unlock>
               <Icon name="unlock"/>
             </template>
+
+            <ControlButton @click="fitView">
+              <Icon name="fit-view"/>
+            </ControlButton>
 
             <ControlButton @click="undoAction" :disabled="!canUndo">
               <Icon name="undo"/>
@@ -148,6 +149,7 @@ const {
   autoLayout,
   onUpdateWorkflowMetaDialog,
   onResize,
+  fitView,
   canUndo,
   canRedo,
   undoAction,

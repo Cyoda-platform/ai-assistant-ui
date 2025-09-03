@@ -201,9 +201,94 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     const isDraggingConnection = ref(false);
     const pendingHandleConnections = ref<Record<string, { sourceHandle: string; targetHandle: string }>>({});
 
-    const {setViewport, fitView, getViewport, vueFlowRef} = useVueFlow();
+    const {setViewport, fitView, getViewport, vueFlowRef, fitBounds} = useVueFlow();
 
     const workflowMetaData = ref(helperStorage.get(workflowMetaDataKey.value, null) || {});
+
+    // Custom fitView that includes transition labels
+    function fitViewIncludingTransitions(options: { padding?: number } = {}) {
+        if (!vueFlowRef.value) return;
+        
+        const padding = options.padding || 0.2;
+        
+        // Get all node positions
+        const nodeRects = nodes.value.map(node => ({
+            x: node.position.x,
+            y: node.position.y,
+            width: 180, // Approximate node width
+            height: 80  // Approximate node height
+        }));
+        
+        // Get transition label positions from metadata
+        const transitionLabels = workflowMetaData.value?.transitionLabels || {};
+        const labelRects: Array<{x: number, y: number, width: number, height: number}> = [];
+        
+        for (const [transitionId, labelOffset] of Object.entries(transitionLabels)) {
+            // Find the corresponding edge to get the base position
+            const edge = edges.value.find(e => e.data?.transitionId === transitionId);
+            if (edge) {
+                const sourceNode = nodes.value.find(n => n.id === edge.source);
+                const targetNode = nodes.value.find(n => n.id === edge.target);
+                
+                if (sourceNode && targetNode) {
+                    // Calculate the edge midpoint
+                    const midX = (sourceNode.position.x + targetNode.position.x) / 2;
+                    const midY = (sourceNode.position.y + targetNode.position.y) / 2;
+                    
+                    // Add the label offset
+                    const offset = labelOffset as { x: number; y: number };
+                    const labelX = midX + offset.x;
+                    const labelY = midY + offset.y;
+                    
+                    // Estimate label size based on transition name length
+                    const transitionName = transitionId.split('-').pop() || 'transition';
+                    const labelWidth = Math.max(transitionName.length * 8 + 40, 100);
+                    const labelHeight = 30;
+                    
+                    labelRects.push({
+                        x: labelX - labelWidth / 2,
+                        y: labelY - labelHeight / 2,
+                        width: labelWidth,
+                        height: labelHeight
+                    });
+                }
+            }
+        }
+        
+        // Combine all rectangles
+        const allRects = [...nodeRects, ...labelRects];
+        
+        if (allRects.length === 0) {
+            fitView();
+            return;
+        }
+        
+        // Calculate bounding box
+        const minX = Math.min(...allRects.map(r => r.x));
+        const minY = Math.min(...allRects.map(r => r.y));
+        const maxX = Math.max(...allRects.map(r => r.x + r.width));
+        const maxY = Math.max(...allRects.map(r => r.y + r.height));
+        
+        const bounds = {
+            x: minX,
+            y: minY,
+            width: maxX - minX,
+            height: maxY - minY
+        };
+        
+        // Apply padding
+        const paddingX = bounds.width * padding;
+        const paddingY = bounds.height * padding;
+        
+        const paddedBounds = {
+            x: bounds.x - paddingX / 2,
+            y: bounds.y - paddingY / 2,
+            width: bounds.width + paddingX,
+            height: bounds.height + paddingY
+        };
+        
+        fitBounds(paddedBounds);
+    }
 
     // Save and restore viewport (zoom and position)
     const saveViewport = () => {
@@ -1255,7 +1340,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         // Fit the view after nodes are updated
         nextTick(() => {
             console.log('🔄 Reset transform completed - applied ELK horizontal layout');
-            fitView();
+            fitViewIncludingTransitions();
         });
 
         // Save state for undo/redo after reset
@@ -1314,17 +1399,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             generateNodes();
 
             setTimeout(() => {
-                fitView({
-                    padding: 0.5,
-                    includeHiddenNodes: false,
-                    minZoom: 0.5,
-                    maxZoom: 1
+                fitViewIncludingTransitions({
+                    padding: 0.5
                 });
             }, 50);
 
             saveState(createSnapshot());
 
-        } catch (error) {
+        } catch {
             console.log('User cancelled state creation');
         }
     }
@@ -1382,7 +1464,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         saveState(createSnapshot());
 
         nextTick(() => {
-            fitView()
+            fitViewIncludingTransitions()
         })
     }
 
@@ -1598,7 +1680,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     provide('onConditionChange', onEdgeConditionChange);
 
     // Viewport change handler (zoom, pan)
-    const onViewportChange = (viewport: { x: number; y: number; zoom: number }) => {
+    const onViewportChange = () => {
         // Save viewport with a small delay to avoid spamming localStorage
         clearTimeout(viewportSaveTimeout);
         viewportSaveTimeout = setTimeout(() => {
@@ -1644,7 +1726,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         onUpdateWorkflowMetaDialog,
         resetAllTransitionPositions,
         onResize,
-        fitView,
+        fitView: fitViewIncludingTransitions,
         onViewportChange,
         saveViewport,
         restoreViewport,
