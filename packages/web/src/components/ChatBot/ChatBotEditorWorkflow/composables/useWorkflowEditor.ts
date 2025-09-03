@@ -1189,26 +1189,52 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }, 100);
     }
 
-    function resetTransform() {
-        workflowMetaData.value = null;
+    async function resetTransform() {
+        // Always reset to ELK horizontal layout
+        layoutDirection.value = 'horizontal';
+        helperStorage.set(LAYOUT_DIRECTION, 'horizontal');
 
+        // Clear in-memory caches for initial positions/labels
         initialPositions.value = {};
         initialTransitionLabels.value = {};
 
-        generateNodes();
+        // Parse current workflow
+        let parsed: WorkflowData = { states: {} } as WorkflowData;
+        try {
+            parsed = JSON.parse(canvasData.value || '{}');
+        } catch {
+            parsed = { states: {} } as WorkflowData;
+        }
+        const states = parsed.states || {};
+        const initialState = parsed.initialState;
 
-        // Use nextTick to wait for generateNodes completion
-        nextTick(() => {
-            console.log('🔄 Reset transform completed - using default node positions');
-            layoutDirection.value = 'horizontal';
-            nextTick(() => fitView());
+        // Compute fresh horizontal layout with ELK
+    const result = await applyAutoLayout(states, initialState || 'state_initial', false);
+
+        // Persist positions and label offsets in meta so generateNodes picks them up
+    const metaPositions: Record<string, { x: number; y: number }> = {};
+        Object.keys(result.nodePositions).forEach((id) => {
+            metaPositions[id] = { ...result.nodePositions[id] };
         });
 
-        console.log('Reset to default state completed - all meta data cleared');
+        workflowMetaData.value = {
+            ...metaPositions,
+            layoutDirection: 'horizontal',
+            transitionLabels: { ...result.transitionPositions },
+        };
+        helperStorage.set(workflowMetaDataKey.value, workflowMetaData.value);
+
+        // Re-generate nodes/edges using saved positions and labels
+        generateNodes();
+
+        // Fit the view after nodes are updated
+        nextTick(() => {
+            console.log('🔄 Reset transform completed - applied ELK horizontal layout');
+            fitView();
+        });
 
         // Save state for undo/redo after reset
         saveState(createSnapshot());
-        layoutDirection.value = 'horizontal';
     }
 
     async function addNewState() {
