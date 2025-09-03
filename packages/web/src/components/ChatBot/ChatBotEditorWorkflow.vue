@@ -28,6 +28,8 @@
             :fit-view-on-init="true"
             :zoom-on-scroll="false"
             :zoom-on-double-click="false"
+            :pan-on-drag="true"
+            :selection-on-drag="false"
             @nodeDragStop="onNodeDragStop"
             @connect="onConnect"
             @connectStart="onConnectStart"
