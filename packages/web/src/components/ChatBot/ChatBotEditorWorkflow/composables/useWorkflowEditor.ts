@@ -450,7 +450,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
     }
 
-    function generateNodes() {
+    async function generateNodes() {
         if (!canvasData.value || canvasData.value.trim() === '') {
             nodes.value = [];
             // Clear metadata when editor is empty
@@ -461,10 +461,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             return;
         }
 
-        const result: WorkflowNode[] = [];
-        let parsed: WorkflowData;
+    const result: WorkflowNode[] = [];
+    let parsed: WorkflowData;
 
-        const savedPositions = workflowMetaData.value || {};
+    const savedMeta = workflowMetaData.value || {};
 
         try {
             parsed = JSON.parse(canvasData.value);
@@ -485,7 +485,31 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         const initialState = parsed.initialState;
 
-        const hasSavedPositions = Object.keys(savedPositions).length > 0;
+        // Decide if we need to compute fresh layout (on paste or when layoutDirection changed)
+        const stateNames = Object.keys(states);
+        const meta = savedMeta;
+        const hasAllPositions = stateNames.every((n) => meta[n] && typeof meta[n].x === 'number' && typeof meta[n].y === 'number');
+        const needFreshLayout = !hasAllPositions || meta.layoutDirection !== layoutDirection.value;
+
+        if (needFreshLayout) {
+            const isVertical = layoutDirection.value === 'vertical';
+            const elk = await applyAutoLayout(states, initialState || 'state_initial', isVertical);
+            // Persist into meta
+            const newMeta: Record<string, { x: number; y: number }> = {};
+            for (const k of Object.keys(elk.nodePositions)) newMeta[k] = elk.nodePositions[k];
+            workflowMetaData.value = {
+                ...(workflowMetaData.value || {}),
+                ...newMeta,
+                transitionLabels: {
+                    ...(workflowMetaData.value?.transitionLabels || {}),
+                    ...elk.transitionPositions,
+                },
+                layoutDirection: layoutDirection.value,
+            };
+            helperStorage.set(workflowMetaDataKey.value, workflowMetaData.value);
+        }
+
+        const savedPositions = workflowMetaData.value || {};
 
         const shouldSaveInitialState = Object.keys(initialPositions.value).length === 0;
 
@@ -508,6 +532,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 fullData: transition
             })) : [];
 
+            const hasSavedPositions = Object.keys(savedPositions).length > 0;
             const position = hasSavedPositions
                 ? savedPositions[stateName] || calculateSmartPosition(stateName, states, parsed.initialState || 'state_initial')
                 : calculateSmartPosition(stateName, states, parsed.initialState || 'state_initial');
