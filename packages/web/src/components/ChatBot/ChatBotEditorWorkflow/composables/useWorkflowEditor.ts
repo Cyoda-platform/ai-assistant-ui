@@ -11,8 +11,7 @@ import HelperStorage from '@/helpers/HelperStorage';
 import {
     calculateSmartPosition,
     applyAutoLayout,
-    NodePosition,
-    generateSeparatedLabelPositions
+    NodePosition
 } from '../utils/smartLayout';
 import {type EditorAction, createWorkflowEditorActions} from '@/utils/editorUtils';
 import {useUndoRedo} from './useUndoRedo';
@@ -536,35 +535,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         // Apply label separation after node generation to prevent sticking when inserting JSON
         nextTick(() => {
-            // Check if there are edges with potential label conflicts
-            if (edges.value.length > 1) {
-                const edgeData = edges.value.map(edge => {
-                    const sourceNode = nodes.value.find(n => n.id === edge.source);
-                    const targetNode = nodes.value.find(n => n.id === edge.target);
-
-                    return {
-                        id: edge.data?.transitionId || edge.id,
-                        sourceX: sourceNode?.position.x || 0,
-                        sourceY: sourceNode?.position.y || 0,
-                        targetX: targetNode?.position.x || 0,
-                        targetY: targetNode?.position.y || 0
-                    };
-                });
-
-                const existingLabels = workflowMetaData.value?.transitionLabels || {};
-                const separatedLabelPositions = generateSeparatedLabelPositions(edgeData, existingLabels);
-
-                // Update metadata with new label positions
-                const updatedMetaData = {...(workflowMetaData.value || {})};
-                if (!updatedMetaData.transitionLabels) {
-                    updatedMetaData.transitionLabels = {};
-                }
-
-                Object.assign(updatedMetaData.transitionLabels, separatedLabelPositions);
-                workflowMetaData.value = updatedMetaData;
-
-                console.log('📝 Applied label separation after JSON paste for', Object.keys(separatedLabelPositions).length, 'edges');
-            }
+            // Transition positions will be calculated automatically when using ELK auto-layout
+            console.log('📝 JSON paste completed - use auto-layout for proper transition positioning');
         });
     }
 
@@ -1227,40 +1199,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         // Use nextTick to wait for generateNodes completion
         nextTick(() => {
-            console.log('🔄 Edges found:', edges.value.length);
-            console.log('🔄 Edges data:', edges.value.map(e => ({
-                id: e.id,
-                transitionId: e.data?.transitionId,
-                source: e.source,
-                target: e.target
-            })));
-
-            const edgeData = edges.value.map(edge => {
-                const sourceNode = nodes.value.find(n => n.id === edge.source);
-                const targetNode = nodes.value.find(n => n.id === edge.target);
-
-                return {
-                    id: edge.data?.transitionId || edge.id,
-                    sourceX: sourceNode?.position.x || 0,
-                    sourceY: sourceNode?.position.y || 0,
-                    targetX: targetNode?.position.x || 0,
-                    targetY: targetNode?.position.y || 0
-                };
-            });
-
-            const separatedLabelPositions = generateSeparatedLabelPositions(edgeData, {});
-
-            // Update metadata with new label positions
-            const updatedMetaData = {...(workflowMetaData.value || {})};
-            if (!updatedMetaData.transitionLabels) {
-                updatedMetaData.transitionLabels = {};
-            }
-
-            Object.assign(updatedMetaData.transitionLabels, separatedLabelPositions);
-            workflowMetaData.value = updatedMetaData;
-
-            console.log('🔄 Reset transform applied label separation for', Object.keys(separatedLabelPositions).length, 'edges');
-
+            console.log('🔄 Reset transform completed - using default node positions');
             layoutDirection.value = 'horizontal';
             nextTick(() => fitView());
         });
@@ -1350,23 +1289,26 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const isVertical = layoutDirection.value === 'vertical';
 
     const finalPositions: Record<string, { x: number; y: number }> = {};
+    let allTransitionPositions: Record<string, {x: number, y: number}> = {};
 
         if (isVertical) {
             // Vertical mode: ELK vertical
-            const positions = await applyAutoLayout(states, initialState, true);
-            Object.keys(positions).forEach(nodeId => {
-                const basePosition = positions[nodeId];
+            const result = await applyAutoLayout(states, initialState, true);
+            Object.keys(result.nodePositions).forEach(nodeId => {
+                const basePosition = result.nodePositions[nodeId];
                 finalPositions[nodeId] = {
                     x: basePosition.x,
                     y: basePosition.y
                 };
             });
+            allTransitionPositions = result.transitionPositions;
         } else {
             // Horizontal mode: ELK horizontal
-            const positions = await applyAutoLayout(states, initialState, false);
-            Object.keys(positions).forEach(nodeId => {
-                finalPositions[nodeId] = positions[nodeId];
+            const result = await applyAutoLayout(states, initialState, false);
+            Object.keys(result.nodePositions).forEach(nodeId => {
+                finalPositions[nodeId] = result.nodePositions[nodeId];
             });
+            allTransitionPositions = result.transitionPositions;
         }
 
         nodes.value = nodes.value.map((node: WorkflowNode) => ({
@@ -1376,38 +1318,15 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         workflowMetaData.value = {
             ...(workflowMetaData.value || {}), ...finalPositions,
-            layoutDirection: layoutDirection.value
+            layoutDirection: layoutDirection.value,
+            transitionLabels: {
+                ...(workflowMetaData.value?.transitionLabels || {}),
+                ...allTransitionPositions
+            }
         };
 
-        // Generate separated positions for transition labels instead of reset
-        const edgeData = edges.value.map(edge => {
-            const sourceNode = nodes.value.find(n => n.id === edge.source);
-            const targetNode = nodes.value.find(n => n.id === edge.target);
-
-            return {
-                id: edge.data?.transitionId || edge.id,
-                sourceX: sourceNode?.position.x || 0,
-                sourceY: sourceNode?.position.y || 0,
-                targetX: targetNode?.position.x || 0,
-                targetY: targetNode?.position.y || 0
-            };
-        });
-
-        const existingLabels = workflowMetaData.value.transitionLabels || {};
-        const separatedLabelPositions = generateSeparatedLabelPositions(edgeData, existingLabels);
-
-        // Update metadata with new label positions and layout direction
-        const updatedMetaData = {...workflowMetaData.value};
-        if (!updatedMetaData.transitionLabels) {
-            updatedMetaData.transitionLabels = {};
-        }
-
-        // Merge existing and new label positions
-        Object.assign(updatedMetaData.transitionLabels, separatedLabelPositions);
-
-        // Save current layout direction
-        updatedMetaData.layoutDirection = layoutDirection.value;
-        workflowMetaData.value = updatedMetaData;
+        // ELK already calculated perfect transition positions
+        console.log('🎯 Applied ELK layout with', Object.keys(finalPositions).length, 'nodes and', Object.keys(allTransitionPositions).length, 'transitions');
 
         saveState(createSnapshot());
 
