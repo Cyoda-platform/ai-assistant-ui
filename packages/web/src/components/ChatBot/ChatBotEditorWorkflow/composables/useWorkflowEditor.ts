@@ -535,7 +535,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
     }
 
-    async function generateNodes() {
+    async function generateNodes(options: { skipFitView?: boolean } = {}) {
         if (!canvasData.value || canvasData.value.trim() === '') {
             nodes.value = [];
             // Clear metadata when editor is empty
@@ -573,8 +573,20 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         // Decide if we need to compute fresh layout (on paste or when layoutDirection changed)
         const stateNames = Object.keys(states);
         const meta = savedMeta;
-        const hasAllPositions = stateNames.every((n) => meta[n] && typeof meta[n].x === 'number' && typeof meta[n].y === 'number');
-        const needFreshLayout = !hasAllPositions || meta.layoutDirection !== layoutDirection.value;
+        const existingStateNames = Object.keys(meta).filter(k => 
+            k !== 'transitionLabels' && k !== 'handleConnectionsByTransition' && k !== 'layoutDirection'
+        );
+        
+        // Only trigger fresh layout if:
+        // 1. No existing positions at all (first time)
+        // 2. Layout direction changed
+        // 3. Major structural changes (not just adding one new state)
+        const hasExistingPositions = existingStateNames.length > 0;
+        const layoutDirectionChanged = meta.layoutDirection && meta.layoutDirection !== layoutDirection.value;
+        const isAddingNewState = stateNames.length === existingStateNames.length + 1 && 
+                                 existingStateNames.every(name => stateNames.includes(name));
+        
+        const needFreshLayout = !hasExistingPositions || layoutDirectionChanged || (!isAddingNewState && stateNames.length !== existingStateNames.length);
 
         if (needFreshLayout) {
             const isVertical = layoutDirection.value === 'vertical';
@@ -649,9 +661,12 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             console.log('📝 JSON paste completed - use auto-layout for proper transition positioning');
             
             // Fit view to show all nodes and transitions after JSON paste
-            setTimeout(() => {
-                fitViewIncludingTransitions({ padding: 50 });
-            }, 100);
+            // Skip fitView if explicitly requested (e.g., when adding new state)
+            if (!options.skipFitView) {
+                setTimeout(() => {
+                    fitViewIncludingTransitions({ padding: 50 });
+                }, 100);
+            }
         });
     }
 
@@ -1399,20 +1414,60 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 parsed.initialState = stateName;
             }
 
+            // Set flag to prevent fitView in watcher
+            isAddingNewState = true;
+
+            // Save current viewport to restore after node generation
+            const currentViewport = getViewport();
+            
+            // For new state, add it to existing metadata without regenerating everything
+            const currentMeta = workflowMetaData.value || {};
+            
+            // Find a good position for the new state
+            const existingPositions = Object.entries(currentMeta).filter(([key]) => 
+                key !== 'transitionLabels' && key !== 'handleConnectionsByTransition' && key !== 'layoutDirection'
+            );
+            
+            let newStatePosition = { x: 0, y: 0 };
+            if (existingPositions.length > 0) {
+                // Place new state to the right of the rightmost existing state
+                const rightmostX = Math.max(...existingPositions.map(([, pos]) => {
+                    const position = pos as { x?: number; y?: number };
+                    return position.x || 0;
+                }));
+                newStatePosition = { x: rightmostX + 250, y: 0 };
+            }
+            
+            // Add new state position to metadata
+            workflowMetaData.value = {
+                ...currentMeta,
+                [stateName]: newStatePosition
+            };
+            
+            helperStorage.set(workflowMetaDataKey.value, workflowMetaData.value);
+
             canvasData.value = JSON.stringify(parsed, null, 2);
-
-            generateNodes();
-
-            setTimeout(() => {
-                fitViewIncludingTransitions({
-                    padding: 0.5
-                });
-            }, 50);
+            
+            // Regenerate nodes to include the new state without triggering fitView
+            generateNodes({ skipFitView: true });
+            
+            // Restore viewport after node generation
+            nextTick(() => {
+                setViewport(currentViewport);
+                // Reset flag after watcher has had time to process (400ms > 300ms debounce)
+                setTimeout(() => {
+                    isAddingNewState = false;
+                }, 400);
+            });
 
             saveState(createSnapshot());
 
         } catch {
             console.log('User cancelled state creation');
+            // Reset flag in case of error with delay to handle any pending watcher calls
+            setTimeout(() => {
+                isAddingNewState = false;
+            }, 400);
         }
     }
 
@@ -1564,6 +1619,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     let metaDataDebounceTimer: ReturnType<typeof setTimeout> | null = null;
     let isUndoRedoOperation = false;
     let isMetaDataSaving = false;
+    let isAddingNewState = false;
 
     function createSnapshot(): string {
         return JSON.stringify({
@@ -1597,7 +1653,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
         if (debounceTimer) clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-            generateNodes();
+            // Skip automatic fitView when adding new state
+            generateNodes({ skipFitView: isAddingNewState });
         }, 300);
 
         if (!isUndoRedoOperation) {
