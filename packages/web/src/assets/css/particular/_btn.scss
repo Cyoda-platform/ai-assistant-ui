@@ -187,6 +187,14 @@
     height: 40px;
     width: 40px;
   }
+
+  &--text {
+    width: unset;
+    padding: 0 10px;
+    span {
+      margin-left: 5px;
+    }
+  }
 }
 
 .btn-border {

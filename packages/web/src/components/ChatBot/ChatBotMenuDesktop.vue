@@ -7,8 +7,15 @@
         :show-after="1000"
         placement="top"
     >
-      <el-button @click="emit('toggleCanvas')" class="btn btn-default btn-icon btn-toggle-canvas">
+      <el-button
+          @click="emit('toggleCanvas')"
+          class="btn btn-default btn-icon btn-icon--text btn-toggle-canvas"
+          :class="{
+            'btn--active': canvasVisible,
+          }"
+      >
         <ToggleCanvasIcon/>
+        <span>{{toggleCanvasTitle}}</span>
       </el-button>
     </el-tooltip>
     <el-tooltip
@@ -18,8 +25,9 @@
         :show-after="1000"
         placement="top"
     >
-      <el-button @click="emit('entitiesDetails')" class="btn btn-default btn-icon btn-toggle-canvas">
+      <el-button @click="emit('entitiesDetails')" class="btn btn-default btn-icon btn-icon--text">
         <EntitiesDataIcon/>
+        <span>Entities</span>
       </el-button>
     </el-tooltip>
     <el-tooltip
@@ -29,8 +37,9 @@
         :show-after="1000"
         placement="top"
     >
-      <el-button @click="emit('support')" class="btn btn-default btn-icon">
+      <el-button @click="emit('support')" class="btn btn-default btn-icon btn-icon--text">
         <SupportIcon class="fill-stroke"/>
+        <span>Support</span>
       </el-button>
     </el-tooltip>
   </div>
@@ -40,7 +49,7 @@
 import EntitiesDataIcon from "@/assets/images/icons/entities-data.svg";
 import SupportIcon from '@/assets/images/icons/support.svg';
 import ToggleCanvasIcon from "@/assets/images/icons/toggle-canvas.svg";
-import {computed, inject, provide} from "vue";
+import {computed, inject} from "vue";
 
 defineProps<{
   isLoadingDelete: boolean,
@@ -49,11 +58,6 @@ defineProps<{
 const emit = defineEmits(['toggleCanvas', 'entitiesDetails', 'support']);
 
 const canvasVisible = inject('canvasVisible');
-const chatData = inject('chatData');
-
-const chatName = computed(() => {
-  return chatData.value?.chat_body?.name || '';
-})
 
 const toggleCanvasTitle = computed(() => {
   return canvasVisible.value ? 'Close Canvas' : 'Open Canvas';
@@ -65,5 +69,10 @@ const toggleCanvasTitle = computed(() => {
   display: flex;
   gap: 12px;
   align-items: center;
+}
+
+.btn--active {
+  background: var(--color-primary);
+  color: #ffffff;
 }
 </style>

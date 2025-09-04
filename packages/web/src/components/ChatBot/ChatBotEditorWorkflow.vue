@@ -1,6 +1,6 @@
 <template>
   <div v-loading="isLoading" class="chat-bot-editor-workflow">
-    <EditorViewMode v-model="editorMode"/>
+    <EditorViewMode @clear="onClear" v-model="editorMode"/>
     <el-splitter @resize="onResize">
       <el-splitter-panel v-if="isShowEditor" v-model:size="editorSize" class="chat-bot-editor-workflow__editor-wrapper">
         <Editor v-model="canvasData" language="json" class="chat-bot-editor-workflow__editor-inner"
@@ -206,6 +206,10 @@ const hasWorkflowActions = computed(() => {
   if (import.meta.env.VITE_IS_WORKFLOW_ELECTRON) return false
   return true;
 })
+
+function onClear() {
+  canvasData.value = '';
+}
 
 // No need for fitView from main component since viewport is now restored in composable
 // const {fitView} = useVueFlow();

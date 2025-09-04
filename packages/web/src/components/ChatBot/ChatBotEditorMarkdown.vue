@@ -3,7 +3,7 @@
       v-loading="isLoading"
       class="chat-bot-editor-markdown"
   >
-    <EditorViewMode v-model="editorMode"/>
+    <EditorViewMode @clear="onClear" v-model="editorMode"/>
     <el-splitter>
       <el-splitter-panel v-if="isShowEditor" v-model:size="editorSize" class="chat-bot-editor-markdown__editor-wrapper">
         <Editor v-model="canvasData" class="chat-bot-editor-markdown__editor-inner" :actions="editorActions"/>
@@ -166,6 +166,10 @@ function onFile(file: File) {
   currentFile.value = file;
 }
 
+function onClear() {
+  canvasData.value = '';
+}
+
 watch(editorSize, (value) => {
   helperStorage.set(EDITOR_WIDTH, value);
 })
@@ -227,7 +231,7 @@ watch(canvasData, (value) => {
   }
 
   &.el-loading-parent--relative {
-    .el-loading-mask{
+    .el-loading-mask {
       top: -15px;
       bottom: -55px;
     }
