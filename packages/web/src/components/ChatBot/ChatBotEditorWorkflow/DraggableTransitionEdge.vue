@@ -125,6 +125,7 @@ const {
 const isDragging = ref(false)
 const isHoveringLabel = ref(false)
 const isSelected = ref(false)
+const hasMoved = ref(false)
 const dragOffset = ref({x: 0, y: 0})
 const dragStartMouse = ref({x: 0, y: 0})
 // Инициализируем savedLabelOffset из props.data.labelOffset
@@ -362,16 +363,25 @@ function handleLabelDeselected() {
 }
 
 function handleGlobalClick(event: MouseEvent) {
-  // Проверяем, что клик не по этому label
-  const target = event.target as HTMLElement;
-  if (!target.closest('.transition-label-container') || 
-      !target.closest(`[data-transition-id="${transitionId.value}"]`)) {
-    // Клик вне этого label - снимаем выделение
-    if (isSelected.value) {
-      isSelected.value = false;
-      eventBus.$emit('label-deselected');
-    }
+  // Если происходит перетаскивание, не сбрасываем выделение
+  if (isDragging.value) {
+    return;
   }
+  
+  // Добавляем небольшую задержку, чтобы избежать конфликта с mousedown
+  setTimeout(() => {
+    // Проверяем, что клик не по любому transition label
+    const target = event.target as HTMLElement;
+    const clickedLabel = target.closest('.transition-label-container');
+    
+    if (!clickedLabel) {
+      // Клик вне любого label - снимаем выделение
+      if (isSelected.value) {
+        isSelected.value = false;
+        eventBus.$emit('label-deselected');
+      }
+    }
+  }, 0);
 }
 
 function handleResetEdgePositions() {
@@ -394,6 +404,12 @@ function onLabelClick(event: MouseEvent) {
     return;
   }
   
+  // Если было перетаскивание (движение мыши), не обрабатываем клик
+  if (hasMoved.value) {
+    hasMoved.value = false; // Сбрасываем флаг
+    return;
+  }
+  
   // Если уже выделен, снимаем выделение
   if (isSelected.value) {
     isSelected.value = false;
@@ -405,8 +421,7 @@ function onLabelClick(event: MouseEvent) {
     isSelected.value = true;
   }
   
-  // Предотвращаем всплытие события, чтобы не начать перетаскивание
-  event.stopPropagation();
+  // НЕ предотвращаем всплытие - позволяем работать перетаскиванию
 }
 
 function onLabelMouseDown(event: MouseEvent) {
@@ -421,6 +436,7 @@ function onLabelMouseDown(event: MouseEvent) {
 
 function startDrag(event: MouseEvent) {
   isDragging.value = true
+  hasMoved.value = false
 
   dragStartMouse.value = {x: event.clientX, y: event.clientY}
 
@@ -436,6 +452,18 @@ function onDrag(event: MouseEvent) {
 
   const mouseDeltaX = event.clientX - dragStartMouse.value.x
   const mouseDeltaY = event.clientY - dragStartMouse.value.y
+
+  // Если мышь сдвинулась больше чем на 3 пикселя, считаем это движением
+  if (Math.abs(mouseDeltaX) > 3 || Math.abs(mouseDeltaY) > 3) {
+    // Выделяем элемент при первом реальном движении
+    if (!hasMoved.value) {
+      if (!isSelected.value) {
+        eventBus.$emit('label-selected', transitionId.value);
+        isSelected.value = true;
+      }
+    }
+    hasMoved.value = true
+  }
 
   const zoom = viewport.value.zoom || 1
 
