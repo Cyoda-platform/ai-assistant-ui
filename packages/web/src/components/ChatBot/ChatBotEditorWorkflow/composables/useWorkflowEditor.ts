@@ -885,68 +885,85 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     function handleDeleteState(eventData: any) {
         const {stateName} = eventData;
 
-        const currentPositions: { [key: string]: NodePosition } = {};
-        nodes.value.forEach(node => {
-            currentPositions[node.id] = {x: node.position.x, y: node.position.y};
-        });
+        // Set flag to prevent fitView in watcher
+        isDeletingState = true;
+        console.log('🚀 handleDeleteState: Setting isDeletingState = true');
 
-        let parsed: WorkflowData;
         try {
-            parsed = JSON.parse(canvasData.value);
-        } catch (e) {
-            console.error('Invalid JSON in canvasData:', e);
-            return;
-        }
+            const currentPositions: { [key: string]: NodePosition } = {};
+            nodes.value.forEach(node => {
+                currentPositions[node.id] = {x: node.position.x, y: node.position.y};
+            });
 
-        if (!parsed.states[stateName]) {
-            console.warn('State not found:', stateName);
-            return;
-        }
-
-        delete parsed.states[stateName];
-
-        Object.values(parsed.states).forEach((state: any) => {
-            if (state.transitions) {
-                state.transitions = state.transitions.filter((t: any) => t.next !== stateName);
+            let parsed: WorkflowData;
+            try {
+                parsed = JSON.parse(canvasData.value);
+            } catch (e) {
+                console.error('Invalid JSON in canvasData:', e);
+                return;
             }
-        });
 
-        if (parsed.initialState === stateName) {
-            const remainingStates = Object.keys(parsed.states);
-            if (remainingStates.length > 0) {
-                parsed.initialState = remainingStates[0];
-            } else {
-                delete parsed.initialState;
+            if (!parsed.states[stateName]) {
+                console.warn('State not found:', stateName);
+                return;
             }
-        }
 
-        delete currentPositions[stateName];
+            delete parsed.states[stateName];
 
-        const updatedMetaData: any = {...(workflowMetaData.value || {}), ...currentPositions};
-
-        if (updatedMetaData[stateName]) {
-            delete updatedMetaData[stateName];
-        }
-
-        if (updatedMetaData.transitionLabels) {
-            const updatedTransitionLabels = {};
-            Object.keys(updatedMetaData.transitionLabels).forEach(transitionId => {
-                if (!transitionId.includes(stateName)) {
-                    updatedTransitionLabels[transitionId] = updatedMetaData.transitionLabels[transitionId];
+            Object.values(parsed.states).forEach((state: any) => {
+                if (state.transitions) {
+                    state.transitions = state.transitions.filter((t: any) => t.next !== stateName);
                 }
             });
-            updatedMetaData.transitionLabels = updatedTransitionLabels;
+
+            if (parsed.initialState === stateName) {
+                const remainingStates = Object.keys(parsed.states);
+                if (remainingStates.length > 0) {
+                    parsed.initialState = remainingStates[0];
+                } else {
+                    delete parsed.initialState;
+                }
+            }
+
+            delete currentPositions[stateName];
+
+            const updatedMetaData: any = {...(workflowMetaData.value || {}), ...currentPositions};
+
+            if (updatedMetaData[stateName]) {
+                delete updatedMetaData[stateName];
+            }
+
+            if (updatedMetaData.transitionLabels) {
+                const updatedTransitionLabels = {};
+                Object.keys(updatedMetaData.transitionLabels).forEach(transitionId => {
+                    if (!transitionId.includes(stateName)) {
+                        updatedTransitionLabels[transitionId] = updatedMetaData.transitionLabels[transitionId];
+                    }
+                });
+                updatedMetaData.transitionLabels = updatedTransitionLabels;
+            }
+
+            workflowMetaData.value = updatedMetaData;
+
+            canvasData.value = JSON.stringify(parsed, null, 2);
+
+            // Immediately regenerate nodes without fitView to prevent viewport changes
+            console.log('💡 handleDeleteState: Calling generateNodes({ skipFitView: true })');
+            generateNodes({ skipFitView: true });
+
+            if (assistantStore && assistantStore.selectedAssistant) {
+                assistantStore.selectedAssistant.workflow_data = canvasData.value;
+            }
+
+            saveState(createSnapshot());
+        } finally {
+            // Reset flag with delay to ensure watcher doesn't trigger fitView
+            console.log('🏁 handleDeleteState: Scheduling isDeletingState = false with delay');
+            setTimeout(() => {
+                console.log('🔄 Delayed: Setting isDeletingState = false');
+                isDeletingState = false;
+            }, 500);
         }
-
-        workflowMetaData.value = updatedMetaData;
-
-        canvasData.value = JSON.stringify(parsed, null, 2);
-
-        if (assistantStore && assistantStore.selectedAssistant) {
-            assistantStore.selectedAssistant.workflow_data = canvasData.value;
-        }
-
-        saveState(createSnapshot());
     }
 
     function handleGetTransitionData(eventData: any) {
@@ -975,86 +992,103 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     function handleRenameState(eventData: any) {
         const {oldName, newName} = eventData;
 
-        const currentPositions: { [key: string]: NodePosition } = {};
-        nodes.value.forEach(node => {
-            currentPositions[node.id] = {x: node.position.x, y: node.position.y};
-        });
+        // Set flag to prevent fitView in watcher (using same flag as state deletion since it's structural change)
+        isDeletingState = true;
+        console.log('🚀 handleRenameState: Setting isDeletingState = true');
 
-        let parsed: WorkflowData;
         try {
-            parsed = JSON.parse(canvasData.value);
-        } catch (e) {
-            console.error('Invalid JSON in canvasData:', e);
-            return;
-        }
-
-        if (!parsed.states[oldName]) {
-            console.warn('State not found:', oldName);
-            return;
-        }
-
-        if (parsed.states[newName]) {
-            console.error('State with new name already exists:', newName);
-            return;
-        }
-
-        const stateData = parsed.states[oldName];
-
-        // Create new states object while preserving order
-        const newStates = {};
-        Object.keys(parsed.states).forEach(stateName => {
-            if (stateName === oldName) {
-                // Replace old name with new one in the same position
-                newStates[newName] = stateData;
-            } else {
-                newStates[stateName] = parsed.states[stateName];
-            }
-        });
-        parsed.states = newStates;
-
-        if (parsed.initialState === oldName) {
-            parsed.initialState = newName;
-        }
-
-        Object.values(parsed.states).forEach((state: any) => {
-            if (state.transitions) {
-                state.transitions.forEach((transition: any) => {
-                    if (transition.next === oldName) {
-                        transition.next = newName;
-                    }
-                });
-            }
-        });
-
-        if (currentPositions[oldName]) {
-            currentPositions[newName] = currentPositions[oldName];
-            delete currentPositions[oldName];
-        }
-
-        const updatedMetaData: any = {...(workflowMetaData.value || {}), ...currentPositions};
-
-        if (updatedMetaData[oldName]) {
-            updatedMetaData[newName] = updatedMetaData[oldName];
-            delete updatedMetaData[oldName];
-        }
-
-        if (updatedMetaData.transitionLabels) {
-            const updatedTransitionLabels = {};
-            Object.keys(updatedMetaData.transitionLabels).forEach(transitionId => {
-                const newTransitionId = transitionId.replace(new RegExp(`\\b${oldName}\\b`, 'g'), newName);
-                updatedTransitionLabels[newTransitionId] = updatedMetaData.transitionLabels[transitionId];
+            const currentPositions: { [key: string]: NodePosition } = {};
+            nodes.value.forEach(node => {
+                currentPositions[node.id] = {x: node.position.x, y: node.position.y};
             });
-            updatedMetaData.transitionLabels = updatedTransitionLabels;
+
+            let parsed: WorkflowData;
+            try {
+                parsed = JSON.parse(canvasData.value);
+            } catch (e) {
+                console.error('Invalid JSON in canvasData:', e);
+                return;
+            }
+
+            if (!parsed.states[oldName]) {
+                console.warn('State not found:', oldName);
+                return;
+            }
+
+            if (parsed.states[newName]) {
+                console.error('State with new name already exists:', newName);
+                return;
+            }
+
+            const stateData = parsed.states[oldName];
+
+            // Create new states object while preserving order
+            const newStates = {};
+            Object.keys(parsed.states).forEach(stateName => {
+                if (stateName === oldName) {
+                    // Replace old name with new one in the same position
+                    newStates[newName] = stateData;
+                } else {
+                    newStates[stateName] = parsed.states[stateName];
+                }
+            });
+            parsed.states = newStates;
+
+            if (parsed.initialState === oldName) {
+                parsed.initialState = newName;
+            }
+
+            Object.values(parsed.states).forEach((state: any) => {
+                if (state.transitions) {
+                    state.transitions.forEach((transition: any) => {
+                        if (transition.next === oldName) {
+                            transition.next = newName;
+                        }
+                    });
+                }
+            });
+
+            if (currentPositions[oldName]) {
+                currentPositions[newName] = currentPositions[oldName];
+                delete currentPositions[oldName];
+            }
+
+            const updatedMetaData: any = {...(workflowMetaData.value || {}), ...currentPositions};
+
+            if (updatedMetaData[oldName]) {
+                updatedMetaData[newName] = updatedMetaData[oldName];
+                delete updatedMetaData[oldName];
+            }
+
+            if (updatedMetaData.transitionLabels) {
+                const updatedTransitionLabels = {};
+                Object.keys(updatedMetaData.transitionLabels).forEach(transitionId => {
+                    const newTransitionId = transitionId.replace(new RegExp(`\\b${oldName}\\b`, 'g'), newName);
+                    updatedTransitionLabels[newTransitionId] = updatedMetaData.transitionLabels[transitionId];
+                });
+                updatedMetaData.transitionLabels = updatedTransitionLabels;
+            }
+
+            workflowMetaData.value = updatedMetaData;
+            canvasData.value = JSON.stringify(parsed, null, 2);
+
+            // Immediately regenerate nodes without fitView to prevent viewport changes
+            console.log('💡 handleRenameState: Calling generateNodes({ skipFitView: true })');
+            generateNodes({ skipFitView: true });
+
+            if (assistantStore && assistantStore.selectedAssistant) {
+                assistantStore.selectedAssistant.workflow_data = canvasData.value;
+            }
+
+            saveState(createSnapshot());
+        } finally {
+            // Reset flag with delay to ensure watcher doesn't trigger fitView
+            console.log('🏁 handleRenameState: Scheduling isDeletingState = false with delay');
+            setTimeout(() => {
+                console.log('🔄 Delayed: Setting isDeletingState = false');
+                isDeletingState = false;
+            }, 500);
         }
-
-        workflowMetaData.value = updatedMetaData;
-        canvasData.value = JSON.stringify(parsed, null, 2);
-
-        if (assistantStore && assistantStore.selectedAssistant) {
-            assistantStore.selectedAssistant.workflow_data = canvasData.value;
-        }
-
-        saveState(createSnapshot());
     }
 
     function handleChangeTransitionTarget(eventData: any) {
@@ -1676,6 +1710,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     let isMetaDataSaving = false;
     let isAddingNewState = false;
     let isSavingTransition = false;
+    let isDeletingState = false;
 
     function createSnapshot(): string {
         return JSON.stringify({
@@ -1708,9 +1743,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             // Don't save snapshot here, individual operations will save
         }
         
-        // Skip watcher completely when saving transitions since we handle it manually
-        if (isSavingTransition) {
-            console.log('⚠️ Skipping canvasData watcher due to isSavingTransition flag');
+        // Skip watcher completely when saving transitions or deleting states since we handle it manually
+        if (isSavingTransition || isDeletingState) {
+            console.log('⚠️ Skipping canvasData watcher due to flags:', { isSavingTransition, isDeletingState });
             if (!isUndoRedoOperation) {
                 helperStorage.set(workflowCanvasDataKey.value, newValue);
             }
@@ -1719,9 +1754,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         
         if (debounceTimer) clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-            // Skip automatic fitView when adding new state or saving transitions
-            const skipFitView = isAddingNewState || isSavingTransition;
-            console.log('🔍 canvasData watcher calling generateNodes:', { isAddingNewState, isSavingTransition, skipFitView });
+            // Skip automatic fitView when adding new state, saving transitions, or deleting states
+            const skipFitView = isAddingNewState || isSavingTransition || isDeletingState;
+            console.log('🔍 canvasData watcher calling generateNodes:', { isAddingNewState, isSavingTransition, isDeletingState, skipFitView });
             generateNodes({ skipFitView });
         }, 300);
 
