@@ -1,5 +1,4 @@
 import HelperCopy from "../HelperCopy";
-import _ from "lodash";
 
 export default function markdownActions(element: HTMLElement, raw) {
   const copyButton = element.querySelector('.copy') as HTMLAnchorElement | null;
@@ -7,8 +6,53 @@ export default function markdownActions(element: HTMLElement, raw) {
   const zoomOutButton = element.querySelector('.zoom-out') as HTMLAnchorElement | null;
   const zoomResetButton = element.querySelector('.zoom-reset') as HTMLAnchorElement | null;
   const copySpan = copyButton?.querySelector('span') as HTMLSpanElement | null;
-  const containerDiv = zoomInButton?.closest('.wrapper')?.querySelector('.diagram-container');
+  const containerDiv = zoomInButton?.closest('.wrapper')?.querySelector('.diagram-container') as HTMLElement;
+  const wrapContainer = element.querySelector('.wrap-container') as HTMLElement;
   const currentZoomEl = element.querySelector('.current-zoom');
+
+  // Drag functionality
+  let isDragging = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let currentTranslateX = 0;
+  let currentTranslateY = 0;
+
+  // Update transform with both scale and translate
+  function updateTransform() {
+    const currentScale = parseFloat(currentZoomEl?.textContent || '1');
+    containerDiv.style.transform = `scale(${currentScale}) translate(${currentTranslateX}px, ${currentTranslateY}px)`;
+  }
+
+  // Mouse events for dragging
+  if (wrapContainer && containerDiv) {
+    wrapContainer.style.cursor = 'grab';
+    wrapContainer.style.overflow = 'hidden';
+
+    wrapContainer.addEventListener('mousedown', (e) => {
+      if (e.button === 0) { // Left mouse button
+        isDragging = true;
+        wrapContainer.style.cursor = 'grabbing';
+        dragStartX = e.clientX - currentTranslateX;
+        dragStartY = e.clientY - currentTranslateY;
+        e.preventDefault();
+      }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        currentTranslateX = e.clientX - dragStartX;
+        currentTranslateY = e.clientY - dragStartY;
+        updateTransform();
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        wrapContainer.style.cursor = 'grab';
+      }
+    });
+  }
 
   if (copyButton && copySpan) {
     copyButton.addEventListener("click", (e) => {
@@ -26,31 +70,39 @@ export default function markdownActions(element: HTMLElement, raw) {
   if (zoomInButton) {
     zoomInButton.addEventListener("click", (e) => {
       e.preventDefault();
-      let currentValue = parseFloat(currentZoomEl.textContent);
+      if (!currentZoomEl) return;
+      
+      let currentValue = parseFloat(currentZoomEl.textContent || '1');
       currentValue = +(currentValue + 0.1).toFixed(1);
-      containerDiv.style.transform = `scale(${currentValue})`;
-      currentZoomEl.textContent = currentValue;
+      currentZoomEl.textContent = currentValue.toString();
+      updateTransform();
     });
   }
 
   if (zoomOutButton) {
     zoomOutButton.addEventListener("click", (e) => {
       e.preventDefault();
-      let currentValue = parseFloat(currentZoomEl.textContent);
+      if (!currentZoomEl) return;
+      
+      let currentValue = parseFloat(currentZoomEl.textContent || '1');
       currentValue = +(currentValue - 0.1).toFixed(1);
       if (currentValue < 0.1) {
         currentValue = 0.1;
       }
-      containerDiv.style.transform = `scale(${currentValue})`;
-      currentZoomEl.textContent = currentValue;
+      currentZoomEl.textContent = currentValue.toString();
+      updateTransform();
     });
   }
 
   if (zoomResetButton) {
     zoomResetButton.addEventListener("click", (e) => {
       e.preventDefault();
-      containerDiv.style.transform = `scale(1)`;
-      currentZoomEl.textContent = 1;
+      if (!currentZoomEl) return;
+      
+      currentTranslateX = 0;
+      currentTranslateY = 0;
+      currentZoomEl.textContent = '1';
+      updateTransform();
     });
   }
 }
