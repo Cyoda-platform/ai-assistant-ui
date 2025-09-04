@@ -155,7 +155,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         initialCanvasData ? JSON.stringify(initialCanvasData, null, 2) : ''
     );
     const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
-    const editorMode = ref(helperStorage.get(EDITOR_MODE, 'preview'));
+    const editorMode = ref(helperStorage.get(EDITOR_MODE, 'editorPreview'));
     const layoutDirection = ref<'horizontal' | 'vertical'>(helperStorage.get(LAYOUT_DIRECTION, 'horizontal'));
     const isLoading = ref(false);
     const editorActions = ref<EditorAction[]>([]);
@@ -647,6 +647,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         nextTick(() => {
             // Transition positions will be calculated automatically when using ELK auto-layout
             console.log('📝 JSON paste completed - use auto-layout for proper transition positioning');
+            
+            // Fit view to show all nodes and transitions after JSON paste
+            setTimeout(() => {
+                fitViewIncludingTransitions({ padding: 50 });
+            }, 100);
         });
     }
 
