@@ -34,11 +34,26 @@
     position: relative;
     min-height: 200px;
     user-select: none;
+    margin-bottom: 15px;
+    
+    // Dot grid background
+    --grid-size: 20px;
+    --dot-size: 1px;
+    
+    background-image: 
+      radial-gradient(circle, var(--grid-color) var(--dot-size), transparent var(--dot-size));
+    background-size: var(--grid-size) var(--grid-size);
+    background-color: var(--bg-primary, #ffffff);
   }
 
   .diagram-container {
     transform-origin: top left;
     transition: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    width: 100%;
   }
 
   .mermaid {
