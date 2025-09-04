@@ -19,6 +19,8 @@
         :marker-start="markerStart"
         fill="none"
     />
+        fill="none"
+    />
 
     <path
         :d="edgePath"
@@ -40,10 +42,16 @@
     >
     <div
       class="transition-label-container"
-      :class="isManual ? 'manual' : 'auto'"
+      :class="{ 
+        'manual': isManual, 
+        'auto': !isManual, 
+        'selected': isSelected 
+      }"
+      :data-transition-id="transitionId"
       @mouseenter="isHoveringLabel = true"
       @mouseleave="isHoveringLabel = false"
       @mousedown="onLabelMouseDown"
+      @click="onLabelClick"
       @dragstart.prevent
       style="margin: 0 auto; position: relative; cursor: grab;"
     >
@@ -116,6 +124,7 @@ const {
 
 const isDragging = ref(false)
 const isHoveringLabel = ref(false)
+const isSelected = ref(false)
 const dragOffset = ref({x: 0, y: 0})
 const dragStartMouse = ref({x: 0, y: 0})
 // Инициализируем savedLabelOffset из props.data.labelOffset
@@ -276,7 +285,7 @@ const labelWidth = computed(() => {
   const textLength = originalTransitionName.value.length
   // Увеличиваем до 9px на символ для большинства шрифтов + учитываем кириллицу
   const textWidth = textLength * 9
-  const actionsWidth = 60 // увеличиваем место для кнопок (edit + delete)
+  const actionsWidth = 60 // место для кнопок (edit + delete)
   const padding = 24 // больше отступов для комфорта
   return Math.max(textWidth + actionsWidth + padding, 100) // минимум 100px
 })
@@ -296,13 +305,74 @@ onMounted(() => {
   eventBus.$on('reset-edge-positions', handleResetEdgePositions);
   eventBus.$on('edge-hover', onEdgeHover)
   eventBus.$on('edge-hover-clear', onEdgeHoverClear)
+  eventBus.$on('label-selected', handleLabelSelected)
+  eventBus.$on('label-deselected', handleLabelDeselected)
+  
+  // Добавляем глобальный обработчик для клавиши Shift
+  document.addEventListener('keydown', handleKeyDown)
+  document.addEventListener('keyup', handleKeyUp)
+  // Добавляем глобальный обработчик для клика в любое место
+  document.addEventListener('click', handleGlobalClick)
 })
 
 onUnmounted(() => {
   eventBus.$off('reset-edge-positions', handleResetEdgePositions);
   eventBus.$off('edge-hover', onEdgeHover)
   eventBus.$off('edge-hover-clear', onEdgeHoverClear)
+  eventBus.$off('label-selected', handleLabelSelected)
+  eventBus.$off('label-deselected', handleLabelDeselected)
+  
+  // Убираем глобальные обработчики
+  document.removeEventListener('keydown', handleKeyDown)
+  document.removeEventListener('keyup', handleKeyUp)
+  document.removeEventListener('click', handleGlobalClick)
 })
+
+function handleKeyDown(event: KeyboardEvent) {
+  // Проверяем, что нажат Shift и этот label выделен
+  if (event.key === 'Shift' && isSelected.value) {
+    // Выравниваем label по прямой линии
+    savedLabelOffset.value = { x: 0, y: 0 }
+    
+    // Отправляем обновление позиции
+    eventBus.$emit('update-transition-label-position', {
+      transitionId: transitionId.value,
+      offset: savedLabelOffset.value
+    })
+    
+    // Снимаем выделение после выравнивания
+    isSelected.value = false
+  }
+}
+
+function handleKeyUp() {
+  // Пока что ничего не делаем при отпускании клавиш
+}
+
+function handleLabelSelected(selectedTransitionId: string) {
+  // Если выделен другой label, снимаем выделение с текущего
+  if (selectedTransitionId !== transitionId.value && isSelected.value) {
+    isSelected.value = false;
+  }
+}
+
+function handleLabelDeselected() {
+  // Снимаем выделение при глобальном событии deselected
+  isSelected.value = false;
+}
+
+function handleGlobalClick(event: MouseEvent) {
+  // Проверяем, что клик не по этому label
+  const target = event.target as HTMLElement;
+  if (!target.closest('.transition-label-container') || 
+      !target.closest(`[data-transition-id="${transitionId.value}"]`)) {
+    // Клик вне этого label - снимаем выделение
+    if (isSelected.value) {
+      isSelected.value = false;
+      eventBus.$emit('label-deselected');
+    }
+  }
+}
 
 function handleResetEdgePositions() {
   savedLabelOffset.value = { x: 0, y: 0 };
@@ -316,6 +386,28 @@ watch(() => props.data?.labelOffset, (newLabelOffset) => {
     savedLabelOffset.value = { x: 0, y: 0 };
   }
 }, { deep: true, immediate: true });
+
+function onLabelClick(event: MouseEvent) {
+  // Проверяем, что клик не по кнопкам
+  const target = event.target as HTMLElement;
+  if (target.closest('button')) {
+    return;
+  }
+  
+  // Если уже выделен, снимаем выделение
+  if (isSelected.value) {
+    isSelected.value = false;
+    eventBus.$emit('label-deselected');
+  } else {
+    // Сначала отправляем событие о том, что выбран новый label (это сбросит другие)
+    eventBus.$emit('label-selected', transitionId.value);
+    // Затем выделяем текущий
+    isSelected.value = true;
+  }
+  
+  // Предотвращаем всплытие события, чтобы не начать перетаскивание
+  event.stopPropagation();
+}
 
 function onLabelMouseDown(event: MouseEvent) {
   // Проверяем, что клик не по кнопкам
@@ -578,6 +670,12 @@ function endTransitionDrag(event: MouseEvent) {
   border-color: var(--workflow-transition-manual-border, var(--color-primary-darken));
 }
 
+.transition-label-container.selected {
+  background: #e6f7ff;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
 .transition-label-container.auto .transition-label {
   color: #333;
 }
@@ -613,6 +711,7 @@ function endTransitionDrag(event: MouseEvent) {
   gap: 4px;
 }
 
+.align-edge-btn,
 .edit-edge-btn,
 .delete-edge-btn {
   border: none;
@@ -635,6 +734,15 @@ function endTransitionDrag(event: MouseEvent) {
   :deep(path) {
     animation: none !important;
     stroke-dashoffset: 0 !important;
+  }
+}
+
+.align-edge-btn {
+  background: var(--color-primary);
+  color: white;
+
+  &:hover {
+    opacity: 0.8;
   }
 }
 
@@ -668,6 +776,7 @@ function endTransitionDrag(event: MouseEvent) {
 
 <style>
 /* Глобальные стили для отключения анимации в кнопках */
+.align-edge-btn svg path,
 .edit-edge-btn svg path,
 .delete-edge-btn svg path {
   animation: none !important;
@@ -675,6 +784,7 @@ function endTransitionDrag(event: MouseEvent) {
   stroke-dashoffset: 0 !important;
 }
 
+.align-edge-btn svg *,
 .edit-edge-btn svg *,
 .delete-edge-btn svg * {
   animation: none !important;
