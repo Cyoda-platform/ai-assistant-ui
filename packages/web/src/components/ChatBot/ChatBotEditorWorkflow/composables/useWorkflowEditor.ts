@@ -662,10 +662,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             
             // Fit view to show all nodes and transitions after JSON paste
             // Skip fitView if explicitly requested (e.g., when adding new state)
+            console.log('🔍 generateNodes fitView check:', { skipFitView: options.skipFitView, isSavingTransition, isAddingNewState });
             if (!options.skipFitView) {
+                console.log('🎯 About to call fitViewIncludingTransitions');
                 setTimeout(() => {
                     fitViewIncludingTransitions({ padding: 50 });
                 }, 100);
+            } else {
+                console.log('⚠️ Skipping fitView due to skipFitView flag');
             }
         });
     }
@@ -673,8 +677,13 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     function handleSaveCondition(eventData: any) {
         const {stateName, transitionName, transitionData, oldTransitionName, isNewTransition} = eventData;
 
-        const currentPositions: { [key: string]: NodePosition } = {};
-        nodes.value.forEach(node => {
+        // Set flag to prevent fitView in watcher
+        isSavingTransition = true;
+        console.log('🚀 handleSaveCondition: Setting isSavingTransition = true');
+
+        try {
+            const currentPositions: { [key: string]: NodePosition } = {};
+            nodes.value.forEach(node => {
             currentPositions[node.id] = {x: node.position.x, y: node.position.y};
         });
 
@@ -793,6 +802,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         canvasData.value = JSON.stringify(parsed, null, 2);
 
+        // Immediately regenerate nodes without fitView to prevent viewport changes
+        console.log('💡 handleSaveCondition: Calling generateNodes({ skipFitView: true })');
+        generateNodes({ skipFitView: true });
+
         if (assistantStore && assistantStore.selectedAssistant) {
             assistantStore.selectedAssistant.workflow_data = canvasData.value;
             console.log('Updated assistantStore.selectedAssistant.workflow_data');
@@ -801,46 +814,71 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         eventBus.$emit('transition-saved-successfully');
 
         setTimeout(() => saveState(createSnapshot()), 0);
+        } finally {
+            // Reset flag with delay to ensure watcher doesn't trigger fitView
+            console.log('🏁 handleSaveCondition: Scheduling isSavingTransition = false with delay');
+            setTimeout(() => {
+                console.log('🔄 Delayed: Setting isSavingTransition = false');
+                isSavingTransition = false;
+            }, 500);
+        }
     }
 
     function handleDeleteTransition(eventData: any) {
         const {stateName, transitionName} = eventData;
 
-        const currentPositions: { [key: string]: NodePosition } = {};
-        nodes.value.forEach(node => {
-            currentPositions[node.id] = {x: node.position.x, y: node.position.y};
-        });
+        // Set flag to prevent fitView in watcher
+        isSavingTransition = true;
+        console.log('🚀 handleDeleteTransition: Setting isSavingTransition = true');
 
-        let parsed: WorkflowData;
         try {
-            parsed = JSON.parse(canvasData.value);
-        } catch (e) {
-            console.error('Invalid JSON in canvasData:', e);
-            return;
-        }
+            const currentPositions: { [key: string]: NodePosition } = {};
+            nodes.value.forEach(node => {
+                currentPositions[node.id] = {x: node.position.x, y: node.position.y};
+            });
 
-        const state = parsed.states[stateName];
-        if (!state) {
-            console.error('State not found:', stateName);
-            return;
-        }
+            let parsed: WorkflowData;
+            try {
+                parsed = JSON.parse(canvasData.value);
+            } catch (e) {
+                console.error('Invalid JSON in canvasData:', e);
+                return;
+            }
 
-        if (!state.transitions) {
-            console.warn('No transitions found for state:', stateName);
-            return;
-        }
+            const state = parsed.states[stateName];
+            if (!state) {
+                console.error('State not found:', stateName);
+                return;
+            }
 
-        const transitionIndex = state.transitions.findIndex(t => t.name === transitionName);
-        if (transitionIndex !== -1) {
-            state.transitions.splice(transitionIndex, 1);
+            if (!state.transitions) {
+                console.warn('No transitions found for state:', stateName);
+                return;
+            }
 
-            workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
+            const transitionIndex = state.transitions.findIndex(t => t.name === transitionName);
+            if (transitionIndex !== -1) {
+                state.transitions.splice(transitionIndex, 1);
 
-            canvasData.value = JSON.stringify(parsed, null, 2);
+                workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
 
-            saveState(createSnapshot());
-        } else {
-            console.warn('Transition not found:', transitionName, 'in state:', stateName);
+                canvasData.value = JSON.stringify(parsed, null, 2);
+
+                // Immediately regenerate nodes without fitView to prevent viewport changes
+                console.log('💡 handleDeleteTransition: Calling generateNodes({ skipFitView: true })');
+                generateNodes({ skipFitView: true });
+
+                saveState(createSnapshot());
+            } else {
+                console.warn('Transition not found:', transitionName, 'in state:', stateName);
+            }
+        } finally {
+            // Reset flag with delay to ensure watcher doesn't trigger fitView
+            console.log('🏁 handleDeleteTransition: Scheduling isSavingTransition = false with delay');
+            setTimeout(() => {
+                console.log('🔄 Delayed: Setting isSavingTransition = false');
+                isSavingTransition = false;
+            }, 500);
         }
     }
 
@@ -1022,41 +1060,58 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     function handleChangeTransitionTarget(eventData: any) {
         const {stateName, transitionName, newTarget} = eventData;
 
-        const currentPositions: { [key: string]: NodePosition } = {};
-        nodes.value.forEach(node => {
-            currentPositions[node.id] = {x: node.position.x, y: node.position.y};
-        });
+        // Set flag to prevent fitView in watcher
+        isSavingTransition = true;
+        console.log('🚀 handleChangeTransitionTarget: Setting isSavingTransition = true');
 
-        let parsed: WorkflowData;
         try {
-            parsed = JSON.parse(canvasData.value);
-        } catch (e) {
-            console.error('Invalid JSON in canvasData:', e);
-            return;
-        }
+            const currentPositions: { [key: string]: NodePosition } = {};
+            nodes.value.forEach(node => {
+                currentPositions[node.id] = {x: node.position.x, y: node.position.y};
+            });
 
-        const state = parsed.states[stateName];
-        if (!state) {
-            console.error('State not found:', stateName);
-            return;
-        }
+            let parsed: WorkflowData;
+            try {
+                parsed = JSON.parse(canvasData.value);
+            } catch (e) {
+                console.error('Invalid JSON in canvasData:', e);
+                return;
+            }
 
-        if (!state.transitions) {
-            console.warn('No transitions found for state:', stateName);
-            return;
-        }
+            const state = parsed.states[stateName];
+            if (!state) {
+                console.error('State not found:', stateName);
+                return;
+            }
 
-        const transitionIndex = state.transitions.findIndex(t => t.name === transitionName);
-        if (transitionIndex !== -1) {
-            state.transitions[transitionIndex].next = newTarget;
+            if (!state.transitions) {
+                console.warn('No transitions found for state:', stateName);
+                return;
+            }
 
-            workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
+            const transitionIndex = state.transitions.findIndex(t => t.name === transitionName);
+            if (transitionIndex !== -1) {
+                state.transitions[transitionIndex].next = newTarget;
 
-            canvasData.value = JSON.stringify(parsed, null, 2);
+                workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
 
-            saveState(createSnapshot());
-        } else {
-            console.warn('Transition not found:', transitionName, 'in state:', stateName);
+                canvasData.value = JSON.stringify(parsed, null, 2);
+
+                // Immediately regenerate nodes without fitView to prevent viewport changes
+                console.log('💡 handleChangeTransitionTarget: Calling generateNodes({ skipFitView: true })');
+                generateNodes({ skipFitView: true });
+
+                saveState(createSnapshot());
+            } else {
+                console.warn('Transition not found:', transitionName, 'in state:', stateName);
+            }
+        } finally {
+            // Reset flag with delay to ensure watcher doesn't trigger fitView
+            console.log('🏁 handleChangeTransitionTarget: Scheduling isSavingTransition = false with delay');
+            setTimeout(() => {
+                console.log('🔄 Delayed: Setting isSavingTransition = false');
+                isSavingTransition = false;
+            }, 500);
         }
     }
 
@@ -1206,7 +1261,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             assistantStore.selectedAssistant.workflow_data = canvasData.value;
         }
 
-        generateNodes();
+        generateNodes({ skipFitView: true });
 
         ElMessage.success(`Transition "${transitionId}" reassigned from "${sourceNode}" to "${targetNode}"`);
 
@@ -1620,6 +1675,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     let isUndoRedoOperation = false;
     let isMetaDataSaving = false;
     let isAddingNewState = false;
+    let isSavingTransition = false;
 
     function createSnapshot(): string {
         return JSON.stringify({
@@ -1651,10 +1707,22 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         if (!isUndoRedoOperation) {
             // Don't save snapshot here, individual operations will save
         }
+        
+        // Skip watcher completely when saving transitions since we handle it manually
+        if (isSavingTransition) {
+            console.log('⚠️ Skipping canvasData watcher due to isSavingTransition flag');
+            if (!isUndoRedoOperation) {
+                helperStorage.set(workflowCanvasDataKey.value, newValue);
+            }
+            return;
+        }
+        
         if (debounceTimer) clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-            // Skip automatic fitView when adding new state
-            generateNodes({ skipFitView: isAddingNewState });
+            // Skip automatic fitView when adding new state or saving transitions
+            const skipFitView = isAddingNewState || isSavingTransition;
+            console.log('🔍 canvasData watcher calling generateNodes:', { isAddingNewState, isSavingTransition, skipFitView });
+            generateNodes({ skipFitView });
         }, 300);
 
         if (!isUndoRedoOperation) {
