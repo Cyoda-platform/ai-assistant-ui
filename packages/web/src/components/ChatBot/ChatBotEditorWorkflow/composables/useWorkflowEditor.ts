@@ -11,8 +11,7 @@ import HelperStorage from '@/helpers/HelperStorage';
 import {
     calculateSmartPosition,
     applyAutoLayout,
-    NodePosition,
-    generateSeparatedLabelPositions
+    NodePosition
 } from '../utils/smartLayout';
 import {type EditorAction, createWorkflowEditorActions} from '@/utils/editorUtils';
 import {useUndoRedo} from './useUndoRedo';
@@ -200,10 +199,96 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     initialize(canvasData.value);
 
     const isDraggingConnection = ref(false);
+    const pendingHandleConnections = ref<Record<string, { sourceHandle: string; targetHandle: string }>>({});
 
-    const {setViewport, fitView, getViewport, vueFlowRef} = useVueFlow();
+    const {setViewport, fitView, getViewport, vueFlowRef, fitBounds} = useVueFlow();
 
     const workflowMetaData = ref(helperStorage.get(workflowMetaDataKey.value, null) || {});
+
+    // Custom fitView that includes transition labels
+    function fitViewIncludingTransitions(options: { padding?: number } = {}) {
+        if (!vueFlowRef.value) return;
+        
+        const padding = options.padding || 0.2;
+        
+        // Get all node positions
+        const nodeRects = nodes.value.map(node => ({
+            x: node.position.x,
+            y: node.position.y,
+            width: 180, // Approximate node width
+            height: 80  // Approximate node height
+        }));
+        
+        // Get transition label positions from metadata
+        const transitionLabels = workflowMetaData.value?.transitionLabels || {};
+        const labelRects: Array<{x: number, y: number, width: number, height: number}> = [];
+        
+        for (const [transitionId, labelOffset] of Object.entries(transitionLabels)) {
+            // Find the corresponding edge to get the base position
+            const edge = edges.value.find(e => e.data?.transitionId === transitionId);
+            if (edge) {
+                const sourceNode = nodes.value.find(n => n.id === edge.source);
+                const targetNode = nodes.value.find(n => n.id === edge.target);
+                
+                if (sourceNode && targetNode) {
+                    // Calculate the edge midpoint
+                    const midX = (sourceNode.position.x + targetNode.position.x) / 2;
+                    const midY = (sourceNode.position.y + targetNode.position.y) / 2;
+                    
+                    // Add the label offset
+                    const offset = labelOffset as { x: number; y: number };
+                    const labelX = midX + offset.x;
+                    const labelY = midY + offset.y;
+                    
+                    // Estimate label size based on transition name length
+                    const transitionName = transitionId.split('-').pop() || 'transition';
+                    const labelWidth = Math.max(transitionName.length * 8 + 40, 100);
+                    const labelHeight = 30;
+                    
+                    labelRects.push({
+                        x: labelX - labelWidth / 2,
+                        y: labelY - labelHeight / 2,
+                        width: labelWidth,
+                        height: labelHeight
+                    });
+                }
+            }
+        }
+        
+        // Combine all rectangles
+        const allRects = [...nodeRects, ...labelRects];
+        
+        if (allRects.length === 0) {
+            fitView();
+            return;
+        }
+        
+        // Calculate bounding box
+        const minX = Math.min(...allRects.map(r => r.x));
+        const minY = Math.min(...allRects.map(r => r.y));
+        const maxX = Math.max(...allRects.map(r => r.x + r.width));
+        const maxY = Math.max(...allRects.map(r => r.y + r.height));
+        
+        const bounds = {
+            x: minX,
+            y: minY,
+            width: maxX - minX,
+            height: maxY - minY
+        };
+        
+        // Apply padding
+        const paddingX = bounds.width * padding;
+        const paddingY = bounds.height * padding;
+        
+        const paddedBounds = {
+            x: bounds.x - paddingX / 2,
+            y: bounds.y - paddingY / 2,
+            width: bounds.width + paddingX,
+            height: bounds.height + paddingY
+        };
+        
+        fitBounds(paddedBounds);
+    }
 
     // Save and restore viewport (zoom and position)
     const saveViewport = () => {
@@ -296,7 +381,13 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 let sourceHandle = 'right-source';
                 let targetHandle = 'left-target';
 
-                if (sourceNode && targetNode) {
+                // Prefer per-transition saved handles (only set for newly created transitions)
+                const savedHandles = (workflowMetaData.value as any)?.handleConnectionsByTransition?.[internalTransitionId];
+                if (savedHandles?.sourceHandle && savedHandles?.targetHandle) {
+                    sourceHandle = savedHandles.sourceHandle;
+                    targetHandle = savedHandles.targetHandle;
+                } else if (sourceNode && targetNode) {
+                    // Otherwise, auto-detect based on relative positions
                     if (source === target) {
                         sourceHandle = 'right-source';
                         targetHandle = 'left-target';
@@ -404,15 +495,16 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             }
         }
 
-        // Clear positions of non-existent states
+        // Clear positions of non-existent states (preserve special meta sections)
         for (const stateKey of Object.keys(cleanedMetaData)) {
-            if (stateKey !== 'transitionLabels' && !currentStateNames.has(stateKey)) {
+            if (stateKey === 'transitionLabels' || stateKey === 'handleConnectionsByTransition' || stateKey === 'layoutDirection') continue;
+            if (!currentStateNames.has(stateKey)) {
                 delete cleanedMetaData[stateKey];
                 hasChanges = true;
             }
         }
 
-        // Clear positions of non-existent transitions
+        // Clear metadata of non-existent transitions
         if (cleanedMetaData.transitionLabels) {
             const cleanedTransitionLabels = {...cleanedMetaData.transitionLabels};
             for (const transitionId of Object.keys(cleanedTransitionLabels)) {
@@ -424,6 +516,18 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             cleanedMetaData.transitionLabels = cleanedTransitionLabels;
         }
 
+        // Prune saved handle connections for transitions that no longer exist
+        if (cleanedMetaData.handleConnectionsByTransition) {
+            const cleanedHandles = {...cleanedMetaData.handleConnectionsByTransition};
+            for (const transitionId of Object.keys(cleanedHandles)) {
+                if (!currentTransitionIds.has(transitionId)) {
+                    delete cleanedHandles[transitionId];
+                    hasChanges = true;
+                }
+            }
+            cleanedMetaData.handleConnectionsByTransition = cleanedHandles;
+        }
+
         // Update metadata if there were changes
         if (hasChanges) {
             workflowMetaData.value = Object.keys(cleanedMetaData).length > 0 ? cleanedMetaData : null;
@@ -431,7 +535,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
     }
 
-    function generateNodes() {
+    async function generateNodes() {
         if (!canvasData.value || canvasData.value.trim() === '') {
             nodes.value = [];
             // Clear metadata when editor is empty
@@ -442,10 +546,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             return;
         }
 
-        const result: WorkflowNode[] = [];
-        let parsed: WorkflowData;
+    const result: WorkflowNode[] = [];
+    let parsed: WorkflowData;
 
-        const savedPositions = workflowMetaData.value || {};
+    const savedMeta = workflowMetaData.value || {};
 
         try {
             parsed = JSON.parse(canvasData.value);
@@ -466,7 +570,31 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         const initialState = parsed.initialState;
 
-        const hasSavedPositions = Object.keys(savedPositions).length > 0;
+        // Decide if we need to compute fresh layout (on paste or when layoutDirection changed)
+        const stateNames = Object.keys(states);
+        const meta = savedMeta;
+        const hasAllPositions = stateNames.every((n) => meta[n] && typeof meta[n].x === 'number' && typeof meta[n].y === 'number');
+        const needFreshLayout = !hasAllPositions || meta.layoutDirection !== layoutDirection.value;
+
+        if (needFreshLayout) {
+            const isVertical = layoutDirection.value === 'vertical';
+            const elk = await applyAutoLayout(states, initialState || 'state_initial', isVertical);
+            // Persist into meta
+            const newMeta: Record<string, { x: number; y: number }> = {};
+            for (const k of Object.keys(elk.nodePositions)) newMeta[k] = elk.nodePositions[k];
+            workflowMetaData.value = {
+                ...(workflowMetaData.value || {}),
+                ...newMeta,
+                transitionLabels: {
+                    ...(workflowMetaData.value?.transitionLabels || {}),
+                    ...elk.transitionPositions,
+                },
+                layoutDirection: layoutDirection.value,
+            };
+            helperStorage.set(workflowMetaDataKey.value, workflowMetaData.value);
+        }
+
+        const savedPositions = workflowMetaData.value || {};
 
         const shouldSaveInitialState = Object.keys(initialPositions.value).length === 0;
 
@@ -489,6 +617,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 fullData: transition
             })) : [];
 
+            const hasSavedPositions = Object.keys(savedPositions).length > 0;
             const position = hasSavedPositions
                 ? savedPositions[stateName] || calculateSmartPosition(stateName, states, parsed.initialState || 'state_initial')
                 : calculateSmartPosition(stateName, states, parsed.initialState || 'state_initial');
@@ -516,35 +645,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         // Apply label separation after node generation to prevent sticking when inserting JSON
         nextTick(() => {
-            // Check if there are edges with potential label conflicts
-            if (edges.value.length > 1) {
-                const edgeData = edges.value.map(edge => {
-                    const sourceNode = nodes.value.find(n => n.id === edge.source);
-                    const targetNode = nodes.value.find(n => n.id === edge.target);
-
-                    return {
-                        id: edge.data?.transitionId || edge.id,
-                        sourceX: sourceNode?.position.x || 0,
-                        sourceY: sourceNode?.position.y || 0,
-                        targetX: targetNode?.position.x || 0,
-                        targetY: targetNode?.position.y || 0
-                    };
-                });
-
-                const existingLabels = workflowMetaData.value?.transitionLabels || {};
-                const separatedLabelPositions = generateSeparatedLabelPositions(edgeData, existingLabels);
-
-                // Update metadata with new label positions
-                const updatedMetaData = {...(workflowMetaData.value || {})};
-                if (!updatedMetaData.transitionLabels) {
-                    updatedMetaData.transitionLabels = {};
-                }
-
-                Object.assign(updatedMetaData.transitionLabels, separatedLabelPositions);
-                workflowMetaData.value = updatedMetaData;
-
-                console.log('📝 Applied label separation after JSON paste for', Object.keys(separatedLabelPositions).length, 'edges');
-            }
+            // Transition positions will be calculated automatically when using ELK auto-layout
+            console.log('📝 JSON paste completed - use auto-layout for proper transition positioning');
         });
     }
 
@@ -629,6 +731,27 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         console.log('Final state.transitions:', state.transitions);
 
+
+        // If this is a newly created transition, persist the chosen handle points (if captured during connect)
+        if (isNewTransition && transitionData?.next) {
+            const connectionKey = `${stateName}-${transitionData.next}`;
+            const pending = pendingHandleConnections.value[connectionKey];
+            if (pending) {
+                const meta = (workflowMetaData.value || {}) as any;
+                if (!meta.handleConnectionsByTransition) meta.handleConnectionsByTransition = {};
+                const internalTransitionId = `${stateName}-${transitionName}`;
+                meta.handleConnectionsByTransition[internalTransitionId] = {
+                    sourceHandle: pending.sourceHandle,
+                    targetHandle: pending.targetHandle,
+                };
+                // assign back
+                workflowMetaData.value = meta;
+                // clear pending
+                delete pendingHandleConnections.value[connectionKey];
+            }
+        }
+
+        // Save current node positions too
         workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
 
         // Update transitionLabels when renaming transition
@@ -1119,11 +1242,18 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function onConnect(params: any) {
-        const {source, target} = params;
+        const {source, target, sourceHandle, targetHandle} = params;
 
         if (!source || !target) {
             return;
         }
+
+        // Cache the handle pair used during this drag-connect so we can persist it on save
+        const key = `${source}-${target}`;
+        pendingHandleConnections.value[key] = {
+            sourceHandle: sourceHandle || 'right-source',
+            targetHandle: targetHandle || 'left-target',
+        };
 
         const currentPositions: { [key: string]: NodePosition } = {};
         nodes.value.forEach(node => {
@@ -1169,59 +1299,52 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }, 100);
     }
 
-    function resetTransform() {
-        workflowMetaData.value = null;
+    async function resetTransform() {
+        // Always reset to ELK horizontal layout
+        layoutDirection.value = 'horizontal';
+        helperStorage.set(LAYOUT_DIRECTION, 'horizontal');
 
+        // Clear in-memory caches for initial positions/labels
         initialPositions.value = {};
         initialTransitionLabels.value = {};
 
-        generateNodes();
+        // Parse current workflow
+        let parsed: WorkflowData = { states: {} } as WorkflowData;
+        try {
+            parsed = JSON.parse(canvasData.value || '{}');
+        } catch {
+            parsed = { states: {} } as WorkflowData;
+        }
+        const states = parsed.states || {};
+        const initialState = parsed.initialState;
 
-        // Use nextTick to wait for generateNodes completion
-        nextTick(() => {
-            console.log('🔄 Edges found:', edges.value.length);
-            console.log('🔄 Edges data:', edges.value.map(e => ({
-                id: e.id,
-                transitionId: e.data?.transitionId,
-                source: e.source,
-                target: e.target
-            })));
+        // Compute fresh horizontal layout with ELK
+    const result = await applyAutoLayout(states, initialState || 'state_initial', false);
 
-            const edgeData = edges.value.map(edge => {
-                const sourceNode = nodes.value.find(n => n.id === edge.source);
-                const targetNode = nodes.value.find(n => n.id === edge.target);
-
-                return {
-                    id: edge.data?.transitionId || edge.id,
-                    sourceX: sourceNode?.position.x || 0,
-                    sourceY: sourceNode?.position.y || 0,
-                    targetX: targetNode?.position.x || 0,
-                    targetY: targetNode?.position.y || 0
-                };
-            });
-
-            const separatedLabelPositions = generateSeparatedLabelPositions(edgeData, {});
-
-            // Update metadata with new label positions
-            const updatedMetaData = {...(workflowMetaData.value || {})};
-            if (!updatedMetaData.transitionLabels) {
-                updatedMetaData.transitionLabels = {};
-            }
-
-            Object.assign(updatedMetaData.transitionLabels, separatedLabelPositions);
-            workflowMetaData.value = updatedMetaData;
-
-            console.log('🔄 Reset transform applied label separation for', Object.keys(separatedLabelPositions).length, 'edges');
-
-            layoutDirection.value = 'horizontal';
-            nextTick(() => fitView());
+        // Persist positions and label offsets in meta so generateNodes picks them up
+    const metaPositions: Record<string, { x: number; y: number }> = {};
+        Object.keys(result.nodePositions).forEach((id) => {
+            metaPositions[id] = { ...result.nodePositions[id] };
         });
 
-        console.log('Reset to default state completed - all meta data cleared');
+        workflowMetaData.value = {
+            ...metaPositions,
+            layoutDirection: 'horizontal',
+            transitionLabels: { ...result.transitionPositions },
+        };
+        helperStorage.set(workflowMetaDataKey.value, workflowMetaData.value);
+
+        // Re-generate nodes/edges using saved positions and labels
+        generateNodes();
+
+        // Fit the view after nodes are updated
+        nextTick(() => {
+            console.log('🔄 Reset transform completed - applied ELK horizontal layout');
+            fitViewIncludingTransitions();
+        });
 
         // Save state for undo/redo after reset
         saveState(createSnapshot());
-        layoutDirection.value = 'horizontal';
     }
 
     async function addNewState() {
@@ -1276,22 +1399,19 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             generateNodes();
 
             setTimeout(() => {
-                fitView({
-                    padding: 0.5,
-                    includeHiddenNodes: false,
-                    minZoom: 0.5,
-                    maxZoom: 1
+                fitViewIncludingTransitions({
+                    padding: 0.5
                 });
             }, 50);
 
             saveState(createSnapshot());
 
-        } catch (error) {
+        } catch {
             console.log('User cancelled state creation');
         }
     }
 
-    function autoLayout() {
+    async function autoLayout() {
         // Toggle direction on each autoLayout call
         layoutDirection.value = layoutDirection.value === 'horizontal' ? 'vertical' : 'horizontal';
         helperStorage.set(LAYOUT_DIRECTION, layoutDirection.value);
@@ -1301,25 +1421,27 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const initialState = parsed.initialState;
         const isVertical = layoutDirection.value === 'vertical';
 
-        const finalPositions = {};
+    const finalPositions: Record<string, { x: number; y: number }> = {};
+    let allTransitionPositions: Record<string, {x: number, y: number}> = {};
 
         if (isVertical) {
-            // Vertical mode: use applyAutoLayout with precise positions
-            const positions = applyAutoLayout(states, initialState, true);
-            Object.keys(positions).forEach(nodeId => {
-                const basePosition = positions[nodeId];
+            // Vertical mode: ELK vertical
+            const result = await applyAutoLayout(states, initialState, true);
+            Object.keys(result.nodePositions).forEach(nodeId => {
+                const basePosition = result.nodePositions[nodeId];
                 finalPositions[nodeId] = {
                     x: basePosition.x,
                     y: basePosition.y
                 };
             });
+            allTransitionPositions = result.transitionPositions;
         } else {
-            // Horizontal mode: use calculateSmartPosition like in resetTransform
-            const stateNames = Object.keys(states);
-            stateNames.forEach(stateName => {
-                const position = calculateSmartPosition(stateName, states, initialState);
-                finalPositions[stateName] = position;
+            // Horizontal mode: ELK horizontal
+            const result = await applyAutoLayout(states, initialState, false);
+            Object.keys(result.nodePositions).forEach(nodeId => {
+                finalPositions[nodeId] = result.nodePositions[nodeId];
             });
+            allTransitionPositions = result.transitionPositions;
         }
 
         nodes.value = nodes.value.map((node: WorkflowNode) => ({
@@ -1329,43 +1451,20 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         workflowMetaData.value = {
             ...(workflowMetaData.value || {}), ...finalPositions,
-            layoutDirection: layoutDirection.value
+            layoutDirection: layoutDirection.value,
+            transitionLabels: {
+                ...(workflowMetaData.value?.transitionLabels || {}),
+                ...allTransitionPositions
+            }
         };
 
-        // Generate separated positions for transition labels instead of reset
-        const edgeData = edges.value.map(edge => {
-            const sourceNode = nodes.value.find(n => n.id === edge.source);
-            const targetNode = nodes.value.find(n => n.id === edge.target);
-
-            return {
-                id: edge.data?.transitionId || edge.id,
-                sourceX: sourceNode?.position.x || 0,
-                sourceY: sourceNode?.position.y || 0,
-                targetX: targetNode?.position.x || 0,
-                targetY: targetNode?.position.y || 0
-            };
-        });
-
-        const existingLabels = workflowMetaData.value.transitionLabels || {};
-        const separatedLabelPositions = generateSeparatedLabelPositions(edgeData, existingLabels);
-
-        // Update metadata with new label positions and layout direction
-        const updatedMetaData = {...workflowMetaData.value};
-        if (!updatedMetaData.transitionLabels) {
-            updatedMetaData.transitionLabels = {};
-        }
-
-        // Merge existing and new label positions
-        Object.assign(updatedMetaData.transitionLabels, separatedLabelPositions);
-
-        // Save current layout direction
-        updatedMetaData.layoutDirection = layoutDirection.value;
-        workflowMetaData.value = updatedMetaData;
+        // ELK already calculated perfect transition positions
+        console.log('🎯 Applied ELK layout with', Object.keys(finalPositions).length, 'nodes and', Object.keys(allTransitionPositions).length, 'transitions');
 
         saveState(createSnapshot());
 
         nextTick(() => {
-            fitView()
+            fitViewIncludingTransitions()
         })
     }
 
@@ -1581,7 +1680,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     provide('onConditionChange', onEdgeConditionChange);
 
     // Viewport change handler (zoom, pan)
-    const onViewportChange = (viewport: { x: number; y: number; zoom: number }) => {
+    const onViewportChange = () => {
         // Save viewport with a small delay to avoid spamming localStorage
         clearTimeout(viewportSaveTimeout);
         viewportSaveTimeout = setTimeout(() => {
@@ -1627,7 +1726,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         onUpdateWorkflowMetaDialog,
         resetAllTransitionPositions,
         onResize,
-        fitView,
+        fitView: fitViewIncludingTransitions,
         onViewportChange,
         saveViewport,
         restoreViewport,

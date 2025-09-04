@@ -1,6 +1,6 @@
 <template>
   <div v-loading="isLoading" class="chat-bot-editor-workflow">
-    <EditorViewMode v-model="editorMode"/>
+    <EditorViewMode @clear="onClear" v-model="editorMode"/>
     <el-splitter @resize="onResize">
       <el-splitter-panel v-if="isShowEditor" v-model:size="editorSize" class="chat-bot-editor-workflow__editor-wrapper">
         <Editor v-model="canvasData" language="json" class="chat-bot-editor-workflow__editor-inner"
@@ -28,6 +28,8 @@
             :fit-view-on-init="true"
             :zoom-on-scroll="false"
             :zoom-on-double-click="false"
+            :pan-on-drag="true"
+            :selection-on-drag="false"
             @nodeDragStop="onNodeDragStop"
             @connect="onConnect"
             @connectStart="onConnectStart"
@@ -41,15 +43,12 @@
             :min-zoom="0.2"
             :max-zoom="4"
         >
-          <Controls position="top-left">
+          <Controls position="top-left" :show-fit-view="false">
             <template #icon-zoom-in>
               <Icon name="zoom-in"/>
             </template>
             <template #icon-zoom-out>
               <Icon name="zoom-out"/>
-            </template>
-            <template #icon-fit-view>
-              <Icon name="fit-view"/>
             </template>
             <template #icon-lock>
               <Icon name="lock"/>
@@ -57,6 +56,10 @@
             <template #icon-unlock>
               <Icon name="unlock"/>
             </template>
+
+            <ControlButton @click="fitView">
+              <Icon name="fit-view"/>
+            </ControlButton>
 
             <ControlButton @click="undoAction" :disabled="!canUndo">
               <Icon name="undo"/>
@@ -148,6 +151,7 @@ const {
   autoLayout,
   onUpdateWorkflowMetaDialog,
   onResize,
+  fitView,
   canUndo,
   canRedo,
   undoAction,
@@ -202,6 +206,10 @@ const hasWorkflowActions = computed(() => {
   if (import.meta.env.VITE_IS_WORKFLOW_ELECTRON) return false
   return true;
 })
+
+function onClear() {
+  canvasData.value = '';
+}
 
 // No need for fitView from main component since viewport is now restored in composable
 // const {fitView} = useVueFlow();

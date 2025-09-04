@@ -264,6 +264,7 @@ async function onUpdateNotification(notification) {
 watch(technicalId, () => {
   messages.value = [];
   isLoading.value = true;
+  canvasVisible.value = false;
   if (abortController) abortController.abort();
   chatData.value = null;
   abortController = null;
