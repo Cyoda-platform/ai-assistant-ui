@@ -86,11 +86,25 @@ export async function applyAutoLayout(states: WorkflowStates, initialState: stri
       'elk.spacing.componentComponent': isVertical ? 20 : 20,
       'elk.layered.spacing.nodeNodeBetweenLayers': isVertical ? 40 : 50,
       'elk.edgeRouting': 'ORTHOGONAL',
-      'elk.layered.nodePlacement.strategy': 'BRANDES_KOEPF',
+      'elk.layered.nodePlacement.strategy': isVertical ? 'SIMPLE' : 'SIMPLE',
       'elk.layered.nodePlacement.favorStraightEdges': true,
       'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
       'elk.portConstraints': 'FIXED_SIDE',
-      'elk.layered.nodePlacement.bk.fixedAlignment': isVertical ? 'LEFTMOST' : 'CENTER',
+      'elk.layered.nodePlacement.bk.fixedAlignment': isVertical ? 'LEFTMOST' : 'BALANCED',
+      // Настройки для горизонтального выравнивания
+      'elk.layered.layering.strategy': 'LONGEST_PATH',
+      'elk.layered.thoroughness': '7',
+      // Принудительно выравниваем по центру для горизонтального layout
+      'elk.layered.nodePlacement.bk.edgeStraightening': isVertical ? 'NONE' : 'IMPROVE_STRAIGHTNESS',
+      'elk.layered.spacing.edgeNodeBetweenLayers': isVertical ? 10 : 5,
+      'elk.layered.spacing.edgeEdgeBetweenLayers': isVertical ? 10 : 5,
+      // Дополнительные настройки для горизонтального выравнивания
+      ...(isVertical ? {} : {
+        'elk.alignment': 'CENTER',
+        'elk.layered.compaction.postCompaction.strategy': 'LEFT',
+        'elk.layered.compaction.postCompaction.constraints': 'NONE',
+        'elk.layered.nodePlacement.linearSegments.deflectionDampening': '0.5',
+      }),
     },
     children: [],
     edges: [],
@@ -103,7 +117,9 @@ export async function applyAutoLayout(states: WorkflowStates, initialState: stri
       width: isVertical ? 200 : 220,
       height: isVertical ? 80 : 100,
       layoutOptions: {
-        'elk.nodeLabels.placement': 'INSIDE V_CENTER H_CENTER'
+        'elk.nodeLabels.placement': 'INSIDE V_CENTER H_CENTER',
+        // Даем основным нодам высокий приоритет для правильного выравнивания
+        'elk.layered.priority': stateName === initialState ? '1' : '5'
       },
       ports: [
         { id: `${stateName}_IN`, properties: { 'org.eclipse.elk.port.side': isVertical ? 'NORTH' : 'WEST' } },
@@ -156,10 +172,12 @@ export async function applyAutoLayout(states: WorkflowStates, initialState: stri
       // Add transition as a small intermediate node
       elkGraph.children.push({
         id: transitionId,
-        width: isVertical ? 120 : 120,
-        height: isVertical ? 30 : 40,
+        width: isVertical ? 60 : 80,
+        height: isVertical ? 20 : 25,
         layoutOptions: {
-          'elk.nodeLabels.placement': 'INSIDE V_CENTER H_CENTER'
+          'elk.nodeLabels.placement': 'INSIDE V_CENTER H_CENTER',
+          // Делаем transition nodes менее приоритетными для выравнивания
+          'elk.layered.priority': '10'
         },
         ports: [
           { id: `${transitionId}_IN`, properties: { 'org.eclipse.elk.port.side': isVertical ? 'NORTH' : 'WEST' } },
@@ -355,9 +373,9 @@ export async function applyAutoLayout(states: WorkflowStates, initialState: stri
     const edgeMidX = (sX + tX) / 2;
     const edgeMidY = (sY + tY) / 2;
 
-    // Transition node center (120x30 on vertical, 120x40 on horizontal)
-    const halfW = 60;
-    const halfH = isVertical ? 15 : 20;
+    // Transition node center (60x20 on vertical, 80x25 on horizontal)
+    const halfW = isVertical ? 30 : 40;
+    const halfH = isVertical ? 10 : 12.5;
     const transitionCenterX = transitionX + halfW;
     const transitionCenterY = transitionY + halfH;
 
