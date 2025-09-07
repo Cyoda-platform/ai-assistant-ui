@@ -436,10 +436,13 @@ export async function applyAutoLayout(states: WorkflowStates, initialState: stri
     groups.set(lineKey, arr);
   }
 
+  // Calculate final positions
+  const finalPositions: { [key: string]: {x: number, y: number} } = {};
+  
   for (const [, arr] of groups) {
     if (arr.length <= 1) {
       const only = arr[0];
-      transitionPositions[only.key] = { x: only.offX, y: only.offY };
+      finalPositions[only.key] = { x: only.offX, y: only.offY };
       continue;
     }
     // Stable order by key
@@ -450,8 +453,34 @@ export async function applyAutoLayout(states: WorkflowStates, initialState: stri
       const bump = start + i * groupSpacing;
       const x = item.offX + item.px * bump;
       const y = item.offY + item.py * bump;
-      transitionPositions[item.key] = { x, y };
+      finalPositions[item.key] = { x, y };
     });
+  }
+
+  
+  // Минимальная пост-обработка для вертикального layout: только явные пересечения
+  if (isVertical) {
+    const transitionHeight = 20;
+    const entries = Object.entries(finalPositions);
+    
+    // Простая проверка: если два transition имеют одинаковую Y, сдвигаем второй
+    for (let i = 0; i < entries.length; i++) {
+      for (let j = i + 1; j < entries.length; j++) {
+        const [, pos1] = entries[i];
+        const [key2, pos2] = entries[j];
+        
+        // Если пересекаются по Y
+        if (Math.abs(pos1.y - pos2.y) < transitionHeight) {
+          finalPositions[key2].y = pos1.y + transitionHeight + 5;
+          console.log('🔧 Fixed overlap:', key2, 'moved down to', finalPositions[key2].y);
+        }
+      }
+    }
+  }
+  
+  // Присваиваем finalPositions к transitionPositions
+  for (const [key, pos] of Object.entries(finalPositions)) {
+    transitionPositions[key] = { x: pos.x, y: pos.y };
   }
 
   console.log('📋 Final transition positions:', transitionPositions);
