@@ -201,15 +201,23 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     const isDraggingConnection = ref(false);
     const pendingHandleConnections = ref<Record<string, { sourceHandle: string; targetHandle: string }>>({});
 
-    const {setViewport, fitView, getViewport, vueFlowRef, fitBounds} = useVueFlow();
+    const {setViewport, fitView, getViewport, vueFlowRef} = useVueFlow();
 
     const workflowMetaData = ref(helperStorage.get(workflowMetaDataKey.value, null) || {});
 
-    // Custom fitView that includes transition labels
+    // Custom fitView that includes transition labels - with proper boundary calculation
     function fitViewIncludingTransitions(options: { padding?: number } = {}) {
         if (!vueFlowRef.value) return;
         
-        const padding = options.padding || 0.2;
+        // Layout-specific padding to handle different arrangements
+        let padding;
+        if (layoutDirection.value === 'horizontal') {
+            // Horizontal layout needs more padding due to wider spread and transition labels
+            padding = Math.min((options.padding || 100) / 1000, 0.1);
+        } else {
+            // Vertical layout uses standard padding
+            padding = Math.min((options.padding || 50) / 1000, 0.05);
+        }
         
         // Get all node positions
         const nodeRects = nodes.value.map(node => ({
@@ -255,15 +263,19 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             }
         }
         
-        // Combine all rectangles
+        // Combine all rectangles (nodes + transition labels)
         const allRects = [...nodeRects, ...labelRects];
         
         if (allRects.length === 0) {
-            fitView();
+            fitView({
+                minZoom: 0.7,
+                maxZoom: 2.0,
+                duration: 0
+            });
             return;
         }
         
-        // Calculate bounding box
+        // Calculate bounding box that includes both nodes and transition labels
         const minX = Math.min(...allRects.map(r => r.x));
         const minY = Math.min(...allRects.map(r => r.y));
         const maxX = Math.max(...allRects.map(r => r.x + r.width));
@@ -276,7 +288,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             height: maxY - minY
         };
         
-        // Apply padding
+        // Apply minimal padding
         const paddingX = bounds.width * padding;
         const paddingY = bounds.height * padding;
         
@@ -287,7 +299,34 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             height: bounds.height + paddingY
         };
         
-        fitBounds(paddedBounds);
+        // Use fitBounds but with controlled zoom constraints
+        const containerWidth = vueFlowRef.value.offsetWidth;
+        const containerHeight = vueFlowRef.value.offsetHeight;
+        
+        // Calculate zoom to fit the padded bounds with layout-specific adjustments
+        const zoomX = containerWidth / paddedBounds.width;
+        const zoomY = containerHeight / paddedBounds.height;
+        let targetZoom = Math.min(zoomX, zoomY);
+        
+        // Apply different zoom constraints based on layout direction
+        if (layoutDirection.value === 'horizontal') {
+            // Horizontal layout can be very wide, allow very small zoom for complete fit
+            targetZoom = Math.max(0.2, Math.min(1.5, targetZoom));
+        } else {
+            // Vertical layout is more compact, use standard zoom range
+            targetZoom = Math.max(0.7, Math.min(2.0, targetZoom));
+        }
+        
+        // Calculate center position
+        const centerX = paddedBounds.x + paddedBounds.width / 2;
+        const centerY = paddedBounds.y + paddedBounds.height / 2;
+        
+        // Set viewport directly without animation
+        setViewport({
+            x: -centerX * targetZoom + containerWidth / 2,
+            y: -centerY * targetZoom + containerHeight / 2,
+            zoom: targetZoom
+        });
     }
 
     // Save and restore viewport (zoom and position)
