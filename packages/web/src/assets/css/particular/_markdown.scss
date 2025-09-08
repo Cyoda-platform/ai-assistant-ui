@@ -29,21 +29,11 @@
 
   .wrap-container {
     overflow: hidden;
-    border: 1px solid var(--border-color-darken, #e1e5e9);
     border-radius: 8px;
     position: relative;
     min-height: 200px;
     user-select: none;
     margin-bottom: 15px;
-    
-    // Dot grid background
-    --grid-size: 20px;
-    --dot-size: 1px;
-    
-    background-image: 
-      radial-gradient(circle, var(--grid-color) var(--dot-size), transparent var(--dot-size));
-    background-size: var(--grid-size) var(--grid-size);
-    background-color: var(--bg, #ffffff);
   }
 
   .diagram-container {
