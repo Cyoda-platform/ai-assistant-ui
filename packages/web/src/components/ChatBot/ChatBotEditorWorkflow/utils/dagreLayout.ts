@@ -1,6 +1,43 @@
 /**
  * Dagre-based layout utilities for workflow editor
- * Simpler alternative to ELK with better support for dynamic node sizing
+ * Simpler alternative to ELK with better support fo        if (hasGlobalOverlap(label1, label2)) {
+          hasGlobalCollisions = true;
+          
+          // Проверяем, принадлежат ли transitions к одной паре состояний
+          const parts1 = label1.transitionKey.split('|||');
+          const parts2 = label2.transitionKey.split('|||');
+          const samePair = parts1.length >= 2 && parts2.length >= 2 && 
+                          parts1[0] === parts2[0] && parts1[1] === parts2[1];
+          
+          if (samePair) {
+            // Для transitions одной пары используем умеренное расстояние
+            const pairSeparation = 80; // было 120
+            const centerY = (label1.y + label2.y) / 2;
+            
+            if (label1.transitionKey < label2.transitionKey) {
+              label1.y = centerY - pairSeparation / 2;
+              label2.y = centerY + pairSeparation / 2;
+            } else {
+              label1.y = centerY + pairSeparation / 2;
+              label2.y = centerY - pairSeparation / 2;
+            }
+            
+            console.log(`🚨 SAME PAIR separation: ${label1.transitionKey} -> Y=${label1.y}, ${label2.transitionKey} -> Y=${label2.y}`);
+          } else {
+            // Принудительно раздвигаем по вертикали с умеренным расстоянием
+            const forcedSeparation = 100; // было 130
+            const centerY = (label1.y + label2.y) / 2;
+            
+            if (label1.transitionKey < label2.transitionKey) {
+              label1.y = centerY - forcedSeparation / 2;
+              label2.y = centerY + forcedSeparation / 2;
+            } else {
+              label1.y = centerY + forcedSeparation / 2;
+              label2.y = centerY - forcedSeparation / 2;
+            }
+            
+            console.log(`🚨 DIFFERENT PAIR separation: ${label1.transitionKey} -> Y=${label1.y}, ${label2.transitionKey} -> Y=${label2.y}`);
+          }
  */
 
 import dagre from 'dagre';
@@ -16,7 +53,7 @@ type TransitionPosition = {
   originalY?: number;
 };
 
-// Простая функция разрешения коллизий для горизонтального выравнивания
+// Простой и эффективный алгоритм разрешения коллизий для горизонтального выравнивания
 function resolveHorizontalTransitionCollisions(
   positions: Array<{
     transitionKey: string;
@@ -26,7 +63,7 @@ function resolveHorizontalTransitionCollisions(
     height: number;
   }>
 ): TransitionPosition[] {
-  console.log('🔧 Starting simple horizontal collision resolution for', positions.length, 'transitions');
+  console.log('🔧 Starting horizontal collision resolution for', positions.length, 'transitions');
   
   const result = positions.map(p => ({
     ...p,
@@ -34,38 +71,44 @@ function resolveHorizontalTransitionCollisions(
     originalY: p.y
   }));
   
-  // Группируем labels по вертикальной позиции (одинаковый Y)
-  const groups = new Map<number, typeof result>();
+  // Простая группировка по одинаковым координатам (очень близким)
+  const threshold = 10; // Если transitions ближе 10px, считаем их перекрывающимися
+  const groups = new Map<string, TransitionPosition[]>();
   
   result.forEach(label => {
-    const roundedY = Math.round(label.y / 25) * 25; // Группируем по 25px интервалам
-    if (!groups.has(roundedY)) {
-      groups.set(roundedY, []);
+    // Создаем ключ группы на основе округленных координат с небольшим порогом
+    const groupKey = `${Math.round(label.x / threshold) * threshold}_${Math.round(label.y / threshold) * threshold}`;
+    if (!groups.has(groupKey)) {
+      groups.set(groupKey, []);
     }
-    groups.get(roundedY)!.push(label);
+    groups.get(groupKey)!.push(label);
   });
   
-  // Для каждой группы разнесем labels по вертикали
-  groups.forEach((groupLabels, baseY) => {
+  console.log('📊 Found', groups.size, 'transition groups');
+  
+  // Обрабатываем каждую группу
+  groups.forEach((groupLabels, groupKey) => {
     if (groupLabels.length > 1) {
-      console.log(`🔧 Resolving ${groupLabels.length} overlapping labels at Y=${baseY}`);
+      console.log(`🔧 Resolving ${groupLabels.length} overlapping transitions in group ${groupKey}`);
       
-      // Сортируем по X для стабильности
-      groupLabels.sort((a, b) => a.x - b.x);
+      // Сортируем по transitionKey для стабильности
+      groupLabels.sort((a, b) => a.transitionKey.localeCompare(b.transitionKey));
       
-      // Размещаем labels с интервалом 50px по вертикали для лучшего разделения
-      const spacing = 50;
-      const totalHeight = (groupLabels.length - 1) * spacing;
+      // Размещаем transitions вертикально с минимальным интервалом
+      const baseY = groupLabels[0].y;
+      const verticalSpacing = 40; // Очень небольшое расстояние
+      const totalHeight = (groupLabels.length - 1) * verticalSpacing;
       const startY = baseY - totalHeight / 2;
       
       groupLabels.forEach((label, index) => {
-        label.y = startY + index * spacing;
-        console.log(`  📍 Moved ${label.transitionKey} to Y=${label.y}`);
+        const newY = startY + index * verticalSpacing;
+        console.log(`  📍 Moving ${label.transitionKey} from Y=${label.y} to Y=${newY} (spacing=${verticalSpacing})`);
+        label.y = newY;
       });
     }
   });
   
-  console.log('✅ Horizontal collision resolution completed');
+  console.log('✅ Horizontal collision resolution completed with minimal spacing');
   return result;
 }
 
@@ -332,8 +375,8 @@ export async function applyDagreLayout(
         perpY = edgeVectorX / edgeLength;
       }
       
-      // Увеличенное расстояние между labels
-      const labelSpacing = 50; // Увеличено с 35 до 50
+      // Минимальное расстояние между labels
+      const labelSpacing = 40; // Очень небольшое расстояние
       const totalWidth = (transitionGroup.length - 1) * labelSpacing;
       const startOffset = -totalWidth / 2;
       
@@ -408,9 +451,11 @@ export async function applyDagreLayout(
       edgeMidY = (sourceNode.y + targetNode.y) / 2;
     }
     
-    // Преобразуем относительное смещение от центра ребра
-    const originalX = position.originalX || edgeMidX;
-    const originalY = position.originalY || edgeMidY;
+  // Преобразуем относительное смещение строго от центра ребра
+  // Важно: используем геометрический центр ребра, а не pre-collision originalX/Y,
+  // чтобы сохраненные offsets всегда отражали финальное разделение.
+  const originalX = edgeMidX;
+  const originalY = edgeMidY;
     
     const relativeOffset = {
       x: Math.round(position.x - originalX),

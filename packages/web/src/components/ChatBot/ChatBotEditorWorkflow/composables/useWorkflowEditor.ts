@@ -580,6 +580,15 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         if (cleanedMetaData.transitionLabels) {
             const cleanedTransitionLabels = {...cleanedMetaData.transitionLabels};
             for (const transitionId of Object.keys(cleanedTransitionLabels)) {
+                // Удаляем старые Dagre-ключи с |||
+                if (transitionId.includes('|||')) {
+                    delete cleanedTransitionLabels[transitionId];
+                    hasChanges = true;
+                    console.log(`🧹 Cleaned up old Dagre key: ${transitionId}`);
+                    continue;
+                }
+                
+                // Удаляем несуществующие transitions
                 if (!currentTransitionIds.has(transitionId)) {
                     delete cleanedTransitionLabels[transitionId];
                     hasChanges = true;
@@ -1544,6 +1553,23 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         // Clear in-memory caches for initial positions/labels
         initialPositions.value = {};
         initialTransitionLabels.value = {};
+
+        // Очищаем старые Dagre-ключи из существующих метаданных
+        const currentMeta = workflowMetaData.value || {};
+        if (currentMeta.transitionLabels) {
+            const cleanedLabels = { ...currentMeta.transitionLabels };
+            let hasOldKeys = false;
+            for (const key of Object.keys(cleanedLabels)) {
+                if (key.includes('|||')) {
+                    delete cleanedLabels[key];
+                    hasOldKeys = true;
+                    console.log(`🧹 resetTransform: Cleaned up old Dagre key: ${key}`);
+                }
+            }
+            if (hasOldKeys) {
+                console.log('🧹 resetTransform: Removed old Dagre keys from metadata');
+            }
+        }
 
         // Parse current workflow
         let parsed: WorkflowData = { states: {} } as WorkflowData;
