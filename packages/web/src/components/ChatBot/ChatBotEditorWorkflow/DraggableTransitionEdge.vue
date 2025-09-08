@@ -153,33 +153,25 @@ const isHighlighted = computed(() => isTransitionHighlighted(transitionId.value)
 const hoveredEdgeGlobal = ref<string | null>(null)
 
 // Функция для расчета ширины узла на основе названия
-function calculateNodeWidth(stateName: string, isVertical: boolean): number {
-  // Базовая ширина узла
-  const baseWidth = isVertical ? 160 : 200; // Уменьшаем базовую ширину
-  
-  if (isVertical) {
-    // При вертикальном выравнивании учитываем длину названия состояния
-    const textLength = stateName.length;
-    // Более разумные коэффициенты: 8px на символ + 50px для отступов и кнопок
-    const textWidth = textLength * 8 + 50;
-    // Возвращаем максимум между базовой шириной и требуемой для текста
-    return Math.max(baseWidth, textWidth);
-  }
-  
-  return baseWidth;
+function calculateNodeWidth(stateName: string): number {
+  // Единые правила для обоих режимов - всегда учитываем длину текста
+  const baseWidth = 160; // Базовая ширина
+  const textLength = stateName.length;
+  // 8px на символ + 50px для отступов и кнопок
+  const textWidth = textLength * 8 + 50;
+  // Возвращаем максимум между базовой шириной и требуемой для текста
+  return Math.max(baseWidth, textWidth);
 }
 
 // Вычисляем размеры узлов на основе их названий
 const sourceNodeWidth = computed(() => {
   const sourceName = props.data?.sourceStateName || props.source;
-  const isVertical = props.data?.layoutMode === 'vertical';
-  return calculateNodeWidth(sourceName, isVertical);
+  return calculateNodeWidth(sourceName);
 });
 
 const targetNodeWidth = computed(() => {
   const targetName = props.data?.targetStateName || props.target;
-  const isVertical = props.data?.layoutMode === 'vertical';
-  return calculateNodeWidth(targetName, isVertical);
+  return calculateNodeWidth(targetName);
 });
 
 const sourceNodeHeight = computed(() => {

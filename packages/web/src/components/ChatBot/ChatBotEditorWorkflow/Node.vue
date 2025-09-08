@@ -201,16 +201,16 @@ const nodeStyle = computed(() => {
     layoutMode: props.data.layoutMode
   })
   
-  if (props.data.nodeWidth && props.data.layoutMode === 'vertical') {
-    // В вертикальном режиме используем вычисленную ширину
+  if (props.data.nodeWidth) {
+    // Используем вычисленную ширину для обоих режимов
     style.minWidth = `${props.data.nodeWidth}px`
     style.width = `${props.data.nodeWidth}px`
     console.log('Applied dynamic width:', style)
   } else {
-    // В горизонтальном режиме или когда nodeWidth не задан, используем auto
-    style.width = 'auto'
-    style.minWidth = 'fit-content'
-    console.log('Applied auto width:', style)
+    // Когда nodeWidth не задан, используем базовую ширину
+    style.width = '160px'
+    style.minWidth = '160px'
+    console.log('Applied base width:', style)
   }
   
   return style

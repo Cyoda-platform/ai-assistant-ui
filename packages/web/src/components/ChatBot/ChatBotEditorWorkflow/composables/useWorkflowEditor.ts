@@ -225,16 +225,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
         
         // Функция для расчета ширины узла на основе названия
-        function calculateNodeWidth(stateName: string, isVertical: boolean): number {
-            const baseWidth = isVertical ? 200 : 220;
-            
-            if (isVertical) {
-                const textLength = stateName.length;
-                const textWidth = textLength * 9 + 40;
-                return Math.max(baseWidth, textWidth);
-            }
-            
-            return baseWidth;
+        function calculateNodeWidth(stateName: string): number {
+            // Единые правила для обоих режимов - всегда учитываем длину текста
+            const baseWidth = 160; // Базовая ширина
+            const textLength = stateName.length;
+            // 8px на символ + 50px для отступов и кнопок
+            const textWidth = textLength * 8 + 50;
+            // Возвращаем максимум между базовой шириной и требуемой для текста
+            return Math.max(baseWidth, textWidth);
         }
         
         // Get all node positions with dynamic sizing
@@ -242,7 +240,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const nodeRects = nodes.value.map(node => ({
             x: node.position.x,
             y: node.position.y,
-            width: calculateNodeWidth(node.id, isVertical),
+            width: calculateNodeWidth(node.id),
             height: isVertical ? 80 : 100
         }));
         
@@ -729,27 +727,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
 
         // Функция для расчета ширины узла на основе названия
-        function calculateNodeWidth(stateName: string, isVertical: boolean): number {
-            const baseWidth = isVertical ? 160 : 200; // Уменьшаем базовую ширину
-            
-            if (isVertical) {
-                const textLength = stateName.length;
-                const textWidth = textLength * 8 + 50; // Более разумные размеры
-                const finalWidth = Math.max(baseWidth, textWidth);
-                
-                console.log('Node width calculation:', {
-                    stateName,
-                    textLength,
-                    textWidth,
-                    baseWidth,
-                    finalWidth,
-                    isVertical
-                });
-                
-                return finalWidth;
-            }
-            
-            return baseWidth;
+        function calculateNodeWidth(stateName: string): number {
+            // Единые правила для обоих режимов - всегда учитываем длину текста
+            const baseWidth = 160; // Базовая ширина
+            const textLength = stateName.length;
+            // 8px на символ + 50px для отступов и кнопок
+            const textWidth = textLength * 8 + 50;
+            // Возвращаем максимум между базовой шириной и требуемой для текста
+            return Math.max(baseWidth, textWidth);
         }
 
         const nodesResult: WorkflowNode[] = [];
@@ -776,8 +761,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             }
 
             // Вычисляем ширину узла для текущего layout mode
-            const isVertical = layoutDirection.value === 'vertical';
-            const nodeWidth = calculateNodeWidth(stateName, isVertical);
+            const nodeWidth = calculateNodeWidth(stateName);
 
             nodesResult.push({
                 id: stateName,
