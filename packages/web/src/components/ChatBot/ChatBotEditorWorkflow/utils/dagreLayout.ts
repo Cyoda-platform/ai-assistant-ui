@@ -41,7 +41,6 @@
  */
 
 import dagre from 'dagre';
-import { resolveTransitionCollisions } from './forceDirectedLayout';
 
 type TransitionPosition = {
   transitionKey: string;
@@ -52,6 +51,133 @@ type TransitionPosition = {
   originalX?: number;
   originalY?: number;
 };
+
+// Простой и эффективный алгоритм разрешения коллизий для вертикального выравнивания
+function resolveVerticalTransitionCollisions(
+  positions: Array<{
+    transitionKey: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }>,
+  nodePositions?: { [key: string]: { x: number; y: number } },
+  nodeWidths?: Map<string, number>,
+  nodeHeights?: Map<string, number>
+): TransitionPosition[] {
+  console.log('🔧 Starting vertical collision resolution for', positions.length, 'transitions');
+
+  const result = positions.map(p => ({
+    ...p,
+    originalX: p.x,
+    originalY: p.y
+  }));
+
+  // Группируем по Y (почти один и тот же уровень) и разводим по X влево/вправо от центра
+  const yThreshold = 12; // в одну группу, если близко по Y
+  const groups = new Map<string, TransitionPosition[]>();
+
+  result.forEach(label => {
+    const groupKey = `y_${Math.round(label.y / yThreshold) * yThreshold}`;
+    if (!groups.has(groupKey)) groups.set(groupKey, []);
+    groups.get(groupKey)!.push(label);
+  });
+
+  console.log('📊 Found', groups.size, 'vertical Y-groups');
+
+  groups.forEach((groupLabels, key) => {
+    if (groupLabels.length <= 1) return;
+
+    // Стабильный порядок: по ключу
+    groupLabels.sort((a, b) => a.transitionKey.localeCompare(b.transitionKey));
+
+    // Центр по X: среднее от originalX, Y оставляем как есть (не двигаем по вертикали)
+    const centerX = groupLabels.reduce((sum, l) => sum + (l.originalX ?? l.x), 0) / groupLabels.length;
+    const maxWidth = Math.max(...groupLabels.map(l => Math.max(80, l.width || 80)));
+    const spacing = Math.max(60, maxWidth + 24); // расстояние между лейблами по X
+    const startX = centerX - spacing * (groupLabels.length - 1) / 2;
+
+    console.log(`� Resolving ${groupLabels.length} overlaps in ${key}: centerX=${centerX}, spacing=${spacing}`);
+
+    groupLabels.forEach((label, idx) => {
+      const newX = Math.round(startX + idx * spacing);
+      // Y фиксируем около originalY, чтобы не уезжать ниже/выше узлов
+      const newY = Math.round(label.originalY ?? label.y);
+      console.log(`  📍 ${label.transitionKey}: X ${label.x} -> ${newX}, Y stays ${newY}`);
+      label.x = newX;
+      label.y = newY;
+    });
+  });
+
+  // Вспомогательные функции
+  const intersects = (a: {left:number;right:number;top:number;bottom:number}, b: {left:number;right:number;top:number;bottom:number}) =>
+    !(a.right < b.left || b.right < a.left || a.bottom < b.top || b.bottom < a.top);
+
+  // Глобальная раздвижка по X для оставшихся пересечений
+  const margin = 10;
+  for (let pass = 0; pass < 3; pass++) {
+    let moved = false;
+    for (let i = 0; i < result.length; i++) {
+      for (let j = i + 1; j < result.length; j++) {
+        const li = result[i];
+        const lj = result[j];
+        // Только если близки по Y (один уровень) и пересекаются
+        if (Math.abs(li.y - lj.y) <= 14) {
+          const ri = { left: li.x - (li.width||80)/2, right: li.x + (li.width||80)/2, top: li.y - (li.height||25)/2, bottom: li.y + (li.height||25)/2 };
+          const rj = { left: lj.x - (lj.width||80)/2, right: lj.x + (lj.width||80)/2, top: lj.y - (lj.height||25)/2, bottom: lj.y + (lj.height||25)/2 };
+          if (intersects(ri, rj)) {
+            const desiredGap = ((li.width||80)/2 + (lj.width||80)/2) + margin;
+            const dx = lj.x - li.x;
+            const adjust = (desiredGap - Math.abs(dx)) / 2;
+            if (dx >= 0) {
+              li.x -= adjust;
+              lj.x += adjust;
+            } else {
+              li.x += adjust;
+              lj.x -= adjust;
+            }
+            moved = true;
+          }
+        }
+      }
+    }
+    if (!moved) break;
+  }
+
+  // Избегаем наложения на узлы (если переданы)
+  if (nodePositions && nodeWidths && nodeHeights) {
+    const nodes = Object.keys(nodePositions).map(id => {
+      const w = nodeWidths.get(id) || 160;
+      const h = nodeHeights.get(id) || 60;
+      const cx = nodePositions[id].x;
+      const cy = nodePositions[id].y;
+      return { left: cx - w/2, right: cx + w/2, top: cy - h/2, bottom: cy + h/2 };
+    });
+
+    result.forEach(l => {
+      let rect = { left: l.x - (l.width||80)/2, right: l.x + (l.width||80)/2, top: l.y - (l.height||25)/2, bottom: l.y + (l.height||25)/2 };
+      let attempts = 0;
+      while (attempts < 10 && nodes.some(n => intersects(rect, n))) {
+        // Сдвигаем по X от ближайшего узла
+        const overlapping = nodes.filter(n => intersects(rect, n))[0];
+        const centerX = (rect.left + rect.right) / 2;
+        const nodeCenterX = (overlapping.left + overlapping.right) / 2;
+        const dir = centerX < nodeCenterX ? -1 : 1;
+        l.x += dir * 20;
+        // Небольшой ограниченный сдвиг по Y при необходимости
+        if (attempts > 4) {
+          const dy = (attempts - 4) * 2;
+          l.y = (l.originalY ?? l.y) + (attempts % 2 === 0 ? dy : -dy);
+        }
+        rect = { left: l.x - (l.width||80)/2, right: l.x + (l.width||80)/2, top: l.y - (l.height||25)/2, bottom: l.y + (l.height||25)/2 };
+        attempts++;
+      }
+    });
+  }
+
+  console.log('✅ Vertical collision resolution completed (spread X, global de-overlap, node avoidance)');
+  return result;
+}
 
 // Простой и эффективный алгоритм разрешения коллизий для горизонтального выравнивания
 function resolveHorizontalTransitionCollisions(
@@ -140,6 +266,17 @@ export interface WorkflowState {
 
 export type WorkflowStates = Record<string, WorkflowState>;
 
+// Оценка ширины лейбла по длине имени transition (учитываем кнопки и отступы)
+function estimateLabelWidth(name?: string): number {
+  const text = (name || '').trim();
+  const charWidth = 9; // пикселей на символ (учитывая кириллицу)
+  const actionsWidth = 60; // место под кнопки
+  const padding = 24; // внутренние отступы
+  const base = 100; // минимальная ширина
+  const width = text.length > 0 ? text.length * charWidth + actionsWidth + padding : base;
+  return Math.max(base, Math.min(width, 280)); // ограничим максимум, чтобы не улетали слишком далеко
+}
+
 // Функция для расчета ширины узла на основе названия
 function calculateNodeWidth(stateName: string, isVertical: boolean): number {
   const baseWidth = isVertical ? 160 : 200; // Уменьшаем базовую ширину
@@ -191,10 +328,11 @@ export async function applyDagreLayout(
   g.setGraph({
     rankdir: isVertical ? 'TB' : 'LR',
     align: 'UL',
-    nodesep: isVertical ? 100 : 150,
-    ranksep: isVertical ? 150 : 200,
-    marginx: 50,
-    marginy: 50
+    // Compact spacing for vertical layout to keep Y within reasonable range
+    nodesep: isVertical ? 60 : 150,
+    ranksep: isVertical ? 90 : 200,
+    marginx: 40,
+    marginy: isVertical ? 20 : 50
   });
   g.setDefaultEdgeLabel(() => ({}));
 
@@ -375,8 +513,8 @@ export async function applyDagreLayout(
         perpY = edgeVectorX / edgeLength;
       }
       
-      // Минимальное расстояние между labels
-      const labelSpacing = 40; // Очень небольшое расстояние
+  // Минимальное расстояние между labels (будет уточнено в вертикальном резолвере)
+  const labelSpacing = 40;
       const totalWidth = (transitionGroup.length - 1) * labelSpacing;
       const startOffset = -totalWidth / 2;
       
@@ -385,9 +523,9 @@ export async function applyDagreLayout(
         const finalLabelX = baseLabelX + perpX * offset;
         const finalLabelY = baseLabelY + perpY * offset;
         
-        // Оценочные размеры transition label
-        const labelWidth = 80; // Примерная ширина label
-        const labelHeight = 25; // Примерная высота label
+  // Оценочные размеры transition label
+  const labelWidth = estimateLabelWidth(item.name);
+  const labelHeight = 25; // Примерная высота label
         
         allTransitionPositions.push({
           transitionKey: item.transitionKey,
@@ -402,7 +540,7 @@ export async function applyDagreLayout(
     } else {
       // Одиночный transition
       const item = transitionGroup[0];
-      const labelWidth = 80;
+  const labelWidth = estimateLabelWidth(item.name);
       const labelHeight = 25;
       
       allTransitionPositions.push({
@@ -420,18 +558,16 @@ export async function applyDagreLayout(
   // Выбираем алгоритм разрешения коллизий в зависимости от направления
   let resolvedPositions: TransitionPosition[];
   if (isVertical) {
-    // Для вертикального выравнивания используем force-directed алгоритм
-    resolvedPositions = resolveTransitionCollisions(
-      allTransitionPositions, 
-      nodePositions, 
-      nodeWidths, 
+    // Для вертикального выравнивания используем новый простой алгоритм с учетом геометрии узлов
+    resolvedPositions = resolveVerticalTransitionCollisions(
+      allTransitionPositions,
+      nodePositions,
+      nodeWidths,
       nodeHeights
     );
   } else {
     // Для горизонтального выравнивания используем простой алгоритм
-    resolvedPositions = resolveHorizontalTransitionCollisions(
-      allTransitionPositions
-    );
+    resolvedPositions = resolveHorizontalTransitionCollisions(allTransitionPositions);
   }
   
   // Преобразуем в финальный формат с правильными ключами

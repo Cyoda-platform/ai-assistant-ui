@@ -1938,10 +1938,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 const isVertical = layoutDirection.value === 'vertical';
                 
                 if (isVertical) {
-                    // In vertical layout, place below the bottommost node
+                    // In vertical layout, place below the bottommost node with smaller step
                     const bottomY = Math.max(...positions.map(pos => (pos.y || 0)));
                     const avgX = positions.reduce((sum, pos) => sum + (pos.x || 0), 0) / positions.length;
-                    newStatePosition = { x: avgX, y: bottomY + 150 };
+                    newStatePosition = { x: avgX, y: bottomY + 100 };
                 } else {
                     // In horizontal layout, place to the right of the rightmost node
                     const rightX = Math.max(...positions.map(pos => (pos.x || 0)));
