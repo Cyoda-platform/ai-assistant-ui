@@ -2476,6 +2476,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/dagre@npm:^0.7.53":
+  version: 0.7.53
+  resolution: "@types/dagre@npm:0.7.53"
+  checksum: 10c0/c2311e2c6f819e0c15531d265bde6359b131ca9788e323b4cf80feb03ecf4cdd442698a1dac35eed5bb43c5fffd575eb28fc2d3c5163936756dac5183ff3af43
+  languageName: node
+  linkType: hard
+
 "@types/electron-squirrel-startup@npm:^1.0.2":
   version: 1.0.2
   resolution: "@types/electron-squirrel-startup@npm:1.0.2"
@@ -3616,6 +3623,7 @@ __metadata:
   dependencies:
     "@auth0/auth0-vue": "npm:^2.4.0"
     "@tsconfig/node22": "npm:^22.0.2"
+    "@types/dagre": "npm:^0.7.53"
     "@types/file-saver": "npm:^2.0.7"
     "@types/node": "npm:^24.3.0"
     "@types/pako": "npm:^2.0.4"
@@ -3630,6 +3638,7 @@ __metadata:
     "@vueuse/core": "npm:^13.9.0"
     axios: "npm:^1.11.0"
     axios-retry: "npm:^4.5.0"
+    dagre: "npm:^0.8.5"
     dayjs: "npm:^1.11.18"
     element-plus: "npm:^2.11.1"
     elkjs: "npm:^0.9.2"
@@ -3649,7 +3658,7 @@ __metadata:
     tinycon: "npm:^0.6.8"
     typescript: "npm:~5.9.2"
     uuid: "npm:^11.1.0"
-    vite: "npm:^7.1.4"
+    vite: "npm:7.1.2"
     vite-plugin-vue-devtools: "npm:^8.0.1"
     vite-svg-loader: "npm:^5.1.0"
     vue: "npm:^3.5.20"
@@ -4996,6 +5005,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dagre@npm:^0.8.5":
+  version: 0.8.5
+  resolution: "dagre@npm:0.8.5"
+  dependencies:
+    graphlib: "npm:^2.1.8"
+    lodash: "npm:^4.17.15"
+  checksum: 10c0/1c021b66961aa9a700bb6ec51747bcc214720a661ad6cb1878eab7316ecb550a759664a6754081a315b37d0355e3c19ff162813b36f20cbeb2e37f7440364d62
+  languageName: node
+  linkType: hard
+
 "data-view-buffer@npm:^1.0.2":
   version: 1.0.2
   resolution: "data-view-buffer@npm:1.0.2"
@@ -6169,7 +6188,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fdir@npm:^6.5.0":
+"fdir@npm:^6.4.6, fdir@npm:^6.5.0":
   version: 6.5.0
   resolution: "fdir@npm:6.5.0"
   peerDependencies:
@@ -6771,6 +6790,15 @@ __metadata:
   version: 1.4.0
   resolution: "graphemer@npm:1.4.0"
   checksum: 10c0/e951259d8cd2e0d196c72ec711add7115d42eb9a8146c8eeda5b8d3ac91e5dd816b9cd68920726d9fd4490368e7ed86e9c423f40db87e2d8dfafa00fa17c3a31
+  languageName: node
+  linkType: hard
+
+"graphlib@npm:^2.1.8":
+  version: 2.1.8
+  resolution: "graphlib@npm:2.1.8"
+  dependencies:
+    lodash: "npm:^4.17.15"
+  checksum: 10c0/41c525e4d91a6d8b4e8da1883bf4e85689a547e908557ccc53f64db9141bdfb351b9162a79f13cae81c5b3a410027f59e4fc1edc1ea442234ec08e629859b188
   languageName: node
   linkType: hard
 
@@ -11058,6 +11086,61 @@ __metadata:
   peerDependencies:
     vue: ">=3.2.13"
   checksum: 10c0/39f218db6384aec56ec6fb9517723eaee49701225688e1d5f5132f0730605a9e59201464911b19cbfdc647caebacf4c8737dffe2472cd815ebb6645c2292993c
+  languageName: node
+  linkType: hard
+
+"vite@npm:7.1.2":
+  version: 7.1.2
+  resolution: "vite@npm:7.1.2"
+  dependencies:
+    esbuild: "npm:^0.25.0"
+    fdir: "npm:^6.4.6"
+    fsevents: "npm:~2.3.3"
+    picomatch: "npm:^4.0.3"
+    postcss: "npm:^8.5.6"
+    rollup: "npm:^4.43.0"
+    tinyglobby: "npm:^0.2.14"
+  peerDependencies:
+    "@types/node": ^20.19.0 || >=22.12.0
+    jiti: ">=1.21.0"
+    less: ^4.0.0
+    lightningcss: ^1.21.0
+    sass: ^1.70.0
+    sass-embedded: ^1.70.0
+    stylus: ">=0.54.8"
+    sugarss: ^5.0.0
+    terser: ^5.16.0
+    tsx: ^4.8.1
+    yaml: ^2.4.2
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+    jiti:
+      optional: true
+    less:
+      optional: true
+    lightningcss:
+      optional: true
+    sass:
+      optional: true
+    sass-embedded:
+      optional: true
+    stylus:
+      optional: true
+    sugarss:
+      optional: true
+    terser:
+      optional: true
+    tsx:
+      optional: true
+    yaml:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: 10c0/4ed825b20bc0f49db99cd382de9506b2721ccd47dcebd4a68e0ef65e3cdd2347fded52b306c34178308e0fd7fe78fd5ff517623002cb00710182ad3012c92ced
   languageName: node
   linkType: hard
 

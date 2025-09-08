@@ -111,6 +111,8 @@ interface CustomEdgeData {
   labelOffset?: { x: number; y: number }
   transitionId?: string // Уникальный ID для этого конкретного transition edge
   layoutMode?: 'horizontal' | 'vertical' // Добавляем информацию о режиме layout
+  sourceStateName?: string // Название источника состояния для расчета размеров
+  targetStateName?: string // Название целевого состояния для расчета размеров
 }
 
 const props = defineProps<EdgeProps<CustomEdgeData>>()
@@ -149,6 +151,46 @@ const transitionId = computed(() =>
 
 const isHighlighted = computed(() => isTransitionHighlighted(transitionId.value))
 const hoveredEdgeGlobal = ref<string | null>(null)
+
+// Функция для расчета ширины узла на основе названия
+function calculateNodeWidth(stateName: string, isVertical: boolean): number {
+  // Базовая ширина узла
+  const baseWidth = isVertical ? 160 : 200; // Уменьшаем базовую ширину
+  
+  if (isVertical) {
+    // При вертикальном выравнивании учитываем длину названия состояния
+    const textLength = stateName.length;
+    // Более разумные коэффициенты: 8px на символ + 50px для отступов и кнопок
+    const textWidth = textLength * 8 + 50;
+    // Возвращаем максимум между базовой шириной и требуемой для текста
+    return Math.max(baseWidth, textWidth);
+  }
+  
+  return baseWidth;
+}
+
+// Вычисляем размеры узлов на основе их названий
+const sourceNodeWidth = computed(() => {
+  const sourceName = props.data?.sourceStateName || props.source;
+  const isVertical = props.data?.layoutMode === 'vertical';
+  return calculateNodeWidth(sourceName, isVertical);
+});
+
+const targetNodeWidth = computed(() => {
+  const targetName = props.data?.targetStateName || props.target;
+  const isVertical = props.data?.layoutMode === 'vertical';
+  return calculateNodeWidth(targetName, isVertical);
+});
+
+const sourceNodeHeight = computed(() => {
+  const isVertical = props.data?.layoutMode === 'vertical';
+  return isVertical ? 60 : 80; // Уменьшаем высоту
+});
+
+const targetNodeHeight = computed(() => {
+  const isVertical = props.data?.layoutMode === 'vertical';
+  return isVertical ? 60 : 80; // Уменьшаем высоту
+});
 
 function handleEdgeMouseEnter() {
   eventBus.$emit('edge-hover', { edgeId: props.id })
@@ -821,7 +863,4 @@ function endTransitionDrag(event: MouseEvent) {
 }
 
 /* Allow transition lines to use stroke-dasharray for manual/automatic differentiation */
-.draggable-transition-edge path:first-child {
-  /* Main transition path - allow dasharray styling */
-}
 </style>

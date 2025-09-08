@@ -73,6 +73,8 @@ export interface WorkflowNode {
         }>;
         isInitial: boolean;
         isTerminal: boolean;
+        nodeWidth?: number;
+        layoutMode?: 'horizontal' | 'vertical';
     };
     position: {
         x: number;
@@ -109,6 +111,9 @@ export interface WorkflowEdge {
         sourceOffset?: { x: number; y: number };
         targetOffset?: { x: number; y: number };
         labelOffset?: { x: number; y: number };
+        layoutMode?: 'horizontal' | 'vertical';
+        sourceStateName?: string;
+        targetStateName?: string;
         allTransitions?: Array<{
             stateName: string;
             transition: WorkflowTransition;
@@ -219,12 +224,26 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             padding = Math.min((options.padding || 50) / 1000, 0.05);
         }
         
-        // Get all node positions
+        // Функция для расчета ширины узла на основе названия
+        function calculateNodeWidth(stateName: string, isVertical: boolean): number {
+            const baseWidth = isVertical ? 200 : 220;
+            
+            if (isVertical) {
+                const textLength = stateName.length;
+                const textWidth = textLength * 9 + 40;
+                return Math.max(baseWidth, textWidth);
+            }
+            
+            return baseWidth;
+        }
+        
+        // Get all node positions with dynamic sizing
+        const isVertical = layoutDirection.value === 'vertical';
         const nodeRects = nodes.value.map(node => ({
             x: node.position.x,
             y: node.position.y,
-            width: 180, // Approximate node width
-            height: 80  // Approximate node height
+            width: calculateNodeWidth(node.id, isVertical),
+            height: isVertical ? 80 : 100
         }));
         
         // Get transition label positions from metadata
@@ -506,6 +525,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                         sourceOffset,
                         targetOffset,
                         labelOffset,
+                        layoutMode: layoutDirection.value, // Добавляем информацию о режиме layout
+                        sourceStateName: source, // Добавляем названия состояний для расчета размеров
+                        targetStateName: target,
                     },
                 };
 
@@ -627,9 +649,32 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         
         const needFreshLayout = !hasExistingPositions || layoutDirectionChanged || (!isAddingNewState && stateNames.length !== existingStateNames.length);
 
+        console.log('🔍 generateNodes layout decision:', {
+            hasExistingPositions,
+            layoutDirectionChanged,
+            isAddingNewState,
+            needFreshLayout,
+            stateNames: stateNames.length,
+            existingStateNames: existingStateNames.length,
+            currentLayoutDirection: layoutDirection.value,
+            savedLayoutDirection: meta.layoutDirection
+        });
+
+        // ВРЕМЕННОЕ РЕШЕНИЕ: Принудительная очистка meta для перехода на Dagre
+        // Удалите этот блок после тестирования новой системы layout
+        if (hasExistingPositions && !meta.usingDagre) {
+            console.log('🔄 Forcing fresh Dagre layout by clearing old ELK meta data');
+            workflowMetaData.value = { usingDagre: true };
+            helperStorage.set(workflowMetaDataKey.value, workflowMetaData.value);
+            // Перезапускаем generateNodes с очищенными мета данными
+            setTimeout(() => generateNodes(options), 100);
+            return;
+        }
+
         if (needFreshLayout) {
             const isVertical = layoutDirection.value === 'vertical';
-            const elk = await applyAutoLayout(states, initialState || 'state_initial', isVertical);
+            console.log('🔄 Applying Dagre layout for node generation...');
+            const elk = await applyAutoLayout(states, initialState || 'state_initial', isVertical, 'dagre');
             // Persist into meta
             const newMeta: Record<string, { x: number; y: number }> = {};
             for (const k of Object.keys(elk.nodePositions)) newMeta[k] = elk.nodePositions[k];
@@ -641,6 +686,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     ...elk.transitionPositions,
                 },
                 layoutDirection: layoutDirection.value,
+                usingDagre: true, // Маркер для отслеживания что используется Dagre
             };
             helperStorage.set(workflowMetaDataKey.value, workflowMetaData.value);
         }
@@ -654,6 +700,30 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             if (metaData?.transitionLabels) {
                 initialTransitionLabels.value = {...metaData.transitionLabels};
             }
+        }
+
+        // Функция для расчета ширины узла на основе названия
+        function calculateNodeWidth(stateName: string, isVertical: boolean): number {
+            const baseWidth = isVertical ? 160 : 200; // Уменьшаем базовую ширину
+            
+            if (isVertical) {
+                const textLength = stateName.length;
+                const textWidth = textLength * 8 + 50; // Более разумные размеры
+                const finalWidth = Math.max(baseWidth, textWidth);
+                
+                console.log('Node width calculation:', {
+                    stateName,
+                    textLength,
+                    textWidth,
+                    baseWidth,
+                    finalWidth,
+                    isVertical
+                });
+                
+                return finalWidth;
+            }
+            
+            return baseWidth;
         }
 
         for (const [stateName, stateData] of Object.entries(states)) {
@@ -677,6 +747,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 initialPositions.value[stateName] = {...position};
             }
 
+            // Вычисляем ширину узла для текущего layout mode
+            const isVertical = layoutDirection.value === 'vertical';
+            const nodeWidth = calculateNodeWidth(stateName, isVertical);
+
             result.push({
                 id: stateName,
                 type: 'default',
@@ -687,6 +761,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     transitions,
                     isInitial: stateName === initialState,
                     isTerminal,
+                    nodeWidth, // Добавляем информацию о ширине узла
+                    layoutMode: layoutDirection.value, // Добавляем информацию о режиме layout
                 },
                 position,
             });
@@ -1466,8 +1542,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const states = parsed.states || {};
         const initialState = parsed.initialState;
 
-        // Compute fresh horizontal layout with ELK
-    const result = await applyAutoLayout(states, initialState || 'state_initial', false);
+        // Compute fresh horizontal layout with Dagre
+        console.log('🔄 Applying horizontal Dagre layout for autoPositionNodes...');
+    const result = await applyAutoLayout(states, initialState || 'state_initial', false, 'dagre');
 
         // Persist positions and label offsets in meta so generateNodes picks them up
     const metaPositions: Record<string, { x: number; y: number }> = {};
@@ -1613,8 +1690,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     let allTransitionPositions: Record<string, {x: number, y: number}> = {};
 
         if (isVertical) {
-            // Vertical mode: ELK vertical
-            const result = await applyAutoLayout(states, initialState, true);
+            // Vertical mode: Dagre vertical
+            console.log('🔄 Applying vertical Dagre layout...');
+            const result = await applyAutoLayout(states, initialState, true, 'dagre');
             Object.keys(result.nodePositions).forEach(nodeId => {
                 const basePosition = result.nodePositions[nodeId];
                 finalPositions[nodeId] = {
@@ -1624,8 +1702,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             });
             allTransitionPositions = result.transitionPositions;
         } else {
-            // Horizontal mode: ELK horizontal
-            const result = await applyAutoLayout(states, initialState, false);
+            // Horizontal mode: Dagre horizontal
+            console.log('🔄 Applying horizontal Dagre layout...');
+            const result = await applyAutoLayout(states, initialState, false, 'dagre');
             Object.keys(result.nodePositions).forEach(nodeId => {
                 finalPositions[nodeId] = result.nodePositions[nodeId];
             });
@@ -1640,14 +1719,15 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         workflowMetaData.value = {
             ...(workflowMetaData.value || {}), ...finalPositions,
             layoutDirection: layoutDirection.value,
+            usingDagre: true, // Маркер для отслеживания что используется Dagre
             transitionLabels: {
                 ...(workflowMetaData.value?.transitionLabels || {}),
                 ...allTransitionPositions
             }
         };
 
-        // ELK already calculated perfect transition positions
-        console.log('🎯 Applied ELK layout with', Object.keys(finalPositions).length, 'nodes and', Object.keys(allTransitionPositions).length, 'transitions');
+        // Dagre layout applied with collision-free transition positioning
+        console.log('🎯 Applied Dagre layout with', Object.keys(finalPositions).length, 'nodes and', Object.keys(allTransitionPositions).length, 'transitions');
 
         saveState(createSnapshot());
 

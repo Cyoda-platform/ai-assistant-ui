@@ -1,10 +1,14 @@
 /**
  * Layout utilities. Now powered by ELK for deterministic hierarchical layouts.
+ * Also includes Dagre as an alternative layout engine.
  */
 // ELK in-browser bundle
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - elkjs has no bundled types for the default export path
 import ELK from 'elkjs/lib/elk.bundled.js';
+
+// Import Dagre as alternative
+import { applyDagreLayout } from './dagreLayout';
 
 export interface NodePosition {
   x: number;
@@ -62,8 +66,56 @@ export function calculateSmartPosition(
   };
 }
 
-// Function for arranging workflows with ELK layered algorithm
-export async function applyAutoLayout(states: WorkflowStates, initialState: string, isVertical: boolean = false): Promise<{
+// Функция для расчета ширины текста узла
+function calculateNodeWidth(stateName: string, isVertical: boolean): number {
+  // Базовая ширина узла
+  const baseWidth = isVertical ? 160 : 200; // Уменьшаем базовую ширину
+  
+  if (isVertical) {
+    // При вертикальном выравнивании учитываем длину названия состояния
+    const textLength = stateName.length;
+    // Более разумные коэффициенты: 8px на символ + 50px для отступов и кнопок
+    const textWidth = textLength * 8 + 50;
+    // Возвращаем максимум между базовой шириной и требуемой для текста
+    return Math.max(baseWidth, textWidth);
+  }
+  
+  return baseWidth;
+}
+
+// Универсальная функция для автоматического layout с выбором движка
+export async function applyAutoLayout(
+  states: WorkflowStates, 
+  initialState: string, 
+  isVertical: boolean = false,
+  engine: 'elk' | 'dagre' = 'dagre' // По умолчанию используем Dagre
+): Promise<{
+  nodePositions: { [key: string]: NodePosition };
+  transitionPositions: { [key: string]: {x: number, y: number} };
+}> {
+  console.log('🚀 Using layout engine:', engine);
+  
+  if (engine === 'dagre') {
+    return applyDagreLayout(states as unknown as import('./dagreLayout').WorkflowStates, initialState, isVertical);
+  } else {
+    return applyElkLayout(states, initialState, isVertical);
+  }
+}
+
+// Удобная функция для явного использования Dagre
+export async function applyAutoLayoutWithDagre(
+  states: WorkflowStates, 
+  initialState: string, 
+  isVertical: boolean = false
+): Promise<{
+  nodePositions: { [key: string]: NodePosition };
+  transitionPositions: { [key: string]: {x: number, y: number} };
+}> {
+  return applyDagreLayout(states as unknown as import('./dagreLayout').WorkflowStates, initialState, isVertical);
+}
+
+// Переименовываем старую функцию в applyElkLayout
+async function applyElkLayout(states: WorkflowStates, initialState: string, isVertical: boolean = false): Promise<{
   nodePositions: { [key: string]: NodePosition };
   transitionPositions: { [key: string]: {x: number, y: number} };
 }> {
@@ -72,6 +124,10 @@ export async function applyAutoLayout(states: WorkflowStates, initialState: stri
 
   const stateNames = Object.keys(states);
   if (stateNames.length === 0) return { nodePositions, transitionPositions: {} };
+
+  // Создаем карту размеров узлов для дальнейшего использования
+  const nodeWidths = new Map<string, number>();
+  const nodeHeights = new Map<string, number>();
 
   // Build ELK graph with transitions as intermediate nodes for perfect alignment
   const elk = new ELK();
@@ -110,12 +166,19 @@ export async function applyAutoLayout(states: WorkflowStates, initialState: stri
     edges: [],
   };
 
-  // Add state nodes
+  // Add state nodes with dynamic width calculation
   for (const stateName of stateNames) {
+    const nodeWidth = calculateNodeWidth(stateName, isVertical);
+    const nodeHeight = isVertical ? 80 : 100;
+    
+    // Сохраняем размеры для дальнейшего использования
+    nodeWidths.set(stateName, nodeWidth);
+    nodeHeights.set(stateName, nodeHeight);
+    
     elkGraph.children.push({
       id: stateName,
-      width: isVertical ? 200 : 220,
-      height: isVertical ? 80 : 100,
+      width: nodeWidth,
+      height: nodeHeight,
       layoutOptions: {
         'elk.nodeLabels.placement': 'INSIDE V_CENTER H_CENTER',
         // Даем основным нодам высокий приоритет для правильного выравнивания
@@ -315,16 +378,21 @@ export async function applyAutoLayout(states: WorkflowStates, initialState: stri
     }
 
     // Edge midpoint estimating the same handle selection as in the editor
-    const nodeW = isVertical ? 200 : 220;
-    const nodeH = isVertical ? 80 : 100;
+    const nodeW = nodeWidths.get(sourceId) || (isVertical ? 200 : 220);
+    const nodeH = nodeHeights.get(sourceId) || (isVertical ? 80 : 100);
+    const targetNodeW = nodeWidths.get(targetId) || (isVertical ? 200 : 220);
+    const targetNodeH = nodeHeights.get(targetId) || (isVertical ? 80 : 100);
+    
     const halfNodeW = nodeW / 2;
     const halfNodeH = nodeH / 2;
+    const halfTargetNodeW = targetNodeW / 2;
+    const halfTargetNodeH = targetNodeH / 2;
 
     // Node centers
     const sourceCenterX = sourcePos.x + halfNodeW;
     const sourceCenterY = sourcePos.y + halfNodeH;
-    const targetCenterX = targetPos.x + halfNodeW;
-    const targetCenterY = targetPos.y + halfNodeH;
+    const targetCenterX = targetPos.x + halfTargetNodeW;
+    const targetCenterY = targetPos.y + halfTargetNodeH;
 
     // Choose handles similar to useWorkflowEditor.ts
     let sX = sourceCenterX;
@@ -340,15 +408,15 @@ export async function applyAutoLayout(states: WorkflowStates, initialState: stri
           sX = sourcePos.x + halfNodeW;
           sY = sourcePos.y + nodeH;
           // target top
-          tX = targetPos.x + halfNodeW;
+          tX = targetPos.x + halfTargetNodeW;
           tY = targetPos.y;
         } else {
           // source top
           sX = sourcePos.x + halfNodeW;
           sY = sourcePos.y;
           // target bottom
-          tX = targetPos.x + halfNodeW;
-          tY = targetPos.y + nodeH;
+          tX = targetPos.x + halfTargetNodeW;
+          tY = targetPos.y + targetNodeH;
         }
       } else {
         // horizontal connection: right -> left or left -> right
@@ -358,14 +426,14 @@ export async function applyAutoLayout(states: WorkflowStates, initialState: stri
           sY = sourcePos.y + halfNodeH;
           // target left
           tX = targetPos.x;
-          tY = targetPos.y + halfNodeH;
+          tY = targetPos.y + halfTargetNodeH;
         } else {
           // source left
           sX = sourcePos.x;
           sY = sourcePos.y + halfNodeH;
           // target right
-          tX = targetPos.x + nodeW;
-          tY = targetPos.y + halfNodeH;
+          tX = targetPos.x + targetNodeW;
+          tY = targetPos.y + halfTargetNodeH;
         }
       }
     }

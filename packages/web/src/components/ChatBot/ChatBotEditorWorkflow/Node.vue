@@ -5,6 +5,7 @@
       'dimmed': shouldDimNode(nodeId),
       'hovering-delete': isHoveringDeleteBtn
     }]"
+      :style="nodeStyle"
       ref="nodeRef"
   >
     <Handle
@@ -142,6 +143,8 @@ interface NodeData {
   transitions?: unknown[]
   isInitial?: boolean
   isTerminal?: boolean
+  nodeWidth?: number
+  layoutMode?: 'horizontal' | 'vertical'
 }
 
 const props = defineProps<{
@@ -185,6 +188,32 @@ const nodeTypeClass = computed(() => {
   if (props.data.isInitial) return 'node-initial'
   if (props.data.isTerminal) return 'node-terminal'
   return 'node-default'
+})
+
+// Computed свойство для стиля узла с динамической шириной
+const nodeStyle = computed(() => {
+  const style: Record<string, string> = {}
+  
+  // Отладочная информация
+  console.log('Node style calculation:', {
+    label: props.data.label,
+    nodeWidth: props.data.nodeWidth,
+    layoutMode: props.data.layoutMode
+  })
+  
+  if (props.data.nodeWidth && props.data.layoutMode === 'vertical') {
+    // В вертикальном режиме используем вычисленную ширину
+    style.minWidth = `${props.data.nodeWidth}px`
+    style.width = `${props.data.nodeWidth}px`
+    console.log('Applied dynamic width:', style)
+  } else {
+    // В горизонтальном режиме или когда nodeWidth не задан, используем auto
+    style.width = 'auto'
+    style.minWidth = 'fit-content'
+    console.log('Applied auto width:', style)
+  }
+  
+  return style
 })
 
 const deleteState = async () => {
@@ -388,13 +417,7 @@ const cancelEdit = () => {
   }
 }
 
-.confirm-edit-btn {
 
-}
-
-.cancel-edit-btn {
-
-}
 
 .node-footer {
   border-top: 1px solid rgba(255, 255, 255, 0.2);
