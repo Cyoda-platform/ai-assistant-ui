@@ -1857,17 +1857,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     async function addNewState() {
         try {
-            const {value: stateName} = await ElMessageBox.prompt('Enter state name:', 'Add New State', {
-                confirmButtonText: 'OK',
-                cancelButtonText: 'Cancel',
-                inputPattern: /^[a-zA-Z_][a-zA-Z0-9_]*$/,
-                inputErrorMessage: 'State name should be alphanumeric and start with a letter or underscore'
-            });
-
-            if (!stateName || stateName.trim() === '') {
-                return;
-            }
-
+            // Парсим текущие данные один раз для получения списка существующих состояний
             let parsed: WorkflowData;
             try {
                 if (!canvasData.value || canvasData.value.trim() === '' || canvasData.value.trim() === '{}') {
@@ -1887,10 +1877,28 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 };
             }
 
-            if (parsed.states[stateName]) {
-                await ElMessageBox.alert(`State "${stateName}" already exists!`, 'Error', {
-                    type: 'error'
-                });
+            const {value: stateName} = await ElMessageBox.prompt('Enter state name:', 'Add New State', {
+                confirmButtonText: 'OK',
+                cancelButtonText: 'Cancel',
+                inputPattern: /^[a-zA-Z_][a-zA-Z0-9_]*$/,
+                inputErrorMessage: 'State name should be alphanumeric and start with a letter or underscore',
+                inputValidator: (value: string) => {
+                    // Сначала проверяем базовый паттерн
+                    if (!value || !value.trim()) {
+                        return 'State name is required';
+                    }
+                    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(value.trim())) {
+                        return 'State name should be alphanumeric and start with a letter or underscore';
+                    }
+                    // Затем проверяем на дублирование
+                    if (parsed.states[value.trim()]) {
+                        return `State "${value.trim()}" already exists! Please choose a different name.`;
+                    }
+                    return true;
+                }
+            });
+
+            if (!stateName || stateName.trim() === '') {
                 return;
             }
 
@@ -1960,8 +1968,18 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
             saveState(createSnapshot());
 
-        } catch {
-            console.log('User cancelled state creation');
+        } catch (error: unknown) {
+            console.log('addNewState error:', error);
+            
+            // Проверяем, была ли отмена пользователем
+            if (error === 'cancel' || (typeof error === 'object' && error !== null && 'action' in error && (error as {action: string}).action === 'cancel')) {
+                console.log('User cancelled state creation');
+            } else {
+                // Неожиданная ошибка - показываем уведомление
+                console.error('Unexpected error during state creation:', error);
+                ElMessage.error('An error occurred while creating the state');
+            }
+            
             // Reset flag in case of error with delay to handle any pending watcher calls
             setTimeout(() => {
                 isAddingNewState = false;
