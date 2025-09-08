@@ -6,6 +6,69 @@
 import dagre from 'dagre';
 import { resolveTransitionCollisions } from './forceDirectedLayout';
 
+type TransitionPosition = {
+  transitionKey: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  originalX?: number;
+  originalY?: number;
+};
+
+// Простая функция разрешения коллизий для горизонтального выравнивания
+function resolveHorizontalTransitionCollisions(
+  positions: Array<{
+    transitionKey: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }>
+): TransitionPosition[] {
+  console.log('🔧 Starting simple horizontal collision resolution for', positions.length, 'transitions');
+  
+  const result = positions.map(p => ({
+    ...p,
+    originalX: p.x,
+    originalY: p.y
+  }));
+  
+  // Группируем labels по вертикальной позиции (одинаковый Y)
+  const groups = new Map<number, typeof result>();
+  
+  result.forEach(label => {
+    const roundedY = Math.round(label.y / 25) * 25; // Группируем по 25px интервалам
+    if (!groups.has(roundedY)) {
+      groups.set(roundedY, []);
+    }
+    groups.get(roundedY)!.push(label);
+  });
+  
+  // Для каждой группы разнесем labels по вертикали
+  groups.forEach((groupLabels, baseY) => {
+    if (groupLabels.length > 1) {
+      console.log(`🔧 Resolving ${groupLabels.length} overlapping labels at Y=${baseY}`);
+      
+      // Сортируем по X для стабильности
+      groupLabels.sort((a, b) => a.x - b.x);
+      
+      // Размещаем labels с интервалом 50px по вертикали для лучшего разделения
+      const spacing = 50;
+      const totalHeight = (groupLabels.length - 1) * spacing;
+      const startY = baseY - totalHeight / 2;
+      
+      groupLabels.forEach((label, index) => {
+        label.y = startY + index * spacing;
+        console.log(`  📍 Moved ${label.transitionKey} to Y=${label.y}`);
+      });
+    }
+  });
+  
+  console.log('✅ Horizontal collision resolution completed');
+  return result;
+}
+
 export interface NodePosition {
   x: number;
   y: number;
@@ -167,8 +230,28 @@ export async function applyDagreLayout(
     console.log(`📍 Node ${nodeId}: (${node.x}, ${node.y}), size: ${node.width}x${node.height}`);
   });
 
-  // Создаем карту для связывания edge ID с transition key
+  // Создаем карту для связывания edge ID с transition key и internalTransitionId
   const transitionMap = new Map<string, string>();
+  const keyToInternalId = new Map<string, string>();
+  
+  // Связываем transitionKey с internalTransitionId
+  allTransitions.forEach(transition => {
+    // Улучшенная логика создания internalTransitionId
+    let transitionName = transition.name;
+    
+    // Если имя transition пустое или неопределено, используем индекс из transitionKey
+    if (!transitionName || transitionName.trim() === '') {
+      const parts = transition.transitionKey.split('|||');
+      const idx = parts[2] || '0';
+      transitionName = `transition_${idx}`;
+    }
+    
+    const internalTransitionId = `${transition.from}-${transitionName}`;
+    keyToInternalId.set(transition.transitionKey, internalTransitionId);
+    
+    console.log(`🔗 Mapping: ${transition.transitionKey} -> ${internalTransitionId} (original name: "${transition.name}")`);
+  });
+  
   g.edges().forEach(edge => {
     const edgeData = g.edge(edge);
     if (edgeData.id) {
@@ -177,6 +260,7 @@ export async function applyDagreLayout(
   });
 
   console.log('🔗 TransitionMap entries:', Array.from(transitionMap.entries()));
+  console.log('🗝️ KeyToInternalId mapping:', Array.from(keyToInternalId.entries()));
 
   // Группируем transitions по парам состояний для размещения
   const pairTransitions = new Map<string, Array<{
@@ -290,15 +374,24 @@ export async function applyDagreLayout(
     }
   }
 
-  // Алгоритм разрешения коллизий для всех transitions
-  const resolvedPositions = resolveTransitionCollisions(
-    allTransitionPositions, 
-    nodePositions, 
-    nodeWidths, 
-    nodeHeights
-  );
+  // Выбираем алгоритм разрешения коллизий в зависимости от направления
+  let resolvedPositions: TransitionPosition[];
+  if (isVertical) {
+    // Для вертикального выравнивания используем force-directed алгоритм
+    resolvedPositions = resolveTransitionCollisions(
+      allTransitionPositions, 
+      nodePositions, 
+      nodeWidths, 
+      nodeHeights
+    );
+  } else {
+    // Для горизонтального выравнивания используем простой алгоритм
+    resolvedPositions = resolveHorizontalTransitionCollisions(
+      allTransitionPositions
+    );
+  }
   
-  // Преобразуем в финальный формат
+  // Преобразуем в финальный формат с правильными ключами
   for (const position of resolvedPositions) {
     const edgeInfo = g.edges().find(edge => {
       const edgeData = g.edge(edge);
@@ -315,10 +408,24 @@ export async function applyDagreLayout(
       edgeMidY = (sourceNode.y + targetNode.y) / 2;
     }
     
-    transitionPositions[position.transitionKey] = {
-      x: Math.round(position.x - edgeMidX),
-      y: Math.round(position.y - edgeMidY)
+    // Преобразуем относительное смещение от центра ребра
+    const originalX = position.originalX || edgeMidX;
+    const originalY = position.originalY || edgeMidY;
+    
+    const relativeOffset = {
+      x: Math.round(position.x - originalX),
+      y: Math.round(position.y - originalY)
     };
+    
+    // Сохраняем под обоими ключами для совместимости
+    const internalTransitionId = keyToInternalId.get(position.transitionKey);
+    if (internalTransitionId) {
+      transitionPositions[internalTransitionId] = relativeOffset;
+      console.log(`🎯 Mapped ${position.transitionKey} -> ${internalTransitionId}:`, relativeOffset);
+    }
+    
+    // Также сохраняем под оригинальным ключом как fallback
+    transitionPositions[position.transitionKey] = relativeOffset;
   }
 
   console.log('🎯 Dagre Layout Results:');

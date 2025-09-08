@@ -407,8 +407,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         for (const [stateName, stateData] of Object.entries(states)) {
             const state = stateData as WorkflowState;
             if (state.transitions && Array.isArray(state.transitions)) {
+                console.log(`🔍 Processing state "${stateName}" with ${state.transitions.length} transitions`);
                 for (const transition of state.transitions) {
                     if (transition && transition.next) {
+                        console.log(`  ➡️ Transition: name="${transition.name}", next="${transition.next}"`);
                         const source = stateName;
                         const target = transition.next;
                         const groupKey = `${source}->${target}`;
@@ -429,9 +431,12 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
 
         for (const [groupKey, transitions] of transitionGroups.entries()) {
+            const pairCount = transitions.length;
+            console.log(`🎯 Processing group "${groupKey}" with ${pairCount} transitions`);
             transitions.forEach((transitionInfo, index) => {
                 const {transitionId, source, target, transitionData} = transitionInfo;
                 const internalTransitionId = `${source}-${transitionId}`;
+                console.log(`  📝 Creating edge: internalTransitionId="${internalTransitionId}" (source="${source}", transitionId="${transitionId}", target="${target}")`);
 
                 const sourceNode = nodes.value.find(n => n.id === source);
                 const targetNode = nodes.value.find(n => n.id === target);
@@ -501,9 +506,15 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 }
 
                 const labelOffset = metaData?.transitionLabels?.[internalTransitionId] || {x: 0, y: 0};
+                
+                // Debug логирование для проверки чтения labelOffset
+                if (index === 0 && transitions.length <= 2) { // Логируем только для первых нескольких
+                    console.log(`🔍 Reading labelOffset for ${internalTransitionId}:`, labelOffset);
+                    console.log(`📚 Available transitionLabels keys:`, Object.keys(metaData?.transitionLabels || {}));
+                }
 
                 const edge: WorkflowEdge = {
-                    id: `${source}-${target}-${internalTransitionId}`,
+                    id: internalTransitionId,
                     source,
                     target,
                     sourceHandle,
@@ -674,7 +685,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         if (needFreshLayout) {
             const isVertical = layoutDirection.value === 'vertical';
             console.log('🔄 Applying Dagre layout for node generation...');
-            const elk = await applyAutoLayout(states, initialState || 'state_initial', isVertical, 'dagre');
+            const elk = await applyAutoLayout(states, initialState || 'state_initial', isVertical);
             // Persist into meta
             const newMeta: Record<string, { x: number; y: number }> = {};
             for (const k of Object.keys(elk.nodePositions)) newMeta[k] = elk.nodePositions[k];
@@ -726,6 +737,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             return baseWidth;
         }
 
+        const nodesResult: WorkflowNode[] = [];
+
         for (const [stateName, stateData] of Object.entries(states)) {
             const state = stateData as WorkflowState;
             const transitionCount = state.transitions ? state.transitions.length : 0;
@@ -740,8 +753,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
             const hasSavedPositions = Object.keys(savedPositions).length > 0;
             const position = hasSavedPositions
-                ? savedPositions[stateName] || calculateSmartPosition(stateName, states, parsed.initialState || 'state_initial')
-                : calculateSmartPosition(stateName, states, parsed.initialState || 'state_initial');
+                ? savedPositions[stateName] || calculateSmartPosition(nodesResult)
+                : calculateSmartPosition(nodesResult);
 
             if (shouldSaveInitialState) {
                 initialPositions.value[stateName] = {...position};
@@ -751,7 +764,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             const isVertical = layoutDirection.value === 'vertical';
             const nodeWidth = calculateNodeWidth(stateName, isVertical);
 
-            result.push({
+            nodesResult.push({
                 id: stateName,
                 type: 'default',
                 data: {
@@ -768,7 +781,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             });
         }
 
-        nodes.value = result;
+        nodes.value = nodesResult;
 
         // Apply label separation after node generation to prevent sticking when inserting JSON
         nextTick(() => {
@@ -1543,8 +1556,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const initialState = parsed.initialState;
 
         // Compute fresh horizontal layout with Dagre
-        console.log('🔄 Applying horizontal Dagre layout for autoPositionNodes...');
-    const result = await applyAutoLayout(states, initialState || 'state_initial', false, 'dagre');
+        console.log('🔄 Applying horizontal Dagre layout for resetTransform...');
+    const result = await applyAutoLayout(states, initialState || 'state_initial', false);
+        
+        console.log('🎯 resetTransform: Layout result received');
+        console.log('📊 Node positions:', Object.keys(result.nodePositions).length, 'nodes');
+        console.log('🏷️ Transition positions:', Object.keys(result.transitionPositions).length, 'transitions');
+        console.log('🔑 Transition position keys:', Object.keys(result.transitionPositions));
+        console.log('📄 Sample transition positions:', Object.entries(result.transitionPositions).slice(0, 3));
 
         // Persist positions and label offsets in meta so generateNodes picks them up
     const metaPositions: Record<string, { x: number; y: number }> = {};
@@ -1557,6 +1576,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             layoutDirection: 'horizontal',
             transitionLabels: { ...result.transitionPositions },
         };
+        
+        console.log('💾 resetTransform: Persisting metadata');
+        console.log('🏷️ Saving transitionLabels with keys:', Object.keys(result.transitionPositions));
+        console.log('📄 Sample saved transitionLabels:', Object.entries(result.transitionPositions).slice(0, 3));
+        
         helperStorage.set(workflowMetaDataKey.value, workflowMetaData.value);
 
         // Re-generate nodes/edges using saved positions and labels
@@ -1692,7 +1716,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         if (isVertical) {
             // Vertical mode: Dagre vertical
             console.log('🔄 Applying vertical Dagre layout...');
-            const result = await applyAutoLayout(states, initialState, true, 'dagre');
+            const result = await applyAutoLayout(states, initialState, true);
             Object.keys(result.nodePositions).forEach(nodeId => {
                 const basePosition = result.nodePositions[nodeId];
                 finalPositions[nodeId] = {
@@ -1704,7 +1728,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         } else {
             // Horizontal mode: Dagre horizontal
             console.log('🔄 Applying horizontal Dagre layout...');
-            const result = await applyAutoLayout(states, initialState, false, 'dagre');
+            const result = await applyAutoLayout(states, initialState, false);
             Object.keys(result.nodePositions).forEach(nodeId => {
                 finalPositions[nodeId] = result.nodePositions[nodeId];
             });
