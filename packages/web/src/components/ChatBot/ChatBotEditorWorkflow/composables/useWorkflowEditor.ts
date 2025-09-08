@@ -1546,9 +1546,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     async function resetTransform() {
-        // Always reset to ELK horizontal layout
-        layoutDirection.value = 'horizontal';
-        helperStorage.set(LAYOUT_DIRECTION, 'horizontal');
+        // Используем текущее направление layout вместо принудительного сброса
+        const currentDirection = layoutDirection.value;
+        console.log(`🔄 resetTransform: Using current layout direction: ${currentDirection}`);
 
         // Clear in-memory caches for initial positions/labels
         initialPositions.value = {};
@@ -1581,9 +1581,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const states = parsed.states || {};
         const initialState = parsed.initialState;
 
-        // Compute fresh horizontal layout with Dagre
-        console.log('🔄 Applying horizontal Dagre layout for resetTransform...');
-    const result = await applyAutoLayout(states, initialState || 'state_initial', false);
+        // Применяем layout в текущем направлении
+        const isVertical = currentDirection === 'vertical';
+        console.log(`🔄 Applying ${currentDirection} Dagre layout for resetTransform...`);
+        const result = await applyAutoLayout(states, initialState || 'state_initial', isVertical);
         
         console.log('🎯 resetTransform: Layout result received');
         console.log('📊 Node positions:', Object.keys(result.nodePositions).length, 'nodes');
@@ -1592,14 +1593,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         console.log('📄 Sample transition positions:', Object.entries(result.transitionPositions).slice(0, 3));
 
         // Persist positions and label offsets in meta so generateNodes picks them up
-    const metaPositions: Record<string, { x: number; y: number }> = {};
+        const metaPositions: Record<string, { x: number; y: number }> = {};
         Object.keys(result.nodePositions).forEach((id) => {
             metaPositions[id] = { ...result.nodePositions[id] };
         });
 
         workflowMetaData.value = {
             ...metaPositions,
-            layoutDirection: 'horizontal',
+            layoutDirection: currentDirection, // Сохраняем текущее направление
             transitionLabels: { ...result.transitionPositions },
         };
         
@@ -1614,7 +1615,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         // Fit the view after nodes are updated
         nextTick(() => {
-            console.log('🔄 Reset transform completed - applied ELK horizontal layout');
+            console.log(`🔄 Reset transform completed - applied Dagre ${currentDirection} layout`);
             fitViewIncludingTransitions();
         });
 
