@@ -342,6 +342,7 @@ onMounted(() => {
   eventBus.$on('edge-hover-clear', onEdgeHoverClear)
   eventBus.$on('label-selected', handleLabelSelected)
   eventBus.$on('label-deselected', handleLabelDeselected)
+  eventBus.$on('select-transition', handleSelectTransition)
   
   // Добавляем глобальный обработчик для клавиши Shift
   document.addEventListener('keydown', handleKeyDown)
@@ -356,6 +357,7 @@ onUnmounted(() => {
   eventBus.$off('edge-hover-clear', onEdgeHoverClear)
   eventBus.$off('label-selected', handleLabelSelected)
   eventBus.$off('label-deselected', handleLabelDeselected)
+  eventBus.$off('select-transition', handleSelectTransition)
   
   // Убираем глобальные обработчики
   document.removeEventListener('keydown', handleKeyDown)
@@ -394,6 +396,14 @@ function handleLabelSelected(selectedTransitionId: string) {
 function handleLabelDeselected() {
   // Снимаем выделение при глобальном событии deselected
   isSelected.value = false;
+}
+
+function handleSelectTransition(eventData: { transitionId: string }) {
+  // Выделяем transition если его ID совпадает с текущим
+  if (eventData.transitionId === transitionId.value) {
+    isSelected.value = true;
+    console.log('✅ Transition selected via event bus:', transitionId.value);
+  }
 }
 
 function handleGlobalClick(event: MouseEvent) {
@@ -687,6 +697,18 @@ function endTransitionDrag(event: MouseEvent) {
     mouseY: event.clientY,
     transitionData: props.data?.transitionData
   })
+
+  // Выделяем transition label после завершения drop операции с небольшой задержкой
+  // чтобы дать время для завершения всех операций перерендеринга
+  setTimeout(() => {
+    // Также отправляем событие для выделения через eventBus
+    eventBus.$emit('select-transition', { transitionId: transitionId.value });
+    
+    if (!isSelected.value) {
+      isSelected.value = true;
+      console.log('✅ Transition label selected after successful drop');
+    }
+  }, 50);
 
   isDraggingTransition.value = false
   hoveredNodeId.value = null
