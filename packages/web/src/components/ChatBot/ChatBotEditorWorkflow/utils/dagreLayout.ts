@@ -220,9 +220,9 @@ function resolveHorizontalTransitionCollisions(
       // Сортируем по transitionKey для стабильности
       groupLabels.sort((a, b) => a.transitionKey.localeCompare(b.transitionKey));
       
-      // Размещаем transitions вертикально с минимальным интервалом
+      // Размещаем transitions вертикально с умеренным интервалом
       const baseY = groupLabels[0].y;
-      const verticalSpacing = 40; // Очень небольшое расстояние
+      const verticalSpacing = 50; // Увеличиваем расстояние между labels
       const totalHeight = (groupLabels.length - 1) * verticalSpacing;
       const startY = baseY - totalHeight / 2;
       
@@ -318,25 +318,24 @@ export async function applyDagreLayout(
     return { nodePositions, transitionPositions };
   }
 
-  // Создаем граф Dagre с поддержкой множественных рёбер
-  const g = new dagre.graphlib.Graph({ multigraph: true });
-  g.setGraph({
-    rankdir: isVertical ? 'TB' : 'LR',
-    align: 'UL',
-    // Compact spacing for vertical layout to keep Y within reasonable range
-    nodesep: isVertical ? 60 : 150,
-    ranksep: isVertical ? 90 : 200,
-    marginx: 40,
-    marginy: isVertical ? 20 : 50
-  });
-  g.setDefaultEdgeLabel(() => ({}));
-
   // Преобразуем список переходов в массив для удобства
   function normalizeTransitions(transitions: Transitions | undefined): Transition[] {
     if (!transitions) return [];
     if (Array.isArray(transitions)) return transitions;
     return Object.values(transitions);
   }
+
+  // Создаем граф Dagre с поддержкой множественных рёбер
+  const g = new dagre.graphlib.Graph({ multigraph: true });
+  g.setGraph({
+    rankdir: isVertical ? 'TB' : 'LR',
+    align: 'UL',
+    nodesep: isVertical ? 60 : 150,
+    ranksep: isVertical ? 90 : 250, // Умеренно увеличиваем для горизонтального режима
+    marginx: 40,
+    marginy: isVertical ? 20 : 50
+  });
+  g.setDefaultEdgeLabel(() => ({}));
 
   // Сбор всех переходов между состояниями
   const allTransitions: Array<{
