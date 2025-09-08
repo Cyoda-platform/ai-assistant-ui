@@ -441,16 +441,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 const sourceNode = nodes.value.find(n => n.id === source);
                 const targetNode = nodes.value.find(n => n.id === target);
 
+                // Start with auto-detected handles based on relative positions
                 let sourceHandle = 'right-source';
                 let targetHandle = 'left-target';
 
-                // Prefer per-transition saved handles (only set for newly created transitions)
-                const savedHandles = (workflowMetaData.value as any)?.handleConnectionsByTransition?.[internalTransitionId];
-                if (savedHandles?.sourceHandle && savedHandles?.targetHandle) {
-                    sourceHandle = savedHandles.sourceHandle;
-                    targetHandle = savedHandles.targetHandle;
-                } else if (sourceNode && targetNode) {
-                    // Otherwise, auto-detect based on relative positions
+                if (sourceNode && targetNode) {
                     if (source === target) {
                         sourceHandle = 'right-source';
                         targetHandle = 'left-target';
@@ -480,6 +475,13 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                             }
                         }
                     }
+                }
+
+                // Then override individually with any saved handles
+                const savedHandles = (workflowMetaData.value as any)?.handleConnectionsByTransition?.[internalTransitionId];
+                if (savedHandles) {
+                    if (savedHandles.sourceHandle) sourceHandle = savedHandles.sourceHandle;
+                    if (savedHandles.targetHandle) targetHandle = savedHandles.targetHandle;
                 }
 
                 const metaData: any = workflowMetaData.value || {};
@@ -1327,26 +1329,183 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function handleTransitionDragEnd(eventData: any) {
+        console.log('🔄 handleTransitionDragEnd received:', eventData);
+        
         if (!currentDraggedTransition.value) {
             console.log('❌ No current dragged transition');
             return;
         }
 
+        console.log('🔄 Current dragged transition:', currentDraggedTransition.value);
+
         eventBus.$emit('highlight-drop-targets', false);
 
-        const nodeUnderCursor = findNodeAtPosition(eventData.mouseX, eventData.mouseY);
+        // First, try to detect an exact handle (side + kind) under cursor
+        const handleInfo = findHandleAtPosition(eventData.mouseX, eventData.mouseY);
+        if (handleInfo) {
+            console.log('🎯 Handle under cursor:', handleInfo);
 
-        if (nodeUnderCursor && nodeUnderCursor !== currentDraggedTransition.value.sourceNode) {
-            moveTransitionToNode(
-                currentDraggedTransition.value.transitionId,
-                currentDraggedTransition.value.sourceNode,
-                nodeUnderCursor
-            );
+            const { nodeId: dropNodeId, side, kind } = handleInfo;
+            const internalTransitionId = currentDraggedTransition.value.transitionId;
+            const sourceNode = currentDraggedTransition.value.sourceNode;
+            const currentTargetNode = currentDraggedTransition.value.targetNode;
+
+            // If dropped on same target node (any handle), update only target handle
+            if (dropNodeId === currentTargetNode) {
+                const targetHandle = `${side}-target` as const;
+                console.log(`🔧 Updating target handle for ${internalTransitionId} -> ${targetHandle} (kind: ${kind})`);
+                upsertTransitionHandles(internalTransitionId, { targetHandle });
+                generateNodes({ skipFitView: true });
+                ElMessage.success(`Target handle set to ${targetHandle}`);
+            } else if (dropNodeId === sourceNode) {
+                // Dropped on the source node (any handle) -> update only source handle
+                const sourceHandle = `${side}-source` as const;
+                console.log(`🔧 Updating source handle for ${internalTransitionId} -> ${sourceHandle} (kind: ${kind})`);
+                upsertTransitionHandles(internalTransitionId, { sourceHandle });
+                generateNodes({ skipFitView: true });
+                ElMessage.success(`Source handle set to ${sourceHandle}`);
+            } else if (dropNodeId !== sourceNode && (kind === 'target' || kind === 'source')) {
+                // Dropped on another node's target handle -> move transition AND persist chosen side
+                const targetHandle = `${side}-target` as const;
+                console.log(`🔄 Reassigning transition to ${dropNodeId} and setting handle ${targetHandle}`);
+                upsertTransitionHandles(internalTransitionId, { targetHandle });
+                moveTransitionToNode(internalTransitionId, sourceNode, dropNodeId);
+            } else {
+                console.log('⚠️ Ignored drop: either same as source node or non-target handle');
+            }
         } else {
-            console.log('❌ Cannot move transition - same node or no target');
+            // Fallback: try to resolve just a node under cursor and deduce side by geometry
+            const nodeUnderCursor = findNodeAtPosition(eventData.mouseX, eventData.mouseY);
+            console.log('🎯 Node under cursor (fallback):', nodeUnderCursor);
+
+            const internalTransitionId = currentDraggedTransition.value.transitionId;
+            const sourceNode = currentDraggedTransition.value.sourceNode;
+            const currentTargetNode = currentDraggedTransition.value.targetNode;
+
+            if (nodeUnderCursor === currentTargetNode) {
+                const side = computeDropSideForNode(eventData.mouseX, eventData.mouseY, nodeUnderCursor);
+                if (side) {
+                    const targetHandle = `${side}-target` as const;
+                    console.log(`� (fallback) Updating target handle for ${internalTransitionId} -> ${targetHandle}`);
+                    upsertTransitionHandles(internalTransitionId, { targetHandle });
+                    generateNodes({ skipFitView: true });
+                    ElMessage.success(`Target handle set to ${targetHandle}`);
+                } else {
+                    console.log('⚠️ Could not determine side for target node');
+                }
+            } else if (nodeUnderCursor === sourceNode) {
+                const side = computeDropSideForNode(eventData.mouseX, eventData.mouseY, nodeUnderCursor);
+                if (side) {
+                    const sourceHandle = `${side}-source` as const;
+                    console.log(`🔧 (fallback) Updating source handle for ${internalTransitionId} -> ${sourceHandle}`);
+                    upsertTransitionHandles(internalTransitionId, { sourceHandle });
+                    generateNodes({ skipFitView: true });
+                    ElMessage.success(`Source handle set to ${sourceHandle}`);
+                } else {
+                    console.log('⚠️ Could not determine side for source node');
+                }
+            } else if (nodeUnderCursor && nodeUnderCursor !== sourceNode) {
+                console.log(`🔄 Moving transition from ${sourceNode} to ${nodeUnderCursor}`);
+                // Also try to determine side and persist for target
+                const side = computeDropSideForNode(eventData.mouseX, eventData.mouseY, nodeUnderCursor);
+                if (side) {
+                    const targetHandle = `${side}-target` as const;
+                    upsertTransitionHandles(internalTransitionId, { targetHandle });
+                }
+                moveTransitionToNode(internalTransitionId, sourceNode, nodeUnderCursor);
+            } else {
+                console.log('❌ Cannot move transition - same node or no target. NodeUnderCursor:', nodeUnderCursor, 'SourceNode:', sourceNode);
+            }
         }
 
         currentDraggedTransition.value = null;
+    }
+
+    // Compute closest side of a node based on mouse position relative to its bounding rect/center
+    function computeDropSideForNode(mouseX: number, mouseY: number, nodeId: string): 'left'|'right'|'top'|'bottom' | null {
+        // Find the DOM element representing the node
+        const candidates = Array.from(document.querySelectorAll('[data-id]')) as HTMLElement[];
+        let nodeEl: HTMLElement | null = null;
+        for (const el of candidates) {
+            const id = el.getAttribute('data-id') || '';
+            if (extractStateNameFromNodeId(id) === nodeId) {
+                // Prefer the higher-level node element if possible
+                if (el.classList.contains('vue-flow__node')) {
+                    nodeEl = el;
+                    break;
+                }
+                nodeEl = el;
+            }
+        }
+        if (!nodeEl) return null;
+
+        const rect = nodeEl.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dx = mouseX - cx;
+        const dy = mouseY - cy;
+
+        if (Math.abs(dx) > Math.abs(dy)) {
+            return dx > 0 ? 'right' : 'left';
+        } else {
+            return dy > 0 ? 'bottom' : 'top';
+        }
+    }
+
+    // Detect exact handle (side and kind) under cursor
+    function findHandleAtPosition(mouseX: number, mouseY: number): { nodeId: string; side: 'left'|'right'|'top'|'bottom'; kind: 'source'|'target' } | null {
+        const elementUnderCursor = document.elementFromPoint(mouseX, mouseY);
+        if (!elementUnderCursor) return null;
+
+        const handlerElement = elementUnderCursor.closest('.vue-flow__handle') as HTMLElement | null;
+        if (!handlerElement) return null;
+
+        const nodeElement = handlerElement.closest('[data-id]') as HTMLElement | null;
+        if (!nodeElement) return null;
+
+        const fullNodeId = nodeElement.getAttribute('data-id') || '';
+        const nodeId = extractStateNameFromNodeId(fullNodeId);
+
+        // Determine side from class or id
+        const classList = Array.from(handlerElement.classList);
+        let side: 'left'|'right'|'top'|'bottom' | null = null;
+        if (classList.some(c => c.includes('vue-flow__handle-left'))) side = 'left';
+        else if (classList.some(c => c.includes('vue-flow__handle-right'))) side = 'right';
+        else if (classList.some(c => c.includes('vue-flow__handle-top'))) side = 'top';
+        else if (classList.some(c => c.includes('vue-flow__handle-bottom'))) side = 'bottom';
+
+        if (!side) {
+            const idAttr = handlerElement.getAttribute('id') || '';
+            if (idAttr.startsWith('left-')) side = 'left';
+            else if (idAttr.startsWith('right-')) side = 'right';
+            else if (idAttr.startsWith('top-')) side = 'top';
+            else if (idAttr.startsWith('bottom-')) side = 'bottom';
+        }
+
+        if (!side) return null;
+
+        // Determine kind (source/target)
+        let kind: 'source'|'target' = 'target';
+        const idAttr = handlerElement.getAttribute('id') || '';
+        if (idAttr.endsWith('-source')) kind = 'source';
+        else if (idAttr.endsWith('-target')) kind = 'target';
+        else if (classList.includes('target-invisible')) kind = 'target';
+        else if (classList.includes('universal-handle')) kind = 'source';
+
+        return { nodeId, side, kind };
+    }
+
+    // Upsert saved handles for a transition in metadata
+    function upsertTransitionHandles(internalTransitionId: string, partial: { sourceHandle?: string; targetHandle?: string }) {
+        const meta = (workflowMetaData.value || {}) as any;
+        if (!meta.handleConnectionsByTransition) meta.handleConnectionsByTransition = {};
+        const existing = meta.handleConnectionsByTransition[internalTransitionId] || {};
+        meta.handleConnectionsByTransition[internalTransitionId] = {
+            ...existing,
+            ...partial,
+        };
+        workflowMetaData.value = meta;
+        saveState(createSnapshot());
     }
 
     function findNodeAtPosition(mouseX: number, mouseY: number): string | null {
@@ -1357,9 +1516,16 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             if (handlerElement) {
                 const nodeElement = handlerElement.closest('[data-id]');
                 if (nodeElement) {
-                    const nodeId = nodeElement.getAttribute('data-id');
-                    console.log('🎯 Found node via handler:', nodeId);
-                    return nodeId;
+                    const fullNodeId = nodeElement.getAttribute('data-id');
+                    console.log('🎯 Found node via handler:', fullNodeId);
+                    
+                    // Извлекаем имя состояния из полного ID handle
+                    // Формат: "vue-flow-1-STATE_NAME-handle-type"
+                    if (fullNodeId) {
+                        const nodeId = extractStateNameFromNodeId(fullNodeId);
+                        console.log('🎯 Extracted state name:', nodeId);
+                        return nodeId;
+                    }
                 }
             }
 
@@ -1383,8 +1549,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             }
 
             if (nodeElement) {
-                const nodeId = nodeElement.getAttribute('data-id');
-                return nodeId;
+                const fullNodeId = nodeElement.getAttribute('data-id');
+                console.log('🎯 Found node element:', fullNodeId);
+                
+                if (fullNodeId) {
+                    const nodeId = extractStateNameFromNodeId(fullNodeId);
+                    console.log('🎯 Extracted state name:', nodeId);
+                    return nodeId;
+                }
             }
         }
 
@@ -1392,51 +1564,123 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         return null;
     }
 
+    // Вспомогательная функция для извлечения имени состояния из полного ID
+    function extractStateNameFromNodeId(fullNodeId: string): string {
+        // Обрабатываем разные форматы ID:
+        // 1. "vue-flow-1-STATE_NAME-handle-type" (для handles)
+        // 2. "STATE_NAME" (для узлов)
+        
+        if (fullNodeId.includes('-')) {
+            // Для handles типа "vue-flow-1-initialized_chat-bottom-source-source"
+            const parts = fullNodeId.split('-');
+            if (parts.length >= 3 && parts[0] === 'vue' && parts[1] === 'flow') {
+                // Найдем индекс после "vue-flow-N-"
+                const stateNameParts: string[] = [];
+                let foundStateStart = false;
+                
+                for (let i = 3; i < parts.length; i++) {
+                    const part = parts[i];
+                    // Остановимся когда дойдем до handle-типов
+                    if (['top', 'bottom', 'left', 'right', 'source', 'target'].includes(part)) {
+                        break;
+                    }
+                    stateNameParts.push(part);
+                    foundStateStart = true;
+                }
+                
+                if (foundStateStart && stateNameParts.length > 0) {
+                    return stateNameParts.join('-');
+                }
+            }
+        }
+        
+        // Если не handle, возвращаем как есть
+        return fullNodeId;
+    }
+
     function moveTransitionToNode(transitionId: string, sourceNode: string, targetNode: string) {
         console.log(`🔄 Reassigning transition "${transitionId}" from state "${sourceNode}" to point to "${targetNode}"`);
 
-        let parsed: WorkflowData;
+        // Set flag to prevent fitView in watcher
+        isSavingTransition = true;
+        console.log('🚀 moveTransitionToNode: Setting isSavingTransition = true');
+
         try {
-            parsed = JSON.parse(canvasData.value);
-        } catch (e) {
-            console.error('Invalid JSON in canvasData:', e);
-            return;
-        }
+            // Сохраняем текущие позиции узлов перед изменением
+            const currentPositions: { [key: string]: NodePosition } = {};
+            nodes.value.forEach(node => {
+                currentPositions[node.id] = {x: node.position.x, y: node.position.y};
+            });
 
-        const sourceState = parsed.states[sourceNode];
-        const targetState = parsed.states[targetNode];
-
-        if (!sourceState || !targetState) {
-            console.error('Source or target state not found');
-            return;
-        }
-
-        if (sourceState.transitions) {
-            const transitionIndex = sourceState.transitions.findIndex(t => t.name === transitionId);
-            if (transitionIndex !== -1) {
-                sourceState.transitions[transitionIndex].next = targetNode;
-
-                console.log(`✅ Transition "${transitionId}" now points from "${sourceNode}" to "${targetNode}"`);
-            } else {
-                console.error('Transition not found in source state');
+            let parsed: WorkflowData;
+            try {
+                parsed = JSON.parse(canvasData.value);
+            } catch (e) {
+                console.error('Invalid JSON in canvasData:', e);
                 return;
             }
-        } else {
-            console.error('Source state has no transitions');
-            return;
+
+            const sourceState = parsed.states[sourceNode];
+            const targetState = parsed.states[targetNode];
+
+            if (!sourceState || !targetState) {
+                console.error('Source or target state not found');
+                return;
+            }
+
+            if (sourceState.transitions) {
+                // transitionId в формате "sourceState-transitionName", извлекаем имя transition
+                let actualTransitionName: string;
+                if (transitionId.includes('-') && transitionId.startsWith(sourceNode + '-')) {
+                    // Формат: "sourceState-transitionName"
+                    actualTransitionName = transitionId.substring(sourceNode.length + 1);
+                } else {
+                    // Fallback: используем transitionId как есть
+                    actualTransitionName = transitionId;
+                }
+                
+                const transitionIndex = sourceState.transitions.findIndex(t => t.name === actualTransitionName);
+                
+                console.log(`🔍 Looking for transition "${actualTransitionName}" in state "${sourceNode}" (from transitionId: "${transitionId}")`);
+                console.log('Available transitions:', sourceState.transitions.map(t => t.name));
+                
+                if (transitionIndex !== -1) {
+                    sourceState.transitions[transitionIndex].next = targetNode;
+                    console.log(`✅ Transition "${actualTransitionName}" now points from "${sourceNode}" to "${targetNode}"`);
+                    
+                    // Сохраняем текущие позиции в метаданных чтобы не потерять расположение
+                    workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
+
+                    canvasData.value = JSON.stringify(parsed, null, 2);
+
+                    if (assistantStore && assistantStore.selectedAssistant) {
+                        assistantStore.selectedAssistant.workflow_data = canvasData.value;
+                    }
+
+                    // Regenerate nodes preserving current positions, without fitView
+                    console.log('💡 moveTransitionToNode: Calling generateNodes({ skipFitView: true })');
+                    generateNodes({ skipFitView: true });
+
+                    ElMessage.success(`Transition "${actualTransitionName}" reassigned from "${sourceNode}" to "${targetNode}"`);
+
+                    saveState(createSnapshot());
+                } else {
+                    console.error(`Transition "${actualTransitionName}" not found in source state`);
+                    console.error('Available transitions in state:', sourceState.transitions);
+                    return;
+                }
+            } else {
+                console.error('Source state has no transitions');
+                return;
+            }
+        } finally {
+            // Reset flag with delay to ensure watcher doesn't trigger fitView
+            console.log('🏁 moveTransitionToNode: Scheduling isSavingTransition = false with delay');
+            setTimeout(() => {
+                console.log('🔄 Delayed: Setting isSavingTransition = false');
+                isSavingTransition = false;
+            }, 500);
         }
-
-        canvasData.value = JSON.stringify(parsed, null, 2);
-
-        if (assistantStore && assistantStore.selectedAssistant) {
-            assistantStore.selectedAssistant.workflow_data = canvasData.value;
-        }
-
-        generateNodes({ skipFitView: true });
-
-        ElMessage.success(`Transition "${transitionId}" reassigned from "${sourceNode}" to "${targetNode}"`);
-
-        saveState(createSnapshot());
     }
 
     function onEdgeConditionChange(event: any) {

@@ -18,8 +18,8 @@
         :marker-end="markerEnd"
         :marker-start="markerStart"
         fill="none"
-    />
-        fill="none"
+        style="cursor: grab;"
+        @mousedown="startTransitionDrag"
     />
 
     <path
@@ -590,6 +590,8 @@ function onGroupMouseDown(event: MouseEvent) {
 }
 
 function startTransitionDrag(event: MouseEvent) {
+  console.log('🔄 startTransitionDrag called for transition:', transitionId.value);
+  
   isDraggingTransition.value = true
 
   const svgElement = (event.target as Element)?.closest('svg') as SVGSVGElement
@@ -623,8 +625,14 @@ function startTransitionDrag(event: MouseEvent) {
     }
   }
 
+  console.log('🔄 Emitting transition-drag-start with:', {
+    transitionId: transitionId.value,
+    sourceNode: props.source,
+    targetNode: props.target
+  });
+
   eventBus.$emit('transition-drag-start', {
-    transitionId: originalTransitionName.value, // use original name for workflow operations
+    transitionId: transitionId.value, // используем полный transitionId вместо originalTransitionName
     sourceNode: props.source,
     targetNode: props.target,
     transitionData: props.data?.transitionData
@@ -660,7 +668,7 @@ function onTransitionDrag(event: MouseEvent) {
   }
 
   eventBus.$emit('transition-dragging', {
-    transitionId: originalTransitionName.value, // use original name for workflow operations
+    transitionId: transitionId.value, // используем полный transitionId
     mouseX: event.clientX,
     mouseY: event.clientY,
     startX: transitionDragStart.value.x,
@@ -671,8 +679,16 @@ function onTransitionDrag(event: MouseEvent) {
 function endTransitionDrag(event: MouseEvent) {
   if (!isDraggingTransition.value) return
 
+  console.log('🔄 endTransitionDrag called, emitting transition-drag-end with:', {
+    transitionId: transitionId.value,
+    sourceNode: props.source,
+    targetNode: props.target,
+    mouseX: event.clientX,
+    mouseY: event.clientY
+  });
+
   eventBus.$emit('transition-drag-end', {
-    transitionId: originalTransitionName.value, // use original name for workflow operations
+    transitionId: transitionId.value, // используем полный transitionId
     sourceNode: props.source,
     targetNode: props.target,
     mouseX: event.clientX,
