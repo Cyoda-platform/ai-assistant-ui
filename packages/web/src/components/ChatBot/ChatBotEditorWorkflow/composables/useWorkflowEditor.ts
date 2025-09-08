@@ -663,18 +663,23 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         // Only trigger fresh layout if:
         // 1. No existing positions at all (first time)
         // 2. Layout direction changed
-        // 3. Major structural changes (not just adding one new state)
+        // 3. Major structural changes (not just adding/removing one state)
         const hasExistingPositions = existingStateNames.length > 0;
         const layoutDirectionChanged = meta.layoutDirection && meta.layoutDirection !== layoutDirection.value;
         const isAddingNewState = stateNames.length === existingStateNames.length + 1 && 
                                  existingStateNames.every(name => stateNames.includes(name));
+        const isRemovingState = stateNames.length === existingStateNames.length - 1 && 
+                               stateNames.every(name => existingStateNames.includes(name));
         
-        const needFreshLayout = !hasExistingPositions || layoutDirectionChanged || (!isAddingNewState && stateNames.length !== existingStateNames.length);
+        // Preserve positions for single node additions/removals
+        const needFreshLayout = !hasExistingPositions || layoutDirectionChanged || 
+                               (!isAddingNewState && !isRemovingState && stateNames.length !== existingStateNames.length);
 
         console.log('🔍 generateNodes layout decision:', {
             hasExistingPositions,
             layoutDirectionChanged,
             isAddingNewState,
+            isRemovingState,
             needFreshLayout,
             stateNames: stateNames.length,
             existingStateNames: existingStateNames.length,
@@ -682,15 +687,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             savedLayoutDirection: meta.layoutDirection
         });
 
-        // ВРЕМЕННОЕ РЕШЕНИЕ: Принудительная очистка meta для перехода на Dagre
-        // Удалите этот блок после тестирования новой системы layout
-        if (hasExistingPositions && !meta.usingDagre) {
-            console.log('🔄 Forcing fresh Dagre layout by clearing old ELK meta data');
-            workflowMetaData.value = { usingDagre: true };
+        // Mark metadata as using Dagre if not already marked, but don't force layout reset
+        if (hasExistingPositions && !meta.usingDagre && !needFreshLayout) {
+            console.log('🏷️ Marking metadata as using Dagre without forcing layout reset');
+            workflowMetaData.value = {
+                ...(workflowMetaData.value || {}),
+                usingDagre: true
+            };
             helperStorage.set(workflowMetaDataKey.value, workflowMetaData.value);
-            // Перезапускаем generateNodes с очищенными мета данными
-            setTimeout(() => generateNodes(options), 100);
-            return;
         }
 
         if (needFreshLayout) {
@@ -1923,19 +1927,29 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             // For new state, add it to existing metadata without regenerating everything
             const currentMeta = workflowMetaData.value || {};
             
-            // Find a good position for the new state
+            // Find a good position for the new state based on current layout direction
             const existingPositions = Object.entries(currentMeta).filter(([key]) => 
-                key !== 'transitionLabels' && key !== 'handleConnectionsByTransition' && key !== 'layoutDirection'
+                key !== 'transitionLabels' && key !== 'handleConnectionsByTransition' && key !== 'layoutDirection' && key !== 'usingDagre'
             );
             
             let newStatePosition = { x: 0, y: 0 };
             if (existingPositions.length > 0) {
-                // Place new state to the right of the rightmost existing state
-                const rightmostX = Math.max(...existingPositions.map(([, pos]) => {
-                    const position = pos as { x?: number; y?: number };
-                    return position.x || 0;
-                }));
-                newStatePosition = { x: rightmostX + 250, y: 0 };
+                const positions = existingPositions.map(([, pos]) => pos as { x?: number; y?: number });
+                const isVertical = layoutDirection.value === 'vertical';
+                
+                if (isVertical) {
+                    // In vertical layout, place below the bottommost node
+                    const bottomY = Math.max(...positions.map(pos => (pos.y || 0)));
+                    const avgX = positions.reduce((sum, pos) => sum + (pos.x || 0), 0) / positions.length;
+                    newStatePosition = { x: avgX, y: bottomY + 150 };
+                } else {
+                    // In horizontal layout, place to the right of the rightmost node
+                    const rightX = Math.max(...positions.map(pos => (pos.x || 0)));
+                    const avgY = positions.reduce((sum, pos) => sum + (pos.y || 0), 0) / positions.length;
+                    newStatePosition = { x: rightX + 250, y: avgY };
+                }
+                
+                console.log(`📍 Placing new state "${stateName}" at:`, newStatePosition, `(${layoutDirection.value} layout)`);
             }
             
             // Add new state position to metadata
