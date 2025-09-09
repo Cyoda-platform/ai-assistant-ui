@@ -652,6 +652,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         // 1. No existing positions at all (first time)
         // 2. Layout direction changed
         // 3. Major structural changes (not just adding/removing one state)
+        // 4. Complete workflow replacement (when user pastes new workflow)
         const hasExistingPositions = existingStateNames.length > 0;
         const layoutDirectionChanged = meta.layoutDirection && meta.layoutDirection !== layoutDirection.value;
         const isAddingNewState = stateNames.length === existingStateNames.length + 1 && 
@@ -659,8 +660,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const isRemovingState = stateNames.length === existingStateNames.length - 1 && 
                                stateNames.every(name => existingStateNames.includes(name));
         
-        // Preserve positions for single node additions/removals
-        const needFreshLayout = !hasExistingPositions || layoutDirectionChanged || 
+        // Check if this is a complete workflow replacement (major structural change)
+        const commonStates = stateNames.filter(name => existingStateNames.includes(name));
+        const isCompleteReplacement = hasExistingPositions && 
+                                    (commonStates.length < Math.min(stateNames.length, existingStateNames.length) * 0.5 ||
+                                     (meta.initialState && parsed.initialState && meta.initialState !== parsed.initialState));
+        
+        // Preserve positions for single node additions/removals, but force layout for major changes
+        const needFreshLayout = !hasExistingPositions || layoutDirectionChanged || isCompleteReplacement ||
                                (!isAddingNewState && !isRemovingState && stateNames.length !== existingStateNames.length);
 
         console.log('🔍 generateNodes layout decision:', {
@@ -668,9 +675,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             layoutDirectionChanged,
             isAddingNewState,
             isRemovingState,
+            isCompleteReplacement,
             needFreshLayout,
             stateNames: stateNames.length,
             existingStateNames: existingStateNames.length,
+            commonStates: commonStates.length,
             currentLayoutDirection: layoutDirection.value,
             savedLayoutDirection: meta.layoutDirection
         });
@@ -700,6 +709,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     ...elk.transitionPositions,
                 },
                 layoutDirection: layoutDirection.value,
+                initialState: initialState, // Сохраняем initialState для отслеживания изменений
                 usingDagre: true, // Маркер для отслеживания что используется Dagre
             };
             helperStorage.set(workflowMetaDataKey.value, workflowMetaData.value);
