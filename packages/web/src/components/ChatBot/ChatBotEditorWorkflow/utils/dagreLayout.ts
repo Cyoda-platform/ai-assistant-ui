@@ -538,9 +538,27 @@ export async function applyDagreLayout(
     }
   }
 
-  // Выбираем алгоритм разрешения коллизий в зависимости от направления
+  // Проверяем, есть ли реальные коллизии перед применением алгоритма
+  // Простая проверка: если есть только одиночные переходы, коллизий быть не должно
+  function hasRealCollisions(): boolean {
+    const pairCounts = new Map<string, number>();
+    
+    // Считаем количество переходов для каждой пары состояний
+    allTransitions.forEach(t => {
+      const pairKey = `${t.from}→${t.to}`;
+      pairCounts.set(pairKey, (pairCounts.get(pairKey) || 0) + 1);
+    });
+    
+    // Если есть пары с более чем одним переходом, могут быть коллизии
+    return Array.from(pairCounts.values()).some(count => count > 1);
+  }
+  
   let resolvedPositions: TransitionPosition[];
-  if (isVertical) {
+  if (!hasRealCollisions()) {
+    // Если коллизий нет (только одиночные переходы), оставляем позиции как есть
+    console.log('✅ No real collisions detected, keeping original positions');
+    resolvedPositions = allTransitionPositions;
+  } else if (isVertical) {
     // Для вертикального выравнивания используем новый простой алгоритм с учетом геометрии узлов
     resolvedPositions = resolveVerticalTransitionCollisions(
       allTransitionPositions,

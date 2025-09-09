@@ -113,6 +113,7 @@ interface CustomEdgeData {
   layoutMode?: 'horizontal' | 'vertical' // Добавляем информацию о режиме layout
   sourceStateName?: string // Название источника состояния для расчета размеров
   targetStateName?: string // Название целевого состояния для расчета размеров
+  isSingleBetweenPair?: boolean // Единственный переход между парой узлов
 }
 
 const props = defineProps<EdgeProps<CustomEdgeData>>()
@@ -259,6 +260,25 @@ const edgePath = computed(() => {
 
   const labelX = labelPosition.value.x
   const labelY = labelPosition.value.y
+
+  // Для одиночных переходов: проверяем, смещен ли label от центра
+  const isSingle = !!props.data?.isSingleBetweenPair
+  if (isSingle) {
+    const centerX = (sourceX + targetX) / 2
+    const centerY = (sourceY + targetY) / 2
+    const offsetX = Math.abs(labelX - centerX)
+    const offsetY = Math.abs(labelY - centerY)
+    
+    console.log(`🔍 Single transition ${props.data?.transitionId}: offsetX=${offsetX.toFixed(1)}, offsetY=${offsetY.toFixed(1)}`)
+    
+    // Если label близко к центру (не перетаскивали), рисуем прямую линию
+    if (offsetX < 15 && offsetY < 15) {
+      console.log(`✅ Drawing straight line for ${props.data?.transitionId}`)
+      return `M ${sourceX},${sourceY} L ${targetX},${targetY}`
+    } else {
+      console.log(`🌀 Drawing curved line for ${props.data?.transitionId} (label moved)`)
+    }
+  }
 
   // Восстанавливаем оригинальную математику, но с правильными коэффициентами
   // Формула должна обеспечить прохождение кривой через позицию лейбла

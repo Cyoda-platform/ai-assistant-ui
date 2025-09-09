@@ -118,6 +118,7 @@ export interface WorkflowEdge {
             transition: WorkflowTransition;
         }>;
         isBidirectional?: boolean;
+        isSingleBetweenPair?: boolean; // Флаг для единственного перехода между парой
     };
 }
 
@@ -418,7 +419,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         for (const [groupKey, transitions] of transitionGroups.entries()) {
             const pairCount = transitions.length;
-            console.log(`🎯 Processing group "${groupKey}" with ${pairCount} transitions`);
+            console.log(`🎯 Processing group "${groupKey}" with ${pairCount} transitions (isSingle: ${pairCount === 1})`);
             transitions.forEach((transitionInfo, index) => {
                 const {transitionId, source, target, transitionData} = transitionInfo;
                 const internalTransitionId = `${source}-${transitionId}`;
@@ -527,6 +528,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                         layoutMode: layoutDirection.value, // Добавляем информацию о режиме layout
                         sourceStateName: source, // Добавляем названия состояний для расчета размеров
                         targetStateName: target,
+                        isSingleBetweenPair: pairCount === 1, // Флаг для единственного перехода между парой
                     },
                 };
 
