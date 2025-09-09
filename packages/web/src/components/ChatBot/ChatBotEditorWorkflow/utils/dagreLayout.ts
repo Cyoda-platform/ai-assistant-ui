@@ -277,17 +277,6 @@ function estimateLabelWidth(name?: string): number {
   return Math.max(base, Math.min(width, 280)); // ограничим максимум, чтобы не улетали слишком далеко
 }
 
-// Функция для расчета ширины узла на основе названия
-function calculateNodeWidth(stateName: string): number {
-  // Единые правила для обоих режимов - всегда учитываем длину текста
-  const baseWidth = 160; // Базовая ширина
-  const textLength = stateName.length;
-  // 8px на символ + 50px для отступов и кнопок
-  const textWidth = textLength * 8 + 50;
-  // Возвращаем максимум между базовой шириной и требуемой для текста
-  return Math.max(baseWidth, textWidth);
-}
-
 function calculateNodeHeight(isVertical: boolean): number {
   return isVertical ? 60 : 80; // Уменьшаем высоту
 }
@@ -354,7 +343,7 @@ export async function applyDagreLayout(
     const state = states[stateName];
     const transitions = normalizeTransitions(state.transitions);
     
-    const nodeWidth = calculateNodeWidth(stateName);
+    const nodeWidth = 200; // Фиксированная ширина для layout расчетов
     const nodeHeight = calculateNodeHeight(isVertical);
     
     nodeWidths.set(stateName, nodeWidth);

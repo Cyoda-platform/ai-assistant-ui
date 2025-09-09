@@ -190,28 +190,15 @@ const nodeTypeClass = computed(() => {
   return 'node-default'
 })
 
-// Computed свойство для стиля узла с динамической шириной
+// Computed свойство для стиля узла с автоматической шириной
 const nodeStyle = computed(() => {
   const style: Record<string, string> = {}
   
-  // Отладочная информация
+  // Убираем фиксированную ширину - пусть CSS сам подстраивается
   console.log('Node style calculation:', {
     label: props.data.label,
-    nodeWidth: props.data.nodeWidth,
-    layoutMode: props.data.layoutMode
+    autoWidth: 'enabled'
   })
-  
-  if (props.data.nodeWidth) {
-    // Используем вычисленную ширину для обоих режимов
-    style.minWidth = `${props.data.nodeWidth}px`
-    style.width = `${props.data.nodeWidth}px`
-    console.log('Applied dynamic width:', style)
-  } else {
-    // Когда nodeWidth не задан, используем базовую ширину
-    style.width = '160px'
-    style.minWidth = '160px'
-    console.log('Applied base width:', style)
-  }
   
   return style
 })
@@ -289,8 +276,9 @@ const cancelEdit = () => {
   position: relative;
   border-radius: 8px;
   padding: 8px 12px;
-  min-width: fit-content;
-  width: auto;
+  min-width: 160px; /* Минимальная ширина */
+  width: fit-content; /* Автоматическая ширина по контенту */
+  max-width: 400px; /* Максимальная ширина чтобы не разлетались */
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   transition: all 0.3s ease;
   border: none;
@@ -309,12 +297,14 @@ const cancelEdit = () => {
   font-size: 13px;
   line-height: 1.2;
   white-space: nowrap;
-  overflow: visible;
-  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
   display: flex;
   align-items: center;
   gap: 6px;
   cursor: text;
+  flex: 1;
+  min-width: 0; /* Позволяет сжиматься при необходимости */
 
   &:hover .node-name {
     text-decoration: underline;
@@ -386,6 +376,7 @@ const cancelEdit = () => {
   align-items: center;
   gap: 4px;
   margin-left: 8px;
+  flex-shrink: 0; /* Кнопки не сжимаются */
 }
 
 .edit-state-btn,
