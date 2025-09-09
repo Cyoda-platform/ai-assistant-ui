@@ -45,17 +45,17 @@ router.beforeEach(async (to, from, next) => {
   if (authStore.isLoggedIn && firstVisit && Object.keys(to.params).length === 0) {
     firstVisit = false;
     if (isInIframe) {
-      return next({path: "/"});
+      return next({path: "/", query: to.query});
     }
-    return next({path: "/home"});
+    return next({path: "/home", query: to.query});
   }
 
   if (!authStore.isLoggedIn && firstVisit && Object.keys(to.params).length === 0) {
     firstVisit = false;
     if (!assistantStore.isGuestChatsExist || isInIframe) {
-      return next({path: "/"});
+      return next({path: "/", query: to.query});
     } else {
-      return next({path: "/home"});
+      return next({path: "/home", query: to.query});
     }
   }
   next();
