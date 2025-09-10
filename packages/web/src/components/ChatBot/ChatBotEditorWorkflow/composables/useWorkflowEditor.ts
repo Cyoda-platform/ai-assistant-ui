@@ -208,6 +208,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     const workflowMetaData = ref(helperStorage.get(workflowMetaDataKey.value, null) || {});
 
     // Initialize undo/redo with current canvasData instead of empty string - moved after workflowMetaData declaration
+    console.log('🔄 Initializing undo/redo system');
     initialize(createSnapshot());
 
     // Custom fitView that includes transition labels - with proper boundary calculation
@@ -401,10 +402,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         for (const [stateName, stateData] of Object.entries(states)) {
             const state = stateData as WorkflowState;
             if (state.transitions && Array.isArray(state.transitions)) {
-                console.log(`🔍 Processing state "${stateName}" with ${state.transitions.length} transitions`);
                 for (const transition of state.transitions) {
                     if (transition && transition.next) {
-                        console.log(`  ➡️ Transition: name="${transition.name}", next="${transition.next}"`);
                         const source = stateName;
                         const target = transition.next;
                         const groupKey = `${source}->${target}`;
@@ -426,11 +425,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         for (const [groupKey, transitions] of transitionGroups.entries()) {
             const pairCount = transitions.length;
-            console.log(`🎯 Processing group "${groupKey}" with ${pairCount} transitions (isSingle: ${pairCount === 1})`);
             transitions.forEach((transitionInfo, index) => {
                 const {transitionId, source, target, transitionData} = transitionInfo;
                 const internalTransitionId = `${source}-${transitionId}`;
-                console.log(`  📝 Creating edge: internalTransitionId="${internalTransitionId}" (source="${source}", transitionId="${transitionId}", target="${target}")`);
 
                 const sourceNode = nodes.value.find(n => n.id === source);
                 const targetNode = nodes.value.find(n => n.id === target);
@@ -502,12 +499,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 }
 
                 const labelOffset = metaData?.transitionLabels?.[internalTransitionId] || {x: 0, y: 0};
-
-                // Debug логирование для проверки чтения labelOffset
-                if (index === 0 && transitions.length <= 2) { // Логируем только для первых нескольких
-                    console.log(`🔍 Reading labelOffset for ${internalTransitionId}:`, labelOffset);
-                    console.log(`📚 Available transitionLabels keys:`, Object.keys(metaData?.transitionLabels || {}));
-                }
 
                 const edge: WorkflowEdge = {
                     id: internalTransitionId,
@@ -622,7 +613,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         });
 
         if (!canvasData.value || canvasData.value.trim() === '') {
-            console.log('🔄 Canvas empty, clearing nodes and metadata');
             nodes.value = [];
             // Clear metadata when editor is empty
             if (workflowMetaData.value) {
@@ -685,23 +675,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const needFreshLayout = !hasExistingPositions || layoutDirectionChanged || isCompleteReplacement ||
                                (!isAddingNewState && !isRemovingState && stateNames.length !== existingStateNames.length);
 
-        console.log('🔍 generateNodes layout decision:', {
-            hasExistingPositions,
-            layoutDirectionChanged,
-            isAddingNewState,
-            isRemovingState,
-            isCompleteReplacement,
-            needFreshLayout,
-            stateNames: stateNames.length,
-            existingStateNames: existingStateNames.length,
-            commonStates: commonStates.length,
-            currentLayoutDirection: layoutDirection.value,
-            savedLayoutDirection: meta.layoutDirection
-        });
-
         // Mark metadata as using Dagre if not already marked, but don't force layout reset
         if (hasExistingPositions && !meta.usingDagre && !needFreshLayout) {
-            console.log('🏷️ Marking metadata as using Dagre without forcing layout reset');
             workflowMetaData.value = {
                 ...(workflowMetaData.value || {}),
                 usingDagre: true
@@ -711,7 +686,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         if (needFreshLayout) {
             const isVertical = layoutDirection.value === 'vertical';
-            console.log('🔄 Applying Dagre layout for node generation...');
             const elk = await applyAutoLayout(states, initialState || 'state_initial', isVertical);
             // Persist into meta
             const newMeta: Record<string, { x: number; y: number }> = {};
@@ -799,12 +773,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 isUndoRedoOperation
             });
             if (!options.skipFitView && !isUndoRedoOperation) {
-                console.log('🎯 About to call fitViewIncludingTransitions');
                 setTimeout(() => {
                     fitViewIncludingTransitions({ padding: 50 });
                 }, 300); // Increased timeout to allow toolbar to render completely
             } else {
-                console.log('⚠️ Skipping fitView due to skipFitView flag or undo/redo operation');
+                // Skipping fitView due to skipFitView flag or undo/redo operation
             }
         });
     }
@@ -2221,7 +2194,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     watch(canvasData, (newValue) => {
         if (!isUndoRedoOperation) {
-            // Don't save snapshot here, individual operations will save
+            // Save state for undo/redo when canvas changes (like JSON paste)
+            console.log('🔄 Canvas data changed, saving state for undo/redo');
+            saveState(createSnapshot());
         }
 
         // Skip watcher completely when saving transitions or deleting states since we handle it manually
@@ -2291,13 +2266,17 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     function redoAction() {
+        console.log('🔄 redoAction called, canRedo:', canRedo.value);
         const nextState = redo();
         if (nextState !== null) {
+            console.log('🔄 Loading next state from redo');
             isUndoRedoOperation = true;
             loadSnapshot(nextState);
             nextTick(() => {
                 isUndoRedoOperation = false;
             });
+        } else {
+            console.log('❌ No next state to redo to');
         }
     }
 
