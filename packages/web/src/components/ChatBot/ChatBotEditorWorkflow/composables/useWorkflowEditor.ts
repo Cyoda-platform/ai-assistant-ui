@@ -148,7 +148,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         workflowMetaData.value = metaDataFromStorage || '';
 
         // Clear undo/redo history when switching chat - initialize with current data
-        initialize(canvasData.value);
+        initialize(createSnapshot());
 
         // Clear positions for new chat
         initialPositions.value = {};
@@ -200,15 +200,15 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         initialize
     } = useUndoRedo();
 
-    // Initialize undo/redo with current canvasData instead of empty string
-    initialize(canvasData.value);
-
     const isDraggingConnection = ref(false);
     const pendingHandleConnections = ref<Record<string, { sourceHandle: string; targetHandle: string }>>({});
 
     const {setViewport, fitView, getViewport, vueFlowRef} = useVueFlow();
 
     const workflowMetaData = ref(helperStorage.get(workflowMetaDataKey.value, null) || {});
+
+    // Initialize undo/redo with current canvasData instead of empty string - moved after workflowMetaData declaration
+    initialize(createSnapshot());
 
     // Custom fitView that includes transition labels - with proper boundary calculation
     function fitViewIncludingTransitions(options: { padding?: number } = {}) {
@@ -607,7 +607,15 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     async function generateNodes(options: { skipFitView?: boolean } = {}) {
+        console.log('🔄 generateNodes called', {
+            canvasDataLength: canvasData.value?.length || 0,
+            canvasEmpty: !canvasData.value || canvasData.value.trim() === '',
+            isUndoRedo: isUndoRedoOperation,
+            options
+        });
+        
         if (!canvasData.value || canvasData.value.trim() === '') {
+            console.log('🔄 Canvas empty, clearing nodes and metadata');
             nodes.value = [];
             // Clear metadata when editor is empty
             if (workflowMetaData.value) {
@@ -2131,26 +2139,59 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     let isDeletingState = false;
 
     function createSnapshot(): string {
-        return JSON.stringify({
-            canvas: canvasData.value,
-            meta: workflowMetaData.value
+        console.log('📷 createSnapshot called', {
+            canvasLength: canvasData.value?.length || 0,
+            canvasValue: canvasData.value?.substring(0, 100) + '...',
+            metaKeys: Object.keys(workflowMetaData?.value || {})
         });
+        
+        const snapshot = JSON.stringify({
+            canvas: canvasData.value || '',
+            meta: workflowMetaData?.value || {}
+        });
+        
+        console.log('📷 snapshot created, length:', snapshot.length);
+        return snapshot;
     }
 
     function loadSnapshot(snapshot: string) {
         try {
+            console.log('📸 loadSnapshot called with data length:', snapshot.length);
             isUndoRedoOperation = true;
             isMetaDataSaving = true;
             const parsed = JSON.parse(snapshot);
-            canvasData.value = parsed.canvas || '';
-            workflowMetaData.value = parsed.meta || {};
+            
+            // Check if this is a new format snapshot (with canvas/meta) or old format (direct workflow JSON)
+            if (parsed.canvas !== undefined || parsed.meta !== undefined) {
+                // New format: {canvas: ..., meta: ...}
+                console.log('📸 parsed snapshot (new format):', { 
+                    hasCanvas: !!parsed.canvas, 
+                    canvasLength: parsed.canvas?.length || 0,
+                    hasMeta: !!parsed.meta,
+                    metaKeys: Object.keys(parsed.meta || {})
+                });
+                canvasData.value = parsed.canvas || '';
+                workflowMetaData.value = parsed.meta || {};
+            } else {
+                // Old format: direct workflow JSON - treat as canvas data
+                console.log('📸 parsed snapshot (old format - direct workflow JSON):', { 
+                    workflowLength: snapshot.length,
+                    hasStates: !!parsed.states,
+                    hasInitialState: !!parsed.initialState
+                });
+                canvasData.value = snapshot;
+                // Keep existing metadata when loading old format
+            }
+            
+            console.log('📸 Applied snapshot, calling generateNodes');
             generateNodes();
             nextTick(() => {
                 isUndoRedoOperation = false;
                 isMetaDataSaving = false;
+                console.log('📸 loadSnapshot completed');
             });
         } catch (e) {
-            console.error('Failed to load snapshot', e);
+            console.error('❌ Failed to load snapshot', e);
             isUndoRedoOperation = false;
             isMetaDataSaving = false;
         }
@@ -2207,13 +2248,23 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }, {immediate: false})
 
     function undoAction() {
+        console.log('🔄 undoAction called, canUndo:', canUndo.value, 'currentIndex:', currentIndex.value, 'history length:', history.value.length);
+        console.log('🔄 History contents:', history.value.map((item, index) => `[${index}]: ${item.length} chars`));
+        
         const previousState = undo();
+        console.log('🔄 undo() returned:', previousState);
+        console.log('🔄 undo() returned type:', typeof previousState);
+        console.log('🔄 undo() returned length:', previousState ? previousState.length : 'null');
+        
         if (previousState !== null) {
+            console.log('🔄 Loading previous state from undo');
             isUndoRedoOperation = true;
             loadSnapshot(previousState);
             nextTick(() => {
                 isUndoRedoOperation = false;
             });
+        } else {
+            console.log('❌ No previous state to undo to');
         }
     }
 
@@ -2249,7 +2300,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     })
 
     function resetAllTransitionPositions() {
-        const metaData: any = {...(workflowMetaData.value || {})};
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const metaData: Record<string, any> = {...(workflowMetaData.value || {})};
         if (metaData.transitionLabels) {
             delete metaData.transitionLabels;
             workflowMetaData.value = metaData;
