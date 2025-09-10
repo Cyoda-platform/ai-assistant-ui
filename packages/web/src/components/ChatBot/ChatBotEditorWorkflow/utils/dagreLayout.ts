@@ -427,25 +427,36 @@ export async function applyDagreLayout(
   console.log('🗝️ KeyToInternalId mapping:', Array.from(keyToInternalId.entries()));
 
   // Группируем transitions по парам состояний для размещения
+  // ВАЖНО: учитываем bidirectional связи (A->B и B->A считаем как одну пару)
   const pairTransitions = new Map<string, Array<{
     transitionKey: string;
     name?: string;
+    from: string;
+    to: string;
   }>>();
 
   allTransitions.forEach(transition => {
-    const pairKey = `${transition.from}|||${transition.to}`;
-    if (!pairTransitions.has(pairKey)) {
-      pairTransitions.set(pairKey, []);
+    // Создаем нормализованный ключ пары (сортируем по алфавиту)
+    const nodeA = transition.from;
+    const nodeB = transition.to;
+    const normalizedPairKey = nodeA < nodeB ? `${nodeA}|||${nodeB}` : `${nodeB}|||${nodeA}`;
+    
+    if (!pairTransitions.has(normalizedPairKey)) {
+      pairTransitions.set(normalizedPairKey, []);
     }
-    pairTransitions.get(pairKey)!.push({
+    
+    pairTransitions.get(normalizedPairKey)!.push({
       transitionKey: transition.transitionKey,
-      name: transition.name
+      name: transition.name,
+      from: transition.from,
+      to: transition.to
     });
   });
 
-  console.log('👥 Transition pairs:', Array.from(pairTransitions.entries()).map(([key, transitions]) => ({
+  console.log('👥 Bidirectional transition pairs:', Array.from(pairTransitions.entries()).map(([key, transitions]) => ({
     pair: key,
-    count: transitions.length
+    count: transitions.length,
+    transitions: transitions.map(t => `${t.from}->${t.to}:${t.name}`)
   })));
 
   // Собираем все позиции transitions для алгоритма collision resolution
@@ -455,36 +466,35 @@ export async function applyDagreLayout(
     y: number;
     width: number;
     height: number;
+    targetNode: string;
   }> = [];
 
-  // Размещаем transitions для каждой пары состояний
+  // Размещаем transitions для каждой bidirectional пары состояний
   for (const [pairKey, transitionGroup] of pairTransitions.entries()) {
-    const [fromState, toState] = pairKey.split('|||');
-    
-    const fromNode = g.node(fromState);
-    const toNode = g.node(toState);
-    
-    if (!fromNode || !toNode) {
-      console.warn(`⚠️ Missing node data for pair ${pairKey}`);
-      continue;
-    }
-    
-    // Центральная точка ребра
-    const baseLabelX = (fromNode.x + toNode.x) / 2;
-    const baseLabelY = (fromNode.y + toNode.y) / 2;
-    
-    console.log(`🎯 Processing transition group for ${pairKey}:`, {
+    console.log(`🎯 Processing bidirectional transition group for ${pairKey}:`, {
       count: transitionGroup.length,
-      baseLabelX,
-      baseLabelY,
-      fromNode: { x: fromNode.x, y: fromNode.y },
-      toNode: { x: toNode.x, y: toNode.y }
+      transitions: transitionGroup.map(t => `${t.from}->${t.to}:${t.name}`)
     });
     
     if (transitionGroup.length > 1) {
-      // Множественные transitions между парой состояний
-      const edgeVectorX = toNode.x - fromNode.x;
-      const edgeVectorY = toNode.y - fromNode.y;
+      // Множественные transitions между парой состояний (включая bidirectional)
+      // Разносим их равномерно по перпендикуляру к средней линии между узлами
+      const [nodeA, nodeB] = pairKey.split('|||');
+      const nodeAData = g.node(nodeA);
+      const nodeBData = g.node(nodeB);
+      
+      if (!nodeAData || !nodeBData) {
+        console.warn(`⚠️ Missing node data for bidirectional pair ${pairKey}`);
+        continue;
+      }
+      
+      // Центральная точка между узлами
+      const centerX = (nodeAData.x + nodeBData.x) / 2;
+      const centerY = (nodeAData.y + nodeBData.y) / 2;
+      
+      // Перпендикулярный вектор для разнесения
+      const edgeVectorX = nodeBData.x - nodeAData.x;
+      const edgeVectorY = nodeBData.y - nodeAData.y;
       const edgeLength = Math.sqrt(edgeVectorX * edgeVectorX + edgeVectorY * edgeVectorY);
       
       let perpX = 0;
@@ -496,34 +506,45 @@ export async function applyDagreLayout(
         perpY = edgeVectorX / edgeLength;
       }
       
-  // Минимальное расстояние между labels (будет уточнено в вертикальном резолвере)
-  const labelSpacing = 40;
+      // Минимальное расстояние между labels
+      const labelSpacing = 50;
       const totalWidth = (transitionGroup.length - 1) * labelSpacing;
       const startOffset = -totalWidth / 2;
       
       transitionGroup.forEach((item, idx) => {
         const offset = startOffset + idx * labelSpacing;
-        const finalLabelX = baseLabelX + perpX * offset;
-        const finalLabelY = baseLabelY + perpY * offset;
+        const finalLabelX = centerX + perpX * offset;
+        const finalLabelY = centerY + perpY * offset;
         
-  // Оценочные размеры transition label
-  const labelWidth = estimateLabelWidth(item.name);
-  const labelHeight = 25; // Примерная высота label
+        // Оценочные размеры transition label
+        const labelWidth = estimateLabelWidth(item.name);
+        const labelHeight = 25;
         
         allTransitionPositions.push({
           transitionKey: item.transitionKey,
           x: finalLabelX,
           y: finalLabelY,
           width: labelWidth,
-          height: labelHeight
+          height: labelHeight,
+          targetNode: item.to
         });
         
-        console.log(`➕ Added multiple transition position for ${item.transitionKey}`);
+        console.log(`➕ Added bidirectional transition position for ${item.transitionKey} (${item.from}->${item.to})`);
       });
     } else {
       // Одиночный transition
       const item = transitionGroup[0];
-  const labelWidth = estimateLabelWidth(item.name);
+      const fromNode = g.node(item.from);
+      const toNode = g.node(item.to);
+      
+      if (!fromNode || !toNode) {
+        console.warn(`⚠️ Missing node data for single transition ${item.from}->${item.to}`);
+        continue;
+      }
+      
+      const baseLabelX = (fromNode.x + toNode.x) / 2;
+      const baseLabelY = (fromNode.y + toNode.y) / 2;
+      const labelWidth = estimateLabelWidth(item.name);
       const labelHeight = 25;
       
       allTransitionPositions.push({
@@ -531,7 +552,8 @@ export async function applyDagreLayout(
         x: baseLabelX,
         y: baseLabelY,
         width: labelWidth,
-        height: labelHeight
+        height: labelHeight,
+        targetNode: item.to
       });
       
       console.log(`➕ Added single transition position for ${item.transitionKey}`);
