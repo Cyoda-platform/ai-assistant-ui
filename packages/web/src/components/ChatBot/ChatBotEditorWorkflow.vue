@@ -25,7 +25,7 @@
         <VueFlow
             class="chat-bot-editor-workflow__vue-flow"
             :class="{ 'connection-dragging': isDraggingConnection }"
-            :fit-view-on-init="true"
+            :fit-view-on-init="false"
             :zoom-on-double-click="false"
             :pan-on-drag="true"
             :selection-on-drag="false"
