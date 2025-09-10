@@ -784,15 +784,20 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             console.log('📝 JSON paste completed - use auto-layout for proper transition positioning');
             
             // Fit view to show all nodes and transitions after JSON paste
-            // Skip fitView if explicitly requested (e.g., when adding new state)
-            console.log('🔍 generateNodes fitView check:', { skipFitView: options.skipFitView, isSavingTransition, isAddingNewState });
-            if (!options.skipFitView) {
+            // Skip fitView if explicitly requested (e.g., when adding new state) or during undo/redo operations
+            console.log('🔍 generateNodes fitView check:', { 
+                skipFitView: options.skipFitView, 
+                isSavingTransition, 
+                isAddingNewState, 
+                isUndoRedoOperation 
+            });
+            if (!options.skipFitView && !isUndoRedoOperation) {
                 console.log('🎯 About to call fitViewIncludingTransitions');
                 setTimeout(() => {
                     fitViewIncludingTransitions({ padding: 50 });
                 }, 100);
             } else {
-                console.log('⚠️ Skipping fitView due to skipFitView flag');
+                console.log('⚠️ Skipping fitView due to skipFitView flag or undo/redo operation');
             }
         });
     }
@@ -2183,8 +2188,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 // Keep existing metadata when loading old format
             }
             
-            console.log('📸 Applied snapshot, calling generateNodes');
-            generateNodes();
+            console.log('📸 Applied snapshot, calling generateNodes with skipFitView');
+            generateNodes({ skipFitView: true });
             nextTick(() => {
                 isUndoRedoOperation = false;
                 isMetaDataSaving = false;
