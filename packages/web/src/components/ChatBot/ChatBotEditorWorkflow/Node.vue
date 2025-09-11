@@ -8,7 +8,7 @@
     }]"
       :style="nodeStyle"
       ref="nodeRef"
-      @mousedown="onNodeMouseDown"
+      @mousedown="onNodeClick"
   >
     <Handle
         type="source"
@@ -184,22 +184,10 @@ const handleDocumentClick = (event: Event) => {
 
 onMounted(() => {
   document.addEventListener('click', handleDocumentClick)
-  
-  // Listen for node selection events
-  eventBus.$on('node-selected', (selectedNodeId: string) => {
-    // Если выделен другой node, снимаем выделение с текущего
-    isSelected.value = false;
-    if (selectedNodeId === nodeId.value) {
-      isSelected.value = true;
-    }
-  });
-  
   eventBus.$on('node-deselected', () => {
-    // Снимаем выделение при глобальном событии deselected
     isSelected.value = false;
-    console.log('🚫 Node deselected globally:', nodeId.value);
   });
-  
+
   // Listen for delete node with confirm event
   eventBus.$on('delete-node-with-confirm', (eventData: { nodeId: string }) => {
     // Удаляем node если его ID совпадает с текущим
@@ -211,7 +199,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('click', handleDocumentClick)
-  
+
   // Remove event listeners
   eventBus.$off('node-selected');
   eventBus.$off('node-deselected');
@@ -227,7 +215,7 @@ const nodeTypeClass = computed(() => {
 // Computed свойство для стиля узла с автоматической шириной
 const nodeStyle = computed(() => {
   const style: Record<string, string> = {}
-  
+
   return style
 })
 
@@ -246,7 +234,7 @@ const deleteState = async () => {
     eventBus.$emit('delete-state', {
       stateName: nodeId.value
     });
-    
+
     // Уведомляем ChatBotEditorWorkflow об успешном удалении
     eventBus.$emit('node-deleted', nodeId.value);
   } catch {
@@ -308,7 +296,7 @@ const onNodeClick = (event: MouseEvent) => {
     console.log('❌ Click ignored - clicked on button');
     return;
   }
-  
+
   // Если было перетаскивание, не обрабатываем клик
   if (isDragging.value) {
     console.log('❌ Click ignored - node was dragged');
@@ -318,52 +306,8 @@ const onNodeClick = (event: MouseEvent) => {
 
   // При клике просто убеждаемся что узел выделен (не переключаем)
   // Снятие выделения происходит при клике в пустом месте
-  if (!isSelected.value) {
-    eventBus.$emit('node-selected', nodeId.value);
+    eventBus.$emit('node-deselected');
     isSelected.value = true;
-  } else {
-    console.log('✅ Node already selected, keeping selection');
-  }
-}
-
-const onNodeMouseDown = (event: MouseEvent) => {
-  // Проверяем, что клик не по кнопкам
-  const target = event.target as HTMLElement;
-  if (target.closest('button')) {
-    console.log('❌ MouseDown ignored - clicked on button');
-    return;
-  }
-  
-  // Всегда сбрасываем флаг движения при новом mousedown
-  isDragging.value = false;
-  
-  // ВСЕГДА выделяем узел при mousedown (и для клика, и для drag)
-  if (!isSelected.value) {
-    eventBus.$emit('node-selected', nodeId.value);
-    isSelected.value = true;
-  }
-  
-  // Добавляем слушатель движения мыши для отслеживания перетаскивания
-  const handleMouseMove = () => {
-    if (!isDragging.value) {
-      isDragging.value = true;
-    }
-  };
-  
-  const handleMouseUp = () => {
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-    
-    // Сбрасываем флаг через короткую задержку, чтобы click успел его проверить
-    setTimeout(() => {
-      if (isDragging.value) {
-        isDragging.value = false;
-      }
-    }, 10);
-  };
-  
-  document.addEventListener('mousemove', handleMouseMove);
-  document.addEventListener('mouseup', handleMouseUp);
 }
 </script>
 
@@ -385,7 +329,7 @@ const onNodeMouseDown = (event: MouseEvent) => {
   &.dimmed {
     opacity: 0.5;
   }
-  
+
   &.selected {
     background-color: #409eff !important;
   }
