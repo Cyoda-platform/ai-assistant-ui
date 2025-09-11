@@ -446,8 +446,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
                 if (sourceNode && targetNode) {
                     if (source === target) {
+                        // Self-loop авто-предложение: right-source -> top-target (можно переопределить пользователем)
                         sourceHandle = 'right-source';
-                        targetHandle = 'left-target';
+                        targetHandle = 'top-target';
                     } else {
                         const sourceY = sourceNode.position.y;
                         const targetY = targetNode.position.y;
@@ -477,13 +478,16 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 }
 
                 // Then override individually with any saved handles
-                const savedHandles = (workflowMetaData.value as any)?.handleConnectionsByTransition?.[internalTransitionId];
+                type HandleConnections = Record<string, { sourceHandle?: string; targetHandle?: string }>;
+                const handleConnections = (workflowMetaData.value && (workflowMetaData.value as unknown as { handleConnectionsByTransition?: HandleConnections }).handleConnectionsByTransition) || undefined;
+                const savedHandles = handleConnections ? handleConnections[internalTransitionId] : undefined;
+                // Теперь разрешаем переопределять и self-loop, если пользователь сохранил кастом
                 if (savedHandles) {
                     if (savedHandles.sourceHandle) sourceHandle = savedHandles.sourceHandle;
                     if (savedHandles.targetHandle) targetHandle = savedHandles.targetHandle;
                 }
 
-                const metaData: any = workflowMetaData.value || {};
+                const metaData = (workflowMetaData.value || {}) as Record<string, unknown> & { transitionLabels?: Record<string, { x: number; y: number }> };
                 let sourceOffset = {x: 0, y: 0};
                 let targetOffset = {x: 0, y: 0};
 
@@ -1653,9 +1657,18 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         // Cache the handle pair used during this drag-connect so we can persist it on save
         const key = `${source}-${target}`;
+        // Сохраняем фактически выбранные хэндлы пользователя (без навязывания left-target)
+    const finalSourceHandle = sourceHandle || 'right-source';
+    let finalTargetHandle = targetHandle || (source === target ? 'top-target' : 'left-target');
+
+        // Если self-loop и пользователь специально выбрал другой targetHandle (например left-target), уважаем его
+        if (source === target && targetHandle) {
+            finalTargetHandle = targetHandle;
+        }
+
         pendingHandleConnections.value[key] = {
-            sourceHandle: sourceHandle || 'right-source',
-            targetHandle: targetHandle || 'left-target',
+            sourceHandle: finalSourceHandle,
+            targetHandle: finalTargetHandle,
         };
 
         const currentPositions: { [key: string]: NodePosition } = {};

@@ -19,7 +19,7 @@ import eventBus from '../../../plugins/eventBus'
 interface EdgeData {
   transitionData?: {
     manual?: boolean;
-    [key: string]: any;
+    [key: string]: unknown;
   }
   stateName: string
   transitionName: string
@@ -113,6 +113,8 @@ const edgePath = computed(() => {
 
       return `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`
     }
+
+    // (Removed deterministic right->top override to restore original dynamic random-based loop behavior)
 
     // Стандартная петля для self-loops
     const controlX1 = startX + offset

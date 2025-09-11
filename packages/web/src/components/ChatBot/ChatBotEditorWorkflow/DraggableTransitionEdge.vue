@@ -133,37 +133,9 @@ const transitionId = computed(() =>
 const isHighlighted = computed(() => isTransitionHighlighted(transitionId.value))
 const hoveredEdgeGlobal = ref<string | null>(null)
 
-// Функция для расчета ширины узла на основе названия
-function calculateNodeWidth(stateName: string): number {
-  // Единые правила для обоих режимов - всегда учитываем длину текста
-  const baseWidth = 160; // Базовая ширина
-  const textLength = stateName.length;
-  // 8px на символ + 50px для отступов и кнопок
-  const textWidth = textLength * 8 + 50;
-  // Возвращаем максимум между базовой шириной и требуемой для текста
-  return Math.max(baseWidth, textWidth);
-}
+// (Removed unused calculateNodeWidth helper)
 
-// Вычисляем размеры узлов на основе их названий
-const sourceNodeWidth = computed(() => {
-  const sourceName = props.data?.sourceStateName || props.source;
-  return calculateNodeWidth(sourceName);
-});
-
-const targetNodeWidth = computed(() => {
-  const targetName = props.data?.targetStateName || props.target;
-  return calculateNodeWidth(targetName);
-});
-
-const sourceNodeHeight = computed(() => {
-  const isVertical = props.data?.layoutMode === 'vertical';
-  return isVertical ? 60 : 80; // Уменьшаем высоту
-});
-
-const targetNodeHeight = computed(() => {
-  const isVertical = props.data?.layoutMode === 'vertical';
-  return isVertical ? 60 : 80; // Уменьшаем высоту
-});
+// (Removed unused node dimension computations)
 
 function handleEdgeMouseEnter() {
   eventBus.$emit('edge-hover', { edgeId: props.id })
@@ -224,6 +196,7 @@ const edgePath = computed(() => {
   const targetY = props.targetY
 
   if (props.source === props.target) {
+    // Динамическая петля: форма зависит от позиции label (как было ранее)
     const labelX = labelPosition.value.x
     const labelY = labelPosition.value.y
 

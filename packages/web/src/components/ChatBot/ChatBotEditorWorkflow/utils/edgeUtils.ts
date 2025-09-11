@@ -49,6 +49,11 @@ export function calculateEdgeHandles(
   sourceNode: WorkflowNode,
   targetNode: WorkflowNode
 ): { sourceHandle: string; targetHandle: string } {
+  // Специальная обработка для self-loops (узел ссылается сам на себя)
+  if (sourceNode.id === targetNode.id) {
+    return { sourceHandle: 'right', targetHandle: 'top' };
+  }
+
   let sourceHandle = 'right';
   let targetHandle = 'left';
 
