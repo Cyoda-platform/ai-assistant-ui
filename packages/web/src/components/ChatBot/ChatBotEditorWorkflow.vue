@@ -23,6 +23,7 @@
       </el-splitter-panel>
       <el-splitter-panel v-if="isShowVueFlow" class="chat-bot-editor-workflow__flow-wrapper">
         <VueFlow
+            :delete-key-code="null"
             class="chat-bot-editor-workflow__vue-flow"
             :class="{ 'connection-dragging': isDraggingConnection }"
             :fit-view-on-init="false"
@@ -115,9 +116,10 @@ import EditEdgeConditionalDialog from "@/components/ChatBot/ChatBotEditorWorkflo
 import WorkflowMetaDialog from "@/components/ChatBot/ChatBotEditorWorkflow/WorkflowMetaDialog.vue";
 import {useWorkflowEditor} from './ChatBotEditorWorkflow/composables/useWorkflowEditor';
 import useAssistantStore from "@/stores/assistant.ts";
-import {computed, markRaw, useTemplateRef, onMounted, nextTick} from "vue";
+import {computed, markRaw, useTemplateRef, onMounted, onUnmounted, nextTick, ref} from "vue";
 import EditorViewMode from "@/components/ChatBot/EditorViewMode.vue";
 import SendIcon from "@/assets/images/icons/send.svg";
+import eventBus from "../../plugins/eventBus";
 
 const props = defineProps<{
   technicalId: string,
@@ -159,6 +161,106 @@ const {
   onSubmitQuestion,
 } = useWorkflowEditor(props, assistantStore, emit);
 
+// Track selected transitions for deletion
+const selectedTransitions = ref(new Set<string>());
+
+// Add/remove keyboard listeners
+onMounted(() => {
+  console.log('🔧 ChatBotEditorWorkflow: onMounted called, setting up event listeners...');
+  
+  // Small delay for complete VueFlow initialization
+  nextTick(() => {
+    setTimeout(() => {
+      restoreViewport();
+    }, 50);
+  });
+  
+  // Listen for transition selection/deselection
+  eventBus.$on('label-selected', (transitionId: string) => {
+    console.log('🎯 ChatBotEditorWorkflow: Transition selected:', transitionId);
+    // Clear other selections and add this one
+    selectedTransitions.value.clear();
+    selectedTransitions.value.add(transitionId);
+    console.log('📋 Current selectedTransitions:', Array.from(selectedTransitions.value));
+  });
+  
+  eventBus.$on('label-deselected', () => {
+    console.log('🚫 ChatBotEditorWorkflow: All transitions deselected');
+    selectedTransitions.value.clear();
+    console.log('📋 Current selectedTransitions:', Array.from(selectedTransitions.value));
+  });
+  
+  // Listen for deletion results
+  eventBus.$on('transition-deleted', (transitionId: string) => {
+    console.log('✅ ChatBotEditorWorkflow: Transition deleted successfully:', transitionId);
+    selectedTransitions.value.delete(transitionId);
+    console.log('📋 Current selectedTransitions after deletion:', Array.from(selectedTransitions.value));
+  });
+  
+  eventBus.$on('transition-delete-cancelled', (transitionId: string) => {
+    console.log('❌ ChatBotEditorWorkflow: Transition deletion cancelled:', transitionId);
+    // Оставляем выделение, чтобы пользователь мог попробовать снова
+  });
+  
+  // Add keyboard listener
+  console.log('⌨️ Adding keyboard event listener to document');
+  document.addEventListener('keydown', handleKeyDown);
+  console.log('✅ Keyboard event listener added');
+});
+
+onUnmounted(() => {
+  // Remove keyboard listener
+  document.removeEventListener('keydown', handleKeyDown);
+  
+  // Remove event listeners
+  eventBus.$off('label-selected');
+  eventBus.$off('label-deselected');
+  eventBus.$off('transition-deleted');
+  eventBus.$off('transition-delete-cancelled');
+});
+
+// Handle keyboard deletion
+const handleKeyDown = (event: KeyboardEvent) => {
+  console.log('🎹 Key pressed in ChatBotEditorWorkflow:', {
+    key: event.key,
+    code: event.code,
+    target: event.target,
+    selectedTransitionsSize: selectedTransitions.value.size,
+    selectedTransitionsList: Array.from(selectedTransitions.value)
+  });
+  
+  // Delete or Backspace key
+  if (event.key === 'Delete' || event.key === 'Backspace') {
+    console.log('🗑️ Delete key detected, selected transitions:', Array.from(selectedTransitions.value));
+    
+    if (selectedTransitions.value.size > 0) {
+      // Prevent default browser behavior
+      event.preventDefault();
+      
+      console.log('🚀 Starting deletion process...');
+      
+      // Delete each selected transition via confirm dialog
+      selectedTransitions.value.forEach(transitionId => {
+        console.log('📤 Emitting delete-transition-with-confirm:', {
+          transitionId
+        });
+        
+        // Emit event to trigger deleteEdge() function in the transition component
+        eventBus.$emit('delete-transition-with-confirm', {
+          transitionId
+        });
+      });
+      
+      // НЕ очищаем selection сразу - дождемся результата диалога
+      console.log('⏳ Waiting for deletion confirmation...');
+    } else {
+      console.log('❌ No transitions selected for deletion');
+    }
+  } else {
+    console.log('ℹ️ Key ignored:', event.key);
+  }
+};
+
 // Export methods for viewport management from parent component
 const saveCurrentViewport = () => {
   saveViewport();
@@ -167,16 +269,6 @@ const saveCurrentViewport = () => {
 const restoreCurrentViewport = () => {
   restoreViewport();
 };
-
-// Restore viewport when component loads
-onMounted(() => {
-  // Small delay for complete VueFlow initialization
-  nextTick(() => {
-    setTimeout(() => {
-      restoreViewport();
-    }, 50);
-  });
-});
 
 // Expose methods to parent component
 defineExpose({

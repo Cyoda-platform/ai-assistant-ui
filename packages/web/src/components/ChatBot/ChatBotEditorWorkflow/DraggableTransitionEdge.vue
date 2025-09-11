@@ -349,12 +349,12 @@ onMounted(() => {
   eventBus.$on('label-selected', handleLabelSelected)
   eventBus.$on('label-deselected', handleLabelDeselected)
   eventBus.$on('select-transition', handleSelectTransition)
+  eventBus.$on('delete-transition-with-confirm', handleDeleteTransitionWithConfirm)
   
   console.log('🎧 Event listeners registered for transition:', transitionId.value);
   
-  // Добавляем индивидуальный обработчик клавиш для каждого компонента
+  // Добавляем обработчик клавиш для Shift (выравнивание лейбла)
   document.addEventListener('keydown', handleKeyDown)
-  document.addEventListener('keyup', handleKeyUp)
   // Добавляем глобальный обработчик для клика в любое место
   document.addEventListener('click', handleGlobalClick)
 })
@@ -383,27 +383,19 @@ onUnmounted(() => {
   eventBus.$off('label-selected', handleLabelSelected)
   eventBus.$off('label-deselected', handleLabelDeselected)
   eventBus.$off('select-transition', handleSelectTransition)
+  eventBus.$off('delete-transition-with-confirm', handleDeleteTransitionWithConfirm)
   
   // Убираем глобальные обработчики
   document.removeEventListener('keydown', handleKeyDown)
-  document.removeEventListener('keyup', handleKeyUp)
   document.removeEventListener('click', handleGlobalClick)
 })
 
 function handleKeyDown(event: KeyboardEvent) {
-  console.log('� handleKeyDown called:', {
+  console.log('🎹 handleKeyDown called:', {
     key: event.key,
     transitionId: transitionId.value,
     isSelected: isSelected.value
   });
-  
-  // Обработка клавиш Delete и Backspace для удаления выделенного перехода
-  if ((event.key === 'Delete' || event.key === 'Backspace') && isSelected.value) {
-    console.log('🗑️ Delete/Backspace pressed for selected transition, calling deleteEdge()');
-    event.preventDefault(); // Предотвращаем стандартное поведение
-    deleteEdge()
-    return
-  }
   
   // Проверяем, что нажат Shift и этот label выделен
   if (event.key === 'Shift' && isSelected.value) {
@@ -426,10 +418,6 @@ function handleKeyDown(event: KeyboardEvent) {
   }
 }
 
-function handleKeyUp() {
-  // Пока что ничего не делаем при отпускании клавиш
-}
-
 function handleLabelSelected(selectedTransitionId: string) {
   // Если выделен другой label, снимаем выделение с текущего
   if (selectedTransitionId !== transitionId.value && isSelected.value) {
@@ -447,6 +435,14 @@ function handleSelectTransition(eventData: { transitionId: string }) {
   if (eventData.transitionId === transitionId.value) {
     isSelected.value = true;
     console.log('✅ Transition selected via event bus:', transitionId.value);
+  }
+}
+
+function handleDeleteTransitionWithConfirm(eventData: { transitionId: string }) {
+  // Удаляем transition если его ID совпадает с текущим
+  if (eventData.transitionId === transitionId.value) {
+    console.log('🗑️ Delete with confirm requested for transition:', transitionId.value);
+    deleteEdge();
   }
 }
 
@@ -625,9 +621,15 @@ function deleteEdge() {
     eventBus.$emit('delete-transition', {
       stateName: props.source,
       transitionName: originalTransitionName.value
-    })
+    });
+    
+    // Уведомляем ChatBotEditorWorkflow об успешном удалении
+    eventBus.$emit('transition-deleted', transitionId.value);
   }).catch(() => {
-    console.log('❌ Transition deletion cancelled')
+    console.log('❌ Transition deletion cancelled');
+    
+    // Уведомляем ChatBotEditorWorkflow об отмене удаления
+    eventBus.$emit('transition-delete-cancelled', transitionId.value);
   })
 }
 

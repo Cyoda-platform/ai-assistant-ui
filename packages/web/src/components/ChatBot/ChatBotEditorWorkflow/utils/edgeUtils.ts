@@ -25,6 +25,7 @@ export interface WorkflowEdge {
   label: string;
   animated: boolean;
   type: string;
+  deletable?: boolean;
   markerEnd: {
     type: MarkerType;
     width: number;
@@ -104,6 +105,7 @@ export function createWorkflowEdge(
     label: transitionName,
     animated: true,
     type: transitionData ? 'custom' : 'default',
+    deletable: false,
     markerEnd: {
       type: MarkerType.ArrowClosed,
       width: 20,
@@ -178,6 +180,7 @@ export function generateWorkflowEdges(
         label,
         animated: true,
         type: 'custom',
+        deletable: false,
         markerEnd: {
           type: MarkerType.ArrowClosed,
           width: 20,
