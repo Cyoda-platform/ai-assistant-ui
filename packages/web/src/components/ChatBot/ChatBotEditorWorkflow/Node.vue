@@ -104,13 +104,6 @@
           </button>
         </template>
         <template v-else>
-          <button
-              @click="startInlineEdit"
-              class="edit-state-btn"
-              title="Edit state name"
-          >
-            <EditIcon/>
-          </button>
         </template>
       </div>
     </div>
@@ -124,7 +117,6 @@ import {ElMessageBox, ElInput} from 'element-plus'
 import {useDropdownManager} from './composables/useDropdownManager'
 import {useTransitionHighlight} from './composables/useTransitionHighlight'
 import eventBus from '../../../plugins/eventBus'
-import EditIcon from '@/assets/images/icons/edit.svg';
 import CheckIcon from '@/assets/images/icons/check.svg';
 import CloseSmallIcon from '@/assets/images/icons/close-small.svg';
 import PlayIcon from '@/assets/images/icons/play.svg';
@@ -456,7 +448,6 @@ const onNodeClick = (event: MouseEvent) => {
   flex-shrink: 0; /* Кнопки не сжимаются */
 }
 
-.edit-state-btn,
 .confirm-edit-btn,
 .cancel-edit-btn {
   background: rgba(255, 255, 255, 0.1);
