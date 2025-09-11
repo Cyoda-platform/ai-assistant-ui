@@ -30,6 +30,8 @@
             :zoom-on-double-click="false"
             :pan-on-drag="true"
             :selection-on-drag="false"
+            :nodes-draggable="isDraggable"
+            :edges-draggable="isDraggable"
             @nodeDragStop="onNodeDragStop"
             @connect="onConnect"
             @connectStart="onConnectStart"
@@ -61,13 +63,13 @@
             </template>
 
             <template #control-interactive>
-              <el-tooltip v-if="nodesDraggable" content="Unlock interaction" placement="top" :show-after="500">
-                <ControlButton @click="() => nodesDraggable = false">
+              <el-tooltip v-if="isDraggable" content="Lock interaction" placement="top" :show-after="500">
+                <ControlButton @click="() => isDraggable = false">
                   <Icon name="unlock"/>
                 </ControlButton>
               </el-tooltip>
-              <el-tooltip v-else content="Lock interaction" placement="top" :show-after="500">
-                <ControlButton @click="() => nodesDraggable = true">
+              <el-tooltip v-else content="Unlock interaction" placement="top" :show-after="500">
+                <ControlButton @click="() => isDraggable = true">
                   <Icon name="lock"/>
                 </ControlButton>
               </el-tooltip>
@@ -193,7 +195,10 @@ const {
   onSubmitQuestion,
 } = useWorkflowEditor(props, assistantStore, emit);
 
-const {zoomIn, zoomOut, nodesDraggable} = useVueFlow();
+const {zoomIn, zoomOut} = useVueFlow();
+
+// Draggable state
+const isDraggable = ref(true);
 
 // Track selected transitions and nodes for deletion
 const selectedTransitions = ref(new Set<string>());
