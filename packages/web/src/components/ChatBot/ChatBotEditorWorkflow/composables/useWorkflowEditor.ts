@@ -136,16 +136,45 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     // Function to load data for current technicalId
     const loadDataForCurrentId = () => {
+        console.log('🔄 loadDataForCurrentId called for technicalId:', props.technicalId);
+        console.log('🔍 Storage keys:', {
+            canvasDataKey: workflowCanvasDataKey.value,
+            metaDataKey: workflowMetaDataKey.value,
+            viewportKey: workflowViewportKey.value
+        });
+        
         const canvasDataFromStorage = helperStorage.get(workflowCanvasDataKey.value, null);
         const metaDataFromStorage = helperStorage.get(workflowMetaDataKey.value, null);
+        
+        console.log('📊 Loaded data from storage:', {
+            canvasDataExists: !!canvasDataFromStorage,
+            canvasDataType: typeof canvasDataFromStorage,
+            canvasDataLength: canvasDataFromStorage ? JSON.stringify(canvasDataFromStorage).length : 0,
+            metaDataExists: !!metaDataFromStorage,
+            metaDataType: typeof metaDataFromStorage,
+            metaDataKeys: metaDataFromStorage ? Object.keys(metaDataFromStorage) : [],
+            transitionLabelsCount: metaDataFromStorage?.transitionLabels ? Object.keys(metaDataFromStorage.transitionLabels).length : 0
+        });
 
         // If canvasDataFromStorage is already a string - use as is, otherwise stringify
         const canvasDataString = typeof canvasDataFromStorage === 'string'
             ? canvasDataFromStorage
             : (canvasDataFromStorage ? JSON.stringify(canvasDataFromStorage, null, 2) : null);
 
+        // Set loading flag to prevent unnecessary saves during data loading
+        isLoadingData = true;
+        
         canvasData.value = canvasDataString || '';
         workflowMetaData.value = metaDataFromStorage || '';
+        
+        // Reset loading flag after assignment
+        isLoadingData = false;
+        
+        console.log('✅ Data loaded and assigned:', {
+            canvasDataSet: !!canvasData.value,
+            metaDataSet: !!workflowMetaData.value,
+            transitionLabelsInMeta: workflowMetaData.value?.transitionLabels ? Object.keys(workflowMetaData.value.transitionLabels) : []
+        });
 
         // Clear undo/redo history when switching chat - initialize with current data
         initialize(createSnapshot());
@@ -155,10 +184,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         initialTransitionLabels.value = {};
     };
 
-    const initialCanvasData = helperStorage.get(workflowCanvasDataKey.value, null);
-    const canvasData = ref(
-        initialCanvasData ? JSON.stringify(initialCanvasData, null, 2) : ''
-    );
+    // Initialize with empty data - will be loaded in onMounted or when technicalId changes
+    const canvasData = ref('');
     const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
     const editorMode = ref(helperStorage.get(EDITOR_MODE, 'editorPreview'));
     const layoutDirection = ref<'horizontal' | 'vertical'>(helperStorage.get(LAYOUT_DIRECTION, 'vertical'));
@@ -205,7 +232,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     const {setViewport, fitView, getViewport, vueFlowRef} = useVueFlow();
 
-    const workflowMetaData = ref(helperStorage.get(workflowMetaDataKey.value, null) || {});
+    const workflowMetaData = ref<any>({});
 
     // Initialize undo/redo with current canvasData instead of empty string - moved after workflowMetaData declaration
     console.log('🔄 Initializing undo/redo system');
@@ -431,6 +458,19 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
                 const sourceNode = nodes.value.find(n => n.id === source);
                 const targetNode = nodes.value.find(n => n.id === target);
+                
+                // Skip edge creation if source or target node doesn't exist
+                if (!sourceNode || !targetNode) {
+                    console.warn('🚫 Skipping edge creation - missing nodes:', {
+                        internalTransitionId,
+                        source,
+                        target,
+                        hasSourceNode: !!sourceNode,
+                        hasTargetNode: !!targetNode,
+                        availableNodes: nodes.value.map(n => n.id)
+                    });
+                    return;
+                }
 
                 // Start with auto-detected handles based on relative positions
                 let sourceHandle = 'right-source';
@@ -499,6 +539,14 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 }
 
                 const labelOffset = metaData?.transitionLabels?.[internalTransitionId] || {x: 0, y: 0};
+                
+                console.log('🏷️ Creating edge with label offset:', {
+                    internalTransitionId,
+                    labelOffset,
+                    availableInMeta: metaData?.transitionLabels ? Object.keys(metaData.transitionLabels) : [],
+                    hasMetaData: !!metaData,
+                    hasTransitionLabels: !!metaData?.transitionLabels
+                });
 
                 const edge: WorkflowEdge = {
                     id: internalTransitionId,
@@ -650,30 +698,84 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const stateNames = Object.keys(states);
         const meta = savedMeta;
         const existingStateNames = Object.keys(meta).filter(k =>
-            k !== 'transitionLabels' && k !== 'handleConnectionsByTransition' && k !== 'layoutDirection'
+            k !== 'transitionLabels' && 
+            k !== 'handleConnectionsByTransition' && 
+            k !== 'layoutDirection' &&
+            k !== 'initialState' &&
+            k !== 'usingDagre'
         );
+
+        // Check if we have any saved positioning data (node positions OR transition labels)
+        const hasNodePositions = existingStateNames.length > 0;
+        const hasTransitionPositions = meta.transitionLabels && Object.keys(meta.transitionLabels).length > 0;
+        const hasExistingPositions = hasNodePositions || hasTransitionPositions;
 
         // Only trigger fresh layout if:
         // 1. No existing positions at all (first time)
         // 2. Layout direction changed
         // 3. Major structural changes (not just adding/removing one state)
         // 4. Complete workflow replacement (when user pastes new workflow)
-        const hasExistingPositions = existingStateNames.length > 0;
         const layoutDirectionChanged = meta.layoutDirection && meta.layoutDirection !== layoutDirection.value;
         const isAddingNewState = stateNames.length === existingStateNames.length + 1 &&
                                  existingStateNames.every(name => stateNames.includes(name));
         const isRemovingState = stateNames.length === existingStateNames.length - 1 &&
                                stateNames.every(name => existingStateNames.includes(name));
+                               stateNames.every(name => existingStateNames.includes(name));
 
         // Check if this is a complete workflow replacement (major structural change)
         const commonStates = stateNames.filter(name => existingStateNames.includes(name));
-        const isCompleteReplacement = hasExistingPositions &&
+        const isCompleteReplacement = hasNodePositions &&
                                     (commonStates.length < Math.min(stateNames.length, existingStateNames.length) * 0.5 ||
                                      (meta.initialState && parsed.initialState && meta.initialState !== parsed.initialState));
 
         // Preserve positions for single node additions/removals, but force layout for major changes
-        const needFreshLayout = !hasExistingPositions || layoutDirectionChanged || isCompleteReplacement ||
-                               (!isAddingNewState && !isRemovingState && stateNames.length !== existingStateNames.length);
+        // Only check state count differences if we have existing node positions (not just transition positions)
+        const stateCountChanged = hasNodePositions && 
+                                 (!isAddingNewState && !isRemovingState && stateNames.length !== existingStateNames.length);
+        
+        const needFreshLayout = !hasExistingPositions || layoutDirectionChanged || isCompleteReplacement || stateCountChanged;
+
+        // EXPLICIT DEBUG: Log each condition separately
+        console.log('🔍 DETAILED FORMULA BREAKDOWN:');
+        console.log('  formula1 (!hasExistingPositions):', !hasExistingPositions);
+        console.log('  formula2 (layoutDirectionChanged):', layoutDirectionChanged);
+        console.log('  formula3 (isCompleteReplacement):', isCompleteReplacement);
+        console.log('  formula4 (stateCountChanged):', stateCountChanged);
+        console.log('  RESULT (needFreshLayout):', needFreshLayout);
+        
+        // ADDITIONAL DEBUG for stateCountChanged
+        console.log('🔍 STATE COUNT DEBUG:');
+        console.log('  stateNames.length:', stateNames.length);
+        console.log('  existingStateNames.length:', existingStateNames.length);
+        console.log('  stateNames:', stateNames);
+        console.log('  existingStateNames:', existingStateNames);
+        console.log('  isAddingNewState:', isAddingNewState);
+        console.log('  isRemovingState:', isRemovingState);
+        console.log('  hasNodePositions:', hasNodePositions);
+
+        console.log('🎯 Layout decision analysis:', {
+            hasExistingPositions,
+            hasNodePositions,
+            hasTransitionPositions,
+            layoutDirectionChanged,
+            isCompleteReplacement,
+            isAddingNewState,
+            isRemovingState,
+            stateCountChanged,
+            needFreshLayout,
+            stateCount: stateNames.length,
+            existingStateCount: existingStateNames.length,
+            stateNames,
+            existingStateNames,
+            currentTransitionLabels: meta.transitionLabels ? Object.keys(meta.transitionLabels) : [],
+            transitionLabelsCount: meta.transitionLabels ? Object.keys(meta.transitionLabels).length : 0,
+            metaKeys: Object.keys(meta),
+            // Debug the formula breakdown
+            formula1: !hasExistingPositions,
+            formula2: layoutDirectionChanged,
+            formula3: isCompleteReplacement,
+            formula4: stateCountChanged
+        });
 
         // Mark metadata as using Dagre if not already marked, but don't force layout reset
         if (hasExistingPositions && !meta.usingDagre && !needFreshLayout) {
@@ -685,11 +787,18 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
 
         if (needFreshLayout) {
+            console.log('🔄 Applying fresh layout due to needFreshLayout=true');
             const isVertical = layoutDirection.value === 'vertical';
             const elk = await applyAutoLayout(states, initialState || 'state_initial', isVertical);
             // Persist into meta
             const newMeta: Record<string, { x: number; y: number }> = {};
             for (const k of Object.keys(elk.nodePositions)) newMeta[k] = elk.nodePositions[k];
+            
+            console.log('🏷️ Fresh layout transition positions:', {
+                fromAutoLayout: Object.keys(elk.transitionPositions),
+                existingInMeta: workflowMetaData.value?.transitionLabels ? Object.keys(workflowMetaData.value.transitionLabels) : []
+            });
+            
             workflowMetaData.value = {
                 ...(workflowMetaData.value || {}),
                 ...newMeta,
@@ -2030,15 +2139,30 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     function handleUpdateTransitionLabelPosition(eventData: any) {
         const {transitionId, offset} = eventData;
+        
+        console.log('🏷️ handleUpdateTransitionLabelPosition called:', {
+            transitionId,
+            offset,
+            currentTransitionLabels: workflowMetaData.value?.transitionLabels
+        });
 
         const metaData: any = {...(workflowMetaData.value || {})};
 
         if (!metaData.transitionLabels) {
             metaData.transitionLabels = {};
+            console.log('🏷️ Creating new transitionLabels object');
         }
 
         metaData.transitionLabels[transitionId] = offset;
         workflowMetaData.value = metaData;
+        
+        console.log('🏷️ Updated transition label position:', {
+            transitionId,
+            newOffset: offset,
+            allTransitionLabels: metaData.transitionLabels,
+            metaDataKeys: Object.keys(metaData),
+            storageKey: workflowMetaDataKey.value
+        });
 
         saveState(createSnapshot());
     }
@@ -2053,8 +2177,15 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     onMounted(() => {
-        if (assistantStore && assistantStore.selectedAssistant && assistantStore.selectedAssistant.workflow_data) {
+        // Load data from localStorage first, before setting canvasData from store
+        loadDataForCurrentId();
+        
+        // Only set from store if no data found in localStorage
+        if (!canvasData.value && assistantStore && assistantStore.selectedAssistant && assistantStore.selectedAssistant.workflow_data) {
+            console.log('🔄 No localStorage data found, using data from store');
             canvasData.value = assistantStore.selectedAssistant.workflow_data;
+        } else {
+            console.log('🔄 Using data from localStorage, skipping store data');
         }
 
         // Restore saved viewport after mounting
@@ -2129,6 +2260,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     let metaDataDebounceTimer: ReturnType<typeof setTimeout> | null = null;
     let isUndoRedoOperation = false;
     let isMetaDataSaving = false;
+    let isLoadingData = false;
     let isAddingNewState = false;
     let isSavingTransition = false;
     let isDeletingState = false;
@@ -2222,13 +2354,32 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     });
 
     watch(workflowMetaData, (newValue) => {
-        if (isUndoRedoOperation || isMetaDataSaving) return;
+        console.log('🔄 workflowMetaData changed:', {
+            isUndoRedoOperation,
+            isMetaDataSaving,
+            isLoadingData,
+            newValueExists: !!newValue,
+            transitionLabelsCount: newValue?.transitionLabels ? Object.keys(newValue.transitionLabels).length : 0,
+            transitionLabelsKeys: newValue?.transitionLabels ? Object.keys(newValue.transitionLabels) : [],
+            storageKey: workflowMetaDataKey.value
+        });
+        
+        if (isUndoRedoOperation || isMetaDataSaving || isLoadingData) {
+            console.log('🚫 Skipping workflowMetaData save due to flags:', { isUndoRedoOperation, isMetaDataSaving, isLoadingData });
+            return;
+        }
 
         if (metaDataDebounceTimer) clearTimeout(metaDataDebounceTimer);
         metaDataDebounceTimer = setTimeout(() => {
+            console.log('💾 Saving workflowMetaData to storage:', {
+                key: workflowMetaDataKey.value,
+                transitionLabelsCount: newValue?.transitionLabels ? Object.keys(newValue.transitionLabels).length : 0,
+                allKeys: newValue ? Object.keys(newValue) : []
+            });
             isMetaDataSaving = true;
             helperStorage.set(workflowMetaDataKey.value, newValue);
             isMetaDataSaving = false;
+            console.log('✅ workflowMetaData saved successfully');
         }, 100);
     }, {deep: true})
 

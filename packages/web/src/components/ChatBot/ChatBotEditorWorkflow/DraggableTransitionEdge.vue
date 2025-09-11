@@ -357,6 +357,12 @@ const edgeStyle = computed(() => ({
 const isManual = computed(() => !!props.data?.transitionData?.manual)
 
 onMounted(() => {
+  console.log('🏷️ DraggableTransitionEdge mounted:', {
+    transitionId: transitionId.value,
+    propsLabelOffset: props.data?.labelOffset,
+    initialSavedLabelOffset: savedLabelOffset.value
+  });
+  
   eventBus.$on('reset-edge-positions', handleResetEdgePositions);
   eventBus.$on('edge-hover', onEdgeHover)
   eventBus.$on('edge-hover-clear', onEdgeHoverClear)
@@ -370,6 +376,21 @@ onMounted(() => {
   // Добавляем глобальный обработчик для клика в любое место
   document.addEventListener('click', handleGlobalClick)
 })
+
+// Watch for changes in props.data.labelOffset to update savedLabelOffset
+watch(() => props.data?.labelOffset, (newOffset) => {
+  if (newOffset && !isDragging.value) {
+    console.log('🏷️ Props labelOffset changed, updating savedLabelOffset:', {
+      transitionId: transitionId.value,
+      oldOffset: savedLabelOffset.value,
+      newOffset
+    });
+    savedLabelOffset.value = {
+      x: newOffset.x || 0,
+      y: newOffset.y || 0
+    };
+  }
+}, { deep: true });
 
 onUnmounted(() => {
   eventBus.$off('reset-edge-positions', handleResetEdgePositions);
@@ -390,6 +411,11 @@ function handleKeyDown(event: KeyboardEvent) {
   if (event.key === 'Shift' && isSelected.value) {
     // Выравниваем label по прямой линии
     savedLabelOffset.value = { x: 0, y: 0 }
+    
+    console.log('🔄 Shift key pressed, resetting transition label position:', {
+      transitionId: transitionId.value,
+      resetOffset: savedLabelOffset.value
+    });
     
     // Отправляем обновление позиции
     eventBus.$emit('update-transition-label-position', {
@@ -539,10 +565,25 @@ function onDrag(event: MouseEvent) {
 
 function endDrag() {
   if (isDragging.value) {
+    console.log('🏷️ Saving transition label position after drag:', {
+      transitionId: transitionId.value,
+      savedOffset: savedLabelOffset.value,
+      dragOffset: dragOffset.value,
+      finalOffset: {
+        x: savedLabelOffset.value.x + dragOffset.value.x,
+        y: savedLabelOffset.value.y + dragOffset.value.y
+      }
+    });
+
     savedLabelOffset.value = {
       x: savedLabelOffset.value.x + dragOffset.value.x,
       y: savedLabelOffset.value.y + dragOffset.value.y
     }
+
+    console.log('🏷️ Emitting update-transition-label-position:', {
+      transitionId: transitionId.value,
+      offset: savedLabelOffset.value
+    });
 
     eventBus.$emit('update-transition-label-position', {
       transitionId: transitionId.value,
