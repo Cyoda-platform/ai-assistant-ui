@@ -182,28 +182,32 @@ const handleDocumentClick = (event: Event) => {
   }
 }
 
+// Event handlers
+const handleNodeDeselected = () => {
+  isSelected.value = false;
+};
+
+const handleDeleteNodeWithConfirm = (eventData: { nodeId: string }) => {
+  // Удаляем node если его ID совпадает с текущим
+  if (eventData.nodeId === nodeId.value) {
+    deleteState();
+  }
+};
+
 onMounted(() => {
   document.addEventListener('click', handleDocumentClick)
-  eventBus.$on('node-deselected', () => {
-    isSelected.value = false;
-  });
+  eventBus.$on('node-deselected', handleNodeDeselected);
 
   // Listen for delete node with confirm event
-  eventBus.$on('delete-node-with-confirm', (eventData: { nodeId: string }) => {
-    // Удаляем node если его ID совпадает с текущим
-    if (eventData.nodeId === nodeId.value) {
-      deleteState();
-    }
-  });
+  eventBus.$on('delete-node-with-confirm', handleDeleteNodeWithConfirm);
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleDocumentClick)
 
-  // Remove event listeners
-  eventBus.$off('node-selected');
-  eventBus.$off('node-deselected');
-  eventBus.$off('delete-node-with-confirm');
+  // Remove event listeners with proper function references
+  eventBus.$off('node-deselected', handleNodeDeselected);
+  eventBus.$off('delete-node-with-confirm', handleDeleteNodeWithConfirm);
 })
 
 const nodeTypeClass = computed(() => {

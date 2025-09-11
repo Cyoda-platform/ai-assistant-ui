@@ -165,6 +165,58 @@ const {
 const selectedTransitions = ref(new Set<string>());
 const selectedNodes = ref(new Set<string>());
 
+// Event handler functions
+const handleLabelSelected = (transitionId: string) => {
+  // Clear ALL other selections (transitions and nodes)
+  selectedTransitions.value.clear();
+  selectedNodes.value.clear();
+  selectedTransitions.value.add(transitionId);
+  
+  // Notify nodes to deselect
+  eventBus.$emit('node-deselected');
+};
+
+const handleLabelDeselected = () => {
+  selectedTransitions.value.clear();
+};
+
+const handleTransitionDeleted = (transitionId: string) => {
+  selectedTransitions.value.delete(transitionId);
+};
+
+const handleNodeSelected = (nodeId: string) => {
+  // Clear ALL other selections (nodes and transitions)
+  selectedNodes.value.clear();
+  selectedTransitions.value.clear();
+  selectedNodes.value.add(nodeId);
+  
+  // Notify transitions to deselect
+  eventBus.$emit('label-deselected');
+};
+
+const handleNodeSelectionExclusive = (nodeId: string) => {
+  // Clear ALL selections first
+  selectedNodes.value.clear();
+  selectedTransitions.value.clear();
+  
+  // Add the new node to selection
+  selectedNodes.value.add(nodeId);
+  
+  // Notify all nodes to deselect (they will handle their own state)
+  eventBus.$emit('node-deselected');
+  
+  // Notify transitions to deselect
+  eventBus.$emit('label-deselected');
+};
+
+const handleNodeDeselected = () => {
+  selectedNodes.value.clear();
+};
+
+const handleNodeDeleted = (nodeId: string) => {
+  selectedNodes.value.delete(nodeId);
+};
+
 // Add/remove keyboard listeners
 onMounted(() => {
   // Small delay for complete VueFlow initialization
@@ -175,49 +227,19 @@ onMounted(() => {
   });
   
   // Listen for transition selection/deselection
-  eventBus.$on('label-selected', (transitionId: string) => {
-    // Clear ALL other selections (transitions and nodes)
-    selectedTransitions.value.clear();
-    selectedNodes.value.clear();
-    selectedTransitions.value.add(transitionId);
-    
-    // Notify nodes to deselect
-    eventBus.$emit('node-deselected');
-  });
-  
-  eventBus.$on('label-deselected', () => {
-    selectedTransitions.value.clear();
-  });
+  eventBus.$on('label-selected', handleLabelSelected);
+  eventBus.$on('label-deselected', handleLabelDeselected);
   
   // Listen for deletion results
-  eventBus.$on('transition-deleted', (transitionId: string) => {
-    selectedTransitions.value.delete(transitionId);
-  });
+  eventBus.$on('transition-deleted', handleTransitionDeleted);
   
   // Listen for node selection/deselection
-  eventBus.$on('node-selected', (nodeId: string) => {
-    // Clear ALL other selections (nodes and transitions)
-    selectedNodes.value.clear();
-    selectedTransitions.value.clear();
-    selectedNodes.value.add(nodeId);
-    
-    // Notify transitions to deselect
-    eventBus.$emit('label-deselected');
-  });
-  
-  eventBus.$on('node-deselected', () => {
-    selectedNodes.value.clear();
-  });
+  eventBus.$on('node-selected', handleNodeSelected);
+  eventBus.$on('node-selection-exclusive', handleNodeSelectionExclusive);
+  eventBus.$on('node-deselected', handleNodeDeselected);
   
   // Listen for node deletion results
-  eventBus.$on('node-deleted', (nodeId: string) => {
-    selectedNodes.value.delete(nodeId);
-  });
-  
-  // Listen for node deletion results
-  eventBus.$on('node-deleted', (nodeId: string) => {
-    selectedNodes.value.delete(nodeId);
-  });
+  eventBus.$on('node-deleted', handleNodeDeleted);
   
   // Add keyboard listener
   document.addEventListener('keydown', handleKeyDown);
@@ -227,15 +249,14 @@ onUnmounted(() => {
   // Remove keyboard listener
   document.removeEventListener('keydown', handleKeyDown);
   
-  // Remove event listeners
-  eventBus.$off('label-selected');
-  eventBus.$off('label-deselected');
-  eventBus.$off('transition-deleted');
-  eventBus.$off('transition-delete-cancelled');
-  eventBus.$off('node-selected');
-  eventBus.$off('node-deselected');
-  eventBus.$off('node-deleted');
-  eventBus.$off('node-delete-cancelled');
+  // Remove event listeners with proper function references
+  eventBus.$off('label-selected', handleLabelSelected);
+  eventBus.$off('label-deselected', handleLabelDeselected);
+  eventBus.$off('transition-deleted', handleTransitionDeleted);
+  eventBus.$off('node-selected', handleNodeSelected);
+  eventBus.$off('node-selection-exclusive', handleNodeSelectionExclusive);
+  eventBus.$off('node-deselected', handleNodeDeselected);
+  eventBus.$off('node-deleted', handleNodeDeleted);
 });
 
 // Handle keyboard deletion
