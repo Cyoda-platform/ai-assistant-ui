@@ -63,24 +63,6 @@
         >
           {{ originalTransitionName }}
         </div>
-        <div class="transition-actions">
-          <button
-              class="edit-edge-btn"
-              @click.stop="editTransition"
-              @mousedown.stop
-              title="Edit transition"
-          >
-            <EditIcon/>
-          </button>
-          <button
-              class="delete-edge-btn"
-              @click.stop="deleteEdge"
-              @mousedown.stop
-              title="Delete transition"
-          >
-            <TrashSmallIcon/>
-          </button>
-        </div>
       </div>
     </foreignObject>
   </g>
@@ -92,8 +74,6 @@ import {EdgeProps, useVueFlow} from '@vue-flow/core'
 import {useTransitionHighlight} from './composables/useTransitionHighlight'
 import {ElMessageBox} from 'element-plus'
 import eventBus from '../../../plugins/eventBus'
-import EditIcon from '@/assets/images/icons/edit.svg';
-import TrashSmallIcon from "@/assets/images/icons/trash-small.svg"
 
 interface TransitionDataType {
   name?: string;
@@ -370,7 +350,9 @@ onMounted(() => {
   eventBus.$on('label-deselected', handleLabelDeselected)
   eventBus.$on('select-transition', handleSelectTransition)
   
-  // Добавляем глобальный обработчик для клавиши Shift
+  console.log('🎧 Event listeners registered for transition:', transitionId.value);
+  
+  // Добавляем индивидуальный обработчик клавиш для каждого компонента
   document.addEventListener('keydown', handleKeyDown)
   document.addEventListener('keyup', handleKeyUp)
   // Добавляем глобальный обработчик для клика в любое место
@@ -393,6 +375,8 @@ watch(() => props.data?.labelOffset, (newOffset) => {
 }, { deep: true });
 
 onUnmounted(() => {
+  console.log('🔌 Unregistering event listeners for transition:', transitionId.value);
+  
   eventBus.$off('reset-edge-positions', handleResetEdgePositions);
   eventBus.$off('edge-hover', onEdgeHover)
   eventBus.$off('edge-hover-clear', onEdgeHoverClear)
@@ -407,6 +391,20 @@ onUnmounted(() => {
 })
 
 function handleKeyDown(event: KeyboardEvent) {
+  console.log('� handleKeyDown called:', {
+    key: event.key,
+    transitionId: transitionId.value,
+    isSelected: isSelected.value
+  });
+  
+  // Обработка клавиш Delete и Backspace для удаления выделенного перехода
+  if ((event.key === 'Delete' || event.key === 'Backspace') && isSelected.value) {
+    console.log('🗑️ Delete/Backspace pressed for selected transition, calling deleteEdge()');
+    event.preventDefault(); // Предотвращаем стандартное поведение
+    deleteEdge()
+    return
+  }
+  
   // Проверяем, что нажат Shift и этот label выделен
   if (event.key === 'Shift' && isSelected.value) {
     // Выравниваем label по прямой линии
@@ -488,27 +486,39 @@ watch(() => props.data?.labelOffset, (newLabelOffset) => {
 }, { deep: true, immediate: true });
 
 function onLabelClick(event: MouseEvent) {
+  console.log('🖱️ onLabelClick called:', {
+    transitionId: transitionId.value,
+    currentIsSelected: isSelected.value,
+    hasMoved: hasMoved.value,
+    event
+  });
+  
   // Проверяем, что клик не по кнопкам
   const target = event.target as HTMLElement;
   if (target.closest('button')) {
+    console.log('❌ Click ignored - clicked on button');
     return;
   }
   
   // Если было перетаскивание (движение мыши), не обрабатываем клик
   if (hasMoved.value) {
+    console.log('❌ Click ignored - label was dragged');
     hasMoved.value = false; // Сбрасываем флаг
     return;
   }
   
   // Если уже выделен, снимаем выделение
   if (isSelected.value) {
+    console.log('📤 Deselecting transition:', transitionId.value);
     isSelected.value = false;
     eventBus.$emit('label-deselected');
   } else {
+    console.log('📥 Selecting transition:', transitionId.value);
     // Сначала отправляем событие о том, что выбран новый label (это сбросит другие)
     eventBus.$emit('label-selected', transitionId.value);
     // Затем выделяем текущий
     isSelected.value = true;
+    console.log('✅ Transition selected, isSelected now:', isSelected.value);
   }
   
   // НЕ предотвращаем всплытие - позволяем работать перетаскиванию
@@ -600,6 +610,7 @@ function endDrag() {
 }
 
 function deleteEdge() {
+  console.log('🗑️ deleteEdge called for transition:', originalTransitionName.value);
   ElMessageBox.confirm(
       `Are you sure you want to delete the transition "${originalTransitionName.value}"?`,
       'Delete Transition',
@@ -610,12 +621,13 @@ function deleteEdge() {
         confirmButtonClass: 'el-button--danger'
       }
   ).then(() => {
+    console.log('✅ Transition deletion confirmed, emitting delete-transition event');
     eventBus.$emit('delete-transition', {
       stateName: props.source,
       transitionName: originalTransitionName.value
     })
   }).catch(() => {
-    console.log('Transition deletion cancelled')
+    console.log('❌ Transition deletion cancelled')
   })
 }
 
@@ -854,7 +866,7 @@ function endTransitionDrag(event: MouseEvent) {
   border: none;
   cursor: grab;
   /* Увеличиваем область захвата */
-  padding: 4px 6px;
+  padding: 12px;
   margin: -4px -6px;
   
   &:active {
