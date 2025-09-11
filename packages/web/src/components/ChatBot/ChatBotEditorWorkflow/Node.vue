@@ -3,7 +3,6 @@
       class="workflow-node"
       :class="[nodeTypeClass, {
       'dimmed': shouldDimNode(nodeId),
-      'hovering-delete': isHoveringDeleteBtn,
       'selected': isSelected
     }]"
       :style="nodeStyle"
@@ -112,13 +111,6 @@
           >
             <EditIcon/>
           </button>
-          <button
-              @click="deleteState"
-              class="delete-state-btn"
-              title="Delete state"
-          >
-            <TrashSmallIcon/>
-          </button>
         </template>
       </div>
     </div>
@@ -132,7 +124,6 @@ import {ElMessageBox, ElInput} from 'element-plus'
 import {useDropdownManager} from './composables/useDropdownManager'
 import {useTransitionHighlight} from './composables/useTransitionHighlight'
 import eventBus from '../../../plugins/eventBus'
-import TrashSmallIcon from "@/assets/images/icons/trash-small.svg"
 import EditIcon from '@/assets/images/icons/edit.svg';
 import CheckIcon from '@/assets/images/icons/check.svg';
 import CloseSmallIcon from '@/assets/images/icons/close-small.svg';
@@ -165,8 +156,6 @@ const {
   shouldDimNode
 } = useTransitionHighlight()
 
-const isHoveringDeleteBtn = ref(false)
-
 // Selection state
 const isSelected = ref(false)
 const isDragging = ref(false) // Флаг для отслеживания перетаскивания
@@ -189,9 +178,13 @@ const handleNodeDeselected = () => {
 };
 
 const handleDeleteNodeWithConfirm = (eventData: { nodeId: string }) => {
+  console.log('🗑️ handleDeleteNodeWithConfirm called:', eventData, 'current nodeId:', nodeId.value);
   // Удаляем node если его ID совпадает с текущим
   if (eventData.nodeId === nodeId.value) {
+    console.log('🗑️ Node IDs match, calling deleteState');
     deleteState();
+  } else {
+    console.log('🗑️ Node IDs do not match, ignoring');
   }
 };
 
@@ -464,7 +457,6 @@ const onNodeClick = (event: MouseEvent) => {
 }
 
 .edit-state-btn,
-.delete-state-btn,
 .confirm-edit-btn,
 .cancel-edit-btn {
   background: rgba(255, 255, 255, 0.1);

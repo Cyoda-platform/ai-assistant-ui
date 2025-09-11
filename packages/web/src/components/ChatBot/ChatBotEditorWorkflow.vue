@@ -203,7 +203,10 @@ const handleNodeSelectionExclusive = (nodeId: string) => {
     return;
   }
   
-  // Clear ALL selections first
+  // Notify all nodes to deselect BEFORE clearing selections
+  eventBus.$emit('node-deselected');
+  
+  // Clear ALL selections 
   selectedNodes.value.clear();
   selectedTransitions.value.clear();
   
@@ -214,9 +217,6 @@ const handleNodeSelectionExclusive = (nodeId: string) => {
     nodes: Array.from(selectedNodes.value),
     transitions: Array.from(selectedTransitions.value)
   });
-  
-  // Notify all nodes to deselect (they will handle their own state)
-  eventBus.$emit('node-deselected');
   
   // Notify transitions to deselect
   eventBus.$emit('label-deselected');
@@ -276,6 +276,7 @@ onUnmounted(() => {
 const handleKeyDown = (event: KeyboardEvent) => {
   // Delete or Backspace key
   if (event.key === 'Delete' || event.key === 'Backspace') {
+    console.log('🔥 Delete key pressed, selectedNodes:', Array.from(selectedNodes.value));
     
     let hasItemsToDelete = false;
     
@@ -294,8 +295,11 @@ const handleKeyDown = (event: KeyboardEvent) => {
     if (selectedNodes.value.size > 0) {
       hasItemsToDelete = true;
       
+      console.log('🗑️ Attempting to delete nodes:', Array.from(selectedNodes.value));
+      
       // Delete each selected node via confirm dialog
       selectedNodes.value.forEach(nodeId => {
+        console.log('🗑️ Emitting delete-node-with-confirm for:', nodeId);
         // Emit event to trigger delete confirmation for the node
         eventBus.$emit('delete-node-with-confirm', {
           nodeId
