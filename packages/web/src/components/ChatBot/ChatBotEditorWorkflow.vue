@@ -195,12 +195,25 @@ const handleNodeSelected = (nodeId: string) => {
 };
 
 const handleNodeSelectionExclusive = (nodeId: string) => {
+  console.log('🔄 handleNodeSelectionExclusive called:', nodeId);
+  
+  // Проверяем, не выделен ли уже этот узел
+  if (selectedNodes.value.size === 1 && selectedNodes.value.has(nodeId)) {
+    console.log('✅ Node already exclusively selected, skipping');
+    return;
+  }
+  
   // Clear ALL selections first
   selectedNodes.value.clear();
   selectedTransitions.value.clear();
   
   // Add the new node to selection
   selectedNodes.value.add(nodeId);
+  
+  console.log('📊 Updated selections:', {
+    nodes: Array.from(selectedNodes.value),
+    transitions: Array.from(selectedTransitions.value)
+  });
   
   // Notify all nodes to deselect (they will handle their own state)
   eventBus.$emit('node-deselected');

@@ -252,8 +252,6 @@ const edgePath = computed(() => {
     // Если label близко к центру (не перетаскивали), рисуем прямую линию
     if (offsetX < 15 && offsetY < 15) {
       return `M ${sourceX},${sourceY} L ${targetX},${targetY}`
-    } else {
-      console.log(`🌀 Drawing curved line for ${props.data?.transitionId} (label moved)`)
     }
   }
 

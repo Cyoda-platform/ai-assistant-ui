@@ -9,6 +9,7 @@
       :style="nodeStyle"
       ref="nodeRef"
       @mousedown="onNodeClick"
+      @click="onNodeActualClick"
   >
     <Handle
         type="source"
@@ -293,6 +294,16 @@ const cancelEdit = () => {
   editingName.value = ''
 }
 
+const onNodeActualClick = () => {
+  // Если было перетаскивание, не обрабатываем клик
+  if (isDragging.value) {
+    console.log('❌ Click ignored - node was dragged');
+    return;
+  }
+  
+  console.log('🎯 Node actual click processed:', nodeId.value);
+};
+
 const onNodeClick = (event: MouseEvent) => {
   // Проверяем, что клик не по кнопкам
   const target = event.target as HTMLElement;
@@ -301,17 +312,42 @@ const onNodeClick = (event: MouseEvent) => {
     return;
   }
 
-  // Если было перетаскивание, не обрабатываем клик
-  if (isDragging.value) {
-    console.log('❌ Click ignored - node was dragged');
-    isDragging.value = false; // Сбрасываем флаг
+  // Всегда сбрасываем флаг движения при новом mousedown
+  isDragging.value = false;
+  
+  console.log('🎯 Node mousedown:', nodeId.value);
+  
+  // Проверяем, не выделен ли уже этот узел
+  if (isSelected.value) {
+    console.log('✅ Node already selected, skipping selection logic');
     return;
   }
-
-  // При клике просто убеждаемся что узел выделен (не переключаем)
-  // Снятие выделения происходит при клике в пустом месте
-    eventBus.$emit('node-deselected');
-    isSelected.value = true;
+  
+  // Сначала снимаем выделение со всех узлов, затем выделяем текущий
+  eventBus.$emit('node-selection-exclusive', nodeId.value);
+  isSelected.value = true;
+  
+  // Добавляем слушатель движения мыши для отслеживания перетаскивания
+  const handleMouseMove = () => {
+    if (!isDragging.value) {
+      isDragging.value = true;
+    }
+  };
+  
+  const handleMouseUp = () => {
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+    
+    // Сбрасываем флаг через короткую задержку, чтобы click успел его проверить
+    setTimeout(() => {
+      if (isDragging.value) {
+        isDragging.value = false;
+      }
+    }, 10);
+  };
+  
+  document.addEventListener('mousemove', handleMouseMove);
+  document.addEventListener('mouseup', handleMouseUp);
 }
 </script>
 
