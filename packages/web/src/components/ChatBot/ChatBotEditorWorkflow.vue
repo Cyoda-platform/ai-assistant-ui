@@ -179,10 +179,16 @@ onMounted(() => {
   // Listen for transition selection/deselection
   eventBus.$on('label-selected', (transitionId: string) => {
     console.log('🎯 ChatBotEditorWorkflow: Transition selected:', transitionId);
-    // Clear other selections and add this one
+    // Clear ALL other selections (transitions and nodes)
     selectedTransitions.value.clear();
+    selectedNodes.value.clear();
     selectedTransitions.value.add(transitionId);
+    
+    // Notify nodes to deselect
+    eventBus.$emit('node-deselected');
+    
     console.log('📋 Current selectedTransitions:', Array.from(selectedTransitions.value));
+    console.log('📋 Current selectedNodes:', Array.from(selectedNodes.value));
   });
   
   eventBus.$on('label-deselected', () => {
@@ -206,16 +212,34 @@ onMounted(() => {
   // Listen for node selection/deselection
   eventBus.$on('node-selected', (nodeId: string) => {
     console.log('🎯 ChatBotEditorWorkflow: Node selected:', nodeId);
-    // Clear other selections and add this one
+    // Clear ALL other selections (nodes and transitions)
     selectedNodes.value.clear();
+    selectedTransitions.value.clear();
     selectedNodes.value.add(nodeId);
+    
+    // Notify transitions to deselect
+    eventBus.$emit('label-deselected');
+    
     console.log('📋 Current selectedNodes:', Array.from(selectedNodes.value));
+    console.log('📋 Current selectedTransitions:', Array.from(selectedTransitions.value));
   });
   
   eventBus.$on('node-deselected', () => {
     console.log('🚫 ChatBotEditorWorkflow: All nodes deselected');
     selectedNodes.value.clear();
     console.log('📋 Current selectedNodes:', Array.from(selectedNodes.value));
+  });
+  
+  // Listen for node deletion results
+  eventBus.$on('node-deleted', (nodeId: string) => {
+    console.log('✅ ChatBotEditorWorkflow: Node deleted successfully:', nodeId);
+    selectedNodes.value.delete(nodeId);
+    console.log('📋 Current selectedNodes after deletion:', Array.from(selectedNodes.value));
+  });
+  
+  eventBus.$on('node-delete-cancelled', (nodeId: string) => {
+    console.log('❌ ChatBotEditorWorkflow: Node deletion cancelled:', nodeId);
+    // Оставляем выделение, чтобы пользователь мог попробовать снова
   });
   
   // Listen for node deletion results

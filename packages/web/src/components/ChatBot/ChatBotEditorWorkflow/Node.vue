@@ -8,6 +8,7 @@
     }]"
       :style="nodeStyle"
       ref="nodeRef"
+      @mousedown="onNodeMouseDown"
   >
     <Handle
         type="source"
@@ -167,6 +168,7 @@ const isHoveringDeleteBtn = ref(false)
 
 // Selection state
 const isSelected = ref(false)
+const isDragging = ref(false) // Флаг для отслеживания перетаскивания
 
 // Inline editing state
 const isEditing = ref(false)
@@ -314,6 +316,7 @@ const onNodeClick = (event: MouseEvent) => {
   console.log('🖱️ onNodeClick called:', {
     nodeId: nodeId.value,
     currentIsSelected: isSelected.value,
+    isDragging: isDragging.value,
     event
   });
   
@@ -324,19 +327,74 @@ const onNodeClick = (event: MouseEvent) => {
     return;
   }
   
-  // Если уже выделен, снимаем выделение
-  if (isSelected.value) {
-    console.log('📤 Deselecting node:', nodeId.value);
-    isSelected.value = false;
-    eventBus.$emit('node-deselected');
-  } else {
-    console.log('📥 Selecting node:', nodeId.value);
-    // Сначала отправляем событие о том, что выбран новый node (это сбросит другие)
-    eventBus.$emit('node-selected', nodeId.value);
-    // Затем выделяем текущий
-    isSelected.value = true;
-    console.log('✅ Node selected, isSelected now:', isSelected.value);
+  // Если было перетаскивание, не обрабатываем клик
+  if (isDragging.value) {
+    console.log('❌ Click ignored - node was dragged');
+    isDragging.value = false; // Сбрасываем флаг
+    return;
   }
+
+  // При клике просто убеждаемся что узел выделен (не переключаем)
+  // Снятие выделения происходит при клике в пустом месте
+  if (!isSelected.value) {
+    console.log('� Selecting node on click:', nodeId.value);
+    eventBus.$emit('node-selected', nodeId.value);
+    isSelected.value = true;
+    console.log('✅ Node selected on click, isSelected now:', isSelected.value);
+  } else {
+    console.log('✅ Node already selected, keeping selection');
+  }
+}
+
+const onNodeMouseDown = (event: MouseEvent) => {
+  console.log('🖱️ onNodeMouseDown called:', {
+    nodeId: nodeId.value,
+    currentIsSelected: isSelected.value,
+    event
+  });
+  
+  // Проверяем, что клик не по кнопкам
+  const target = event.target as HTMLElement;
+  if (target.closest('button')) {
+    console.log('❌ MouseDown ignored - clicked on button');
+    return;
+  }
+  
+  // Всегда сбрасываем флаг движения при новом mousedown
+  isDragging.value = false;
+  
+  // ВСЕГДА выделяем узел при mousedown (и для клика, и для drag)
+  if (!isSelected.value) {
+    console.log('📥 Selecting node on mousedown:', nodeId.value);
+    eventBus.$emit('node-selected', nodeId.value);
+    isSelected.value = true;
+    console.log('✅ Node selected on mousedown, isSelected now:', isSelected.value);
+  }
+  
+  // Добавляем слушатель движения мыши для отслеживания перетаскивания
+  const handleMouseMove = () => {
+    if (!isDragging.value) {
+      isDragging.value = true;
+      console.log('🚚 Detected node drag start, isDragging set to true');
+    }
+  };
+  
+  const handleMouseUp = () => {
+    console.log('🖱️ MouseUp detected, cleaning up listeners');
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+    
+    // Сбрасываем флаг через короткую задержку, чтобы click успел его проверить
+    setTimeout(() => {
+      if (isDragging.value) {
+        console.log('🔄 Resetting isDragging flag after drag');
+        isDragging.value = false;
+      }
+    }, 10);
+  };
+  
+  document.addEventListener('mousemove', handleMouseMove);
+  document.addEventListener('mouseup', handleMouseUp);
 }
 </script>
 
