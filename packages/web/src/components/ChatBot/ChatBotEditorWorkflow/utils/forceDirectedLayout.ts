@@ -17,8 +17,6 @@ export function resolveTransitionCollisions(
   width: number;
   height: number;
 }> {
-  console.log('🔧 Starting force-directed collision resolution for', positions.length, 'transitions');
-  
   const result = positions.map(p => ({
     ...p,
     vx: 0, // velocity x

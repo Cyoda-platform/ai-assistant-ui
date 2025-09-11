@@ -249,11 +249,8 @@ const edgePath = computed(() => {
     const offsetX = Math.abs(labelX - centerX)
     const offsetY = Math.abs(labelY - centerY)
     
-    console.log(`🔍 Single transition ${props.data?.transitionId}: offsetX=${offsetX.toFixed(1)}, offsetY=${offsetY.toFixed(1)}`)
-    
     // Если label близко к центру (не перетаскивали), рисуем прямую линию
     if (offsetX < 15 && offsetY < 15) {
-      console.log(`✅ Drawing straight line for ${props.data?.transitionId}`)
       return `M ${sourceX},${sourceY} L ${targetX},${targetY}`
     } else {
       console.log(`🌀 Drawing curved line for ${props.data?.transitionId} (label moved)`)
@@ -337,12 +334,6 @@ const edgeStyle = computed(() => ({
 const isManual = computed(() => !!props.data?.transitionData?.manual)
 
 onMounted(() => {
-  console.log('🏷️ DraggableTransitionEdge mounted:', {
-    transitionId: transitionId.value,
-    propsLabelOffset: props.data?.labelOffset,
-    initialSavedLabelOffset: savedLabelOffset.value
-  });
-  
   eventBus.$on('reset-edge-positions', handleResetEdgePositions);
   eventBus.$on('edge-hover', onEdgeHover)
   eventBus.$on('edge-hover-clear', onEdgeHoverClear)
@@ -350,8 +341,6 @@ onMounted(() => {
   eventBus.$on('label-deselected', handleLabelDeselected)
   eventBus.$on('select-transition', handleSelectTransition)
   eventBus.$on('delete-transition-with-confirm', handleDeleteTransitionWithConfirm)
-  
-  console.log('🎧 Event listeners registered for transition:', transitionId.value);
   
   // Добавляем обработчик клавиш для Shift (выравнивание лейбла)
   document.addEventListener('keydown', handleKeyDown)
@@ -362,11 +351,6 @@ onMounted(() => {
 // Watch for changes in props.data.labelOffset to update savedLabelOffset
 watch(() => props.data?.labelOffset, (newOffset) => {
   if (newOffset && !isDragging.value) {
-    console.log('🏷️ Props labelOffset changed, updating savedLabelOffset:', {
-      transitionId: transitionId.value,
-      oldOffset: savedLabelOffset.value,
-      newOffset
-    });
     savedLabelOffset.value = {
       x: newOffset.x || 0,
       y: newOffset.y || 0
@@ -505,16 +489,13 @@ function onLabelClick(event: MouseEvent) {
   
   // Если уже выделен, снимаем выделение
   if (isSelected.value) {
-    console.log('📤 Deselecting transition:', transitionId.value);
     isSelected.value = false;
     eventBus.$emit('label-deselected');
   } else {
-    console.log('📥 Selecting transition:', transitionId.value);
     // Сначала отправляем событие о том, что выбран новый label (это сбросит другие)
     eventBus.$emit('label-selected', transitionId.value);
     // Затем выделяем текущий
     isSelected.value = true;
-    console.log('✅ Transition selected, isSelected now:', isSelected.value);
   }
   
   // НЕ предотвращаем всплытие - позволяем работать перетаскиванию
@@ -571,16 +552,6 @@ function onDrag(event: MouseEvent) {
 
 function endDrag() {
   if (isDragging.value) {
-    console.log('🏷️ Saving transition label position after drag:', {
-      transitionId: transitionId.value,
-      savedOffset: savedLabelOffset.value,
-      dragOffset: dragOffset.value,
-      finalOffset: {
-        x: savedLabelOffset.value.x + dragOffset.value.x,
-        y: savedLabelOffset.value.y + dragOffset.value.y
-      }
-    });
-
     savedLabelOffset.value = {
       x: savedLabelOffset.value.x + dragOffset.value.x,
       y: savedLabelOffset.value.y + dragOffset.value.y
@@ -617,7 +588,6 @@ function deleteEdge() {
         confirmButtonClass: 'el-button--danger'
       }
   ).then(() => {
-    console.log('✅ Transition deletion confirmed, emitting delete-transition event');
     eventBus.$emit('delete-transition', {
       stateName: props.source,
       transitionName: originalTransitionName.value
@@ -626,8 +596,6 @@ function deleteEdge() {
     // Уведомляем ChatBotEditorWorkflow об успешном удалении
     eventBus.$emit('transition-deleted', transitionId.value);
   }).catch(() => {
-    console.log('❌ Transition deletion cancelled');
-    
     // Уведомляем ChatBotEditorWorkflow об отмене удаления
     eventBus.$emit('transition-delete-cancelled', transitionId.value);
   })
@@ -667,8 +635,6 @@ function onGroupMouseDown(event: MouseEvent) {
 }
 
 function startTransitionDrag(event: MouseEvent) {
-  console.log('🔄 startTransitionDrag called for transition:', transitionId.value);
-  
   isDraggingTransition.value = true
 
   const svgElement = (event.target as Element)?.closest('svg') as SVGSVGElement
@@ -701,12 +667,6 @@ function startTransitionDrag(event: MouseEvent) {
       y: event.clientY
     }
   }
-
-  console.log('🔄 Emitting transition-drag-start with:', {
-    transitionId: transitionId.value,
-    sourceNode: props.source,
-    targetNode: props.target
-  });
 
   eventBus.$emit('transition-drag-start', {
     transitionId: transitionId.value, // используем полный transitionId вместо originalTransitionName
@@ -756,14 +716,6 @@ function onTransitionDrag(event: MouseEvent) {
 function endTransitionDrag(event: MouseEvent) {
   if (!isDraggingTransition.value) return
 
-  console.log('🔄 endTransitionDrag called, emitting transition-drag-end with:', {
-    transitionId: transitionId.value,
-    sourceNode: props.source,
-    targetNode: props.target,
-    mouseX: event.clientX,
-    mouseY: event.clientY
-  });
-
   eventBus.$emit('transition-drag-end', {
     transitionId: transitionId.value, // используем полный transitionId
     sourceNode: props.source,
@@ -781,7 +733,6 @@ function endTransitionDrag(event: MouseEvent) {
     
     if (!isSelected.value) {
       isSelected.value = true;
-      console.log('✅ Transition label selected after successful drop');
     }
   }, 50);
 

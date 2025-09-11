@@ -167,8 +167,6 @@ const selectedNodes = ref(new Set<string>());
 
 // Add/remove keyboard listeners
 onMounted(() => {
-  console.log('🔧 ChatBotEditorWorkflow: onMounted called, setting up event listeners...');
-  
   // Small delay for complete VueFlow initialization
   nextTick(() => {
     setTimeout(() => {
@@ -178,7 +176,6 @@ onMounted(() => {
   
   // Listen for transition selection/deselection
   eventBus.$on('label-selected', (transitionId: string) => {
-    console.log('🎯 ChatBotEditorWorkflow: Transition selected:', transitionId);
     // Clear ALL other selections (transitions and nodes)
     selectedTransitions.value.clear();
     selectedNodes.value.clear();
@@ -186,32 +183,19 @@ onMounted(() => {
     
     // Notify nodes to deselect
     eventBus.$emit('node-deselected');
-    
-    console.log('📋 Current selectedTransitions:', Array.from(selectedTransitions.value));
-    console.log('📋 Current selectedNodes:', Array.from(selectedNodes.value));
   });
   
   eventBus.$on('label-deselected', () => {
-    console.log('🚫 ChatBotEditorWorkflow: All transitions deselected');
     selectedTransitions.value.clear();
-    console.log('📋 Current selectedTransitions:', Array.from(selectedTransitions.value));
   });
   
   // Listen for deletion results
   eventBus.$on('transition-deleted', (transitionId: string) => {
-    console.log('✅ ChatBotEditorWorkflow: Transition deleted successfully:', transitionId);
     selectedTransitions.value.delete(transitionId);
-    console.log('📋 Current selectedTransitions after deletion:', Array.from(selectedTransitions.value));
-  });
-  
-  eventBus.$on('transition-delete-cancelled', (transitionId: string) => {
-    console.log('❌ ChatBotEditorWorkflow: Transition deletion cancelled:', transitionId);
-    // Оставляем выделение, чтобы пользователь мог попробовать снова
   });
   
   // Listen for node selection/deselection
   eventBus.$on('node-selected', (nodeId: string) => {
-    console.log('🎯 ChatBotEditorWorkflow: Node selected:', nodeId);
     // Clear ALL other selections (nodes and transitions)
     selectedNodes.value.clear();
     selectedTransitions.value.clear();
@@ -219,45 +203,24 @@ onMounted(() => {
     
     // Notify transitions to deselect
     eventBus.$emit('label-deselected');
-    
-    console.log('📋 Current selectedNodes:', Array.from(selectedNodes.value));
-    console.log('📋 Current selectedTransitions:', Array.from(selectedTransitions.value));
   });
   
   eventBus.$on('node-deselected', () => {
-    console.log('🚫 ChatBotEditorWorkflow: All nodes deselected');
     selectedNodes.value.clear();
-    console.log('📋 Current selectedNodes:', Array.from(selectedNodes.value));
   });
   
   // Listen for node deletion results
   eventBus.$on('node-deleted', (nodeId: string) => {
-    console.log('✅ ChatBotEditorWorkflow: Node deleted successfully:', nodeId);
     selectedNodes.value.delete(nodeId);
-    console.log('📋 Current selectedNodes after deletion:', Array.from(selectedNodes.value));
-  });
-  
-  eventBus.$on('node-delete-cancelled', (nodeId: string) => {
-    console.log('❌ ChatBotEditorWorkflow: Node deletion cancelled:', nodeId);
-    // Оставляем выделение, чтобы пользователь мог попробовать снова
   });
   
   // Listen for node deletion results
   eventBus.$on('node-deleted', (nodeId: string) => {
-    console.log('✅ ChatBotEditorWorkflow: Node deleted successfully:', nodeId);
     selectedNodes.value.delete(nodeId);
-    console.log('📋 Current selectedNodes after deletion:', Array.from(selectedNodes.value));
-  });
-  
-  eventBus.$on('node-delete-cancelled', (nodeId: string) => {
-    console.log('❌ ChatBotEditorWorkflow: Node deletion cancelled:', nodeId);
-    // Оставляем выделение, чтобы пользователь мог попробовать снова
   });
   
   // Add keyboard listener
-  console.log('⌨️ Adding keyboard event listener to document');
   document.addEventListener('keydown', handleKeyDown);
-  console.log('✅ Keyboard event listener added');
 });
 
 onUnmounted(() => {
@@ -277,34 +240,16 @@ onUnmounted(() => {
 
 // Handle keyboard deletion
 const handleKeyDown = (event: KeyboardEvent) => {
-  console.log('🎹 Key pressed in ChatBotEditorWorkflow:', {
-    key: event.key,
-    code: event.code,
-    target: event.target,
-    selectedTransitionsSize: selectedTransitions.value.size,
-    selectedTransitionsList: Array.from(selectedTransitions.value),
-    selectedNodesSize: selectedNodes.value.size,
-    selectedNodesList: Array.from(selectedNodes.value)
-  });
-  
   // Delete or Backspace key
   if (event.key === 'Delete' || event.key === 'Backspace') {
-    console.log('🗑️ Delete key detected');
-    console.log('  - Selected transitions:', Array.from(selectedTransitions.value));
-    console.log('  - Selected nodes:', Array.from(selectedNodes.value));
     
     let hasItemsToDelete = false;
     
     if (selectedTransitions.value.size > 0) {
       hasItemsToDelete = true;
-      console.log('🚀 Starting transition deletion process...');
       
       // Delete each selected transition via confirm dialog
       selectedTransitions.value.forEach(transitionId => {
-        console.log('📤 Emitting delete-transition-with-confirm:', {
-          transitionId
-        });
-        
         // Emit event to trigger deleteEdge() function in the transition component
         eventBus.$emit('delete-transition-with-confirm', {
           transitionId
@@ -314,14 +259,9 @@ const handleKeyDown = (event: KeyboardEvent) => {
     
     if (selectedNodes.value.size > 0) {
       hasItemsToDelete = true;
-      console.log('🚀 Starting node deletion process...');
       
       // Delete each selected node via confirm dialog
       selectedNodes.value.forEach(nodeId => {
-        console.log('📤 Emitting delete-node-with-confirm:', {
-          nodeId
-        });
-        
         // Emit event to trigger delete confirmation for the node
         eventBus.$emit('delete-node-with-confirm', {
           nodeId
@@ -332,8 +272,6 @@ const handleKeyDown = (event: KeyboardEvent) => {
     if (hasItemsToDelete) {
       // Prevent default browser behavior
       event.preventDefault();
-      // НЕ очищаем selection сразу - дождемся результата диалога
-      console.log('⏳ Waiting for deletion confirmation...');
     } else {
       console.log('❌ No items selected for deletion');
     }

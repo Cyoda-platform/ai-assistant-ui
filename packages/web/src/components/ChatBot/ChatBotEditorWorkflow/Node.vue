@@ -188,9 +188,9 @@ onMounted(() => {
   // Listen for node selection events
   eventBus.$on('node-selected', (selectedNodeId: string) => {
     // Если выделен другой node, снимаем выделение с текущего
-    if (selectedNodeId !== nodeId.value && isSelected.value) {
-      isSelected.value = false;
-      console.log('🚫 Node deselected due to other node selection:', nodeId.value);
+    isSelected.value = false;
+    if (selectedNodeId === nodeId.value) {
+      isSelected.value = true;
     }
   });
   
@@ -204,7 +204,6 @@ onMounted(() => {
   eventBus.$on('delete-node-with-confirm', (eventData: { nodeId: string }) => {
     // Удаляем node если его ID совпадает с текущим
     if (eventData.nodeId === nodeId.value) {
-      console.log('🗑️ Delete with confirm requested for node:', nodeId.value);
       deleteState();
     }
   });
@@ -229,12 +228,6 @@ const nodeTypeClass = computed(() => {
 const nodeStyle = computed(() => {
   const style: Record<string, string> = {}
   
-  // Убираем фиксированную ширину - пусть CSS сам подстраивается
-  console.log('Node style calculation:', {
-    label: props.data.label,
-    autoWidth: 'enabled'
-  })
-  
   return style
 })
 
@@ -250,8 +243,6 @@ const deleteState = async () => {
           confirmButtonClass: 'el-button--danger'
         }
     )
-
-    console.log('✅ Node deletion confirmed, emitting delete-state event');
     eventBus.$emit('delete-state', {
       stateName: nodeId.value
     });
@@ -259,8 +250,6 @@ const deleteState = async () => {
     // Уведомляем ChatBotEditorWorkflow об успешном удалении
     eventBus.$emit('node-deleted', nodeId.value);
   } catch {
-    console.log('❌ Node deletion cancelled');
-    
     // Уведомляем ChatBotEditorWorkflow об отмене удаления
     eventBus.$emit('node-delete-cancelled', nodeId.value);
   }
@@ -313,13 +302,6 @@ const cancelEdit = () => {
 }
 
 const onNodeClick = (event: MouseEvent) => {
-  console.log('🖱️ onNodeClick called:', {
-    nodeId: nodeId.value,
-    currentIsSelected: isSelected.value,
-    isDragging: isDragging.value,
-    event
-  });
-  
   // Проверяем, что клик не по кнопкам
   const target = event.target as HTMLElement;
   if (target.closest('button')) {
@@ -337,22 +319,14 @@ const onNodeClick = (event: MouseEvent) => {
   // При клике просто убеждаемся что узел выделен (не переключаем)
   // Снятие выделения происходит при клике в пустом месте
   if (!isSelected.value) {
-    console.log('� Selecting node on click:', nodeId.value);
     eventBus.$emit('node-selected', nodeId.value);
     isSelected.value = true;
-    console.log('✅ Node selected on click, isSelected now:', isSelected.value);
   } else {
     console.log('✅ Node already selected, keeping selection');
   }
 }
 
 const onNodeMouseDown = (event: MouseEvent) => {
-  console.log('🖱️ onNodeMouseDown called:', {
-    nodeId: nodeId.value,
-    currentIsSelected: isSelected.value,
-    event
-  });
-  
   // Проверяем, что клик не по кнопкам
   const target = event.target as HTMLElement;
   if (target.closest('button')) {
@@ -365,29 +339,24 @@ const onNodeMouseDown = (event: MouseEvent) => {
   
   // ВСЕГДА выделяем узел при mousedown (и для клика, и для drag)
   if (!isSelected.value) {
-    console.log('📥 Selecting node on mousedown:', nodeId.value);
     eventBus.$emit('node-selected', nodeId.value);
     isSelected.value = true;
-    console.log('✅ Node selected on mousedown, isSelected now:', isSelected.value);
   }
   
   // Добавляем слушатель движения мыши для отслеживания перетаскивания
   const handleMouseMove = () => {
     if (!isDragging.value) {
       isDragging.value = true;
-      console.log('🚚 Detected node drag start, isDragging set to true');
     }
   };
   
   const handleMouseUp = () => {
-    console.log('🖱️ MouseUp detected, cleaning up listeners');
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
     
     // Сбрасываем флаг через короткую задержку, чтобы click успел его проверить
     setTimeout(() => {
       if (isDragging.value) {
-        console.log('🔄 Resetting isDragging flag after drag');
         isDragging.value = false;
       }
     }, 10);
