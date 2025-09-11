@@ -161,8 +161,9 @@ const {
   onSubmitQuestion,
 } = useWorkflowEditor(props, assistantStore, emit);
 
-// Track selected transitions for deletion
+// Track selected transitions and nodes for deletion
 const selectedTransitions = ref(new Set<string>());
+const selectedNodes = ref(new Set<string>());
 
 // Add/remove keyboard listeners
 onMounted(() => {
@@ -202,6 +203,33 @@ onMounted(() => {
     // Оставляем выделение, чтобы пользователь мог попробовать снова
   });
   
+  // Listen for node selection/deselection
+  eventBus.$on('node-selected', (nodeId: string) => {
+    console.log('🎯 ChatBotEditorWorkflow: Node selected:', nodeId);
+    // Clear other selections and add this one
+    selectedNodes.value.clear();
+    selectedNodes.value.add(nodeId);
+    console.log('📋 Current selectedNodes:', Array.from(selectedNodes.value));
+  });
+  
+  eventBus.$on('node-deselected', () => {
+    console.log('🚫 ChatBotEditorWorkflow: All nodes deselected');
+    selectedNodes.value.clear();
+    console.log('📋 Current selectedNodes:', Array.from(selectedNodes.value));
+  });
+  
+  // Listen for node deletion results
+  eventBus.$on('node-deleted', (nodeId: string) => {
+    console.log('✅ ChatBotEditorWorkflow: Node deleted successfully:', nodeId);
+    selectedNodes.value.delete(nodeId);
+    console.log('📋 Current selectedNodes after deletion:', Array.from(selectedNodes.value));
+  });
+  
+  eventBus.$on('node-delete-cancelled', (nodeId: string) => {
+    console.log('❌ ChatBotEditorWorkflow: Node deletion cancelled:', nodeId);
+    // Оставляем выделение, чтобы пользователь мог попробовать снова
+  });
+  
   // Add keyboard listener
   console.log('⌨️ Adding keyboard event listener to document');
   document.addEventListener('keydown', handleKeyDown);
@@ -217,6 +245,10 @@ onUnmounted(() => {
   eventBus.$off('label-deselected');
   eventBus.$off('transition-deleted');
   eventBus.$off('transition-delete-cancelled');
+  eventBus.$off('node-selected');
+  eventBus.$off('node-deselected');
+  eventBus.$off('node-deleted');
+  eventBus.$off('node-delete-cancelled');
 });
 
 // Handle keyboard deletion
@@ -226,18 +258,22 @@ const handleKeyDown = (event: KeyboardEvent) => {
     code: event.code,
     target: event.target,
     selectedTransitionsSize: selectedTransitions.value.size,
-    selectedTransitionsList: Array.from(selectedTransitions.value)
+    selectedTransitionsList: Array.from(selectedTransitions.value),
+    selectedNodesSize: selectedNodes.value.size,
+    selectedNodesList: Array.from(selectedNodes.value)
   });
   
   // Delete or Backspace key
   if (event.key === 'Delete' || event.key === 'Backspace') {
-    console.log('🗑️ Delete key detected, selected transitions:', Array.from(selectedTransitions.value));
+    console.log('🗑️ Delete key detected');
+    console.log('  - Selected transitions:', Array.from(selectedTransitions.value));
+    console.log('  - Selected nodes:', Array.from(selectedNodes.value));
+    
+    let hasItemsToDelete = false;
     
     if (selectedTransitions.value.size > 0) {
-      // Prevent default browser behavior
-      event.preventDefault();
-      
-      console.log('🚀 Starting deletion process...');
+      hasItemsToDelete = true;
+      console.log('🚀 Starting transition deletion process...');
       
       // Delete each selected transition via confirm dialog
       selectedTransitions.value.forEach(transitionId => {
@@ -250,11 +286,32 @@ const handleKeyDown = (event: KeyboardEvent) => {
           transitionId
         });
       });
+    }
+    
+    if (selectedNodes.value.size > 0) {
+      hasItemsToDelete = true;
+      console.log('🚀 Starting node deletion process...');
       
+      // Delete each selected node via confirm dialog
+      selectedNodes.value.forEach(nodeId => {
+        console.log('📤 Emitting delete-node-with-confirm:', {
+          nodeId
+        });
+        
+        // Emit event to trigger delete confirmation for the node
+        eventBus.$emit('delete-node-with-confirm', {
+          nodeId
+        });
+      });
+    }
+    
+    if (hasItemsToDelete) {
+      // Prevent default browser behavior
+      event.preventDefault();
       // НЕ очищаем selection сразу - дождемся результата диалога
       console.log('⏳ Waiting for deletion confirmation...');
     } else {
-      console.log('❌ No transitions selected for deletion');
+      console.log('❌ No items selected for deletion');
     }
   } else {
     console.log('ℹ️ Key ignored:', event.key);

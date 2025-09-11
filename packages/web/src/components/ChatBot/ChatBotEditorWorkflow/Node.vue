@@ -3,7 +3,8 @@
       class="workflow-node"
       :class="[nodeTypeClass, {
       'dimmed': shouldDimNode(nodeId),
-      'hovering-delete': isHoveringDeleteBtn
+      'hovering-delete': isHoveringDeleteBtn,
+      'selected': isSelected
     }]"
       :style="nodeStyle"
       ref="nodeRef"
@@ -62,7 +63,7 @@
     />
 
     <div class="node-header">
-      <div class="node-title" @dblclick="startInlineEdit">
+      <div class="node-title" @click="onNodeClick" @dblclick="startInlineEdit">
         <span v-if="data.isInitial" class="node-icon initial-icon" title="Initial state">
           <PlayIcon/>
         </span>
@@ -164,6 +165,9 @@ const {
 
 const isHoveringDeleteBtn = ref(false)
 
+// Selection state
+const isSelected = ref(false)
+
 // Inline editing state
 const isEditing = ref(false)
 const editingName = ref('')
@@ -178,10 +182,39 @@ const handleDocumentClick = (event: Event) => {
 
 onMounted(() => {
   document.addEventListener('click', handleDocumentClick)
+  
+  // Listen for node selection events
+  eventBus.$on('node-selected', (selectedNodeId: string) => {
+    // Если выделен другой node, снимаем выделение с текущего
+    if (selectedNodeId !== nodeId.value && isSelected.value) {
+      isSelected.value = false;
+      console.log('🚫 Node deselected due to other node selection:', nodeId.value);
+    }
+  });
+  
+  eventBus.$on('node-deselected', () => {
+    // Снимаем выделение при глобальном событии deselected
+    isSelected.value = false;
+    console.log('🚫 Node deselected globally:', nodeId.value);
+  });
+  
+  // Listen for delete node with confirm event
+  eventBus.$on('delete-node-with-confirm', (eventData: { nodeId: string }) => {
+    // Удаляем node если его ID совпадает с текущим
+    if (eventData.nodeId === nodeId.value) {
+      console.log('🗑️ Delete with confirm requested for node:', nodeId.value);
+      deleteState();
+    }
+  });
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleDocumentClick)
+  
+  // Remove event listeners
+  eventBus.$off('node-selected');
+  eventBus.$off('node-deselected');
+  eventBus.$off('delete-node-with-confirm');
 })
 
 const nodeTypeClass = computed(() => {
@@ -216,11 +249,18 @@ const deleteState = async () => {
         }
     )
 
+    console.log('✅ Node deletion confirmed, emitting delete-state event');
     eventBus.$emit('delete-state', {
       stateName: nodeId.value
-    })
+    });
+    
+    // Уведомляем ChatBotEditorWorkflow об успешном удалении
+    eventBus.$emit('node-deleted', nodeId.value);
   } catch {
-    // User cancelled the deletion
+    console.log('❌ Node deletion cancelled');
+    
+    // Уведомляем ChatBotEditorWorkflow об отмене удаления
+    eventBus.$emit('node-delete-cancelled', nodeId.value);
   }
 }
 
@@ -269,6 +309,35 @@ const cancelEdit = () => {
   isEditing.value = false
   editingName.value = ''
 }
+
+const onNodeClick = (event: MouseEvent) => {
+  console.log('🖱️ onNodeClick called:', {
+    nodeId: nodeId.value,
+    currentIsSelected: isSelected.value,
+    event
+  });
+  
+  // Проверяем, что клик не по кнопкам
+  const target = event.target as HTMLElement;
+  if (target.closest('button')) {
+    console.log('❌ Click ignored - clicked on button');
+    return;
+  }
+  
+  // Если уже выделен, снимаем выделение
+  if (isSelected.value) {
+    console.log('📤 Deselecting node:', nodeId.value);
+    isSelected.value = false;
+    eventBus.$emit('node-deselected');
+  } else {
+    console.log('📥 Selecting node:', nodeId.value);
+    // Сначала отправляем событие о том, что выбран новый node (это сбросит другие)
+    eventBus.$emit('node-selected', nodeId.value);
+    // Затем выделяем текущий
+    isSelected.value = true;
+    console.log('✅ Node selected, isSelected now:', isSelected.value);
+  }
+}
 </script>
 
 <style scoped lang="scss">
@@ -288,6 +357,10 @@ const cancelEdit = () => {
 
   &.dimmed {
     opacity: 0.5;
+  }
+  
+  &.selected {
+    background-color: #409eff !important;
   }
 }
 
