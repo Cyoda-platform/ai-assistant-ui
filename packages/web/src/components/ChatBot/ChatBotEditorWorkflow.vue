@@ -23,6 +23,7 @@
       </el-splitter-panel>
       <el-splitter-panel v-if="isShowVueFlow" class="chat-bot-editor-workflow__flow-wrapper">
         <VueFlow
+            ref="vueFlowRef"
             :delete-key-code="null"
             class="chat-bot-editor-workflow__vue-flow"
             :class="{ 'connection-dragging': isDraggingConnection }"
@@ -195,7 +196,10 @@ const {
   onSubmitQuestion,
 } = useWorkflowEditor(props, assistantStore, emit);
 
-const {zoomIn, zoomOut} = useVueFlow();
+const {zoomIn, zoomOut, getViewport} = useVueFlow();
+
+// Template ref for VueFlow
+const vueFlowRef = ref();
 
 // Draggable state
 const isDraggable = ref(true);
@@ -203,6 +207,39 @@ const isDraggable = ref(true);
 // Track selected transitions and nodes for deletion
 const selectedTransitions = ref(new Set<string>());
 const selectedNodes = ref(new Set<string>());
+
+// Handle double click on pane to add new state at click position
+const handlePaneDoubleClick = (event: MouseEvent) => {
+  // Prevent adding state if clicking on nodes, edges, transitions, or controls
+  const target = event.target as HTMLElement;
+  if (target.closest('.vue-flow__node') || 
+      target.closest('.vue-flow__edge') || 
+      target.closest('.vue-flow__controls') ||
+      target.closest('.vue-flow__handle') ||
+      target.closest('.transition-label') ||
+      target.closest('[data-testid*="edge"]') ||
+      target.closest('[class*="node"]') ||
+      target.closest('[class*="edge"]') ||
+      target.closest('[class*="transition"]')) {
+    return;
+  }
+
+  // Get VueFlow element
+  const vueFlowElement = vueFlowRef.value?.$el || vueFlowRef.value;
+  if (!vueFlowElement) return;
+
+  // Get bounding rect and viewport for coordinate transformation
+  const rect = vueFlowElement.getBoundingClientRect();
+  const viewport = getViewport();
+  
+  // Transform DOM coordinates to VueFlow coordinates
+  const position = {
+    x: (event.clientX - rect.left - viewport.x) / viewport.zoom,
+    y: (event.clientY - rect.top - viewport.y) / viewport.zoom
+  };
+  
+  addNewState(position);
+};
 
 // Event handler functions
 const handleLabelSelected = (transitionId: string) => {
@@ -407,6 +444,21 @@ function onClear() {
 //     fitView();
 //   }, 10)
 // })
+
+// Setup double click listener for adding new states
+onMounted(() => {
+  const vueFlowElement = vueFlowRef.value?.$el || vueFlowRef.value;
+  if (vueFlowElement) {
+    vueFlowElement.addEventListener('dblclick', handlePaneDoubleClick);
+  }
+});
+
+onUnmounted(() => {
+  const vueFlowElement = vueFlowRef.value?.$el || vueFlowRef.value;
+  if (vueFlowElement) {
+    vueFlowElement.removeEventListener('dblclick', handlePaneDoubleClick);
+  }
+});
 </script>
 
 <style lang="scss">

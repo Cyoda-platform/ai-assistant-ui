@@ -1766,7 +1766,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         saveState(createSnapshot());
     }
 
-    async function addNewState() {
+    async function addNewState(clickPosition?: { x: number; y: number }) {
         try {
             // Парсим текущие данные один раз для получения списка существующих состояний
             let parsed: WorkflowData;
@@ -1836,7 +1836,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             );
 
             let newStatePosition = { x: 0, y: 0 };
-            if (existingPositions.length > 0) {
+            
+            // Use click position if provided, otherwise use automatic positioning
+            if (clickPosition) {
+                newStatePosition = { x: clickPosition.x, y: clickPosition.y };
+            } else if (existingPositions.length > 0) {
                 const positions = existingPositions.map(([, pos]) => pos as { x?: number; y?: number });
                 const isVertical = layoutDirection.value === 'vertical';
 
