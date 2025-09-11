@@ -71,9 +71,6 @@
         <span v-else-if="data.isTerminal" class="node-icon terminal-icon" title="Terminal state">
           <StopIcon/>
         </span>
-        <span v-else class="node-icon default-icon" title="State">
-          <CircleIcon/>
-        </span>
         <span v-if="!isEditing" class="node-name">{{ data.label }}</span>
         <el-input
             v-if="isEditing"
@@ -426,10 +423,6 @@ const onNodeClick = (event: MouseEvent) => {
 
   &.terminal-icon {
     font-weight: bold;
-  }
-
-  &.default-icon {
-    font-size: 8px;
   }
 }
 
