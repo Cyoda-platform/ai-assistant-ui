@@ -30,23 +30,39 @@
         @mouseleave="onPathLeave"
     />
 
-    <!-- Кликабельная область на начале edge (source) -->
+    <!-- Расширенная кликабельная область на начале edge (source) -->
     <circle
       :cx="circleSourceX"
       :cy="circleSourceY"
-      r="12"
+      r="18"
       fill="transparent"
       style="cursor: grab; pointer-events: all;"
       @mousedown="startSourceDrag"
     />
+    <!-- Дополнительная хит-зона (толстый прозрачный сегмент) около начала -->
+    <path
+      :d="`M ${circleSourceX - 24},${circleSourceY - 24} L ${circleSourceX + 24},${circleSourceY + 24}`"
+      stroke="transparent"
+      stroke-width="32"
+      style="pointer-events: stroke; cursor: grab;"
+      @mousedown="startSourceDrag"
+    />
 
-    <!-- Кликабельная область на конце edge (target) -->
+    <!-- Расширенная кликабельная область на конце edge (target) -->
     <circle
       :cx="circleTargetX"
       :cy="circleTargetY"
-      r="12"
+      r="18"
       fill="transparent"
       style="cursor: grab; pointer-events: all;"
+      @mousedown="startTargetDrag"
+    />
+    <!-- Дополнительная хит-зона (толстый прозрачный сегмент) около конца -->
+    <path
+      :d="`M ${circleTargetX - 24},${circleTargetY - 24} L ${circleTargetX + 24},${circleTargetY + 24}`"
+      stroke="transparent"
+      stroke-width="32"
+      style="pointer-events: stroke; cursor: grab;"
       @mousedown="startTargetDrag"
     />
 
