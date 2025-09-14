@@ -1271,6 +1271,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         transitionData: any;
     } | null>(null);
 
+    // СТАРЫЕ ОБРАБОТЧИКИ - ЗАКОММЕНТИРОВАНЫ В ПОЛЬЗУ СПЕЦИАЛИЗИРОВАННЫХ SOURCE/TARGET
+    /*
     function handleTransitionDragStart(eventData: any) {
         currentDraggedTransition.value = {
             transitionId: eventData.transitionId,
@@ -1362,6 +1364,151 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 moveTransitionToNode(internalTransitionId, sourceNode, nodeUnderCursor);
             } else {
                 console.log('❌ Cannot move transition - same node or no target. NodeUnderCursor:', nodeUnderCursor, 'SourceNode:', sourceNode);
+            }
+        }
+
+        currentDraggedTransition.value = null;
+    }
+    */
+
+    function handleTransitionDragging(_eventData: any) {
+        // You can add visual feedback while dragging
+        // For example, highlighting nodes under the cursor
+    }
+
+    // НОВЫЕ СПЕЦИАЛИЗИРОВАННЫЕ ОБРАБОТЧИКИ SOURCE/TARGET
+
+    // Обработчики для раздельного перетаскивания source и target концов
+    function handleTransitionSourceDragStart(eventData: any) {
+        currentDraggedTransition.value = {
+            transitionId: eventData.transitionId,
+            sourceNode: eventData.sourceNode,
+            targetNode: eventData.targetNode,
+            transitionData: eventData.transitionData
+        };
+        eventBus.$emit('highlight-drop-targets', true);
+    }
+
+    function handleTransitionSourceDragEnd(eventData: any) {
+        if (!currentDraggedTransition.value) {
+            console.log('❌ No current dragged transition for source');
+            return;
+        }
+
+        eventBus.$emit('highlight-drop-targets', false);
+
+        const handleInfo = findHandleAtPosition(eventData.mouseX, eventData.mouseY);
+        if (handleInfo) {
+            const { nodeId: dropNodeId, side, kind } = handleInfo;
+            const internalTransitionId = currentDraggedTransition.value.transitionId;
+            const currentSourceNode = currentDraggedTransition.value.sourceNode;
+            const targetNode = currentDraggedTransition.value.targetNode;
+
+            if (dropNodeId === currentSourceNode) {
+                // Dropped on same source node -> update source handle
+                const sourceHandle = `${side}-source` as const;
+                upsertTransitionHandles(internalTransitionId, { sourceHandle });
+                generateNodes({ skipFitView: true });
+                ElMessage.success(`Source handle set to ${sourceHandle}`);
+            } else if (dropNodeId !== targetNode && (kind === 'source' || kind === 'target')) {
+                // Dropped on different node -> move source
+                const sourceHandle = `${side}-source` as const;
+                // Сначала перемещаем transition
+                moveTransitionSourceToNode(internalTransitionId, dropNodeId, targetNode);
+                // Затем устанавливаем handle для нового transition ID
+                const newTransitionId = `${dropNodeId}-${internalTransitionId.split('-').slice(1).join('-')}`;
+                upsertTransitionHandles(newTransitionId, { sourceHandle });
+            }
+        } else {
+            // Fallback: try to resolve just a node under cursor
+            const nodeUnderCursor = findNodeAtPosition(eventData.mouseX, eventData.mouseY);
+            const internalTransitionId = currentDraggedTransition.value.transitionId;
+            const currentSourceNode = currentDraggedTransition.value.sourceNode;
+            const targetNode = currentDraggedTransition.value.targetNode;
+
+            if (nodeUnderCursor === currentSourceNode) {
+                const side = computeDropSideForNode(eventData.mouseX, eventData.mouseY, nodeUnderCursor);
+                if (side) {
+                    const sourceHandle = `${side}-source` as const;
+                    upsertTransitionHandles(internalTransitionId, { sourceHandle });
+                    generateNodes({ skipFitView: true });
+                    ElMessage.success(`Source handle set to ${sourceHandle}`);
+                }
+            } else if (nodeUnderCursor && nodeUnderCursor !== targetNode) {
+                const side = computeDropSideForNode(eventData.mouseX, eventData.mouseY, nodeUnderCursor);
+                // Сначала перемещаем transition
+                moveTransitionSourceToNode(internalTransitionId, nodeUnderCursor, targetNode);
+                // Затем устанавливаем handle для нового transition ID если определили side
+                if (side) {
+                    const sourceHandle = `${side}-source` as const;
+                    const newTransitionId = `${nodeUnderCursor}-${internalTransitionId.split('-').slice(1).join('-')}`;
+                    upsertTransitionHandles(newTransitionId, { sourceHandle });
+                }
+            }
+        }
+
+        currentDraggedTransition.value = null;
+    }
+
+    function handleTransitionTargetDragStart(eventData: any) {
+        currentDraggedTransition.value = {
+            transitionId: eventData.transitionId,
+            sourceNode: eventData.sourceNode,
+            targetNode: eventData.targetNode,
+            transitionData: eventData.transitionData
+        };
+        eventBus.$emit('highlight-drop-targets', true);
+    }
+
+    function handleTransitionTargetDragEnd(eventData: any) {
+        if (!currentDraggedTransition.value) {
+            console.log('❌ No current dragged transition for target');
+            return;
+        }
+
+        eventBus.$emit('highlight-drop-targets', false);
+
+        const handleInfo = findHandleAtPosition(eventData.mouseX, eventData.mouseY);
+        if (handleInfo) {
+            const { nodeId: dropNodeId, side, kind } = handleInfo;
+            const internalTransitionId = currentDraggedTransition.value.transitionId;
+            const sourceNode = currentDraggedTransition.value.sourceNode;
+            const currentTargetNode = currentDraggedTransition.value.targetNode;
+
+            if (dropNodeId === currentTargetNode) {
+                // Dropped on same target node -> update target handle
+                const targetHandle = `${side}-target` as const;
+                upsertTransitionHandles(internalTransitionId, { targetHandle });
+                generateNodes({ skipFitView: true });
+                ElMessage.success(`Target handle set to ${targetHandle}`);
+            } else if (dropNodeId !== sourceNode && (kind === 'source' || kind === 'target')) {
+                // Dropped on different node -> move target
+                const targetHandle = `${side}-target` as const;
+                upsertTransitionHandles(internalTransitionId, { targetHandle });
+                moveTransitionToNode(internalTransitionId, sourceNode, dropNodeId);
+            }
+        } else {
+            // Fallback: try to resolve just a node under cursor
+            const nodeUnderCursor = findNodeAtPosition(eventData.mouseX, eventData.mouseY);
+            const internalTransitionId = currentDraggedTransition.value.transitionId;
+            const sourceNode = currentDraggedTransition.value.sourceNode;
+            const currentTargetNode = currentDraggedTransition.value.targetNode;
+
+            if (nodeUnderCursor === currentTargetNode) {
+                const side = computeDropSideForNode(eventData.mouseX, eventData.mouseY, nodeUnderCursor);
+                if (side) {
+                    const targetHandle = `${side}-target` as const;
+                    upsertTransitionHandles(internalTransitionId, { targetHandle });
+                    generateNodes({ skipFitView: true });
+                    ElMessage.success(`Target handle set to ${targetHandle}`);
+                }
+            } else if (nodeUnderCursor && nodeUnderCursor !== sourceNode) {
+                const side = computeDropSideForNode(eventData.mouseX, eventData.mouseY, nodeUnderCursor);
+                if (side) {
+                    const targetHandle = `${side}-target` as const;
+                    upsertTransitionHandles(internalTransitionId, { targetHandle });
+                }
+                moveTransitionToNode(internalTransitionId, sourceNode, nodeUnderCursor);
             }
         }
 
@@ -1604,6 +1751,112 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 }
             } else {
                 console.error('Source state has no transitions');
+                return;
+            }
+        } finally {
+            // Reset flag with delay to ensure watcher doesn't trigger fitView
+            setTimeout(() => {
+                isSavingTransition = false;
+            }, 500);
+        }
+    }
+
+    function moveTransitionSourceToNode(transitionId: string, newSourceNode: string, targetNode: string) {
+        // Set flag to prevent fitView in watcher
+        isSavingTransition = true;
+
+        try {
+            // Сохраняем текущие позиции узлов перед изменением
+            const currentPositions: { [key: string]: NodePosition } = {};
+            nodes.value.forEach(node => {
+                currentPositions[node.id] = {x: node.position.x, y: node.position.y};
+            });
+
+            let parsed: WorkflowData;
+            try {
+                parsed = JSON.parse(canvasData.value);
+            } catch (e) {
+                console.error('Invalid JSON in canvasData:', e);
+                return;
+            }
+
+            // Извлекаем текущий source из transitionId или используем из eventData
+            if (!currentDraggedTransition.value) {
+                console.error('No current dragged transition');
+                return;
+            }
+            
+            const oldSourceNode = currentDraggedTransition.value.sourceNode;
+            let actualTransitionName: string;
+            
+            // Пытаемся извлечь имя transition из ID
+            if (transitionId.includes('-') && transitionId.startsWith(oldSourceNode + '-')) {
+                // Формат: "sourceState-transitionName"
+                actualTransitionName = transitionId.substring(oldSourceNode.length + 1);
+            } else {
+                // Если формат не стандартный, используем весь ID как имя
+                actualTransitionName = transitionId;
+                console.log('⚠️ Non-standard transition ID format, using full ID as name:', transitionId);
+            }
+
+            const oldSourceState = parsed.states[oldSourceNode];
+            const newSourceState = parsed.states[newSourceNode];
+
+            console.log('🔍 Debug info:', {
+                oldSourceNode,
+                newSourceNode,
+                targetNode,
+                actualTransitionName,
+                transitionId,
+                oldSourceStateExists: !!oldSourceState,
+                newSourceStateExists: !!newSourceState,
+                availableStates: Object.keys(parsed.states || {})
+            });
+
+            if (!oldSourceState || !newSourceState) {
+                console.error('Old source or new source state not found');
+                return;
+            }
+
+            if (oldSourceState.transitions) {
+                const transitionIndex = oldSourceState.transitions.findIndex(t => t.name === actualTransitionName);
+
+                if (transitionIndex !== -1) {
+                    // Копируем transition данные, НО сохраняем исходный target
+                    const transitionData = {...oldSourceState.transitions[transitionIndex]};
+                    // Убеждаемся что target остается прежним (targetNode из параметра)
+                    transitionData.next = targetNode;
+                    
+                    // Удаляем transition из старого source
+                    oldSourceState.transitions.splice(transitionIndex, 1);
+                    
+                    // Добавляем transition к новому source с тем же target
+                    if (!newSourceState.transitions) {
+                        newSourceState.transitions = [];
+                    }
+                    newSourceState.transitions.push(transitionData);
+
+                    // Сохраняем текущие позиции в метаданных чтобы не потерять расположение
+                    workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
+
+                    canvasData.value = JSON.stringify(parsed, null, 2);
+
+                    if (assistantStore && assistantStore.selectedAssistant) {
+                        assistantStore.selectedAssistant.workflow_data = canvasData.value;
+                    }
+
+                    // Regenerate nodes preserving current positions, without fitView
+                    generateNodes({ skipFitView: true });
+
+                    ElMessage.success(`Transition "${actualTransitionName}" source moved from "${oldSourceNode}" to "${newSourceNode}"`);
+
+                    saveState(createSnapshot());
+                } else {
+                    console.error(`Transition "${actualTransitionName}" not found in old source state`);
+                    return;
+                }
+            } else {
+                console.error('Old source state has no transitions');
                 return;
             }
         } finally {
@@ -2040,9 +2293,16 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         eventBus.$on('get-transition-data', handleGetTransitionData);
         eventBus.$on('change-transition-target', handleChangeTransitionTarget);
         eventBus.$on('get-available-nodes', handleGetAvailableNodes);
-        eventBus.$on('transition-drag-start', handleTransitionDragStart);
+        // Отключены старые обработчики - теперь используются специализированные source/target обработчики
+        // eventBus.$on('transition-drag-start', handleTransitionDragStart);
+        // eventBus.$on('transition-drag-end', handleTransitionDragEnd);
         eventBus.$on('transition-dragging', handleTransitionDragging);
-        eventBus.$on('transition-drag-end', handleTransitionDragEnd);
+        eventBus.$on('transition-source-drag-start', handleTransitionSourceDragStart);
+        eventBus.$on('transition-source-drag', handleTransitionDragging);
+        eventBus.$on('transition-source-drag-end', handleTransitionSourceDragEnd);
+        eventBus.$on('transition-target-drag-start', handleTransitionTargetDragStart);
+        eventBus.$on('transition-target-drag', handleTransitionDragging);
+        eventBus.$on('transition-target-drag-end', handleTransitionTargetDragEnd);
         eventBus.$on('update-transition-label-position', handleUpdateTransitionLabelPosition);
         generateNodes();
     });
@@ -2069,9 +2329,16 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         eventBus.$off('get-transition-data', handleGetTransitionData);
         eventBus.$off('change-transition-target', handleChangeTransitionTarget);
         eventBus.$off('get-available-nodes', handleGetAvailableNodes);
-        eventBus.$off('transition-drag-start', handleTransitionDragStart);
+        // Отключены старые обработчики
+        // eventBus.$off('transition-drag-start', handleTransitionDragStart);
+        // eventBus.$off('transition-drag-end', handleTransitionDragEnd);
         eventBus.$off('transition-dragging', handleTransitionDragging);
-        eventBus.$off('transition-drag-end', handleTransitionDragEnd);
+        eventBus.$off('transition-source-drag-start', handleTransitionSourceDragStart);
+        eventBus.$off('transition-source-drag', handleTransitionDragging);
+        eventBus.$off('transition-source-drag-end', handleTransitionSourceDragEnd);
+        eventBus.$off('transition-target-drag-start', handleTransitionTargetDragStart);
+        eventBus.$off('transition-target-drag', handleTransitionDragging);
+        eventBus.$off('transition-target-drag-end', handleTransitionTargetDragEnd);
 
         if (debounceTimer) {
             clearTimeout(debounceTimer);
