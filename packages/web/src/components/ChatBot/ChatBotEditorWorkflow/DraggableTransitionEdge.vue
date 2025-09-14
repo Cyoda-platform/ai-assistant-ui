@@ -7,7 +7,6 @@
       'dragging': isDragging,
       'dragging-transition': isDraggingTransition
     }"
-      @mousedown="onGroupMouseDown"
   @mouseenter="handleEdgeMouseEnter"
   @mouseleave="handleEdgeMouseLeave"
   >
@@ -18,8 +17,7 @@
         :marker-end="markerEnd"
         :marker-start="markerStart"
         fill="none"
-        style="cursor: grab;"
-        @mousedown="startTransitionDrag"
+        style="cursor: default;"
     />
 
     <path
@@ -27,10 +25,19 @@
         fill="none"
         stroke="transparent"
         stroke-width="20"
-        style="cursor: grab;"
-        @mousedown="startTransitionDrag"
+        style="cursor: default;"
         @mouseenter="onPathHover"
         @mouseleave="onPathLeave"
+    />
+
+    <!-- Невидимая кликабельная область только на конце edge -->
+    <circle
+      :cx="props.targetX"
+      :cy="props.targetY"
+      r="12"
+      fill="transparent"
+      style="cursor: grab; pointer-events: all;"
+      @mousedown="startTransitionDrag"
     />
 
     <foreignObject
@@ -597,14 +604,6 @@ function onPathLeave() {
   // Path leave logic can be added here if needed
 }
 
-function onGroupMouseDown(event: MouseEvent) {
-  const target = event.target as HTMLElement
-  if (target.closest('.transition-label-container') || target.closest('button')) {
-    return
-  }
-  startTransitionDrag(event)
-}
-
 function startTransitionDrag(event: MouseEvent) {
   isDraggingTransition.value = true
 
@@ -675,7 +674,7 @@ function onTransitionDrag(event: MouseEvent) {
     }
   }
 
-  eventBus.$emit('transition-dragging', {
+  eventBus.$emit('transition-drag', {
     transitionId: transitionId.value, // используем полный transitionId
     mouseX: event.clientX,
     mouseY: event.clientY,
@@ -738,6 +737,14 @@ function endTransitionDrag(event: MouseEvent) {
 
 .draggable-transition-edge.dragging {
   z-index: 1000;
+}
+
+.draggable-transition-edge.dragging-transition {
+  cursor: grabbing !important;
+}
+
+.draggable-transition-edge.dragging-transition path {
+  cursor: grabbing !important;
 }
 
 .transition-label-container {
