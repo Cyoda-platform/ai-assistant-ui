@@ -15,6 +15,7 @@ import {
 } from '../utils/smartLayout';
 import {type EditorAction, createWorkflowEditorActions} from '@/utils/editorUtils';
 import {useUndoRedo} from './useUndoRedo';
+import useAppStore from '@/stores/app';
 
 export interface WorkflowEditorProps {
     technicalId: string;
@@ -127,6 +128,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     const EDITOR_MODE = 'chatBotEditorWorkflow:editorMode';
     const LAYOUT_DIRECTION = 'chatBotEditorWorkflow:layoutDirection';
 
+    const appStore = useAppStore();
+
     // Reactive keys for localStorage, updated when technicalId changes
     const workflowCanvasDataKey = computed(() => `chatBotEditorWorkflow:canvasData:${props.technicalId}`);
     const workflowMetaDataKey = computed(() => `chatBotEditorWorkflow:metaData:${props.technicalId}`);
@@ -165,7 +168,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     const canvasData = ref('');
     const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
     const editorMode = ref(helperStorage.get(EDITOR_MODE, 'editorPreview'));
-    const layoutDirection = ref<'horizontal' | 'vertical'>(helperStorage.get(LAYOUT_DIRECTION, 'vertical'));
+    // Use global app store setting as primary source for layout direction
+    const layoutDirection = ref<'horizontal' | 'vertical'>(appStore.workflowLayout || helperStorage.get(LAYOUT_DIRECTION, 'vertical'));
     const isLoading = ref(false);
     const editorActions = ref<EditorAction[]>([]);
 
@@ -365,7 +369,17 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     if (metaLayoutDirection && (metaLayoutDirection === 'horizontal' || metaLayoutDirection === 'vertical')) {
         layoutDirection.value = metaLayoutDirection;
         helperStorage.set(LAYOUT_DIRECTION, metaLayoutDirection);
+        // Also sync with app store
+        appStore.setWorkflowLayout(metaLayoutDirection);
     }
+
+    // Watch for changes in app store layout direction and sync with local state
+    watch(() => appStore.workflowLayout, (newLayout) => {
+        if (layoutDirection.value !== newLayout) {
+            layoutDirection.value = newLayout;
+            helperStorage.set(LAYOUT_DIRECTION, newLayout);
+        }
+    });
 
     const initialPositions = ref<{ [key: string]: NodePosition }>({});
     const initialTransitionLabels = ref<{ [key: string]: { x: number; y: number } }>({});
@@ -1915,6 +1929,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         // Toggle direction on each autoLayout call
         layoutDirection.value = layoutDirection.value === 'horizontal' ? 'vertical' : 'horizontal';
         helperStorage.set(LAYOUT_DIRECTION, layoutDirection.value);
+        // Also update the global app store setting
+        appStore.setWorkflowLayout(layoutDirection.value);
 
         const parsed = JSON.parse(canvasData.value);
         const states = parsed.states || {};
