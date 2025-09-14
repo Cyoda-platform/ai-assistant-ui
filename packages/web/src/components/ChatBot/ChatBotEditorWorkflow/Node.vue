@@ -3,10 +3,12 @@
       class="workflow-node"
       :class="[nodeTypeClass, {
       'dimmed': shouldDimNode(nodeId),
-      'hovering-delete': isHoveringDeleteBtn
+      'selected': isSelected
     }]"
       :style="nodeStyle"
       ref="nodeRef"
+      @mousedown="onNodeClick"
+      @click="onNodeActualClick"
   >
     <Handle
         type="source"
@@ -62,15 +64,12 @@
     />
 
     <div class="node-header">
-      <div class="node-title" @dblclick="startInlineEdit">
+      <div class="node-title" @click="onNodeClick" @dblclick="startInlineEdit">
         <span v-if="data.isInitial" class="node-icon initial-icon" title="Initial state">
           <PlayIcon/>
         </span>
         <span v-else-if="data.isTerminal" class="node-icon terminal-icon" title="Terminal state">
           <StopIcon/>
-        </span>
-        <span v-else class="node-icon default-icon" title="State">
-          <CircleIcon/>
         </span>
         <span v-if="!isEditing" class="node-name">{{ data.label }}</span>
         <el-input
@@ -102,20 +101,6 @@
           </button>
         </template>
         <template v-else>
-          <button
-              @click="startInlineEdit"
-              class="edit-state-btn"
-              title="Edit state name"
-          >
-            <EditIcon/>
-          </button>
-          <button
-              @click="deleteState"
-              class="delete-state-btn"
-              title="Delete state"
-          >
-            <TrashSmallIcon/>
-          </button>
         </template>
       </div>
     </div>
@@ -129,8 +114,6 @@ import {ElMessageBox, ElInput} from 'element-plus'
 import {useDropdownManager} from './composables/useDropdownManager'
 import {useTransitionHighlight} from './composables/useTransitionHighlight'
 import eventBus from '../../../plugins/eventBus'
-import TrashSmallIcon from "@/assets/images/icons/trash-small.svg"
-import EditIcon from '@/assets/images/icons/edit.svg';
 import CheckIcon from '@/assets/images/icons/check.svg';
 import CloseSmallIcon from '@/assets/images/icons/close-small.svg';
 import PlayIcon from '@/assets/images/icons/play.svg';
@@ -162,7 +145,9 @@ const {
   shouldDimNode
 } = useTransitionHighlight()
 
-const isHoveringDeleteBtn = ref(false)
+// Selection state
+const isSelected = ref(false)
+const isDragging = ref(false) // Флаг для отслеживания перетаскивания
 
 // Inline editing state
 const isEditing = ref(false)
@@ -176,12 +161,36 @@ const handleDocumentClick = (event: Event) => {
   }
 }
 
+// Event handlers
+const handleNodeDeselected = () => {
+  isSelected.value = false;
+};
+
+const handleDeleteNodeWithConfirm = (eventData: { nodeId: string }) => {
+  console.log('🗑️ handleDeleteNodeWithConfirm called:', eventData, 'current nodeId:', nodeId.value);
+  // Удаляем node если его ID совпадает с текущим
+  if (eventData.nodeId === nodeId.value) {
+    console.log('🗑️ Node IDs match, calling deleteState');
+    deleteState();
+  } else {
+    console.log('🗑️ Node IDs do not match, ignoring');
+  }
+};
+
 onMounted(() => {
   document.addEventListener('click', handleDocumentClick)
+  eventBus.$on('node-deselected', handleNodeDeselected);
+
+  // Listen for delete node with confirm event
+  eventBus.$on('delete-node-with-confirm', handleDeleteNodeWithConfirm);
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleDocumentClick)
+
+  // Remove event listeners with proper function references
+  eventBus.$off('node-deselected', handleNodeDeselected);
+  eventBus.$off('delete-node-with-confirm', handleDeleteNodeWithConfirm);
 })
 
 const nodeTypeClass = computed(() => {
@@ -193,13 +202,7 @@ const nodeTypeClass = computed(() => {
 // Computed свойство для стиля узла с автоматической шириной
 const nodeStyle = computed(() => {
   const style: Record<string, string> = {}
-  
-  // Убираем фиксированную ширину - пусть CSS сам подстраивается
-  console.log('Node style calculation:', {
-    label: props.data.label,
-    autoWidth: 'enabled'
-  })
-  
+
   return style
 })
 
@@ -215,12 +218,15 @@ const deleteState = async () => {
           confirmButtonClass: 'el-button--danger'
         }
     )
-
     eventBus.$emit('delete-state', {
       stateName: nodeId.value
-    })
+    });
+
+    // Уведомляем ChatBotEditorWorkflow об успешном удалении
+    eventBus.$emit('node-deleted', nodeId.value);
   } catch {
-    // User cancelled the deletion
+    // Уведомляем ChatBotEditorWorkflow об отмене удаления
+    eventBus.$emit('node-delete-cancelled', nodeId.value);
   }
 }
 
@@ -269,6 +275,62 @@ const cancelEdit = () => {
   isEditing.value = false
   editingName.value = ''
 }
+
+const onNodeActualClick = () => {
+  // Если было перетаскивание, не обрабатываем клик
+  if (isDragging.value) {
+    console.log('❌ Click ignored - node was dragged');
+    return;
+  }
+  
+  console.log('🎯 Node actual click processed:', nodeId.value);
+};
+
+const onNodeClick = (event: MouseEvent) => {
+  // Проверяем, что клик не по кнопкам
+  const target = event.target as HTMLElement;
+  if (target.closest('button')) {
+    console.log('❌ Click ignored - clicked on button');
+    return;
+  }
+
+  // Всегда сбрасываем флаг движения при новом mousedown
+  isDragging.value = false;
+  
+  console.log('🎯 Node mousedown:', nodeId.value);
+  
+  // Проверяем, не выделен ли уже этот узел
+  if (isSelected.value) {
+    console.log('✅ Node already selected, skipping selection logic');
+    return;
+  }
+  
+  // Сначала снимаем выделение со всех узлов, затем выделяем текущий
+  eventBus.$emit('node-selection-exclusive', nodeId.value);
+  isSelected.value = true;
+  
+  // Добавляем слушатель движения мыши для отслеживания перетаскивания
+  const handleMouseMove = () => {
+    if (!isDragging.value) {
+      isDragging.value = true;
+    }
+  };
+  
+  const handleMouseUp = () => {
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+    
+    // Сбрасываем флаг через короткую задержку, чтобы click успел его проверить
+    setTimeout(() => {
+      if (isDragging.value) {
+        isDragging.value = false;
+      }
+    }, 10);
+  };
+  
+  document.addEventListener('mousemove', handleMouseMove);
+  document.addEventListener('mouseup', handleMouseUp);
+}
 </script>
 
 <style scoped lang="scss">
@@ -288,6 +350,10 @@ const cancelEdit = () => {
 
   &.dimmed {
     opacity: 0.5;
+  }
+
+  &.selected {
+    background-color: #409eff !important;
   }
 }
 
@@ -358,10 +424,6 @@ const cancelEdit = () => {
   &.terminal-icon {
     font-weight: bold;
   }
-
-  &.default-icon {
-    font-size: 8px;
-  }
 }
 
 .node-header {
@@ -379,8 +441,6 @@ const cancelEdit = () => {
   flex-shrink: 0; /* Кнопки не сжимаются */
 }
 
-.edit-state-btn,
-.delete-state-btn,
 .confirm-edit-btn,
 .cancel-edit-btn {
   background: rgba(255, 255, 255, 0.1);

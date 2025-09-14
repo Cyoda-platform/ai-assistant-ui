@@ -632,16 +632,5 @@ export async function applyDagreLayout(
     transitionPositions[position.transitionKey] = relativeOffset;
   }
 
-  console.log('🎯 Dagre Layout Results:');
-  console.log('📊 Node positions:', nodePositions);
-  console.log('🏷️ Transition positions:', transitionPositions);
-  console.log('👥 Transition groups:', Array.from(pairTransitions.entries()).map(([key, transitions]) => ({
-    pair: key,
-    count: transitions.length,
-    transitions: transitions.map(t => t.transitionKey)
-  })));
-  console.log('🔧 Collision resolution applied for', allTransitionPositions.length, 'transitions');
-  console.log('📏 Final transition positions after collision resolution:', resolvedPositions.length, 'positions');
-
   return { nodePositions, transitionPositions };
 }
