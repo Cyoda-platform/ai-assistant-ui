@@ -5,7 +5,10 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      component: () => import("../components/WrapWorkflow.vue"),
+      component: () => import("../views/Workflow.vue"),
+      meta: {
+        layout: "sidebar",
+      },
     },
   ],
 })

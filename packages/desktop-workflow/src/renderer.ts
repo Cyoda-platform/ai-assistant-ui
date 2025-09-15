@@ -28,8 +28,7 @@
 
 import 'modern-normalize/modern-normalize.css';
 
-import LayoutSidebar from "@/layouts/LayoutSidebar.vue";
-import LayoutDefault from "@/layouts/LayoutDefault.vue";
+import LayoutSidebar from "./layouts/LayoutSidebar.vue";
 
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
@@ -45,7 +44,6 @@ import i18nPlugin, { loadLocaleMessages } from '@/plugins/i18n';
 const app = createApp(App);
 
 app.component("layout-sidebar", LayoutSidebar);
-app.component("layout-default", LayoutDefault);
 app.use(createPinia());
 app.use(elementUi);
 app.use(router);

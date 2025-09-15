@@ -7,7 +7,7 @@
 
 <script setup lang="ts">
 import ChatBotEditorWorkflow from "@/components/ChatBot/ChatBotEditorWorkflow.vue";
-import Header from "./Header.vue";
+import Header from "../components/Header.vue";
 
 </script>
 

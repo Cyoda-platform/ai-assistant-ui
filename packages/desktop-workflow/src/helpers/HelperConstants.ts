@@ -1,0 +1,1 @@
+export const MENU_WORKFLOW_LIST = 'MENU_WORKFLOW_LIST';
