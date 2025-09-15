@@ -28,7 +28,7 @@ import {UPDATE_CHAT_LIST} from "@/helpers/HelperConstants";
 import {useRoute} from "vue-router";
 import {useI18n} from "vue-i18n";
 import HelperStorageElectron from "../../helpers/HelperStorageElectron";
-import {MENU_WORKFLOW_CHAT_LIST} from "../../helpers/HelperConstants";
+import {MENU_WORKFLOW_CHAT_LIST} from "../../helpers/HelperConstantsElectron";
 
 const {t} = useI18n();
 const allChats = ref([]);
@@ -39,6 +39,7 @@ const route = useRoute();
 
 onMounted(() => {
   eventBus.$on(UPDATE_CHAT_LIST, loadChats);
+  loadChats();
 });
 
 onBeforeUnmount(() => {

@@ -101,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import MenuChatList from "@/components/MenuChatList/MenuChatList.vue";
+import MenuChatList from "../../components/MenuChatList/MenuChatList.vue";
 import {useRoute, useRouter} from "vue-router";
 import LogoutIcon from '@/assets/images/icons/logout.svg';
 import ToggleCloseIcon from '@/assets/images/icons/toggle-close.svg';
@@ -127,7 +127,7 @@ import {useI18n} from "vue-i18n";
 import CloseIcon from '@/assets/images/icons/close.svg';
 import {ElMessageBox} from 'element-plus';
 import HelperStorageElectron from "../../helpers/HelperStorageElectron";
-import {MENU_WORKFLOW_CHAT_LIST} from "../../helpers/HelperConstants";
+import {MENU_WORKFLOW_CHAT_LIST} from "../../helpers/HelperConstantsElectron";
 import {v4 as uuidv4} from "uuid";
 
 const year = new Date().getFullYear();
@@ -144,6 +144,8 @@ const isHistoryMenuReady = ref(false);
 const isHistoryMenuActive = ref(false);
 const {t} = useI18n();
 const rootRef = useTemplateRef('rootRef');
+import eventBus from "@/plugins/eventBus";
+import {UPDATE_CHAT_LIST} from "@/helpers/HelperConstants";
 
 const props = withDefaults(defineProps<{
   mode?: string,
@@ -228,10 +230,11 @@ async function createNewWorkflow() {
   const allMenus = await HelperStorageElectron.get(MENU_WORKFLOW_CHAT_LIST, []);
   allMenus.unshift({
     name: workflowName,
-    id: uuidv4(),
+    technicalId: uuidv4(),
     date: new Date().toString(),
   });
   HelperStorageElectron.set(MENU_WORKFLOW_CHAT_LIST, allMenus);
+  eventBus.$emit(UPDATE_CHAT_LIST);
 }
 
 defineExpose({rootRef})
