@@ -127,7 +127,7 @@ import {useI18n} from "vue-i18n";
 import CloseIcon from '@/assets/images/icons/close.svg';
 import {ElMessageBox} from 'element-plus';
 import HelperStorageElectron from "../../helpers/HelperStorageElectron";
-import {MENU_WORKFLOW_LIST} from "../../helpers/HelperConstants";
+import {MENU_WORKFLOW_CHAT_LIST} from "../../helpers/HelperConstants";
 import {v4 as uuidv4} from "uuid";
 
 const year = new Date().getFullYear();
@@ -225,13 +225,13 @@ async function createNewWorkflow() {
     confirmButtonText: 'OK',
     cancelButtonText: 'Cancel',
   });
-  const storage = new HelperStorageElectron();
-  const allMenus = storage.get(MENU_WORKFLOW_LIST, []);
-  allMenus.push({
+  const allMenus = await HelperStorageElectron.get(MENU_WORKFLOW_CHAT_LIST, []);
+  allMenus.unshift({
     name: workflowName,
-    id: uuidv4()
+    id: uuidv4(),
+    date: new Date().toString(),
   });
-  storage.set(MENU_WORKFLOW_LIST, workflowName);
+  HelperStorageElectron.set(MENU_WORKFLOW_CHAT_LIST, allMenus);
 }
 
 defineExpose({rootRef})
