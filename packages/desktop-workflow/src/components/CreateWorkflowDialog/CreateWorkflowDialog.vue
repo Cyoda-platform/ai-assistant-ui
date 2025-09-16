@@ -45,7 +45,7 @@
             @click="handleSubmit"
             :loading="loading"
         >
-          {{ formData.technicalId ? 'Update' : 'Create' }}
+          {{ formData.technical_id ? 'Update' : 'Create' }}
         </el-button>
       </div>
     </template>
@@ -74,7 +74,7 @@ const loading = ref(false);
 const dialogVisible = ref(false);
 
 const formDataDefault = {
-  technicalId: null,
+  technical_id: null,
   name: '',
   description: '',
 };
@@ -100,7 +100,7 @@ onBeforeUnmount(() => {
 function openDialog(data) {
   dialogVisible.value = true;
   formData.value = {
-    technicalId: data.technicalId,
+    technical_id: data.technical_id,
     name: data.name,
     description: data.description,
   };
@@ -127,7 +127,7 @@ const handleSubmit = async () => {
 
     const allMenus = await HelperStorageElectron.get(MENU_WORKFLOW_CHAT_LIST, []);
 
-    if (formData.value.technicalId) {
+    if (formData.value.technical_id) {
       await workflowStore.updateWorkflow(formData.value);
       ElMessage.success(`Workflow "${formData.value.name}" updated successfully`);
     } else {
@@ -146,7 +146,7 @@ const handleSubmit = async () => {
 }
 
 const dialogTitle = computed(() => {
-  if (formData.value.technicalId) {
+  if (formData.value.technical_id) {
     return 'Update Workflow'
   }
   return 'Add New Workflow'

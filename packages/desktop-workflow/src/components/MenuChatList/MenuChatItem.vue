@@ -119,7 +119,7 @@ function onClickRename(){
 }
 
 const isActive = computed(() => {
-  return props.chat.technical_id === route.params.technicalId;
+  return props.chat.technical_id === route.params.technical_id;
 })
 </script>
 

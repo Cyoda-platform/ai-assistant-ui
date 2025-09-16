@@ -20,7 +20,6 @@
 </template>
 
 <script setup lang="ts">
-import useAssistantStore from "@/stores/assistant";
 import {computed, onMounted, watch, watchEffect} from "vue";
 import MenuChatGroup from "./MenuChatGroup.vue";
 import {useRoute} from "vue-router";
@@ -28,8 +27,6 @@ import {useI18n} from "vue-i18n";
 import useWorkflowStore from "../../stores/workflows";
 
 const {t} = useI18n();
-
-const assistantStore = useAssistantStore();
 const emit = defineEmits(['ready', 'active']);
 const route = useRoute();
 const workflowStore = useWorkflowStore();
@@ -104,12 +101,12 @@ function splitChatsByDate(chatsData) {
 }
 
 watchEffect(() => {
-  const isSelected = allChats.value.some((el) => el.technical_id === route.params.technicalId);
+  const isSelected = allChats.value.some((el) => el.technical_id === route.params.technical_id);
   emit('active', isSelected);
 });
 
-watch(() => assistantStore.chatList, (value) => {
-  if (value !== null) emit('ready');
+watch(() => workflowStore.workflowList, (value) => {
+  emit('ready');
 }, {immediate: true});
 </script>
 

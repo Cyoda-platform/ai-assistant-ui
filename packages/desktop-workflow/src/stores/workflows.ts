@@ -14,9 +14,9 @@ const useWorkflowStore = defineStore('workflows', {
         }
     },
     actions: {
-        async deleteWorkflowById(technicalId) {
+        async deleteWorkflowById(technical_id) {
             let allWorkflows = await HelperStorageElectron.get(MENU_WORKFLOW_CHAT_LIST, []);
-            allWorkflows = allWorkflows.filter((el) => el.technicalId !== technicalId);
+            allWorkflows = allWorkflows.filter((el) => el.technical_id !== technical_id);
             await HelperStorageElectron.set(MENU_WORKFLOW_CHAT_LIST, allWorkflows);
             this.getAll();
         },
@@ -25,7 +25,7 @@ const useWorkflowStore = defineStore('workflows', {
             const newWorkflow = {
                 name: data.name.trim(),
                 description: data.description.trim(),
-                technicalId: uuidv4(),
+                technical_id: uuidv4(),
                 date: new Date().toString(),
             };
             allWorkflows.unshift(newWorkflow);
@@ -34,7 +34,7 @@ const useWorkflowStore = defineStore('workflows', {
         },
         async updateWorkflow(data) {
             const allWorkflows = await HelperStorageElectron.get(MENU_WORKFLOW_CHAT_LIST, []);
-            const existWorkflow = allWorkflows.find((el) => el.technicalId === data.technicalId);
+            const existWorkflow = allWorkflows.find((el) => el.technical_id === data.technical_id);
             existWorkflow.name = data.name.trim();
             existWorkflow.description = data.description.trim();
 
