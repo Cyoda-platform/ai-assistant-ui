@@ -1,0 +1,50 @@
+import {defineStore} from "pinia";
+import HelperStorage from "@/helpers/HelperStorage.ts";
+import HelperStorageElectron from "../helpers/HelperStorageElectron";
+import {MENU_WORKFLOW_CHAT_LIST} from "../helpers/HelperConstantsElectron";
+import {ElMessage} from "element-plus";
+import {v4 as uuidv4} from "uuid";
+
+const helperStorage = new HelperStorage();
+
+const useWorkflowStore = defineStore('workflows', {
+    state: () => {
+        return {
+            workflowList: [],
+        }
+    },
+    actions: {
+        async deleteWorkflowById(technicalId) {
+            let allWorkflows = await HelperStorageElectron.get(MENU_WORKFLOW_CHAT_LIST, []);
+            allWorkflows = allWorkflows.filter((el) => el.technicalId !== technicalId);
+            await HelperStorageElectron.set(MENU_WORKFLOW_CHAT_LIST, allWorkflows);
+            this.getAll();
+        },
+        async createWorkflow(data) {
+            const allWorkflows = await HelperStorageElectron.get(MENU_WORKFLOW_CHAT_LIST, []);
+            const newWorkflow = {
+                name: data.name.trim(),
+                description: data.description.trim(),
+                technicalId: uuidv4(),
+                date: new Date().toString(),
+            };
+            allWorkflows.unshift(newWorkflow);
+            await HelperStorageElectron.set(MENU_WORKFLOW_CHAT_LIST, allWorkflows);
+            this.getAll();
+        },
+        async updateWorkflow(data) {
+            const allWorkflows = await HelperStorageElectron.get(MENU_WORKFLOW_CHAT_LIST, []);
+            const existWorkflow = allWorkflows.find((el) => el.technicalId === data.technicalId);
+            existWorkflow.name = data.name.trim();
+            existWorkflow.description = data.description.trim();
+
+            await HelperStorageElectron.set(MENU_WORKFLOW_CHAT_LIST, allWorkflows);
+            this.getAll();
+        },
+        async getAll() {
+            this.workflowList = await HelperStorageElectron.get(MENU_WORKFLOW_CHAT_LIST, []);
+        }
+    },
+});
+
+export default useWorkflowStore;

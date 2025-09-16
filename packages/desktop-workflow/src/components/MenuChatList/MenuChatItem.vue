@@ -64,11 +64,14 @@ import eventBus from "@/plugins/eventBus";
 import {DELETE_CHAT_CLEAR_INTERVALS_BY_TECHNICAL_ID, RENAME_CHAT_START} from "@/helpers/HelperConstants";
 import useAssistantStore from "@/stores/assistant";
 import router from "@/router";
+import {RENAME_WORKFLOW_START} from "../../helpers/HelperConstantsElectron";
+import useWorkflowStore from "../../stores/workflows";
 
 const isShowPopover = ref(false);
 const route = useRoute();
 const isLoadingDelete = ref(false);
 const assistantStore = useAssistantStore();
+const workflowStore = useWorkflowStore();
 
 const popperOptions = {
   modifiers: [{
@@ -100,10 +103,8 @@ function onClickDelete() {
     callback: async (action) => {
       if (action === "confirm") {
         try {
-          eventBus.$emit(DELETE_CHAT_CLEAR_INTERVALS_BY_TECHNICAL_ID, props.chat.technical_id);
+          workflowStore.deleteWorkflowById(props.chat.technical_id);
           isLoadingDelete.value = true;
-          await assistantStore.deleteChatById(props.chat.technical_id);
-          await assistantStore.getChats();
           router.push('/home');
         } finally {
           isLoadingDelete.value = false;
@@ -114,7 +115,7 @@ function onClickDelete() {
 }
 
 function onClickRename(){
-  eventBus.$emit(RENAME_CHAT_START, props.chat)
+  eventBus.$emit(RENAME_WORKFLOW_START, props.chat)
 }
 
 const isActive = computed(() => {

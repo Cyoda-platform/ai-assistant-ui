@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import MenuChatItem from "@/components/MenuChatList/MenuChatItem.vue";
+import MenuChatItem from "./MenuChatItem.vue";
 
 withDefaults(defineProps<{
   chats: any[],

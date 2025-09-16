@@ -21,35 +21,26 @@
 
 <script setup lang="ts">
 import useAssistantStore from "@/stores/assistant";
-import {computed, onBeforeUnmount, onMounted, ref, watch, watchEffect} from "vue";
-import MenuChatGroup from "@/components/MenuChatList/MenuChatGroup.vue";
-import eventBus from "@/plugins/eventBus";
-import {UPDATE_CHAT_LIST} from "@/helpers/HelperConstants";
+import {computed, onMounted, watch, watchEffect} from "vue";
+import MenuChatGroup from "./MenuChatGroup.vue";
 import {useRoute} from "vue-router";
 import {useI18n} from "vue-i18n";
-import HelperStorageElectron from "../../helpers/HelperStorageElectron";
-import {MENU_WORKFLOW_CHAT_LIST} from "../../helpers/HelperConstantsElectron";
+import useWorkflowStore from "../../stores/workflows";
 
 const {t} = useI18n();
-const allChats = ref([]);
 
 const assistantStore = useAssistantStore();
 const emit = defineEmits(['ready', 'active']);
 const route = useRoute();
+const workflowStore = useWorkflowStore();
 
 onMounted(() => {
-  eventBus.$on(UPDATE_CHAT_LIST, loadChats);
-  loadChats();
+  workflowStore.getAll();
 });
 
-onBeforeUnmount(() => {
-  eventBus.$off(UPDATE_CHAT_LIST, loadChats);
+const allChats = computed(() => {
+  return workflowStore.workflowList;
 })
-
-
-async function loadChats() {
-  allChats.value = await HelperStorageElectron.get(MENU_WORKFLOW_CHAT_LIST, []);
-}
 
 const chatsGroups = computed(() => {
   return splitChatsByDate(allChats.value);
