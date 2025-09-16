@@ -97,18 +97,22 @@
     </div>
     <SettingsDialog ref="settingsDialogRef"/>
     <AboutDialog ref="aboutDialogRef"/>
+    <CreateWorkflowDialog 
+      ref="createWorkflowDialogRef"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import MenuChatList from "../../components/MenuChatList/MenuChatList.vue";
+import CreateWorkflowDialog from "../CreateWorkflowDialog/CreateWorkflowDialog.vue";
 import {useRoute, useRouter} from "vue-router";
 import LogoutIcon from '@/assets/images/icons/logout.svg';
 import ToggleCloseIcon from '@/assets/images/icons/toggle-close.svg';
 import ToggleOpenIcon from '@/assets/images/icons/toggle-open.svg';
 import useAuthStore from "@/stores/auth.ts";
 import useAppStore from "@/stores/app.ts";
-import {computed, onBeforeUnmount, onMounted, ref, useSlots, useTemplateRef} from "vue";
+import {computed, ref, useTemplateRef} from "vue";
 import LogoSmallUrl from '@/assets/images/logo-small.svg?url'
 import LogoUrl from '@/assets/images/logo.svg?url'
 import LoadingText from "@/components/LoadingText.vue";
@@ -125,10 +129,6 @@ import AboutDialog from "@/components/AboutDialog/AboutDialog.vue";
 import VersionApp from "@/components/VersionApp/VersionApp.vue";
 import {useI18n} from "vue-i18n";
 import CloseIcon from '@/assets/images/icons/close.svg';
-import {ElMessageBox} from 'element-plus';
-import HelperStorageElectron from "../../helpers/HelperStorageElectron";
-import {MENU_WORKFLOW_CHAT_LIST} from "../../helpers/HelperConstantsElectron";
-import {v4 as uuidv4} from "uuid";
 
 const year = new Date().getFullYear();
 const authStore = useAuthStore();
@@ -144,8 +144,6 @@ const isHistoryMenuReady = ref(false);
 const isHistoryMenuActive = ref(false);
 const {t} = useI18n();
 const rootRef = useTemplateRef('rootRef');
-import eventBus from "@/plugins/eventBus";
-import {UPDATE_CHAT_LIST} from "@/helpers/HelperConstants";
 
 const props = withDefaults(defineProps<{
   mode?: string,
@@ -154,6 +152,7 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits(['drawer']);
+const createWorkflowDialogRef = ref('createWorkflowDialogRef');
 
 function onToggleDrawer() {
   emit('drawer');
@@ -223,18 +222,7 @@ function onClickAbout() {
 }
 
 async function createNewWorkflow() {
-  const {value: workflowName} = await ElMessageBox.prompt('Enter workflow name:', 'Add New Workflow', {
-    confirmButtonText: 'OK',
-    cancelButtonText: 'Cancel',
-  });
-  const allMenus = await HelperStorageElectron.get(MENU_WORKFLOW_CHAT_LIST, []);
-  allMenus.unshift({
-    name: workflowName,
-    technicalId: uuidv4(),
-    date: new Date().toString(),
-  });
-  HelperStorageElectron.set(MENU_WORKFLOW_CHAT_LIST, allMenus);
-  eventBus.$emit(UPDATE_CHAT_LIST);
+  createWorkflowDialogRef.value.dialogVisible = true;
 }
 
 defineExpose({rootRef})
@@ -408,6 +396,31 @@ defineExpose({rootRef})
 
   .main-icon-create-new {
     fill: var(--bg-button-create-new);
+  }
+}
+
+// Стили для диалога создания workflow
+:deep(.workflow-create-dialog) {
+  .el-message-box__content {
+    padding-bottom: 20px;
+  }
+  
+  .el-message-box__message {
+    padding: 0;
+  }
+  
+  .el-message-box__btns {
+    padding: 10px 20px 20px;
+  }
+  
+  .el-button--primary {
+    background-color: #409eff;
+    border-color: #409eff;
+  }
+  
+  .el-button--primary:hover {
+    background-color: #66b1ff;
+    border-color: #66b1ff;
   }
 }
 </style>
