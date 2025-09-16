@@ -106,7 +106,6 @@
 import MenuChatList from "../../components/MenuChatList/MenuChatList.vue";
 import CreateWorkflowDialog from "../CreateWorkflowDialog/CreateWorkflowDialog.vue";
 import {useRoute, useRouter} from "vue-router";
-import LogoutIcon from '@/assets/images/icons/logout.svg';
 import ToggleCloseIcon from '@/assets/images/icons/toggle-close.svg';
 import ToggleOpenIcon from '@/assets/images/icons/toggle-open.svg';
 import useAppStore from "@/stores/app.ts";
