@@ -2,7 +2,7 @@
   <div v-loading="isLoadingDelete" class="menu-chat-item" :class="{
     'menu-chat-item--active': isActive
   }">
-    <router-link class="menu-chat-item__link" :to="link">{{ chat.name || 'No name' }}</router-link>
+    <a href="#" @click.prevent="onClickWorkflow " class="menu-chat-item__link">{{ chat.name || 'No name' }}</a>
     <el-popover popper-class="default" v-model:visible="isShowPopover" placement="right-start"
                 :popper-style="popperStyle"
                 :popper-options="popperOptions"
@@ -70,8 +70,11 @@ import useWorkflowStore from "../../stores/workflows";
 const isShowPopover = ref(false);
 const route = useRoute();
 const isLoadingDelete = ref(false);
-const assistantStore = useAssistantStore();
 const workflowStore = useWorkflowStore();
+
+const selectedWorkflow = computed(() => {
+  workflowStore.selectedWorkflow;
+})
 
 const popperOptions = {
   modifiers: [{
@@ -89,10 +92,6 @@ const popperStyle = {
 const props = defineProps<{
   chat: ChatData
 }>();
-
-const link = computed(() => {
-  return `/chat-bot/view/${props.chat.technical_id}`;
-})
 
 function transformDate(dateStr) {
   return dayjs(dateStr).format('DD/MM/YYYY')
@@ -114,12 +113,16 @@ function onClickDelete() {
   });
 }
 
-function onClickRename(){
+function onClickWorkflow(workflow) {
+  workflowStore.setSelectedWorkflow(workflow)
+}
+
+function onClickRename() {
   eventBus.$emit(RENAME_WORKFLOW_START, props.chat)
 }
 
 const isActive = computed(() => {
-  return props.chat.technical_id === route.params.technical_id;
+  return props.chat.technical_id === selectedWorkflow.value?.technical_id;
 })
 </script>
 

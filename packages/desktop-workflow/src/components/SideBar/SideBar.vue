@@ -75,15 +75,14 @@
             Add new Workflow
           </el-button>
         </li>
+        <li class="side-bar__li side-bar__li-action">
+          <el-button @click="deleteAllWorkflows" size="large" class="side-bar__create_new">
+            Delete All Workflows
+          </el-button>
+        </li>
       </template>
     </ul>
     <div class="side-bar__footer">
-      <a v-if="isLogoutVisible" @click="onClickLogout" href="#" class="side-bar__logout">
-        <LogoutIcon/>
-        <span v-if="!isSidebarHidden">
-          {{ t('side_bar.logout') }}
-        </span>
-      </a>
       <div class="side-bar__copyright">
         <template v-if="isSidebarHidden">
           <a target="_blank" href="https://www.cyoda.com/">CYODA</a>
@@ -97,8 +96,8 @@
     </div>
     <SettingsDialog ref="settingsDialogRef"/>
     <AboutDialog ref="aboutDialogRef"/>
-    <CreateWorkflowDialog 
-      ref="createWorkflowDialogRef"
+    <CreateWorkflowDialog
+        ref="createWorkflowDialogRef"
     />
   </div>
 </template>
@@ -110,7 +109,6 @@ import {useRoute, useRouter} from "vue-router";
 import LogoutIcon from '@/assets/images/icons/logout.svg';
 import ToggleCloseIcon from '@/assets/images/icons/toggle-close.svg';
 import ToggleOpenIcon from '@/assets/images/icons/toggle-open.svg';
-import useAuthStore from "@/stores/auth.ts";
 import useAppStore from "@/stores/app.ts";
 import {computed, ref, useTemplateRef} from "vue";
 import LogoSmallUrl from '@/assets/images/logo-small.svg?url'
@@ -124,20 +122,20 @@ import HistoryOpenIcon from '@/assets/images/icons/history-open.svg';
 import SettingsIcon from '@/assets/images/icons/settings.svg';
 import AboutIcon from '@/assets/images/icons/about.svg';
 import SettingsDialog from "@/components/SettingsDialog/SettingsDialog.vue";
-import {useAuth0} from "@auth0/auth0-vue";
 import AboutDialog from "@/components/AboutDialog/AboutDialog.vue";
 import VersionApp from "@/components/VersionApp/VersionApp.vue";
 import {useI18n} from "vue-i18n";
 import CloseIcon from '@/assets/images/icons/close.svg';
+import useWorkflowStore from "../../stores/workflows";
+import {ElMessageBox} from "element-plus";
 
 const year = new Date().getFullYear();
-const authStore = useAuthStore();
 const appStore = useAppStore();
 const router = useRouter();
 const route = useRoute();
-const {logout} = useAuth0();
 const settingsDialogRef = useTemplateRef('settingsDialogRef');
 const aboutDialogRef = useTemplateRef('aboutDialogRef');
+const workflowStore = useWorkflowStore();
 
 const isHistoryMenuVisible = ref(false);
 const isHistoryMenuReady = ref(false);
@@ -180,17 +178,6 @@ function onHistoryMenuActive(event) {
   }
 }
 
-function onClickLogout() {
-  authStore.logout(() => {
-    logout({
-      logoutParams: {
-        returnTo: window.location.origin
-      }
-    });
-  });
-  router.push('/');
-}
-
 function onClickToggleSidebar() {
   closeAllMenus();
   appStore.isCanvasHidden ? appStore.toggleSidebarCanvas() : appStore.toggleSidebar();
@@ -209,10 +196,6 @@ const isDrawer = computed(() => {
   return props.mode === 'drawer';
 })
 
-const isLogoutVisible = computed(() => {
-  return authStore.isLoggedIn;
-})
-
 function onClickSettings() {
   settingsDialogRef.value.openDialog();
 }
@@ -223,6 +206,20 @@ function onClickAbout() {
 
 async function createNewWorkflow() {
   createWorkflowDialogRef.value.dialogVisible = true;
+}
+
+async function deleteAllWorkflows() {
+  ElMessageBox.confirm("Do you really want to remove all workflows?", "Confirm!", {
+    callback: async (action) => {
+      if (action === "confirm") {
+        try {
+          workflowStore.deleteAll();
+          router.push('/home');
+        } finally {
+        }
+      }
+    }
+  });
 }
 
 defineExpose({rootRef})
@@ -404,20 +401,20 @@ defineExpose({rootRef})
   .el-message-box__content {
     padding-bottom: 20px;
   }
-  
+
   .el-message-box__message {
     padding: 0;
   }
-  
+
   .el-message-box__btns {
     padding: 10px 20px 20px;
   }
-  
+
   .el-button--primary {
     background-color: #409eff;
     border-color: #409eff;
   }
-  
+
   .el-button--primary:hover {
     background-color: #66b1ff;
     border-color: #66b1ff;

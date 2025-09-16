@@ -11,6 +11,7 @@ const useWorkflowStore = defineStore('workflows', {
     state: () => {
         return {
             workflowList: [],
+            selectedWorkflow: null,
         }
     },
     actions: {
@@ -43,6 +44,13 @@ const useWorkflowStore = defineStore('workflows', {
         },
         async getAll() {
             this.workflowList = await HelperStorageElectron.get(MENU_WORKFLOW_CHAT_LIST, []);
+        },
+        async deleteAll() {
+            await HelperStorageElectron.set(MENU_WORKFLOW_CHAT_LIST, []);
+            this.getAll();
+        },
+        setSelectedWorkflow(worlflow) {
+            this.selectedWorkflow = worlflow;
         }
     },
 });
