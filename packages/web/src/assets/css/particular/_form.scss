@@ -31,3 +31,7 @@
   color: var(--color-input-text);
 }
 
+.el-input__count-inner, .el-input__count {
+  background-color: transparent !important;
+}
+

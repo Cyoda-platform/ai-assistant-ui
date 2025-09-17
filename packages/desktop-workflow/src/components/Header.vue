@@ -2,7 +2,7 @@
   <div class="header">
     <div class="header__actions">
       <el-button @click="onExportAll" size="mini" type="primary" class="btn btn-primary">Export All</el-button>
-      <el-button @click="showImportDialog = true" size="mini" type="primary" class="btn btn-default">Import All</el-button>
+      <el-button @click="showImportDialog = true" size="mini" type="primary">Import All</el-button>
     </div>
   </div>
 
