@@ -24,7 +24,8 @@
 import ChatBotEditorWorkflow from "@/components/ChatBot/ChatBotEditorWorkflow.vue";
 import Header from "../components/Header.vue";
 import useWorkflowStore from "../stores/workflows";
-import {computed, useTemplateRef, watch} from "vue";
+import { computed, useTemplateRef, watch } from "vue";
+import { debounce } from "lodash";
 
 const workflowStore = useWorkflowStore();
 const chatBotEditorWorkflowRef = useTemplateRef('chatBotEditorWorkflowRef');
@@ -32,6 +33,21 @@ const chatBotEditorWorkflowRef = useTemplateRef('chatBotEditorWorkflowRef');
 const selectedWorkflow = computed(() => {
   return workflowStore.selectedWorkflow;
 });
+
+// Original update function
+function updateWorkflow({ workflowMetaData, canvasData }: { workflowMetaData: any; canvasData: any }) {
+  const cleanMetaData = workflowMetaData ? JSON.parse(JSON.stringify(workflowMetaData)) : null;
+  const cleanCanvasData = canvasData ? JSON.parse(JSON.stringify(canvasData)) : null;
+  
+  workflowStore.updateWorkflow({
+    workflowMetaData: cleanMetaData,
+    canvasData: cleanCanvasData,
+    technical_id: selectedWorkflow.value.technical_id,
+  });
+}
+
+// Debounced version with 500ms delay using lodash
+const onUpdateWorkflow = debounce(updateWorkflow, 500);
 
 watch(selectedWorkflow, (newVal, oldVal) => {
       if (!newVal || !chatBotEditorWorkflowRef.value || !selectedWorkflow.value) return;
@@ -41,17 +57,6 @@ watch(selectedWorkflow, (newVal, oldVal) => {
       immediate: true
     }
 )
-
-function onUpdateWorkflow({workflowMetaData, canvasData}) {
-    const cleanMetaData = workflowMetaData ? JSON.parse(JSON.stringify(workflowMetaData)) : null;
-    const cleanCanvasData = canvasData ? JSON.parse(JSON.stringify(canvasData)) : null;
-    
-    workflowStore.updateWorkflow({
-      workflowMetaData: cleanMetaData,
-      canvasData: cleanCanvasData,
-      technical_id: selectedWorkflow.value.technical_id,
-    })
-}
 </script>
 
 <style scoped lang="scss">

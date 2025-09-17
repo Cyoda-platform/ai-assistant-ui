@@ -2766,7 +2766,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:*, @types/lodash@npm:^4.14.182":
+"@types/lodash@npm:*, @types/lodash@npm:^4, @types/lodash@npm:^4.14.182":
   version: 4.17.20
   resolution: "@types/lodash@npm:4.17.20"
   checksum: 10c0/98cdd0faae22cbb8079a01a3bb65aa8f8c41143367486c1cbf5adc83f16c9272a2a5d2c1f541f61d0d73da543c16ee1d21cf2ef86cb93cd0cc0ac3bced6dd88f
@@ -3928,6 +3928,7 @@ __metadata:
     "@tsconfig/node22": "npm:^22.0.2"
     "@types/dagre": "npm:^0.7.53"
     "@types/file-saver": "npm:^2.0.7"
+    "@types/lodash": "npm:^4"
     "@types/node": "npm:^24.5.1"
     "@types/pako": "npm:^2.0.4"
     "@types/tinycon": "npm:^0.6.7"
@@ -3948,6 +3949,7 @@ __metadata:
     eslint-plugin-vue: "npm:^10.4.0"
     file-saver: "npm:^2.0.5"
     highlight.js: "npm:^11.11.1"
+    lodash: "npm:^4.17.21"
     marked: "npm:^16.3.0"
     mermaid: "npm:^11.11.0"
     modern-normalize: "npm:^3.0.1"
