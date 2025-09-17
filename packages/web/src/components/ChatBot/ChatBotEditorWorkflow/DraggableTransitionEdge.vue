@@ -7,7 +7,6 @@
       'dragging': isDragging,
       'dragging-transition': isDraggingTransition
     }"
-      @mousedown="onGroupMouseDown"
   @mouseenter="handleEdgeMouseEnter"
   @mouseleave="handleEdgeMouseLeave"
   >
@@ -18,8 +17,7 @@
         :marker-end="markerEnd"
         :marker-start="markerStart"
         fill="none"
-        style="cursor: grab;"
-        @mousedown="startTransitionDrag"
+        style="cursor: default;"
     />
 
     <path
@@ -27,10 +25,45 @@
         fill="none"
         stroke="transparent"
         stroke-width="20"
-        style="cursor: grab;"
-        @mousedown="startTransitionDrag"
+        style="cursor: default;"
         @mouseenter="onPathHover"
         @mouseleave="onPathLeave"
+    />
+
+    <!-- Расширенная кликабельная область на начале edge (source) -->
+    <circle
+      :cx="circleSourceX"
+      :cy="circleSourceY"
+      r="18"
+      fill="transparent"
+      style="cursor: grab; pointer-events: all;"
+      @mousedown="startSourceDrag"
+    />
+    <!-- Дополнительная хит-зона (толстый прозрачный сегмент) около начала -->
+    <path
+      :d="`M ${circleSourceX - 24},${circleSourceY - 24} L ${circleSourceX + 24},${circleSourceY + 24}`"
+      stroke="transparent"
+      stroke-width="32"
+      style="pointer-events: stroke; cursor: grab;"
+      @mousedown="startSourceDrag"
+    />
+
+    <!-- Расширенная кликабельная область на конце edge (target) -->
+    <circle
+      :cx="circleTargetX"
+      :cy="circleTargetY"
+      r="18"
+      fill="transparent"
+      style="cursor: grab; pointer-events: all;"
+      @mousedown="startTargetDrag"
+    />
+    <!-- Дополнительная хит-зона (толстый прозрачный сегмент) около конца -->
+    <path
+      :d="`M ${circleTargetX - 24},${circleTargetY - 24} L ${circleTargetX + 24},${circleTargetY + 24}`"
+      stroke="transparent"
+      stroke-width="32"
+      style="pointer-events: stroke; cursor: grab;"
+      @mousedown="startTargetDrag"
     />
 
     <foreignObject
@@ -63,24 +96,6 @@
         >
           {{ originalTransitionName }}
         </div>
-        <div class="transition-actions">
-          <button
-              class="edit-edge-btn"
-              @click.stop="editTransition"
-              @mousedown.stop
-              title="Edit transition"
-          >
-            <EditIcon/>
-          </button>
-          <button
-              class="delete-edge-btn"
-              @click.stop="deleteEdge"
-              @mousedown.stop
-              title="Delete transition"
-          >
-            <TrashSmallIcon/>
-          </button>
-        </div>
       </div>
     </foreignObject>
   </g>
@@ -92,8 +107,6 @@ import {EdgeProps, useVueFlow} from '@vue-flow/core'
 import {useTransitionHighlight} from './composables/useTransitionHighlight'
 import {ElMessageBox} from 'element-plus'
 import eventBus from '../../../plugins/eventBus'
-import EditIcon from '@/assets/images/icons/edit.svg';
-import TrashSmallIcon from "@/assets/images/icons/trash-small.svg"
 
 interface TransitionDataType {
   name?: string;
@@ -142,6 +155,7 @@ const transitionDragStart = ref({x: 0, y: 0})
 const hoveredNodeId = ref<string | null>(null)
 const currentMousePosition = ref({x: 0, y: 0})
 const svgElementRef = ref<SVGSVGElement | null>(null)
+const dragType = ref<'source' | 'target' | null>(null)
 
 // Original transition name (may repeat across states)
 const originalTransitionName = computed(() => props.data?.transitionData?.name || 'unnamed')
@@ -153,37 +167,9 @@ const transitionId = computed(() =>
 const isHighlighted = computed(() => isTransitionHighlighted(transitionId.value))
 const hoveredEdgeGlobal = ref<string | null>(null)
 
-// Функция для расчета ширины узла на основе названия
-function calculateNodeWidth(stateName: string): number {
-  // Единые правила для обоих режимов - всегда учитываем длину текста
-  const baseWidth = 160; // Базовая ширина
-  const textLength = stateName.length;
-  // 8px на символ + 50px для отступов и кнопок
-  const textWidth = textLength * 8 + 50;
-  // Возвращаем максимум между базовой шириной и требуемой для текста
-  return Math.max(baseWidth, textWidth);
-}
+// (Removed unused calculateNodeWidth helper)
 
-// Вычисляем размеры узлов на основе их названий
-const sourceNodeWidth = computed(() => {
-  const sourceName = props.data?.sourceStateName || props.source;
-  return calculateNodeWidth(sourceName);
-});
-
-const targetNodeWidth = computed(() => {
-  const targetName = props.data?.targetStateName || props.target;
-  return calculateNodeWidth(targetName);
-});
-
-const sourceNodeHeight = computed(() => {
-  const isVertical = props.data?.layoutMode === 'vertical';
-  return isVertical ? 60 : 80; // Уменьшаем высоту
-});
-
-const targetNodeHeight = computed(() => {
-  const isVertical = props.data?.layoutMode === 'vertical';
-  return isVertical ? 60 : 80; // Уменьшаем высоту
-});
+// (Removed unused node dimension computations)
 
 function handleEdgeMouseEnter() {
   eventBus.$emit('edge-hover', { edgeId: props.id })
@@ -207,15 +193,25 @@ const shouldDimEdge = computed(() => {
 
 const edgePath = computed(() => {
   if (isDraggingTransition.value && currentMousePosition.value) {
-    const sourceX = props.sourceX
-    const sourceY = props.sourceY
-    const targetX = currentMousePosition.value.x
-    const targetY = currentMousePosition.value.y
+    // В режиме перетаскивания различаем что именно двигаем: начало (source) или конец (target)
+    const draggingSource = dragType.value === 'source'
 
-    const startX = sourceX
-    const startY = sourceY
-    const endX = targetX
-    const endY = targetY
+    // Фактические координаты двух концов до начала drag
+    const originalSourceX = props.sourceX
+    const originalSourceY = props.sourceY
+    const originalTargetX = props.targetX
+    const originalTargetY = props.targetY
+
+    // Во время drag один из концов следует за мышью
+    const dynamicSourceX = draggingSource ? currentMousePosition.value.x : originalSourceX
+    const dynamicSourceY = draggingSource ? currentMousePosition.value.y : originalSourceY
+    const dynamicTargetX = draggingSource ? originalTargetX : currentMousePosition.value.x
+    const dynamicTargetY = draggingSource ? originalTargetY : currentMousePosition.value.y
+
+    const startX = dynamicSourceX
+    const startY = dynamicSourceY
+    const endX = dynamicTargetX
+    const endY = dynamicTargetY
 
     const midX = (startX + endX) / 2
     const midY = (startY + endY) / 2
@@ -244,6 +240,7 @@ const edgePath = computed(() => {
   const targetY = props.targetY
 
   if (props.source === props.target) {
+    // Динамическая петля: форма зависит от позиции label (как было ранее)
     const labelX = labelPosition.value.x
     const labelY = labelPosition.value.y
 
@@ -269,14 +266,9 @@ const edgePath = computed(() => {
     const offsetX = Math.abs(labelX - centerX)
     const offsetY = Math.abs(labelY - centerY)
     
-    console.log(`🔍 Single transition ${props.data?.transitionId}: offsetX=${offsetX.toFixed(1)}, offsetY=${offsetY.toFixed(1)}`)
-    
     // Если label близко к центру (не перетаскивали), рисуем прямую линию
     if (offsetX < 15 && offsetY < 15) {
-      console.log(`✅ Drawing straight line for ${props.data?.transitionId}`)
       return `M ${sourceX},${sourceY} L ${targetX},${targetY}`
-    } else {
-      console.log(`🌀 Drawing curved line for ${props.data?.transitionId} (label moved)`)
     }
   }
 
@@ -290,16 +282,48 @@ const edgePath = computed(() => {
   return path
 })
 
+// Координаты кругов (интерактивных зон) должны отражать текущий drag конца
+const circleSourceX = computed(() => {
+  if (isDraggingTransition.value && dragType.value === 'source') {
+    return currentMousePosition.value.x
+  }
+  return props.sourceX
+})
+const circleSourceY = computed(() => {
+  if (isDraggingTransition.value && dragType.value === 'source') {
+    return currentMousePosition.value.y
+  }
+  return props.sourceY
+})
+const circleTargetX = computed(() => {
+  if (isDraggingTransition.value && dragType.value === 'target') {
+    return currentMousePosition.value.x
+  }
+  return props.targetX
+})
+const circleTargetY = computed(() => {
+  if (isDraggingTransition.value && dragType.value === 'target') {
+    return currentMousePosition.value.y
+  }
+  return props.targetY
+})
+
 const labelPosition = computed(() => {
   if (isDraggingTransition.value && currentMousePosition.value) {
-    const sourceX = props.sourceX
-    const sourceY = props.sourceY
-    const targetX = currentMousePosition.value.x
-    const targetY = currentMousePosition.value.y
+    const draggingSource = dragType.value === 'source'
+    const originalSourceX = props.sourceX
+    const originalSourceY = props.sourceY
+    const originalTargetX = props.targetX
+    const originalTargetY = props.targetY
+
+    const dynamicSourceX = draggingSource ? currentMousePosition.value.x : originalSourceX
+    const dynamicSourceY = draggingSource ? currentMousePosition.value.y : originalSourceY
+    const dynamicTargetX = draggingSource ? originalTargetX : currentMousePosition.value.x
+    const dynamicTargetY = draggingSource ? originalTargetY : currentMousePosition.value.y
 
     return {
-      x: (sourceX + targetX) / 2,
-      y: (sourceY + targetY) / 2
+      x: (dynamicSourceX + dynamicTargetX) / 2,
+      y: (dynamicSourceY + dynamicTargetY) / 2
     }
   }
 
@@ -357,22 +381,16 @@ const edgeStyle = computed(() => ({
 const isManual = computed(() => !!props.data?.transitionData?.manual)
 
 onMounted(() => {
-  console.log('🏷️ DraggableTransitionEdge mounted:', {
-    transitionId: transitionId.value,
-    propsLabelOffset: props.data?.labelOffset,
-    initialSavedLabelOffset: savedLabelOffset.value
-  });
-  
   eventBus.$on('reset-edge-positions', handleResetEdgePositions);
   eventBus.$on('edge-hover', onEdgeHover)
   eventBus.$on('edge-hover-clear', onEdgeHoverClear)
   eventBus.$on('label-selected', handleLabelSelected)
   eventBus.$on('label-deselected', handleLabelDeselected)
   eventBus.$on('select-transition', handleSelectTransition)
+  eventBus.$on('delete-transition-with-confirm', handleDeleteTransitionWithConfirm)
   
-  // Добавляем глобальный обработчик для клавиши Shift
+  // Добавляем обработчик клавиш для Shift (выравнивание лейбла)
   document.addEventListener('keydown', handleKeyDown)
-  document.addEventListener('keyup', handleKeyUp)
   // Добавляем глобальный обработчик для клика в любое место
   document.addEventListener('click', handleGlobalClick)
 })
@@ -380,11 +398,6 @@ onMounted(() => {
 // Watch for changes in props.data.labelOffset to update savedLabelOffset
 watch(() => props.data?.labelOffset, (newOffset) => {
   if (newOffset && !isDragging.value) {
-    console.log('🏷️ Props labelOffset changed, updating savedLabelOffset:', {
-      transitionId: transitionId.value,
-      oldOffset: savedLabelOffset.value,
-      newOffset
-    });
     savedLabelOffset.value = {
       x: newOffset.x || 0,
       y: newOffset.y || 0
@@ -393,29 +406,27 @@ watch(() => props.data?.labelOffset, (newOffset) => {
 }, { deep: true });
 
 onUnmounted(() => {
+  
   eventBus.$off('reset-edge-positions', handleResetEdgePositions);
   eventBus.$off('edge-hover', onEdgeHover)
   eventBus.$off('edge-hover-clear', onEdgeHoverClear)
   eventBus.$off('label-selected', handleLabelSelected)
   eventBus.$off('label-deselected', handleLabelDeselected)
   eventBus.$off('select-transition', handleSelectTransition)
+  eventBus.$off('delete-transition-with-confirm', handleDeleteTransitionWithConfirm)
   
   // Убираем глобальные обработчики
   document.removeEventListener('keydown', handleKeyDown)
-  document.removeEventListener('keyup', handleKeyUp)
   document.removeEventListener('click', handleGlobalClick)
 })
 
 function handleKeyDown(event: KeyboardEvent) {
+  
   // Проверяем, что нажат Shift и этот label выделен
   if (event.key === 'Shift' && isSelected.value) {
     // Выравниваем label по прямой линии
     savedLabelOffset.value = { x: 0, y: 0 }
     
-    console.log('🔄 Shift key pressed, resetting transition label position:', {
-      transitionId: transitionId.value,
-      resetOffset: savedLabelOffset.value
-    });
     
     // Отправляем обновление позиции
     eventBus.$emit('update-transition-label-position', {
@@ -426,10 +437,6 @@ function handleKeyDown(event: KeyboardEvent) {
     // Снимаем выделение после выравнивания
     isSelected.value = false
   }
-}
-
-function handleKeyUp() {
-  // Пока что ничего не делаем при отпускании клавиш
 }
 
 function handleLabelSelected(selectedTransitionId: string) {
@@ -448,7 +455,15 @@ function handleSelectTransition(eventData: { transitionId: string }) {
   // Выделяем transition если его ID совпадает с текущим
   if (eventData.transitionId === transitionId.value) {
     isSelected.value = true;
-    console.log('✅ Transition selected via event bus:', transitionId.value);
+    
+  }
+}
+
+function handleDeleteTransitionWithConfirm(eventData: { transitionId: string }) {
+  // Удаляем transition если его ID совпадает с текущим
+  if (eventData.transitionId === transitionId.value) {
+    
+    deleteEdge();
   }
 }
 
@@ -488,6 +503,7 @@ watch(() => props.data?.labelOffset, (newLabelOffset) => {
 }, { deep: true, immediate: true });
 
 function onLabelClick(event: MouseEvent) {
+  
   // Проверяем, что клик не по кнопкам
   const target = event.target as HTMLElement;
   if (target.closest('button')) {
@@ -565,26 +581,12 @@ function onDrag(event: MouseEvent) {
 
 function endDrag() {
   if (isDragging.value) {
-    console.log('🏷️ Saving transition label position after drag:', {
-      transitionId: transitionId.value,
-      savedOffset: savedLabelOffset.value,
-      dragOffset: dragOffset.value,
-      finalOffset: {
-        x: savedLabelOffset.value.x + dragOffset.value.x,
-        y: savedLabelOffset.value.y + dragOffset.value.y
-      }
-    });
-
     savedLabelOffset.value = {
       x: savedLabelOffset.value.x + dragOffset.value.x,
       y: savedLabelOffset.value.y + dragOffset.value.y
     }
 
-    console.log('🏷️ Emitting update-transition-label-position:', {
-      transitionId: transitionId.value,
-      offset: savedLabelOffset.value
-    });
-
+    
     eventBus.$emit('update-transition-label-position', {
       transitionId: transitionId.value,
       offset: savedLabelOffset.value
@@ -613,9 +615,13 @@ function deleteEdge() {
     eventBus.$emit('delete-transition', {
       stateName: props.source,
       transitionName: originalTransitionName.value
-    })
+    });
+    
+    // Уведомляем ChatBotEditorWorkflow об успешном удалении
+    eventBus.$emit('transition-deleted', transitionId.value);
   }).catch(() => {
-    console.log('Transition deletion cancelled')
+    // Уведомляем ChatBotEditorWorkflow об отмене удаления
+    eventBus.$emit('transition-delete-cancelled', transitionId.value);
   })
 }
 
@@ -644,17 +650,17 @@ function onPathLeave() {
   // Path leave logic can be added here if needed
 }
 
-function onGroupMouseDown(event: MouseEvent) {
-  const target = event.target as HTMLElement
-  if (target.closest('.transition-label-container') || target.closest('button')) {
-    return
-  }
-  startTransitionDrag(event)
+function startSourceDrag(event: MouseEvent) {
+  dragType.value = 'source'
+  startEdgeDrag(event)
 }
 
-function startTransitionDrag(event: MouseEvent) {
-  console.log('🔄 startTransitionDrag called for transition:', transitionId.value);
-  
+function startTargetDrag(event: MouseEvent) {
+  dragType.value = 'target'
+  startEdgeDrag(event)
+}
+
+function startEdgeDrag(event: MouseEvent) {
   isDraggingTransition.value = true
 
   const svgElement = (event.target as Element)?.closest('svg') as SVGSVGElement
@@ -688,17 +694,14 @@ function startTransitionDrag(event: MouseEvent) {
     }
   }
 
-  console.log('🔄 Emitting transition-drag-start with:', {
+  const eventName = dragType.value === 'source' ? 'transition-source-drag-start' : 'transition-target-drag-start'
+  
+  eventBus.$emit(eventName, {
     transitionId: transitionId.value,
     sourceNode: props.source,
-    targetNode: props.target
-  });
-
-  eventBus.$emit('transition-drag-start', {
-    transitionId: transitionId.value, // используем полный transitionId вместо originalTransitionName
-    sourceNode: props.source,
     targetNode: props.target,
-    transitionData: props.data?.transitionData
+    transitionData: props.data?.transitionData,
+    dragType: dragType.value
   })
 
   document.addEventListener('mousemove', onTransitionDrag)
@@ -730,33 +733,31 @@ function onTransitionDrag(event: MouseEvent) {
     }
   }
 
-  eventBus.$emit('transition-dragging', {
-    transitionId: transitionId.value, // используем полный transitionId
+  const eventName = dragType.value === 'source' ? 'transition-source-drag' : 'transition-target-drag'
+
+  eventBus.$emit(eventName, {
+    transitionId: transitionId.value,
     mouseX: event.clientX,
     mouseY: event.clientY,
     startX: transitionDragStart.value.x,
-    startY: transitionDragStart.value.y
+    startY: transitionDragStart.value.y,
+    dragType: dragType.value
   })
 }
 
 function endTransitionDrag(event: MouseEvent) {
   if (!isDraggingTransition.value) return
 
-  console.log('🔄 endTransitionDrag called, emitting transition-drag-end with:', {
+  const eventName = dragType.value === 'source' ? 'transition-source-drag-end' : 'transition-target-drag-end'
+
+  eventBus.$emit(eventName, {
     transitionId: transitionId.value,
     sourceNode: props.source,
     targetNode: props.target,
     mouseX: event.clientX,
-    mouseY: event.clientY
-  });
-
-  eventBus.$emit('transition-drag-end', {
-    transitionId: transitionId.value, // используем полный transitionId
-    sourceNode: props.source,
-    targetNode: props.target,
-    mouseX: event.clientX,
     mouseY: event.clientY,
-    transitionData: props.data?.transitionData
+    transitionData: props.data?.transitionData,
+    dragType: dragType.value
   })
 
   // Выделяем transition label после завершения drop операции с небольшой задержкой
@@ -767,13 +768,13 @@ function endTransitionDrag(event: MouseEvent) {
     
     if (!isSelected.value) {
       isSelected.value = true;
-      console.log('✅ Transition label selected after successful drop');
     }
   }, 50);
 
   isDraggingTransition.value = false
   hoveredNodeId.value = null
   svgElementRef.value = null
+  dragType.value = null
 
   document.removeEventListener('mousemove', onTransitionDrag)
   document.removeEventListener('mouseup', endTransitionDrag)
@@ -802,6 +803,14 @@ function endTransitionDrag(event: MouseEvent) {
 
 .draggable-transition-edge.dragging {
   z-index: 1000;
+}
+
+.draggable-transition-edge.dragging-transition {
+  cursor: grabbing !important;
+}
+
+.draggable-transition-edge.dragging-transition path {
+  cursor: grabbing !important;
 }
 
 .transition-label-container {
@@ -854,7 +863,7 @@ function endTransitionDrag(event: MouseEvent) {
   border: none;
   cursor: grab;
   /* Увеличиваем область захвата */
-  padding: 4px 6px;
+  padding: 12px;
   margin: -4px -6px;
   
   &:active {

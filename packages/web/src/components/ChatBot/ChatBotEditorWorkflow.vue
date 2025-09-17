@@ -23,12 +23,16 @@
       </el-splitter-panel>
       <el-splitter-panel v-if="isShowVueFlow" class="chat-bot-editor-workflow__flow-wrapper">
         <VueFlow
+            ref="vueFlowRef"
+            :delete-key-code="null"
             class="chat-bot-editor-workflow__vue-flow"
             :class="{ 'connection-dragging': isDraggingConnection }"
             :fit-view-on-init="false"
             :zoom-on-double-click="false"
             :pan-on-drag="true"
             :selection-on-drag="false"
+            :nodes-draggable="isDraggable"
+            :edges-draggable="isDraggable"
             @nodeDragStop="onNodeDragStop"
             @connect="onConnect"
             @connectStart="onConnectStart"
@@ -43,51 +47,83 @@
             :max-zoom="4"
         >
           <Controls position="top-left" :show-fit-view="false">
-            <template #icon-zoom-in>
-              <Icon name="zoom-in"/>
-            </template>
-            <template #icon-zoom-out>
-              <Icon name="zoom-out"/>
-            </template>
-            <template #icon-lock>
-              <Icon name="lock"/>
-            </template>
-            <template #icon-unlock>
-              <Icon name="unlock"/>
+            <template #control-zoom-in>
+              <el-tooltip content="Zoom in" placement="top" :show-after="500">
+                <ControlButton @click="zoomIn">
+                  <Icon name="zoom-in"/>
+                </ControlButton>
+              </el-tooltip>
             </template>
 
-            <ControlButton @click="fitView">
-              <Icon name="fit-view"/>
-            </ControlButton>
+            <template #control-zoom-out>
+              <el-tooltip content="Zoom out" placement="top" :show-after="500">
+                <ControlButton @click="zoomOut">
+                  <Icon name="zoom-out"/>
+                </ControlButton>
+              </el-tooltip>
+            </template>
 
-            <ControlButton @click="undoAction" :disabled="!canUndo">
-              <Icon name="undo"/>
-            </ControlButton>
+            <template #control-interactive>
+              <el-tooltip v-if="isDraggable" content="Lock interaction" placement="top" :show-after="500">
+                <ControlButton @click="() => isDraggable = false">
+                  <Icon name="unlock"/>
+                </ControlButton>
+              </el-tooltip>
+              <el-tooltip v-else content="Unlock interaction" placement="top" :show-after="500">
+                <ControlButton @click="() => isDraggable = true">
+                  <Icon name="lock"/>
+                </ControlButton>
+              </el-tooltip>
+            </template>
 
-            <ControlButton @click="redoAction" :disabled="!canRedo">
-              <Icon name="redo"/>
-            </ControlButton>
+            <el-tooltip content="Fit to view" placement="top" :show-after="500">
+              <ControlButton @click="fitView">
+                <Icon name="fit-view"/>
+              </ControlButton>
+            </el-tooltip>
 
-            <ControlButton @click="resetTransform">
-              <Icon name="reset"/>
-            </ControlButton>
+            <el-tooltip content="Undo" placement="top" :show-after="500">
+              <ControlButton @click="undoAction" :disabled="!canUndo">
+                <Icon name="undo"/>
+              </ControlButton>
+            </el-tooltip>
 
-            <ControlButton @click="autoLayout">
-              <template v-if="layoutDirection==='horizontal'">
-                <Icon name="vertical"/>
-              </template>
-              <template v-else>
-                <Icon name="horizontal"/>
-              </template>
-            </ControlButton>
+            <el-tooltip content="Redo" placement="top" :show-after="500">
+              <ControlButton @click="redoAction" :disabled="!canRedo">
+                <Icon name="redo"/>
+              </ControlButton>
+            </el-tooltip>
 
-            <ControlButton @click="addNewState">
-              <Icon name="plus"/>
-            </ControlButton>
+            <el-tooltip content="Reset position" placement="top" :show-after="500">
+              <ControlButton @click="resetTransform">
+                <Icon name="reset"/>
+              </ControlButton>
+            </el-tooltip>
 
-            <ControlButton @click="workflowMeta">
-              <Icon name="cogs"/>
-            </ControlButton>
+            <el-tooltip
+                :content="layoutDirection === 'horizontal' ? 'Switch to vertical layout' : 'Switch to horizontal layout'"
+                placement="top" :show-after="500">
+              <ControlButton @click="autoLayout">
+                <template v-if="layoutDirection==='horizontal'">
+                  <Icon name="vertical"/>
+                </template>
+                <template v-else>
+                  <Icon name="horizontal"/>
+                </template>
+              </ControlButton>
+            </el-tooltip>
+
+            <el-tooltip content="Add new state" placement="top" :show-after="500">
+              <ControlButton @click="addNewState">
+                <Icon name="plus"/>
+              </ControlButton>
+            </el-tooltip>
+
+            <el-tooltip content="Workflow settings" placement="top" :show-after="500">
+              <ControlButton @click="workflowMeta">
+                <Icon name="cogs"/>
+              </ControlButton>
+            </el-tooltip>
           </Controls>
           <Background pattern-color="#aaa" :gap="16"/>
           <template #node-default="{ data }">
@@ -103,7 +139,7 @@
 </template>
 
 <script setup lang="ts">
-import {VueFlow, ConnectionMode} from '@vue-flow/core'
+import {VueFlow, ConnectionMode, useVueFlow} from '@vue-flow/core'
 import {Background} from '@vue-flow/background'
 import {ControlButton, Controls} from '@vue-flow/controls'
 import Editor from "@/components/Editor/Editor.vue";
@@ -115,9 +151,10 @@ import EditEdgeConditionalDialog from "@/components/ChatBot/ChatBotEditorWorkflo
 import WorkflowMetaDialog from "@/components/ChatBot/ChatBotEditorWorkflow/WorkflowMetaDialog.vue";
 import {useWorkflowEditor} from './ChatBotEditorWorkflow/composables/useWorkflowEditor';
 import useAssistantStore from "@/stores/assistant.ts";
-import {computed, markRaw, useTemplateRef, onMounted, nextTick} from "vue";
+import {computed, markRaw, useTemplateRef, onMounted, onUnmounted, nextTick, ref} from "vue";
 import EditorViewMode from "@/components/ChatBot/EditorViewMode.vue";
 import SendIcon from "@/assets/images/icons/send.svg";
+import eventBus from "../../plugins/eventBus";
 
 const props = defineProps<{
   technicalId: string,
@@ -159,6 +196,204 @@ const {
   onSubmitQuestion,
 } = useWorkflowEditor(props, assistantStore, emit);
 
+const {zoomIn, zoomOut, getViewport} = useVueFlow();
+
+// Template ref for VueFlow
+const vueFlowRef = ref();
+
+// Draggable state
+const isDraggable = ref(true);
+
+// Track selected transitions and nodes for deletion
+const selectedTransitions = ref(new Set<string>());
+const selectedNodes = ref(new Set<string>());
+
+// Handle double click on pane to add new state at click position
+const handlePaneDoubleClick = (event: MouseEvent) => {
+  // Prevent adding state if clicking on nodes, edges, transitions, or controls
+  const target = event.target as HTMLElement;
+  if (target.closest('.vue-flow__node') || 
+      target.closest('.vue-flow__edge') || 
+      target.closest('.vue-flow__controls') ||
+      target.closest('.vue-flow__handle') ||
+      target.closest('.transition-label') ||
+      target.closest('[data-testid*="edge"]') ||
+      target.closest('[class*="node"]') ||
+      target.closest('[class*="edge"]') ||
+      target.closest('[class*="transition"]')) {
+    return;
+  }
+
+  // Get VueFlow element
+  const vueFlowElement = vueFlowRef.value?.$el || vueFlowRef.value;
+  if (!vueFlowElement) return;
+
+  // Get bounding rect and viewport for coordinate transformation
+  const rect = vueFlowElement.getBoundingClientRect();
+  const viewport = getViewport();
+  
+  // Transform DOM coordinates to VueFlow coordinates
+  const position = {
+    x: (event.clientX - rect.left - viewport.x) / viewport.zoom,
+    y: (event.clientY - rect.top - viewport.y) / viewport.zoom
+  };
+  
+  addNewState(position);
+};
+
+// Event handler functions
+const handleLabelSelected = (transitionId: string) => {
+  // Clear ALL other selections (transitions and nodes)
+  selectedTransitions.value.clear();
+  selectedNodes.value.clear();
+  selectedTransitions.value.add(transitionId);
+
+  // Notify nodes to deselect
+  eventBus.$emit('node-deselected');
+};
+
+const handleLabelDeselected = () => {
+  selectedTransitions.value.clear();
+};
+
+const handleTransitionDeleted = (transitionId: string) => {
+  selectedTransitions.value.delete(transitionId);
+};
+
+const handleNodeSelected = (nodeId: string) => {
+  // Clear ALL other selections (nodes and transitions)
+  selectedNodes.value.clear();
+  selectedTransitions.value.clear();
+  selectedNodes.value.add(nodeId);
+
+  // Notify transitions to deselect
+  eventBus.$emit('label-deselected');
+};
+
+const handleNodeSelectionExclusive = (nodeId: string) => {
+  console.log('🔄 handleNodeSelectionExclusive called:', nodeId);
+
+  // Проверяем, не выделен ли уже этот узел
+  if (selectedNodes.value.size === 1 && selectedNodes.value.has(nodeId)) {
+    console.log('✅ Node already exclusively selected, skipping');
+    return;
+  }
+
+  // Notify all nodes to deselect BEFORE clearing selections
+  eventBus.$emit('node-deselected');
+
+  // Clear ALL selections 
+  selectedNodes.value.clear();
+  selectedTransitions.value.clear();
+
+  // Add the new node to selection
+  selectedNodes.value.add(nodeId);
+
+  console.log('📊 Updated selections:', {
+    nodes: Array.from(selectedNodes.value),
+    transitions: Array.from(selectedTransitions.value)
+  });
+
+  // Notify transitions to deselect
+  eventBus.$emit('label-deselected');
+};
+
+const handleNodeDeselected = () => {
+  selectedNodes.value.clear();
+};
+
+const handleNodeDeleted = (nodeId: string) => {
+  selectedNodes.value.delete(nodeId);
+};
+
+// Add/remove keyboard listeners
+onMounted(() => {
+  // Small delay for complete VueFlow initialization
+  nextTick(() => {
+    setTimeout(() => {
+      restoreViewport();
+    }, 50);
+  });
+
+  // Listen for transition selection/deselection
+  eventBus.$on('label-selected', handleLabelSelected);
+  eventBus.$on('label-deselected', handleLabelDeselected);
+
+  // Listen for deletion results
+  eventBus.$on('transition-deleted', handleTransitionDeleted);
+
+  // Listen for node selection/deselection
+  eventBus.$on('node-selected', handleNodeSelected);
+  eventBus.$on('node-selection-exclusive', handleNodeSelectionExclusive);
+  eventBus.$on('node-deselected', handleNodeDeselected);
+
+  // Listen for node deletion results
+  eventBus.$on('node-deleted', handleNodeDeleted);
+
+  // Add keyboard listener
+  document.addEventListener('keydown', handleKeyDown);
+});
+
+onUnmounted(() => {
+  // Remove keyboard listener
+  document.removeEventListener('keydown', handleKeyDown);
+
+  // Remove event listeners with proper function references
+  eventBus.$off('label-selected', handleLabelSelected);
+  eventBus.$off('label-deselected', handleLabelDeselected);
+  eventBus.$off('transition-deleted', handleTransitionDeleted);
+  eventBus.$off('node-selected', handleNodeSelected);
+  eventBus.$off('node-selection-exclusive', handleNodeSelectionExclusive);
+  eventBus.$off('node-deselected', handleNodeDeselected);
+  eventBus.$off('node-deleted', handleNodeDeleted);
+});
+
+// Handle keyboard deletion
+const handleKeyDown = (event: KeyboardEvent) => {
+  // Delete or Backspace key
+  if (event.key === 'Delete' || event.key === 'Backspace') {
+    console.log('🔥 Delete key pressed, selectedNodes:', Array.from(selectedNodes.value));
+
+    let hasItemsToDelete = false;
+
+    if (selectedTransitions.value.size > 0) {
+      hasItemsToDelete = true;
+
+      // Delete each selected transition via confirm dialog
+      selectedTransitions.value.forEach(transitionId => {
+        // Emit event to trigger deleteEdge() function in the transition component
+        eventBus.$emit('delete-transition-with-confirm', {
+          transitionId
+        });
+      });
+    }
+
+    if (selectedNodes.value.size > 0) {
+      hasItemsToDelete = true;
+
+      console.log('🗑️ Attempting to delete nodes:', Array.from(selectedNodes.value));
+
+      // Delete each selected node via confirm dialog
+      selectedNodes.value.forEach(nodeId => {
+        console.log('🗑️ Emitting delete-node-with-confirm for:', nodeId);
+        // Emit event to trigger delete confirmation for the node
+        eventBus.$emit('delete-node-with-confirm', {
+          nodeId
+        });
+      });
+    }
+
+    if (hasItemsToDelete) {
+      // Prevent default browser behavior
+      event.preventDefault();
+    } else {
+      console.log('❌ No items selected for deletion');
+    }
+  } else {
+    console.log('ℹ️ Key ignored:', event.key);
+  }
+};
+
 // Export methods for viewport management from parent component
 const saveCurrentViewport = () => {
   saveViewport();
@@ -167,16 +402,6 @@ const saveCurrentViewport = () => {
 const restoreCurrentViewport = () => {
   restoreViewport();
 };
-
-// Restore viewport when component loads
-onMounted(() => {
-  // Small delay for complete VueFlow initialization
-  nextTick(() => {
-    setTimeout(() => {
-      restoreViewport();
-    }, 50);
-  });
-});
 
 // Expose methods to parent component
 defineExpose({
@@ -220,6 +445,21 @@ function onClear() {
 //     fitView();
 //   }, 10)
 // })
+
+// Setup double click listener for adding new states
+onMounted(() => {
+  const vueFlowElement = vueFlowRef.value?.$el || vueFlowRef.value;
+  if (vueFlowElement) {
+    vueFlowElement.addEventListener('dblclick', handlePaneDoubleClick);
+  }
+});
+
+onUnmounted(() => {
+  const vueFlowElement = vueFlowRef.value?.$el || vueFlowRef.value;
+  if (vueFlowElement) {
+    vueFlowElement.removeEventListener('dblclick', handlePaneDoubleClick);
+  }
+});
 </script>
 
 <style lang="scss">

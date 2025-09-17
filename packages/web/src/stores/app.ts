@@ -10,6 +10,7 @@ const useAppStore = defineStore('app', {
             isCanvasHidden: helperStorage.get('app:isCanvasHidden', false),
             theme: helperStorage.get('app:theme', 'system'),
             consentDialog: helperStorage.get('app:consentDialog', true),
+            workflowLayout: helperStorage.get('app:workflowLayout', 'vertical') as 'horizontal' | 'vertical',
         }
     },
     actions: {
@@ -28,6 +29,10 @@ const useAppStore = defineStore('app', {
         setConsentDialog(value) {
             this.consentDialog = value;
             helperStorage.set("app:consentDialog", value);
+        },
+        setWorkflowLayout(layout: 'horizontal' | 'vertical') {
+            this.workflowLayout = layout;
+            helperStorage.set("app:workflowLayout", layout);
         }
     },
 });
