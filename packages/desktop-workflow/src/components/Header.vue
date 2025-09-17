@@ -1,13 +1,29 @@
 <template>
   <div class="header">
-    <img alt="logo" class="header__logo" :src="LogoUrl"/>
-    <VersionApp :small="true"/>
+    <div class="header__actions">
+      <el-button @click="onExportAll" size="mini" type="primary" class="btn btn-primary">Export All</el-button>
+      <el-button @click="onImportAll" size="mini" type="primary" class="btn btn-default">Import All</el-button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import LogoUrl from '@/assets/images/logo.svg?url'
-import VersionApp from "@/components/VersionApp/VersionApp.vue";
+import FileSaver from "file-saver";
+import dayjs from "dayjs";
+import useWorkflowStore from "../stores/workflows";
+
+const workflowStore = useWorkflowStore();
+
+function onExportAll() {
+  const date = dayjs();
+  const data = JSON.stringify(workflowStore.workflowList);
+  const file = new File([JSON.stringify(data)], `workflows_${date.format('DD-MM-YYYY')}.txt`, {type: "text/plain;charset=utf-8"});
+  FileSaver.saveAs(file);
+}
+
+function onImportAll() {
+
+}
 </script>
 
 <style scoped lang="scss">
@@ -19,13 +35,7 @@ import VersionApp from "@/components/VersionApp/VersionApp.vue";
   box-sizing: content-box;
   border-bottom: 1px solid var(--sidebar-border);
   margin-bottom: 16px;
-  gap: 12px;
-  flex-wrap: nowrap;
   display: flex;
-
-  &__logo {
-    width: 160px;
-    height: auto;
-  }
+  justify-content: right;
 }
 </style>
