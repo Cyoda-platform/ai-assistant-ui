@@ -2,7 +2,7 @@
   <div class="wrap-workflow">
     <Header/>
     <template v-if="selectedWorkflow">
-      <ChatBotEditorWorkflow ref="chatBotEditorWorkflowRef" :technicalId="selectedWorkflow.technical_id"/>
+      <ChatBotEditorWorkflow @update="onUpdateWorkflow" ref="chatBotEditorWorkflowRef" :technicalId="selectedWorkflow.technical_id"/>
     </template>
     <template v-else>
       <div class="wrap-workflow__empty-state">
@@ -42,14 +42,14 @@ watch(selectedWorkflow, (newVal, oldVal) => {
     }
 )
 
-watch(chatBotEditorWorkflowRef, () => {
-  console.log('cchatBotEditorWorkflowRef.value.workflowMetaData', chatBotEditorWorkflowRef.value.workflowMetaData)
+function onUpdateWorkflow({workflowMetaData, canvasData}) {
+  console.log('onUpdateWorkflow', workflowMetaData, canvasData)
   workflowStore.updateWorkflow({
-    workflowMetaData: chatBotEditorWorkflowRef.value.workflowMetaData,
-    canvasData: chatBotEditorWorkflowRef.value.canvasData,
+    workflowMetaData: workflowMetaData,
+    canvasData: canvasData,
     technical_id: selectedWorkflow.value.technical_id,
   })
-})
+}
 </script>
 
 <style scoped lang="scss">

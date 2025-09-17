@@ -151,7 +151,7 @@ import EditEdgeConditionalDialog from "@/components/ChatBot/ChatBotEditorWorkflo
 import WorkflowMetaDialog from "@/components/ChatBot/ChatBotEditorWorkflow/WorkflowMetaDialog.vue";
 import {useWorkflowEditor} from './ChatBotEditorWorkflow/composables/useWorkflowEditor';
 import useAssistantStore from "@/stores/assistant.ts";
-import {computed, markRaw, useTemplateRef, onMounted, onUnmounted, nextTick, ref} from "vue";
+import {computed, markRaw, useTemplateRef, onMounted, onUnmounted, nextTick, ref, watch} from "vue";
 import EditorViewMode from "@/components/ChatBot/EditorViewMode.vue";
 import SendIcon from "@/assets/images/icons/send.svg";
 import eventBus from "../../plugins/eventBus";
@@ -160,7 +160,7 @@ const props = defineProps<{
   technicalId: string,
 }>();
 
-const emit = defineEmits(['answer']);
+const emit = defineEmits(['answer', 'update']);
 
 const workflowMetaDialogRef = useTemplateRef('workflowMetaDialogRef');
 const assistantStore = useAssistantStore();
@@ -212,8 +212,8 @@ const selectedNodes = ref(new Set<string>());
 const handlePaneDoubleClick = (event: MouseEvent) => {
   // Prevent adding state if clicking on nodes, edges, transitions, or controls
   const target = event.target as HTMLElement;
-  if (target.closest('.vue-flow__node') || 
-      target.closest('.vue-flow__edge') || 
+  if (target.closest('.vue-flow__node') ||
+      target.closest('.vue-flow__edge') ||
       target.closest('.vue-flow__controls') ||
       target.closest('.vue-flow__handle') ||
       target.closest('.transition-label') ||
@@ -231,13 +231,13 @@ const handlePaneDoubleClick = (event: MouseEvent) => {
   // Get bounding rect and viewport for coordinate transformation
   const rect = vueFlowElement.getBoundingClientRect();
   const viewport = getViewport();
-  
+
   // Transform DOM coordinates to VueFlow coordinates
   const position = {
     x: (event.clientX - rect.left - viewport.x) / viewport.zoom,
     y: (event.clientY - rect.top - viewport.y) / viewport.zoom
   };
-  
+
   addNewState(position);
 };
 
@@ -436,6 +436,7 @@ const hasWorkflowActions = computed(() => {
 function onClear() {
   canvasData.value = '';
 }
+
 // No need for fitView from main component since viewport is now restored in composable
 // const {fitView} = useVueFlow();
 
@@ -460,6 +461,10 @@ onUnmounted(() => {
     vueFlowElement.removeEventListener('dblclick', handlePaneDoubleClick);
   }
 });
+
+watch([canvasData, workflowMetaData], () => {
+  emit('update', {canvasData: canvasData.value, workflowMetaData: workflowMetaData.value});
+})
 </script>
 
 <style lang="scss">

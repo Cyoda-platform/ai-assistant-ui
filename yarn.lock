@@ -2809,12 +2809,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^24.5.0":
-  version: 24.5.0
-  resolution: "@types/node@npm:24.5.0"
+"@types/node@npm:^24.5.1":
+  version: 24.5.1
+  resolution: "@types/node@npm:24.5.1"
   dependencies:
     undici-types: "npm:~7.12.0"
-  checksum: 10c0/c5beff68481e2cc667279a1478b34a1cfd048dbff914219cb5888967938d134907836b6c4d6d141dc862489cb09ef28f7d446c7a3b475181fd126c0fcd2916fa
+  checksum: 10c0/5f0cb038be789b58170e616452ba1f8ebb85bf2fbce58a7e32b1eb08391f64f5e31a9cdbccefbfcd9e6d73b66b564b5e037a1d678ab20213559a32e1d7b6ce17
   languageName: node
   linkType: hard
 
@@ -3928,7 +3928,7 @@ __metadata:
     "@tsconfig/node22": "npm:^22.0.2"
     "@types/dagre": "npm:^0.7.53"
     "@types/file-saver": "npm:^2.0.7"
-    "@types/node": "npm:^24.5.0"
+    "@types/node": "npm:^24.5.1"
     "@types/pako": "npm:^2.0.4"
     "@types/tinycon": "npm:^0.6.7"
     "@vitejs/plugin-vue": "npm:^6.0.1"
@@ -5605,7 +5605,7 @@ __metadata:
     "@types/electron-squirrel-startup": "npm:^1.0.2"
     "@typescript-eslint/eslint-plugin": "npm:^8.44.0"
     "@typescript-eslint/parser": "npm:^8.44.0"
-    electron: "npm:38.1.0"
+    electron: "npm:38.1.2"
     electron-squirrel-startup: "npm:^1.0.1"
     electron-store: "npm:^10.1.0"
     eslint: "npm:^9.35.0"
@@ -5635,7 +5635,7 @@ __metadata:
     "@types/electron-squirrel-startup": "npm:^1.0.2"
     "@typescript-eslint/eslint-plugin": "npm:^8.44.0"
     "@typescript-eslint/parser": "npm:^8.44.0"
-    electron: "npm:38.1.0"
+    electron: "npm:38.1.2"
     electron-squirrel-startup: "npm:^1.0.1"
     eslint: "npm:^9.35.0"
     eslint-plugin-import: "npm:^2.32.0"
@@ -5899,16 +5899,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:38.1.0":
-  version: 38.1.0
-  resolution: "electron@npm:38.1.0"
+"electron@npm:38.1.2":
+  version: 38.1.2
+  resolution: "electron@npm:38.1.2"
   dependencies:
     "@electron/get": "npm:^2.0.0"
     "@types/node": "npm:^22.7.7"
     extract-zip: "npm:^2.0.1"
   bin:
     electron: cli.js
-  checksum: 10c0/186082b15862b0e9617828ca395a79311ebe2a713bb2eb15a67cf6bea208e8cda892395a143e72915e189088ac71e91b29c1a46a0c4d343022cbc33004d4d302
+  checksum: 10c0/63f768e8ac396221db17c280e483ac838067e881ee61eb78c5c8f587017e51c587cc1eb687f29672b5e63c0af8a5d818d721d49aef20bac082544a8cf2d323ea
   languageName: node
   linkType: hard
 
