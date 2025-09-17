@@ -2,7 +2,7 @@
   <div v-loading="isLoadingDelete" class="menu-chat-item" :class="{
     'menu-chat-item--active': isActive
   }">
-    <a href="#" @click.prevent="onClickWorkflow " class="menu-chat-item__link">{{ chat.name || 'No name' }}</a>
+    <a href="#" @click.prevent="onClickWorkflow(chat)" class="menu-chat-item__link">{{ chat.name || 'No name' }}</a>
     <el-popover popper-class="default" v-model:visible="isShowPopover" placement="right-start"
                 :popper-style="popperStyle"
                 :popper-options="popperOptions"

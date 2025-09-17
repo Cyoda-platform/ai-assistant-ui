@@ -181,7 +181,9 @@ onMounted(() => {
 // Expose methods to parent component
 defineExpose({
   saveCurrentViewport,
-  restoreViewport: restoreCurrentViewport
+  restoreViewport: restoreCurrentViewport,
+  workflowMetaData,
+  canvasData
 });
 
 const edgeTypes = {
@@ -209,7 +211,6 @@ const hasWorkflowActions = computed(() => {
 function onClear() {
   canvasData.value = '';
 }
-
 // No need for fitView from main component since viewport is now restored in composable
 // const {fitView} = useVueFlow();
 

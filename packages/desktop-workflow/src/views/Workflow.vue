@@ -2,7 +2,7 @@
   <div class="wrap-workflow">
     <Header/>
     <template v-if="selectedWorkflow">
-      <ChatBotEditorWorkflow/>
+      <ChatBotEditorWorkflow ref="chatBotEditorWorkflowRef" :technicalId="selectedWorkflow.technical_id"/>
     </template>
     <template v-else>
       <div class="wrap-workflow__empty-state">
@@ -11,7 +11,8 @@
             No Workflow Selected
           </h2>
           <p class="wrap-workflow__empty-state-message">
-            Choose an existing workflow from the sidebar or create a new one to get started with your automation journey.
+            Choose an existing workflow from the sidebar or create a new one to get started with your automation
+            journey.
           </p>
         </div>
       </div>
@@ -23,13 +24,32 @@
 import ChatBotEditorWorkflow from "@/components/ChatBot/ChatBotEditorWorkflow.vue";
 import Header from "../components/Header.vue";
 import useWorkflowStore from "../stores/workflows";
-import {computed} from "vue";
+import {computed, useTemplateRef, watch} from "vue";
 
 const workflowStore = useWorkflowStore();
+const chatBotEditorWorkflowRef = useTemplateRef('chatBotEditorWorkflowRef');
 
 const selectedWorkflow = computed(() => {
   return workflowStore.selectedWorkflow;
 });
+
+watch(selectedWorkflow, (newVal, oldVal) => {
+      if (!newVal || !chatBotEditorWorkflowRef.value || !selectedWorkflow.value) return;
+      chatBotEditorWorkflowRef.value.workflowMetaData = selectedWorkflow.value.workflowMetaData;
+      chatBotEditorWorkflowRef.value.canvasData = selectedWorkflow.value.canvasData;
+    }, {
+      immediate: true
+    }
+)
+
+watch(chatBotEditorWorkflowRef, () => {
+  console.log('cchatBotEditorWorkflowRef.value.workflowMetaData', chatBotEditorWorkflowRef.value.workflowMetaData)
+  workflowStore.updateWorkflow({
+    workflowMetaData: chatBotEditorWorkflowRef.value.workflowMetaData,
+    canvasData: chatBotEditorWorkflowRef.value.canvasData,
+    technical_id: selectedWorkflow.value.technical_id,
+  })
+})
 </script>
 
 <style scoped lang="scss">

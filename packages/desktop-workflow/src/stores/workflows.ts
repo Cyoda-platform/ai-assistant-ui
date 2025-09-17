@@ -28,6 +28,8 @@ const useWorkflowStore = defineStore('workflows', {
                 description: data.description.trim(),
                 technical_id: uuidv4(),
                 date: new Date().toString(),
+                workflowMetaData: '',
+                canvasData: '',
             };
             allWorkflows.unshift(newWorkflow);
             await HelperStorageElectron.set(MENU_WORKFLOW_CHAT_LIST, allWorkflows);
@@ -36,8 +38,10 @@ const useWorkflowStore = defineStore('workflows', {
         async updateWorkflow(data) {
             const allWorkflows = await HelperStorageElectron.get(MENU_WORKFLOW_CHAT_LIST, []);
             const existWorkflow = allWorkflows.find((el) => el.technical_id === data.technical_id);
-            existWorkflow.name = data.name.trim();
-            existWorkflow.description = data.description.trim();
+            if(data.name) existWorkflow.name = data.name.trim();
+            if(data.description) existWorkflow.description = data.description.trim();
+            if(data.workflowMetaData) existWorkflow.workflowMetaData = data.workflowMetaData;
+            if(data.canvasData) existWorkflow.canvasData = data.canvasData;
 
             await HelperStorageElectron.set(MENU_WORKFLOW_CHAT_LIST, allWorkflows);
             this.getAll();
