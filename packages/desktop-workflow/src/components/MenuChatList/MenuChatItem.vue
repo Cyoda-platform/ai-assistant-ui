@@ -73,7 +73,7 @@ const isLoadingDelete = ref(false);
 const workflowStore = useWorkflowStore();
 
 const selectedWorkflow = computed(() => {
-  workflowStore.selectedWorkflow;
+  return workflowStore.selectedWorkflow;
 })
 
 const popperOptions = {

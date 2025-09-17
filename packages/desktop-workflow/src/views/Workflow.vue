@@ -43,12 +43,14 @@ watch(selectedWorkflow, (newVal, oldVal) => {
 )
 
 function onUpdateWorkflow({workflowMetaData, canvasData}) {
-  console.log('onUpdateWorkflow', workflowMetaData, canvasData)
-  workflowStore.updateWorkflow({
-    workflowMetaData: workflowMetaData,
-    canvasData: canvasData,
-    technical_id: selectedWorkflow.value.technical_id,
-  })
+    const cleanMetaData = workflowMetaData ? JSON.parse(JSON.stringify(workflowMetaData)) : null;
+    const cleanCanvasData = canvasData ? JSON.parse(JSON.stringify(canvasData)) : null;
+    
+    workflowStore.updateWorkflow({
+      workflowMetaData: cleanMetaData,
+      canvasData: cleanCanvasData,
+      technical_id: selectedWorkflow.value.technical_id,
+    })
 }
 </script>
 

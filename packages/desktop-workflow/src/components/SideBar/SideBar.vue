@@ -274,6 +274,10 @@ defineExpose({rootRef})
     margin-top: 32px;
   }
 
+  &__li-action + &__li-action {
+    margin-top: 0;
+  }
+
   &__link {
     display: flex;
     align-items: center;

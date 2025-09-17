@@ -1,11 +1,8 @@
 import {defineStore} from "pinia";
-import HelperStorage from "@/helpers/HelperStorage.ts";
 import HelperStorageElectron from "../helpers/HelperStorageElectron";
 import {MENU_WORKFLOW_CHAT_LIST} from "../helpers/HelperConstantsElectron";
 import {ElMessage} from "element-plus";
 import {v4 as uuidv4} from "uuid";
-
-const helperStorage = new HelperStorage();
 
 const useWorkflowStore = defineStore('workflows', {
     state: () => {
@@ -38,10 +35,37 @@ const useWorkflowStore = defineStore('workflows', {
         async updateWorkflow(data) {
             const allWorkflows = await HelperStorageElectron.get(MENU_WORKFLOW_CHAT_LIST, []);
             const existWorkflow = allWorkflows.find((el) => el.technical_id === data.technical_id);
-            if(data.name) existWorkflow.name = data.name.trim();
-            if(data.description) existWorkflow.description = data.description.trim();
-            if(data.workflowMetaData) existWorkflow.workflowMetaData = data.workflowMetaData;
-            if(data.canvasData) existWorkflow.canvasData = data.canvasData;
+            
+            if (!existWorkflow) {
+                console.error('Workflow not found:', data.technical_id);
+                return;
+            }
+            
+            if('name' in data) existWorkflow.name = data.name.trim();
+            if('description' in data) existWorkflow.description = data.description.trim();
+            
+            // Сериализуем объекты в JSON строки, чтобы избежать проблем с клонированием
+            if('workflowMetaData' in data) {
+                try {
+                    existWorkflow.workflowMetaData = typeof data.workflowMetaData === 'string' 
+                        ? data.workflowMetaData 
+                        : JSON.stringify(data.workflowMetaData);
+                } catch (e) {
+                    console.error('Error serializing workflowMetaData:', e);
+                    existWorkflow.workflowMetaData = '{}';
+                }
+            }
+            
+            if('canvasData' in data) {
+                try {
+                    existWorkflow.canvasData = typeof data.canvasData === 'string' 
+                        ? data.canvasData 
+                        : JSON.stringify(data.canvasData);
+                } catch (e) {
+                    console.error('Error serializing canvasData:', e);
+                    existWorkflow.canvasData = '';
+                }
+            }
 
             await HelperStorageElectron.set(MENU_WORKFLOW_CHAT_LIST, allWorkflows);
             this.getAll();
@@ -53,8 +77,8 @@ const useWorkflowStore = defineStore('workflows', {
             await HelperStorageElectron.set(MENU_WORKFLOW_CHAT_LIST, []);
             this.getAll();
         },
-        setSelectedWorkflow(worlflow) {
-            this.selectedWorkflow = worlflow;
+        setSelectedWorkflow(workflow: any) {
+            this.selectedWorkflow = workflow;
         }
     },
 });

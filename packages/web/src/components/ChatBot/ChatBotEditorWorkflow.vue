@@ -435,6 +435,7 @@ const hasWorkflowActions = computed(() => {
 
 function onClear() {
   canvasData.value = '';
+  workflowMetaData.value = '';
 }
 
 // No need for fitView from main component since viewport is now restored in composable
