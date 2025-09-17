@@ -17,14 +17,6 @@
           <ToggleOpenIcon class="side-bar__toggle-close main-icon"/>
         </a>
       </li>
-      <li class="side-bar__li" :class="{
-              active: isActiveMenu('/home')
-            }">
-        <router-link class="side-bar__link" to="/home">
-          <HomeIcon class="main-icon"/>
-          <span v-if="!isSidebarHidden">{{ t('side_bar.links.home') }}</span>
-        </router-link>
-      </li>
 
       <template v-if="!isSidebarHidden">
         <li class="side-bar__li" :class="{
@@ -157,10 +149,6 @@ function onToggleDrawer() {
 
 function onClickToggleHistory() {
   isHistoryMenuVisible.value = !isHistoryMenuVisible.value;
-}
-
-function isActiveMenu(link) {
-  return route.path === link;
 }
 
 function onHistoryMenuReady() {

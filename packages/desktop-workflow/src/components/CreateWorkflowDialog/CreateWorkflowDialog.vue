@@ -131,7 +131,8 @@ const handleSubmit = async () => {
       await workflowStore.updateWorkflow(formData.value);
       ElMessage.success(`Workflow "${formData.value.name}" updated successfully`);
     } else {
-      await workflowStore.createWorkflow(formData.value);
+      const newWorkflow = await workflowStore.createWorkflow(formData.value);
+      workflowStore.setSelectedWorkflow(newWorkflow);
       // Emit events
       ElMessage.success(`Workflow "${formData.value.name}" created successfully`);
     }

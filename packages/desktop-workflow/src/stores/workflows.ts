@@ -31,6 +31,7 @@ const useWorkflowStore = defineStore('workflows', {
             allWorkflows.unshift(newWorkflow);
             await HelperStorageElectron.set(MENU_WORKFLOW_CHAT_LIST, allWorkflows);
             this.getAll();
+            return newWorkflow;
         },
         async updateWorkflow(data) {
             const allWorkflows = await HelperStorageElectron.get(MENU_WORKFLOW_CHAT_LIST, []);

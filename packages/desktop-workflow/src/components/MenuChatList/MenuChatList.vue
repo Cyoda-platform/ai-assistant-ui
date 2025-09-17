@@ -39,6 +39,10 @@ const allChats = computed(() => {
   return workflowStore.workflowList;
 })
 
+const selectedWorkflow = computed(() => {
+  return workflowStore.selectedWorkflow;
+})
+
 const chatsGroups = computed(() => {
   return splitChatsByDate(allChats.value);
 })
@@ -101,7 +105,7 @@ function splitChatsByDate(chatsData) {
 }
 
 watchEffect(() => {
-  const isSelected = allChats.value.some((el) => el.technical_id === route.params.technical_id);
+  const isSelected = allChats.value.some((el) => el.technical_id === selectedWorkflow.value.technical_id);
   emit('active', isSelected);
 });
 

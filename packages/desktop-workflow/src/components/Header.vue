@@ -2,27 +2,30 @@
   <div class="header">
     <div class="header__actions">
       <el-button @click="onExportAll" size="mini" type="primary" class="btn btn-primary">Export All</el-button>
-      <el-button @click="onImportAll" size="mini" type="primary" class="btn btn-default">Import All</el-button>
+      <el-button @click="showImportDialog = true" size="mini" type="primary" class="btn btn-default">Import All</el-button>
     </div>
   </div>
+
+  <ImportAllDialog v-model="showImportDialog" />
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import FileSaver from "file-saver";
 import dayjs from "dayjs";
 import useWorkflowStore from "../stores/workflows";
+import ImportAllDialog from "./ImportAllDialog/ImportAllDialog.vue";
 
 const workflowStore = useWorkflowStore();
+
+// Dialog state
+const showImportDialog = ref(false);
 
 function onExportAll() {
   const date = dayjs();
   const data = JSON.stringify(workflowStore.workflowList);
   const file = new File([JSON.stringify(data)], `workflows_${date.format('DD-MM-YYYY')}.txt`, {type: "text/plain;charset=utf-8"});
   FileSaver.saveAs(file);
-}
-
-function onImportAll() {
-
 }
 </script>
 
@@ -37,5 +40,11 @@ function onImportAll() {
   margin-bottom: 16px;
   display: flex;
   justify-content: right;
+  
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
 }
 </style>
