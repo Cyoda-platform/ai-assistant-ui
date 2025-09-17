@@ -70,13 +70,12 @@ function onUpdateWorkflow({workflowMetaData, canvasData}) {
     text-align: center;
     max-width: 480px;
     padding: 3rem 2rem;
-    background: white;
   }
 
   &__empty-state-title {
     font-size: 1.75rem;
     font-weight: 600;
-    color: #1f2937;
+    color: var(--text-color-regular);
     margin: 0 0 1rem 0;
     line-height: 1.2;
   }
