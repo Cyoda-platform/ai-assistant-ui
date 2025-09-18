@@ -69,6 +69,13 @@
     <path d="m9 3.75 -0.53025 0.53025L9.8145 5.625 2.1855 5.625l1.34475 -1.34475L3 3.75l-2.25 2.25 2.25 2.25 0.53025 -0.53025L2.1855 6.375l7.6290000000000004 0 -1.34475 1.34475L9 8.25l2.25 -2.25 -2.25 -2.25z" fill="currentColor" stroke-width="0.375"></path>
     <path id="_Transparent_Rectangle_" d="M0 0h12v12H0Z" fill="none" stroke-width="0.375"></path>
   </svg>
+
+  <svg v-if="name === 'question'" id="Help--Streamline-Carbon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" height="12" width="12">
+    <path d="M6 1.5A4.5 4.5 0 1 1 1.5 6 4.505 4.505 0 0 1 6 1.5ZM6 0.75a5.25 5.25 0 1 0 5.25 5.25A5.25 5.25 0 0 0 6 0.75Z" fill="currentColor"></path>
+    <path d="M6 9.75a0.75 0.75 0 1 1 0.75 -0.75 0.75 0.75 0 0 1 -0.75 0.75Z" fill="currentColor"></path>
+    <path d="M6 8.25a0.375 0.375 0 0 1 -0.375 -0.375V7.5a1.125 1.125 0 0 1 1.125 -1.125 0.75 0.75 0 0 0 0 -1.5 0.75 0.75 0 0 0 -0.75 0.75 0.375 0.375 0 0 1 -0.75 0 1.5 1.5 0 0 1 3 0 1.485 1.485 0 0 1 -0.375 0.9825A1.875 1.875 0 0 1 6.375 7.875v0.375A0.375 0.375 0 0 1 6 8.25Z" fill="currentColor"></path>
+    <path id="_Transparent_Rectangle_" d="M0 0h12v12H0Z" fill="none"></path>
+  </svg>
 </template>
 
 <script setup lang="ts">
