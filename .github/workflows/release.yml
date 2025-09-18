@@ -578,9 +578,14 @@ jobs:
 
       - name: List macOS build artifacts
         if: matrix.platform == 'darwin'
+        continue-on-error: true
         run: |
-          echo "📂 Listing ALL files in packages/desktop/out directory:"
-          find packages/desktop/out -type f | head -30
+          echo "📂 Directory structure overview:"
+          ls -la packages/desktop/out/ 2>/dev/null || echo "out directory not accessible"
+          
+          echo ""
+          echo "🔍 Looking for .app bundles:"
+          find packages/desktop/out -name "*.app" -type d 2>/dev/null || echo "No .app bundles found"
           
           echo ""
           echo "🔍 Searching for ZIP files in all subdirectories:"
@@ -588,16 +593,20 @@ jobs:
           
           echo ""
           echo "📂 Directory structure of packages/desktop/out:"
-          find packages/desktop/out -type d 2>/dev/null || echo "out directory not found"
+          find packages/desktop/out -type d 2>/dev/null | head -20 || echo "out directory not found"
           
           echo ""
           echo "🔍 Looking for make directory and contents:"
           if [ -d "packages/desktop/out/make" ]; then
             echo "✅ make directory exists"
-            ls -la packages/desktop/out/make/
+            ls -la packages/desktop/out/make/ 2>/dev/null || echo "Could not list make directory contents"
           else
             echo "❌ make directory not found"
           fi
+          
+          echo ""
+          echo "📄 Sample files in out directory (safe listing):"
+          ls -la packages/desktop/out/*/ 2>/dev/null | head -10 || echo "Could not list subdirectories"
           
           echo ""
           echo "🔍 Checking for cyoda-build directory:"
