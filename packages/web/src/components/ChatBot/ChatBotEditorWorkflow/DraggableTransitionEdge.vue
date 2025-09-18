@@ -887,7 +887,6 @@ function endTransitionDrag(event: MouseEvent) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid #d9d9d9;
   border-radius: 12px;
