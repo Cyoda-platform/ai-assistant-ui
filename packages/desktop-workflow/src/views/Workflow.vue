@@ -51,8 +51,14 @@ const onUpdateWorkflow = debounce(updateWorkflow, 500);
 
 watch(selectedWorkflow, () => {
       if (!chatBotEditorWorkflowRef.value) return;
-      chatBotEditorWorkflowRef.value.workflowMetaData = selectedWorkflow.value?.workflowMetaData || '';
-      chatBotEditorWorkflowRef.value.canvasData = selectedWorkflow.value?.canvasData || '';
+      
+      if (selectedWorkflow.value) {
+        chatBotEditorWorkflowRef.value.workflowMetaData = selectedWorkflow.value.workflowMetaData;
+        chatBotEditorWorkflowRef.value.canvasData = selectedWorkflow.value.canvasData;
+      } else {
+        chatBotEditorWorkflowRef.value.workflowMetaData = '';
+        chatBotEditorWorkflowRef.value.canvasData = '';
+      }
     }, {
       immediate: true
     }
