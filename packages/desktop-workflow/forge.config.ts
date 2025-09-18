@@ -50,6 +50,7 @@ const config: ForgeConfig = {
             name: '@electron-forge/maker-dmg',
             config: {
                 background: 'src/assets/backgrounds/dmg-background.png',
+                icon: 'src/assets/icons/app-icon.icns',
                 format: 'ULFO',
                 contents: (opts:any) => {
                     return [{
