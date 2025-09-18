@@ -97,12 +97,12 @@
           <span class="transition-name">{{ originalTransitionName }}</span>
         </div>
         <div v-if="hasCriteria || hasProcessors" class="transition-indicators">
-        <div v-if="hasCriteria" class="transition-indicator">
+        <div v-if="hasCriteria" class="transition-indicator transition-indicator-filter">
           <FilterIcon class="indicator-icon" />
           <span v-if="criteriaCount > 1" class="indicator-count">{{ criteriaCount }}</span>
         </div>
-        <div v-if="hasProcessors" class="transition-indicator">
-          <ZapIcon class="indicator-icon" />
+        <div v-if="hasProcessors" class="transition-indicator transition-indicator-zap">
+          <ZapIcon class="indicator-icon indicator-zap" />
           <span v-if="processorsCount > 1" class="indicator-count">{{ processorsCount }}</span>
         </div>
       </div>
@@ -964,17 +964,28 @@ function endTransitionDrag(event: MouseEvent) {
   opacity: 0.7;
 }
 
+.transition-indicator-filter {
+  color: #3662e3;
+}
+
+.transition-indicator-zap {
+  color: #4ca154;
+}
+
 .indicator-icon {
   width: 8px;
   height: 8px;
-  color: #666;
   flex-shrink: 0;
+}
+
+.indicator-zap{
+  width: 10px;
+  height: 10px;
 }
 
 .indicator-count {
   font-size: 8px;
   font-weight: 600;
-  color: #666;
   line-height: 1;
 }
 
@@ -1048,22 +1059,12 @@ function endTransitionDrag(event: MouseEvent) {
 </style>
 
 <style>
-/* Глобальные стили для отключения анимации в кнопках */
-.align-edge-btn svg path,
-.edit-edge-btn svg path,
-.delete-edge-btn svg path {
-  animation: none !important;
-  stroke-dasharray: none !important;
-  stroke-dashoffset: 0 !important;
-}
-
 .align-edge-btn svg *,
 .edit-edge-btn svg *,
-.delete-edge-btn svg * {
+.delete-edge-btn svg *,
+.indicator-icon * {
   animation: none !important;
   stroke-dasharray: none !important;
   stroke-dashoffset: 0 !important;
 }
-
-/* Allow transition lines to use stroke-dasharray for manual/automatic differentiation */
 </style>

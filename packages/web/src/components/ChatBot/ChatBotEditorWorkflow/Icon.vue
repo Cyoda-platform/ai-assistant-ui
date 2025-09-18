@@ -69,16 +69,6 @@
     <path d="m9 3.75 -0.53025 0.53025L9.8145 5.625 2.1855 5.625l1.34475 -1.34475L3 3.75l-2.25 2.25 2.25 2.25 0.53025 -0.53025L2.1855 6.375l7.6290000000000004 0 -1.34475 1.34475L9 8.25l2.25 -2.25 -2.25 -2.25z" fill="currentColor" stroke-width="0.375"></path>
     <path id="_Transparent_Rectangle_" d="M0 0h12v12H0Z" fill="none" stroke-width="0.375"></path>
   </svg>
-
-  <svg v-if="name === 'filter'" id="Filter--Streamline-Carbon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" height="12" width="12">
-    <path d="M7.5 6.75v3.375a0.375 0.375 0 0 1 -0.225 0.3412500000000001 0.375 0.375 0 0 1 -0.15 0.03375A0.375 0.375 0 0 1 6.975 10.46625l-1.5 -1.5a0.375 0.375 0 0 1 -0.1125 -0.26625V6.75L1.695 2.8125A0.75 0.75 0 0 1 2.25 1.5h7.5a0.75 0.75 0 0 1 0.555 1.3125ZM5.625 6.5625v2.0625L6.75 9.75V6.5625L9.825 2.25H2.175Z" fill="currentColor" stroke-width="0.375"></path>
-    <path id="_Transparent_Rectangle_" d="M0 0h12v12H0Z" fill="none" stroke-width="0.375"></path>
-  </svg>
-
-  <svg v-if="name === 'zap'" id="Lightning--Streamline-Carbon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" height="12" width="12">
-    <path d="M7.125 1.5a0.375 0.375 0 0 1 0.33375 0.20625L9.225 4.5H10.5a0.375 0.375 0 0 1 0.375 0.375 0.375 0.375 0 0 1 -0.10125 0.255L6.18375 10.395a0.375 0.375 0 0 1 -0.6225 -0.21L4.875 7.5H1.5a0.375 0.375 0 0 1 -0.375 -0.375 0.375 0.375 0 0 1 0.10125 -0.255L5.81625 1.605a0.375 0.375 0 0 1 0.288 -0.105ZM6.5625 2.565L2.685 6.75h3.09a0.375 0.375 0 0 1 0.37125 0.42L6.8925 9.435 9.315 5.25H6.75a0.375 0.375 0 0 1 -0.33375 -0.20625L5.4375 2.25h1.125Z" fill="currentColor" stroke-width="0.375"></path>
-    <path id="_Transparent_Rectangle_" d="M0 0h12v12H0Z" fill="none" stroke-width="0.375"></path>
-  </svg>
 </template>
 
 <script setup lang="ts">
