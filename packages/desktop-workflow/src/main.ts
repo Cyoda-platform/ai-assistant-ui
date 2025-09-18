@@ -2,6 +2,7 @@ import {app, BrowserWindow, screen, Notification} from 'electron';
 import path from 'path';
 import started from 'electron-squirrel-startup';
 import {updateElectronApp} from 'update-electron-app';
+import { setupStorageHandlers, removeStorageHandlers } from './main/storageHandler';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -16,6 +17,8 @@ const createWindow = () => {
         height,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
+            contextIsolation: true, // Включаем contextIsolation для безопасности
+            nodeIntegration: false, // Отключаем nodeIntegration для безопасности
         },
     });
 
@@ -35,12 +38,16 @@ const createWindow = () => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', () => {
+    createWindow();
+    setupStorageHandlers(); // Регистрируем IPC handlers для storage
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
+    removeStorageHandlers(); // Очищаем IPC handlers
     if (process.platform !== 'darwin') {
         app.quit();
     }
