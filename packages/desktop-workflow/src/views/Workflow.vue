@@ -49,10 +49,10 @@ function updateWorkflow({ workflowMetaData, canvasData }: { workflowMetaData: an
 // Debounced version with 500ms delay using lodash
 const onUpdateWorkflow = debounce(updateWorkflow, 500);
 
-watch(selectedWorkflow, (newVal, oldVal) => {
-      if (!newVal || !chatBotEditorWorkflowRef.value || !selectedWorkflow.value) return;
-      chatBotEditorWorkflowRef.value.workflowMetaData = selectedWorkflow.value.workflowMetaData;
-      chatBotEditorWorkflowRef.value.canvasData = selectedWorkflow.value.canvasData;
+watch(selectedWorkflow, () => {
+      if (!chatBotEditorWorkflowRef.value) return;
+      chatBotEditorWorkflowRef.value.workflowMetaData = selectedWorkflow.value?.workflowMetaData || '';
+      chatBotEditorWorkflowRef.value.canvasData = selectedWorkflow.value?.canvasData || '';
     }, {
       immediate: true
     }

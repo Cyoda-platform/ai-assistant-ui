@@ -105,7 +105,7 @@ function splitChatsByDate(chatsData) {
 }
 
 watchEffect(() => {
-  const isSelected = allChats.value.some((el) => el.technical_id === selectedWorkflow.value.technical_id);
+  const isSelected = allChats.value.some((el) => el.technical_id === selectedWorkflow.value?.technical_id);
   emit('active', isSelected);
 });
 

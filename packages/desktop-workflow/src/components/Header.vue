@@ -44,7 +44,6 @@ function onExportAll() {
   &__actions {
     display: flex;
     align-items: center;
-    gap: 12px;
   }
 }
 </style>
