@@ -94,8 +94,18 @@
             @mousedown="onLabelMouseDown"
             style="cursor: grab; user-select: none;"
         >
-          {{ originalTransitionName }}
+          <span class="transition-name">{{ originalTransitionName }}</span>
         </div>
+        <div v-if="hasCriteria || hasProcessors" class="transition-indicators">
+        <div v-if="hasCriteria" class="transition-indicator transition-indicator-filter">
+          <FilterIcon class="indicator-icon" />
+          <span v-if="criteriaCount > 1" class="indicator-count">{{ criteriaCount }}</span>
+        </div>
+        <div v-if="hasProcessors" class="transition-indicator transition-indicator-zap">
+          <ZapIcon class="indicator-icon indicator-zap" />
+          <span v-if="processorsCount > 1" class="indicator-count">{{ processorsCount }}</span>
+        </div>
+      </div>
       </div>
     </foreignObject>
   </g>
@@ -107,11 +117,45 @@ import {EdgeProps, useVueFlow} from '@vue-flow/core'
 import {useTransitionHighlight} from './composables/useTransitionHighlight'
 import {ElMessageBox} from 'element-plus'
 import eventBus from '../../../plugins/eventBus'
+import FilterIcon from '@/assets/images/icons/filter.svg';
+import ZapIcon from '@/assets/images/icons/zap.svg';
 
 interface TransitionDataType {
   name?: string;
   next?: string;
   manual?: boolean;
+  processors?: Array<{
+    name: string;
+    config?: Record<string, any>;
+  }>;
+  criteria?: Array<{
+    type: string;
+    function?: {
+      name: string;
+    };
+    name?: string;
+    operator?: string;
+    parameters?: Array<{
+      jsonPath: string;
+      operatorType: string;
+      value: any;
+      type: string;
+    }>;
+  }>;
+  criterion?: {
+    type: string;
+    function?: {
+      name: string;
+    };
+    name?: string;
+    operator?: string;
+    parameters?: Array<{
+      jsonPath: string;
+      operatorType: string;
+      value: any;
+      type: string;
+    }>;
+  };
 
   [key: string]: unknown;
 }
@@ -166,6 +210,32 @@ const transitionId = computed(() =>
 
 const isHighlighted = computed(() => isTransitionHighlighted(transitionId.value))
 const hoveredEdgeGlobal = ref<string | null>(null)
+
+// Computed properties for indicators
+const hasProcessors = computed(() => {
+  const processors = props.data?.transitionData?.processors;
+  return processors && processors.length > 0;
+})
+
+const hasCriteria = computed(() => {
+  const criteria = props.data?.transitionData?.criteria;
+  const criterion = props.data?.transitionData?.criterion;
+  return (criteria && criteria.length > 0) || criterion;
+})
+
+const processorsCount = computed(() => {
+  const processors = props.data?.transitionData?.processors;
+  return processors ? processors.length : 0;
+})
+
+const criteriaCount = computed(() => {
+  const criteria = props.data?.transitionData?.criteria;
+  const criterion = props.data?.transitionData?.criterion;
+  if (criteria && criteria.length > 0) {
+    return criteria.length;
+  }
+  return criterion ? 1 : 0;
+})
 
 // (Removed unused calculateNodeWidth helper)
 
@@ -817,7 +887,6 @@ function endTransitionDrag(event: MouseEvent) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid #d9d9d9;
   border-radius: 12px;
@@ -857,6 +926,7 @@ function endTransitionDrag(event: MouseEvent) {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   height: 16px;
   white-space: nowrap;
   background: transparent;
@@ -873,6 +943,49 @@ function endTransitionDrag(event: MouseEvent) {
     text-decoration: underline;
     cursor: pointer;
   }
+}
+
+.transition-name {
+  line-height: 16px;
+}
+
+.transition-indicators {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 2px;
+}
+
+.transition-indicator {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  opacity: 0.7;
+}
+
+.transition-indicator-filter {
+  color: #3662e3;
+}
+
+.transition-indicator-zap {
+  color: #4ca154;
+}
+
+.indicator-icon {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+}
+
+.indicator-zap{
+  width: 10px;
+  height: 10px;
+}
+
+.indicator-count {
+  font-size: 8px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 .transition-actions {
@@ -945,22 +1058,12 @@ function endTransitionDrag(event: MouseEvent) {
 </style>
 
 <style>
-/* Глобальные стили для отключения анимации в кнопках */
-.align-edge-btn svg path,
-.edit-edge-btn svg path,
-.delete-edge-btn svg path {
-  animation: none !important;
-  stroke-dasharray: none !important;
-  stroke-dashoffset: 0 !important;
-}
-
 .align-edge-btn svg *,
 .edit-edge-btn svg *,
-.delete-edge-btn svg * {
+.delete-edge-btn svg *,
+.indicator-icon * {
   animation: none !important;
   stroke-dasharray: none !important;
   stroke-dashoffset: 0 !important;
 }
-
-/* Allow transition lines to use stroke-dasharray for manual/automatic differentiation */
 </style>
