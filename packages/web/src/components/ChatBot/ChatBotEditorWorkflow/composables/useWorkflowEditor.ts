@@ -1292,7 +1292,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     function handleTransitionDragEnd(eventData: any) {
 
         if (!currentDraggedTransition.value) {
-            console.log('❌ No current dragged transition');
             return;
         }
 
@@ -1324,7 +1323,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 upsertTransitionHandles(internalTransitionId, { targetHandle });
                 moveTransitionToNode(internalTransitionId, sourceNode, dropNodeId);
             } else {
-                console.log('⚠️ Ignored drop: either same as source node or non-target handle');
+                // Ignored drop: either same as source node or non-target handle
             }
         } else {
             // Fallback: try to resolve just a node under cursor and deduce side by geometry
@@ -1342,7 +1341,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     generateNodes({ skipFitView: true });
                     ElMessage.success(`Target handle set to ${targetHandle}`);
                 } else {
-                    console.log('⚠️ Could not determine side for target node');
+                    // Could not determine side for target node
                 }
             } else if (nodeUnderCursor === sourceNode) {
                 const side = computeDropSideForNode(eventData.mouseX, eventData.mouseY, nodeUnderCursor);
@@ -1352,7 +1351,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     generateNodes({ skipFitView: true });
                     ElMessage.success(`Source handle set to ${sourceHandle}`);
                 } else {
-                    console.log('⚠️ Could not determine side for source node');
+                    // Could not determine side for source node
                 }
             } else if (nodeUnderCursor && nodeUnderCursor !== sourceNode) {
                 // Also try to determine side and persist for target
@@ -1363,7 +1362,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 }
                 moveTransitionToNode(internalTransitionId, sourceNode, nodeUnderCursor);
             } else {
-                console.log('❌ Cannot move transition - same node or no target. NodeUnderCursor:', nodeUnderCursor, 'SourceNode:', sourceNode);
+                // Cannot move transition - same node or no target
             }
         }
 
@@ -1391,7 +1390,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     function handleTransitionSourceDragEnd(eventData: any) {
         if (!currentDraggedTransition.value) {
-            console.log('❌ No current dragged transition for source');
             return;
         }
 
@@ -1462,7 +1460,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     function handleTransitionTargetDragEnd(eventData: any) {
         if (!currentDraggedTransition.value) {
-            console.log('❌ No current dragged transition for target');
             return;
         }
 
@@ -1796,22 +1793,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             } else {
                 // Если формат не стандартный, используем весь ID как имя
                 actualTransitionName = transitionId;
-                console.log('⚠️ Non-standard transition ID format, using full ID as name:', transitionId);
+                // Non-standard transition ID format, using full ID as name
             }
 
             const oldSourceState = parsed.states[oldSourceNode];
             const newSourceState = parsed.states[newSourceNode];
-
-            console.log('🔍 Debug info:', {
-                oldSourceNode,
-                newSourceNode,
-                targetNode,
-                actualTransitionName,
-                transitionId,
-                oldSourceStateExists: !!oldSourceState,
-                newSourceStateExists: !!newSourceState,
-                availableStates: Object.keys(parsed.states || {})
-            });
 
             if (!oldSourceState || !newSourceState) {
                 console.error('Old source or new source state not found');
@@ -2002,7 +1988,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 }
             }
             if (hasOldKeys) {
-                console.log('🧹 resetTransform: Removed old Dagre keys from metadata');
+                // Removed old Dagre keys from metadata
             }
         }
 
@@ -2164,7 +2150,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         } catch (error: unknown) {
             // Проверяем, была ли отмена пользователем
             if (error === 'cancel' || (typeof error === 'object' && error !== null && 'action' in error && (error as {action: string}).action === 'cancel')) {
-                console.log('User cancelled state creation');
+                // User cancelled state creation
             } else {
                 // Неожиданная ошибка - показываем уведомление
                 console.error('Unexpected error during state creation:', error);
@@ -2266,7 +2252,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         if (!canvasData.value && assistantStore && assistantStore.selectedAssistant && assistantStore.selectedAssistant.workflow_data) {
             canvasData.value = assistantStore.selectedAssistant.workflow_data;
         } else {
-            console.log('🔄 Using data from localStorage, skipping store data');
+            // Using data from localStorage, skipping store data
         }
 
         // Restore saved viewport after mounting
@@ -2426,7 +2412,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     watch(workflowMetaData, (newValue) => {
         if (isUndoRedoOperation || isMetaDataSaving || isLoadingData) {
-            console.log('🚫 Skipping workflowMetaData save due to flags:', { isUndoRedoOperation, isMetaDataSaving, isLoadingData });
             return;
         }
 
@@ -2459,7 +2444,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 isUndoRedoOperation = false;
             });
         } else {
-            console.log('❌ No previous state to undo to');
+            // No previous state to undo to
         }
     }
 
@@ -2472,7 +2457,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 isUndoRedoOperation = false;
             });
         } else {
-            console.log('❌ No next state to redo to');
+            // No next state to redo to
         }
     }
 

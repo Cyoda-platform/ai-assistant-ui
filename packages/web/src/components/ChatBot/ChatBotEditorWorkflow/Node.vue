@@ -166,13 +166,9 @@ const handleNodeDeselected = () => {
 };
 
 const handleDeleteNodeWithConfirm = (eventData: { nodeId: string }) => {
-  console.log('🗑️ handleDeleteNodeWithConfirm called:', eventData, 'current nodeId:', nodeId.value);
   // Удаляем node если его ID совпадает с текущим
   if (eventData.nodeId === nodeId.value) {
-    console.log('🗑️ Node IDs match, calling deleteState');
     deleteState();
-  } else {
-    console.log('🗑️ Node IDs do not match, ignoring');
   }
 };
 
@@ -275,36 +271,28 @@ const cancelEdit = () => {
   editingName.value = ''
 }
 
-const onNodeActualClick = () => {
-  // Если было перетаскивание, не обрабатываем клик
+const onNodeActualClick = (event: MouseEvent) => {
   if (isDragging.value) {
-    console.log('❌ Click ignored - node was dragged');
     return;
   }
   
-  console.log('🎯 Node actual click processed:', nodeId.value);
+  event.stopPropagation();
 };
 
 const onNodeClick = (event: MouseEvent) => {
-  // Проверяем, что клик не по кнопкам
+  event.stopPropagation();
+  
   const target = event.target as HTMLElement;
   if (target.closest('button')) {
-    console.log('❌ Click ignored - clicked on button');
     return;
   }
 
-  // Всегда сбрасываем флаг движения при новом mousedown
   isDragging.value = false;
   
-  console.log('🎯 Node mousedown:', nodeId.value);
-  
-  // Проверяем, не выделен ли уже этот узел
   if (isSelected.value) {
-    console.log('✅ Node already selected, skipping selection logic');
     return;
   }
   
-  // Сначала снимаем выделение со всех узлов, затем выделяем текущий
   eventBus.$emit('node-selection-exclusive', nodeId.value);
   isSelected.value = true;
   
