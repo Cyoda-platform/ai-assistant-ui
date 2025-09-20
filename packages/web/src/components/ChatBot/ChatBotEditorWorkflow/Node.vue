@@ -271,21 +271,22 @@ const cancelEdit = () => {
   editingName.value = ''
 }
 
-const onNodeActualClick = (event: MouseEvent) => {
+const onNodeActualClick = () => {
   if (isDragging.value) {
     return;
   }
   
-  event.stopPropagation();
+  // Убираем stopPropagation чтобы не блокировать Vue Flow события
 };
 
 const onNodeClick = (event: MouseEvent) => {
-  event.stopPropagation();
-  
   const target = event.target as HTMLElement;
   if (target.closest('button')) {
+    event.stopPropagation();
     return;
   }
+
+  // Полностью убираем stopPropagation для Vue Flow перетаскивания
 
   isDragging.value = false;
   
