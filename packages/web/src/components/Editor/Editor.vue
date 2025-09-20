@@ -52,10 +52,19 @@ onMounted(async () => {
     overviewRulerBorder: false,
     minimap: {enabled: false},
     padding: {
-      top: 10
+      top: 10,
+      bottom: 0
     },
     wordWrap: 'on',
     wrappingStrategy: 'advanced',
+    scrollBeyondLastLine: false,
+    scrollBeyondLastColumn: 0,
+    scrollbar: {
+      vertical: 'auto',
+      horizontal: 'auto',
+      verticalScrollbarSize: 10,
+      horizontalScrollbarSize: 10
+    }
   });
 
   editor.getModel()?.onDidChangeContent(() => {
@@ -122,6 +131,8 @@ defineExpose({editor});
 .editor {
   outline: none;
   overflow: hidden;
+  min-height: 100px;
+  max-height: 80vh;
 
   .lines-content.monaco-editor-background {
     padding-left: 5px !important;
@@ -133,6 +144,15 @@ defineExpose({editor});
 
   .scroll-decoration {
     display: none;
+  }
+
+  // Исправляем проблему с лишним пространством
+  .monaco-editor .overflow-guard {
+    overflow: hidden;
+  }
+
+  .monaco-editor .scroll-decoration {
+    display: none !important;
   }
 }
 </style>
