@@ -209,7 +209,7 @@ const closeDialog = () => {
   }
 
   &__group-title {
-    color: #333;
+    color: var(--text-color-regular);
     font-size: 16px;
     font-weight: 600;
     margin-bottom: 10px;
@@ -240,7 +240,7 @@ const closeDialog = () => {
     flex: 1;
 
     strong {
-      color: #333;
+      color: var(--text-color-regular);
     }
   }
 
@@ -285,7 +285,7 @@ const closeDialog = () => {
       margin-bottom: 8px;
 
       strong {
-        color: #333;
+        color: var(--text-color-regular);
       }
     }
   }
