@@ -117,7 +117,6 @@ import eventBus from '../../../plugins/eventBus'
 import CheckIcon from '@/assets/images/icons/check.svg';
 import CloseSmallIcon from '@/assets/images/icons/close-small.svg';
 import PlayIcon from '@/assets/images/icons/play.svg';
-import CircleIcon from '@/assets/images/icons/circle.svg';
 import StopIcon from '@/assets/images/icons/stop.svg';
 
 interface NodeData {

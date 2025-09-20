@@ -124,6 +124,12 @@
                 <Icon name="cogs"/>
               </ControlButton>
             </el-tooltip>
+
+            <el-tooltip content="Help & Legend" placement="top" :show-after="500">
+              <ControlButton @click="showHelpDialog">
+                <Icon name="question"/>
+              </ControlButton>
+            </el-tooltip>
           </Controls>
           <Background pattern-color="#aaa" :gap="16"/>
           <template #node-default="{ data }">
@@ -135,6 +141,7 @@
     <EditEdgeConditionalDialog/>
     <WorkflowMetaDialog @update="onUpdateWorkflowMetaDialog" ref="workflowMetaDialogRef"
                         :workflowMetaData="workflowMetaData"/>
+    <WorkflowHelpDialog v-model="isHelpDialogVisible"/>
   </div>
 </template>
 
@@ -149,6 +156,7 @@ import EdgeWithTooltip from "@/components/ChatBot/ChatBotEditorWorkflow/EdgeWith
 import DraggableTransitionEdge from "@/components/ChatBot/ChatBotEditorWorkflow/DraggableTransitionEdge.vue";
 import EditEdgeConditionalDialog from "@/components/ChatBot/ChatBotEditorWorkflow/EditEdgeConditionalDialog.vue";
 import WorkflowMetaDialog from "@/components/ChatBot/ChatBotEditorWorkflow/WorkflowMetaDialog.vue";
+import WorkflowHelpDialog from "@/components/ChatBot/ChatBotEditorWorkflow/WorkflowHelpDialog.vue";
 import {useWorkflowEditor} from './ChatBotEditorWorkflow/composables/useWorkflowEditor';
 import useAssistantStore from "@/stores/assistant.ts";
 import {computed, markRaw, useTemplateRef, onMounted, onUnmounted, nextTick, ref, watch} from "vue";
@@ -203,6 +211,9 @@ const vueFlowRef = ref();
 
 // Draggable state
 const isDraggable = ref(true);
+
+// Help dialog state
+const isHelpDialogVisible = ref(false);
 
 // Track selected transitions and nodes for deletion
 const selectedTransitions = ref(new Set<string>());
@@ -418,6 +429,10 @@ const edgeTypes = {
 
 function workflowMeta() {
   workflowMetaDialogRef.value.openDialog(workflowMetaData.value);
+}
+
+function showHelpDialog() {
+  isHelpDialogVisible.value = true;
 }
 
 const isShowVueFlow = computed(() => {
