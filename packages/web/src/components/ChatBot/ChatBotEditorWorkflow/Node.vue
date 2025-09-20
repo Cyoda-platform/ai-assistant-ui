@@ -366,10 +366,11 @@ const onNodeClick = (event: MouseEvent) => {
   text-overflow: ellipsis;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   cursor: text;
   flex: 1;
-  min-width: 0; /* Позволяет сжиматься при необходимости */
+  min-width: 0;
 
   &:hover .node-name {
     text-decoration: underline;
