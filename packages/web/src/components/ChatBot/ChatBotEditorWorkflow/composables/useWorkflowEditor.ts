@@ -149,10 +149,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         // Set loading flag to prevent unnecessary saves during data loading
         isLoadingData = true;
-        
+
         canvasData.value = canvasDataString || '';
         workflowMetaData.value = metaDataFromStorage || '';
-        
+
         // Reset loading flag after assignment
         isLoadingData = false;
 
@@ -448,7 +448,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
                 const sourceNode = nodes.value.find(n => n.id === source);
                 const targetNode = nodes.value.find(n => n.id === target);
-                
+
                 // Skip edge creation if source or target node doesn't exist
                 if (!sourceNode || !targetNode) {
                     return;
@@ -668,8 +668,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const stateNames = Object.keys(states);
         const meta = savedMeta;
         const existingStateNames = Object.keys(meta).filter(k =>
-            k !== 'transitionLabels' && 
-            k !== 'handleConnectionsByTransition' && 
+            k !== 'transitionLabels' &&
+            k !== 'handleConnectionsByTransition' &&
             k !== 'layoutDirection' &&
             k !== 'initialState' &&
             k !== 'usingDagre'
@@ -700,9 +700,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         // Preserve positions for single node additions/removals, but force layout for major changes
         // Only check state count differences if we have existing node positions (not just transition positions)
-        const stateCountChanged = hasNodePositions && 
+        const stateCountChanged = hasNodePositions &&
                                  (!isAddingNewState && !isRemovingState && stateNames.length !== existingStateNames.length);
-        
+
         const needFreshLayout = !hasExistingPositions || layoutDirectionChanged || isCompleteReplacement || stateCountChanged;
 
         // Mark metadata as using Dagre if not already marked, but don't force layout reset
@@ -720,7 +720,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             // Persist into meta
             const newMeta: Record<string, { x: number; y: number }> = {};
             for (const k of Object.keys(elk.nodePositions)) newMeta[k] = elk.nodePositions[k];
-            
+
             workflowMetaData.value = {
                 ...(workflowMetaData.value || {}),
                 ...newMeta,
@@ -1785,10 +1785,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 console.error('No current dragged transition');
                 return;
             }
-            
+
             const oldSourceNode = currentDraggedTransition.value.sourceNode;
             let actualTransitionName: string;
-            
+
             // Пытаемся извлечь имя transition из ID
             if (transitionId.includes('-') && transitionId.startsWith(oldSourceNode + '-')) {
                 // Формат: "sourceState-transitionName"
@@ -1826,10 +1826,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     const transitionData = {...oldSourceState.transitions[transitionIndex]};
                     // Убеждаемся что target остается прежним (targetNode из параметра)
                     transitionData.next = targetNode;
-                    
+
                     // Удаляем transition из старого source
                     oldSourceState.transitions.splice(transitionIndex, 1);
-                    
+
                     // Добавляем transition к новому source с тем же target
                     if (!newSourceState.transitions) {
                         newSourceState.transitions = [];
@@ -2116,7 +2116,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             );
 
             let newStatePosition = { x: 0, y: 0 };
-            
+
             // Use click position if provided, otherwise use automatic positioning
             if (clickPosition) {
                 newStatePosition = { x: clickPosition.x, y: clickPosition.y };
@@ -2261,7 +2261,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     onMounted(() => {
         // Load data from localStorage first, before setting canvasData from store
         loadDataForCurrentId();
-        
+
         // Only set from store if no data found in localStorage
         if (!canvasData.value && assistantStore && assistantStore.selectedAssistant && assistantStore.selectedAssistant.workflow_data) {
             canvasData.value = assistantStore.selectedAssistant.workflow_data;

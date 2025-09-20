@@ -38,6 +38,7 @@
             @connectStart="onConnectStart"
             @connectEnd="onConnectEnd"
             @viewportChange="onViewportChange"
+            @pane-click="onPaneClick"
             :connection-mode="ConnectionMode.Loose"
             v-model:nodes="nodes"
             :edges="edges"
@@ -315,6 +316,17 @@ const handleNodeDeselected = () => {
 
 const handleNodeDeleted = (nodeId: string) => {
   selectedNodes.value.delete(nodeId);
+};
+
+// Handle clicks on empty space (VueFlow pane)
+const onPaneClick = () => {
+  // Clear all selections when clicking on empty space
+  selectedNodes.value.clear();
+  selectedTransitions.value.clear();
+  
+  // Notify all nodes and edges to deselect
+  eventBus.$emit('node-deselected');
+  eventBus.$emit('label-deselected');
 };
 
 // Add/remove keyboard listeners
