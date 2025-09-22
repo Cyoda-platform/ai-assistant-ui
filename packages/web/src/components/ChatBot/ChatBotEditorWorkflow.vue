@@ -477,12 +477,27 @@ function onClear() {
 // })
 
 // Setup double click listener for adding new states
-onMounted(() => {
+const setupDoubleClickListener = () => {
+  // Remove existing listener first
   const vueFlowElement = vueFlowRef.value?.$el || vueFlowRef.value;
   if (vueFlowElement) {
+    vueFlowElement.removeEventListener('dblclick', handlePaneDoubleClick);
     vueFlowElement.addEventListener('dblclick', handlePaneDoubleClick);
   }
+};
+
+onMounted(() => {
+  nextTick(() => {
+    setupDoubleClickListener();
+  });
 });
+
+// Re-setup listener when Vue Flow ref changes or editor mode changes
+watch([vueFlowRef, editorMode], () => {
+  nextTick(() => {
+    setupDoubleClickListener();
+  });
+}, { flush: 'post' });
 
 onUnmounted(() => {
   const vueFlowElement = vueFlowRef.value?.$el || vueFlowRef.value;
