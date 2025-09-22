@@ -282,30 +282,17 @@ const handleNodeSelected = (nodeId: string) => {
 };
 
 const handleNodeSelectionExclusive = (nodeId: string) => {
-  console.log('🔄 handleNodeSelectionExclusive called:', nodeId);
-
-  // Проверяем, не выделен ли уже этот узел
   if (selectedNodes.value.size === 1 && selectedNodes.value.has(nodeId)) {
-    console.log('✅ Node already exclusively selected, skipping');
     return;
   }
 
-  // Notify all nodes to deselect BEFORE clearing selections
   eventBus.$emit('node-deselected');
 
-  // Clear ALL selections 
   selectedNodes.value.clear();
   selectedTransitions.value.clear();
 
-  // Add the new node to selection
   selectedNodes.value.add(nodeId);
 
-  console.log('📊 Updated selections:', {
-    nodes: Array.from(selectedNodes.value),
-    transitions: Array.from(selectedTransitions.value)
-  });
-
-  // Notify transitions to deselect
   eventBus.$emit('label-deselected');
 };
 
@@ -315,6 +302,25 @@ const handleNodeDeselected = () => {
 
 const handleNodeDeleted = (nodeId: string) => {
   selectedNodes.value.delete(nodeId);
+};
+
+// Handle clicks on document to deselect nodes/transitions
+const handleDocumentClick = (event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+  
+  // Only prevent deselection if clicking directly on nodes or transition labels
+  if (target.closest('.vue-flow__node') || 
+      target.closest('.transition-label')) {
+    return;
+  }
+  
+  // Clear all selections when clicking anywhere else
+  selectedNodes.value.clear();
+  selectedTransitions.value.clear();
+  
+  // Notify all nodes and edges to deselect
+  eventBus.$emit('node-deselected');
+  eventBus.$emit('label-deselected');
 };
 
 // Add/remove keyboard listeners
@@ -343,11 +349,17 @@ onMounted(() => {
 
   // Add keyboard listener
   document.addEventListener('keydown', handleKeyDown);
+  
+  // Add document click listener for deselecting nodes/transitions
+  document.addEventListener('click', handleDocumentClick);
 });
 
 onUnmounted(() => {
   // Remove keyboard listener
   document.removeEventListener('keydown', handleKeyDown);
+  
+  // Remove document click listener
+  document.removeEventListener('click', handleDocumentClick);
 
   // Remove event listeners with proper function references
   eventBus.$off('label-selected', handleLabelSelected);
@@ -363,7 +375,15 @@ onUnmounted(() => {
 const handleKeyDown = (event: KeyboardEvent) => {
   // Delete or Backspace key
   if (event.key === 'Delete' || event.key === 'Backspace') {
-    console.log('🔥 Delete key pressed, selectedNodes:', Array.from(selectedNodes.value));
+    // Check if the active element is an input field - if so, don't trigger deletion
+    const activeElement = document.activeElement;
+    if (activeElement && (
+      activeElement.tagName === 'INPUT' || 
+      activeElement.tagName === 'TEXTAREA' ||
+      (activeElement as HTMLElement).contentEditable === 'true'
+    )) {
+      return; // Let the input handle the delete key normally
+    }
 
     let hasItemsToDelete = false;
 
@@ -382,11 +402,8 @@ const handleKeyDown = (event: KeyboardEvent) => {
     if (selectedNodes.value.size > 0) {
       hasItemsToDelete = true;
 
-      console.log('🗑️ Attempting to delete nodes:', Array.from(selectedNodes.value));
-
       // Delete each selected node via confirm dialog
       selectedNodes.value.forEach(nodeId => {
-        console.log('🗑️ Emitting delete-node-with-confirm for:', nodeId);
         // Emit event to trigger delete confirmation for the node
         eventBus.$emit('delete-node-with-confirm', {
           nodeId
@@ -397,11 +414,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
     if (hasItemsToDelete) {
       // Prevent default browser behavior
       event.preventDefault();
-    } else {
-      console.log('❌ No items selected for deletion');
     }
-  } else {
-    console.log('ℹ️ Key ignored:', event.key);
   }
 };
 
@@ -464,12 +477,27 @@ function onClear() {
 // })
 
 // Setup double click listener for adding new states
-onMounted(() => {
+const setupDoubleClickListener = () => {
+  // Remove existing listener first
   const vueFlowElement = vueFlowRef.value?.$el || vueFlowRef.value;
   if (vueFlowElement) {
+    vueFlowElement.removeEventListener('dblclick', handlePaneDoubleClick);
     vueFlowElement.addEventListener('dblclick', handlePaneDoubleClick);
   }
+};
+
+onMounted(() => {
+  nextTick(() => {
+    setupDoubleClickListener();
+  });
 });
+
+// Re-setup listener when Vue Flow ref changes or editor mode changes
+watch([vueFlowRef, editorMode], () => {
+  nextTick(() => {
+    setupDoubleClickListener();
+  });
+}, { flush: 'post' });
 
 onUnmounted(() => {
   const vueFlowElement = vueFlowRef.value?.$el || vueFlowRef.value;
@@ -492,7 +520,12 @@ watch([canvasData, workflowMetaData], () => {
   .vue-flow__controls {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  &__vue-flow {
+    margin-top: 60px;
   }
 
   &__editor-wrapper {

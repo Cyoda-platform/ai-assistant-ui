@@ -149,10 +149,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         // Set loading flag to prevent unnecessary saves during data loading
         isLoadingData = true;
-        
+
         canvasData.value = canvasDataString || '';
         workflowMetaData.value = metaDataFromStorage || '';
-        
+
         // Reset loading flag after assignment
         isLoadingData = false;
 
@@ -317,35 +317,26 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const containerWidth = vueFlowRef.value.offsetWidth;
         const containerHeight = vueFlowRef.value.offsetHeight;
 
-        // Account for toolbar height - EditorViewMode (~50px) and any other top elements
-        const toolbarHeight = 60; // Estimated height for toolbar and padding
-        const availableHeight = containerHeight - toolbarHeight;
+        // Account for margin-top of VueFlow
+        const marginTop = 60;
+        const availableHeight = containerHeight - marginTop;
 
         // Calculate zoom to fit the padded bounds with layout-specific adjustments
         const zoomX = containerWidth / paddedBounds.width;
         const zoomY = availableHeight / paddedBounds.height;
         let targetZoom = Math.min(zoomX, zoomY);
 
-        // Apply different zoom constraints based on layout direction
-        if (layoutDirection.value === 'horizontal') {
-            // Horizontal layout can be very wide, allow very small zoom for complete fit
-            targetZoom = Math.max(0.2, Math.min(1.5, targetZoom));
-        } else {
-            // Vertical layout is more compact, use standard zoom range
-            targetZoom = Math.max(0.7, Math.min(2.0, targetZoom));
-        }
+        // Ensure minimum zoom to keep workflow visible, but allow very small zoom for large workflows
+        targetZoom = Math.max(0.1, Math.min(4.0, targetZoom));
 
-        // Calculate center position, accounting for toolbar offset
+        // Calculate center position
         const centerX = paddedBounds.x + paddedBounds.width / 2;
         const centerY = paddedBounds.y + paddedBounds.height / 2;
 
-        // Adjust Y position to account for toolbar height - center content in available space
-        const availableCenterY = (containerHeight - toolbarHeight) / 2 + toolbarHeight;
-
-        // Set viewport directly without animation
+        // Set viewport to fit all content without forced centering
         setViewport({
             x: -centerX * targetZoom + containerWidth / 2,
-            y: -centerY * targetZoom + availableCenterY,
+            y: -centerY * targetZoom + containerHeight / 2,
             zoom: targetZoom
         });
     }
@@ -448,7 +439,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
                 const sourceNode = nodes.value.find(n => n.id === source);
                 const targetNode = nodes.value.find(n => n.id === target);
-                
+
                 // Skip edge creation if source or target node doesn't exist
                 if (!sourceNode || !targetNode) {
                     return;
@@ -668,8 +659,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const stateNames = Object.keys(states);
         const meta = savedMeta;
         const existingStateNames = Object.keys(meta).filter(k =>
-            k !== 'transitionLabels' && 
-            k !== 'handleConnectionsByTransition' && 
+            k !== 'transitionLabels' &&
+            k !== 'handleConnectionsByTransition' &&
             k !== 'layoutDirection' &&
             k !== 'initialState' &&
             k !== 'usingDagre'
@@ -700,9 +691,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         // Preserve positions for single node additions/removals, but force layout for major changes
         // Only check state count differences if we have existing node positions (not just transition positions)
-        const stateCountChanged = hasNodePositions && 
+        const stateCountChanged = hasNodePositions &&
                                  (!isAddingNewState && !isRemovingState && stateNames.length !== existingStateNames.length);
-        
+
         const needFreshLayout = !hasExistingPositions || layoutDirectionChanged || isCompleteReplacement || stateCountChanged;
 
         // Mark metadata as using Dagre if not already marked, but don't force layout reset
@@ -720,7 +711,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             // Persist into meta
             const newMeta: Record<string, { x: number; y: number }> = {};
             for (const k of Object.keys(elk.nodePositions)) newMeta[k] = elk.nodePositions[k];
-            
+
             workflowMetaData.value = {
                 ...(workflowMetaData.value || {}),
                 ...newMeta,
@@ -1292,7 +1283,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     function handleTransitionDragEnd(eventData: any) {
 
         if (!currentDraggedTransition.value) {
-            console.log('❌ No current dragged transition');
             return;
         }
 
@@ -1324,7 +1314,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 upsertTransitionHandles(internalTransitionId, { targetHandle });
                 moveTransitionToNode(internalTransitionId, sourceNode, dropNodeId);
             } else {
-                console.log('⚠️ Ignored drop: either same as source node or non-target handle');
+                // Ignored drop: either same as source node or non-target handle
             }
         } else {
             // Fallback: try to resolve just a node under cursor and deduce side by geometry
@@ -1342,7 +1332,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     generateNodes({ skipFitView: true });
                     ElMessage.success(`Target handle set to ${targetHandle}`);
                 } else {
-                    console.log('⚠️ Could not determine side for target node');
+                    // Could not determine side for target node
                 }
             } else if (nodeUnderCursor === sourceNode) {
                 const side = computeDropSideForNode(eventData.mouseX, eventData.mouseY, nodeUnderCursor);
@@ -1352,7 +1342,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     generateNodes({ skipFitView: true });
                     ElMessage.success(`Source handle set to ${sourceHandle}`);
                 } else {
-                    console.log('⚠️ Could not determine side for source node');
+                    // Could not determine side for source node
                 }
             } else if (nodeUnderCursor && nodeUnderCursor !== sourceNode) {
                 // Also try to determine side and persist for target
@@ -1363,7 +1353,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 }
                 moveTransitionToNode(internalTransitionId, sourceNode, nodeUnderCursor);
             } else {
-                console.log('❌ Cannot move transition - same node or no target. NodeUnderCursor:', nodeUnderCursor, 'SourceNode:', sourceNode);
+                // Cannot move transition - same node or no target
             }
         }
 
@@ -1391,7 +1381,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     function handleTransitionSourceDragEnd(eventData: any) {
         if (!currentDraggedTransition.value) {
-            console.log('❌ No current dragged transition for source');
             return;
         }
 
@@ -1462,7 +1451,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     function handleTransitionTargetDragEnd(eventData: any) {
         if (!currentDraggedTransition.value) {
-            console.log('❌ No current dragged transition for target');
             return;
         }
 
@@ -1785,10 +1773,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 console.error('No current dragged transition');
                 return;
             }
-            
+
             const oldSourceNode = currentDraggedTransition.value.sourceNode;
             let actualTransitionName: string;
-            
+
             // Пытаемся извлечь имя transition из ID
             if (transitionId.includes('-') && transitionId.startsWith(oldSourceNode + '-')) {
                 // Формат: "sourceState-transitionName"
@@ -1796,22 +1784,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             } else {
                 // Если формат не стандартный, используем весь ID как имя
                 actualTransitionName = transitionId;
-                console.log('⚠️ Non-standard transition ID format, using full ID as name:', transitionId);
+                // Non-standard transition ID format, using full ID as name
             }
 
             const oldSourceState = parsed.states[oldSourceNode];
             const newSourceState = parsed.states[newSourceNode];
-
-            console.log('🔍 Debug info:', {
-                oldSourceNode,
-                newSourceNode,
-                targetNode,
-                actualTransitionName,
-                transitionId,
-                oldSourceStateExists: !!oldSourceState,
-                newSourceStateExists: !!newSourceState,
-                availableStates: Object.keys(parsed.states || {})
-            });
 
             if (!oldSourceState || !newSourceState) {
                 console.error('Old source or new source state not found');
@@ -1826,10 +1803,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     const transitionData = {...oldSourceState.transitions[transitionIndex]};
                     // Убеждаемся что target остается прежним (targetNode из параметра)
                     transitionData.next = targetNode;
-                    
+
                     // Удаляем transition из старого source
                     oldSourceState.transitions.splice(transitionIndex, 1);
-                    
+
                     // Добавляем transition к новому source с тем же target
                     if (!newSourceState.transitions) {
                         newSourceState.transitions = [];
@@ -2002,7 +1979,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 }
             }
             if (hasOldKeys) {
-                console.log('🧹 resetTransform: Removed old Dagre keys from metadata');
+                // Removed old Dagre keys from metadata
             }
         }
 
@@ -2116,7 +2093,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             );
 
             let newStatePosition = { x: 0, y: 0 };
-            
+
             // Use click position if provided, otherwise use automatic positioning
             if (clickPosition) {
                 newStatePosition = { x: clickPosition.x, y: clickPosition.y };
@@ -2164,7 +2141,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         } catch (error: unknown) {
             // Проверяем, была ли отмена пользователем
             if (error === 'cancel' || (typeof error === 'object' && error !== null && 'action' in error && (error as {action: string}).action === 'cancel')) {
-                console.log('User cancelled state creation');
+                // User cancelled state creation
             } else {
                 // Неожиданная ошибка - показываем уведомление
                 console.error('Unexpected error during state creation:', error);
@@ -2261,12 +2238,12 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     onMounted(() => {
         // Load data from localStorage first, before setting canvasData from store
         loadDataForCurrentId();
-        
+
         // Only set from store if no data found in localStorage
         if (!canvasData.value && assistantStore && assistantStore.selectedAssistant && assistantStore.selectedAssistant.workflow_data) {
             canvasData.value = assistantStore.selectedAssistant.workflow_data;
         } else {
-            console.log('🔄 Using data from localStorage, skipping store data');
+            // Using data from localStorage, skipping store data
         }
 
         // Restore saved viewport after mounting
@@ -2426,7 +2403,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
     watch(workflowMetaData, (newValue) => {
         if (isUndoRedoOperation || isMetaDataSaving || isLoadingData) {
-            console.log('🚫 Skipping workflowMetaData save due to flags:', { isUndoRedoOperation, isMetaDataSaving, isLoadingData });
             return;
         }
 
@@ -2459,7 +2435,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 isUndoRedoOperation = false;
             });
         } else {
-            console.log('❌ No previous state to undo to');
+            // No previous state to undo to
         }
     }
 
@@ -2472,7 +2448,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 isUndoRedoOperation = false;
             });
         } else {
-            console.log('❌ No next state to redo to');
+            // No next state to redo to
         }
     }
 

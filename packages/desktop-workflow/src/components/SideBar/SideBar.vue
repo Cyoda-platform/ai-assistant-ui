@@ -56,9 +56,9 @@
       </li>
       <template v-if="isSidebarHidden">
         <li class="side-bar__li">
-          <router-link class="side-bar__link side-bar__link" to="/home">
+          <a @click.prevent="createNewWorkflow" href="#" class="side-bar__link side-bar__link" to="/home">
             <CreateNewRequestIcon class="main-icon main-icon-create-new"/>
-          </router-link>
+          </a>
         </li>
       </template>
       <template v-else>

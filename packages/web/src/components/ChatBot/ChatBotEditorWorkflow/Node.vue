@@ -166,13 +166,9 @@ const handleNodeDeselected = () => {
 };
 
 const handleDeleteNodeWithConfirm = (eventData: { nodeId: string }) => {
-  console.log('🗑️ handleDeleteNodeWithConfirm called:', eventData, 'current nodeId:', nodeId.value);
   // Удаляем node если его ID совпадает с текущим
   if (eventData.nodeId === nodeId.value) {
-    console.log('🗑️ Node IDs match, calling deleteState');
     deleteState();
-  } else {
-    console.log('🗑️ Node IDs do not match, ignoring');
   }
 };
 
@@ -276,35 +272,28 @@ const cancelEdit = () => {
 }
 
 const onNodeActualClick = () => {
-  // Если было перетаскивание, не обрабатываем клик
   if (isDragging.value) {
-    console.log('❌ Click ignored - node was dragged');
     return;
   }
   
-  console.log('🎯 Node actual click processed:', nodeId.value);
+  // Убираем stopPropagation чтобы не блокировать Vue Flow события
 };
 
 const onNodeClick = (event: MouseEvent) => {
-  // Проверяем, что клик не по кнопкам
   const target = event.target as HTMLElement;
   if (target.closest('button')) {
-    console.log('❌ Click ignored - clicked on button');
+    event.stopPropagation();
     return;
   }
 
-  // Всегда сбрасываем флаг движения при новом mousedown
+  // Полностью убираем stopPropagation для Vue Flow перетаскивания
+
   isDragging.value = false;
   
-  console.log('🎯 Node mousedown:', nodeId.value);
-  
-  // Проверяем, не выделен ли уже этот узел
   if (isSelected.value) {
-    console.log('✅ Node already selected, skipping selection logic');
     return;
   }
   
-  // Сначала снимаем выделение со всех узлов, затем выделяем текущий
   eventBus.$emit('node-selection-exclusive', nodeId.value);
   isSelected.value = true;
   
@@ -366,10 +355,11 @@ const onNodeClick = (event: MouseEvent) => {
   text-overflow: ellipsis;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   cursor: text;
   flex: 1;
-  min-width: 0; /* Позволяет сжиматься при необходимости */
+  min-width: 0;
 
   &:hover .node-name {
     text-decoration: underline;

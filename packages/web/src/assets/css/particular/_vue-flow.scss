@@ -8,6 +8,14 @@
   box-shadow: none !important;
 }
 
+.vue-flow {
+  overflow: visible !important;
+}
+
+.vue-flow__controls {
+  margin-top: -50px;
+}
+
 .vue-flow__controls-button {
   background-color: var(--vue-flow-button-color);
   border-color: var(--vue-flow-button-color);
@@ -15,7 +23,7 @@
   height: 20px;
   outline: none;
 
-  &:hover{
+  &:hover {
     background-color: var(--bg-btn-default-hover);;
   }
 
