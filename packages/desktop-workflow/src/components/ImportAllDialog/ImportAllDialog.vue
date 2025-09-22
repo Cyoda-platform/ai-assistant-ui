@@ -321,7 +321,7 @@ async function processImportFile(file: File) {
 }
 
 .import-drop-zone {
-  border: 3px dashed #d1d5db;
+  border: 3px dashed var(--input-border);
   border-radius: 16px;
   padding: 40px 20px;
   text-align: center;
@@ -374,17 +374,17 @@ async function processImportFile(file: File) {
   }
   
   &.drag-over {
-    border-color: #67c23a;
+    border-color: #4b8f2d;
     background-color: rgba(103, 194, 58, 0.1);
     transform: translateY(-4px) scale(1.02);
     
     .primary-text {
-      color: #67c23a;
+      color: #4b8f2d;
       font-weight: 700;
     }
     
     .secondary-text {
-      color: #67c23a;
+      color: #4b8f2d;
     }
   }
 }
@@ -412,7 +412,7 @@ async function processImportFile(file: File) {
   .results-list {
     max-height: 200px;
     overflow-y: auto;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--input-border);
     border-radius: 8px;
     padding: 8px;
   }
@@ -428,7 +428,7 @@ async function processImportFile(file: File) {
     
     &.success {
       background-color: rgba(103, 194, 58, 0.1);
-      color: #67c23a;
+      color: #4b8f2d;
     }
     
     &.error {
