@@ -326,27 +326,17 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const zoomY = availableHeight / paddedBounds.height;
         let targetZoom = Math.min(zoomX, zoomY);
 
-        // Apply different zoom constraints based on layout direction
-        if (layoutDirection.value === 'horizontal') {
-            // Horizontal layout can be very wide, allow very small zoom for complete fit
-            targetZoom = Math.max(0.2, Math.min(1.5, targetZoom));
-        } else {
-            // Vertical layout is more compact, use standard zoom range
-            targetZoom = Math.max(0.7, Math.min(2.0, targetZoom));
-        }
+        // Ensure minimum zoom to keep workflow visible, but allow very small zoom for large workflows
+        targetZoom = Math.max(0.1, Math.min(4.0, targetZoom));
 
         // Calculate center position
         const centerX = paddedBounds.x + paddedBounds.width / 2;
         const centerY = paddedBounds.y + paddedBounds.height / 2;
 
-        // Center content in container, accounting for margin-top
-        const containerCenterX = containerWidth / 2;
-        const containerCenterY = availableHeight / 2 + marginTop;
-
-        // Set viewport directly without animation
+        // Set viewport to fit all content without forced centering
         setViewport({
-            x: -centerX * targetZoom + containerCenterX,
-            y: -centerY * targetZoom + containerCenterY,
+            x: -centerX * targetZoom + containerWidth / 2,
+            y: -centerY * targetZoom + containerHeight / 2,
             zoom: targetZoom
         });
     }
