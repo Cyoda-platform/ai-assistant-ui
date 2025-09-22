@@ -520,7 +520,12 @@ watch([canvasData, workflowMetaData], () => {
   .vue-flow__controls {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  &__vue-flow {
+    margin-top: 60px;
   }
 
   &__editor-wrapper {

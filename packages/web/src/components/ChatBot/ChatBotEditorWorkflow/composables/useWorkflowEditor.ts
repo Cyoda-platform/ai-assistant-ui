@@ -317,9 +317,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const containerWidth = vueFlowRef.value.offsetWidth;
         const containerHeight = vueFlowRef.value.offsetHeight;
 
-        // Account for toolbar height - EditorViewMode (~50px) and any other top elements
-        const toolbarHeight = 60; // Estimated height for toolbar and padding
-        const availableHeight = containerHeight - toolbarHeight;
+        // Account for margin-top of VueFlow
+        const marginTop = 60;
+        const availableHeight = containerHeight - marginTop;
 
         // Calculate zoom to fit the padded bounds with layout-specific adjustments
         const zoomX = containerWidth / paddedBounds.width;
@@ -335,17 +335,18 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             targetZoom = Math.max(0.7, Math.min(2.0, targetZoom));
         }
 
-        // Calculate center position, accounting for toolbar offset
+        // Calculate center position
         const centerX = paddedBounds.x + paddedBounds.width / 2;
         const centerY = paddedBounds.y + paddedBounds.height / 2;
 
-        // Adjust Y position to account for toolbar height - center content in available space
-        const availableCenterY = (containerHeight - toolbarHeight) / 2 + toolbarHeight;
+        // Center content in container, accounting for margin-top
+        const containerCenterX = containerWidth / 2;
+        const containerCenterY = availableHeight / 2 + marginTop;
 
         // Set viewport directly without animation
         setViewport({
-            x: -centerX * targetZoom + containerWidth / 2,
-            y: -centerY * targetZoom + availableCenterY,
+            x: -centerX * targetZoom + containerCenterX,
+            y: -centerY * targetZoom + containerCenterY,
             zoom: targetZoom
         });
     }
