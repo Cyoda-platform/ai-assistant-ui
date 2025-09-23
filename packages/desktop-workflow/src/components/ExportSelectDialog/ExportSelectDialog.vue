@@ -142,6 +142,8 @@ const handleExport = async () => {
 
     const file = new File([dataString], filename, {type: 'application/json;charset=utf-8'});
     FileSaver.saveAs(file);
+
+    ElMessage.success(`Successfully exported ${selectedWorkflows.value.length} workflow(s)`);
   } catch (error) {
     console.error('Export failed:', error);
     ElMessage.error('Failed to export workflows');
