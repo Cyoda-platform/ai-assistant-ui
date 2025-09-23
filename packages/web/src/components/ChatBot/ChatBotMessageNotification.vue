@@ -6,40 +6,40 @@
          <span class="chat-bot-message-notification__cyoda-wrapper-icon">
           <NotificationIcon/>
         </span>
-      <span>Notification</span>
+      <span>Notification | <small class="chat-bot-message-notification__date">{{ date }}</small></span>
     </div>
     <div v-html="computedMessage" class="chat-bot-message-notification__body"/>
     <el-collapse-transition>
       <div v-show="isEditMode">
         <el-input
-          v-model="form.message"
-          style="width: 100%"
-          :autosize="{ minRows: 4, maxRows: 6 }"
-          :disabled="isLoading"
-          resize="none"
-          type="textarea"
-          placeholder="Ask Cyoda AI Assistant..."
-          class="chat-bot-message-notification__input_edit"
-          @keydown.enter="onClickSave"
+            v-model="form.message"
+            style="width: 100%"
+            :autosize="{ minRows: 4, maxRows: 6 }"
+            :disabled="isLoading"
+            resize="none"
+            type="textarea"
+            placeholder="Ask Cyoda AI Assistant..."
+            class="chat-bot-message-notification__input_edit"
+            @keydown.enter="onClickSave"
         />
         <div class="chat-bot-message-question__actions">
           <el-button
-            @click="onClickCancel"
-            size="small"
-            :disabled="isLoading"
-            class="btn-white"
-            :class="{
+              @click="onClickCancel"
+              size="small"
+              :disabled="isLoading"
+              class="btn-white"
+              :class="{
           'is-loading': isLoading
         }"
           >
             Discard Changes
           </el-button>
           <el-button
-            @click="onClickSave"
-            size="small"
-            :loading="isLoading"
-            class="btn-primary"
-            :class="{
+              @click="onClickSave"
+              size="small"
+              :loading="isLoading"
+              class="btn-primary"
+              :class="{
           'is-loading': isLoading
         }"
           >
@@ -49,11 +49,11 @@
       </div>
     </el-collapse-transition>
     <el-button
-      @click="onClickEdit"
-      v-if="isVisibleEditBtn"
-      size="small"
-      class="btn-default-lighter btn-icon chat-bot-message-notification__edit_icon_wrapper"
-      :class="{
+        @click="onClickEdit"
+        v-if="isVisibleEditBtn"
+        size="small"
+        class="btn-default-lighter btn-icon chat-bot-message-notification__edit_icon_wrapper"
+        :class="{
           'is-loading': isLoading
         }"
     >
@@ -67,6 +67,7 @@ import NotificationIcon from "@/assets/images/icons/notification.svg";
 import {computed, ref} from "vue";
 import HelperMarkdown from "@/helpers/HelperMarkdown";
 import EditIcon from '@/assets/images/icons/edit.svg';
+import dayjs from "dayjs";
 
 const props = defineProps<{
   message: any,
@@ -77,6 +78,7 @@ const isEditMode = ref(false);
 const form = ref({
   message: ''
 })
+
 const computedMessage = computed(() => {
   const text = props.message.text;
   if (typeof text === 'object' && text !== null) {
@@ -85,6 +87,10 @@ const computedMessage = computed(() => {
 
   return HelperMarkdown.parseMarkdown(text);
 });
+
+const date = computed(() => {
+  return dayjs(props.message.last_modified).format('DD/MM/YYYY HH:mm:ss')
+})
 
 const isVisibleEditBtn = computed(() => {
   return props.message.editable && !isEditMode.value;
@@ -131,6 +137,10 @@ function resetForm() {
 
   @include breakpoints.respond-max('md') {
     padding-right: 18px;
+  }
+
+  &__date {
+    font-size: 12px;
   }
 
   &__edit_icon_wrapper {

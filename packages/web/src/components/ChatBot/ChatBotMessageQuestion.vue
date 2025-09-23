@@ -4,20 +4,20 @@
         <span class="chat-bot-message-question__cyoda-wrapper-icon">
           <AiChaIcon/>
         </span>
-      <span>CYODA AI</span>
+      <span>CYODA AI | <small class="chat-bot-message-question__date">{{ date }}</small></span>
 
       <div class="chat-bot-message-question__top-actions">
         <el-tooltip
-          class="box-item"
-          effect="dark"
-          content="Copy"
-          placement="top"
-          :show-after="1000"
+            class="box-item"
+            effect="dark"
+            content="Copy"
+            placement="top"
+            :show-after="1000"
         >
           <el-button
-            @click="onClickCopy"
-            size="small"
-            class="btn-default-lighter btn-icon"
+              @click="onClickCopy"
+              size="small"
+              class="btn-default-lighter btn-icon"
           >
             <CopyIcon/>
           </el-button>
@@ -28,19 +28,19 @@
     <div v-html="computedMessage" class="chat-bot-message-question__body"></div>
     <div class="chat-bot-message-question__bottom-actions">
       <el-tooltip
-        v-if="message.approve"
-        class="box-item"
-        effect="dark"
-        content="Approve"
-        placement="top"
-        :show-after="1000"
+          v-if="message.approve"
+          class="box-item"
+          effect="dark"
+          content="Approve"
+          placement="top"
+          :show-after="1000"
       >
         <el-button
-          @click="onClickApproveQuestion"
-          size="small"
-          :disabled="isLoading"
-          class="btn btn-primary btn-icon"
-          :loading="isLoadingApprove"
+            @click="onClickApproveQuestion"
+            size="small"
+            :disabled="isLoading"
+            class="btn btn-primary btn-icon"
+            :loading="isLoadingApprove"
         >
           <CheckIcon class="fill-stroke"/>
         </el-button>
@@ -57,6 +57,7 @@ import {computed, ref} from "vue";
 import HelperMarkdown from "@/helpers/HelperMarkdown";
 import HelperCopy from "@/helpers/HelperCopy";
 import {ElNotification} from "element-plus";
+import dayjs from "dayjs";
 
 const props = defineProps<{
   message: any,
@@ -73,6 +74,10 @@ const computedMessage = computed(() => {
 
   return HelperMarkdown.parseMarkdown(text);
 });
+
+const date = computed(() => {
+  return dayjs(props.message.last_modified).format('DD/MM/YYYY HH:mm:ss')
+})
 
 function onClickApproveQuestion() {
   isLoadingApprove.value = true;
@@ -113,6 +118,10 @@ function onClickCopy() {
     }
   }
 
+  &__date {
+    font-size: 12px;
+  }
+
   &__cyoda-wrapper-icon {
     position: absolute;
     left: 24px;
@@ -142,7 +151,8 @@ function onClickCopy() {
 
   &__bottom-actions {
     text-align: right;
-    .btn-primary svg{
+
+    .btn-primary svg {
       stroke: var(--color-icon-submit) !important;
     }
   }

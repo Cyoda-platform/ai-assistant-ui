@@ -6,7 +6,7 @@
          <span class="chat-bot-message-function__cyoda-wrapper-icon">
           <FunctinonIcon/>
         </span>
-      <span>Function</span>
+      <span>Function | <small class="chat-bot-message-function__date">{{ date }}</small></span>
     </div>
     <div class="chat-bot-message-function__item">
       <ChatBotMessageFunctionItem
@@ -75,6 +75,10 @@ const endpointUrl = computed(() => {
   return `https://${import.meta.env.VITE_APP_CYODA_CLIENT_ENV_PREFIX}${authStore.parsedToken.caas_org_id}.${import.meta.env.VITE_APP_CYODA_CLIENT_HOST}${computedMessage.value.path}`;
 });
 
+const date = computed(() => {
+  return dayjs(props.message.last_modified).format('DD/MM/YYYY HH:mm:ss')
+})
+
 async function onClick() {
   try {
     isLoading.value = true;
@@ -122,6 +126,10 @@ function onClickApproveQuestion() {
   box-shadow: -1px 1px 20px var(--bubble-box-shadow-color);
   @include breakpoints.respond-max('md') {
     padding-right: 16px;
+  }
+
+  &__date {
+    font-size: 12px;
   }
 
   &__edit_icon_wrapper {
