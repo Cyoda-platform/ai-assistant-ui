@@ -223,12 +223,10 @@ function startEnvelopeFlash() {
 }
 
 async function onRollback() {
-  isLoading.value = true;
+  isLoading.value = false;
   isLoadingRollback.value = true;
   try {
     await assistantStore.postRollback(technicalId.value);
-  } catch {
-    isLoading.value = false;
   } finally {
     isLoadingRollback.value = false;
   }
