@@ -127,12 +127,12 @@ async function loadChatHistory(id = null) {
       const result = addMessage(el);
       newResults.push(result);
     })
-    if (messages.value[messages.value.length - 1]?.type !== 'answer') isLoading.value = false;
+    if (['question','ui_function'].includes(messages.value[messages.value.length - 1]?.type)) isLoading.value = false;
   } finally {
     promiseInterval = null;
   }
 
-  if (!isFirstRequest && messages.value[messages.value.length - 1]?.type !== 'answer') countNewMessages.value += newResults.filter(el => el).length;
+  if (!isFirstRequest && ['question','ui_function'].includes(messages.value[messages.value.length - 1]?.type)) countNewMessages.value += newResults.filter(el => el).length;
   return newResults.some(el => el);
 }
 
