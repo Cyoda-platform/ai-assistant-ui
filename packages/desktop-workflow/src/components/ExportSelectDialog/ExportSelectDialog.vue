@@ -137,7 +137,7 @@ const handleExport = async () => {
     const dataString = JSON.stringify(exportData, null, 2);
 
     const filename = selectedWorkflows.value.length === 1
-        ? `workflow_${selectedWorkflows.value[0].workflow_name || 'untitled'}_${date.format('DD-MM-YYYY')}.json`
+        ? `workflow_${selectedWorkflows.value[0].name || 'untitled'}_${date.format('DD-MM-YYYY')}.json`
         : `workflows_${selectedWorkflows.value.length}_items_${date.format('DD-MM-YYYY')}.json`;
 
     const file = new File([dataString], filename, {type: 'application/json;charset=utf-8'});
