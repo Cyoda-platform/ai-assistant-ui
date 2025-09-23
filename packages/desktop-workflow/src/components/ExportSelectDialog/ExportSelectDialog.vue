@@ -144,6 +144,7 @@ const handleExport = async () => {
     FileSaver.saveAs(file);
 
     ElMessage.success(`Successfully exported ${selectedWorkflows.value.length} workflow(s)`);
+    clearSelection();
   } catch (error) {
     console.error('Export failed:', error);
     ElMessage.error('Failed to export workflows');
