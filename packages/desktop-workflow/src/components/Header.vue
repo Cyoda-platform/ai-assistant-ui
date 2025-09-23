@@ -1,32 +1,26 @@
 <template>
   <div class="header">
     <div class="header__actions">
-      <el-button @click="onExportAll" size="mini" type="primary" class="btn btn-primary">Export All</el-button>
-      <el-button @click="showImportDialog = true" size="mini" type="primary">Import All</el-button>
+      <el-button @click="showExportDialog = true" size="mini" type="primary" class="btn btn-primary">Export</el-button>
+      <el-button @click="showImportDialog = true" size="mini" type="primary">Import</el-button>
     </div>
   </div>
 
   <ImportAllDialog v-model="showImportDialog" />
+  <ExportSelectDialog v-model="showExportDialog" />
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
-import FileSaver from "file-saver";
-import dayjs from "dayjs";
 import useWorkflowStore from "../stores/workflows";
 import ImportAllDialog from "./ImportAllDialog/ImportAllDialog.vue";
+import ExportSelectDialog from "./ExportSelectDialog/ExportSelectDialog.vue";
 
 const workflowStore = useWorkflowStore();
 
-// Dialog state
+// Dialog states
 const showImportDialog = ref(false);
-
-function onExportAll() {
-  const date = dayjs();
-  const data = JSON.stringify(workflowStore.workflowList);
-  const file = new File([JSON.stringify(data)], `workflows_${date.format('DD-MM-YYYY')}.txt`, {type: "text/plain;charset=utf-8"});
-  FileSaver.saveAs(file);
-}
+const showExportDialog = ref(false);
 </script>
 
 <style scoped lang="scss">
