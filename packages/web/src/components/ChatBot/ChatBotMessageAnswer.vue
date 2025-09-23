@@ -1,7 +1,7 @@
 <template>
   <div class="chat-bot-message-answer">
     <div class="chat-bot-message-answer__title">
-      <span>USER</span>
+      <span>USER | <small class="chat-bot-message-answer__date">{{ date }}</small></span>
     </div>
     <div v-html="computedMessage" class="chat-bot-message-answer__body"></div>
     <FilePreview v-if="currentFile" :file="currentFile"/>
@@ -12,6 +12,7 @@
 import {computed} from "vue";
 import FilePreview from "@/components/FilePreview/FilePreview.vue";
 import HelperMarkdown from "@/helpers/HelperMarkdown";
+import dayjs from "dayjs";
 
 const props = defineProps<{
   message: any,
@@ -27,6 +28,9 @@ const computedMessage = computed(() => {
   return HelperMarkdown.parseMarkdown(text);
 });
 
+const date = computed(() => {
+  return dayjs(props.message.last_modified).format('DD/MM/YYYY HH:mm:ss')
+})
 
 const currentFile = computed(() => {
   return props.message.file || null;
@@ -41,6 +45,10 @@ const currentFile = computed(() => {
   box-shadow: -2px 2px 2px rgba(66, 65, 45, 0.2);
   background: var(--bubble-question-bg-color);
   border-radius: 16px;
+
+  &__date {
+    font-size: 12px;
+  }
 
   &__title {
     display: flex;
