@@ -61,6 +61,7 @@
             Cancel
           </el-button>
           <el-button
+              class="btn-primary"
               type="primary"
               @click="handleExport"
               :disabled="selectedWorkflows.length === 0"
