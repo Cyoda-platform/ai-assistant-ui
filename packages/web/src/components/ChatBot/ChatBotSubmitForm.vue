@@ -31,7 +31,7 @@
               />
               <div class="chat-bot-submit-form__actions">
                 <el-button @click="onClickAttachFile" class="btn-default btn-icon transparent">
-                  <AttachIcon/>
+                  <AttachIcon class="chat-bot-submit-form__attach-icon"/>
                   <input
                     ref="fileInput"
                     type="file"
@@ -259,6 +259,12 @@ function handleKeyDown(event) {
     order: 1;
     margin-bottom: 12px;
   }
+
+  &__attach-icon {
+    width: 21px !important;
+    height: 21px !important;
+  }
+
 
   &__layout_canvas &__input {
     border-color: var(--border-color-darken);

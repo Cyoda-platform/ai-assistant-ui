@@ -25,8 +25,8 @@ const useWorkflowStore = defineStore('workflows', {
                 description: data.description.trim(),
                 technical_id: uuidv4(),
                 date: new Date().toString(),
-                workflowMetaData: '',
-                canvasData: '',
+                workflowMetaData: data?.workflowMetaData ?? '',
+                canvasData: data?.canvasData ?? '',
             };
             allWorkflows.unshift(newWorkflow);
             await HelperStorageElectron.set(MENU_WORKFLOW_CHAT_LIST, allWorkflows);
