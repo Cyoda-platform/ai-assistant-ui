@@ -344,13 +344,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     // Save and restore viewport (zoom and position)
     const saveViewport = () => {
         const viewport = getViewport();
-        console.log('Saving viewport for', workflowViewportKey.value, viewport);
         helperStorage.set(workflowViewportKey.value, viewport);
     };
 
     const restoreViewport = () => {
         const savedViewport = helperStorage.get(workflowViewportKey.value, null);
-        console.log('Restoring viewport for', workflowViewportKey.value, savedViewport);
         if (savedViewport && vueFlowRef.value) {
             // Instant restore without animation to prevent jerks
             setViewport(savedViewport);
@@ -2419,13 +2417,10 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     // Watch for technicalId changes to load corresponding chat data
     watch(() => props.technicalId, (newTechnicalId, oldTechnicalId) => {
         if (newTechnicalId !== oldTechnicalId) {
-            console.log('Switching workflow from', oldTechnicalId, 'to', newTechnicalId);
-            
             // Save current viewport before switching to new workflow using old technicalId
             if (oldTechnicalId && vueFlowRef.value) {
                 const viewport = getViewport();
                 const oldWorkflowViewportKey = `chatBotEditorWorkflow:viewport:${oldTechnicalId}`;
-                console.log('Saving viewport for old workflow', oldWorkflowViewportKey, viewport);
                 helperStorage.set(oldWorkflowViewportKey, viewport);
             }
             
@@ -2434,7 +2429,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             nextTick(() => {
                 generateNodes({ skipFitView: true });
                 nextTick(() => {
-                    console.log('About to restore viewport for new workflow');
                     restoreViewport();
                 });
             });
