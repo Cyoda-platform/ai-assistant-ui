@@ -10,20 +10,20 @@
       <div class="import-options">
         <div class="option-row">
           <div class="option-label">
-            Delete ALL configurations before import
+            Skip existing workflows during import
             <el-popover
                 placement="bottom"
-                title="Clean Before Import"
+                title="Skip Existing Workflows"
                 width="350"
                 trigger="hover"
-                content="Boolean optional parameter. If true, then existing workflow configs will be deleted before import. By default is FALSE"
+                content="If enabled, workflows that already exist (same technical_id) will be skipped during import. If disabled, existing workflows will be overwritten. By default is FALSE"
             >
               <template #reference>
                 <QuestionIcon class="icon-popover"/>
               </template>
             </el-popover>
           </div>
-          <el-checkbox v-model="form.cleanBeforeImport"></el-checkbox>
+          <el-checkbox v-model="form.skipExistingWorkflows"></el-checkbox>
         </div>
       </div>
 
@@ -120,7 +120,7 @@ const workflowStore = useWorkflowStore();
 
 // Form state
 const form = reactive({
-  cleanBeforeImport: false
+  skipExistingWorkflows: false
 });
 
 // State
@@ -161,7 +161,7 @@ function handleDialogClose() {
     importProgress.show = false;
     importProgress.percentage = 0;
     isDragOver.value = false;
-    form.cleanBeforeImport = false;
+    form.skipExistingWorkflows = false;
   }, 300);
 }
 
@@ -282,41 +282,52 @@ async function processImportFile(file: File) {
     importProgress.percentage = 60;
     importProgress.text = `Importing ${validWorkflows.length} workflows...`;
 
-    // Clean before import if option is enabled
-    if (form.cleanBeforeImport) {
-      importProgress.text = 'Deleting existing workflows...';
-      await workflowStore.deleteAll();
-      importProgress.percentage = 70;
-    }
+    // Get existing workflows to check for conflicts
+    await workflowStore.getAll();
+    const existingWorkflows = workflowStore.workflowList || [];
 
     // Import workflows with progress
-    const startPercentage = form.cleanBeforeImport ? 70 : 60;
-    const progressRange = form.cleanBeforeImport ? 30 : 40;
-
     for (let i = 0; i < validWorkflows.length; i++) {
       const workflow = validWorkflows[i];
-      const progressStep = progressRange / validWorkflows.length;
+      const progressStep = 40 / validWorkflows.length;
 
       try {
-        const existWorkflow = workflowList.value.find((el) => el.technical_id === workflow.technical_id);
+        // Check if workflow already exists
+        const existingWorkflow = existingWorkflows.find((el: any) => el.technical_id === workflow.technical_id);
 
-        if(existWorkflow){
+        if (existingWorkflow && form.skipExistingWorkflows) {
+          // Skip existing workflow
+          importResults.value.push({
+            id: workflow.technical_id,
+            name: workflow.name,
+            status: 'error',
+            message: 'Skipped - workflow already exists'
+          });
+        } else if (existingWorkflow) {
+          // Update existing workflow
           await workflowStore.updateWorkflow({
             technical_id: workflow.technical_id,
             workflowMetaData: workflow.workflowMetaData,
             canvasData: workflow.canvasData
           });
+          
+          importResults.value.push({
+            id: workflow.technical_id,
+            name: workflow.name,
+            status: 'success',
+            message: 'Successfully updated existing workflow'
+          });
         } else {
           // Create new workflow
-         await workflowStore.createWorkflow(workflow);
+          await workflowStore.createWorkflow(workflow);
+          
+          importResults.value.push({
+            id: workflow.technical_id,
+            name: workflow.name,
+            status: 'success',
+            message: 'Successfully imported new workflow'
+          });
         }
-        // Add result
-        importResults.value.push({
-          id: workflow.technical_id,
-          name: workflow.name,
-          status: 'success',
-          message: 'Successfully imported'
-        });
 
       } catch (error) {
         console.error(`Error importing workflow ${workflow.name}:`, error);
@@ -328,7 +339,7 @@ async function processImportFile(file: File) {
         });
       }
 
-      importProgress.percentage = startPercentage + (i + 1) * progressStep;
+      importProgress.percentage = 60 + (i + 1) * progressStep;
     }
 
     importProgress.percentage = 100;

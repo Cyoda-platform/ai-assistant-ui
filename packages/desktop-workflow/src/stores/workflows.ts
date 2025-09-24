@@ -23,7 +23,7 @@ const useWorkflowStore = defineStore('workflows', {
             const newWorkflow = {
                 name: data.name.trim(),
                 description: data.description.trim(),
-                technical_id: uuidv4(),
+                technical_id: data?.technical_id ?? uuidv4(),
                 date: new Date().toString(),
                 workflowMetaData: data?.workflowMetaData ?? '',
                 canvasData: data?.canvasData ?? '',
