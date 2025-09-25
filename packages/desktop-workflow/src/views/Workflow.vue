@@ -53,10 +53,20 @@ watch(selectedWorkflow, () => {
       if (!chatBotEditorWorkflowRef.value) return;
       
       if (selectedWorkflow.value) {
-        chatBotEditorWorkflowRef.value.workflowMetaData = selectedWorkflow.value.workflowMetaData;
-        chatBotEditorWorkflowRef.value.canvasData = selectedWorkflow.value.canvasData;
+        try {
+          chatBotEditorWorkflowRef.value.workflowMetaData = typeof selectedWorkflow.value.workflowMetaData === 'string' 
+            ? JSON.parse(selectedWorkflow.value.workflowMetaData || '{}') 
+            : selectedWorkflow.value.workflowMetaData || {};
+          
+          chatBotEditorWorkflowRef.value.canvasData = typeof selectedWorkflow.value.canvasData === 'string' 
+            ? JSON.parse(selectedWorkflow.value.canvasData || '""') 
+            : selectedWorkflow.value.canvasData || '';
+        } catch (error) {
+          chatBotEditorWorkflowRef.value.workflowMetaData = {};
+          chatBotEditorWorkflowRef.value.canvasData = '';
+        }
       } else {
-        chatBotEditorWorkflowRef.value.workflowMetaData = '';
+        chatBotEditorWorkflowRef.value.workflowMetaData = {};
         chatBotEditorWorkflowRef.value.canvasData = '';
       }
     }, {
