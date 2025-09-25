@@ -1,36 +1,40 @@
-import {createI18n} from 'vue-i18n';
-import type {App} from 'vue';
-import useTranslationsStore from "../stores/translations";
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import { useTranslationsStore } from "../stores/translations";
 import enJson from '@/i18n/en.json';
 
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  fallbackLocale: 'en',
-  messages: {},
-});
-
-export default {
-  install(app: App) {
-    app.use(i18n);
-  },
-};
+// Initialize i18next
+i18n
+  .use(initReactI18next)
+  .init({
+    lng: 'en',
+    fallbackLng: 'en',
+    resources: {
+      en: {
+        translation: {}
+      }
+    },
+    interpolation: {
+      escapeValue: false,
+    },
+  });
 
 export async function loadLocaleMessages(locale: string) {
-  if (!i18n.global.availableLocales.includes(locale)) {
+  try {
     const messages = await getMessages();
     if (messages) {
-      i18n.global.setLocaleMessage(locale, messages);
+      i18n.addResourceBundle(locale, 'translation', messages, true, true);
     }
+    i18n.changeLanguage(locale);
+  } catch (error) {
+    console.error('Failed to load locale messages:', error);
   }
-
-  i18n.global.locale.value = locale;
 }
 
 async function getMessages() {
   try {
-    const translationsStore = useTranslationsStore();
-    const {data} = await translationsStore.getLabelsConfig();
+    const translationsStore = useTranslationsStore.getState();
+    const { data } = await translationsStore.getLabelsConfig();
     return data;
   } catch (e) {
     console.error('Failed to load translations:', e);
@@ -38,4 +42,4 @@ async function getMessages() {
   }
 }
 
-export {i18n};
+export default i18n;

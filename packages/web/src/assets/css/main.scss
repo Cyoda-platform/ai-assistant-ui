@@ -23,10 +23,8 @@
 @use "particular/notification";
 @use "particular/splitter-bar";
 @use "particular/radio-button";
-@use "particular/vue-flow";
+@use "particular/react-flow";
 @use "particular/el-switch";
 
-//Vue-flow
-@import "@vue-flow/core/dist/style.css";
-@import "@vue-flow/core/dist/theme-default.css";
-@import "@vue-flow/controls/dist/style.css";
+//React-flow
+@import "@xyflow/react/dist/style.css";

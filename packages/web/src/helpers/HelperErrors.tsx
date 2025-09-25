@@ -1,5 +1,6 @@
-import {ElMessageBox, ElNotification} from 'element-plus';
-import {AxiosError} from "axios";
+import React from 'react';
+import { Modal, notification } from 'antd';
+import { AxiosError } from "axios";
 
 interface ErrorResponse {
     response?: {
@@ -37,26 +38,20 @@ export default class HelperErrors {
             !data.response.data.message &&
             !data.response.data.error
         ) {
-            ElMessageBox.alert(
-                `Server response status ${data.response.status}`,
-                'Server error',
-                {
-                    dangerouslyUseHTMLString: true,
-                    customClass: 'helper-errors',
-                }
-            );
+            Modal.error({
+                title: 'Server error',
+                content: `Server response status ${data.response.status}`,
+                className: 'helper-errors',
+            });
             return;
         }
 
         if (data?.message === 'Network Error') {
-            ElMessageBox.alert(
-                'Please check your network configurations',
-                'Network Error',
-                {
-                    dangerouslyUseHTMLString: true,
-                    customClass: 'helper-errors',
-                }
-            );
+            Modal.error({
+                title: 'Network Error',
+                content: 'Please check your network configurations',
+                className: 'helper-errors',
+            });
             return;
         }
 
@@ -82,9 +77,10 @@ export default class HelperErrors {
             content = data.error;
         }
 
-        ElMessageBox.alert(content, title, {
-            dangerouslyUseHTMLString: true,
-            customClass: 'helper-errors',
+        Modal.error({
+            title: title,
+            content: <div dangerouslySetInnerHTML={{ __html: content }} />,
+            className: 'helper-errors',
         });
     }
 }

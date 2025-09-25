@@ -1,24 +1,25 @@
-.vue-flow__node-default {
+// React Flow styles (migrated from Vue Flow)
+.react-flow__node-default {
   border: none !important;
   padding: 0;
   border-radius: 8px;
 }
 
-.vue-flow__node-default.selected {
+.react-flow__node-default.selected {
   box-shadow: none !important;
 }
 
-.vue-flow {
+.react-flow {
   overflow: visible !important;
 }
 
-.vue-flow__controls {
+.react-flow__controls {
   margin-top: -50px;
 }
 
-.vue-flow__controls-button {
-  background-color: var(--vue-flow-button-color);
-  border-color: var(--vue-flow-button-color);
+.react-flow__controls-button {
+  background-color: var(--react-flow-button-color);
+  border-color: var(--react-flow-button-color);
   width: 20px;
   height: 20px;
   outline: none;

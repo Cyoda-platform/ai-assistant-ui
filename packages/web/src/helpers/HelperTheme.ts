@@ -1,17 +1,18 @@
-import { computed } from "vue";
-import useAppStore from "../stores/app";
-import { usePreferredDark } from "@vueuse/core";
+import { useMemo } from "react";
+import { useAppStore } from "../stores/app";
 
 export const useDetectTheme = function () {
     const appStore = useAppStore();
-    const isDark = usePreferredDark();
 
-    const theme = computed(() => {
+    // Simple dark mode detection
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    const theme = useMemo(() => {
         if (["dark", "light"].includes(appStore.theme)) {
             return appStore.theme;
         }
-        return isDark.value ? "dark" : "light";
-    });
+        return prefersDark ? "dark" : "light";
+    }, [appStore.theme, prefersDark]);
 
     return theme;
 };

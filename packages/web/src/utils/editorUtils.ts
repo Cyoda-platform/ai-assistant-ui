@@ -2,8 +2,8 @@
  * Monaco editor utilities for workflow editor
  */
 import * as monaco from 'monaco-editor';
-import {ElMessageBox, ElNotification} from "element-plus";
-import {Ref} from 'vue';
+import { Modal, notification } from 'antd';
+import { MutableRefObject } from 'react';
 
 export interface EditorAction {
     id: string;
@@ -24,8 +24,8 @@ export interface AnswerRequestData {
 }
 
 export interface EditorActionConfig {
-    isLoading: Ref<boolean>;
-    currentFile: Ref<File | null>;
+    isLoading: MutableRefObject<boolean>;
+    currentFile: MutableRefObject<File | null>;
     questionRequest?: (data: QuestionRequestData) => Promise<{ data: { message: string } }>;
     onAnswer?: (data: AnswerRequestData) => void;
 }
@@ -45,7 +45,10 @@ export function createSubmitQuestionAction(config: EditorActionConfig): EditorAc
             const selectedValue = editor.getModel()?.getValueInRange(editor.getSelection()!);
 
             if (!selectedValue) {
-                ElMessageBox.alert('Please select text before use it', 'Warning');
+                Modal.warning({
+                    title: 'Warning',
+                    content: 'Please select text before use it'
+                });
                 return;
             }
 
