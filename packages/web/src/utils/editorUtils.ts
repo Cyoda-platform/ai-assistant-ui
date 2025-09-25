@@ -58,18 +58,18 @@ export function createSubmitQuestionAction(config: EditorActionConfig): EditorAc
             }
 
             try {
-                config.isLoading.value = true;
+                config.isLoading.current = true;
 
                 const dataRequest: QuestionRequestData = {
                     question: selectedValue
                 };
 
-                if (config.currentFile.value) {
-                    dataRequest.file = config.currentFile.value;
+                if (config.currentFile.current) {
+                    dataRequest.file = config.currentFile.current;
                 }
 
                 const {data} = await config.questionRequest(dataRequest);
-                config.currentFile.value = null;
+                config.currentFile.current = null;
 
                 const position = editor.getPosition();
                 const lineCount = editor.getModel()?.getLineCount() || 0;
@@ -101,13 +101,12 @@ export function createSubmitQuestionAction(config: EditorActionConfig): EditorAc
                     column: textToInsert.length + 1
                 });
 
-                ElNotification({
-                    title: 'Success',
-                    message: 'The code was generated',
-                    type: 'success',
+                notification.success({
+                    message: 'Success',
+                    description: 'The code was generated',
                 });
             } finally {
-                config.isLoading.value = false;
+                config.isLoading.current = false;
             }
         }
     };
@@ -128,7 +127,10 @@ export function createSubmitAnswerAction(config: EditorActionConfig): EditorActi
             const selectedValue = editor.getModel()?.getValueInRange(editor.getSelection()!);
 
             if (!selectedValue) {
-                ElMessageBox.alert('Please select text before use it', 'Warning');
+                Modal.warning({
+                    title: 'Warning',
+                    content: 'Please select text before use it'
+                });
                 return;
             }
 
@@ -141,17 +143,16 @@ export function createSubmitAnswerAction(config: EditorActionConfig): EditorActi
                 answer: selectedValue
             };
 
-            if (config.currentFile.value) {
-                dataRequest.file = config.currentFile.value;
+            if (config.currentFile.current) {
+                dataRequest.file = config.currentFile.current;
             }
 
             config.onAnswer(dataRequest);
-            ElNotification({
-                title: 'Success',
-                message: 'The answer was sent in the main window chat.',
-                type: 'success',
+            notification.success({
+                message: 'Success',
+                description: 'The answer was sent in the main window chat.',
             });
-            config.currentFile.value = null;
+            config.currentFile.current = null;
         }
     };
 }
@@ -193,12 +194,15 @@ export function createWorkflowEditorActions(config: EditorActionConfig & {
             const selectedValue = editor.getModel()?.getValueInRange(editor.getSelection()!);
 
             if (!selectedValue) {
-                ElMessageBox.alert('Please select text before use it', 'Warning');
+                Modal.warning({
+                    title: 'Warning',
+                    content: 'Please select text before use it'
+                });
                 return;
             }
 
             try {
-                config.isLoading.value = true;
+                config.isLoading.current = true;
 
                 const dataRequest = {
                     question: selectedValue
@@ -236,13 +240,12 @@ export function createWorkflowEditorActions(config: EditorActionConfig & {
                     column: textToInsert.length + 1
                 });
 
-                ElNotification({
-                    title: 'Success',
-                    message: 'The workflow suggestion was generated',
-                    type: 'success',
+                notification.success({
+                    message: 'Success',
+                    description: 'The workflow suggestion was generated',
                 });
             } finally {
-                config.isLoading.value = false;
+                config.isLoading.current = false;
             }
         }
     });

@@ -1,0 +1,285 @@
+// Ant Design component overrides to match the existing design system
+
+// Modal overrides (replacing el-dialog)
+.ant-modal {
+  .ant-modal-content {
+    border: 1px solid var(--accent-border);
+    border-radius: 8px;
+    background-color: var(--bg-dialog-color);
+  }
+
+  .ant-modal-header {
+    background-color: var(--bg-dialog-color);
+    border-bottom: 1px solid var(--accent-border);
+    
+    .ant-modal-title {
+      color: var(--color-dialog-title);
+      font-weight: 600;
+      font-size: 20px;
+    }
+  }
+
+  .ant-modal-body {
+    background-color: var(--bg-dialog-color);
+    color: var(--text-color-regular);
+  }
+
+  .ant-modal-footer {
+    background-color: var(--bg-dialog-color);
+    border-top: 1px solid var(--accent-border);
+  }
+
+  .ant-modal-close {
+    .ant-modal-close-x {
+      width: 20px;
+      height: 20px;
+      background-color: var(--bg-dialog-close-color);
+      border-radius: 3px;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+  }
+}
+
+// Button overrides
+.ant-btn {
+  font-size: 16px;
+  font-weight: 400;
+  font-family: "Roboto", Arial, sans-serif;
+  text-decoration: none;
+  border-radius: 4px;
+
+  &.ant-btn-default {
+    background-color: var(--bg-button);
+    border-color: var(--border-color-default-button);
+    color: var(--text-color-regular);
+
+    &:hover {
+      background-color: var(--bg-button-hover);
+      color: var(--text-color-regular);
+      border-color: var(--bg-button-hover);
+    }
+  }
+
+  &.ant-btn-primary {
+    color: #fff;
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    transition: all 0.5s;
+    font-family: 'PingFang SC', Arial, sans-serif;
+    box-shadow: none;
+
+    &:disabled {
+      background: linear-gradient(0deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), #0D8484;
+      border-color: transparent;
+    }
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(0deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), #0D8484;
+      border-color: var(--color-primary-ligter);
+      color: #fff;
+    }
+  }
+
+  &.ant-btn-sm {
+    font-size: 12px;
+    border-radius: 4px;
+  }
+}
+
+// Notification overrides (replacing el-notification)
+.ant-notification {
+  .ant-notification-notice {
+    background-color: var(--bg-dialog-color);
+    border: 1px solid var(--accent-border);
+    border-radius: 8px;
+
+    .ant-notification-notice-content {
+      color: var(--text-color-regular);
+    }
+
+    .ant-notification-notice-message {
+      color: var(--text-color-regular);
+      font-weight: 600;
+    }
+
+    .ant-notification-notice-description {
+      color: var(--text-color-regular);
+    }
+
+    &.ant-notification-notice-success {
+      .ant-notification-notice-icon {
+        color: var(--text-color-regular);
+      }
+    }
+  }
+}
+
+// Message overrides
+.ant-message {
+  .ant-message-notice-content {
+    background-color: var(--bg-dialog-color);
+    border: 1px solid var(--accent-border);
+    border-radius: 8px;
+    color: var(--text-color-regular);
+  }
+}
+
+// Input overrides
+.ant-input {
+  background-color: var(--input);
+  border-color: var(--input-border-color);
+  color: var(--text-color-regular);
+
+  &:focus,
+  &:hover {
+    border-color: var(--color-primary);
+  }
+
+  &:disabled {
+    background-color: var(--input-disabled);
+  }
+}
+
+.ant-input-affix-wrapper {
+  background-color: var(--input);
+  border-color: var(--input-border-color);
+
+  &:focus,
+  &:hover {
+    border-color: var(--color-primary);
+  }
+
+  .ant-input {
+    background-color: transparent;
+    border: none;
+    color: var(--text-color-regular);
+  }
+}
+
+// Radio overrides
+.ant-radio-group {
+  .ant-radio-button-wrapper {
+    background-color: var(--radio-bg-color);
+    border-color: var(--radio-border-color);
+    color: var(--text-color-regular);
+
+    &:hover {
+      color: var(--color-primary);
+    }
+
+    &.ant-radio-button-wrapper-checked {
+      background-color: var(--color-primary);
+      border-color: var(--color-primary);
+      color: #fff;
+
+      &:hover {
+        background-color: var(--color-primary-ligter);
+        border-color: var(--color-primary-ligter);
+      }
+    }
+  }
+}
+
+// Spin (loading) overrides
+.ant-spin {
+  .ant-spin-dot {
+    color: var(--color-primary);
+  }
+}
+
+.ant-spin-container {
+  &.ant-spin-blur {
+    &::after {
+      background-color: var(--input-disabled);
+      opacity: 0.5;
+    }
+  }
+}
+
+// Splitter overrides
+.ant-splitter {
+  background-color: transparent;
+
+  .ant-splitter-bar {
+    background-color: var(--accent-border);
+
+    &:hover {
+      background-color: var(--color-primary);
+    }
+  }
+}
+
+// Badge overrides
+.ant-badge {
+  .ant-badge-count {
+    background-color: var(--color-primary);
+    color: #fff;
+  }
+}
+
+// Tooltip overrides
+.ant-tooltip {
+  .ant-tooltip-inner {
+    background-color: var(--bg-dialog-color);
+    color: var(--text-color-regular);
+    border: 1px solid var(--accent-border);
+  }
+
+  .ant-tooltip-arrow {
+    &::before {
+      background-color: var(--bg-dialog-color);
+      border: 1px solid var(--accent-border);
+    }
+  }
+}
+
+// Custom button classes to maintain compatibility
+.btn-white {
+  background-color: var(--bg-btn-default);
+  border: none;
+  color: var(--text-color-regular);
+
+  &:hover {
+    background-color: var(--bg-btn-default-hover);
+    color: var(--text-color-regular);
+  }
+}
+
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  min-width: auto;
+
+  svg {
+    width: 18px;
+    height: auto;
+  }
+}
+
+.btn-border-github {
+  background-color: transparent;
+  border: 1px solid var(--btn-bordered-border-color);
+  border-radius: 4px;
+  color: var(--btn-bordered-text-color);
+  padding-left: 16px;
+  padding-right: 16px;
+
+  svg {
+    fill: var(--btn-bordered-text-color);
+  }
+
+  &:hover {
+    border-color: var(--btn-bordered-border-color-hover);
+    color: var(--btn-bordered-text-color);
+  }
+}
