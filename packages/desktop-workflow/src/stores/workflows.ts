@@ -80,6 +80,10 @@ const useWorkflowStore = defineStore('workflows', {
             this.getAll();
         },
         setSelectedWorkflow(workflow: any) {
+            // Prevent selecting the same workflow to avoid unnecessary re-initialization
+            if (this.selectedWorkflow && workflow && this.selectedWorkflow.technical_id === workflow.technical_id) {
+                return;
+            }
             this.selectedWorkflow = workflow;
         }
     },

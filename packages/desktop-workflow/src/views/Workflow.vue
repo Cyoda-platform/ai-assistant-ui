@@ -49,8 +49,13 @@ function updateWorkflow({ workflowMetaData, canvasData }: { workflowMetaData: an
 // Debounced version with 500ms delay using lodash
 const onUpdateWorkflow = debounce(updateWorkflow, 500);
 
-watch(selectedWorkflow, () => {
+watch(selectedWorkflow, (newWorkflow, oldWorkflow) => {
       if (!chatBotEditorWorkflowRef.value) return;
+      
+      // Prevent unnecessary updates when the same workflow is selected
+      if (newWorkflow && oldWorkflow && newWorkflow.technical_id === oldWorkflow.technical_id) {
+        return;
+      }
       
       if (selectedWorkflow.value) {
         try {
