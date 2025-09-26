@@ -76,7 +76,7 @@ const computedMessage = computed(() => {
 });
 
 const date = computed(() => {
-  return dayjs(props.message.last_modified).format('DD/MM/YYYY HH:mm:ss')
+  return dayjs(props.message.raw.last_modified).format('DD/MM/YYYY HH:mm:ss')
 })
 
 function onClickApproveQuestion() {
