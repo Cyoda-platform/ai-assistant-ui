@@ -218,9 +218,22 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     // Initialize undo/redo with current canvasData instead of empty string - moved after workflowMetaData declaration
     initialize(createSnapshot());
 
+    const skipNextAutoFit = ref(false);
+    const cancelAutoFit = ref(false);
+    const autoFitLocked = ref(false); // When true, block any automatic fit attempts until explicitly released
+    let pendingAutoFitTimeout: ReturnType<typeof setTimeout> | null = null;
+
     // Custom fitView that includes transition labels - with proper boundary calculation
     function fitViewIncludingTransitions(options: { padding?: number } = {}) {
         if (!vueFlowRef.value) return;
+
+        if (skipNextAutoFit.value) {
+            skipNextAutoFit.value = false;
+            return;
+        }
+        if (autoFitLocked.value) {
+            return;
+        }
 
         // Layout-specific padding to handle different arrangements
         let padding;
@@ -334,23 +347,38 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const centerY = paddedBounds.y + paddedBounds.height / 2;
 
         // Set viewport to fit all content without forced centering
-        setViewport({
-            x: -centerX * targetZoom + containerWidth / 2,
-            y: -centerY * targetZoom + containerHeight / 2,
-            zoom: targetZoom
-        });
+        setViewport({ x: -centerX * targetZoom + containerWidth / 2, y: -centerY * targetZoom + containerHeight / 2, zoom: targetZoom });
     }
 
     // Save and restore viewport (zoom and position)
     const saveViewport = () => {
         const viewport = getViewport();
         helperStorage.set(workflowViewportKey.value, viewport);
+        // Also persist inside workflowMetaData for per-workflow storage
+        try {
+            const currentMeta = (workflowMetaData.value || {}) as Record<string, any>;
+            // Avoid unnecessary deep copies; assign only if changed
+            if (!currentMeta.viewport || currentMeta.viewport.x !== viewport.x || currentMeta.viewport.y !== viewport.y || currentMeta.viewport.zoom !== viewport.zoom) {
+                workflowMetaData.value = {
+                    ...currentMeta,
+                    viewport: { ...viewport }
+                };
+            }
+        } catch (e) {
+            // Silent fail to avoid breaking viewport save
+        }
     };
 
     const restoreViewport = () => {
-        const savedViewport = helperStorage.get(workflowViewportKey.value, null);
+        const metaViewport = (workflowMetaData.value && (workflowMetaData.value as Record<string, unknown> & {viewport?: {x:number;y:number;zoom:number}}).viewport) || null;
+        const savedViewport = metaViewport || helperStorage.get(workflowViewportKey.value, null);
         if (savedViewport && vueFlowRef.value) {
-            // Instant restore without animation to prevent jerks
+            if (pendingAutoFitTimeout) {
+                clearTimeout(pendingAutoFitTimeout);
+                pendingAutoFitTimeout = null;
+            }
+            cancelAutoFit.value = true;
+            autoFitLocked.value = true; // lock further auto fits until user triggers layout/reset explicitly
             setViewport(savedViewport);
         }
     };
@@ -1962,6 +1990,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     async function resetTransform() {
         // Используем текущее направление layout вместо принудительного сброса
         const currentDirection = layoutDirection.value;
+        autoFitLocked.value = false; // Allow auto fit after explicit reset
 
         // Clear in-memory caches for initial positions/labels
         initialPositions.value = {};
@@ -2161,6 +2190,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         helperStorage.set(LAYOUT_DIRECTION, layoutDirection.value);
         // Also update the global app store setting
         appStore.setWorkflowLayout(layoutDirection.value);
+        autoFitLocked.value = false; // Allow auto fit after manual layout change
 
         const parsed = JSON.parse(canvasData.value);
         const states = parsed.states || {};
@@ -2246,16 +2276,16 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             // Using data from localStorage, skipping store data
         }
 
-        // Restore saved viewport after mounting
         nextTick(() => {
             if (['preview', 'editorPreview'].includes(editorMode.value)) {
-                const savedViewport = helperStorage.get(workflowViewportKey.value, null);
+                const metaViewport = (workflowMetaData.value && (workflowMetaData.value as Record<string, unknown> & {viewport?: {x:number;y:number;zoom:number}}).viewport) || null;
+                const savedViewport = metaViewport || helperStorage.get(workflowViewportKey.value, null);
                 if (savedViewport) {
                     restoreViewport();
                 } else {
-                    // If no saved viewport, apply our custom fitView with toolbar consideration
-                    setTimeout(() => {
-                        if (canvasData.value && canvasData.value.trim() !== '') {
+                    if (pendingAutoFitTimeout) clearTimeout(pendingAutoFitTimeout);
+                    pendingAutoFitTimeout = setTimeout(() => {
+                        if (!cancelAutoFit.value && !autoFitLocked.value && canvasData.value && canvasData.value.trim() !== '') {
                             fitViewIncludingTransitions({ padding: 50 });
                         }
                     }, 500);
@@ -2417,13 +2447,20 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     // Watch for technicalId changes to load corresponding chat data
     watch(() => props.technicalId, (newTechnicalId, oldTechnicalId) => {
         if (newTechnicalId !== oldTechnicalId) {
-            // Save current viewport before switching to new workflow using old technicalId
             if (oldTechnicalId && vueFlowRef.value) {
                 const viewport = getViewport();
+                // Legacy per-workflow viewport key
                 const oldWorkflowViewportKey = `chatBotEditorWorkflow:viewport:${oldTechnicalId}`;
                 helperStorage.set(oldWorkflowViewportKey, viewport);
+                // Also inject into old workflow metadata stored under its key
+                const oldMetaKey = `chatBotEditorWorkflow:metaData:${oldTechnicalId}`;
+                const oldMeta = helperStorage.get(oldMetaKey, null) || {};
+                if (!oldMeta.viewport || oldMeta.viewport.x !== viewport.x || oldMeta.viewport.y !== viewport.y || oldMeta.viewport.zoom !== viewport.zoom) {
+                    oldMeta.viewport = { ...viewport };
+                    helperStorage.set(oldMetaKey, oldMeta);
+                }
             }
-            
+
             loadDataForCurrentId();
             // Regenerate nodes after data loading and restore viewport for this workflow
             nextTick(() => {
