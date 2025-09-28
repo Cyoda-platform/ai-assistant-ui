@@ -105,10 +105,10 @@
                 placement="top" :show-after="500">
               <ControlButton @click="autoLayout">
                 <template v-if="layoutDirection==='horizontal'">
-                  <Icon name="vertical"/>
+                  <Icon name="horizontal"/>
                 </template>
                 <template v-else>
-                  <Icon name="horizontal"/>
+                  <Icon name="vertical"/>
                 </template>
               </ControlButton>
             </el-tooltip>
