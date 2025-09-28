@@ -126,7 +126,7 @@ export interface WorkflowEdge {
 export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: any, emit?: any) {
     const EDITOR_WIDTH = 'chatBotEditorWorkflow:width';
     const EDITOR_MODE = 'chatBotEditorWorkflow:editorMode';
-    // Removed obsolete layoutDirectionKey. Layout direction now exists only inside workflowMetaData.
+
 
     const appStore = useAppStore();
 
@@ -152,18 +152,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
         canvasData.value = canvasDataString || '';
         workflowMetaData.value = metaDataFromStorage || '';
-        // Apply layout direction strictly from metadata (no fallback to storage key)
-        const dir = workflowMetaData.value && workflowMetaData.value.layoutDirection;
-        if (dir === 'horizontal' || dir === 'vertical') {
-            layoutDirection.value = dir;
-        } else {
-            // If missing, set default vertical and persist into meta only once
-            workflowMetaData.value = {
-                ...(workflowMetaData.value || {}),
-                layoutDirection: layoutDirection.value
-            };
-            helperStorage.set(workflowMetaDataKey.value, workflowMetaData.value);
-        }
 
         // Reset loading flag after assignment
         isLoadingData = false;
@@ -180,8 +168,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     const canvasData = ref('');
     const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
     const editorMode = ref(helperStorage.get(EDITOR_MODE, 'editorPreview'));
-    // Layout direction lives only in workflowMetaData; default vertical until loadDataForCurrentId runs
-    const layoutDirection = ref<'horizontal' | 'vertical'>('vertical');
+    // Use global app store setting as primary source for layout direction
+    const layoutDirection = ref<'horizontal' | 'vertical'>(appStore.workflowLayout || 'vertical');
     const isLoading = ref(false);
     const editorActions = ref<EditorAction[]>([]);
 
@@ -395,7 +383,45 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
     };
 
-    // layoutDirection now fully managed inside loadDataForCurrentId via metadata only
+    // Initialize layoutDirection - will be properly set when workflowMetaData loads
+    // This will be updated when workflowMetaData changes via watcher below
+
+    // Watch for changes in workflowMetaData to set layoutDirection from workflow-specific metadata
+    watch(workflowMetaData, (newMetaData) => {
+        if (newMetaData && typeof newMetaData === 'object' && newMetaData.layoutDirection) {
+            const metaLayoutDirection = newMetaData.layoutDirection;
+            if (metaLayoutDirection === 'horizontal' || metaLayoutDirection === 'vertical') {
+                layoutDirection.value = metaLayoutDirection;
+            }
+        } else if (newMetaData !== null && (!newMetaData || typeof newMetaData !== 'object' || !newMetaData.layoutDirection)) {
+            // For new workflows or workflows without saved layout direction, use app store setting
+            layoutDirection.value = appStore.workflowLayout || 'vertical';
+            
+            // Save the layout direction to metadata
+            if (typeof newMetaData === 'object') {
+                workflowMetaData.value = {
+                    ...(newMetaData || {}),
+                    layoutDirection: layoutDirection.value
+                };
+                helperStorage.set(workflowMetaDataKey.value, workflowMetaData.value);
+            }
+        }
+    }, { immediate: true });
+
+    // Watch for changes in app store layout direction and apply only to workflows without saved layout
+    watch(() => appStore.workflowLayout, (newLayout) => {
+        // Only apply global setting change if this workflow doesn't have its own saved layout direction
+        const currentMetaLayoutDirection = workflowMetaData.value?.layoutDirection;
+        if (!currentMetaLayoutDirection) {
+            layoutDirection.value = newLayout;
+            // Update workflow metadata to save the new layout direction
+            workflowMetaData.value = {
+                ...(workflowMetaData.value || {}),
+                layoutDirection: newLayout
+            };
+            helperStorage.set(workflowMetaDataKey.value, workflowMetaData.value);
+        }
+    });
 
     const initialPositions = ref<{ [key: string]: NodePosition }>({});
     const initialTransitionLabels = ref<{ [key: string]: { x: number; y: number } }>({});
@@ -722,10 +748,19 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         const needFreshLayout = !hasExistingPositions || layoutDirectionChanged || isCompleteReplacement || stateCountChanged;
 
         // Mark metadata as using Dagre if not already marked, but don't force layout reset
+        // Also ensure layoutDirection is always saved in metadata
         if (hasExistingPositions && !meta.usingDagre && !needFreshLayout) {
             workflowMetaData.value = {
                 ...(workflowMetaData.value || {}),
-                usingDagre: true
+                usingDagre: true,
+                layoutDirection: layoutDirection.value
+            };
+            helperStorage.set(workflowMetaDataKey.value, workflowMetaData.value);
+        } else if (!needFreshLayout && (!meta.layoutDirection || meta.layoutDirection !== layoutDirection.value)) {
+            // Ensure layoutDirection is saved even when no fresh layout is needed
+            workflowMetaData.value = {
+                ...(workflowMetaData.value || {}),
+                layoutDirection: layoutDirection.value
             };
             helperStorage.set(workflowMetaDataKey.value, workflowMetaData.value);
         }
@@ -2182,12 +2217,9 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     }
 
     async function autoLayout() {
+        // Toggle direction on each autoLayout call - this is workflow-specific
         layoutDirection.value = layoutDirection.value === 'horizontal' ? 'vertical' : 'horizontal';
-        workflowMetaData.value = {
-            ...(workflowMetaData.value || {}),
-            layoutDirection: layoutDirection.value
-        };
-        helperStorage.set(workflowMetaDataKey.value, workflowMetaData.value);
+        // Direction will be saved in workflow metadata below, don't use global LAYOUT_DIRECTION
         autoFitLocked.value = false; // Allow auto fit after manual layout change
 
         const parsed = JSON.parse(canvasData.value);
