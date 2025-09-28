@@ -20,6 +20,38 @@
   .mtk5, .mtk7 {
     color: var(--text-color-regular) !important;
   }
+
+  .monaco-editor .selected-text {
+    background-color: rgba(13, 132, 132, 0.3) !important;
+  }
+
+  .monaco-editor .selectionHighlight {
+    background-color: rgba(13, 132, 132, 0.3) !important;
+  }
+
+  .monaco-editor .findMatch {
+    background-color: rgba(13, 132, 132, 0.2) !important;
+  }
+
+  .monaco-editor .currentFindMatch {
+    background-color: rgba(13, 132, 132, 0.3) !important;
+  }
+
+  .monaco-editor .wordHighlight {
+    background-color: rgba(13, 132, 132, 0.08) !important;
+  }
+
+  .monaco-editor .wordHighlightStrong {
+    background-color: rgba(13, 132, 132, 0.12) !important;
+  }
+
+  .monaco-editor .range-highlight {
+    background-color: rgba(13, 132, 132, 0.05) !important;
+  }
+
+  .monaco-editor .bracket-match {
+    background-color: rgba(13, 132, 132, 0.3) !important;
+  }
 }
 
 .decorationsOverviewRuler {

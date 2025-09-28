@@ -146,7 +146,6 @@ defineExpose({editor});
     display: none;
   }
 
-  // Исправляем проблему с лишним пространством
   .monaco-editor .overflow-guard {
     overflow: hidden;
   }
