@@ -126,7 +126,7 @@ export interface WorkflowEdge {
 export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: any, emit?: any) {
     const EDITOR_WIDTH = 'chatBotEditorWorkflow:width';
     const EDITOR_MODE = 'chatBotEditorWorkflow:editorMode';
-    const layoutDirectionKey = computed(() => `chatBotEditorWorkflow:layoutDirection:${props.technicalId}`); // Per-workflow layout direction key (previously global). This prevents changing one workflow from affecting others.
+    // Removed obsolete layoutDirectionKey. Layout direction now exists only inside workflowMetaData.
 
     const appStore = useAppStore();
 

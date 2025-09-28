@@ -56,7 +56,11 @@
 import {ref, onMounted, onBeforeUnmount, computed} from 'vue';
 import {ElMessage, type FormInstance, type FormRules} from 'element-plus';
 import HelperStorageElectron from '../../helpers/HelperStorageElectron';
-import {MENU_WORKFLOW_CHAT_LIST, RENAME_WORKFLOW_START} from '../../helpers/HelperConstantsElectron';
+import {
+  MENU_WORKFLOW_CHAT_LIST,
+  RENAME_WORKFLOW_START,
+  WORKFLOW_EDITOR_REMOUNT
+} from '../../helpers/HelperConstantsElectron';
 import eventBus from "@/plugins/eventBus";
 import useWorkflowStore from "../../stores/workflows";
 
@@ -73,7 +77,13 @@ const formRef = ref<FormInstance>();
 const loading = ref(false);
 const dialogVisible = ref(false);
 
-const formDataDefault = {
+interface WorkflowFormData {
+  technical_id: string | null;
+  name: string;
+  description: string;
+}
+
+const formDataDefault: WorkflowFormData = {
   technical_id: null,
   name: '',
   description: '',
@@ -97,7 +107,7 @@ onBeforeUnmount(() => {
 })
 
 
-function openDialog(data) {
+function openDialog(data: { technical_id: string; name: string; description: string }) {
   dialogVisible.value = true;
   formData.value = {
     technical_id: data.technical_id,
@@ -133,7 +143,9 @@ const handleSubmit = async () => {
     } else {
       const newWorkflow = await workflowStore.createWorkflow(formData.value);
       workflowStore.setSelectedWorkflow(newWorkflow);
-      // Emit events
+      // Force editor remount so VueFlow state is pristine for brand new workflow
+      eventBus.$emit(WORKFLOW_EDITOR_REMOUNT, {technical_id: newWorkflow.technical_id});
+
       ElMessage.success(`Workflow "${formData.value.name}" created successfully`);
     }
     handleClose();
