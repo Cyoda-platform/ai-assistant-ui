@@ -105,10 +105,10 @@
                 placement="top" :show-after="500">
               <ControlButton @click="autoLayout">
                 <template v-if="layoutDirection==='horizontal'">
-                  <Icon name="vertical"/>
+                  <Icon name="horizontal"/>
                 </template>
                 <template v-else>
-                  <Icon name="horizontal"/>
+                  <Icon name="vertical"/>
                 </template>
               </ControlButton>
             </el-tooltip>
@@ -173,6 +173,9 @@ const emit = defineEmits(['answer', 'update']);
 const workflowMetaDialogRef = useTemplateRef('workflowMetaDialogRef');
 const assistantStore = useAssistantStore();
 
+// Draggable state
+const isDraggable = ref(true);
+
 const {
   canvasData,
   editorSize,
@@ -202,15 +205,12 @@ const {
   redoAction,
   isDraggingConnection,
   onSubmitQuestion,
-} = useWorkflowEditor(props, assistantStore, emit);
+} = useWorkflowEditor(props, assistantStore, emit, isDraggable);
 
 const {zoomIn, zoomOut, getViewport} = useVueFlow();
 
 // Template ref for VueFlow
 const vueFlowRef = ref();
-
-// Draggable state
-const isDraggable = ref(true);
 
 // Help dialog state
 const isHelpDialogVisible = ref(false);
@@ -221,6 +221,10 @@ const selectedNodes = ref(new Set<string>());
 
 // Handle double click on pane to add new state at click position
 const handlePaneDoubleClick = (event: MouseEvent) => {
+  if (!isDraggable.value) {
+    return;
+  }
+  
   // Prevent adding state if clicking on nodes, edges, transitions, or controls
   const target = event.target as HTMLElement;
   if (target.closest('.vue-flow__node') ||

@@ -1,14 +1,18 @@
-.el-table th.el-table__cell, .el-table tr, .el-table--border .el-table__inner-wrapper:after, .el-table--border:after, .el-table--border:before, .el-table__inner-wrapper:before{
+.el-table th.el-table__cell, .el-table tr, .el-table--border .el-table__inner-wrapper:after, .el-table--border:after, .el-table--border:before, .el-table__inner-wrapper:before {
   background-color: var(--bubble-notification-bg-color);
   color: var(--text-color-regular);
 }
 
-.el-table td.el-table__cell, .el-table th.el-table__cell.is-leaf{
+.el-table td.el-table__cell, .el-table th.el-table__cell.is-leaf {
   border-bottom-color: var(--input-border-color);
 }
 
-.el-table--enable-row-hover .el-table__body tr:hover>td.el-table__cell {
+.el-table--enable-row-hover .el-table__body tr:hover > td.el-table__cell {
   background-color: var(--bubble-question-bg-color);
+}
+
+.el-table__empty-block {
+  background-color: var(--bubble-notification-bg-color);
 }
 
 .markdown-table-wrap {

@@ -1,9 +1,10 @@
 <template>
   <div
-      class="workflow-node"
+      class="workflow-node nopan"
       :class="[nodeTypeClass, {
       'dimmed': shouldDimNode(nodeId),
-      'selected': isSelected
+      'selected': isSelected,
+      'no-draggable': !isDraggable
     }]"
       :style="nodeStyle"
       ref="nodeRef"
@@ -108,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref, onMounted, onUnmounted, nextTick} from 'vue'
+import {computed, ref, onMounted, onUnmounted, nextTick, inject, type Ref} from 'vue'
 import {Handle, Position} from '@vue-flow/core'
 import {ElMessageBox, ElInput} from 'element-plus'
 import {useDropdownManager} from './composables/useDropdownManager'
@@ -133,6 +134,8 @@ const props = defineProps<{
   data: NodeData,
 }>()
 
+const isDraggable = inject<Ref<boolean>>('isDraggable', ref(true))
+
 const nodeRef = ref()
 
 const nodeId = computed(() => props.data.label || 'unknown')
@@ -146,7 +149,7 @@ const {
 
 // Selection state
 const isSelected = ref(false)
-const isDragging = ref(false) // Флаг для отслеживания перетаскивания
+const isDragging = ref(false)
 
 // Inline editing state
 const isEditing = ref(false)
@@ -227,6 +230,10 @@ const deleteState = async () => {
 
 // Inline editing methods
 const startInlineEdit = () => {
+  if (!isDraggable.value) {
+    return
+  }
+
   if (isEditing.value) return
 
   isEditing.value = true
@@ -275,11 +282,14 @@ const onNodeActualClick = () => {
   if (isDragging.value) {
     return;
   }
-  
+
   // Убираем stopPropagation чтобы не блокировать Vue Flow события
 };
 
 const onNodeClick = (event: MouseEvent) => {
+  if (!isDraggable.value) {
+    return;
+  }
   const target = event.target as HTMLElement;
   if (target.closest('button')) {
     event.stopPropagation();
@@ -289,25 +299,25 @@ const onNodeClick = (event: MouseEvent) => {
   // Полностью убираем stopPropagation для Vue Flow перетаскивания
 
   isDragging.value = false;
-  
+
   if (isSelected.value) {
     return;
   }
-  
+
   eventBus.$emit('node-selection-exclusive', nodeId.value);
   isSelected.value = true;
-  
+
   // Добавляем слушатель движения мыши для отслеживания перетаскивания
   const handleMouseMove = () => {
     if (!isDragging.value) {
       isDragging.value = true;
     }
   };
-  
+
   const handleMouseUp = () => {
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
-    
+
     // Сбрасываем флаг через короткую задержку, чтобы click успел его проверить
     setTimeout(() => {
       if (isDragging.value) {
@@ -315,7 +325,7 @@ const onNodeClick = (event: MouseEvent) => {
       }
     }, 10);
   };
-  
+
   document.addEventListener('mousemove', handleMouseMove);
   document.addEventListener('mouseup', handleMouseUp);
 }
@@ -342,6 +352,15 @@ const onNodeClick = (event: MouseEvent) => {
 
   &.selected {
     background-color: #409eff !important;
+  }
+
+  &.no-draggable, &.no-draggable * {
+    cursor: default !important;
+    text-decoration: none !important;
+  }
+
+  &.no-draggable .connection-handle {
+    display: none;
   }
 }
 
@@ -456,7 +475,6 @@ const onNodeClick = (event: MouseEvent) => {
     }
   }
 }
-
 
 
 .node-footer {

@@ -2,18 +2,17 @@
   <div class="wrap-workflow">
     <Header/>
     <template v-if="selectedWorkflow">
-      <ChatBotEditorWorkflow @update="onUpdateWorkflow" ref="chatBotEditorWorkflowRef" :technicalId="selectedWorkflow.technical_id"/>
+      <ChatBotEditorWorkflow
+          :key="editorComponentKey"
+          @update="onUpdateWorkflow"
+          ref="chatBotEditorWorkflowRef"
+          :technicalId="selectedWorkflow.technical_id"/>
     </template>
     <template v-else>
       <div class="wrap-workflow__empty-state">
         <div class="wrap-workflow__empty-state-content">
-          <h2 class="wrap-workflow__empty-state-title">
-            No Workflow Selected
-          </h2>
-          <p class="wrap-workflow__empty-state-message">
-            Choose an existing workflow from the sidebar or create a new one to get started with your automation
-            journey.
-          </p>
+          <h2 class="wrap-workflow__empty-state-title">No Workflow Selected</h2>
+          <p class="wrap-workflow__empty-state-message">Choose an existing workflow from the sidebar or create a new one to get started with your automation journey.</p>
         </div>
       </div>
     </template>
@@ -24,11 +23,14 @@
 import ChatBotEditorWorkflow from "@/components/ChatBot/ChatBotEditorWorkflow.vue";
 import Header from "../components/Header.vue";
 import useWorkflowStore from "../stores/workflows";
-import { computed, useTemplateRef, watch } from "vue";
+import { computed, useTemplateRef, watch, ref, onMounted, onBeforeUnmount } from "vue";
 import { debounce } from "lodash";
+import eventBus from "@/plugins/eventBus";
+import { WORKFLOW_EDITOR_REMOUNT } from "../helpers/HelperConstantsElectron";
 
 const workflowStore = useWorkflowStore();
 const chatBotEditorWorkflowRef = useTemplateRef('chatBotEditorWorkflowRef');
+const editorComponentKey = ref(0);
 
 const selectedWorkflow = computed(() => {
   return workflowStore.selectedWorkflow;
@@ -49,20 +51,48 @@ function updateWorkflow({ workflowMetaData, canvasData }: { workflowMetaData: an
 // Debounced version with 500ms delay using lodash
 const onUpdateWorkflow = debounce(updateWorkflow, 500);
 
-watch(selectedWorkflow, () => {
+watch(selectedWorkflow, (newWorkflow, oldWorkflow) => {
       if (!chatBotEditorWorkflowRef.value) return;
       
+      // Prevent unnecessary updates when the same workflow is selected
+      if (newWorkflow && oldWorkflow && newWorkflow.technical_id === oldWorkflow.technical_id) {
+        return;
+      }
+      
       if (selectedWorkflow.value) {
-        chatBotEditorWorkflowRef.value.workflowMetaData = selectedWorkflow.value.workflowMetaData;
-        chatBotEditorWorkflowRef.value.canvasData = selectedWorkflow.value.canvasData;
+        try {
+          chatBotEditorWorkflowRef.value.workflowMetaData = typeof selectedWorkflow.value.workflowMetaData === 'string' 
+            ? JSON.parse(selectedWorkflow.value.workflowMetaData || '{}') 
+            : selectedWorkflow.value.workflowMetaData || {};
+          
+          chatBotEditorWorkflowRef.value.canvasData = typeof selectedWorkflow.value.canvasData === 'string' 
+            ? JSON.parse(selectedWorkflow.value.canvasData || '""') 
+            : selectedWorkflow.value.canvasData || '';
+        } catch (error) {
+          chatBotEditorWorkflowRef.value.workflowMetaData = {};
+          chatBotEditorWorkflowRef.value.canvasData = '';
+        }
       } else {
-        chatBotEditorWorkflowRef.value.workflowMetaData = '';
+        chatBotEditorWorkflowRef.value.workflowMetaData = {};
         chatBotEditorWorkflowRef.value.canvasData = '';
       }
     }, {
       immediate: true
     }
 )
+
+function handleRemount() {
+  // Increment key to force full component remount (fresh internal state)
+  editorComponentKey.value += 1;
+}
+
+onMounted(() => {
+  eventBus.$on(WORKFLOW_EDITOR_REMOUNT, handleRemount);
+});
+
+onBeforeUnmount(() => {
+  eventBus.$off(WORKFLOW_EDITOR_REMOUNT, handleRemount);
+});
 </script>
 
 <style scoped lang="scss">

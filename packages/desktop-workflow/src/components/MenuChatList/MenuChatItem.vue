@@ -114,6 +114,10 @@ function onClickDelete() {
 }
 
 function onClickWorkflow(workflow) {
+  // Prevent unnecessary calls when the same workflow is already selected
+  if (selectedWorkflow.value && selectedWorkflow.value.technical_id === workflow.technical_id) {
+    return;
+  }
   workflowStore.setSelectedWorkflow(workflow)
 }
 
