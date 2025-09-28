@@ -24,7 +24,6 @@
       <el-splitter-panel v-if="isShowVueFlow" class="chat-bot-editor-workflow__flow-wrapper">
         <VueFlow
             ref="vueFlowRef"
-            noPanClassName="nopan"
             :delete-key-code="null"
             class="chat-bot-editor-workflow__vue-flow"
             :class="{ 'connection-dragging': isDraggingConnection }"
