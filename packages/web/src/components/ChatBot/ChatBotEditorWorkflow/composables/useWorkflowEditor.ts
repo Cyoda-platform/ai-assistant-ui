@@ -153,6 +153,15 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         canvasData.value = canvasDataString || '';
         workflowMetaData.value = metaDataFromStorage || '';
 
+        if (metaDataFromStorage && typeof metaDataFromStorage === 'object') {
+            const dir = (metaDataFromStorage as { layoutDirection?: 'horizontal' | 'vertical' }).layoutDirection;
+            if (dir === 'horizontal' || dir === 'vertical') {
+                layoutDirection.value = dir;
+                helperStorage.set(LAYOUT_DIRECTION, dir);
+                appStore.setWorkflowLayout(dir);
+            }
+        }
+
         // Reset loading flag after assignment
         isLoadingData = false;
 
@@ -383,20 +392,24 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
     };
 
-    // Initialize layoutDirection from metadata, if available
-    const metaLayoutDirection = workflowMetaData.value?.layoutDirection;
-    if (metaLayoutDirection && (metaLayoutDirection === 'horizontal' || metaLayoutDirection === 'vertical')) {
-        layoutDirection.value = metaLayoutDirection;
-        helperStorage.set(LAYOUT_DIRECTION, metaLayoutDirection);
-        // Also sync with app store
-        appStore.setWorkflowLayout(metaLayoutDirection);
-    }
+    // layoutDirection is restored inside loadDataForCurrentId from metadata
 
     // Watch for changes in app store layout direction and sync with local state
     watch(() => appStore.workflowLayout, (newLayout) => {
-        if (layoutDirection.value !== newLayout) {
-            layoutDirection.value = newLayout;
-            helperStorage.set(LAYOUT_DIRECTION, newLayout);
+        if (newLayout === 'horizontal' || newLayout === 'vertical') {
+            if (layoutDirection.value !== newLayout) {
+                layoutDirection.value = newLayout;
+                helperStorage.set(LAYOUT_DIRECTION, newLayout);
+                workflowMetaData.value = {
+                    ...(workflowMetaData.value || {}),
+                    layoutDirection: newLayout
+                };
+            } else if (!workflowMetaData.value?.layoutDirection) {
+                workflowMetaData.value = {
+                    ...(workflowMetaData.value || {}),
+                    layoutDirection: newLayout
+                };
+            }
         }
     });
 
