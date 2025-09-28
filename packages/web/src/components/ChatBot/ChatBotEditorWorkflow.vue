@@ -173,6 +173,9 @@ const emit = defineEmits(['answer', 'update']);
 const workflowMetaDialogRef = useTemplateRef('workflowMetaDialogRef');
 const assistantStore = useAssistantStore();
 
+// Draggable state
+const isDraggable = ref(true);
+
 const {
   canvasData,
   editorSize,
@@ -202,15 +205,12 @@ const {
   redoAction,
   isDraggingConnection,
   onSubmitQuestion,
-} = useWorkflowEditor(props, assistantStore, emit);
+} = useWorkflowEditor(props, assistantStore, emit, isDraggable);
 
 const {zoomIn, zoomOut, getViewport} = useVueFlow();
 
 // Template ref for VueFlow
 const vueFlowRef = ref();
-
-// Draggable state
-const isDraggable = ref(true);
 
 // Help dialog state
 const isHelpDialogVisible = ref(false);

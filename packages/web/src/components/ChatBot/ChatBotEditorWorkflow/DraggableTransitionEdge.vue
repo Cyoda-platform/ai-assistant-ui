@@ -112,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref, onMounted, onUnmounted, watch} from 'vue'
+import {computed, ref, onMounted, onUnmounted, watch, inject, type Ref} from 'vue'
 import {EdgeProps, useVueFlow} from '@vue-flow/core'
 import {useTransitionHighlight} from './composables/useTransitionHighlight'
 import {ElMessageBox} from 'element-plus'
@@ -174,6 +174,8 @@ interface CustomEdgeData {
 }
 
 const props = defineProps<EdgeProps<CustomEdgeData>>()
+
+const isDraggable = inject<Ref<boolean>>('isDraggable', ref(true))
 
 const {viewport} = useVueFlow()
 
@@ -611,6 +613,10 @@ function onLabelMouseDown(event: MouseEvent) {
 }
 
 function startDrag(event: MouseEvent) {
+  if (!isDraggable.value) {
+    return
+  }
+
   isDragging.value = true
   hasMoved.value = false
 
@@ -731,6 +737,10 @@ function startTargetDrag(event: MouseEvent) {
 }
 
 function startEdgeDrag(event: MouseEvent) {
+  if (!isDraggable.value) {
+    return
+  }
+
   isDraggingTransition.value = true
 
   const svgElement = (event.target as Element)?.closest('svg') as SVGSVGElement
