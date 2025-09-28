@@ -5,7 +5,8 @@
       'dimmed': shouldDimEdge,
       'highlighted': isHighlighted,
       'dragging': isDragging,
-      'dragging-transition': isDraggingTransition
+      'dragging-transition': isDraggingTransition,
+      'no-draggable': !isDraggable
     }"
   @mouseenter="handleEdgeMouseEnter"
   @mouseleave="handleEdgeMouseLeave"
@@ -868,6 +869,11 @@ function endTransitionDrag(event: MouseEvent) {
 <style scoped>
 .draggable-transition-edge {
   cursor: default;
+
+  &.no-draggable, &.no-draggable * {
+    cursor: default !important;
+    text-decoration: none !important;
+  }
 }
 
 .draggable-transition-edge.dimmed {
