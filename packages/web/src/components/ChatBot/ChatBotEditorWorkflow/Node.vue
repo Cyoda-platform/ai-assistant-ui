@@ -80,7 +80,7 @@
             @keyup.enter="finishEdit"
             @keyup.escape="cancelEdit"
             size="small"
-            class="inline-edit-input"
+            class="inline-edit-input nodrag"
             ref="editInput"
         />
       </div>
@@ -94,7 +94,7 @@
             <CheckIcon/>
           </button>
           <button
-              @click="cancelEdit"
+              @mousedown.prevent="cancelEdit"
               class="cancel-edit-btn"
               title="Cancel editing"
           >
@@ -154,6 +154,8 @@ const isDragging = ref(false)
 // Inline editing state
 const isEditing = ref(false)
 const editingName = ref('')
+const originalName = ref('')
+const isCancelling = ref(false)
 const editInput = ref()
 
 const handleDocumentClick = (event: Event) => {
@@ -236,7 +238,9 @@ const startInlineEdit = () => {
 
   if (isEditing.value) return
 
+  isCancelling.value = false
   isEditing.value = true
+  originalName.value = props.data.label
   editingName.value = props.data.label
 
   nextTick(() => {
@@ -247,7 +251,7 @@ const startInlineEdit = () => {
 }
 
 const finishEdit = () => {
-  if (!isEditing.value) return
+  if (!isEditing.value || isCancelling.value) return
 
   const newName = editingName.value.trim()
 
@@ -271,11 +275,20 @@ const finishEdit = () => {
 
   isEditing.value = false
   editingName.value = ''
+  originalName.value = ''
+  isCancelling.value = false
 }
 
 const cancelEdit = () => {
+  isCancelling.value = true
   isEditing.value = false
-  editingName.value = ''
+  editingName.value = originalName.value
+  originalName.value = ''
+  
+  // Reset cancelling flag after a brief delay
+  nextTick(() => {
+    isCancelling.value = false
+  })
 }
 
 const onNodeActualClick = () => {
