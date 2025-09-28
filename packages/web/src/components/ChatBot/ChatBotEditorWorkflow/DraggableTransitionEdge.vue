@@ -702,6 +702,10 @@ function deleteEdge() {
 }
 
 function editTransition() {
+  if (!isDraggable.value) {
+    return
+  }
+  
   eventBus.$emit('get-transition-data', {
     stateName: props.source,
     transitionName: originalTransitionName.value,

@@ -108,7 +108,7 @@
 </template>
 
 <script setup lang="ts">
-import {computed, ref, onMounted, onUnmounted, nextTick} from 'vue'
+import {computed, ref, onMounted, onUnmounted, nextTick, inject, type Ref} from 'vue'
 import {Handle, Position} from '@vue-flow/core'
 import {ElMessageBox, ElInput} from 'element-plus'
 import {useDropdownManager} from './composables/useDropdownManager'
@@ -132,6 +132,8 @@ interface NodeData {
 const props = defineProps<{
   data: NodeData,
 }>()
+
+const isDraggable = inject<Ref<boolean>>('isDraggable', ref(true))
 
 const nodeRef = ref()
 
@@ -227,6 +229,10 @@ const deleteState = async () => {
 
 // Inline editing methods
 const startInlineEdit = () => {
+  if (!isDraggable.value) {
+    return
+  }
+  
   if (isEditing.value) return
 
   isEditing.value = true

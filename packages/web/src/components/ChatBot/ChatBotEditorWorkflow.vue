@@ -221,6 +221,10 @@ const selectedNodes = ref(new Set<string>());
 
 // Handle double click on pane to add new state at click position
 const handlePaneDoubleClick = (event: MouseEvent) => {
+  if (!isDraggable.value) {
+    return;
+  }
+  
   // Prevent adding state if clicking on nodes, edges, transitions, or controls
   const target = event.target as HTMLElement;
   if (target.closest('.vue-flow__node') ||
