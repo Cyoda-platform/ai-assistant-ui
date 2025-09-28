@@ -2071,22 +2071,26 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         try {
             // Парсим текущие данные один раз для получения списка существующих состояний
             let parsed: WorkflowData;
+            let wasEmpty = false;
             try {
                 if (!canvasData.value || canvasData.value.trim() === '' || canvasData.value.trim() === '{}') {
                     parsed = {
                         states: {}
                     };
+                    wasEmpty = true;
                 } else {
                     parsed = JSON.parse(canvasData.value);
                     if (!parsed.states) {
                         parsed.states = {};
                     }
+                    wasEmpty = Object.keys(parsed.states).length === 0;
                 }
             } catch (e) {
                 console.error('Invalid JSON in canvasData:', e);
                 parsed = {
                     states: {}
                 };
+                wasEmpty = true;
             }
 
             const {value: stateName} = await ElMessageBox.prompt('Enter state name:', 'Add New State', {
@@ -2171,9 +2175,17 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             // Regenerate nodes to include the new state without triggering fitView
             generateNodes({ skipFitView: true });
 
-            // Restore viewport after node generation
+            // If editor was empty, fit to view; otherwise restore viewport
             nextTick(() => {
-                setViewport(currentViewport);
+                if (wasEmpty) {
+                    // First node added to empty editor - fit to view
+                    setTimeout(() => {
+                        fitViewIncludingTransitions({ padding: 50 });
+                    }, 100);
+                } else {
+                    // Restore viewport after node generation
+                    setViewport(currentViewport);
+                }
                 // Reset flag after watcher has had time to process (400ms > 300ms debounce)
                 setTimeout(() => {
                     isAddingNewState = false;
