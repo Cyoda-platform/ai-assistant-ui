@@ -1,6 +1,6 @@
 <template>
   <div
-      class="workflow-node"
+      class="workflow-node nopan"
       :class="[nodeTypeClass, {
       'dimmed': shouldDimNode(nodeId),
       'selected': isSelected
