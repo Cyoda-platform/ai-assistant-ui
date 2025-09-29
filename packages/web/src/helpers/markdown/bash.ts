@@ -1,5 +1,4 @@
 import {v4 as uuidv4} from "uuid";
-import {nextTick} from "vue";
 import markdownActions from "./actions";
 
 export function renderBash(text, raw) {
@@ -15,7 +14,8 @@ export function renderBash(text, raw) {
     </div>
   `;
 
-  nextTick(async () => {
+  // Use setTimeout to defer execution similar to nextTick
+  setTimeout(async () => {
     const element = document.getElementById(id);
     if (!element) return;
     markdownActions(element, text);

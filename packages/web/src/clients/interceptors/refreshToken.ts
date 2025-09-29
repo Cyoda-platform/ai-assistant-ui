@@ -1,6 +1,6 @@
 import type {AxiosError, AxiosInstance} from "axios";
 import HelperStorage from "@/helpers/HelperStorage.ts";
-import useAuthStore from "@/stores/auth.ts";
+import { useAuthStore } from "@/stores/auth.ts";
 import type {Auth} from "@/types/auth";
 
 let refreshAccessTokenPromise: Promise<void> | null = null;
@@ -8,7 +8,8 @@ const helperStorage = new HelperStorage();
 
 const handleLogoutAndRedirect = () => {
     debugger;
-    const authStore = useAuthStore();
+    // Use getState() instead of the hook to avoid hook call outside component
+    const authStore = useAuthStore.getState();
     authStore.logout();
 
     if (import.meta.env.VITE_IS_ELECTRON && window.electronAPI?.reloadMainWindow) {
@@ -24,7 +25,8 @@ const refreshToken = (instance: AxiosInstance): void => {
         async (error: AxiosError) => {
             const response = error.response;
             const originalConfig = error.config;
-            const authStore = useAuthStore();
+            // Use getState() instead of the hook to avoid hook call outside component
+            const authStore = useAuthStore.getState();
             let autoLogoutTimeout = null;
 
             if (

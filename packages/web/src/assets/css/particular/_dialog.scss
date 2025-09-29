@@ -1,28 +1,35 @@
-.el-dialog {
+// Dialog styles - now handled by Ant Design Modal overrides in _antd-overrides.scss
+// This file is kept for any custom dialog-related styles not covered by Ant Design
+
+// Custom dialog wrapper classes for specific use cases
+.dialog-wrapper {
+  .ant-modal {
+    // Additional custom styles can be added here if needed
+  }
+}
+
+// Legacy dialog styles for any remaining custom dialogs
+.custom-dialog {
   border: 1px solid var(--accent-border);
   border-radius: 8px;
   background-color: var(--bg-dialog-color);
 
-  &__title {
+  .dialog-title {
     color: var(--color-dialog-title);
     font-weight: 600;
     font-size: 20px;
   }
 
-  &.is-fullscreen {
-    border: none;
-  }
-}
+  .dialog-close {
+    width: 20px;
+    height: 20px;
+    background-color: var(--bg-dialog-close-color);
+    border-radius: 3px;
+    color: #FFFFFF !important;
+    transition: all 0.3s;
 
-.el-dialog__close {
-  width: 20px;
-  height: 20px;
-  background-color: var(--bg-dialog-close-color);
-  border-radius: 3px;
-  color: #FFFFFF !important;
-  transition: all 0.3s;
-
-  &:hover {
-    opacity: 0.8;
+    &:hover {
+      opacity: 0.8;
+    }
   }
 }

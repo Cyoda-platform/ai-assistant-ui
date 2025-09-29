@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import HelperStorage from "../helpers/HelperStorage";
 import privateClient from "@/clients/private";
+import publicClient from "@/clients/public";
 import type { Auth } from "@/types/auth";
 import { getToken } from "../helpers/HelperAuth";
 
@@ -87,7 +88,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   async getGuestToken() {
-    const { data } = await privateClient.get("/v1/get_guest_token");
+    // Use publicClient to avoid circular dependency with JWT interceptor
+    const { data } = await publicClient.get("/v1/get_guest_token");
     get().saveData({ token: data.access_token, tokenType: 'public' });
     return data.access_token;
   },

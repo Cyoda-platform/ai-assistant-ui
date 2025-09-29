@@ -24,6 +24,8 @@ interface ChatBotProps {
   disabled: boolean;
   messages: Message[];
   technicalId: string;
+  chatData?: any;
+  canvasVisible?: boolean;
   onAnswer: (data: { answer: string; file?: File }) => void;
   onApproveQuestion: (data: any) => void;
   onUpdateNotification: (data: any) => void;
@@ -35,6 +37,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
   disabled,
   messages,
   technicalId,
+  chatData,
+  canvasVisible = false,
   onAnswer,
   onApproveQuestion,
   onUpdateNotification,
@@ -105,7 +109,11 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
   return (
     <div className="chat-bot">
-      <ChatBotTopActions onToggleCanvas={onToggleCanvas}>
+      <ChatBotTopActions
+        onToggleCanvas={onToggleCanvas}
+        chatData={chatData}
+        canvasVisible={canvasVisible}
+      >
         <ChatBotName technicalId={technicalId} />
       </ChatBotTopActions>
 
@@ -114,8 +122,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
           <div className="chat-bot__inner-messages">
             {messages.map((message, index) => (
               <Row key={index}>
-                <Col 
-                  className="chat-bot__inner-messages-col" 
+                <Col
+                  className="chat-bot__inner-messages-col"
                   offset={getOffset(message.type)}
                   span={getSpan(message.type)}
                 >
@@ -124,15 +132,15 @@ const ChatBot: React.FC<ChatBotProps> = ({
               </Row>
             ))}
             {isLoading && <ChatLoader />}
-            <div 
-              ref={chatBotPlaceholderRef} 
-              className="chat-bot__placeholder" 
+            <div
+              ref={chatBotPlaceholderRef}
+              className="chat-bot__placeholder"
               style={{ minHeight: `${chatBotPlaceholderHeight}px` }}
             />
           </div>
           <div className="chat-bot__form">
-            <ChatBotSubmitForm 
-              disabled={disabled} 
+            <ChatBotSubmitForm
+              disabled={disabled}
               onAnswer={onAnswer}
             />
           </div>

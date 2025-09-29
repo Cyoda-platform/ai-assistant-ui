@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
 import { Auth0Provider } from '@auth0/auth0-react';
-import { ConfigProvider } from 'antd';
+import { ConfigProvider, App as AntdApp } from 'antd';
 import 'modern-normalize/modern-normalize.css';
 import 'antd/dist/reset.css';
 import './assets/css/main.scss';
@@ -29,7 +29,9 @@ loadLocaleMessages('en').then(() => {
       >
         <I18nextProvider i18n={i18n}>
           <ConfigProvider theme={{ token: { colorPrimary: '#1890ff' } }}>
-            <RouterProvider router={router} />
+            <AntdApp>
+              <RouterProvider router={router} />
+            </AntdApp>
           </ConfigProvider>
         </I18nextProvider>
       </Auth0Provider>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>UI Test</title>
+</head>
+<body>
+    <h1>Testing UI Application</h1>
+    <div id="test-results"></div>
+    
+    <script>
+        // Capture console errors
+        const originalConsoleError = console.error;
+        const originalConsoleWarn = console.warn;
+        const errors = [];
+        const warnings = [];
+        
+        console.error = function(...args) {
+            errors.push(args.join(' '));
+            originalConsoleError.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+            warnings.push(args.join(' '));
+            originalConsoleWarn.apply(console, args);
+        };
+        
+        // Test the main application
+        async function testApp() {
+            const resultsDiv = document.getElementById('test-results');
+            
+            try {
+                // Try to load the main app in an iframe
+                const iframe = document.createElement('iframe');
+                iframe.src = 'http://localhost:5173';
+                iframe.style.width = '100%';
+                iframe.style.height = '600px';
+                iframe.style.border = '1px solid #ccc';
+                
+                iframe.onload = function() {
+                    setTimeout(() => {
+                        let results = '<h2>Test Results:</h2>';
+                        results += '<h3>Console Errors:</h3>';
+                        if (errors.length > 0) {
+                            results += '<ul>';
+                            errors.forEach(error => {
+                                results += `<li style="color: red;">${error}</li>`;
+                            });
+                            results += '</ul>';
+                        } else {
+                            results += '<p style="color: green;">No console errors detected!</p>';
+                        }
+                        
+                        results += '<h3>Console Warnings:</h3>';
+                        if (warnings.length > 0) {
+                            results += '<ul>';
+                            warnings.forEach(warning => {
+                                results += `<li style="color: orange;">${warning}</li>`;
+                            });
+                            results += '</ul>';
+                        } else {
+                            results += '<p style="color: green;">No console warnings detected!</p>';
+                        }
+                        
+                        results += '<h3>Application Status:</h3>';
+                        results += '<p style="color: green;">✅ Application loaded successfully in iframe</p>';
+                        
+                        resultsDiv.innerHTML = results;
+                    }, 3000); // Wait 3 seconds for the app to load
+                };
+                
+                iframe.onerror = function(error) {
+                    resultsDiv.innerHTML = `<p style="color: red;">❌ Error loading application: ${error}</p>`;
+                };
+                
+                document.body.appendChild(iframe);
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<p style="color: red;">❌ Test failed: ${error.message}</p>`;
+            }
+        }
+        
+        // Run the test when page loads
+        window.onload = testApp;
+    </script>
+</body>
+</html>

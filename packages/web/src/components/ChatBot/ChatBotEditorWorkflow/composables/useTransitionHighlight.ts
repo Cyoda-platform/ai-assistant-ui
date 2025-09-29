@@ -1,42 +1,54 @@
-import { ref } from 'vue'
+import { useState, useCallback } from 'react'
 
-const highlightedTransition = ref<string | null>(null)
-const highlightedSourceNode = ref<string | null>(null)
-const highlightedTargetNode = ref<string | null>(null)
+interface TransitionHighlightState {
+  highlightedTransition: string | null;
+  highlightedSourceNode: string | null;
+  highlightedTargetNode: string | null;
+}
 
 export function useTransitionHighlight() {
-  const setHighlight = (transitionId: string, sourceNodeId: string, targetNodeId: string) => {
-    highlightedTransition.value = transitionId
-    highlightedSourceNode.value = sourceNodeId
-    highlightedTargetNode.value = targetNodeId
-  }
+  const [state, setState] = useState<TransitionHighlightState>({
+    highlightedTransition: null,
+    highlightedSourceNode: null,
+    highlightedTargetNode: null
+  });
 
-  const clearHighlight = () => {
-    highlightedTransition.value = null
-    highlightedSourceNode.value = null
-    highlightedTargetNode.value = null
-  }
+  const setHighlight = useCallback((transitionId: string, sourceNodeId: string, targetNodeId: string) => {
+    setState({
+      highlightedTransition: transitionId,
+      highlightedSourceNode: sourceNodeId,
+      highlightedTargetNode: targetNodeId
+    });
+  }, []);
 
-  const isTransitionHighlighted = (transitionId: string) => {
-    return highlightedTransition.value === transitionId
-  }
+  const clearHighlight = useCallback(() => {
+    setState({
+      highlightedTransition: null,
+      highlightedSourceNode: null,
+      highlightedTargetNode: null
+    });
+  }, []);
 
-  const isNodeHighlighted = (nodeId: string) => {
-    return highlightedSourceNode.value === nodeId || highlightedTargetNode.value === nodeId
-  }
+  const isTransitionHighlighted = useCallback((transitionId: string) => {
+    return state.highlightedTransition === transitionId;
+  }, [state.highlightedTransition]);
 
-  const shouldDimNode = (nodeId: string) => {
-    return highlightedTransition.value !== null && !isNodeHighlighted(nodeId)
-  }
+  const isNodeHighlighted = useCallback((nodeId: string) => {
+    return state.highlightedSourceNode === nodeId || state.highlightedTargetNode === nodeId;
+  }, [state.highlightedSourceNode, state.highlightedTargetNode]);
+
+  const shouldDimNode = useCallback((nodeId: string) => {
+    return state.highlightedTransition !== null && !isNodeHighlighted(nodeId);
+  }, [state.highlightedTransition, isNodeHighlighted]);
 
   return {
-    highlightedTransition,
-    highlightedSourceNode,
-    highlightedTargetNode,
+    highlightedTransition: state.highlightedTransition,
+    highlightedSourceNode: state.highlightedSourceNode,
+    highlightedTargetNode: state.highlightedTargetNode,
     setHighlight,
     clearHighlight,
     isTransitionHighlighted,
     isNodeHighlighted,
     shouldDimNode
-  }
+  };
 }

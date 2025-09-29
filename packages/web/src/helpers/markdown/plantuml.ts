@@ -1,6 +1,5 @@
 import pako from "pako";
 import {v4 as uuidv4} from "uuid";
-import {nextTick} from "vue";
 import markdownActions from "./actions";
 
 const krokiBaseUrl = "https://docs.cyoda.org/kroki/";
@@ -43,12 +42,12 @@ export function renderPlantUML(text, raw) {
          </div>
     </div>
     `;
-  nextTick(() => {
+  setTimeout(() => {
     const element = document.getElementById(id);
     if (!element) return;
 
     markdownActions(element, raw);
-  });
+  }, 0);
 
   return plantUmlDiv;
 }

@@ -1,6 +1,8 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Splitter, Button, Tooltip, Spin } from 'antd';
-import { SendOutlined } from '@ant-design/icons';
+import { SendOutlined, UndoOutlined, RedoOutlined, ZoomInOutlined, ZoomOutOutlined,
+         LockOutlined, UnlockOutlined, ExpandOutlined, PlusOutlined, SettingOutlined,
+         QuestionCircleOutlined } from '@ant-design/icons';
 import {
   ReactFlow,
   Background,
@@ -15,13 +17,16 @@ import {
   ReactFlowProvider,
   useReactFlow,
   ConnectionMode,
-  Panel
+  Panel,
+  ControlButton
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 import Editor from '@/components/Editor/Editor';
 import EditorViewMode from './EditorViewMode';
+import WorkflowNode from './ChatBotEditorWorkflow/Node';
 import { useAssistantStore } from '@/stores/assistant';
+import { useWorkflowEditor } from '@/hooks/useWorkflowEditor';
 import HelperStorage from '@/helpers/HelperStorage';
 
 interface ChatBotEditorWorkflowProps {
@@ -32,10 +37,10 @@ interface ChatBotEditorWorkflowProps {
 
 // Custom node types
 const nodeTypes = {
-  // We'll add custom node types here
+  default: WorkflowNode,
 };
 
-// Custom edge types  
+// Custom edge types
 const edgeTypes = {
   // We'll add custom edge types here
 };
@@ -45,40 +50,50 @@ const ChatBotEditorWorkflowInner: React.FC<ChatBotEditorWorkflowProps> = ({
   onAnswer,
   onUpdate
 }) => {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [editorSize, setEditorSize] = useState<number>(50);
   const [editorMode, setEditorMode] = useState('editorPreview');
-  const [canvasData, setCanvasData] = useState('');
-  const [workflowMetaData, setWorkflowMetaData] = useState<any>({});
   const [isDraggable, setIsDraggable] = useState(true);
-  const [layoutDirection, setLayoutDirection] = useState<'horizontal' | 'vertical'>('horizontal');
 
   const assistantStore = useAssistantStore();
   const helperStorage = new HelperStorage();
   const reactFlowInstance = useReactFlow();
 
+  // Use the workflow editor hook
+  const {
+    canvasData,
+    setCanvasData,
+    workflowMetaData,
+    setWorkflowMetaData,
+    nodes,
+    edges,
+    layoutDirection,
+    isLoading,
+    canUndo,
+    canRedo,
+    undoAction,
+    redoAction,
+    fitView,
+    zoomIn,
+    zoomOut,
+    resetTransform,
+    toggleLayoutDirection,
+    addNewState
+  } = useWorkflowEditor({
+    technicalId,
+    onUpdate
+  });
+
   // Storage keys
   const EDITOR_WIDTH = 'chatBotEditorWorkflow:width';
   const EDITOR_MODE = 'chatBotEditorWorkflow:editorMode';
-  const LAYOUT_DIRECTION = 'chatBotEditorWorkflow:layoutDirection';
-  const workflowCanvasDataKey = `chatBotEditorWorkflow:canvasData:${technicalId}`;
-  const workflowMetaDataKey = `chatBotEditorWorkflow:metaData:${technicalId}`;
 
   // Load initial values from storage
   useEffect(() => {
     const savedEditorSize = helperStorage.get(EDITOR_WIDTH, 50);
     const savedEditorMode = helperStorage.get(EDITOR_MODE, 'editorPreview');
-    const savedLayoutDirection = helperStorage.get(LAYOUT_DIRECTION, 'horizontal');
-    const savedCanvasData = helperStorage.get(workflowCanvasDataKey, '') || '';
-    const savedWorkflowMetaData = helperStorage.get(workflowMetaDataKey, {}) || {};
 
     setEditorSize(typeof savedEditorSize === 'string' ? 50 : savedEditorSize);
     setEditorMode(savedEditorMode as string);
-    setLayoutDirection(savedLayoutDirection as 'horizontal' | 'vertical');
-    setCanvasData(savedCanvasData.toString());
-    setWorkflowMetaData(savedWorkflowMetaData);
   }, [technicalId]);
 
   // Save to storage when values change
@@ -90,38 +105,23 @@ const ChatBotEditorWorkflowInner: React.FC<ChatBotEditorWorkflowProps> = ({
     helperStorage.set(EDITOR_MODE, editorMode);
   }, [editorMode]);
 
-  useEffect(() => {
-    helperStorage.set(LAYOUT_DIRECTION, layoutDirection);
-  }, [layoutDirection]);
-
-  useEffect(() => {
-    helperStorage.set(workflowCanvasDataKey, canvasData);
-  }, [canvasData, workflowCanvasDataKey]);
-
-  useEffect(() => {
-    helperStorage.set(workflowMetaDataKey, workflowMetaData);
-  }, [workflowMetaData, workflowMetaDataKey]);
-
-  // Emit updates to parent
-  useEffect(() => {
-    onUpdate({ canvasData, workflowMetaData });
-  }, [canvasData, workflowMetaData, onUpdate]);
-
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
+    (params: Connection) => {
+      // TODO: Handle connection creation in workflow data
+      console.log('Connection created:', params);
+    },
+    []
   );
 
   const onSubmitQuestion = async () => {
     try {
-      setIsLoading(true);
       const dataRequest = {
         question: canvasData
       };
       const { data } = await assistantStore.postTextQuestions(technicalId, dataRequest);
       setCanvasData(prev => prev + `\n/*\n${data.message}\n*/`);
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      console.error('Error submitting question:', error);
     }
   };
 
@@ -130,48 +130,23 @@ const ChatBotEditorWorkflowInner: React.FC<ChatBotEditorWorkflowProps> = ({
     setWorkflowMetaData({});
   };
 
-  const fitView = () => {
-    reactFlowInstance.fitView();
-  };
-
-  const zoomIn = () => {
-    reactFlowInstance.zoomIn();
-  };
-
-  const zoomOut = () => {
-    reactFlowInstance.zoomOut();
-  };
-
-  const resetTransform = () => {
-    reactFlowInstance.setViewport({ x: 0, y: 0, zoom: 1 });
-  };
-
-  const addNewState = () => {
-    // TODO: Implement add new state functionality
-    console.log('Add new state');
-  };
-
-  const autoLayout = () => {
-    setLayoutDirection(prev => prev === 'horizontal' ? 'vertical' : 'horizontal');
-  };
-
   const isShowReactFlow = ['preview', 'editorPreview'].includes(editorMode);
   const isShowEditor = ['editor', 'editorPreview'].includes(editorMode);
   const hasWorkflowActions = !import.meta.env.VITE_IS_WORKFLOW_ELECTRON;
 
   return (
     <Spin spinning={isLoading}>
-      <div className="chat-bot-editor-workflow" style={{ 
-        width: '100%', 
-        minHeight: 'calc(100vh - 137px)', 
-        height: 'calc(100% - 137px)' 
+      <div className="chat-bot-editor-workflow" style={{
+        width: '100%',
+        minHeight: 'calc(100vh - 137px)',
+        height: 'calc(100% - 137px)'
       }}>
         <EditorViewMode
           value={editorMode}
           onChange={setEditorMode}
           onClear={onClear}
         />
-        
+
         <Splitter
           onResize={(sizes) => {
             if (sizes && sizes[0]) {
@@ -215,15 +190,13 @@ const ChatBotEditorWorkflowInner: React.FC<ChatBotEditorWorkflowProps> = ({
               )}
             </Splitter.Panel>
           )}
-          
+
           {isShowReactFlow && (
             <Splitter.Panel style={{ paddingLeft: '15px' }}>
               <div style={{ height: '100%', marginTop: '60px' }}>
                 <ReactFlow
                   nodes={nodes}
                   edges={edges}
-                  onNodesChange={onNodesChange}
-                  onEdgesChange={onEdgesChange}
                   onConnect={onConnect}
                   nodeTypes={nodeTypes}
                   edgeTypes={edgeTypes}
@@ -241,29 +214,49 @@ const ChatBotEditorWorkflowInner: React.FC<ChatBotEditorWorkflowProps> = ({
                   <Background />
                   <Controls position="top-left" showFitView={false}>
                     <Tooltip title="Zoom in" placement="top">
-                      <Button size="small" onClick={zoomIn}>+</Button>
+                      <ControlButton onClick={zoomIn}>
+                        <ZoomInOutlined />
+                      </ControlButton>
                     </Tooltip>
                     <Tooltip title="Zoom out" placement="top">
-                      <Button size="small" onClick={zoomOut}>-</Button>
+                      <ControlButton onClick={zoomOut}>
+                        <ZoomOutOutlined />
+                      </ControlButton>
                     </Tooltip>
                     <Tooltip title={isDraggable ? "Lock interaction" : "Unlock interaction"} placement="top">
-                      <Button size="small" onClick={() => setIsDraggable(!isDraggable)}>
-                        {isDraggable ? '🔓' : '🔒'}
-                      </Button>
+                      <ControlButton onClick={() => setIsDraggable(!isDraggable)}>
+                        {isDraggable ? <UnlockOutlined /> : <LockOutlined />}
+                      </ControlButton>
                     </Tooltip>
                     <Tooltip title="Fit to view" placement="top">
-                      <Button size="small" onClick={fitView}>⊡</Button>
+                      <ControlButton onClick={fitView}>
+                        <ExpandOutlined />
+                      </ControlButton>
+                    </Tooltip>
+                    <Tooltip title="Undo" placement="top">
+                      <ControlButton onClick={undoAction} disabled={!canUndo}>
+                        <UndoOutlined />
+                      </ControlButton>
+                    </Tooltip>
+                    <Tooltip title="Redo" placement="top">
+                      <ControlButton onClick={redoAction} disabled={!canRedo}>
+                        <RedoOutlined />
+                      </ControlButton>
                     </Tooltip>
                     <Tooltip title="Reset position" placement="top">
-                      <Button size="small" onClick={resetTransform}>⌂</Button>
+                      <ControlButton onClick={resetTransform}>
+                        ⌂
+                      </ControlButton>
                     </Tooltip>
                     <Tooltip title={layoutDirection === 'horizontal' ? 'Switch to vertical layout' : 'Switch to horizontal layout'} placement="top">
-                      <Button size="small" onClick={autoLayout}>
+                      <ControlButton onClick={toggleLayoutDirection}>
                         {layoutDirection === 'horizontal' ? '↕' : '↔'}
-                      </Button>
+                      </ControlButton>
                     </Tooltip>
                     <Tooltip title="Add new state" placement="top">
-                      <Button size="small" onClick={addNewState}>+</Button>
+                      <ControlButton onClick={addNewState}>
+                        <PlusOutlined />
+                      </ControlButton>
                     </Tooltip>
                   </Controls>
                 </ReactFlow>

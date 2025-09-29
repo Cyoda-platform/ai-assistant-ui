@@ -1,6 +1,20 @@
-.el-message-box{
+// Message box styles - now handled by Ant Design Modal overrides in _antd-overrides.scss
+// This file is kept for any additional message box-related styles
+
+// Custom message box wrapper classes
+.message-box-wrapper {
+  .ant-modal {
+    // Additional custom styles for message box modals
+  }
+}
+
+// Legacy message box styles for any remaining custom message boxes
+.custom-message-box {
   background-color: var(--bg-dialog-color);
-  &__title {
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+
+  .message-box-title {
     color: var(--color-dialog-title);
     font-weight: 600;
     font-size: 20px;

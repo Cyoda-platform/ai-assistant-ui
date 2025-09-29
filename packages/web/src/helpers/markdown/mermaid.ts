@@ -1,8 +1,6 @@
 import {v4 as uuidv4} from "uuid";
-import {nextTick, watch} from "vue";
 import mermaid from "mermaid";
 import markdownActions from "./actions";
-import {usePreferredDark} from "@vueuse/core";
 import {useDetectTheme} from "../HelperTheme";
 
 mermaid.initialize({startOnLoad: false});
@@ -69,13 +67,15 @@ export function renderMermaid(text, raw) {
     // return mermaidDiv;
 
 
-    nextTick(async () => {
-        const detectTheme = useDetectTheme();
+    setTimeout(async () => {
+        // Detect theme from system preferences or stored preference
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = prefersDark ? "dark" : "light";
 
         async function render() {
             mermaid.initialize({
                 startOnLoad: false,
-                theme: detectTheme.value === "dark" ? "dark" : undefined,
+                theme: theme === "dark" ? "dark" : undefined,
             });
 
             const element = document.getElementById(id);
@@ -102,10 +102,13 @@ export function renderMermaid(text, raw) {
 
         await render();
 
-        watch(detectTheme, async () => {
+        // Listen for theme changes
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleThemeChange = async () => {
             await render();
-        });
-    });
+        };
+        mediaQuery.addEventListener('change', handleThemeChange);
+    }, 0);
 
     return mermaidDiv;
 }

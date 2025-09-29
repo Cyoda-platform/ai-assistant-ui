@@ -5,8 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/auth';
 import SettingsDialog from '@/components/SettingsDialog/SettingsDialog';
-import SettingsIcon from '@/assets/images/icons/settings.svg';
-import LogoutIcon from '@/assets/images/icons/logout.svg';
+import SettingsIcon from '@/assets/images/icons/settings.svg?react';
+import LogoutIcon from '@/assets/images/icons/logout.svg?react';
 
 const AuthStateAvatar: React.FC = () => {
   const authStore = useAuthStore();
@@ -32,7 +32,7 @@ const AuthStateAvatar: React.FC = () => {
   }, [visibleCard]);
 
   const picture = authStore.picture;
-  
+
   const initials = useMemo(() => {
     const { family_name = 'C', given_name = 'U' } = authStore;
     const familyInitial = family_name.charAt(0).toUpperCase();
@@ -50,7 +50,7 @@ const AuthStateAvatar: React.FC = () => {
   const onClickLogout = () => {
     setVisibleCard(false);
     const isElectron = import.meta.env.VITE_IS_ELECTRON;
-    
+
     if (isElectron) {
       authStore.logout();
       navigate('/');
@@ -74,15 +74,15 @@ const AuthStateAvatar: React.FC = () => {
   return (
     <div className="auth_state_avatar">
       {picture ? (
-        <img 
-          onClick={onToggleCard} 
-          className="auth_state_avatar__image auth_state_avatar__icon" 
-          src={picture} 
+        <img
+          onClick={onToggleCard}
+          className="auth_state_avatar__image auth_state_avatar__icon"
+          src={picture}
           alt="User avatar"
         />
       ) : (
-        <div 
-          onClick={onToggleCard} 
+        <div
+          onClick={onToggleCard}
           className="auth_state_avatar__initials auth_state_avatar__icon"
         >
           {initials}
@@ -90,7 +90,7 @@ const AuthStateAvatar: React.FC = () => {
       )}
 
       {visibleCard && (
-        <Card 
+        <Card
           ref={cardRef}
           className="auth_state_avatar__card"
           title={<span>{email}</span>}
@@ -107,8 +107,8 @@ const AuthStateAvatar: React.FC = () => {
           </a>
         </Card>
       )}
-      
-      <SettingsDialog 
+
+      <SettingsDialog
         visible={settingsDialogVisible}
         onClose={() => setSettingsDialogVisible(false)}
       />

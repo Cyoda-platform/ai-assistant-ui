@@ -3,7 +3,7 @@
  * Handles edge creation, positioning, and handle calculation
  */
 
-import { MarkerType } from '@vue-flow/core';
+import { MarkerType } from 'reactflow';
 
 export interface EdgeData {
   transitionData: unknown;

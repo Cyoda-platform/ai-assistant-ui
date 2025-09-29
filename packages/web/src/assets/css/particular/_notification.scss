@@ -1,13 +1,26 @@
-.el-notification {
+// Notification styles - now handled by Ant Design Notification overrides in _antd-overrides.scss
+// This file is kept for any additional notification-related styles
+
+// Custom notification wrapper classes
+.notification-wrapper {
+  .ant-notification {
+    // Additional custom styles can be added here if needed
+  }
+}
+
+// Legacy notification styles for any remaining custom notifications
+.custom-notification {
   background-color: var(--bg-dialog-color);
   border: 1px solid var(--accent-border);
-}
+  border-radius: 8px;
 
-.el-notification__content, .el-notification__title{
-  color: var(--text-color-regular);
-}
+  .notification-content,
+  .notification-title {
+    color: var(--text-color-regular);
+  }
 
-.el-notification--success{
-  fill: var(--text-color-regular) !important;
-  color: var(--text-color-regular) !important;
+  &.notification-success {
+    fill: var(--text-color-regular) !important;
+    color: var(--text-color-regular) !important;
+  }
 }

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import dayjs from 'dayjs';
-import NotificationIcon from '@/assets/images/icons/notification.svg';
+import NotificationIcon from '@/assets/images/icons/notification.svg?react';
 import HelperMarkdown from '@/helpers/HelperMarkdown';
 
 interface Message {
@@ -40,9 +40,9 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
         </span>
         <span>Notification | <small className="chat-bot-message-notification__date">{date}</small></span>
       </div>
-      
-      <div 
-        dangerouslySetInnerHTML={{ __html: computedMessage }} 
+
+      <div
+        dangerouslySetInnerHTML={{ __html: computedMessage }}
         className="chat-bot-message-notification__body"
       />
     </div>

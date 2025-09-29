@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Form, Input, Button, message } from 'antd';
-import SendIcon from '@/assets/images/icons/send.svg';
-import AttachIcon from '@/assets/images/icons/attach.svg';
+import SendIcon from '@/assets/images/icons/send.svg?react';
+import AttachIcon from '@/assets/images/icons/attach.svg?react';
 import FileSubmitPreview from '@/components/FileSubmitPreview/FileSubmitPreview';
 import HelperUpload from '@/helpers/HelperUpload';
 
@@ -27,12 +27,12 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
 
   const onClickTextAnswer = async () => {
     if (!answer.trim() && !currentFile) return;
-    
+
     onAnswer({
       answer: answer,
       file: currentFile || undefined
     });
-    
+
     setAnswer('');
     setCurrentFile(null);
     form.resetFields();
@@ -106,19 +106,19 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
       <div className="chat-bot-submit-form__drag-and-drop">
         <span>Drag & Drop</span>
       </div>
-      
+
       <Form form={form} layout="vertical">
         <div className="chat-bot-submit-form__wrapper">
           <div className="chat-bot-submit-form__input-box">
             <div className={`chat-bot-submit-form__input ${disabled ? 'disabled' : ''}`}>
               {currentFile && (
-                <FileSubmitPreview 
+                <FileSubmitPreview
                   className="chat-bot-submit-form__file-submit-preview"
                   file={currentFile}
                   onDelete={() => setCurrentFile(null)}
                 />
               )}
-              
+
               <div className="chat-bot-submit-form__input-inner">
                 <TextArea
                   value={answer}
@@ -129,7 +129,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
                   disabled={disabled}
                   style={{ resize: 'none' }}
                 />
-                
+
                 <div className="chat-bot-submit-form__actions">
                   <Button
                     onClick={onClickAttachFile}
@@ -137,7 +137,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
                     disabled={disabled}
                     icon={<AttachIcon className="chat-bot-submit-form__attach-icon" />}
                   />
-                  
+
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -146,7 +146,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
                     onChange={handleFileSelect}
                     accept=".pdf,.docx,.xlsx,.pptx,.xml,.json,text/*,image/*"
                   />
-                  
+
                   <button
                     className="btn btn-primary btn-icon"
                     disabled={disabled || (!answer.trim() && !currentFile)}

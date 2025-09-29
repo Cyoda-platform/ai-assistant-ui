@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Button, Tooltip, notification } from 'antd';
 import dayjs from 'dayjs';
-import AiChaIcon from '@/assets/images/icons/ai-chat.svg';
-import CopyIcon from '@/assets/images/icons/copy.svg';
-import CheckIcon from '@/assets/images/icons/check.svg';
+import AiChaIcon from '@/assets/images/icons/ai-chat.svg?react';
+import CopyIcon from '@/assets/images/icons/copy.svg?react';
+import CheckIcon from '@/assets/images/icons/check.svg?react';
 import HelperMarkdown from '@/helpers/HelperMarkdown';
 import HelperCopy from '@/helpers/HelperCopy';
 
@@ -77,12 +77,12 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
           </Tooltip>
         </div>
       </div>
-      
-      <div 
-        dangerouslySetInnerHTML={{ __html: computedMessage }} 
+
+      <div
+        dangerouslySetInnerHTML={{ __html: computedMessage }}
         className="chat-bot-message-question__body"
       />
-      
+
       <div className="chat-bot-message-question__bottom-actions">
         {message.approve && (
           <Tooltip title="Approve" placement="top" mouseEnterDelay={1}>

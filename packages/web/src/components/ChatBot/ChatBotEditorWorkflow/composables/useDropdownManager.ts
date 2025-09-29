@@ -1,48 +1,72 @@
 /**
- * Composable for managing dropdown states across multiple nodes
+ * Hook for managing dropdown states across multiple nodes
  */
 
-import { ref } from 'vue'
+import { useState, useCallback, useEffect } from 'react'
 
-const activeDropdownId = ref<string | null>(null)
+// Global state for active dropdown
+let globalActiveDropdownId: string | null = null;
+const dropdownListeners: Set<() => void> = new Set();
+
+const notifyListeners = () => {
+  dropdownListeners.forEach(listener => listener());
+};
 
 export function useDropdownManager(nodeId: string) {
-  const isOpen = ref(false)
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeDropdownId, setActiveDropdownId] = useState<string | null>(globalActiveDropdownId);
 
-  const isActive = () => activeDropdownId.value === nodeId
+  // Subscribe to global dropdown state changes
+  useEffect(() => {
+    const listener = () => {
+      setActiveDropdownId(globalActiveDropdownId);
+      setIsOpen(globalActiveDropdownId === nodeId);
+    };
 
-  const openDropdown = () => {
-    activeDropdownId.value = nodeId
-    isOpen.value = true
-  }
+    dropdownListeners.add(listener);
+    return () => {
+      dropdownListeners.delete(listener);
+    };
+  }, [nodeId]);
 
-  const closeDropdown = () => {
-    if (activeDropdownId.value === nodeId) {
-      activeDropdownId.value = null
+  const isActive = useCallback(() => {
+    return activeDropdownId === nodeId;
+  }, [activeDropdownId, nodeId]);
+
+  const openDropdown = useCallback(() => {
+    globalActiveDropdownId = nodeId;
+    setIsOpen(true);
+    notifyListeners();
+  }, [nodeId]);
+
+  const closeDropdown = useCallback(() => {
+    if (globalActiveDropdownId === nodeId) {
+      globalActiveDropdownId = null;
     }
-    isOpen.value = false
-  }
+    setIsOpen(false);
+    notifyListeners();
+  }, [nodeId]);
 
-  const toggleDropdown = () => {
-    if (isOpen.value) {
-      closeDropdown()
+  const toggleDropdown = useCallback(() => {
+    if (isOpen) {
+      closeDropdown();
     } else {
-      openDropdown()
+      openDropdown();
     }
-  }
+  }, [isOpen, closeDropdown, openDropdown]);
 
-  const updateState = () => {
-    const shouldBeOpen = activeDropdownId.value === nodeId
-    if (isOpen.value !== shouldBeOpen) {
-      isOpen.value = shouldBeOpen
+  const updateState = useCallback(() => {
+    const shouldBeOpen = globalActiveDropdownId === nodeId;
+    if (isOpen !== shouldBeOpen) {
+      setIsOpen(shouldBeOpen);
     }
-  }
+  }, [isOpen, nodeId]);
 
-  const closeOnClickOutside = () => {
-    if (activeDropdownId.value === nodeId) {
-      closeDropdown()
+  const closeOnClickOutside = useCallback(() => {
+    if (globalActiveDropdownId === nodeId) {
+      closeDropdown();
     }
-  }
+  }, [nodeId, closeDropdown]);
 
   return {
     isOpen,
@@ -53,5 +77,5 @@ export function useDropdownManager(nodeId: string) {
     updateState,
     closeOnClickOutside,
     activeDropdownId
-  }
+  };
 }
