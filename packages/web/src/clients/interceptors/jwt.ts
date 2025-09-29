@@ -14,13 +14,11 @@ const jwtInterceptor = (instance: AxiosInstance): void => {
       return config;
     }
 
-    // Check if we already have a token in storage
-    let token = helperStorage.get<Auth>("auth")?.token;
+    const authStore = useAuthStore.getState();
 
-    // If no token, get guest token (with proper synchronization)
-    if (!token) {
+    // If no token exists, get guest token (with proper synchronization)
+    if (!authStore.token) {
       if (!tokenPromise) {
-        const authStore = useAuthStore.getState();
         tokenPromise = authStore.getGuestToken().then((newToken) => {
           tokenPromise = null; // Clear the promise after completion
           return newToken;
@@ -32,12 +30,10 @@ const jwtInterceptor = (instance: AxiosInstance): void => {
 
       // Wait for the token to be obtained
       await tokenPromise;
-
-      // Get the token from storage after it's been saved
-      token = helperStorage.get<Auth>("auth")?.token;
     }
 
-    // Add authorization header if we have a token
+    // Always use the stored token (whether guest or Auth0)
+    const token = helperStorage.get<Auth>("auth")?.token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

@@ -8,6 +8,7 @@ import { useAuthStore } from './stores/auth';
 import { useAssistantStore } from './stores/assistant';
 
 // Import components
+import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
 import LoginPopUp from './components/LoginPopUp/LoginPopUp';
 import ChatBotRenameDialog from './components/ChatBot/ChatBotRenameDialog';
 import ConfirmationDialog from './components/ConfirmationDialog/ConfirmationDialog';
@@ -23,7 +24,7 @@ import { useNavigationGuards } from './router';
 const App: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, getAccessTokenSilently, isAuthenticated } = useAuth0();
+  const { user, getAccessTokenSilently, isAuthenticated, isLoading: auth0Loading, error: auth0Error } = useAuth0();
   const [isLoading, setIsLoading] = useState(false);
   const [firstVisit, setFirstVisit] = useState(true);
 
@@ -32,6 +33,18 @@ const App: React.FC = () => {
   const detectTheme = useDetectTheme();
   const helperStorage = new HelperStorage();
   const { handleFirstVisit } = useNavigationGuards();
+
+  // Debug Auth0 state changes
+  useEffect(() => {
+    console.log('Auth0 state changed:', {
+      isAuthenticated,
+      auth0Loading,
+      auth0Error,
+      user: user ? { sub: user.sub, email: user.email } : null,
+      currentAuthState: useAuthStore.getState(),
+      currentURL: window.location.href
+    });
+  }, [isAuthenticated, auth0Loading, user, auth0Error]);
 
   // Set up token getter for API calls
   useEffect(() => {
@@ -49,26 +62,42 @@ const App: React.FC = () => {
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove('theme-dark', 'theme-light');
+    const currentAuthState = useAuthStore.getState();
+    const isLoggedIn = currentAuthState.token && currentAuthState.tokenType === 'private';
 
-    if (isInIframe && !authStore.isLoggedIn) {
+    if (isInIframe && !isLoggedIn) {
       root.classList.add('theme-light');
       return;
     }
 
     root.classList.add(`theme-${detectTheme}`);
-  }, [detectTheme, authStore.isLoggedIn]);
+  }, [detectTheme, authStore]);
 
   // Handle authentication state changes
   useEffect(() => {
-    if (!isAuthenticated || authStore.isLoggedIn) return;
+    const currentAuthState = useAuthStore.getState();
+    console.log('Authentication useEffect triggered:', {
+      isAuthenticated,
+      currentAuthState,
+      shouldSkip: !isAuthenticated || (currentAuthState.token && currentAuthState.tokenType === 'private')
+    });
+
+    if (!isAuthenticated || (currentAuthState.token && currentAuthState.tokenType === 'private')) return;
 
     const handleAuth = async () => {
       setIsLoading(true);
       try {
-        const oldToken = authStore.token;
+        const currentState = useAuthStore.getState();
+        const oldToken = currentState.token;
         const token = await getAccessTokenSilently();
 
-        authStore.saveData({
+        console.log('Auth0 login detected, updating token:', {
+          oldToken: oldToken ? oldToken.substring(0, 20) + '...' : 'none',
+          newToken: token.substring(0, 20) + '...',
+          oldTokenType: currentState.tokenType
+        });
+
+        useAuthStore.getState().saveData({
           token: token,
           tokenType: "private",
           refreshToken: null,
@@ -81,15 +110,19 @@ const App: React.FC = () => {
         });
 
         if (oldToken) {
+          console.log('Transferring chats from guest token to Auth0 token');
           try {
-            await authStore.postTransferChats(oldToken, true);
+            await useAuthStore.getState().postTransferChats(oldToken, true);
+            console.log('Chat transfer completed successfully');
           } catch (error) {
             console.error('Error transferring chats:', error);
           }
+        } else {
+          console.log('No old token found, skipping chat transfer');
         }
 
         assistantStore.setGuestChatsExist(false);
-        const returnTo = helperStorage.get(LOGIN_REDIRECT_URL, '/home');
+        const returnTo = helperStorage.get(LOGIN_REDIRECT_URL, '/');
         helperStorage.removeItem(LOGIN_REDIRECT_URL);
 
         // Navigate to return URL
@@ -100,7 +133,7 @@ const App: React.FC = () => {
     };
 
     handleAuth();
-  }, [isAuthenticated, authStore, assistantStore, user, getAccessTokenSilently, helperStorage]);
+  }, [isAuthenticated, user, getAccessTokenSilently, navigate]);
 
   // Handle navigation guards on route changes
   useEffect(() => {
@@ -114,15 +147,17 @@ const App: React.FC = () => {
   }, [location, firstVisit, handleFirstVisit, navigate]);
 
   return (
-    <Spin spinning={isLoading} size="large">
-      <div className="app">
-        <Outlet />
+    <ErrorBoundary>
+      <Spin spinning={isLoading} size="large">
+        <div className="app">
+          <Outlet />
 
-        <LoginPopUp />
-        <ChatBotRenameDialog />
-        <ConfirmationDialog />
-      </div>
-    </Spin>
+          <LoginPopUp />
+          <ChatBotRenameDialog />
+          <ConfirmationDialog />
+        </div>
+      </Spin>
+    </ErrorBoundary>
   );
 };
 

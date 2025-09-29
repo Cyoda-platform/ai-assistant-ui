@@ -1,0 +1,149 @@
+{
+  "version": "1.0",
+  "name": "Order Processing Workflow",
+  "desc": "Sample workflow for order processing with validation and payment",
+  "initialState": "initial_state",
+  "active": true,
+  "states": {
+    "initial_state": {
+      "transitions": [
+        {
+          "name": "start_validation",
+          "next": "validate_order",
+          "manual": false,
+          "processors": [
+            {
+              "name": "OrderInitProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application",
+                "attachEntity": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "validate_order": {
+      "transitions": [
+        {
+          "name": "validation_passed",
+          "next": "process_payment",
+          "manual": false,
+          "processors": [
+            {
+              "name": "ValidationProcessor",
+              "executionMode": "SYNC",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "simple",
+            "jsonPath": "$.order.valid",
+            "operation": "EQUALS",
+            "value": true
+          }
+        },
+        {
+          "name": "validation_failed",
+          "next": "rejected",
+          "manual": false,
+          "criterion": {
+            "type": "simple",
+            "jsonPath": "$.order.valid",
+            "operation": "EQUALS",
+            "value": false
+          }
+        }
+      ]
+    },
+    "process_payment": {
+      "transitions": [
+        {
+          "name": "payment_success",
+          "next": "fulfill_order",
+          "manual": false,
+          "processors": [
+            {
+              "name": "PaymentProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 30000,
+                "retryPolicy": "EXPONENTIAL"
+              }
+            }
+          ],
+          "criterion": {
+            "type": "simple",
+            "jsonPath": "$.payment.status",
+            "operation": "EQUALS",
+            "value": "success"
+          }
+        },
+        {
+          "name": "payment_failed",
+          "next": "payment_retry",
+          "manual": false,
+          "criterion": {
+            "type": "simple",
+            "jsonPath": "$.payment.status",
+            "operation": "EQUALS",
+            "value": "failed"
+          }
+        }
+      ]
+    },
+    "payment_retry": {
+      "transitions": [
+        {
+          "name": "retry_payment",
+          "next": "process_payment",
+          "manual": true
+        },
+        {
+          "name": "cancel_order",
+          "next": "cancelled",
+          "manual": true
+        }
+      ]
+    },
+    "fulfill_order": {
+      "transitions": [
+        {
+          "name": "fulfillment_complete",
+          "next": "completed",
+          "manual": false,
+          "processors": [
+            {
+              "name": "FulfillmentProcessor",
+              "executionMode": "ASYNC_SAME_TX",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            },
+            {
+              "name": "NotificationProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "calculationNodesTags": "cyoda_application"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "completed": {
+      "transitions": []
+    },
+    "rejected": {
+      "transitions": []
+    },
+    "cancelled": {
+      "transitions": []
+    }
+  }
+}
+

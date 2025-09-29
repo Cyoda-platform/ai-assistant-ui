@@ -26,10 +26,13 @@ interface ChatBotProps {
   technicalId: string;
   chatData?: any;
   canvasVisible?: boolean;
+  chatHistoryVisible?: boolean;
   onAnswer: (data: { answer: string; file?: File }) => void;
   onApproveQuestion: (data: any) => void;
   onUpdateNotification: (data: any) => void;
   onToggleCanvas: () => void;
+  onEntitiesDetails?: () => void;
+  onToggleChatHistory?: () => void;
 }
 
 const ChatBot: React.FC<ChatBotProps> = ({
@@ -42,15 +45,21 @@ const ChatBot: React.FC<ChatBotProps> = ({
   onAnswer,
   onApproveQuestion,
   onUpdateNotification,
-  onToggleCanvas
+  onToggleCanvas,
+  onEntitiesDetails
 }) => {
   const chatBotPlaceholderRef = useRef<HTMLDivElement>(null);
   const [chatBotPlaceholderHeight, setChatBotPlaceholderHeight] = useState(0);
 
-  const scrollDownMessages = () => {
-    const messagesHtml = document.querySelector('.chat-bot__inner-messages');
-    if (messagesHtml) {
-      messagesHtml.scrollTo(0, messagesHtml.scrollHeight);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollDownMessages = (smooth = false) => {
+    if (messagesContainerRef.current) {
+      const container = messagesContainerRef.current;
+      // Use requestAnimationFrame to ensure DOM is fully rendered
+      requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+      });
     }
   };
 
@@ -108,42 +117,51 @@ const ChatBot: React.FC<ChatBotProps> = ({
   };
 
   return (
-    <div className="chat-bot">
-      <ChatBotTopActions
-        onToggleCanvas={onToggleCanvas}
-        chatData={chatData}
-        canvasVisible={canvasVisible}
-      >
-        <ChatBotName technicalId={technicalId} />
-      </ChatBotTopActions>
+    <div className="flex-1 flex flex-col bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 h-full">
+      {/* Header */}
+      <div className="border-b border-slate-700 glass sticky top-0 z-40 flex-shrink-0">
+        <ChatBotTopActions
+          onToggleCanvas={onToggleCanvas}
+          onEntitiesDetails={onEntitiesDetails}
+          chatData={chatData}
+          canvasVisible={canvasVisible}
+        >
+          <ChatBotName technicalId={technicalId} />
+        </ChatBotTopActions>
+      </div>
 
-      <div className="chat-bot__body">
-        <div className="chat-bot__messages">
-          <div className="chat-bot__inner-messages">
+      {/* Messages Area */}
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto chat-container min-h-0"
+      >
+        <div className="max-w-[90%] mx-auto p-6 w-full">
+          <div className="space-y-6">
             {messages.map((message, index) => (
-              <Row key={index}>
-                <Col
-                  className="chat-bot__inner-messages-col"
-                  offset={getOffset(message.type)}
-                  span={getSpan(message.type)}
-                >
-                  {renderMessage(message, index)}
-                </Col>
-              </Row>
+              <div key={index} className="w-full">
+                {renderMessage(message, index)}
+              </div>
             ))}
-            {isLoading && <ChatLoader />}
+            {isLoading && (
+              <div className="w-full">
+                <ChatLoader />
+              </div>
+            )}
             <div
               ref={chatBotPlaceholderRef}
-              className="chat-bot__placeholder"
-              style={{ minHeight: `${chatBotPlaceholderHeight}px` }}
+              className="h-4"
             />
           </div>
-          <div className="chat-bot__form">
-            <ChatBotSubmitForm
-              disabled={disabled}
-              onAnswer={onAnswer}
-            />
-          </div>
+        </div>
+      </div>
+
+      {/* Input Area */}
+      <div className="border-t border-slate-700 glass p-6 flex-shrink-0">
+        <div className="max-w-[90%] mx-auto w-full">
+          <ChatBotSubmitForm
+            disabled={disabled}
+            onAnswer={onAnswer}
+          />
         </div>
       </div>
     </div>

@@ -1,0 +1,203 @@
+@use "sass:color";
+
+.el-button {
+  font-size: 16px;
+  font-weight: 400;
+  background-color: var(--bg-button);
+  border-color: var(--border-color-default-button);
+  color: var(--text-color-regular);
+  font-family: "Roboto", Arial, sans-serif;
+  text-decoration: none;
+
+  &:hover {
+    background-color: var(--bg-button-hover);
+    color: var(--text-color-regular);
+    border-color: var(--bg-button-hover);
+  }
+}
+
+.btn-primary, .el-message-box .el-button--primary {
+  color: #fff;
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  transition: all 0.5s;
+  font-family: 'PingFang SC', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  box-shadow: none;
+
+  &.is-disabled {
+    background: linear-gradient(0deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), #0D8484;
+    border-color: transparent;
+  }
+
+  &:hover {
+    background: linear-gradient(0deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), #0D8484 !important;
+    border: 1px solid var(--color-primary-ligter);
+    color: #fff;
+  }
+}
+
+.btn-primary .el-icon.is-loading {
+  color: #fff;
+}
+
+.btn-primary-darken {
+  color: #fff;
+  background-color: var(--color-primary-darken);
+  border: 1px solid var(--color-primary-darken);
+
+  transition: all 0.5s;
+  font-family: 'PingFang SC', Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  box-shadow: none;
+
+  &.is-disabled {
+    background: linear-gradient(0deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), #0D8484;
+    border-color: transparent;
+  }
+
+  &:hover {
+    background: linear-gradient(0deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), #0D8484 !important;
+    border: 1px solid var(--color-primary-ligter);
+    color: #fff;
+  }
+}
+
+.btn-border-github {
+  background-color: unset !important;
+  border: 1px solid var(--btn-bordered-border-color);
+  border-radius: 4px;
+  color: var(--btn-bordered-text-color);
+  padding-left: 16px;
+  padding-right: 16px;
+
+  svg {
+    fill: var(--btn-bordered-text-color);
+  }
+
+  &:hover {
+    border: 1px solid var(--btn-bordered-border-color-hover);
+    color: var(--btn-bordered-text-color);
+  }
+}
+
+.el-button--small {
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.btn-default {
+  background-color: var(--bg-btn-default);
+  border: none;
+  color: #000;
+
+  svg {
+    width: 18px;
+    height: auto;
+  }
+
+  &:hover {
+    background-color: var(--bg-btn-default-hover);
+  }
+
+  &.is-disabled {
+    background-color: var(--bg-btn-disable);
+
+    &:hover {
+      background-color: var(--bg-btn-disable);
+    }
+  }
+}
+
+.btn-default-lighter {
+  background-color: var(--bg-btn-default-lighter);
+  border: none;
+  color: #000;
+
+  &:hover {
+    background-color: var(--bg-btn-default-lighter-hover);
+  }
+
+  &.is-disabled {
+    background-color: var(--bg-btn-disable);
+
+    &:hover {
+      background-color: var(--bg-btn-disable);
+    }
+  }
+}
+
+.btn-white {
+  background-color: var(--bg);
+  border-color: var(--sidebar-border);
+  color: #000;
+
+  svg {
+    fill: var(--text-color-regular);
+  }
+
+  &:hover {
+    background-color: var(--bg-btn-default-lighter-hover);
+  }
+
+  &.is-disabled {
+    background-color: var(--bg-btn-disable);
+
+    &:hover {
+      background-color: var(--bg-btn-disable);
+    }
+  }
+}
+
+.btn-icon {
+  padding: unset;
+  width: 32px;
+  height: 32px;
+  color: var(--text-color-regular);
+  justify-content: center;
+  align-items: center;
+  display: inline-flex;
+
+  .icon {
+    height: unset;
+  }
+
+  svg:not(.fill-stroke) {
+    fill: var(--text-color-regular);
+  }
+
+  svg.fill-stroke {
+    stroke: var(--text-color-regular);
+  }
+
+  &.is-loading {
+    span {
+      display: none;
+    }
+  }
+
+  &.el-button--small {
+    width: 28px;
+    height: 28px;
+  }
+
+  &.large {
+    height: 40px;
+    width: 40px;
+  }
+
+  &--text {
+    width: unset;
+    padding: 0 10px;
+    span {
+      margin-left: 5px;
+    }
+  }
+}
+
+.btn-border {
+  border: 1px solid var(--color-primary);
+  border-radius: 4px;
+}

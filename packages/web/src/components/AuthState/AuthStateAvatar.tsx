@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Card } from 'antd';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Settings, LogOut } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
 import SettingsDialog from '@/components/SettingsDialog/SettingsDialog';
-import SettingsIcon from '@/assets/images/icons/settings.svg?react';
-import LogoutIcon from '@/assets/images/icons/logout.svg?react';
 
 const AuthStateAvatar: React.FC = () => {
   const authStore = useAuthStore();
@@ -72,40 +70,55 @@ const AuthStateAvatar: React.FC = () => {
   };
 
   return (
-    <div className="auth_state_avatar">
+    <div className="relative auth-dropdown">
       {picture ? (
         <img
           onClick={onToggleCard}
-          className="auth_state_avatar__image auth_state_avatar__icon"
+          className="w-8 h-8 rounded-full cursor-pointer hover:ring-2 hover:ring-teal-400 transition-all"
           src={picture}
           alt="User avatar"
         />
       ) : (
         <div
           onClick={onToggleCard}
-          className="auth_state_avatar__initials auth_state_avatar__icon"
+          className="w-8 h-8 rounded-full cursor-pointer bg-slate-600 text-white text-sm font-medium flex items-center justify-center hover:ring-2 hover:ring-teal-400 transition-all"
         >
           {initials}
         </div>
       )}
 
       {visibleCard && (
-        <Card
+        <div
           ref={cardRef}
-          className="auth_state_avatar__card"
-          title={<span>{email}</span>}
-          actions={[
-            <a key="logout" onClick={onClickLogout} href="#" className="auth_state_avatar__link">
-              <LogoutIcon className="logout-icon" />
-              <span>{t('side_bar.logout')}</span>
-            </a>
-          ]}
+          className="absolute right-0 top-10 min-w-72 z-[9999] bg-slate-800/95 backdrop-blur-sm border border-slate-600 rounded-lg shadow-xl overflow-hidden"
         >
-          <a onClick={onClickSettings} className="auth_state_avatar__link" href="#">
-            <SettingsIcon className="main-icon" />
-            {t('side_bar.links.settings')}
-          </a>
-        </Card>
+          {/* Header */}
+          <div className="px-4 py-3 border-b border-slate-600 bg-slate-700/50">
+            <span className="text-slate-200 font-semibold text-sm">{email}</span>
+          </div>
+
+          {/* Content */}
+          <div className="p-2">
+            <button
+              onClick={onClickSettings}
+              className="w-full flex items-center space-x-3 px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors rounded-md text-sm"
+            >
+              <Settings className="w-4 h-4" />
+              <span>{t('side_bar.links.settings')}</span>
+            </button>
+          </div>
+
+          {/* Footer Actions */}
+          <div className="border-t border-slate-600 bg-slate-700/30">
+            <button
+              onClick={onClickLogout}
+              className="w-full flex items-center space-x-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors text-sm"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>{t('side_bar.logout')}</span>
+            </button>
+          </div>
+        </div>
       )}
 
       <SettingsDialog

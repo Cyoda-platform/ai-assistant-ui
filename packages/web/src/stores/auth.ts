@@ -19,11 +19,6 @@ const defaultState: Auth = {
 };
 
 interface AuthStore extends Auth {
-  // Getters
-  isLoggedIn: boolean;
-  parsedToken: Record<string, any> | null;
-  hasToken: boolean;
-
   // Actions
   login: (form: any) => Promise<void>;
   saveData: (data: Partial<Auth>) => void;
@@ -37,22 +32,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   // Initial state from storage
   ...helperStorage.get("auth", { ...defaultState }),
 
-  // Getters (computed properties)
-  get isLoggedIn() {
-    const state = get();
-    return !!state.token && state.tokenType === 'private';
-  },
-
-  get parsedToken() {
-    const state = get();
-    return state.token ? parseJwt(state.token) : null;
-  },
-
-  get hasToken() {
-    const state = get();
-    return !!state.token;
-  },
-
   // Actions
   async login(form: any) {
     const { data } = await privateClient.post("/auth/login", form);
@@ -60,8 +39,14 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   saveData(data: Partial<Auth>) {
+    console.log('saveData called with:', data);
     set((state) => {
       const newState = { ...state, ...data };
+      console.log('Auth state updated:', {
+        oldState: state,
+        newState,
+        isLoggedIn: newState.token && newState.tokenType === 'private'
+      });
       helperStorage.set("auth", newState);
       return newState;
     });
@@ -73,7 +58,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     assistantStore.setGuestChatsExist(false);
 
     const state = get();
-    if (state.isLoggedIn && logoutFn) {
+    const isLoggedIn = state.token && state.tokenType === 'private';
+    if (isLoggedIn && logoutFn) {
       logoutFn();
     }
 
@@ -114,5 +100,10 @@ function parseJwt(token: string): Record<string, any> | null {
     return null;
   }
 }
+
+// Reactive selectors for components
+export const useIsLoggedIn = () => useAuthStore((state) => !!state.token && state.tokenType === 'private');
+export const useHasToken = () => useAuthStore((state) => !!state.token);
+export const useParsedToken = () => useAuthStore((state) => state.token ? parseJwt(state.token) : null);
 
 export default useAuthStore;

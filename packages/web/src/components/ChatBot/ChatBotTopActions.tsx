@@ -1,25 +1,29 @@
 import React, { useState } from 'react';
-import { Button } from 'antd';
-import MenuIcon from '@/assets/images/icons/menu.svg?react';
+import { ChevronRight } from 'lucide-react';
 import AuthState from '@/components/AuthState/AuthState';
 import ChatBotMenuDesktop from './ChatBotMenuDesktop';
 import ChatBotMenuMobile from './ChatBotMenuMobile';
-import EntitiesDetailsDialog from '@/components/EntitiesDetailsDialog/EntitiesDetailsDialog';
+import styles from './ChatBotTopActions.module.scss';
 
 interface ChatBotTopActionsProps {
   children?: React.ReactNode;
   onToggleCanvas: () => void;
+  onEntitiesDetails?: () => void;
+  onToggleChatHistory?: () => void;
   chatData?: any;
   canvasVisible?: boolean;
+  chatHistoryVisible?: boolean;
 }
 
 const ChatBotTopActions: React.FC<ChatBotTopActionsProps> = ({
   children,
   onToggleCanvas,
+  onEntitiesDetails,
+  onToggleChatHistory,
   chatData,
-  canvasVisible = false
+  canvasVisible = false,
+  chatHistoryVisible = true
 }) => {
-  const [entitiesDialogVisible, setEntitiesDialogVisible] = useState(false);
   const [isLoadingRollback, setIsLoadingRollback] = useState(false);
 
   const onClickDrawerSideBar = () => {
@@ -27,13 +31,21 @@ const ChatBotTopActions: React.FC<ChatBotTopActionsProps> = ({
     console.log('Toggle drawer sidebar');
   };
 
-  const onEntitiesDetails = () => {
-    setEntitiesDialogVisible(true);
+  const handleEntitiesDetails = () => {
+    if (onEntitiesDetails) {
+      onEntitiesDetails();
+    }
+  };
+
+  const handleChatHistoryToggle = () => {
+    if (onToggleChatHistory) {
+      onToggleChatHistory();
+    }
   };
 
   const onSupport = () => {
-    // Handle support action
-    console.log('Contact support');
+    const url = "https://discord.com/invite/95rdAyBZr2";
+    window.open(url, '_blank')?.focus();
   };
 
   const onRollbackChat = () => {
@@ -47,46 +59,48 @@ const ChatBotTopActions: React.FC<ChatBotTopActionsProps> = ({
 
   return (
     <>
-      <div className="chat-bot-top-actions">
-        <div className="chat-bot-top-actions__left-part">
-          <Button
-            onClick={onClickDrawerSideBar}
-            className="btn btn-default btn-icon hidden-above-md"
-            icon={<MenuIcon className="fill-stroke" />}
-          />
-          <div className="chat-bot-top-actions__chat-name">
+      <div className={styles.chatBotTopActions}>
+        <div className={styles.leftSection}>
+          <div className={styles.brandSection}>
+            <div className={styles.brandTitle}>CYODA</div>
+            <span className={styles.alphaBadge}>ALPHA</span>
+          </div>
+
+          {/* Breadcrumb Navigation */}
+          <div className={styles.breadcrumbSection}>
+            <ChevronRight size={14} />
             {children}
           </div>
         </div>
 
-        <div className="chat-bot-top-actions__right-part hidden-below-md">
-          <ChatBotMenuDesktop
-            canvasVisible={canvasVisible}
-            onToggleCanvas={onToggleCanvas}
-            onEntitiesDetails={onEntitiesDetails}
-            onSupport={onSupport}
-          />
-          <AuthState />
+        {/* Desktop Actions */}
+        <div className={styles.rightSection}>
+          <div className={styles.buttonGroup}>
+            <ChatBotMenuDesktop
+              canvasVisible={canvasVisible}
+              chatHistoryVisible={chatHistoryVisible}
+              onToggleCanvas={onToggleCanvas}
+              onEntitiesDetails={handleEntitiesDetails}
+              onToggleChatHistory={handleChatHistoryToggle}
+              onSupport={onSupport}
+            />
+          </div>
         </div>
 
-        <div className="chat-bot-top-actions__right-part hidden-above-md">
-          <AuthState />
+        {/* Mobile Actions */}
+        <div className={styles.mobileRightSection}>
           <ChatBotMenuMobile
             canvasVisible={canvasVisible}
+            chatHistoryVisible={chatHistoryVisible}
             onToggleCanvas={onToggleCanvas}
-            onEntitiesDetails={onEntitiesDetails}
+            onEntitiesDetails={handleEntitiesDetails}
+            onToggleChatHistory={handleChatHistoryToggle}
             onSupport={onSupport}
           />
         </div>
       </div>
 
-      <EntitiesDetailsDialog
-        visible={entitiesDialogVisible}
-        onClose={() => setEntitiesDialogVisible(false)}
-        chatData={chatData}
-        isLoadingRollback={isLoadingRollback}
-        onRollbackChat={onRollbackChat}
-      />
+
     </>
   );
 };

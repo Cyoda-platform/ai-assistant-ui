@@ -1,0 +1,81 @@
+/* Resize Handle Styles */
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: rgba(71, 85, 105, 0.5); /* slate-600/50 */
+  cursor: col-resize;
+  transition: background-color 0.2s ease;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: rgba(100, 116, 139, 1); /* slate-500 */
+  }
+
+  &.resizing {
+    background-color: rgba(20, 184, 166, 1); /* teal-500 */
+  }
+
+  &.left {
+    left: -2px;
+  }
+
+  &.right {
+    right: -2px;
+  }
+}
+
+.indicator {
+  width: 4px;
+  height: 32px;
+  border-radius: 9999px;
+  background-color: rgba(148, 163, 184, 0.3); /* slate-400/30 */
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .resizeHandle:hover & {
+    background-color: rgba(203, 213, 225, 0.5); /* slate-300/50 */
+  }
+
+  .resizeHandle.resizing & {
+    background-color: rgba(45, 212, 191, 0.7); /* teal-400/70 */
+  }
+}
+
+.icon {
+  color: rgba(100, 116, 139, 1); /* slate-500 */
+  transition: color 0.2s ease;
+
+  .resizeHandle:hover & {
+    color: rgba(203, 213, 225, 1); /* slate-300 */
+  }
+
+  .resizeHandle.resizing & {
+    color: rgba(94, 234, 212, 1); /* teal-300 */
+  }
+}
+
+.hitArea {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -8px;
+  right: -8px;
+  cursor: col-resize;
+}
+
+/* Global styles for resizing state */
+:global(.resizing-active) {
+  user-select: none;
+  cursor: col-resize !important;
+  
+  * {
+    cursor: col-resize !important;
+  }
+}

@@ -1,11 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { Button, Tooltip, notification } from 'antd';
 import dayjs from 'dayjs';
-import AiChaIcon from '@/assets/images/icons/ai-chat.svg?react';
-import CopyIcon from '@/assets/images/icons/copy.svg?react';
-import CheckIcon from '@/assets/images/icons/check.svg?react';
-import HelperMarkdown from '@/helpers/HelperMarkdown';
-import HelperCopy from '@/helpers/HelperCopy';
+import { Bot, Clock, Copy, Check, Sparkles, CheckCircle } from 'lucide-react';
+import MarkdownRenderer from '../MarkdownRenderer/MarkdownRenderer';
+import { useTextResponsiveContainer } from '@/hooks/useTextResponsiveContainer';
 
 interface Message {
   text: string | object;
@@ -26,20 +23,25 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
   onApproveQuestion
 }) => {
   const [isLoadingApprove, setIsLoadingApprove] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const computedMessage = useMemo(() => {
+  const messageText = useMemo(() => {
     const text = message.text;
     if (typeof text === 'object' && text !== null) {
       return JSON.stringify(text, null, 2);
     }
-
-    return HelperMarkdown.parseMarkdown(text);
+    return text;
   }, [message.text]);
 
   const date = useMemo(() => {
     if (!message.last_modified) return '';
-    return dayjs(message.last_modified).format('DD/MM/YYYY HH:mm:ss');
+    return dayjs(message.last_modified).format('HH:mm');
   }, [message.last_modified]);
+
+  // Get responsive container class for bot message (left-aligned)
+  const containerInfo = useTextResponsiveContainer(messageText, {
+    baseClass: 'text-responsive-container bot-message'
+  });
 
   const onClickApproveQuestion = () => {
     setIsLoadingApprove(true);
@@ -49,53 +51,74 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     }, 2000);
   };
 
-  const onClickCopy = () => {
-    const textToCopy = typeof message.text === 'string' ? message.text : JSON.stringify(message.text);
-    HelperCopy.copy(textToCopy);
-    notification.success({
-      message: 'Success',
-      description: 'The data has been copied',
-    });
+  const handleCopy = async () => {
+    try {
+      const textToCopy = typeof message.text === 'string' ? message.text : JSON.stringify(message.text);
+      await navigator.clipboard.writeText(textToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
   };
 
   return (
-    <div className="chat-bot-message-question">
-      <div className="chat-bot-message-question__title">
-        <span className="chat-bot-message-question__cyoda-wrapper-icon">
-          <AiChaIcon />
-        </span>
-        <span>CYODA AI | <small className="chat-bot-message-question__date">{date}</small></span>
-
-        <div className="chat-bot-message-question__top-actions">
-          <Tooltip title="Copy" placement="top" mouseEnterDelay={1}>
-            <Button
-              onClick={onClickCopy}
-              size="small"
-              className="btn-default-lighter btn-icon"
-              icon={<CopyIcon />}
-            />
-          </Tooltip>
+    <div className="flex justify-start mb-6 animate-fade-in-up">
+      <div className="flex items-start space-x-3 w-full max-w-[95%]">
+        {/* AI Avatar */}
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg border-2 border-purple-400/30">
+          <Bot size={18} className="text-white" />
         </div>
-      </div>
 
-      <div
-        dangerouslySetInnerHTML={{ __html: computedMessage }}
-        className="chat-bot-message-question__body"
-      />
+        <div className="flex-1">
+          {/* AI Badge */}
+          <div className="flex items-center space-x-2 mb-2">
+            <div className="flex items-center space-x-1.5 bg-slate-800/50 backdrop-blur-sm px-3 py-1 rounded-full border border-slate-600">
+              <Sparkles size={12} className="text-purple-400" />
+              <span className="text-xs font-medium text-slate-300">CYODA AI</span>
+            </div>
+            {date && (
+              <div className="flex items-center space-x-1 text-xs text-slate-500">
+                <Clock size={12} />
+                <span>{date}</span>
+              </div>
+            )}
+          </div>
 
-      <div className="chat-bot-message-question__bottom-actions">
-        {message.approve && (
-          <Tooltip title="Approve" placement="top" mouseEnterDelay={1}>
-            <Button
-              onClick={onClickApproveQuestion}
-              size="small"
-              disabled={isLoading}
-              className="btn btn-primary btn-icon"
-              loading={isLoadingApprove}
-              icon={<CheckIcon className="fill-stroke" />}
-            />
-          </Tooltip>
-        )}
+          {/* Message Bubble - Left aligned bot message */}
+          <div className={containerInfo.className}>
+            <MarkdownRenderer className="[&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+              {messageText}
+            </MarkdownRenderer>
+          </div>
+
+          {/* Message Actions */}
+          <div className="flex items-center justify-between mt-2 px-2">
+            <button
+              onClick={handleCopy}
+              className="p-2 rounded-lg bg-slate-800/50 backdrop-blur-sm border border-slate-600 text-slate-400 hover:text-white hover:bg-slate-700/50 hover:border-slate-500 transition-all duration-200 shadow-sm hover:shadow-md"
+              title="Copy message"
+            >
+              {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
+            </button>
+
+            {message.approve && (
+              <button
+                onClick={onClickApproveQuestion}
+                disabled={isLoading || isLoadingApprove}
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none border border-green-400/20"
+                title="Approve this response"
+              >
+                {isLoadingApprove ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <CheckCircle size={16} />
+                )}
+                <span className="text-sm font-medium">Approve</span>
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

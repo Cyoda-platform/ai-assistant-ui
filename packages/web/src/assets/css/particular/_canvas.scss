@@ -1,0 +1,340 @@
+// Canvas component styles
+.chat-bot-canvas {
+  display: flex;
+  justify-content: stretch;
+
+  &__sidebar {
+    border-right: 1px solid var(--sidebar-border);
+    background-color: var(--bg-sidebar);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    width: 296px;
+
+    &.hidden {
+      width: 64px;
+    }
+
+    h2 {
+      margin: 0;
+      color: #606266;
+      margin-left: 24px;
+    }
+  }
+
+  &__sidebar-title {
+    display: flex;
+    align-items: center;
+    margin: 0 15px;
+  }
+
+  .chat-bot-name {
+    margin-left: 10px;
+  }
+
+  &__sidebar-messages {
+    flex-grow: 1;
+    overflow: auto;
+    margin: 15px 0;
+    padding: 0 15px;
+  }
+
+  &__message-answer {
+    width: 60%;
+    margin-left: 40%;
+  }
+
+  &__main {
+    flex: 1;
+    min-height: 100vh;
+    transition: opacity 0.5s;
+    background-color: var(--bg);
+    
+    // Smooth transitions for switching between components
+    .chat-bot-editor-markdown,
+    .chat-bot-editor-workflow {
+      transition: opacity 0.2s ease-in-out;
+    }
+  }
+
+  &__top_actions {
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 15px 0;
+  }
+}
+
+// Canvas type selector styling
+.canvas-type-selector {
+  .ant-radio-button-wrapper {
+    background-color: var(--bg-button);
+    border-color: var(--border-color-default-button);
+    color: var(--text-color-regular);
+
+    &:hover {
+      background-color: var(--bg-button-hover);
+      color: var(--text-color-regular);
+      border-color: var(--bg-button-hover);
+    }
+
+    &.ant-radio-button-wrapper-checked {
+      background-color: var(--color-primary);
+      border-color: var(--color-primary);
+      color: white;
+
+      &:hover {
+        background-color: var(--color-primary-hover);
+        border-color: var(--color-primary-hover);
+      }
+    }
+  }
+}
+
+// Markdown Editor Styles
+.chat-bot-editor-markdown {
+  position: relative;
+  min-height: calc(100vh - 137px);
+  height: calc(100% - 137px);
+
+  &__editor-wrapper {
+    padding-right: 15px;
+    position: relative;
+  }
+
+  &__markdown-wrapper {
+    padding-left: 15px;
+  }
+
+  &__editor-inner {
+    min-height: 100%;
+  }
+
+  &__actions {
+    position: absolute;
+    right: 15px;
+    bottom: 20px;
+    z-index: 100;
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-new-chat);
+    border: 1px solid var(--input-border);
+    padding: 9px 12px;
+    border-radius: 4px;
+
+    button {
+      margin: 0 !important;
+    }
+  }
+
+  &__markdown-inner p:first-child {
+    margin-top: 8px;
+  }
+
+  &__markdown-inner {
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  &.ant-spin-nested-loading {
+    .ant-spin-container {
+      position: relative;
+    }
+  }
+}
+
+// Workflow Editor Styles
+.chat-bot-editor-workflow {
+  position: relative;
+  width: 100%;
+
+  &__editor-wrapper {
+    padding-right: 15px;
+    position: relative;
+  }
+
+  &__flow-wrapper {
+    padding-left: 15px;
+  }
+
+  &__editor-inner {
+    min-height: 100%;
+  }
+
+  &__actions {
+    position: absolute;
+    right: 15px;
+    bottom: 20px;
+    z-index: 100;
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-new-chat);
+    border: 1px solid var(--input-border);
+    padding: 9px 12px;
+    border-radius: 4px;
+
+    button {
+      margin: 0 !important;
+    }
+  }
+
+  &__react-flow {
+    height: 100%;
+    
+    &.connection-dragging {
+      cursor: crosshair;
+    }
+  }
+
+  &.ant-spin-nested-loading {
+    .ant-spin-container {
+      position: relative;
+    }
+  }
+}
+
+// Workflow Node Styles
+.workflow-node {
+  font-family: var(--font-family);
+  font-size: 14px;
+  
+  &--initial {
+    border-color: var(--color-success) !important;
+    background: linear-gradient(135deg, var(--bg-dialog-color) 0%, rgba(var(--color-success-rgb), 0.1) 100%);
+  }
+
+  &--final {
+    border-color: var(--color-warning) !important;
+    background: linear-gradient(135deg, var(--bg-dialog-color) 0%, rgba(var(--color-warning-rgb), 0.1) 100%);
+  }
+
+  &--normal {
+    background: var(--bg-dialog-color);
+  }
+
+  &.selected {
+    box-shadow: 0 0 0 2px var(--color-primary);
+  }
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__initial-indicator {
+    font-size: 12px;
+  }
+
+  &__label {
+    font-weight: 500;
+    color: var(--text-color-regular);
+  }
+
+  &__menu-button {
+    opacity: 0.6;
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  &__transitions {
+    font-size: 12px;
+    color: var(--text-color-secondary);
+  }
+
+  &__transitions-count {
+    padding: 2px 6px;
+    background: var(--bg-tag);
+    border-radius: 10px;
+    font-size: 11px;
+  }
+}
+
+// Connection handles
+.connection-handle {
+  width: 8px;
+  height: 8px;
+  background: var(--color-primary);
+  border: 2px solid white;
+  border-radius: 50%;
+
+  &.universal-handle {
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  &.target-invisible {
+    opacity: 0 !important;
+  }
+}
+
+.workflow-node:hover .universal-handle {
+  opacity: 1;
+}
+
+// Editor View Mode
+.editor-view-mode {
+  .ant-radio-group {
+    .ant-radio-button-wrapper {
+      background-color: var(--bg-button);
+      border-color: var(--border-color-default-button);
+      color: var(--text-color-regular);
+
+      &:hover {
+        background-color: var(--bg-button-hover);
+        color: var(--text-color-regular);
+        border-color: var(--bg-button-hover);
+      }
+
+      &.ant-radio-button-wrapper-checked {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+        color: white;
+
+        &:hover {
+          background-color: var(--color-primary-hover);
+          border-color: var(--color-primary-hover);
+        }
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .chat-bot-canvas {
+    &__sidebar {
+      display: none;
+    }
+  }
+}
+
+.hidden-below-md {
+  @media (max-width: 768px) {
+    display: none !important;
+  }
+}

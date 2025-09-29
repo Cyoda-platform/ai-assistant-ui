@@ -295,8 +295,8 @@ export async function applyDagreLayout(
   g.setGraph({
     rankdir: isVertical ? 'TB' : 'LR',
     align: 'UL',
-    nodesep: isVertical ? 60 : 150,
-    ranksep: isVertical ? 90 : 250, // Умеренно увеличиваем для горизонтального режима
+    nodesep: isVertical ? 60 : 200,    // Increased from 150 to 200 for horizontal spacing
+    ranksep: isVertical ? 90 : 350,    // Increased from 250 to 350 for horizontal rank separation
     marginx: 40,
     marginy: isVertical ? 20 : 50
   });

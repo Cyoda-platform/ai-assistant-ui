@@ -48,6 +48,8 @@ const refreshToken = (instance: AxiosInstance): void => {
 
                     // @ts-ignore
                     originalConfig.__isRetryRequest = true;
+
+                    // Always use the stored token (refreshAccessToken updates the stored token)
                     const token = helperStorage.get<Auth>("auth")?.token;
                     if (token) {
                         // @ts-ignore

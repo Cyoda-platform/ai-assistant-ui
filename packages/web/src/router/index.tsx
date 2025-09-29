@@ -5,13 +5,16 @@ import { useAssistantStore } from '@/stores/assistant';
 import { isInIframe } from '@/helpers/HelperIframe';
 
 // Import views
+import HomeView from '@/views/HomeView';
 import NewChatView from '@/views/NewChatView';
 import DashboardView from '@/views/DashboardView';
 import ChatBotView from '@/views/ChatBotView';
+import CanvasDemoView from '@/views/CanvasDemoView';
 
 // Import layouts
 import LayoutDefault from '@/layouts/LayoutDefault';
 import LayoutSidebar from '@/layouts/LayoutSidebar';
+import LayoutModern from '@/layouts/LayoutModern';
 
 // Route guard component
 const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -20,10 +23,21 @@ const RouteGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 // Layout wrapper component
 const LayoutWrapper: React.FC<{
-  layout: 'default' | 'sidebar';
+  layout: 'default' | 'sidebar' | 'modern';
   children: React.ReactNode;
 }> = ({ layout, children }) => {
-  const Layout = layout === 'sidebar' ? LayoutSidebar : LayoutDefault;
+  let Layout;
+  switch (layout) {
+    case 'modern':
+      Layout = LayoutModern;
+      break;
+    case 'sidebar':
+      Layout = LayoutSidebar;
+      break;
+    default:
+      Layout = LayoutDefault;
+  }
+
   return (
     <Layout>
       <RouteGuard>
@@ -44,6 +58,10 @@ const routes = [
     children: [
       {
         index: true,
+        element: <HomeView />,
+      },
+      {
+        path: "new-chat",
         element: (
           <LayoutWrapper layout="default">
             <NewChatView />
@@ -51,20 +69,12 @@ const routes = [
         ),
       },
       {
-        path: "home",
-        element: (
-          <LayoutWrapper layout="sidebar">
-            <DashboardView />
-          </LayoutWrapper>
-        ),
+        path: "chat/:technicalId",
+        element: <ChatBotView />,
       },
       {
-        path: "chat-bot/view/:technicalId",
-        element: (
-          <LayoutWrapper layout="sidebar">
-            <ChatBotView />
-          </LayoutWrapper>
-        ),
+        path: "canvas-demo",
+        element: <CanvasDemoView />,
       },
     ],
   },
@@ -104,23 +114,17 @@ export const useNavigationGuards = () => {
       return null; // Allow navigation to continue
     }
 
-    // Handle authenticated user first visit
-    if (authStore.isLoggedIn) {
-      if (isInIframe) {
-        return { pathname: "/", search };
-      }
-      return { pathname: "/home", search };
+    // Don't redirect if user is navigating to a specific chat
+    if (pathname.startsWith('/chat/')) {
+      return null; // Allow navigation to continue to the chat page
     }
 
-    // Handle unauthenticated user first visit
-    if (!authStore.isLoggedIn) {
-      if (!assistantStore.isGuestChatsExist || isInIframe) {
-        return { pathname: "/", search };
-      } else {
-        return { pathname: "/home", search };
-      }
+    // Only redirect to home for root path visits without specific destinations
+    if (pathname === '/') {
+      return { pathname: "/", search };
     }
 
+    // For all other paths, allow navigation to continue
     return null;
   };
 

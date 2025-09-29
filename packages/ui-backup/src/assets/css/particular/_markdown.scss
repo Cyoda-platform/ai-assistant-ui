@@ -1,0 +1,82 @@
+@use '@/assets/css/particular/breakpoints';
+
+.wrapper-mermaid, .wrapper-plantuml, .wrapper-bash, .uuid-block {
+  .actions {
+    text-align: right;
+    margin-bottom: 16px;
+
+    @include breakpoints.respond-max('md') {
+      text-align: center;
+    }
+  }
+
+  .copy, .zoom-in, .zoom-out, .zoom-reset {
+    color: var(--text-copy-color);
+    text-decoration: none;
+    display: inline-block;
+    background: var(--bg-copy);
+    padding: 1px;
+    font-size: 12px;
+    border-radius: 8px;
+    width: 70px;
+    text-align: center;
+    font-weight: normal;
+
+    @include breakpoints.respond-max('md') {
+      margin-top: 15px;
+    }
+  }
+
+  .wrap-container {
+    overflow: hidden;
+    border-radius: 8px;
+    position: relative;
+    min-height: 200px;
+    user-select: none;
+    margin-bottom: 15px;
+  }
+
+  .diagram-container {
+    transform-origin: top left;
+    transition: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    width: 100%;
+  }
+
+  .mermaid {
+    text-align: center;
+
+    text {
+      fill: var(--bubble-text-color) !important;
+    }
+
+    line {
+      stroke: var(--bubble-text-color) !important;
+    }
+
+    #arrowhead path {
+      fill: var(--bubble-text-color) !important;
+      stroke: var(--bubble-text-color) !important;
+    }
+  }
+}
+
+.wrapper-bash {
+  margin-bottom: 20px !important;
+
+  * {
+    margin: 0 !important;
+  }
+
+  .actions {
+    text-align: right;
+  }
+}
+
+.uuid-block .copy {
+  position: relative;
+  top: -10px;
+}

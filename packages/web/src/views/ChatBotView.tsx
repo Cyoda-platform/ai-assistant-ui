@@ -1,8 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Modal } from 'antd';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+  Home,
+  History,
+  Settings,
+  HelpCircle,
+  Clock,
+  ChevronRight,
+  ArrowLeft,
+  X
+} from 'lucide-react';
 import ChatBot from '@/components/ChatBot/ChatBot';
+import ChatBotCanvas from '@/components/ChatBot/ChatBotCanvas';
+import Header from '@/components/Header/Header';
+import { NotificationManager, useNotifications } from '@/components/Notification/Notification';
 import { useAssistantStore } from '@/stores/assistant';
+import EntityDataPanel from '@/components/EntityDataPanel/EntityDataPanel';
+import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
+import { useResizablePanel } from '@/hooks/useResizablePanel';
 
 interface Message {
   id: string;
@@ -16,12 +31,39 @@ interface Message {
 
 const ChatBotView: React.FC = () => {
   const { technicalId } = useParams<{ technicalId: string }>();
+  const navigate = useNavigate();
   const assistantStore = useAssistantStore();
+  const { notifications, removeNotification, showSuccess, showError, showInfo } = useNotifications();
   const [canvasVisible, setCanvasVisible] = useState(false);
+  const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
+  const [isEntityDataOpen, setIsEntityDataOpen] = useState(false);
+  const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatData, setChatData] = useState<any>(null);
+
+  // Resizable panels - start at max width
+  const chatHistoryResize = useResizablePanel({
+    defaultWidth: 400, // Start at maximum width
+    minWidth: 200,     // Minimum width for chat names
+    maxWidth: 400,     // Maximum width to not overwhelm
+    storageKey: 'chatHistory-width'
+  });
+
+  const entityDataResize = useResizablePanel({
+    defaultWidth: 600, // Start at maximum width
+    minWidth: 320,     // Minimum width for entity details
+    maxWidth: 600,     // Maximum width
+    storageKey: 'entityData-width'
+  });
+
+  const canvasResize = useResizablePanel({
+    defaultWidth: 800, // Start at maximum width for canvas
+    minWidth: 400,     // Minimum width for canvas
+    maxWidth: 1200,    // Maximum width for canvas
+    storageKey: 'canvas-width'
+  });
 
   const pollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -31,6 +73,25 @@ const ChatBotView: React.FC = () => {
   const MAX_INTERVAL = parseInt(import.meta.env.VITE_APP_QUESTION_MAX_POLLING_INTERVAL) || 7000;
   const JITTER_PERCENT = 0.1;
   const currentIntervalRef = useRef(BASE_INTERVAL);
+
+  // Keyboard shortcuts for canvas
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+Shift+F or F11 for fullscreen toggle (only when canvas is open)
+      if (canvasVisible && ((e.ctrlKey && e.shiftKey && e.key === 'F') || e.key === 'F11')) {
+        e.preventDefault();
+        setIsCanvasFullscreen(!isCanvasFullscreen);
+      }
+      // Escape to exit fullscreen
+      if (isCanvasFullscreen && e.key === 'Escape') {
+        e.preventDefault();
+        setIsCanvasFullscreen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [canvasVisible, isCanvasFullscreen]);
 
   // Add message to the messages array
   const addMessage = (el: any): boolean => {
@@ -129,6 +190,10 @@ const ChatBotView: React.FC = () => {
     if (!technicalId) return;
 
     setDisabled(true);
+
+    // Show sending notification
+    showInfo('Message Sent', 'Your message is being processed by CYODA AI...');
+
     try {
       let response;
       if (data.file) {
@@ -152,9 +217,15 @@ const ChatBotView: React.FC = () => {
         addMessage(answerMessage);
         setIsLoading(true);
         loadChatHistory();
+
+        // Show success notification
+        setTimeout(() => {
+          showSuccess('Response Received', 'CYODA AI has processed your request and is generating a response.');
+        }, 1000);
       }
     } catch (error) {
       console.error('Error submitting answer:', error);
+      showError('Message Failed', 'Failed to send your message. Please try again.');
       setDisabled(false);
     }
   };
@@ -185,7 +256,24 @@ const ChatBotView: React.FC = () => {
 
   const onToggleCanvas = () => {
     setCanvasVisible(!canvasVisible);
+    // Exit fullscreen when closing canvas
+    if (canvasVisible && isCanvasFullscreen) {
+      setIsCanvasFullscreen(false);
+    }
   };
+
+  const onToggleCanvasFullscreen = () => {
+    setIsCanvasFullscreen(!isCanvasFullscreen);
+  };
+
+  const onEntitiesDetails = () => {
+    setIsEntityDataOpen(!isEntityDataOpen);
+  };
+
+  // Load chat list for sidebar
+  useEffect(() => {
+    assistantStore.getChats();
+  }, []);
 
   // Initialize chat and start polling
   useEffect(() => {
@@ -194,6 +282,16 @@ const ChatBotView: React.FC = () => {
     setIsLoading(true);
     setMessages([]);
     setChatData(null);
+
+    // Show welcome notification
+    setTimeout(() => {
+      showSuccess('Chat Loaded Successfully', 'Your conversation is ready with enhanced markdown rendering and real-time updates!');
+    }, 1500);
+
+    // Show additional demo notifications
+    setTimeout(() => {
+      showInfo('Feature Update', 'New notification system with message-style bubbles is now active.');
+    }, 3000);
 
     // Clear any existing polling
     if (pollTimeoutRef.current) {
@@ -226,37 +324,259 @@ const ChatBotView: React.FC = () => {
     return <div>No chat ID provided</div>;
   }
 
-  return (
-    <>
-      <ChatBot
-        technicalId={technicalId}
-        onAnswer={onAnswer}
-        onApproveQuestion={onApproveQuestion}
-        onToggleCanvas={onToggleCanvas}
-        onUpdateNotification={onUpdateNotification}
-        disabled={disabled}
-        isLoading={isLoading}
-        messages={messages}
-        chatData={chatData}
-        canvasVisible={canvasVisible}
-      />
+  // Group chats by date similar to HomeView
+  const groupChatsByDate = (chats: any[]) => {
+    if (!chats || chats.length === 0) return [];
 
-      <Modal
-        open={canvasVisible}
-        onCancel={onToggleCanvas}
-        width="100%"
-        style={{ top: 0, height: '100vh' }}
-        className="chat-bot-dialog"
-        footer={null}
-        closable={true}
-      >
-        {/* ChatBotCanvas placeholder */}
-        <div>
-          <h2>Canvas View</h2>
-          <p>Canvas implementation placeholder</p>
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 7);
+
+    const isSameDay = (date1: Date, date2: Date) =>
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate();
+
+    const todayChats: any[] = [];
+    const yesterdayChats: any[] = [];
+    const previousWeekChats: any[] = [];
+    const olderChats: any[] = [];
+
+    chats.forEach(chat => {
+      const chatDate = new Date(chat.last_modified || chat.date);
+
+      if (isSameDay(chatDate, today)) {
+        todayChats.push(chat);
+      } else if (isSameDay(chatDate, yesterday)) {
+        yesterdayChats.push(chat);
+      } else if (chatDate >= sevenDaysAgo) {
+        previousWeekChats.push(chat);
+      } else {
+        olderChats.push(chat);
+      }
+    });
+
+    return [
+      { title: 'Today', chats: todayChats },
+      { title: 'Yesterday', chats: yesterdayChats },
+      { title: 'Previous week', chats: previousWeekChats },
+      { title: 'Older', chats: olderChats }
+    ].filter(group => group.chats.length > 0);
+  };
+
+  // Format relative time
+  const formatRelativeTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    if (diffInDays < 7) return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    return date.toLocaleDateString();
+  };
+
+  const chatGroups = groupChatsByDate(assistantStore.chatList || []);
+  const hasChats = chatGroups.length > 0;
+
+  return (
+    <div className="main-layout bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-white">
+      <Header />
+      <div className="flex h-[calc(100vh-73px)] overflow-hidden">
+        {/* Enhanced Left Sidebar - Resizable Chat History Panel */}
+        {isChatHistoryOpen && (
+          <div
+            className={`bg-slate-800/90 backdrop-blur-sm border-r border-slate-700 flex flex-col relative resizable-panel ${chatHistoryResize.isResizing ? 'resizing' : ''}`}
+            style={{ width: `${chatHistoryResize.width}px` }}
+          >
+          {/* Header with Close Button */}
+          <div className="p-4 border-b border-slate-700">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-white font-semibold">Chat History</h3>
+              <button
+                onClick={() => setIsChatHistoryOpen(false)}
+                className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors"
+                title="Close chat history"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <button
+              onClick={() => navigate('/')}
+              className="w-full bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+            >
+              <ArrowLeft size={16} />
+              <span>Back to Home</span>
+            </button>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 flex flex-col p-4 space-y-2 overflow-hidden">
+            <div
+              onClick={() => navigate('/')}
+              className="flex items-center space-x-3 text-slate-300 hover:text-white cursor-pointer p-3 rounded-lg hover:bg-slate-700/50 transition-all duration-200 group"
+            >
+              <Home size={18} className="group-hover:scale-110 transition-transform" />
+              <span className="font-medium">Home</span>
+            </div>
+
+            <div className="flex-1 flex flex-col space-y-1 overflow-hidden">
+              <div className="flex items-center space-x-3 text-white cursor-pointer p-3 rounded-lg bg-teal-500/20 border border-teal-500/30 group">
+                <History size={18} className="group-hover:scale-110 transition-transform" />
+                <span className="font-medium">Current Chat</span>
+              </div>
+
+              {/* Chat History */}
+              <div className="ml-8 space-y-3 flex-1 overflow-y-auto chat-container">
+                {hasChats ? (
+                  chatGroups.map((group) => (
+                    <div key={group.title} className="space-y-1">
+                      <div className="text-xs font-medium text-slate-500 uppercase tracking-wider px-2 py-1">
+                        {group.title}
+                      </div>
+                      <div className="space-y-1">
+                        {group.chats.map((chat) => (
+                          <div
+                            key={chat.technical_id}
+                            onClick={() => navigate(`/chat/${chat.technical_id}`)}
+                            className={`text-slate-400 hover:text-white cursor-pointer p-2 rounded-md hover:bg-slate-700/30 transition-all duration-200 text-sm ${
+                              chat.technical_id === technicalId ? 'text-teal-400 hover:text-teal-300 bg-teal-500/10 border border-teal-500/20' : ''
+                            }`}
+                          >
+                            <div className="flex items-center space-x-2">
+                              <Clock size={14} className={chat.technical_id === technicalId ? 'text-teal-400' : 'text-slate-500'} />
+                              <span className="truncate flex-1" title={chat.name || chat.description}>
+                                {chat.name || chat.description || 'Untitled Chat'}
+                              </span>
+                            </div>
+                            <div className="text-xs text-slate-600 mt-1 ml-5">
+                              {formatRelativeTime(chat.last_modified || chat.date)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-2 py-4 text-center">
+                    <div className="text-sm text-slate-500 mb-2">No chat history yet</div>
+                    <div className="text-xs text-slate-600">Start a conversation to see your chats here</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </nav>
+
+          {/* Footer Actions */}
+          <div className="p-4 border-t border-slate-700 space-y-2">
+            <div className="flex items-center space-x-3 text-slate-400 hover:text-white cursor-pointer p-3 rounded-lg hover:bg-slate-700/50 transition-all duration-200 group">
+              <HelpCircle size={18} className="group-hover:scale-110 transition-transform" />
+              <span className="font-medium">Help & Support</span>
+            </div>
+            <div className="flex items-center space-x-3 text-slate-400 hover:text-white cursor-pointer p-3 rounded-lg hover:bg-slate-700/50 transition-all duration-200 group">
+              <Settings size={18} className="group-hover:scale-110 transition-transform" />
+              <span className="font-medium">Settings</span>
+            </div>
+          </div>
+
+          {/* Resize Handle for Chat History Panel */}
+          <ResizeHandle
+            onMouseDown={chatHistoryResize.handleMouseDown}
+            isResizing={chatHistoryResize.isResizing}
+            position="right"
+          />
+          </div>
+        )}
+
+        {/* Show Chat History Button when closed */}
+        {!isChatHistoryOpen && (
+          <div className="flex-shrink-0 p-2 border-r border-slate-700 bg-slate-800/90">
+            <button
+              onClick={() => setIsChatHistoryOpen(true)}
+              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors"
+              title="Show chat history"
+            >
+              <History size={20} />
+            </button>
+          </div>
+        )}
+
+        {/* Canvas Sidebar Panel - Between chat history and main content */}
+        {canvasVisible && (
+          <div
+            className={`bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel ${canvasResize.isResizing ? 'resizing' : ''} ${
+              isCanvasFullscreen ? 'fixed inset-0 z-50 w-full' : ''
+            }`}
+            style={isCanvasFullscreen ? {} : { width: `${canvasResize.width}px` }}
+          >
+            <ChatBotCanvas
+              technicalId={technicalId}
+              messages={messages}
+              isLoading={isLoading}
+              onAnswer={onAnswer}
+              onApproveQuestion={onApproveQuestion}
+              onUpdateNotification={onUpdateNotification}
+              onToggleCanvas={onToggleCanvas}
+              isFullscreen={isCanvasFullscreen}
+              onToggleFullscreen={onToggleCanvasFullscreen}
+            />
+
+            {/* Resize Handle - Hide in fullscreen mode */}
+            {!isCanvasFullscreen && (
+              <ResizeHandle
+                position="right"
+                onMouseDown={canvasResize.handleMouseDown}
+                isResizing={canvasResize.isResizing}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col min-h-0 main-content">
+          <ChatBot
+            technicalId={technicalId}
+            onAnswer={onAnswer}
+            onApproveQuestion={onApproveQuestion}
+            onToggleCanvas={onToggleCanvas}
+            onEntitiesDetails={onEntitiesDetails}
+            onUpdateNotification={onUpdateNotification}
+            disabled={disabled}
+            isLoading={isLoading}
+            messages={messages}
+            chatData={chatData}
+            canvasVisible={canvasVisible}
+          />
         </div>
-      </Modal>
-    </>
+
+        {/* Entity Data Panel - Resizable */}
+        <EntityDataPanel
+          isOpen={isEntityDataOpen}
+          onClose={() => setIsEntityDataOpen(false)}
+          chatData={chatData}
+          width={entityDataResize.width}
+          onWidthChange={entityDataResize.setWidth}
+          onRefresh={() => {
+            // Refresh entity data by reloading chat history
+            loadChatHistory();
+          }}
+          onRollbackChat={() => {
+            // TODO: Implement rollback functionality
+            console.log('Rolling back chat...');
+          }}
+        />
+      </div>
+
+      {/* Notification Manager */}
+      <NotificationManager
+        notifications={notifications}
+        onRemove={removeNotification}
+      />
+    </div>
   );
 };
 

@@ -1,14 +1,14 @@
 import React from 'react';
 import LoginButton from '@/components/LoginButton/LoginButton';
 import AuthStateAvatar from '@/components/AuthState/AuthStateAvatar';
-import { useAuthStore } from '@/stores/auth';
+import { useIsLoggedIn } from '@/stores/auth';
 
 const AuthState: React.FC = () => {
-  const authStore = useAuthStore();
+  const isLoggedIn = useIsLoggedIn();
 
   return (
     <div>
-      {authStore.isLoggedIn ? (
+      {isLoggedIn ? (
         <AuthStateAvatar />
       ) : (
         <LoginButton />

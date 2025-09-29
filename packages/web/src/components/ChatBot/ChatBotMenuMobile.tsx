@@ -1,25 +1,32 @@
 import React from 'react';
 import { Dropdown, MenuProps } from 'antd';
-import { DatabaseOutlined, CustomerServiceOutlined, MoreOutlined } from '@ant-design/icons';
+import { DatabaseOutlined, CustomerServiceOutlined, MoreOutlined, HistoryOutlined } from '@ant-design/icons';
 import ToggleCanvasIcon from '@/assets/images/icons/toggle-canvas.svg?react';
 
 interface ChatBotMenuMobileProps {
   canvasVisible?: boolean;
+  chatHistoryVisible?: boolean;
   onToggleCanvas: () => void;
   onEntitiesDetails: () => void;
+  onToggleChatHistory: () => void;
   onSupport: () => void;
 }
 
 const ChatBotMenuMobile: React.FC<ChatBotMenuMobileProps> = ({
   canvasVisible = false,
+  chatHistoryVisible = true,
   onToggleCanvas,
   onEntitiesDetails,
+  onToggleChatHistory,
   onSupport
 }) => {
   const toggleCanvasTitle = canvasVisible ? 'Close Canvas' : 'Open Canvas';
 
   const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
     switch (key) {
+      case 'toggleChatHistory':
+        onToggleChatHistory();
+        break;
       case 'toggleCanvas':
         onToggleCanvas();
         break;
@@ -34,6 +41,11 @@ const ChatBotMenuMobile: React.FC<ChatBotMenuMobileProps> = ({
 
   const menuItems: MenuProps['items'] = [
     {
+      key: 'toggleChatHistory',
+      icon: <HistoryOutlined />,
+      label: `${chatHistoryVisible ? 'Hide' : 'Show'} Chat History`,
+    },
+    {
       key: 'toggleCanvas',
       icon: <ToggleCanvasIcon />,
       label: toggleCanvasTitle,
@@ -46,7 +58,7 @@ const ChatBotMenuMobile: React.FC<ChatBotMenuMobileProps> = ({
     {
       key: 'support',
       icon: <CustomerServiceOutlined />,
-      label: 'Contact Support',
+      label: 'Join Discord',
     },
   ];
 

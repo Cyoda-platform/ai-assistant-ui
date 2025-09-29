@@ -24,7 +24,7 @@ const NewChatView: React.FC = () => {
   };
 
   return (
-    <div className="new-chat-view">
+    <div className="main-layout new-chat-view">
       <div className="new-chat-view__header">
         <div className="new-chat-view__logo">
           <img

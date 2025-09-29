@@ -1,0 +1,7 @@
+.el-switch.is-checked .el-switch__core{
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.el-switch__label.is-active{
+  color: var(--color-primary);
+}

@@ -1,0 +1,109 @@
+@mixin light-theme {
+  --color-primary: #0D8484;
+  --color-primary-ligter: #109f9f;
+  --text-color-regular: #606266;
+  --text-copy-color: #606266;
+  --text-color-primary: #303133;
+  --text-color-secondary: #909399;
+  --bg-btn-disable: #C0C4CC;
+  --bg-copy: #C0C4CC;
+  --green-primary-dark: #2e8861;
+  --border-color-darken: #CDD0D6;
+  --bg-sidebar: #F4F4F4;
+  --bg-sidebar-canvas: #EEF3F3;
+  --accent-border: #B4D9D9;
+  --sidebar-border: #DCDFE6;
+  --text-header: #0A6363;
+  --text-header-lighter: #303133;
+  --bg: #FEFEFE;
+  --input: #FFFFFF;
+  --input-border-color: #DCDFE6;
+  --grid-color: rgba(0, 0, 0, 0.08);
+  --bubble-notification-bg-color: #FDFEFE;
+  --bubble-text-color: #303133;
+  --bubble-box-shadow-color: rgba(214, 219, 219, 0.6);
+  --bubble-border-color: #F0F1F4;
+  --bubble-question-bg-color: #D6DBDB;
+  --bubble-question-text-color: #01143C;
+  --bubble-question-title-color: #303133;
+  --bg-btn-default: #E6E6DA;
+  --bg-btn-default-hover: rgb(235.9, 245.3, 255);
+  --bg-btn-default-lighter: #EFF2EC;
+  --bg-btn-default-lighter-hover: rgb(235.9, 245.3, 255);
+  --color-icon-submit: #FFFFFF;
+  --bg-popup: #FFFFFF;
+  --bg-attachment: #F4F4F4;
+  --border-attachment-file: #D4D7DE;
+  --bg-button: #FFFFFF;
+  --bg-button-hover: #e3e3e3;
+  --bg-active-menu: #FFFFFF;
+  --border-color-active-menu: #0D8484;
+  --border-color-popover: #0D8484;
+  --border-color-default-button: #DCDFE6;
+  --bg-button-create-new: #0A6363;
+  --color-settings-text: #303133;
+  --color-input-text: #606266;
+  --text-login-main-color: #FFFFFF;
+  --bg-dialog-close-color: #606265;
+  --color-primary-darken: #084F4F;
+  --bg-new-chat: #EEF3F3;
+  --color-title: #0A6A6A;
+  --color-sub-title: #303133;
+  --color-white-examples: #303133;
+  --bg-new-chat-button: #D6DBDB;
+  --bg-new-chat-button-hover: #bec3c3;
+  --bg-new-chat-button-readonly: #ffffff;
+  --color-primary-dark-active: #063B3B;
+  --input-border: #CDD0D6;
+  --btn-bordered-border-color: #084F4F;
+  --btn-bordered-border-color-hover: #109f9f;
+  --btn-bordered-text-color: #063B3B;
+  --input-disabled: #f5f7fa;
+  --bg-dialog-color: #F4F4F4;
+  --color-dialog-title: #303133;
+  --version-app-background: #FFFFFF;
+  --message-bg-color: #FFFFFF;
+  --white-black: #FFFFFF;
+  --radio-button-color: #FFFFFF;
+  --radio-bg-color: #FFFFFF;
+  --radio-border-color: #dcdfe6;
+  --vue-flow-button-color: #fefefe;
+  /* Workflow: transition label colors (customizable) */
+  --workflow-transition-auto-bg: var(--color-primary);
+  --workflow-transition-auto-border: var(--color-primary);
+  --workflow-transition-auto-text: #ffffff;
+  /* Pick a distinctive manual color (amber-ish) or adjust as needed */
+  --workflow-transition-manual-bg: #dcdcdc;
+  --workflow-transition-manual-border: #dcdcdc;
+  --workflow-transition-manual-text: #333333;
+}
+
+.only-theme-light {
+  display: none;
+}
+
+@mixin applyOnlyForThemeLight {
+  .only-theme-light {
+    display: unset;
+  }
+}
+
+@mixin scollbar {
+  ::-webkit-scrollbar-track {
+    background: initial !important;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: initial !important;
+  }
+
+  &, * {
+    scrollbar-color: initial !important;
+  }
+}
+
+.theme-light {
+  @include light-theme;
+  @include scollbar;
+  @include applyOnlyForThemeLight;
+}

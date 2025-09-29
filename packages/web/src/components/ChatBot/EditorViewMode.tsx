@@ -1,7 +1,8 @@
 import React from 'react';
-import { Radio, Button, Modal } from 'antd';
+import { Radio, Button, Modal, Grid } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
-import { useBreakpoint } from 'antd';
+
+const { useBreakpoint } = Grid;
 
 interface EditorViewModeProps {
   value: string;
@@ -11,7 +12,7 @@ interface EditorViewModeProps {
 
 const EditorViewMode: React.FC<EditorViewModeProps> = ({ value, onChange, onClear }) => {
   const screens = useBreakpoint();
-  
+
   // Show editor preview only on medium screens and larger
   const isShowEditorPreview = screens.md;
 
@@ -41,9 +42,9 @@ const EditorViewMode: React.FC<EditorViewModeProps> = ({ value, onChange, onClea
   ];
 
   return (
-    <div className="editor-view-mode" style={{ 
-      display: 'flex', 
-      justifyContent: 'space-between', 
+    <div className="editor-view-mode" style={{
+      display: 'flex',
+      justifyContent: 'space-between',
       alignItems: 'center',
       padding: '8px 0',
       borderBottom: '1px solid var(--input-border)',
@@ -57,7 +58,7 @@ const EditorViewMode: React.FC<EditorViewModeProps> = ({ value, onChange, onClea
         buttonStyle="solid"
         size="small"
       />
-      
+
       <Button
         type="text"
         size="small"
