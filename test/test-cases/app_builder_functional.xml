@@ -1,0 +1,1830 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suite>
+    <id>S124</id>
+    <name>Functional testing</name>
+    <description></description>
+    <sections>
+        <section>
+            <name>Test Cases</name>
+            <description></description>
+            <cases>
+                <case>
+                    <id>C8468</id>
+                    <title>Valid Query Submission</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the chat page.</content>
+                                <expected></expected>
+                            </step>
+                            <step>
+                                <content>Enter a valid query, such as &apos;latest news about AI&apos;</content>
+                                <expected>The valid query is entered</expected>
+                            </step>
+                            <step>
+                                <content>Click the &apos;Send&apos; button to submit the query.</content>
+                                <expected>The search results for the query are displayed without any errors.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the search results are relevant to the query.</content>
+                                <expected>The search results are relevant and contain information about the latest news
+                                    on AI.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8469</id>
+                    <title>Empty User Request Field</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the user request submission form.</content>
+                                <expected>The user request submission form is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Leave the user request field empty and click the submit button.</content>
+                                <expected>An error or validation message is displayed indicating that the user request
+                                    field is required.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify the error or validation message.</content>
+                                <expected>The error or validation message clearly states that the user request field is
+                                    required and cannot be empty.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8470</id>
+                    <title>Unlogged User Starts Chat</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the chat interface as an unlogged user.</content>
+                                <expected>The chat interface is accessible without logging in.</expected>
+                            </step>
+                            <step>
+                                <content>Start a new chat.</content>
+                                <expected>The chat is successfully started and saved.</expected>
+                            </step>
+                            <step>
+                                <content>Start a second chat.</content>
+                                <expected>The second chat is successfully started and saved.</expected>
+                            </step>
+                            <step>
+                                <content>Attempt to start a third chat.</content>
+                                <expected>An error notification is displayed indicating that the limit of two chats for
+                                    unlogged users has been reached.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8471</id>
+                    <title>Unlogged User Deploys Application</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the application deployment page.</content>
+                                <expected>The application deployment page is accessible.</expected>
+                            </step>
+                            <step>
+                                <content>Attempt to deploy the application without logging in.</content>
+                                <expected>A prompt to log in appears, and the deployment process is not initiated.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Log in to the application.</content>
+                                <expected>Successfully logged in to the application.</expected>
+                            </step>
+                            <step>
+                                <content>Attempt to deploy the application again after logging in.</content>
+                                <expected>The deployment process is initiated successfully.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8472</id>
+                    <title>Logged-in User Authentication</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Log in to the application using valid credentials.</content>
+                                <expected>User is successfully logged in and redirected to the dashboard.</expected>
+                            </step>
+                            <step>
+                                <content>Close the browser tab.</content>
+                                <expected>The browser tab is closed.</expected>
+                            </step>
+                            <step>
+                                <content>Open the application in a new browser tab.</content>
+                                <expected>The application opens in a new browser tab.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the user is still logged in.</content>
+                                <expected>The user is still logged in and can access the dashboard without needing to
+                                    log in again.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8473</id>
+                    <title>Multiple Incognito Tabs</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open 11 incognito tabs in your browser.</content>
+                                <expected>All tabs should open successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Try to start a chat in each of the 11 incognito tabs.</content>
+                                <expected>You should be able to start a chat in the first 2 tabs, but the third tab and
+                                    onwards should display an error notification stating that you cannot start a new
+                                    chat.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify the error notification in the third tab and beyond.</content>
+                                <expected>The error notification should read something like &apos;You cannot start a new
+                                    chat. You have reached the limit of 2 chats for unlogged users.&apos;
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8474</id>
+                    <title>Approve Button During Chat</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Start a chat session.</content>
+                                <expected>Chat session starts successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Initiate a process within the chat.</content>
+                                <expected>Process starts within the chat.</expected>
+                            </step>
+                            <step>
+                                <content>Attempt to click the Approve button.</content>
+                                <expected>The Approve button is disabled and cannot be clicked.</expected>
+                            </step>
+                            <step>
+                                <content>Wait for the process to complete.</content>
+                                <expected>The process completes successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Attempt to click the Approve button again after the process is complete.
+                                </content>
+                                <expected>The Approve button is now enabled and can be clicked.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8475</id>
+                    <title>Message Sending During AI Process</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Start a chat session.</content>
+                                <expected>Chat session is initiated.</expected>
+                            </step>
+                            <step>
+                                <content>Send a request to the AI to start processing.</content>
+                                <expected>AI processing starts and a notification is displayed indicating the AI is in
+                                    process.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Attempt to send a message to the AI.</content>
+                                <expected>A restriction notification is displayed, indicating that messages cannot be
+                                    sent while the AI is in process.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Wait for the AI processing to complete.</content>
+                                <expected>AI processing completes and the chat session is no longer restricted.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Send a message to the AI after processing is complete.</content>
+                                <expected>The message is sent successfully without any restriction notifications.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8476</id>
+                    <title>Retrieve Content from a Valid URL</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the application and navigate to the web scraping feature.</content>
+                                <expected>The web scraping feature is accessible and ready for use.</expected>
+                            </step>
+                            <step>
+                                <content>Enter a valid URL into the input field.</content>
+                                <expected>The URL is accepted without errors.</expected>
+                            </step>
+                            <step>
+                                <content>Provide a valid CSS selector to extract specific data from the web page.
+                                </content>
+                                <expected>The CSS selector is accepted without errors.</expected>
+                            </step>
+                            <step>
+                                <content>Initiate the web scraping process.</content>
+                                <expected>The system starts the web scraping process and retrieves the specified
+                                    content.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that the expected HTML content is returned and displayed correctly.
+                                </content>
+                                <expected>The HTML content is returned and displayed as expected.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8477</id>
+                    <title>Verify Welcome Notification on App Start</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Trigger the application build process with a valid user request.</content>
+                                <expected>The application build process starts successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that a welcome notification is sent.</content>
+                                <expected>A welcome message is published and the flow transitions to the greeting_sent
+                                    state.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8478</id>
+                    <title>Verify Functional Requirement Questions Are Asked</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Trigger the process_initial_question.</content>
+                                <expected>The system should ask the first functional requirement question.</expected>
+                            </step>
+                            <step>
+                                <content>Engage in back-and-forth clarification with the system.</content>
+                                <expected>The system should ask follow-up questions based on the initial response to
+                                    clarify the functional requirements.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Provide responses to the questions.</content>
+                                <expected>The system should acknowledge the responses and ask additional questions if
+                                    necessary.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Continue the clarification process until all functional requirements are
+                                    gathered.
+                                </content>
+                                <expected>The system should transition to the app_requirements_requested state and
+                                    gather all necessary input.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that all functional requirements have been clarified.</content>
+                                <expected>The system should confirm that all functional requirements have been gathered
+                                    and clarified.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8479</id>
+                    <title>Verify Complete Set of Functional Requirements</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Complete the requirement gathering process.</content>
+                                <expected>The application transitions to the app_requirements_requested state.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Trigger the generation of functional requirements.</content>
+                                <expected>A markdown file named functional_requirement.md is generated.</expected>
+                            </step>
+                            <step>
+                                <content>Verify the content of the functional_requirement.md file.</content>
+                                <expected>The file contains a complete set of functional requirements as per the
+                                    application&apos;s needs.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8480</id>
+                    <title>Verify Initial Application Prototype Creation</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Use finalized requirements to trigger prototype generation.</content>
+                                <expected>A functional prototype.py file is saved to the entity directory.</expected>
+                            </step>
+                            <step>
+                                <content>Check the entity directory for the presence of prototype.py file.</content>
+                                <expected>The prototype.py file exists in the entity directory.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8481</id>
+                    <title>Verify Prototype Conversion to Cyoda Format</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the application prototype file.</content>
+                                <expected>The prototype file should be accessible and open in the editor.</expected>
+                            </step>
+                            <step>
+                                <content>Identify the prototype code that needs to be converted to Cyoda format.
+                                </content>
+                                <expected>The relevant sections of the prototype code should be clearly identifiable.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Convert the identified prototype code to Cyoda format.</content>
+                                <expected>The code should be successfully refactored to match the Cyoda format,
+                                    including the use of entity_service.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Save the refactored prototype file as &apos;prototype_cyoda.py&apos;.</content>
+                                <expected>The file should be saved with the correct name and location.</expected>
+                            </step>
+                            <step>
+                                <content>Verify the content of &apos;prototype_cyoda.py&apos; to ensure it follows the
+                                    Cyoda format.
+                                </content>
+                                <expected>The file should contain the refactored code in the correct Cyoda format,
+                                    including proper usage of entity_service.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8482</id>
+                    <title>Verify JSON Structure for Application Entities</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the entity design section in the application.</content>
+                                <expected>The entity design section should be accessible and visible.</expected>
+                            </step>
+                            <step>
+                                <content>Trigger the generation of the JSON structure for the application&apos;s
+                                    entities.
+                                </content>
+                                <expected>The JSON structure should be generated successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Verify the generated JSON structure for correctness.</content>
+                                <expected>The JSON structure should match the expected format and contain all necessary
+                                    fields and properties.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Check if the JSON structure is saved correctly.</content>
+                                <expected>The JSON structure should be saved without any errors.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8483</id>
+                    <title>Verify Workflow Code Generation</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the workflow editor and open the workflow JSON file.</content>
+                                <expected>The workflow JSON file is opened and displayed correctly.</expected>
+                            </step>
+                            <step>
+                                <content>Verify the structure and content of the workflow JSON file.</content>
+                                <expected>The workflow JSON file contains the correct structure and content as per the
+                                    workflow design.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Generate the workflow code from the JSON file.</content>
+                                <expected>The workflow code is generated successfully without any errors.</expected>
+                            </step>
+                            <step>
+                                <content>Review the generated workflow code.</content>
+                                <expected>The generated workflow code matches the expected code based on the workflow
+                                    JSON file.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Save the generated workflow code.</content>
+                                <expected>The workflow code is saved successfully.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8484</id>
+                    <title>Verify Workflow Code Registration</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Generate the workflow code for the application.</content>
+                                <expected>Workflow code is generated successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Register the workflow code within the system.</content>
+                                <expected>Workflow code is registered successfully without any errors.</expected>
+                            </step>
+                            <step>
+                                <content>Verify the registration by checking the system logs or workflow list.</content>
+                                <expected>The workflow code appears in the system logs or workflow list, indicating
+                                    successful registration.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8485</id>
+                    <title>Verify Application Build Completion</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Complete the application building process by following the provided
+                                    instructions.
+                                </content>
+                                <expected>The application building process should complete successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Check if the .env template is saved.</content>
+                                <expected>The .env template should be saved and available for use.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the user is notified with setup instructions.</content>
+                                <expected>A notification with setup instructions should be sent to the user.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8486</id>
+                    <title>Verify User Notification with Setup Instructions</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Complete the application building process by saving the .env template and
+                                    notifying the user with setup instructions.
+                                </content>
+                                <expected>.env.template is saved and instructions sent to user.</expected>
+                            </step>
+                            <step>
+                                <content>Check the user&apos;s notification for setup instructions.</content>
+                                <expected>The user receives a notification with setup instructions.</expected>
+                            </step>
+                            <step>
+                                <content>Verify the content of the notification.</content>
+                                <expected>The notification contains clear and detailed setup instructions.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8487</id>
+                    <title>Valid CSS Selector</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the web scraping function interface.</content>
+                                <expected>The web scraping function interface is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Enter a valid URL in the URL field.</content>
+                                <expected>The URL field accepts the input and displays the entered URL.</expected>
+                            </step>
+                            <step>
+                                <content>Enter a valid CSS selector in the CSS selector field.</content>
+                                <expected>The CSS selector field accepts the input and displays the entered CSS
+                                    selector.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click the &apos;Scrape&apos; button to initiate the web scraping process.
+                                </content>
+                                <expected>The web scraping process starts and the expected HTML content is returned.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that the returned HTML content matches the expected content based on the
+                                    provided CSS selector.
+                                </content>
+                                <expected>The returned HTML content matches the expected content based on the provided
+                                    CSS selector.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8488</id>
+                    <title>Valid URL Input</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the application interface where a user can input a URL.</content>
+                                <expected>The interface should display a field or prompt for entering a URL.</expected>
+                            </step>
+                            <step>
+                                <content>Enter a valid URL for a financial news site, such as &apos;https://www.bloomberg.com&apos;.</content>
+                                <expected>The application should accept the URL without any error messages.</expected>
+                            </step>
+                            <step>
+                                <content>Submit the entered URL.</content>
+                                <expected>The application should process the URL and begin scraping or retrieving data
+                                    from the specified site.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that the application successfully retrieves and displays data from the
+                                    entered URL.
+                                </content>
+                                <expected>The application should show relevant financial news data or content from the
+                                    specified URL.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8489</id>
+                    <title>Edit Application Settings</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the application settings page.</content>
+                                <expected>The application settings page is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Modify the application&apos;s settings or code.</content>
+                                <expected>The modified settings or code are visible in the settings page.</expected>
+                            </step>
+                            <step>
+                                <content>Save the changes.</content>
+                                <expected>A confirmation message is displayed indicating that the settings have been
+                                    saved successfully.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify the changes by checking the application&apos;s behavior or output.
+                                </content>
+                                <expected>The application behaves or outputs according to the updated settings.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8490</id>
+                    <title>Integrate New Data Entity</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the application&apos;s data model section.</content>
+                                <expected>The current data model is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Define the properties of the new data entity.</content>
+                                <expected>The properties of the new data entity are successfully defined.</expected>
+                            </step>
+                            <step>
+                                <content>Integrate the new data entity into the application&apos;s data model.</content>
+                                <expected>The new data entity is successfully integrated into the application&apos;s
+                                    data model.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify the integration by checking if the new data entity is listed in the data
+                                    model.
+                                </content>
+                                <expected>The new data entity is listed in the application&apos;s data model.</expected>
+                            </step>
+                            <step>
+                                <content>Test the new data entity by creating a new record.</content>
+                                <expected>A new record is successfully created using the new data entity.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8491</id>
+                    <title>Incorporate New Automated Process</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the workflow management section of the application.</content>
+                                <expected>The workflow management section is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Click on the &apos;Add New Workflow&apos; button.</content>
+                                <expected>The workflow creation form is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Define the trigger for the new workflow.</content>
+                                <expected>The trigger is successfully defined.</expected>
+                            </step>
+                            <step>
+                                <content>Add actions to the workflow.</content>
+                                <expected>The actions are successfully added to the workflow.</expected>
+                            </step>
+                            <step>
+                                <content>Save the new workflow.</content>
+                                <expected>The new workflow is saved successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the new workflow appears in the list of workflows.</content>
+                                <expected>The new workflow is listed among the existing workflows.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8492</id>
+                    <title>Modify API Settings</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the API settings section of the application.</content>
+                                <expected>The API settings page is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Select the API to modify.</content>
+                                <expected>The selected API&apos;s settings are displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Modify the API settings (e.g., change the endpoint URL, authentication method,
+                                    etc.).
+                                </content>
+                                <expected>The modified settings are saved successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Verify the changes by making a test API call.</content>
+                                <expected>The test API call returns the expected response, confirming the settings have
+                                    been applied correctly.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8493</id>
+                    <title>Modify Existing Automated Process</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the workflow management section of the application.</content>
+                                <expected>The workflow management section is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Select the existing workflow to be modified.</content>
+                                <expected>The selected workflow is opened for editing.</expected>
+                            </step>
+                            <step>
+                                <content>Edit the workflow by adding a new transition or modifying an existing one.
+                                </content>
+                                <expected>The workflow is updated with the new transition or modified transition.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Save the changes to the workflow.</content>
+                                <expected>The changes are saved successfully and the workflow is updated.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the changes are reflected in the workflow diagram and JSON.
+                                </content>
+                                <expected>The changes are visible in both the workflow diagram and JSON
+                                    representation.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8494</id>
+                    <title>Modify Data Processors</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the data processors section in the application.</content>
+                                <expected>The data processors section is displayed with a list of existing processors.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Select an existing data processor to modify.</content>
+                                <expected>The selected data processor&apos;s configuration and logic are displayed for
+                                    editing.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Modify the configuration or logic of the selected data processor.</content>
+                                <expected>The changes to the configuration or logic are saved successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Verify the changes by running a test or checking the processor&apos;s
+                                    behavior.
+                                </content>
+                                <expected>The data processor behaves according to the modified configuration or logic.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8495</id>
+                    <title>Modify Existing Data Entity</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the data entity management section of the application.</content>
+                                <expected>The data entity management section is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Select the data entity to be modified.</content>
+                                <expected>The selected data entity is highlighted or opened for editing.</expected>
+                            </step>
+                            <step>
+                                <content>Modify the properties of the selected data entity.</content>
+                                <expected>The properties of the selected data entity are updated with the new values.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Save the changes to the data entity.</content>
+                                <expected>The changes to the data entity are saved successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the data entity has been modified correctly.</content>
+                                <expected>The modified data entity is displayed with the updated properties.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8496</id>
+                    <title>Deploy Cyoda Environment</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Submit user_request: &quot;Deploy Cyoda environment&quot;.</content>
+                                <expected>Cyoda environment deployment starts and returns confirmation.</expected>
+                            </step>
+                            <step>
+                                <content>Verify the deployment confirmation message.</content>
+                                <expected>A confirmation message indicating the successful deployment of the Cyoda
+                                    environment is displayed.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8497</id>
+                    <title>Access Cyoda Guidelines</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the Cyoda platform.</content>
+                                <expected>The Cyoda platform homepage is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Locate and click on the &apos;Get Cyoda Guidelines&apos; option.</content>
+                                <expected>The Cyoda guidelines page is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Review the guidelines for using the Cyoda platform.</content>
+                                <expected>The guidelines are accessible and readable.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8498</id>
+                    <title>Deploy User Application</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Ensure the Cyoda environment is up and running.</content>
+                                <expected>The Cyoda environment is active and ready for deployment.</expected>
+                            </step>
+                            <step>
+                                <content>Submit a user request to deploy the application using the specified Git
+                                    branch.
+                                </content>
+                                <expected>The deployment process starts successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Verify the deployment confirmation message.</content>
+                                <expected>A confirmation message is displayed indicating the application has been
+                                    deployed.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Access the API documentation to verify the deployment.</content>
+                                <expected>The API documentation is available and accessible at the provided URL.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8505</id>
+                    <title>Unlogged User Chat Limit</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Start a chat as an unlogged user.</content>
+                                <expected>Chat is successfully started.</expected>
+                            </step>
+                            <step>
+                                <content>Start a second chat as an unlogged user.</content>
+                                <expected>Second chat is successfully started.</expected>
+                            </step>
+                            <step>
+                                <content>Attempt to start a third chat as an unlogged user.</content>
+                                <expected>An error notification is displayed indicating that the limit of two chats has
+                                    been reached.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8506</id>
+                    <title>Unlogged User Chat Limit Exceeded</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Start the first chat as an unlogged user.</content>
+                                <expected>The first chat is successfully started.</expected>
+                            </step>
+                            <step>
+                                <content>Start the second chat as an unlogged user.</content>
+                                <expected>The second chat is successfully started.</expected>
+                            </step>
+                            <step>
+                                <content>Attempt to start the third chat as an unlogged user.</content>
+                                <expected>An error notification is displayed indicating that the limit of two chats has
+                                    been exceeded.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8507</id>
+                    <title>Unlogged User Chat Limit Reset</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Start a chat as an unlogged user.</content>
+                                <expected>Chat is successfully started.</expected>
+                            </step>
+                            <step>
+                                <content>Start a second chat as an unlogged user.</content>
+                                <expected>Second chat is successfully started.</expected>
+                            </step>
+                            <step>
+                                <content>Wait for the specified period of inactivity.</content>
+                                <expected>The system recognizes the period of inactivity.</expected>
+                            </step>
+                            <step>
+                                <content>Start a third chat as an unlogged user.</content>
+                                <expected>Third chat is successfully started, indicating the chat limit has reset.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8508</id>
+                    <title>Create a Basic Workflow</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the workflow editor.</content>
+                                <expected>The workflow editor interface is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Create a new state named &apos;state_1&apos;.</content>
+                                <expected>A new state named &apos;state_1&apos; is created in the workflow editor.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Create another new state named &apos;state_2&apos;.</content>
+                                <expected>A new state named &apos;state_2&apos; is created in the workflow editor.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Add a transition from &apos;state_1&apos; to &apos;state_2&apos;.</content>
+                                <expected>A transition is added from &apos;state_1&apos; to &apos;state_2&apos; in the
+                                    workflow editor.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Save the workflow.</content>
+                                <expected>The workflow is saved successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Verify the workflow structure in the JSON representation.</content>
+                                <expected>The JSON representation of the workflow shows two states and one transition.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8509</id>
+                    <title>Edit Workflow States</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the workflow editor.</content>
+                                <expected>The workflow editor opens with the current workflow displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Click on the &apos;states&apos; section in the workflow editor.</content>
+                                <expected>The states section expands to show the list of states in the workflow.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Edit the name of an existing state, for example, change &apos;state_1&apos; to
+                                    &apos;new_state_1&apos;.
+                                </content>
+                                <expected>The state name is updated in the workflow editor.</expected>
+                            </step>
+                            <step>
+                                <content>Save the changes to the workflow.</content>
+                                <expected>The changes are saved and the workflow editor reflects the updated state
+                                    name.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Check the JSON representation of the workflow to verify the state name
+                                    change.
+                                </content>
+                                <expected>The JSON representation shows the updated state name
+                                    &apos;new_state_1&apos;.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify the changes in the workflow diagram.</content>
+                                <expected>The workflow diagram reflects the updated state name
+                                    &apos;new_state_1&apos;.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8510</id>
+                    <title>Edit Workflow Transitions</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the workflow editor for the specified workflow.</content>
+                                <expected>The workflow editor opens with the current workflow diagram and JSON
+                                    displayed.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Select a transition to edit.</content>
+                                <expected>The selected transition is highlighted in the diagram and its details are
+                                    shown in the editor.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Modify the transition name, next state, and manual flag.</content>
+                                <expected>The transition details in the editor are updated with the new values.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Save the changes.</content>
+                                <expected>A confirmation message appears indicating that the workflow has been saved
+                                    successfully.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify the changes in the JSON representation.</content>
+                                <expected>The JSON representation of the workflow shows the updated transition
+                                    details.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify the changes in the workflow diagram.</content>
+                                <expected>The workflow diagram reflects the updated transition details, including the
+                                    new name, next state, and manual flag.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8511</id>
+                    <title>Edit Workflow Properties</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the workflow editor and select an existing workflow to edit.</content>
+                                <expected>The selected workflow is loaded into the editor.</expected>
+                            </step>
+                            <step>
+                                <content>Change the name of the workflow in the workflow properties.</content>
+                                <expected>The name of the workflow is updated in the workflow properties.</expected>
+                            </step>
+                            <step>
+                                <content>Verify the changes in the JSON representation of the workflow.</content>
+                                <expected>The updated name is reflected in the JSON file.</expected>
+                            </step>
+                            <step>
+                                <content>Verify the changes in the workflow diagram.</content>
+                                <expected>The updated name is displayed in the workflow diagram.</expected>
+                            </step>
+                            <step>
+                                <content>Save the changes to the workflow.</content>
+                                <expected>The workflow is saved with the updated properties.</expected>
+                            </step>
+                            <step>
+                                <content>Reload the workflow editor and verify the changes are still present.</content>
+                                <expected>The updated properties are still present in both the JSON and the diagram.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8512</id>
+                    <title>Test Chat Workflow Robustness</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Start a chat session.</content>
+                                <expected>Chat session starts successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Double approve a response.</content>
+                                <expected>System should not allow double approval and show an error message.</expected>
+                            </step>
+                            <step>
+                                <content>Rollback to a previous step.</content>
+                                <expected>System should allow rollback and return to the previous step.</expected>
+                            </step>
+                            <step>
+                                <content>Ask a question and provide a wrong answer.</content>
+                                <expected>System should not accept the wrong answer and prompt for a correct response.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Ask to proceed to another (wrong) step.</content>
+                                <expected>System should not allow proceeding to an incorrect step and show an error
+                                    message.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8516</id>
+                    <title>Verify Application Build Workflow</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Trigger application build with a valid user_request.</content>
+                                <expected>Welcome notification is sent.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the welcome message is published.</content>
+                                <expected>The welcome message is published.</expected>
+                            </step>
+                            <step>
+                                <content>Check the flow transition to the greeting_sent state.</content>
+                                <expected>The flow transitions to the greeting_sent state.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8517</id>
+                    <title>Verify Workflow Start with Welcome Notification</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Trigger the application build process with a valid user request.</content>
+                                <expected>The application build process starts successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that a welcome notification is sent.</content>
+                                <expected>A welcome message is published and the flow transitions to the greeting_sent
+                                    state.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8518</id>
+                    <title>Verify Application Prototype Saved</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Create an initial application prototype based on finalized requirements.
+                                </content>
+                                <expected>A functional prototype.py file is saved to the entity directory.</expected>
+                            </step>
+                            <step>
+                                <content>Navigate to the entity directory and verify the existence of the prototype.py
+                                    file.
+                                </content>
+                                <expected>The prototype.py file is present in the entity directory.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8519</id>
+                    <title>Edit Application Settings with Minimal Changes</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the application settings page.</content>
+                                <expected>The application settings page is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Modify a single setting, such as the application name, to a new value.
+                                </content>
+                                <expected>The application name is updated to the new value.</expected>
+                            </step>
+                            <step>
+                                <content>Save the changes.</content>
+                                <expected>The changes are saved successfully and a confirmation message is displayed.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify the updated setting by checking the application name on the settings
+                                    page.
+                                </content>
+                                <expected>The application name reflects the new value entered.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8520</id>
+                    <title>Integrate New Data Entity with Existing Schema</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the application&apos;s data management section.</content>
+                                <expected>The data management section is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Select the option to add a new data entity.</content>
+                                <expected>The form to add a new data entity is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Define the properties of the new entity, ensuring they follow the existing
+                                    schema.
+                                </content>
+                                <expected>The properties of the new entity are defined correctly.</expected>
+                            </step>
+                            <step>
+                                <content>Save the new entity.</content>
+                                <expected>The new entity is saved successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the new entity is listed in the application&apos;s data entities.
+                                </content>
+                                <expected>The new entity is listed among the existing entities.</expected>
+                            </step>
+                            <step>
+                                <content>Check the application&apos;s functionality to ensure the new entity is
+                                    integrated properly.
+                                </content>
+                                <expected>The application functions correctly with the new entity integrated.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8521</id>
+                    <title>Incorporate New Automated Process with Existing Workflow</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Define the new automated process by specifying its trigger and actions.
+                                </content>
+                                <expected>The new process is defined with a clear trigger and set of actions.</expected>
+                            </step>
+                            <step>
+                                <content>Integrate the new workflow with the application&apos;s existing events.
+                                </content>
+                                <expected>The new workflow is successfully integrated with the application&apos;s
+                                    events.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that the new workflow is listed in the application&apos;s workflow
+                                    management section.
+                                </content>
+                                <expected>The new workflow appears in the list of workflows.</expected>
+                            </step>
+                            <step>
+                                <content>Test the new workflow by triggering its defined actions.</content>
+                                <expected>The workflow executes as expected, performing the defined actions.</expected>
+                            </step>
+                            <step>
+                                <content>Check the application logs for any errors or warnings related to the new
+                                    workflow.
+                                </content>
+                                <expected>No errors or warnings related to the new workflow are present in the logs.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8522</id>
+                    <title>Modify API Settings with Security Compliance</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the API settings section of the application.</content>
+                                <expected>The API settings page is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Modify the API endpoint URL to a new secure URL.</content>
+                                <expected>The new URL is saved successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Update the API key to a new secure key.</content>
+                                <expected>The new API key is saved successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Enable security compliance checks for the API.</content>
+                                <expected>Security compliance checks are enabled.</expected>
+                            </step>
+                            <step>
+                                <content>Save the changes to the API settings.</content>
+                                <expected>Changes are saved successfully and a confirmation message is displayed.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that the API is functioning correctly with the new settings.</content>
+                                <expected>API requests are successful and return the expected responses.</expected>
+                            </step>
+                            <step>
+                                <content>Check the security compliance status of the API.</content>
+                                <expected>The API is marked as compliant with security standards.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8523</id>
+                    <title>AI Mode Activation on File Upload</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the chat interface and upload a file.</content>
+                                <expected>The chat interface should display a message indicating that &apos;optimized&apos;
+                                    mode has been activated.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Check the chat history for any messages offering a choice between &apos;optimized&apos;
+                                    and &apos;regular&apos; modes.
+                                </content>
+                                <expected>There should be no messages offering a choice between &apos;optimized&apos;
+                                    and &apos;regular&apos; modes.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that the application is being generated in &apos;optimized&apos; mode.
+                                </content>
+                                <expected>The application should be generated in &apos;optimized&apos; mode as indicated
+                                    by the chat interface.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8524</id>
+                    <title>AI Mode Selection for 299 Characters Input</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Enter 299 characters into the text input field.</content>
+                                <expected>The AI does not display a message offering a choice between &apos;optimized&apos;
+                                    and &apos;regular&apos; mode.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Check the application&apos;s mode.</content>
+                                <expected>The application is in &apos;optimized&apos; mode.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8525</id>
+                    <title>AI Mode Activation for Text Over 300 Characters</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Enter a text input that exceeds 300 characters into the chat.</content>
+                                <expected>The AI should automatically save the text as a file and display a message
+                                    indicating that &apos;optimized&apos; mode has been activated.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Check the chat history for any message from the AI offering a choice between
+                                    &apos;optimized&apos; and &apos;regular&apos; mode.
+                                </content>
+                                <expected>No such message should be present.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the &apos;optimized&apos; mode is active by checking the mode
+                                    indicator in the chat interface.
+                                </content>
+                                <expected>The mode indicator should show &apos;optimized&apos; mode as active.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+            </cases>
+        </section>
+    </sections>
+</suite>

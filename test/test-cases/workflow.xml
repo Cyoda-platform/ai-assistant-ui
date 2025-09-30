@@ -1,0 +1,2037 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suite>
+	<id>S122</id>
+	<name>Master</name>
+	<description></description>
+	<sections>
+		<section>
+		<name>Workflow app</name>
+		<description></description>
+						<cases>
+												<case>
+				<id>C8349</id>
+				<title>Validate Workflow History List</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the desktop application and ensure the left menu is expanded.</content><expected>The left menu is expanded, showing the History list, Settings button, About button, Add new workflow button, and Delete all workflows button.</expected></step>
+<step>
+<content>Check the History list for the presence of workflows.</content><expected>The History list displays a list of workflows.</expected></step>
+<step>
+<content>Verify that the workflows are categorized by creation date: Today, Yesterday, Last week.</content><expected>The workflows are categorized into sections labeled Today, Yesterday, and Last week.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8350</id>
+				<title>Collapse and Expand Workflow History</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Navigate to the main view of the application.</content><expected>The main view should display the left menu, History list, Settings button, About button, and buttons for Add new workflow and Delete all workflows.</expected></step>
+<step>
+<content>Click on the collapse icon next to the History list.</content><expected>The History list should collapse, hiding the workflow items.</expected></step>
+<step>
+<content>Click on the expand icon next to the History list.</content><expected>The History list should expand, displaying the workflow items categorized by Today, Yesterday, and Last week.</expected></step>
+<step>
+<content>Click on the collapse icon again.</content><expected>The History list should collapse again, hiding the workflow items.</expected></step>
+<step>
+<content>Click on the expand icon again.</content><expected>The History list should expand again, displaying the workflow items categorized by Today, Yesterday, and Last week.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8351</id>
+				<title>Display Workflow Details</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Click on the three dots in a workflow&apos;s title row in the left menu.</content><expected>A window opens displaying the workflow&apos;s name, description, and creation date.</expected></step>
+<step>
+<content>Check the workflow&apos;s name in the window.</content><expected>The name matches the name of the workflow in the left menu.</expected></step>
+<step>
+<content>Check the workflow&apos;s description in the window.</content><expected>The description matches the description of the workflow in the left menu.</expected></step>
+<step>
+<content>Check the workflow&apos;s creation date in the window.</content><expected>The creation date matches the creation date of the workflow in the left menu.</expected></step>
+<step>
+<content>Click the &apos;Edit&apos; button in the window.</content><expected>A new window opens allowing the user to modify the name and description.</expected></step>
+<step>
+<content>Modify the name and description in the &apos;Edit&apos; window.</content><expected>The changes are reflected in the workflow&apos;s details in the left menu.</expected></step>
+<step>
+<content>Click the &apos;Delete&apos; button in the window.</content><expected>A confirmation dialog appears asking if you want to delete the workflow.</expected></step>
+<step>
+<content>Click &apos;OK&apos; in the confirmation dialog.</content><expected>The workflow is removed from the left menu.</expected></step>
+<step>
+<content>Click the three dots again to close the workflow options window.</content><expected>The workflow options window closes.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8352</id>
+				<title>Edit Workflow Name and Description</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the workflow options window by clicking on the three dots in a workflow&apos;s title row in the left menu.</content><expected>The workflow options window opens, displaying the workflow&apos;s name, description, and creation date.</expected></step>
+<step>
+<content>Click on the &apos;Edit&apos; button in the workflow options window.</content><expected>The workflow name and description fields become editable.</expected></step>
+<step>
+<content>Modify the workflow name and description with new values.</content><expected>The workflow name and description fields reflect the new values entered.</expected></step>
+<step>
+<content>Click on the &apos;Save&apos; button in the workflow options window.</content><expected>The workflow options window closes, and the workflow name and description in the main view are updated with the new values.</expected></step>
+<step>
+<content>Verify the workflow name and description in the main view.</content><expected>The workflow name and description in the main view match the updated values entered in the workflow options window.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8353</id>
+				<title>Delete a Workflow</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Navigate to the left menu and expand it to view the list of workflows.</content><expected>The left menu expands, displaying the list of workflows.</expected></step>
+<step>
+<content>Locate the workflow you want to delete and click on the three dots in the title row of that workflow.</content><expected>A window opens displaying the workflow&apos;s name, description, and creation date, along with Edit and Delete buttons.</expected></step>
+<step>
+<content>Click on the Delete button in the workflow options window.</content><expected>A confirmation dialog appears asking if you are sure you want to delete the workflow.</expected></step>
+<step>
+<content>Confirm the deletion by clicking on the &apos;Yes&apos; or &apos;Delete&apos; button in the confirmation dialog.</content><expected>The workflow is deleted, and the workflow options window closes.</expected></step>
+<step>
+<content>Check the list of workflows to ensure the deleted workflow is no longer present.</content><expected>The deleted workflow is no longer visible in the list of workflows.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8354</id>
+				<title>Close Workflow Options Window</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Navigate to the left menu and expand it if it is not already expanded.</content><expected>The left menu should expand, showing the list of workflows and the Settings and About buttons.</expected></step>
+<step>
+<content>Locate the workflow for which you want to open the options window and click on the three dots in its title row.</content><expected>The workflow options window should open, displaying the workflow&apos;s name, description, and creation date, along with the Edit and Delete buttons.</expected></step>
+<step>
+<content>Click the three dots in the workflow options window again.</content><expected>The workflow options window should close.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8355</id>
+				<title>Verify Theme Configuration Options</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the Settings window by clicking the Settings button.</content><expected>The Settings window opens with options for Theme, Workflow Layout, and a close icon.</expected></step>
+<step>
+<content>Click on the Theme dropdown and select &apos;Light mode&apos;.</content><expected>The application&apos;s interface changes to light mode.</expected></step>
+<step>
+<content>Click on the Theme dropdown and select &apos;Dark mode&apos;.</content><expected>The application&apos;s interface changes to dark mode.</expected></step>
+<step>
+<content>Click on the Theme dropdown and select &apos;System mode&apos;.</content><expected>The application&apos;s interface changes to the system&apos;s default theme.</expected></step>
+<step>
+<content>Close the Settings window by clicking the close icon.</content><expected>The Settings window closes.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8356</id>
+				<title>Verify Workflow Layout Settings</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the Settings window by clicking the &apos;Settings&apos; button on the left menu.</content><expected>The Settings window opens displaying options for Theme, Workflow Layout, and a close icon.</expected></step>
+<step>
+<content>Select &apos;Horizontal&apos; as the Workflow Layout option.</content><expected>The Workflow Layout option is set to &apos;Horizontal&apos;.</expected></step>
+<step>
+<content>Click &apos;Save&apos; to apply the settings.</content><expected>The settings are saved, and the workflow layout changes to horizontal.</expected></step>
+<step>
+<content>Open a workflow to verify the layout.</content><expected>The workflow is displayed in a horizontal layout.</expected></step>
+<step>
+<content>Return to the Settings window and select &apos;Vertical&apos; as the Workflow Layout option.</content><expected>The Workflow Layout option is set to &apos;Vertical&apos;.</expected></step>
+<step>
+<content>Click &apos;Save&apos; to apply the settings.</content><expected>The settings are saved, and the workflow layout changes to vertical.</expected></step>
+<step>
+<content>Open the same workflow to verify the layout.</content><expected>The workflow is displayed in a vertical layout.</expected></step>
+<step>
+<content>Verify that old workflows retain their existing user-defined layout settings.</content><expected>Old workflows retain their existing layout settings regardless of the new default layout selection.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8357</id>
+				<title>Verify Retention of Old Workflow Settings</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the application and navigate to the &apos;Settings&apos; window.</content><expected>The &apos;Settings&apos; window should open.</expected></step>
+<step>
+<content>In the &apos;Settings&apos; window, change the &apos;Workflow Layout&apos; to &apos;Horizontal&apos;.</content><expected>The &apos;Workflow Layout&apos; should change to &apos;Horizontal&apos;.</expected></step>
+<step>
+<content>Click &apos;Save&apos; to apply the new settings.</content><expected>The new settings should be saved.</expected></step>
+<step>
+<content>Navigate to an existing workflow that has been set to a &apos;Vertical&apos; layout.</content><expected>The existing workflow should still display in the &apos;Vertical&apos; layout.</expected></step>
+<step>
+<content>Verify that the layout of the existing workflow has not changed.</content><expected>The layout of the existing workflow should remain &apos;Vertical&apos;.</expected></step>
+<step>
+<content>Close the &apos;Settings&apos; window.</content><expected>The &apos;Settings&apos; window should close.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8358</id>
+				<title>Verify Closing the Settings Window</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Navigate to the left menu and click on the Settings button.</content><expected>The Settings window should open.</expected></step>
+<step>
+<content>Locate the close icon in the Settings window.</content><expected>The close icon should be visible and clickable.</expected></step>
+<step>
+<content>Click on the close icon in the Settings window.</content><expected>The Settings window should close and disappear from the screen.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8359</id>
+				<title>Verify About Window Content</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Click on the &apos;About&apos; button to open the About window.</content><expected>The About window opens displaying the correct content.</expected></step>
+<step>
+<content>Verify that the text &apos;Cyoda AI Assistant&apos; is displayed in the About window.</content><expected>The text &apos;Cyoda AI Assistant&apos; is displayed in the About window.</expected></step>
+<step>
+<content>Check for the presence of the text &apos;Some icons are still the property of Webalys LLC (https://streamlinehq.com) and can be used only in the context of the open-source project.&apos;</content><expected>The specified text is present in the About window.</expected></step>
+<step>
+<content>Verify that the text &apos;Certain images used in this project are sourced from Freepik under their Premium License and are not covered by the project’s open-source license.&apos; is displayed.</content><expected>The specified text is displayed in the About window.</expected></step>
+<step>
+<content>Check for the presence of the text &apos;By using this service, you confirm that you have read and agree to our Terms &amp; Conditions and Privacy Policy.&apos;</content><expected>The specified text is displayed in the About window.</expected></step>
+<step>
+<content>Verify that the copyright information &apos;Copyright © 2025 CYODA Ltd.&apos; is displayed.</content><expected>The copyright information &apos;Copyright © 2025 CYODA Ltd.&apos; is displayed in the About window.</expected></step>
+<step>
+<content>Check that the hyperlinks in the About window are functional.</content><expected>The hyperlinks in the About window are functional and open the correct web pages.</expected></step>
+<step>
+<content>Click on the close button of the About window.</content><expected>The About window closes.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8362</id>
+				<title>Menu Button Functionality</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Expand the left menu by clicking on the expand button.</content><expected>The left menu should expand, displaying all buttons.</expected></step>
+<step>
+<content>Click on the &apos;Settings&apos; button in the expanded menu.</content><expected>The Settings window should open.</expected></step>
+<step>
+<content>Click on the &apos;About&apos; button in the expanded menu.</content><expected>The About window should open.</expected></step>
+<step>
+<content>Click on the &apos;Add new workflow&apos; button in the expanded menu.</content><expected>A new workflow creation window should open.</expected></step>
+<step>
+<content>Click on the &apos;Delete all workflows&apos; button in the expanded menu.</content><expected>All existing workflows should be removed.</expected></step>
+<step>
+<content>Collapse the left menu by clicking on the collapse button.</content><expected>The left menu should collapse, hiding all buttons.</expected></step>
+<step>
+<content>Click on the &apos;Settings&apos; button in the collapsed menu.</content><expected>The Settings window should open.</expected></step>
+<step>
+<content>Click on the &apos;About&apos; button in the collapsed menu.</content><expected>The About window should open.</expected></step>
+<step>
+<content>Click on the &apos;Add new workflow&apos; button in the collapsed menu.</content><expected>A new workflow creation window should open.</expected></step>
+<step>
+<content>Click on the &apos;Delete all workflows&apos; button in the collapsed menu.</content><expected>All existing workflows should be removed.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8365</id>
+				<title>Create Workflow with Valid Inputs</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Click on the &apos;Add new workflow&apos; button.</content><expected>A new workflow creation window opens.</expected></step>
+<step>
+<content>Enter a valid Workflow Name (up to 100 characters).</content><expected>The Workflow Name is accepted without any error messages.</expected></step>
+<step>
+<content>Enter a valid Description (up to 500 characters).</content><expected>The Description is accepted without any error messages.</expected></step>
+<step>
+<content>Click on the &apos;Create&apos; button.</content><expected>The new workflow is created and added to the workflow list.</expected></step>
+<step>
+<content>Verify the workflow appears in the workflow list with the entered name and description.</content><expected>The workflow is listed with the correct name and description.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8366</id>
+				<title>Create Workflow with Empty Workflow Name</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Navigate to the main view of the application.</content><expected>The main view is displayed with the left menu, History list, Settings, About, and workflow buttons visible.</expected></step>
+<step>
+<content>Click on the &apos;Add new workflow&apos; button.</content><expected>A new workflow creation window opens.</expected></step>
+<step>
+<content>In the workflow creation window, leave the &apos;Workflow Name&apos; field empty and click the &apos;Create&apos; button.</content><expected>An error message or validation message appears, indicating that the Workflow Name cannot be empty.</expected></step>
+<step>
+<content>Observe the error message or validation message.</content><expected>The error message or validation message should clearly state that the Workflow Name is required and cannot be left empty.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8367</id>
+				<title>Create Workflow with Empty Description</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Navigate to the main workflow view and click on the &apos;Add new workflow&apos; button.</content><expected>A new workflow creation window should appear.</expected></step>
+<step>
+<content>In the workflow creation window, enter a name for the workflow in the &apos;Workflow Name&apos; field.</content><expected>The &apos;Workflow Name&apos; field should accept the entered name.</expected></step>
+<step>
+<content>Leave the &apos;Description&apos; field empty and click on the &apos;Create&apos; button.</content><expected>The system should not allow the workflow to be created and should display an error message indicating that the description is required.</expected></step>
+<step>
+<content>Click Create</content><expected>The description is not required and can be left empty.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8368</id>
+				<title>Cancel Workflow Creation</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Click on the &apos;Add new workflow&apos; button.</content><expected>A new workflow creation window opens.</expected></step>
+<step>
+<content>In the workflow creation window, enter a name and a description for the workflow.</content><expected>The entered name and description appear in the respective fields.</expected></step>
+<step>
+<content>Click on the &apos;Cancel&apos; button in the workflow creation window.</content><expected>The workflow creation window closes without saving the workflow.</expected></step>
+<step>
+<content>Check the list of workflows in the main view.</content><expected>The newly created workflow is not present in the list.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8369</id>
+				<title>Close Workflow Creation Dialog</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Click on the &apos;Add new workflow&apos; button to open the workflow creation dialog.</content><expected>The workflow creation dialog should appear with fields for Workflow Name and Description, and buttons for close, cancel, and create.</expected></step>
+<step>
+<content>Click on the &apos;Close&apos; button in the workflow creation dialog.</content><expected>The workflow creation dialog should close, and the main workflow view should be displayed without any changes to the existing workflows.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8370</id>
+				<title>Delete All Workflows</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Navigate to the main view of the application where the workflow history is displayed.</content><expected>The main view should display a list of all workflows, a Settings button, an About button, and the Delete all workflows button.</expected></step>
+<step>
+<content>Click on the Delete all workflows button.</content><expected>A confirmation dialog should appear asking if you are sure you want to delete all workflows.</expected></step>
+<step>
+<content>Confirm the deletion in the dialog by clicking the confirm button.</content><expected>All workflows should be removed from the history list, and the list should be empty.</expected></step>
+<step>
+<content>Check the history list to ensure that no workflows are present.</content><expected>The history list should be empty, showing no workflows.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8371</id>
+				<title>State Symbols Display</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the application and navigate to the main workflow view.</content><expected>The main workflow view should be displayed with various states.</expected></step>
+<step>
+<content>Locate the start state in the workflow.</content><expected>The start state should have a triangle symbol in the state name.</expected></step>
+<step>
+<content>Locate the end state in the workflow.</content><expected>The end state should have a square symbol in the state name.</expected></step>
+<step>
+<content>Locate a middle state in the workflow.</content><expected>The middle state should have no additional symbols, only the state name.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8372</id>
+				<title>Transition Icons Display</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open a workflow with transitions.</content><expected>The workflow should open with visible transitions.</expected></step>
+<step>
+<content>Double-click on a transition to open the Transition Editor.</content><expected>The Transition Editor should open with the transition data displayed.</expected></step>
+<step>
+<content>Check the transition icons and their corresponding counts.</content><expected>The icons should match the expected visual representation (dashed line for manual, solid line for automatic) and the counts should reflect the correct quantity.</expected></step>
+<step>
+<content>Close the Transition Editor and return to the main workflow view.</content><expected>The workflow should remain in the same state with the transitions still visible.</expected></step>
+<step>
+<content>Double-click on another transition to open the Transition Editor again.</content><expected>The Transition Editor should open with the new transition data displayed.</expected></step>
+<step>
+<content>Verify the transition icons and their corresponding counts again.</content><expected>The icons should match the expected visual representation and the counts should reflect the correct quantity.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8373</id>
+				<title>Double-click on Transition Name</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the desktop application and navigate to the main workflow view.</content><expected>The main workflow view should be displayed with the workflow diagram visible.</expected></step>
+<step>
+<content>Locate a transition line between two states in the workflow diagram.</content><expected>A transition line should be visible between the two states.</expected></step>
+<step>
+<content>Double-click on the transition line.</content><expected>The transition editor window should open, displaying the transition data in JSON format.</expected></step>
+<step>
+<content>In the transition editor window, check the Mode toggle between Automatic and Manual.</content><expected>The Mode toggle should switch between Automatic and Manual, showing the corresponding visual representation of the transition.</expected></step>
+<step>
+<content>Verify the visual representation of the transition based on the mode selected.</content><expected>For Manual mode, the transition should be represented by a dashed line and a gray transition name. For Automatic mode, the transition should be represented by a solid line and a white transition name.</expected></step>
+<step>
+<content>Close the transition editor window by clicking the &apos;Close&apos; button.</content><expected>The transition editor window should close, and the workflow diagram should be visible again.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8374</id>
+				<title>Preview and Editor Data Sync</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the application and create a new workflow.</content><expected>A new workflow is created with default settings.</expected></step>
+<step>
+<content>Switch to the Editor view and add a new state.</content><expected>A new state is added to the workflow in the Editor view.</expected></step>
+<step>
+<content>Switch to the Preview view and observe the changes.</content><expected>The new state added in the Editor view is visible in the Preview view.</expected></step>
+<step>
+<content>Switch back to the Editor view and modify the name of the new state.</content><expected>The state name is updated in the Editor view.</expected></step>
+<step>
+<content>Switch to the Preview view and observe the changes in the state name.</content><expected>The updated state name is visible in the Preview view.</expected></step>
+<step>
+<content>Switch to the Editor view and delete the state.</content><expected>The state is removed from the workflow in the Editor view.</expected></step>
+<step>
+<content>Switch to the Preview view and observe the changes.</content><expected>The state is no longer visible in the Preview view.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8375</id>
+				<title>Example Files in Preview</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the application and navigate to the main workflow view.</content><expected>The main workflow view is displayed with the Editor, Editor and Preview, and Preview view modes available.</expected></step>
+<step>
+<content>Click on the &apos;Import all&apos; button in the top-right corner.</content><expected>The Import window opens with a drag and drop or click to select file area, and a close button.</expected></step>
+<step>
+<content>Select an example JSON file from the provided list and click &apos;Open&apos; to import it.</content><expected>The selected JSON file is imported, and the workflow is displayed in the Preview window by default.</expected></step>
+<step>
+<content>Verify the appearance of the imported workflow in the Preview window.</content><expected>The workflow is displayed in the Preview window with the JSON text shown in either a vertical or horizontal format, as configured by the user in Settings.</expected></step>
+<step>
+<content>Double-click on a transition name in the Preview window to open the JSON data.</content><expected>The JSON data for the selected transition is displayed in detail, showing all processors and criteria.</expected></step>
+<step>
+<content>Switch between the Editor, Editor and Preview, and Preview view modes.</content><expected>Any changes made in the Preview are immediately reflected in the Editor, and vice-versa.</expected></step>
+<step>
+<content>Verify that the diagram settings are saved when switching between different workflows.</content><expected>The diagram settings are saved and do not change when switching between different workflows.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8376</id>
+				<title>Double-click to Create State</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the desktop application and navigate to the main workflow view.</content><expected>The main workflow view is displayed.</expected></step>
+<step>
+<content>Locate an empty area on the canvas.</content><expected>An empty area on the canvas is visible.</expected></step>
+<step>
+<content>Double-click on the empty area of the canvas.</content><expected>A new state creation window appears.</expected></step>
+<step>
+<content>In the new state creation window, enter a name for the new state.</content><expected>The name entered is displayed in the state creation window.</expected></step>
+<step>
+<content>Click the &apos;OK&apos; button in the new state creation window.</content><expected>A new state is created on the canvas with the entered name.</expected></step>
+<step>
+<content>Verify that the new state is visible on the canvas.</content><expected>The new state is visible on the canvas with the entered name.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8377</id>
+				<title>Panning the Canvas</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the desktop application and navigate to the main workflow view.</content><expected>The main workflow view should be displayed with the workflow diagram.</expected></step>
+<step>
+<content>Hold down the left mouse button and drag the mouse across the canvas.</content><expected>The canvas should move in the direction of the mouse drag.</expected></step>
+<step>
+<content>Release the left mouse button.</content><expected>The canvas should stop moving.</expected></step>
+<step>
+<content>Repeat the panning action in different directions.</content><expected>The canvas should move smoothly in each direction without any lag or freezing.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8378</id>
+				<title>Zooming In and Out</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Hold down the right mouse button and move the mouse to pan the diagram.</content><expected>The diagram should move in the direction the mouse is moved.</expected></step>
+<step>
+<content>Use the mouse wheel to zoom in on the diagram.</content><expected>The diagram should zoom in, making the elements larger.</expected></step>
+<step>
+<content>Use the mouse wheel to zoom out on the diagram.</content><expected>The diagram should zoom out, making the elements smaller.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8379</id>
+				<title>Dragging an Element</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the workflow application and navigate to the main workflow view.</content><expected>The main workflow view is displayed with the workflow diagram.</expected></step>
+<step>
+<content>Select a state within the workflow diagram by clicking on it.</content><expected>The selected state is highlighted or outlined to indicate it is selected.</expected></step>
+<step>
+<content>Hold down the left mouse button and drag the selected state to a new location within the canvas.</content><expected>The state moves to the new location as the mouse is dragged.</expected></step>
+<step>
+<content>Release the left mouse button to drop the state in the new location.</content><expected>The state is placed in the new location and remains there.</expected></step>
+<step>
+<content>Select a transition name by clicking on it.</content><expected>The selected transition name is highlighted or outlined to indicate it is selected.</expected></step>
+<step>
+<content>Hold down the left mouse button and drag the selected transition name to a new location within the canvas.</content><expected>The transition name moves to the new location as the mouse is dragged.</expected></step>
+<step>
+<content>Release the left mouse button to drop the transition name in the new location.</content><expected>The transition name is placed in the new location and remains there.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8381</id>
+				<title>Renaming a State</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the desktop application and navigate to the main workflow view.</content><expected>The main workflow view is displayed with the workflow diagram.</expected></step>
+<step>
+<content>Double-click on the label of a state within the workflow diagram.</content><expected>A text editor appears with the current state name selected.</expected></step>
+<step>
+<content>Enter a new name for the state and click the &apos;ok&apos; button.</content><expected>The state label is updated to the new name in the workflow diagram.</expected></step>
+<step>
+<content>Verify that the new state name is displayed correctly in the workflow diagram.</content><expected>The workflow diagram shows the state with the new name.</expected></step>
+<step>
+<content>Double-click on the state label again and click the &apos;cancel&apos; button.</content><expected>The state label reverts to its previous name in the workflow diagram.</expected></step>
+<step>
+<content>Verify that the state name has reverted to its original name.</content><expected>The workflow diagram shows the state with the original name.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8382</id>
+				<title>Creating a Transition</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the workflow diagram in the Preview mode.</content><expected>The workflow diagram is displayed in the Preview mode.</expected></step>
+<step>
+<content>Select the first state by clicking on it.</content><expected>The first state is selected, indicated by a border or highlight.</expected></step>
+<step>
+<content>Drag the transition line from the first state to the second state.</content><expected>A transition line is created between the two states.</expected></step>
+<step>
+<content>Double-click the transition line to open the transition editor.</content><expected>The transition editor window opens with the transition data.</expected></step>
+<step>
+<content>In the transition editor, enter a transition name and click &apos;Save&apos;.</content><expected>The transition name is saved, and the transition editor window closes.</expected></step>
+<step>
+<content>Verify the transition in the workflow diagram.</content><expected>The transition line is displayed between the two states with the entered transition name.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8383</id>
+				<title>Moving a Transition</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open a workflow with at least two states and a transition between them.</content><expected>The workflow should open with the states and transition visible.</expected></step>
+<step>
+<content>Select the transition line by clicking on it.</content><expected>The transition line should be highlighted or selected.</expected></step>
+<step>
+<content>Click and drag one end of the transition line to a new position on the canvas.</content><expected>The transition line should move to the new position, adjusting the connection between the states.</expected></step>
+<step>
+<content>Release the mouse button to drop the transition line in the new position.</content><expected>The transition line should remain in the new position, and the states should be connected accordingly.</expected></step>
+<step>
+<content>Verify that the transition line is correctly positioned and connected to the states.</content><expected>The transition line should be visually connected to the correct states in the new position.</expected></step>
+<step>
+<content>Double-click on the transition line to open the transition editor.</content><expected>The transition editor window should open with the transition data displayed.</expected></step>
+<step>
+<content>Check the JSON data in the transition editor to ensure it reflects the new position of the transition.</content><expected>The JSON data should show updated &apos;x&apos; and &apos;y&apos; coordinates for the transition&apos;s endpoints.</expected></step>
+<step>
+<content>Close the transition editor window.</content><expected>The transition editor window should close, and the workflow should return to the main view.</expected></step>
+<step>
+<content>Save the workflow.</content><expected>The workflow should be saved with the updated transition position.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8384</id>
+				<title>Deleting a Transition</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the workflow in the Editor view.</content><expected>The workflow should be displayed in the Editor view.</expected></step>
+<step>
+<content>Select the transition line between the two states.</content><expected>The transition line should be highlighted or selected.</expected></step>
+<step>
+<content>Press the &apos;Delete&apos; key on the keyboard.</content><expected>The selected transition line should be removed from the workflow.</expected></step>
+<step>
+<content>Verify that the transition line is no longer visible.</content><expected>The transition line should no longer be visible between the two states.</expected></step>
+<step>
+<content>Switch to the Preview view to confirm the transition is deleted.</content><expected>The Preview view should reflect the removal of the transition line.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8385</id>
+				<title>Editing Transition Data (JSON)</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Double-click on a transition name to open the Transition Editor.</content><expected>The Transition Editor window opens with the transition data displayed in a JSON editor.</expected></step>
+<step>
+<content>Edit the JSON data in the Transition Editor.</content><expected>The JSON data is updated in the editor.</expected></step>
+<step>
+<content>Toggle the Mode between Automatic and Manual.</content><expected>The transition visual representation changes accordingly: Manual transitions are represented by a dashed line and a gray transition name, while Automatic transitions have a solid line and a white transition name.</expected></step>
+<step>
+<content>Click the &apos;Save&apos; button to save the changes.</content><expected>The Transition Editor window closes and the changes are reflected in the workflow diagram.</expected></step>
+<step>
+<content>Double-click on the transition name again to open the Transition Editor.</content><expected>The Transition Editor window opens with the updated JSON data displayed.</expected></step>
+<step>
+<content>Click the &apos;Cancel&apos; button to discard the changes.</content><expected>The Transition Editor window closes without saving the changes.</expected></step>
+<step>
+<content>Double-click on the transition name again to open the Transition Editor.</content><expected>The Transition Editor window opens with the original JSON data displayed.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8386</id>
+				<title>Editor View Mode</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Navigate to the main workflow view and switch to the Editor view mode.</content><expected>The workflow diagram should be displayed in the Editor view mode with all functionalities accessible.</expected></step>
+<step>
+<content>Check for the presence of the toolbar buttons in the Editor view mode.</content><expected>The toolbar should have buttons such as Zoom in, Zoom out, Lock interaction, Fit to view, Undo, Redo, Reset position, Switch to horizontal/vertical layout, and Add new state.</expected></step>
+<step>
+<content>Use the &apos;Add new state&apos; button to open the window and enter a state name.</content><expected>The &apos;Add new state&apos; window should open with fields to enter the state name and buttons to close, cancel, and ok.</expected></step>
+<step>
+<content>Use the &apos;Workflow settings&apos; button to open the window and edit the JSON content.</content><expected>The &apos;Workflow settings&apos; window should open with an editor containing JSON content and buttons to close, cancel, and save.</expected></step>
+<step>
+<content>Perform standard interactions such as panning, zooming, and state creation.</content><expected>The interactions should work as expected: panning by holding the right mouse button, zooming with the mouse wheel, and opening the &apos;Add new state&apos; window by double-clicking on the canvas.</expected></step>
+<step>
+<content>Drag and drop states and transition names to manipulate the diagram.</content><expected>States and transition names should be draggable and can be dropped to new positions.</expected></step>
+<step>
+<content>Move both ends of transition lines and add new transitions.</content><expected>Transition lines should be movable, and new transitions should be added successfully.</expected></step>
+<step>
+<content>Delete any element by selecting it and pressing the &apos;Delete&apos; key on the keyboard.</content><expected>The selected element should be deleted.</expected></step>
+<step>
+<content>Double-click on a state to rename it and confirm or cancel the changes.</content><expected>The state should be renamed if confirmed, and no changes should be made if canceled.</expected></step>
+<step>
+<content>Double-click on a transition name to open the transition editor and edit the transition data.</content><expected>The transition editor window should open with a JSON editor, Mode toggle, and buttons to close, cancel, and save.</expected></step>
+<step>
+<content>Verify that any changes made in the Preview are immediately reflected in the Editor, and vice-versa.</content><expected>Changes in the Preview should be reflected in the Editor, and changes in the Editor should be reflected in the Preview.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8387</id>
+				<title>Editor and Preview View Mode</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Navigate to the main workflow view and select the &apos;Editor and Preview&apos; view mode.</content><expected>The main workflow view should display both the Editor and Preview panes side by side.</expected></step>
+<step>
+<content>In the Editor pane, make changes to the workflow diagram.</content><expected>The changes made in the Editor pane should be immediately reflected in the Preview pane.</expected></step>
+<step>
+<content>In the Preview pane, make changes to the workflow diagram.</content><expected>The changes made in the Preview pane should be immediately reflected in the Editor pane.</expected></step>
+<step>
+<content>Use the toolbar buttons to perform actions such as zooming, undoing, and adding new states in the Editor pane.</content><expected>The actions should be performed successfully, and the changes should be reflected in the Preview pane.</expected></step>
+<step>
+<content>Use the toolbar buttons to perform actions such as zooming, undoing, and adding new states in the Preview pane.</content><expected>The actions should be performed successfully, and the changes should be reflected in the Editor pane.</expected></step>
+<step>
+<content>Switch between the &apos;Editor&apos; and &apos;Preview&apos; view modes.</content><expected>The view mode should switch correctly, and the changes made in one view should be reflected in the other.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8388</id>
+				<title>Preview View Mode</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Switch to the Preview view mode by selecting it from the view mode options.</content><expected>The Preview window should display the workflow diagram with the JSON text in the configured vertical or horizontal format.</expected></step>
+<step>
+<content>Check the toolbar buttons in the Preview view mode.</content><expected>All toolbar buttons should be accessible and functional, including Zoom in, Zoom out, Lock interaction, Fit to view, Undo, Redo, Reset position, Switch to horizontal/vertical layout, and Add new state.</expected></step>
+<step>
+<content>Use the Panning feature to move the diagram by holding down the right mouse button and dragging.</content><expected>The diagram should move smoothly as the mouse is dragged.</expected></step>
+<step>
+<content>Use the Zooming feature to zoom in and out with the mouse wheel.</content><expected>The diagram should zoom in when scrolling forward and zoom out when scrolling backward.</expected></step>
+<step>
+<content>Double-click on the canvas to open the &apos;Add new state&apos; window.</content><expected>The &apos;Add new state&apos; window should open with a field to Enter state name and buttons to close, cancel, and ok.</expected></step>
+<step>
+<content>Drag and drop states and transition names to manipulate the diagram.</content><expected>States and transition names should be draggable and droppable, allowing for rearrangement of elements.</expected></step>
+<step>
+<content>Move both ends of transition lines and add new transitions.</content><expected>Transition lines should be movable, and new transitions should be added successfully.</expected></step>
+<step>
+<content>Delete any element by selecting it and pressing the &apos;Delete&apos; key on the keyboard.</content><expected>The selected element should be removed from the diagram.</expected></step>
+<step>
+<content>Double-click on a state to rename it and confirm or cancel the changes.</content><expected>The state name should be editable, and the changes should be confirmed or canceled as expected.</expected></step>
+<step>
+<content>Double-click on a transition name to open the transition editor window.</content><expected>The transition editor window should open with a Transition Data (JSON) editor and buttons to close, cancel, and save.</expected></step>
+<step>
+<content>Edit the transition data and toggle between Automatic and Manual modes.</content><expected>The transition data should be editable, and the mode toggle should switch between Automatic and Manual as expected.</expected></step>
+<step>
+<content>Verify the visual representation of manual and automatic transitions.</content><expected>Manual transitions should be represented by a dashed line and a gray transition name, while automatic transitions should be represented by a solid line and a white transition name.</expected></step>
+<step>
+<content>Double-click on a transition name to open the JSON data and check the detailed view.</content><expected>The JSON data should be displayed in detail, showing all processors and criteria.</expected></step>
+<step>
+<content>Make changes in the Preview and verify that they are reflected in the Editor.</content><expected>Any changes made in the Preview should be immediately reflected in the Editor, and vice-versa.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8389</id>
+				<title>JSON Display in Vertical Format</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the desktop application and navigate to the &apos;Main Workflow View&apos;.</content><expected>The main workflow view is displayed.</expected></step>
+<step>
+<content>Switch to the &apos;Preview&apos; view mode.</content><expected>The workflow is displayed in the Preview view.</expected></step>
+<step>
+<content>Ensure that the &apos;Workflow Layout&apos; in &apos;Settings&apos; is set to &apos;vertical&apos;.</content><expected>The &apos;Workflow Layout&apos; is set to &apos;vertical&apos;.</expected></step>
+<step>
+<content>Add some JSON text to the workflow.</content><expected>The JSON text is added to the workflow.</expected></step>
+<step>
+<content>Observe the JSON display in the &apos;Preview&apos; window.</content><expected>The JSON text is displayed in a vertical format in the &apos;Preview&apos; window.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8390</id>
+				<title>JSON Display in Horizontal Format</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Navigate to the Settings window and select &apos;Horizontal&apos; as the default Workflow Layout.</content><expected>The default Workflow Layout is set to &apos;Horizontal&apos;.</expected></step>
+<step>
+<content>Create a new workflow and enter JSON content in the Workflow Settings editor.</content><expected>The JSON content is entered successfully.</expected></step>
+<step>
+<content>Switch to the Preview view mode.</content><expected>The JSON content is displayed in the Preview window in a horizontal format.</expected></step>
+<step>
+<content>Verify that the JSON content is displayed correctly in the horizontal layout.</content><expected>The JSON content is displayed in a horizontal layout without any formatting issues.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8391</id>
+				<title>Zoom In Button</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the application and navigate to the main workflow view.</content><expected>The main workflow view is displayed.</expected></step>
+<step>
+<content>Switch to the Editor view mode.</content><expected>The workflow is displayed in the Editor view mode.</expected></step>
+<step>
+<content>Click the Zoom In button.</content><expected>The workflow zooms in, making the elements appear larger.</expected></step>
+<step>
+<content>Switch to the Editor and Preview view mode.</content><expected>The workflow is displayed in the Editor and Preview view mode.</expected></step>
+<step>
+<content>Click the Zoom In button again.</content><expected>The workflow zooms in, making the elements appear larger.</expected></step>
+<step>
+<content>Switch to the Preview view mode.</content><expected>The workflow is displayed in the Preview view mode.</expected></step>
+<step>
+<content>Click the Zoom In button once more.</content><expected>The workflow zooms in, making the elements appear larger.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8392</id>
+				<title>Zoom Out Button</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the application and navigate to the main workflow view.</content><expected>The main workflow view should be displayed with the workflow diagram.</expected></step>
+<step>
+<content>Switch to the Editor view mode.</content><expected>The workflow diagram should be displayed in the Editor view mode.</expected></step>
+<step>
+<content>Click the Zoom Out button.</content><expected>The workflow diagram should zoom out, reducing the size of the displayed elements.</expected></step>
+<step>
+<content>Switch to the Editor and Preview view mode.</content><expected>The workflow diagram should be displayed in both the Editor and Preview view modes.</expected></step>
+<step>
+<content>Click the Zoom Out button.</content><expected>The workflow diagram should zoom out, reducing the size of the displayed elements.</expected></step>
+<step>
+<content>Switch to the Preview view mode.</content><expected>The workflow diagram should be displayed in the Preview view mode.</expected></step>
+<step>
+<content>Click the Zoom Out button.</content><expected>The workflow diagram should zoom out, reducing the size of the displayed elements.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8393</id>
+				<title>Lock Interaction Button</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the application and navigate to the main workflow view.</content><expected>The main workflow view is displayed with the toolbar visible.</expected></step>
+<step>
+<content>Click on the Lock Interaction button in the toolbar.</content><expected>The Lock Interaction button toggles its state (e.g., from locked to unlocked or vice versa). The interaction with the workflow diagram should be disabled.</expected></step>
+<step>
+<content>Switch to the Editor view mode.</content><expected>The view mode changes to Editor, and the Lock Interaction button should still be in the same state as before.</expected></step>
+<step>
+<content>Click on the Lock Interaction button again in the Editor view mode.</content><expected>The Lock Interaction button toggles its state, and the interaction with the workflow diagram should be enabled or disabled accordingly.</expected></step>
+<step>
+<content>Switch to the Editor and Preview view mode.</content><expected>The view mode changes to Editor and Preview, and the Lock Interaction button should still be in the same state as before.</expected></step>
+<step>
+<content>Click on the Lock Interaction button again in the Editor and Preview view mode.</content><expected>The Lock Interaction button toggles its state, and the interaction with the workflow diagram should be enabled or disabled accordingly.</expected></step>
+<step>
+<content>Switch to the Preview view mode.</content><expected>The view mode changes to Preview, and the Lock Interaction button should still be in the same state as before.</expected></step>
+<step>
+<content>Click on the Lock Interaction button again in the Preview view mode.</content><expected>The Lock Interaction button toggles its state, and the interaction with the workflow diagram should be enabled or disabled accordingly.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8394</id>
+				<title>Fit to View Button</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Switch to the Editor view mode.</content><expected>The Editor view mode is displayed.</expected></step>
+<step>
+<content>Click the Fit to View button.</content><expected>The diagram zooms out to fit the entire workflow within the view.</expected></step>
+<step>
+<content>Switch to the Editor and Preview view mode.</content><expected>The Editor and Preview view mode is displayed.</expected></step>
+<step>
+<content>Click the Fit to View button.</content><expected>The diagram zooms out to fit the entire workflow within the view in both Editor and Preview panes.</expected></step>
+<step>
+<content>Switch to the Preview view mode.</content><expected>The Preview view mode is displayed.</expected></step>
+<step>
+<content>Click the Fit to View button.</content><expected>The diagram zooms out to fit the entire workflow within the view.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8396</id>
+				<title>Verify Diagram Settings Saved When Switching Workflows</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the application and create a new workflow.</content><expected>A new workflow is created and displayed.</expected></step>
+<step>
+<content>Switch to the Editor view mode.</content><expected>The workflow is displayed in the Editor view mode.</expected></step>
+<step>
+<content>Switch to the Editor and Preview view mode.</content><expected>The workflow is displayed in the Editor and Preview view mode.</expected></step>
+<step>
+<content>Switch to the Preview view mode.</content><expected>The workflow is displayed in the Preview view mode.</expected></step>
+<step>
+<content>Switch back to the Editor view mode.</content><expected>The workflow is displayed in the Editor view mode with the same settings as before.</expected></step>
+<step>
+<content>Switch back to the Editor and Preview view mode.</content><expected>The workflow is displayed in the Editor and Preview view mode with the same settings as before.</expected></step>
+<step>
+<content>Switch back to the Preview view mode.</content><expected>The workflow is displayed in the Preview view mode with the same settings as before.</expected></step>
+<step>
+<content>Create a new workflow and switch between different workflows.</content><expected>The diagram settings are preserved when switching between different workflows.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8397</id>
+				<title>Check Initial Display for Overlap of Working Elements</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open a large workflow in the application.</content><expected>The workflow should open without any elements overlapping.</expected></step>
+<step>
+<content>Pan across the workflow to ensure all elements are visible without overlap.</content><expected>All elements should be visible without any overlap.</expected></step>
+<step>
+<content>Switch between different view modes (Editor, Editor and Preview, Preview).</content><expected>There should be no overlap of working elements in any view mode.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8398</id>
+				<title>Verify Element Selection by Mouse Click</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the application and navigate to the main workflow view.</content><expected>The workflow diagram is displayed.</expected></step>
+<step>
+<content>Click on a state element within the workflow diagram.</content><expected>The clicked state element is selected, indicated by a border or highlight.</expected></step>
+<step>
+<content>Click on an empty area within the workflow diagram.</content><expected>The previously selected state element is deselected.</expected></step>
+<step>
+<content>Click on a transition element within the workflow diagram.</content><expected>The clicked transition element is selected, indicated by a border or highlight.</expected></step>
+<step>
+<content>Click on an empty area within the workflow diagram.</content><expected>The previously selected transition element is deselected.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8399</id>
+				<title>Verify Settings When Switching Between Editor and Preview</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Open the application and create a new workflow.</content><expected>A new workflow is created with default settings.</expected></step>
+<step>
+<content>Switch to the Editor view and set a custom layout (e.g., horizontal).</content><expected>The layout changes to horizontal as expected.</expected></step>
+<step>
+<content>Switch to the Preview view.</content><expected>The layout remains horizontal, as set in the Editor view.</expected></step>
+<step>
+<content>Switch back to the Editor view.</content><expected>The layout remains horizontal, as set in the Editor view.</expected></step>
+<step>
+<content>Switch to the Editor and Preview view.</content><expected>The layout remains horizontal, as set in the Editor view.</expected></step>
+<step>
+<content>Switch back to the Editor view.</content><expected>The layout remains horizontal, as set in the Editor view.</expected></step>
+<step>
+<content>Switch to the Preview view.</content><expected>The layout remains horizontal, as set in the Editor view.</expected></step>
+<step>
+<content>Close the workflow and reopen it.</content><expected>The layout remains horizontal, as set in the previous session.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8400</id>
+				<title>Export All Button Functionality</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Navigate to the top-right corner of the application and click on the &apos;Export all&apos; button.</content><expected>A file dialog should open, allowing the user to select a location to save the exported file.</expected></step>
+<step>
+<content>Choose a location to save the exported file and click &apos;Save&apos;.</content><expected>The application should export the dataset and save the file to the chosen location.</expected></step>
+<step>
+<content>Navigate to the chosen location and open the exported file.</content><expected>The file should open successfully, and the content should match the expected data from the application.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8401</id>
+				<title>Export All Button Accessibility</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Navigate to the top-right corner of the application using the Tab key to ensure the focus is on the Export All button.</content><expected>The focus should be on the Export All button, and the screen reader should announce &apos;Export All button&apos;.</expected></step>
+<step>
+<content>Press the Enter key while the focus is on the Export All button to activate it.</content><expected>The Export All window should open, and the screen reader should announce &apos;Export All window open&apos;.</expected></step>
+<step>
+<content>Use the Tab key to navigate through the Export All window to check if all elements are accessible.</content><expected>The focus should move through the window elements, and the screen reader should announce each element, such as &apos;Drag and drop area&apos;, &apos;Select file button&apos;, and &apos;Close button&apos;.</expected></step>
+<step>
+<content>Press the Escape key to close the Export All window.</content><expected>The Export All window should close, and the screen reader should announce &apos;Export All window closed&apos;.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8402</id>
+				<title>Import Window UI Verification</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Click on the &apos;Import all&apos; button in the top-right corner of the application.</content><expected>The Import window should open, displaying a drag and drop area and a click to select file area.</expected></step>
+<step>
+<content>Hover over the drag and drop area in the Import window.</content><expected>The cursor should change to indicate that files can be dropped into the area.</expected></step>
+<step>
+<content>Drag a file into the drag and drop area in the Import window.</content><expected>The file should be accepted into the area, and a message indicating the file is ready to be imported should appear.</expected></step>
+<step>
+<content>Click on the &apos;click to select file&apos; area in the Import window.</content><expected>A file selection dialog should open, allowing the user to choose a file to import.</expected></step>
+<step>
+<content>Select a file from the file selection dialog and click &apos;Open&apos;.</content><expected>The selected file should appear in the Import window, ready to be imported.</expected></step>
+<step>
+<content>Click the &apos;Close&apos; button on the Import window.</content><expected>The Import window should close.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8457</id>
+				<title>Examples of workflows of varying complexity</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Create several new workflows of varying complexity and check that everything is displayed correctly.</content><expected></expected></step>
+<step>
+<content>{
+    &quot;version&quot;: &quot;1.0&quot;,
+    &quot;name&quot;: &quot;Subscriber Workflow&quot;,
+    &quot;desc&quot;: &quot;Description of the workflow for Subscriber&quot;,
+    &quot;initialState&quot;: &quot;initial_state&quot;,
+    &quot;active&quot;: true,
+    &quot;states&quot;: {
+        &quot;initial_state&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;transition_to_pending&quot;,
+                    &quot;next&quot;: &quot;pending&quot;,
+                    &quot;manual&quot;: false
+                }
+            ]
+        },
+        &quot;pending&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;transition_to_active&quot;,
+                    &quot;next&quot;: &quot;active&quot;,
+                    &quot;manual&quot;: true,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;SubscriberActivationProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ],
+                    &quot;criterion&quot;: {
+                        &quot;type&quot;: &quot;function&quot;,
+                        &quot;function&quot;: {
+                            &quot;name&quot;: &quot;SubscriberValidationCriterion&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        &quot;active&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;transition_to_unsubscribed&quot;,
+                    &quot;next&quot;: &quot;unsubscribed&quot;,
+                    &quot;manual&quot;: true,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;SubscriberUnsubscribeProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ]
+                },
+                {
+                    &quot;name&quot;: &quot;transition_to_bounced&quot;,
+                    &quot;next&quot;: &quot;bounced&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;SubscriberBounceProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        &quot;bounced&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;transition_to_active&quot;,
+                    &quot;next&quot;: &quot;active&quot;,
+                    &quot;manual&quot;: true,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;SubscriberReactivationProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ],
+                    &quot;criterion&quot;: {
+                        &quot;type&quot;: &quot;function&quot;,
+                        &quot;function&quot;: {
+                            &quot;name&quot;: &quot;SubscriberValidationCriterion&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        &quot;unsubscribed&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;transition_to_active&quot;,
+                    &quot;next&quot;: &quot;active&quot;,
+                    &quot;manual&quot;: true,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;SubscriberResubscribeProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ],
+                    &quot;criterion&quot;: {
+                        &quot;type&quot;: &quot;function&quot;,
+                        &quot;function&quot;: {
+                            &quot;name&quot;: &quot;SubscriberValidationCriterion&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}</content><expected></expected></step>
+<step>
+<content>{
+    &quot;version&quot;: &quot;1.0&quot;,
+    &quot;name&quot;: &quot;CatFact Workflow&quot;,
+    &quot;desc&quot;: &quot;Workflow for managing Cat Facts lifecycle&quot;,
+    &quot;initialState&quot;: &quot;initial_state&quot;,
+    &quot;active&quot;: true,
+    &quot;states&quot;: {
+        &quot;initial_state&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;transition_to_retrieved&quot;,
+                    &quot;next&quot;: &quot;retrieved&quot;,
+                    &quot;manual&quot;: false
+                }
+            ]
+        },
+        &quot;retrieved&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;transition_to_ready&quot;,
+                    &quot;next&quot;: &quot;ready&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;CatFactValidationProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ],
+                    &quot;criterion&quot;: {
+                        &quot;type&quot;: &quot;function&quot;,
+                        &quot;function&quot;: {
+                            &quot;name&quot;: &quot;CatFactValidityCriterion&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        &quot;ready&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;transition_to_used&quot;,
+                    &quot;next&quot;: &quot;used&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;CatFactUsageProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        &quot;used&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;transition_to_used_reuse&quot;,
+                    &quot;next&quot;: &quot;used&quot;,
+                    &quot;manual&quot;: true,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;CatFactReuseProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ],
+                    &quot;criterion&quot;: {
+                        &quot;type&quot;: &quot;function&quot;,
+                        &quot;function&quot;: {
+                            &quot;name&quot;: &quot;CatFactReuseCriterion&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    }
+                },
+                {
+                    &quot;name&quot;: &quot;transition_to_archived&quot;,
+                    &quot;next&quot;: &quot;archived&quot;,
+                    &quot;manual&quot;: true,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;CatFactArchiveProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ],
+                    &quot;criterion&quot;: {
+                        &quot;type&quot;: &quot;function&quot;,
+                        &quot;function&quot;: {
+                            &quot;name&quot;: &quot;CatFactArchiveCriterion&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        &quot;archived&quot;: {
+            &quot;transitions&quot;: []
+        }
+    }
+}</content><expected></expected></step>
+<step>
+<content>{
+    &quot;version&quot;: &quot;1.0&quot;,
+    &quot;name&quot;: &quot;AnalyticsJob Workflow&quot;,
+    &quot;desc&quot;: &quot;Manages the lifecycle of scheduled analytics jobs from scheduling through completion.&quot;,
+    &quot;initialState&quot;: &quot;initial_state&quot;,
+    &quot;active&quot;: true,
+    &quot;states&quot;: {
+        &quot;initial_state&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;schedule_job&quot;,
+                    &quot;next&quot;: &quot;scheduled&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;AnalyticsJobSchedulerProcessor&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        &quot;scheduled&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;start_job_execution&quot;,
+                    &quot;next&quot;: &quot;running&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;AnalyticsJobExecutorProcessor&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ],
+                    &quot;criterion&quot;: {
+                        &quot;type&quot;: &quot;function&quot;,
+                        &quot;function&quot;: {
+                            &quot;name&quot;: &quot;AnalyticsJobScheduleCriterion&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        &quot;running&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;complete_job_successfully&quot;,
+                    &quot;next&quot;: &quot;completed&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;AnalyticsJobCompletionProcessor&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ]
+                },
+                {
+                    &quot;name&quot;: &quot;fail_job_execution&quot;,
+                    &quot;next&quot;: &quot;failed&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;AnalyticsJobErrorProcessor&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        &quot;completed&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;end_workflow&quot;,
+                    &quot;next&quot;: &quot;final_state&quot;,
+                    &quot;manual&quot;: false
+                }
+            ]
+        },
+        &quot;failed&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;retry_failed_job&quot;,
+                    &quot;next&quot;: &quot;scheduled&quot;,
+                    &quot;manual&quot;: true,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;AnalyticsJobSchedulerProcessor&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}</content><expected></expected></step>
+<step>
+<content>{
+    &quot;version&quot;: &quot;1.0&quot;,
+    &quot;name&quot;: &quot;EmailNotificationEntity Workflow&quot;,
+    &quot;desc&quot;: &quot;Manages email notification delivery lifecycle.&quot;,
+    &quot;initialState&quot;: &quot;initial_state&quot;,
+    &quot;active&quot;: true,
+    &quot;states&quot;: {
+        &quot;initial_state&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;schedule_notification&quot;,
+                    &quot;next&quot;: &quot;scheduled&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;NotificationSchedulingProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        &quot;scheduled&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;send_notification&quot;,
+                    &quot;next&quot;: &quot;sending&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;EmailSendingProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ]
+                },
+                {
+                    &quot;name&quot;: &quot;cancel_notification&quot;,
+                    &quot;next&quot;: &quot;cancelled&quot;,
+                    &quot;manual&quot;: true
+                }
+            ]
+        },
+        &quot;sending&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;confirm_delivery&quot;,
+                    &quot;next&quot;: &quot;sent&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;DeliveryConfirmationProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ]
+                },
+                {
+                    &quot;name&quot;: &quot;handle_failure&quot;,
+                    &quot;next&quot;: &quot;failed&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;DeliveryFailureProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        &quot;failed&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;retry_sending&quot;,
+                    &quot;next&quot;: &quot;scheduled&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;RetryProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;calculationNodesTags&quot;: &quot;cyoda_application&quot;
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        &quot;sent&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;end_notification&quot;,
+                    &quot;next&quot;: &quot;initial_state&quot;,
+                    &quot;manual&quot;: false
+                }
+            ]
+        },
+        &quot;cancelled&quot;: {
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;end_notification&quot;,
+                    &quot;next&quot;: &quot;initial_state&quot;,
+                    &quot;manual&quot;: false
+                }
+            ]
+        }
+    }
+}</content><expected></expected></step>
+<step>
+<content>{
+    &quot;version&quot;: &quot;2.0&quot;,
+    &quot;name&quot;: &quot;E-commerceOrderProcessingWorkflow&quot;,
+    &quot;desc&quot;: &quot;Manages the full lifecycle of an e-commerce order, including payment, fulfillment, and shipping.&quot;,
+    &quot;initialState&quot;: &quot;created&quot;,
+    &quot;active&quot;: true,
+    &quot;states&quot;: {
+        &quot;created&quot;: {
+            &quot;desc&quot;: &quot;Order has been created but not yet paid.&quot;,
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;initiate_payment&quot;,
+                    &quot;next&quot;: &quot;payment_processing&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;PaymentInitiationProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;paymentGateway&quot;: &quot;Stripe&quot;
+                            }
+                        }
+                    ]
+                },
+                {
+                    &quot;name&quot;: &quot;cancel_order_by_customer&quot;,
+                    &quot;next&quot;: &quot;cancelled&quot;,
+                    &quot;manual&quot;: true
+                }
+            ]
+        },
+        &quot;payment_processing&quot;: {
+            &quot;desc&quot;: &quot;Payment is being processed by the gateway.&quot;,
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;payment_succeeded&quot;,
+                    &quot;next&quot;: &quot;paid&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;InventoryUpdateProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;ASYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;action&quot;: &quot;reserve_items&quot;
+                            }
+                        }
+                    ]
+                },
+                {
+                    &quot;name&quot;: &quot;payment_failed&quot;,
+                    &quot;next&quot;: &quot;payment_failed&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;PaymentFailureNotificationProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;notificationType&quot;: &quot;customer_email&quot;
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        &quot;paid&quot;: {
+            &quot;desc&quot;: &quot;Order has been paid and is ready for fulfillment.&quot;,
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;start_fulfillment&quot;,
+                    &quot;next&quot;: &quot;in_fulfillment&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;FulfillmentStartProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;warehouse&quot;: &quot;main_warehouse&quot;
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        &quot;in_fulfillment&quot;: {
+            &quot;desc&quot;: &quot;Items are being picked, packed, and prepared for shipping.&quot;,
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;fulfillment_complete&quot;,
+                    &quot;next&quot;: &quot;ready_for_shipping&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;ShippingLabelGenerationProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;carrier&quot;: &quot;FedEx&quot;
+                            }
+                        }
+                    ]
+                },
+                {
+                    &quot;name&quot;: &quot;item_out_of_stock&quot;,
+                    &quot;next&quot;: &quot;on_hold&quot;,
+                    &quot;manual&quot;: true,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;StockAlertProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;ASYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;alertTarget&quot;: &quot;warehouse_manager&quot;
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        &quot;ready_for_shipping&quot;: {
+            &quot;desc&quot;: &quot;Package is packed and waiting for the carrier.&quot;,
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;ship_package&quot;,
+                    &quot;next&quot;: &quot;shipped&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;ShipmentProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;carrierApi&quot;: &quot;FedExAPI&quot;,
+                                &quot;trackingIdField&quot;: &quot;trackingNumber&quot;
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        &quot;shipped&quot;: {
+            &quot;desc&quot;: &quot;Order has been handed over to the shipping carrier.&quot;,
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;delivery_confirmed&quot;,
+                    &quot;next&quot;: &quot;delivered&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;DeliveryConfirmationProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;customerNotification&quot;: true
+                            }
+                        }
+                    ]
+                },
+                {
+                    &quot;name&quot;: &quot;delivery_failed&quot;,
+                    &quot;next&quot;: &quot;on_hold&quot;,
+                    &quot;manual&quot;: false,
+                    &quot;processors&quot;: [
+                        {
+                            &quot;name&quot;: &quot;DeliveryFailureProcessor&quot;,
+                            &quot;executionMode&quot;: &quot;SYNC&quot;,
+                            &quot;config&quot;: {
+                                &quot;customerNotification&quot;: true
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        &quot;delivered&quot;: {
+            &quot;desc&quot;: &quot;Order has been successfully delivered.&quot;,
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;archive_order&quot;,
+                    &quot;next&quot;: &quot;archived&quot;,
+                    &quot;manual&quot;: false
+                }
+            ]
+        },
+        &quot;on_hold&quot;: {
+            &quot;desc&quot;: &quot;Order is temporarily on hold due to issues like out-of-stock items or delivery problems.&quot;,
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;resolve_issue_and_resume&quot;,
+                    &quot;next&quot;: &quot;in_fulfillment&quot;,
+                    &quot;manual&quot;: true
+                },
+                {
+                    &quot;name&quot;: &quot;cancel_order_by_support&quot;,
+                    &quot;next&quot;: &quot;cancelled&quot;,
+                    &quot;manual&quot;: true
+                }
+            ]
+        },
+        &quot;payment_failed&quot;: {
+            &quot;desc&quot;: &quot;Payment for the order has failed.&quot;,
+            &quot;transitions&quot;: [
+                {
+                    &quot;name&quot;: &quot;retry_payment&quot;,
+                    &quot;next&quot;: &quot;payment_processing&quot;,
+                    &quot;manual&quot;: true
+                },
+                {
+                    &quot;name&quot;: &quot;cancel_order_after_failure&quot;,
+                    &quot;next&quot;: &quot;cancelled&quot;,
+                    &quot;manual&quot;: true
+                }
+            ]
+        },
+        &quot;cancelled&quot;: {
+            &quot;desc&quot;: &quot;Order has been cancelled.&quot;,
+            &quot;transitions&quot;: []
+        },
+        &quot;archived&quot;: {
+            &quot;desc&quot;: &quot;Order is complete and archived.&quot;,
+            &quot;transitions&quot;: []
+        }
+    }
+}</content><expected></expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8458</id>
+				<title>Verify Help and Legend Button Functionality</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Click on the Help and Legend button.</content><expected>The information window opens.</expected></step>
+<step>
+<content>Verify that the information window displays the correct information.</content><expected>The information window displays the expected content.</expected></step>
+<step>
+<content>Check the functionality of the close buttons within the information window.</content><expected>Clicking the close buttons closes the information window.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8459</id>
+				<title>Export Single Workflow</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Navigate to the workflow list and select a single workflow to export.</content><expected>The workflow list should display the selected workflow and the export option should be available.</expected></step>
+<step>
+<content>Click on the &apos;export&apos; button for the selected workflow.</content><expected>An export window should open, allowing the user to confirm the export action.</expected></step>
+<step>
+<content>Confirm the export action in the export window.</content><expected>The export process should start, and a progress indicator should be displayed.</expected></step>
+<step>
+<content>Once the export is complete, check the download location for the exported file.</content><expected>The exported file should be present in the download location.</expected></step>
+<step>
+<content>Open the exported file and verify that it is correctly formatted and contains the expected data for the selected workflow.</content><expected>The exported file should be in the correct format (e.g., CSV, JSON) and should contain all the expected data fields for the selected workflow.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8460</id>
+				<title>Export Multiple Workflows</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Navigate to the Export section of the application.</content><expected>The Export section is displayed.</expected></step>
+<step>
+<content>Select multiple workflows to export by checking their respective checkboxes.</content><expected>The selected workflows are highlighted or marked as selected.</expected></step>
+<step>
+<content>Click the &apos;Export selected&apos; button.</content><expected>A prompt appears to save the exported file(s).</expected></step>
+<step>
+<content>Save the exported file(s) to a specified location.</content><expected>The file(s) are saved to the specified location.</expected></step>
+<step>
+<content>Open each exported file to verify the content.</content><expected>Each file is correctly formatted and contains the expected data for the selected workflows.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8461</id>
+				<title>Open Export Window</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Click on the Export button.</content><expected>An Export window opens displaying a list of existing workflows.</expected></step>
+<step>
+<content>Check if the list of workflows includes the Workflow Name.</content><expected>The Workflow Name is displayed for each workflow in the list.</expected></step>
+<step>
+<content>Check if the list of workflows includes the Technical ID.</content><expected>The Technical ID is displayed for each workflow in the list.</expected></step>
+<step>
+<content>Check if the list of workflows includes the Created at date.</content><expected>The Created at date is displayed for each workflow in the list.</expected></step>
+<step>
+<content>Verify the checkboxes for workflow selection.</content><expected>Checkboxes are present for each workflow, allowing selection of all or several workflows.</expected></step>
+<step>
+<content>Click on the &apos;Select all&apos; button.</content><expected>All workflows are selected.</expected></step>
+<step>
+<content>Click on the &apos;Clear selection&apos; button.</content><expected>All workflows are deselected.</expected></step>
+<step>
+<content>Click on the &apos;Cancel&apos; button.</content><expected>The Import window closes without importing any workflows.</expected></step>
+<step>
+<content>Click on the &apos;Close&apos; button.</content><expected>The Import window closes without importing any workflows.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+															<case>
+				<id>C8462</id>
+				<title>Checkbox Selection</title>
+												<template>Test Case (Steps)</template>
+																<type>Other</type>
+																<priority>Medium</priority>
+																				<estimate></estimate>
+																								<references></references>
+																												<custom>
+											<automation_type><id>0</id><value> None</value></automation_type>
+											<steps_separated><step>
+<content>Click on the &apos;Export&apos; button.</content><expected>An &apos;Export Workflow&apos; window opens with a list of existing workflows.</expected></step>
+<step>
+<content>Verify that the &apos;Workflow Name&apos;, &apos;Technical ID&apos;, and &apos;Created at&apos; information for each workflow is displayed correctly.</content><expected>The information for each workflow is displayed correctly.</expected></step>
+<step>
+<content>Click on the &apos;Select all&apos; button.</content><expected>All checkboxes for the workflows are selected.</expected></step>
+<step>
+<content>Click on the &apos;Clear selection&apos; button.</content><expected>All checkboxes for the workflows are deselected.</expected></step>
+<step>
+<content>Select a single workflow checkbox.</content><expected>Only the selected workflow checkbox is selected.</expected></step>
+<step>
+<content>Select multiple workflow checkboxes.</content><expected>Only the selected workflow checkboxes are selected.</expected></step>
+<step>
+<content>Click on the &apos;Cancel&apos; button.</content><expected>The &apos;Import Workflow&apos; window closes without importing any workflows.</expected></step>
+<step>
+<content>Click on the &apos;Close&apos; button.</content><expected>The &apos;Import Workflow&apos; window closes without importing any workflows.</expected></step>
+</steps_separated>
+									</custom>
+							</case>
+								</cases>
+							</section>
+	</sections>
+</suite>

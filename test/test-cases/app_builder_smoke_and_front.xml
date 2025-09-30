@@ -1,0 +1,2336 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suite>
+    <id>S125</id>
+    <name>Smoke and frontend testing</name>
+    <description></description>
+    <sections>
+        <section>
+            <name>Test Cases</name>
+            <description></description>
+            <cases>
+                <case>
+                    <id>C8526</id>
+                    <title>Open Home Screen from Side Menu</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the side menu by clicking on the left-side menu icon.</content>
+                                <expected>The side menu should be displayed on the left side of the screen.</expected>
+                            </step>
+                            <step>
+                                <content>Click on the &apos;Home&apos; icon in the side menu.</content>
+                                <expected>The home screen should be displayed, replacing the current screen.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the home screen elements are present and correctly displayed.
+                                </content>
+                                <expected>The home screen should display the main dashboard or welcome message with all
+                                    expected elements visible and functional.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8527</id>
+                    <title>Open History from Side Menu</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the side menu.</content>
+                                <expected>The side menu should be displayed on the left side of the screen.</expected>
+                            </step>
+                            <step>
+                                <content>Locate the history icon in the side menu.</content>
+                                <expected>The history icon should be visible and identifiable in the side menu.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click on the history icon.</content>
+                                <expected>Clicking the history icon should expand the history section.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the list of chats is displayed.</content>
+                                <expected>The list of chats should be visible under the history section.</expected>
+                            </step>
+                            <step>
+                                <content>Expand the list of chats.</content>
+                                <expected>The list of chats should expand to show all available chats.</expected>
+                            </step>
+                            <step>
+                                <content>Collapse the list of chats.</content>
+                                <expected>The list of chats should collapse back to a summary view.</expected>
+                            </step>
+                            <step>
+                                <content>Select a chat from the list.</content>
+                                <expected>The selected chat should open and display its content.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8528</id>
+                    <title>Open Settings from Side Menu</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the side menu.</content>
+                                <expected>The side menu is visible and accessible.</expected>
+                            </step>
+                            <step>
+                                <content>Locate the settings icon in the side menu.</content>
+                                <expected>The settings icon is visible and identifiable.</expected>
+                            </step>
+                            <step>
+                                <content>Click on the settings icon.</content>
+                                <expected>Clicking the settings icon should open the settings section.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the settings section is open.</content>
+                                <expected>The settings section is displayed, and the settings options are visible.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Check for the presence of theme options in the settings section.</content>
+                                <expected>The theme options (System, Dark, and Light) should be visible and
+                                    selectable.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Select one of the theme options.</content>
+                                <expected>The selected theme should be applied to the application interface.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8529</id>
+                    <title>Open About from Side Menu</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the application and navigate to the side menu.</content>
+                                <expected>The side menu should be displayed on the left side of the screen.</expected>
+                            </step>
+                            <step>
+                                <content>Locate the &apos;About&apos; icon in the side menu.</content>
+                                <expected>The &apos;About&apos; icon should be visible in the side menu.</expected>
+                            </step>
+                            <step>
+                                <content>Click on the &apos;About&apos; icon.</content>
+                                <expected>The &apos;About&apos; section should open in a new window or overlay.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify the &apos;About&apos; section content.</content>
+                                <expected>The &apos;About&apos; section should display information about the
+                                    application, including version details, copyright information, and contact details.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Check the close buttons in the &apos;About&apos; section.</content>
+                                <expected>The &apos;About&apos; section should have close buttons that allow the user to
+                                    close the section.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8530</id>
+                    <title>Expand Side Menu</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Tap on the menu icon located at the top-left corner of the screen.</content>
+                                <expected>The side menu should expand and become visible.</expected>
+                            </step>
+                            <step>
+                                <content>Ensure that the side menu contains the expected options such as Home, History,
+                                    Settings, About, and any other relevant options.
+                                </content>
+                                <expected>All listed options should be visible and accessible.</expected>
+                            </step>
+                            <step>
+                                <content>Tap on the menu icon again to collapse the side menu.</content>
+                                <expected>The side menu should collapse and become hidden.</expected>
+                            </step>
+                            <step>
+                                <content>Check if the main content area is accessible and not obstructed by the side
+                                    menu when it is collapsed.
+                                </content>
+                                <expected>The main content area should be fully accessible and visible.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8531</id>
+                    <title>Collapse Side Menu</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the application&apos;s main page.</content>
+                                <expected>The main page is displayed with the side menu open.</expected>
+                            </step>
+                            <step>
+                                <content>Tap the collapse icon on the side menu.</content>
+                                <expected>The side menu collapses and is no longer visible.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the main content area is now fully visible.</content>
+                                <expected>The main content area is fully visible, and the side menu is collapsed.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Tap the expand icon to open the side menu again.</content>
+                                <expected>The side menu expands and is visible again.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8532</id>
+                    <title>User Registration</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the registration page.</content>
+                                <expected>The registration page is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Enter a valid email address in the email field.</content>
+                                <expected>The email field accepts the input without errors.</expected>
+                            </step>
+                            <step>
+                                <content>Enter a strong password in the password field.</content>
+                                <expected>The password field accepts the input without errors.</expected>
+                            </step>
+                            <step>
+                                <content>Confirm the password by entering it again in the confirm password field.
+                                </content>
+                                <expected>The confirm password field accepts the input without errors and matches the
+                                    password.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click the &apos;Register&apos; button.</content>
+                                <expected>The system processes the registration and displays a success message.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify the user is redirected to the login page or a confirmation page.
+                                </content>
+                                <expected>The user is redirected to the login page or a confirmation page indicating
+                                    successful registration.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Check the user&apos;s email for a confirmation email.</content>
+                                <expected>A confirmation email is received in the user&apos;s email inbox.</expected>
+                            </step>
+                            <step>
+                                <content>Click the confirmation link in the email.</content>
+                                <expected>The user&apos;s account is confirmed, and they can now log in.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8533</id>
+                    <title>Open Canvas Tab</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the application&apos;s main interface.</content>
+                                <expected>The main interface of the application is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Locate and click on the &apos;Canvas&apos; tab in the left side menu.</content>
+                                <expected>The Canvas tab is selected and opens the Canvas workspace.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the Canvas workspace is displayed correctly.</content>
+                                <expected>The Canvas workspace is visible and ready for use.</expected>
+                            </step>
+                            <step>
+                                <content>Check for any error messages or loading indicators that might indicate a
+                                    problem.
+                                </content>
+                                <expected>No error messages are displayed, and there are no loading indicators.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8534</id>
+                    <title>Close Canvas Tab</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the application and navigate to the Canvas tab.</content>
+                                <expected>The Canvas tab is open and visible.</expected>
+                            </step>
+                            <step>
+                                <content>Locate the close button on the Canvas tab.</content>
+                                <expected>The close button is visible and clickable.</expected>
+                            </step>
+                            <step>
+                                <content>Click the close button on the Canvas tab.</content>
+                                <expected>The Canvas tab closes successfully and is no longer visible.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the Canvas tab is no longer present in the application interface.
+                                </content>
+                                <expected>The Canvas tab is not visible in the application interface.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8535</id>
+                    <title>Zoom In on Canvas</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the Canvas.</content>
+                                <expected>The Canvas should open successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Locate the zoom in button.</content>
+                                <expected>The zoom in button should be visible and accessible.</expected>
+                            </step>
+                            <step>
+                                <content>Click the zoom in button.</content>
+                                <expected>The content on the Canvas should increase in size, indicating that the zoom in
+                                    functionality is working.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click the zoom in button multiple times.</content>
+                                <expected>The content on the Canvas should continue to increase in size with each
+                                    click.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8536</id>
+                    <title>Zoom Out on Canvas</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the Canvas application.</content>
+                                <expected>The Canvas application is successfully opened and the main interface is
+                                    displayed.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Locate the zoom out button on the Canvas interface.</content>
+                                <expected>The zoom out button is visible and accessible on the Canvas interface.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click the zoom out button once.</content>
+                                <expected>The content on the Canvas is resized to a smaller scale, indicating that the
+                                    zoom out functionality has been applied.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click the zoom out button multiple times to further reduce the zoom level.
+                                </content>
+                                <expected>The content on the Canvas continues to resize to a smaller scale with each
+                                    click of the zoom out button.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that the zoom level can be adjusted to the minimum scale without any
+                                    issues.
+                                </content>
+                                <expected>The content on the Canvas reaches the minimum zoom level without any errors or
+                                    disruptions.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8537</id>
+                    <title>Reset Zoom on Canvas</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the Canvas.</content>
+                                <expected>The Canvas opens successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Zoom in on the Canvas.</content>
+                                <expected>The Canvas content zooms in.</expected>
+                            </step>
+                            <step>
+                                <content>Zoom out on the Canvas.</content>
+                                <expected>The Canvas content zooms out.</expected>
+                            </step>
+                            <step>
+                                <content>Click the reset zoom button.</content>
+                                <expected>The Canvas content returns to the default zoom level.</expected>
+                            </step>
+                            <step>
+                                <content>Verify the zoom level is reset to default.</content>
+                                <expected>The Canvas content is displayed at the default zoom level.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8538</id>
+                    <title>Copy Content on Canvas</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the Canvas.</content>
+                                <expected>The Canvas opens successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Add some text to the Canvas.</content>
+                                <expected>The text is visible and editable on the Canvas.</expected>
+                            </step>
+                            <step>
+                                <content>Select the text and copy it using the copy shortcut (Ctrl+C or Command+C).
+                                </content>
+                                <expected>The selected text is copied to the clipboard.</expected>
+                            </step>
+                            <step>
+                                <content>Paste the copied text into a text editor (e.g., Notepad) using the paste
+                                    shortcut (Ctrl+V or Command+V).
+                                </content>
+                                <expected>The copied text appears in the text editor.</expected>
+                            </step>
+                            <step>
+                                <content>Add a markdown element to the Canvas.</content>
+                                <expected>The markdown element is visible and editable on the Canvas.</expected>
+                            </step>
+                            <step>
+                                <content>Select the markdown content and copy it using the copy shortcut (Ctrl+C or
+                                    Command+C).
+                                </content>
+                                <expected>The selected markdown content is copied to the clipboard.</expected>
+                            </step>
+                            <step>
+                                <content>Paste the copied markdown content into a markdown editor (e.g., Typora) using
+                                    the paste shortcut (Ctrl+V or Command+V).
+                                </content>
+                                <expected>The copied markdown content appears in the markdown editor.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8539</id>
+                    <title>Markdown Functionality in Canvas</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the Canvas Markdown editor.</content>
+                                <expected>The Canvas Markdown editor is opened and ready for input.</expected>
+                            </step>
+                            <step>
+                                <content>Enter a simple markdown text, for example: &apos;# Hello, World!&apos;
+                                </content>
+                                <expected>The markdown text &apos;# Hello, World!&apos; is displayed as a heading in the
+                                    preview.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Switch between view options: Editor, Editor and Preview, Preview.</content>
+                                <expected>The view switches correctly between the Editor, Editor and Preview, and
+                                    Preview modes.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Scroll up and down within the editor.</content>
+                                <expected>Scrolling is possible without any issues.</expected>
+                            </step>
+                            <step>
+                                <content>Check the Zoom In and Zoom Out functionality.</content>
+                                <expected>Zoom In and Zoom Out functions work as expected, allowing the user to zoom in
+                                    and out of the content.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click the Reset button to return to the default zoom level.</content>
+                                <expected>The content resets to the default zoom level.</expected>
+                            </step>
+                            <step>
+                                <content>Click the Copy button to copy the content.</content>
+                                <expected>The content is copied to the clipboard successfully.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8540</id>
+                    <title>Workflow Functionality in Canvas</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the Canvas Workflow.</content>
+                                <expected>The Canvas Workflow opens successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Add a workflow by pasting the following JSON: { &quot;version&quot;: &quot;1.0&quot;,
+                                    &quot;name&quot;: &quot;chat_entity&quot;, &quot;desc&quot;: &quot;Migrated from
+                                    chat_entity&quot;, &quot;initialState&quot;: &quot;none&quot;, &quot;active&quot;:
+                                    true, &quot;criterion&quot;: { &quot;type&quot;: &quot;simple&quot;, &quot;jsonPath&quot;:
+                                    &quot;$.workflow_name&quot;, &quot;operation&quot;: &quot;EQUALS&quot;, &quot;value&quot;:
+                                    &quot;chat_entity&quot; }, &quot;states&quot;: { &quot;none&quot;: { &quot;transitions&quot;:
+                                    [ { &quot;name&quot;: &quot;initialize_chat&quot;, &quot;next&quot;: &quot;initialized_chat&quot;,
+                                    &quot;manual&quot;: false } ] }, &quot;initialized_chat&quot;: { &quot;transitions&quot;:
+                                    [ { &quot;name&quot;: &quot;submit_answer&quot;, &quot;next&quot;: &quot;submitted_workflow_question&quot;,
+                                    &quot;manual&quot;: false, &quot;processors&quot;: [ { &quot;name&quot;: &quot;AgentProcessor.submit_answer_4a45&quot;,
+                                    &quot;executionMode&quot;: &quot;ASYNC_NEW_TX&quot;, &quot;config&quot;: { &quot;calculationNodesTags&quot;:
+                                    &quot;ai_assistant&quot; } } ] } ] }, &quot;submitted_workflow_question&quot;: {
+                                    &quot;transitions&quot;: [ { &quot;name&quot;: &quot;submit_answer&quot;, &quot;next&quot;:
+                                    &quot;processed_question&quot;, &quot;manual&quot;: true, &quot;processors&quot;: [
+                                    { &quot;name&quot;: &quot;AgentProcessor.submit_answer_b135&quot;, &quot;executionMode&quot;:
+                                    &quot;ASYNC_NEW_TX&quot;, &quot;config&quot;: { &quot;calculationNodesTags&quot;:
+                                    &quot;ai_assistant&quot; } } ] }, { &quot;name&quot;: &quot;lock_chat&quot;, &quot;next&quot;:
+                                    &quot;locked_chat&quot;, &quot;manual&quot;: false, &quot;criterion&quot;: { &quot;type&quot;:
+                                    &quot;function&quot;, &quot;function&quot;: { &quot;name&quot;: &quot;FunctionProcessor.is_chat_locked_5b22&quot;,
+                                    &quot;config&quot;: { &quot;calculationNodesTags&quot;: &quot;ai_assistant&quot; } }
+                                    } } ] }, &quot;processed_question&quot;: { &quot;transitions&quot;: [ { &quot;name&quot;:
+                                    &quot;rollback&quot;, &quot;next&quot;: &quot;locked_chat&quot;, &quot;manual&quot;:
+                                    true }, { &quot;name&quot;: &quot;lock_chat&quot;, &quot;next&quot;: &quot;locked_chat&quot;,
+                                    &quot;manual&quot;: false, &quot;criterion&quot;: { &quot;type&quot;: &quot;function&quot;,
+                                    &quot;function&quot;: { &quot;name&quot;: &quot;FunctionProcessor.is_chat_locked_5b22&quot;,
+                                    &quot;config&quot;: { &quot;calculationNodesTags&quot;: &quot;ai_assistant&quot; } }
+                                    } }, { &quot;name&quot;: &quot;unlock_chat&quot;, &quot;next&quot;: &quot;submitted_workflow_question&quot;,
+                                    &quot;manual&quot;: false, &quot;criterion&quot;: { &quot;type&quot;: &quot;function&quot;,
+                                    &quot;function&quot;: { &quot;name&quot;: &quot;FunctionProcessor.is_chat_unlocked_f77c&quot;,
+                                    &quot;config&quot;: { &quot;calculationNodesTags&quot;: &quot;ai_assistant&quot; } }
+                                    } } ] }, &quot;locked_chat&quot;: { &quot;transitions&quot;: [ { &quot;name&quot;:
+                                    &quot;unlock_chat&quot;, &quot;next&quot;: &quot;submitted_workflow_question&quot;,
+                                    &quot;manual&quot;: true } ] } } }
+                                </content>
+                                <expected>The workflow is added successfully and the JSON is parsed correctly.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Try to edit the workflow.</content>
+                                <expected>The workflow can be edited successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Switch between view options: Editor, Editor and Preview, Preview.</content>
+                                <expected>The view switches correctly between the specified options.</expected>
+                            </step>
+                            <step>
+                                <content>Scroll up and down within the Canvas.</content>
+                                <expected>Scrolling within the Canvas works as expected.</expected>
+                            </step>
+                            <step>
+                                <content>Check Zoom in, Zoom out, Fullscreen, Lock, Unlock, Undo, Redo, Refresh, Close
+                                    or Exit, Zoom In, and Settings.
+                                </content>
+                                <expected>All the mentioned functionalities work correctly.</expected>
+                            </step>
+                            <step>
+                                <content>Check the Workflow Meta Data: editor, close buttons, and save button.</content>
+                                <expected>The Workflow Meta Data editor, close buttons, and save button function as
+                                    expected.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Move states and transitions within the workflow.</content>
+                                <expected>States and transitions can be moved successfully within the workflow.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Try to edit and delete states and transitions.</content>
+                                <expected>States and transitions can be edited and deleted successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Add a new transition and state.</content>
+                                <expected>A new transition and state can be added successfully.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8541</id>
+                    <title>Open Entities Data Tab</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the main menu of the application.</content>
+                                <expected>The main menu is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Locate and click on the &apos;Entities Data&apos; tab.</content>
+                                <expected>The &apos;Entities Data&apos; tab is opened successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that all the tabs, close buttons, and rollback button are present and
+                                    functional.
+                                </content>
+                                <expected>All the tabs, close buttons, and rollback button are present and functional.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8542</id>
+                    <title>Close Entities Data Tab</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the Entities Data tab.</content>
+                                <expected>The Entities Data tab is opened and visible.</expected>
+                            </step>
+                            <step>
+                                <content>Click on the close button of the Entities Data tab.</content>
+                                <expected>The Entities Data tab is closed and no longer visible.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the Entities Data tab is no longer present in the interface.
+                                </content>
+                                <expected>The Entities Data tab is not visible in the interface.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8543</id>
+                    <title>Login with Google</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the login page.</content>
+                                <expected>The login page should be displayed with options for Google, Github, and other
+                                    login methods.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click on the &apos;Log in with Google&apos; button.</content>
+                                <expected>The Google login authentication page should open in a new tab or window.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Enter the Google account credentials and click &apos;Next&apos;.</content>
+                                <expected>The user should be redirected back to the application after successful
+                                    authentication.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify the user is logged in by checking the user profile or dashboard.
+                                </content>
+                                <expected>The user profile or dashboard should display the user&apos;s information,
+                                    indicating a successful login.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Attempt to access a restricted page or feature that requires login.</content>
+                                <expected>The restricted page or feature should be accessible without prompting for
+                                    additional login.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8544</id>
+                    <title>Login with Github</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the login page.</content>
+                                <expected>The login page should be displayed with options to log in using Google,
+                                    Github, and other methods.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click on the &apos;Log in with Github&apos; button.</content>
+                                <expected>The user should be redirected to the Github authentication page.</expected>
+                            </step>
+                            <step>
+                                <content>Enter the Github account credentials and submit.</content>
+                                <expected>After submitting the credentials, the user should be redirected back to the
+                                    application.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that the user is logged in successfully.</content>
+                                <expected>The user&apos;s profile information should be displayed, indicating a
+                                    successful login.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Check the user&apos;s dashboard or homepage for any personalized content.
+                                </content>
+                                <expected>The user should see personalized content based on their Github profile.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8545</id>
+                    <title>Logout</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the login page and log in using a valid username and password.
+                                </content>
+                                <expected>The user is successfully logged in and redirected to the main dashboard.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click on the user profile icon in the top-right corner of the screen.</content>
+                                <expected>A dropdown menu appears with options including &apos;Profile&apos;, &apos;Settings&apos;,
+                                    and &apos;Logout&apos;.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click on the &apos;Logout&apos; option in the dropdown menu.</content>
+                                <expected>The user is logged out and redirected to the login page.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the user is redirected to the login page by checking the URL and
+                                    the presence of the login form.
+                                </content>
+                                <expected>The URL should be the login page URL and the login form should be displayed.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Check if any user-specific elements (e.g., user profile icon, dashboard
+                                    widgets) are no longer visible.
+                                </content>
+                                <expected>No user-specific elements should be visible, indicating that the user is
+                                    logged out.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8546</id>
+                    <title>Create New User</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the registration page.</content>
+                                <expected>The registration page should be displayed with all necessary fields
+                                    available.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Enter a valid username in the &apos;Username&apos; field.</content>
+                                <expected>The &apos;Username&apos; field should accept the input without any errors.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Enter a valid email address in the &apos;Email&apos; field.</content>
+                                <expected>The &apos;Email&apos; field should accept the input without any errors.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Enter a strong password in the &apos;Password&apos; field and confirm it in the
+                                    &apos;Confirm Password&apos; field.
+                                </content>
+                                <expected>The &apos;Password&apos; and &apos;Confirm Password&apos; fields should accept
+                                    the input without any errors and match each other.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click the &apos;Create Account&apos; button.</content>
+                                <expected>The system should process the registration and display a confirmation message
+                                    indicating that the account has been successfully created.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify the user account by checking the email for a confirmation link.
+                                </content>
+                                <expected>An email with a confirmation link should be received in the inbox. The link
+                                    should be functional and clicking it should activate the user account.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Log in using the newly created account credentials.</content>
+                                <expected>The user should be successfully logged in and redirected to the dashboard or
+                                    homepage.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8547</id>
+                    <title>Invalid Google Login</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the login page and click on the &apos;Log in with Google&apos;
+                                    button.
+                                </content>
+                                <expected>The Google login page should appear.</expected>
+                            </step>
+                            <step>
+                                <content>Enter invalid Google account credentials (e.g., incorrect email or password)
+                                    and attempt to log in.
+                                </content>
+                                <expected>The system should display an error message indicating that the login attempt
+                                    was unsuccessful.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that the user is not logged in and remains on the login page.</content>
+                                <expected>The user should not be redirected to any other page and should still be on the
+                                    login page.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8548</id>
+                    <title>Invalid Github Login</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the login page and select the Github login option.</content>
+                                <expected>The Github login page should be displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Enter invalid Github account credentials (e.g., wrong username or password) and
+                                    attempt to log in.
+                                </content>
+                                <expected>The system should display an error message indicating that the login
+                                    credentials are invalid.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Check if the user is redirected back to the login page or remains on the same
+                                    page.
+                                </content>
+                                <expected>The user should remain on the login page.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the user is not logged in by checking for the absence of
+                                    user-specific elements on the page.
+                                </content>
+                                <expected>specific elements should not be visible.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8549</id>
+                    <title>Sending a Message</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Log in to the application using a valid account.</content>
+                                <expected>The user is successfully logged in and redirected to the main dashboard.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Navigate to the chat interface.</content>
+                                <expected>The chat interface is displayed with no errors.</expected>
+                            </step>
+                            <step>
+                                <content>Type a message in the chat input field.</content>
+                                <expected>The message appears in the chat input field as typed.</expected>
+                            </step>
+                            <step>
+                                <content>Click the send button to send the message.</content>
+                                <expected>The message is sent successfully and appears in the chat window with a
+                                    timestamp.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Check the chat history to ensure the message is saved.</content>
+                                <expected>The sent message is visible in the chat history.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8550</id>
+                    <title>Using Chat Prompts</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the chat interface and select a chat prompt from the list.</content>
+                                <expected>The chat prompt is selected and displayed in the chat input field.</expected>
+                            </step>
+                            <step>
+                                <content>Click the send button to initiate the conversation with the selected chat
+                                    prompt.
+                                </content>
+                                <expected>The chat prompt is sent, and the conversation starts with the system&apos;s
+                                    response to the prompt.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that the system&apos;s response is relevant to the selected chat
+                                    prompt.
+                                </content>
+                                <expected>The system&apos;s response is appropriate and related to the chat prompt
+                                    used.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Continue the conversation by sending additional messages.</content>
+                                <expected>The system responds appropriately to the user&apos;s messages, maintaining the
+                                    context of the conversation.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Check if the chat history is saved correctly after the conversation.</content>
+                                <expected>The chat history is saved, and the conversation can be viewed later.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8551</id>
+                    <title>Opening Discord</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the application&apos;s main menu.</content>
+                                <expected>The main menu should be displayed with various options available.</expected>
+                            </step>
+                            <step>
+                                <content>Click on the &apos;Open Discord&apos; button.</content>
+                                <expected>The Discord application should open in a new window or tab.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the Discord application is functioning correctly.</content>
+                                <expected>The Discord application should be fully operational, allowing the user to
+                                    interact with it as expected.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8552</id>
+                    <title>Logging In</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the Discord login page.</content>
+                                <expected>The login page should be displayed with options for logging in with Google,
+                                    Github, and other methods.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click on the &apos;Log in with Google&apos; button.</content>
+                                <expected>The user should be redirected to the Google login page.</expected>
+                            </step>
+                            <step>
+                                <content>Enter the Google account credentials and complete the login process.</content>
+                                <expected>The user should be redirected back to the Discord application and logged in
+                                    successfully.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that the user is logged in by checking the user profile or home
+                                    screen.
+                                </content>
+                                <expected>The user&apos;s profile information should be displayed, indicating a
+                                    successful login.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8553</id>
+                    <title>User Info</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Log in to the Discord application with valid credentials.</content>
+                                <expected>The user is successfully logged in and redirected to the main dashboard.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Navigate to the user settings by clicking on the user profile icon in the
+                                    bottom left corner and selecting &apos;User Settings&apos;.
+                                </content>
+                                <expected>The user settings menu is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Click on the &apos;My Account&apos; tab within the user settings menu.
+                                </content>
+                                <expected>The &apos;My Account&apos; tab is displayed with the user&apos;s account
+                                    information.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that the user&apos;s profile picture, username, and email address are
+                                    visible and correct.
+                                </content>
+                                <expected>The user&apos;s profile picture, username, and email address are displayed
+                                    correctly.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Check if the &apos;Change Password&apos; button is present and functional.
+                                </content>
+                                <expected>The &apos;Change Password&apos; button is present and clicking it redirects to
+                                    the password change page.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8554</id>
+                    <title>Opening and Closing Chats</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the chat interface and click on the &apos;Open Chat&apos; button.
+                                </content>
+                                <expected>A new chat window should open, displaying the chat interface.</expected>
+                            </step>
+                            <step>
+                                <content>Type a message in the chat input field and press &apos;Send&apos;.</content>
+                                <expected>The message should appear in the chat window and the chat should update with
+                                    the new message.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click on the &apos;Close Chat&apos; button in the chat window.</content>
+                                <expected>The chat window should close, and the chat list should be visible again.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Open another chat window by clicking on a different chat in the chat list.
+                                </content>
+                                <expected>A new chat window should open, displaying the chat interface for the selected
+                                    chat.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Repeat the process of sending a message and closing the chat for the second
+                                    chat window.
+                                </content>
+                                <expected>The message should appear in the chat window and the chat should update with
+                                    the new message. The chat window should close when the &apos;Close Chat&apos; button
+                                    is clicked.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8555</id>
+                    <title>Saving Chat History</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Create a few requests in the chat.</content>
+                                <expected>The user should be able to create and send multiple requests successfully.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Navigate to the chat history section.</content>
+                                <expected>The chat history section should display all the created requests in
+                                    chronological order.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Check if the chat history is saved.</content>
+                                <expected>The chat history should be saved and visible even after refreshing the page or
+                                    closing and reopening the application.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8556</id>
+                    <title>Deleting a Chat</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the chat list and select a chat to delete.</content>
+                                <expected>The selected chat should be highlighted or marked for deletion.</expected>
+                            </step>
+                            <step>
+                                <content>Click on the delete button for the selected chat.</content>
+                                <expected>A confirmation dialog should appear asking if you are sure you want to delete
+                                    the chat.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Confirm the deletion in the dialog.</content>
+                                <expected>The chat should be removed from the chat list and a confirmation message
+                                    should appear indicating the chat was deleted.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Check the chat list to ensure the deleted chat is no longer present.</content>
+                                <expected>The deleted chat should not be visible in the chat list.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8557</id>
+                    <title>Renaming a Chat</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the chat that needs to be renamed.</content>
+                                <expected>The chat window opens with the current chat name displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Click on the &apos;Rename&apos; option in the chat settings.</content>
+                                <expected>A dialog box or input field appears, allowing the user to enter a new name for
+                                    the chat.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Enter a new name for the chat and click &apos;Save&apos; or &apos;Confirm&apos;.</content>
+                                <expected>The chat name is updated to the new name, and the chat window reflects the new
+                                    name.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that the chat name has been updated in the chat list.</content>
+                                <expected>The chat list displays the new name for the chat.</expected>
+                            </step>
+                            <step>
+                                <content>Open the renamed chat and check if the new name is displayed correctly.
+                                </content>
+                                <expected>The new chat name is displayed in the chat header.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8559</id>
+                    <title>Copying Chat Messages</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the chat interface and ensure there are messages present.</content>
+                                <expected>The chat interface displays with at least one message visible.</expected>
+                            </step>
+                            <step>
+                                <content>Select a chat message by clicking on it.</content>
+                                <expected>The selected chat message is highlighted or otherwise indicated as selected.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>click on the selected chat message and choose the &apos;Copy&apos; option from
+                                    the context menu.
+                                </content>
+                                <expected>The chat message is copied to the clipboard.</expected>
+                            </step>
+                            <step>
+                                <content>Open a text editor or any application where you can paste text and paste the
+                                    copied message.
+                                </content>
+                                <expected>The chat message appears in the text editor or application as pasted text.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8560</id>
+                    <title>Approving Messages</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the chat interface and send a message.</content>
+                                <expected>The message is successfully sent and displayed in the chat.</expected>
+                            </step>
+                            <step>
+                                <content>Locate the message in the chat and click on the &apos;Approve&apos; button.
+                                </content>
+                                <expected>The &apos;Approve&apos; button is visible and clickable.</expected>
+                            </step>
+                            <step>
+                                <content>Click the &apos;Approve&apos; button.</content>
+                                <expected>The message is marked as approved, and a confirmation message or indicator
+                                    appears.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that the message is now marked as approved.</content>
+                                <expected>The message displays a status or indicator that it has been approved.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8561</id>
+                    <title>Attaching Files</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the chat interface.</content>
+                                <expected>The chat interface is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Click on the &apos;attach file&apos; button.</content>
+                                <expected>A file selection dialog appears.</expected>
+                            </step>
+                            <step>
+                                <content>Select a file to attach from your local storage.</content>
+                                <expected>The selected file is attached to the chat message.</expected>
+                            </step>
+                            <step>
+                                <content>Send the chat message with the attached file.</content>
+                                <expected>The chat message with the attached file is sent successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Verify the attached file in the chat message.</content>
+                                <expected>The attached file is visible and downloadable in the chat message.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8562</id>
+                    <title>Checking Prompts and Links</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the chat interface and navigate to a chat message that contains a prompt
+                                    and a link.
+                                </content>
+                                <expected>The chat message should display the prompt and the link correctly.</expected>
+                            </step>
+                            <step>
+                                <content>Hover over the link within the chat message.</content>
+                                <expected>The link should display a tooltip or a preview of the linked content.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click on the link within the chat message.</content>
+                                <expected>The link should open in a new browser tab or window, leading to the intended
+                                    destination.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Hover over the prompt within the chat message.</content>
+                                <expected>The prompt should display a tooltip or additional information if available.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click on the prompt within the chat message.</content>
+                                <expected>The prompt should trigger the intended action or response within the chat
+                                    interface.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8563</id>
+                    <title>New Message Notifications</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the application and log in with a valid account.</content>
+                                <expected>The user is successfully logged in and can access the chat interface.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Navigate to a chat where another user is active.</content>
+                                <expected>The chat interface is displayed with the other user&apos;s activity visible.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Send a new message from the other user in the chat.</content>
+                                <expected>The new message appears in the chat window for both users.</expected>
+                            </step>
+                            <step>
+                                <content>Minimize or close the chat window and wait for a few seconds.</content>
+                                <expected>The application should display a notification indicating a new message.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click on the notification to open the chat window.</content>
+                                <expected>The chat window opens, and the new message is visible.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8564</id>
+                    <title>Copying a Part of Text</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the chat where the message is located.</content>
+                                <expected>The chat interface should display the message and the user should be able to
+                                    see the text clearly.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Select a portion of the text within the chat message.</content>
+                                <expected>The selected text should be highlighted or otherwise indicated as selected.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>click on the selected text and choose the &apos;Copy&apos; option from the
+                                    context menu.
+                                </content>
+                                <expected>The selected text should be copied to the clipboard.</expected>
+                            </step>
+                            <step>
+                                <content>Paste the copied text into a text editor or another application.</content>
+                                <expected>The pasted text should match the selected portion of the chat message.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8565</id>
+                    <title>Verify Side Menu Animation</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the application&apos;s main page.</content>
+                                <expected>The main page should load successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Click on the side menu button to expand the side menu.</content>
+                                <expected>The side menu should expand smoothly without any lag or abrupt movements.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Hover over the side menu items to observe the hover animations.</content>
+                                <expected>The side menu items should display a smooth hover animation, such as a color
+                                    change or shadow effect.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click on the side menu button again to collapse the side menu.</content>
+                                <expected>The side menu should collapse smoothly without any lag or abrupt movements.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Repeat the process of expanding and collapsing the side menu several times.
+                                </content>
+                                <expected>Each time the side menu is expanded or collapsed, the animation should be
+                                    smooth and consistent.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8566</id>
+                    <title>Verify Side Menu State</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the application and ensure the side menu is in its default state (either
+                                    expanded or collapsed).
+                                </content>
+                                <expected>The side menu is in its default state.</expected>
+                            </step>
+                            <step>
+                                <content>Click on the side menu toggle button to expand the menu.</content>
+                                <expected>The side menu expands to show the list of items.</expected>
+                            </step>
+                            <step>
+                                <content>Navigate to a different section of the application (e.g., Home, History,
+                                    Settings).
+                                </content>
+                                <expected>The side menu remains expanded.</expected>
+                            </step>
+                            <step>
+                                <content>Click on the side menu toggle button to collapse the menu.</content>
+                                <expected>The side menu collapses to hide the list of items.</expected>
+                            </step>
+                            <step>
+                                <content>Navigate to another section of the application.</content>
+                                <expected>The side menu remains collapsed.</expected>
+                            </step>
+                            <step>
+                                <content>Refresh the page and check the state of the side menu.</content>
+                                <expected>The side menu maintains its previous state (either expanded or collapsed).
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8567</id>
+                    <title>Verify Side Menu Accessibility</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the application in a web browser.</content>
+                                <expected>The application homepage is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Press the &apos;Tab&apos; key to navigate to the side menu.</content>
+                                <expected>The focus should shift to the side menu.</expected>
+                            </step>
+                            <step>
+                                <content>Use the arrow keys to navigate through the side menu options.</content>
+                                <expected>The focus should move to each menu item as the arrow keys are pressed.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Press &apos;Enter&apos; to select a menu item.</content>
+                                <expected>The selected menu item should be activated.</expected>
+                            </step>
+                            <step>
+                                <content>Use a screen reader (e.g., NVDA, JAWS) to navigate through the menu items.
+                                </content>
+                                <expected>The screen reader should announce the menu items as they are focused.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Select a menu item using the screen reader commands.</content>
+                                <expected>The selected menu item should be activated.</expected>
+                            </step>
+                            <step>
+                                <content>Ensure the side menu can be expanded and collapsed using keyboard shortcuts.
+                                </content>
+                                <expected>The side menu should expand and collapse as expected when the appropriate
+                                    keyboard shortcuts are used.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8568</id>
+                    <title>Verify Side Menu Persistence</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the application and expand the left side menu.</content>
+                                <expected>The side menu should expand and show the list of sections.</expected>
+                            </step>
+                            <step>
+                                <content>Navigate to the &apos;Home&apos; section from the side menu.</content>
+                                <expected>The Home section should open, and the side menu should remain expanded.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Navigate to the &apos;History&apos; section from the side menu.</content>
+                                <expected>The History section should open, and the side menu should remain expanded.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Navigate to the &apos;Settings&apos; section from the side menu and select a
+                                    theme.
+                                </content>
+                                <expected>The Settings section should open, and the side menu should remain expanded.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Navigate to the &apos;About&apos; section from the side menu.</content>
+                                <expected>The About section should open, and the side menu should remain expanded.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Navigate back to the &apos;Home&apos; section from the side menu.</content>
+                                <expected>The Home section should open, and the side menu should still be in the
+                                    expanded state.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8569</id>
+                    <title>Canvas Tab Edge Cases</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the application and navigate to the Canvas tab.</content>
+                                <expected>The Canvas tab opens successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Open the Canvas tab multiple times consecutively.</content>
+                                <expected>The Canvas tab opens each time without any issues.</expected>
+                            </step>
+                            <step>
+                                <content>Open another tab (e.g., Home, Settings) and then open the Canvas tab.</content>
+                                <expected>The Canvas tab opens successfully while another tab is active.</expected>
+                            </step>
+                            <step>
+                                <content>Close the Canvas tab while another tab is active.</content>
+                                <expected>The Canvas tab closes successfully without affecting the active tab.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8570</id>
+                    <title>Canvas Tab Failure Scenarios</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Attempt to open the Canvas tab without the necessary permissions.</content>
+                                <expected>A permission denied message should be displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Simulate a system under heavy load by opening multiple tabs and performing
+                                    resource-intensive tasks.
+                                </content>
+                                <expected>The Canvas tab should fail to open or display a loading error message.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Try to open the Canvas tab again after resolving the heavy load condition.
+                                </content>
+                                <expected>The Canvas tab should open successfully once the system returns to normal load
+                                    conditions.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8571</id>
+                    <title>Canvas Zoom Edge Cases</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the Canvas.</content>
+                                <expected>The Canvas opens successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Zoom in to the maximum limit.</content>
+                                <expected>The Canvas zooms in to the maximum limit without any issues.</expected>
+                            </step>
+                            <step>
+                                <content>Attempt to zoom in further beyond the maximum limit.</content>
+                                <expected>The Canvas does not zoom in further and displays a message indicating the
+                                    maximum limit has been reached.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Zoom out to the minimum limit.</content>
+                                <expected>The Canvas zooms out to the minimum limit without any issues.</expected>
+                            </step>
+                            <step>
+                                <content>Attempt to zoom out further beyond the minimum limit.</content>
+                                <expected>The Canvas does not zoom out further and displays a message indicating the
+                                    minimum limit has been reached.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Reset the zoom level.</content>
+                                <expected>The Canvas resets to the default zoom level.</expected>
+                            </step>
+                            <step>
+                                <content>Clear the Canvas to make it empty.</content>
+                                <expected>The Canvas is cleared and is empty.</expected>
+                            </step>
+                            <step>
+                                <content>Reset the zoom level again.</content>
+                                <expected>The Canvas resets to the default zoom level, even though the Canvas is
+                                    empty.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8572</id>
+                    <title>Empty Message Send</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the chat interface and click on the &apos;Send&apos; button without
+                                    entering any text.
+                                </content>
+                                <expected>The system should display an error message indicating that the message cannot
+                                    be empty.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Attempt to send another message by clicking on the &apos;Send&apos; button with
+                                    an empty text field.
+                                </content>
+                                <expected>The system should again display an error message stating that the message
+                                    cannot be empty.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that the error message is clear and understandable, guiding the user to
+                                    enter a message before sending.
+                                </content>
+                                <expected>The error message should be visible and provide clear instructions on how to
+                                    resolve the issue.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8573</id>
+                    <title>Message Send with Special Characters</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the chat interface.</content>
+                                <expected>The chat interface should open successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Compose a new message containing special characters such as @, #, $, %, &amp;,
+                                    *, (, ), +, -, =, ?, !, ~, &lt;, &gt;, |, {, }, [, ], ^, ;, :, &apos;, &quot;, ., ,,
+                                    /, \, and space.
+                                </content>
+                                <expected>The message should be composed successfully with all special characters
+                                    intact.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Send the message.</content>
+                                <expected>The message should be sent successfully without any errors.</expected>
+                            </step>
+                            <step>
+                                <content>Check the message in the chat history.</content>
+                                <expected>The message should appear in the chat history with all special characters
+                                    preserved.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that the message is displayed correctly in the recipient&apos;s chat.
+                                </content>
+                                <expected>The message should be displayed correctly in the recipient&apos;s chat with
+                                    all special characters intact.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8574</id>
+                    <title>Message Send with Maximum Length</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the chat interface.</content>
+                                <expected>The chat interface is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Compose a new message with the maximum allowed length.</content>
+                                <expected>The message input field accepts the maximum length input without any errors.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Send the composed message.</content>
+                                <expected>The message is sent successfully and appears in the chat history.</expected>
+                            </step>
+                            <step>
+                                <content>Check the message length in the chat history.</content>
+                                <expected>The message length matches the maximum allowed length and is displayed
+                                    correctly.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify that the message can be read and interacted with without any issues.
+                                </content>
+                                <expected>The message can be read and interacted with without any issues or
+                                    truncation.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8575</id>
+                    <title>Message Send with Attachment</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the chat interface.</content>
+                                <expected>The chat interface is displayed.</expected>
+                            </step>
+                            <step>
+                                <content>Compose a new message.</content>
+                                <expected>The message input field is available and ready for typing.</expected>
+                            </step>
+                            <step>
+                                <content>Attach a file to the message.</content>
+                                <expected>The file attachment option is available and the file is successfully
+                                    attached.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Send the message.</content>
+                                <expected>The message is sent successfully and the attachment is included.</expected>
+                            </step>
+                            <step>
+                                <content>Verify the message and attachment in the chat history.</content>
+                                <expected>The sent message and attachment appear in the chat history.</expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8576</id>
+                    <title>Message Send with Link</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Compose a new message and include a link in the text.</content>
+                                <expected>The link should be visible and correctly formatted in the message text.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Send the message.</content>
+                                <expected>The message should be sent successfully without any errors.</expected>
+                            </step>
+                            <step>
+                                <content>Open the sent message in the chat history.</content>
+                                <expected>The message should appear as sent with the link included in the text.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Click on the link in the sent message.</content>
+                                <expected>The link should open in a new browser tab or window, directing the user to the
+                                    intended URL.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8577</id>
+                    <title>Message Send with Markdown</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Open the chat interface.</content>
+                                <expected>The chat interface should open successfully.</expected>
+                            </step>
+                            <step>
+                                <content>Compose a message using markdown syntax, for example: &apos;**Hello World!**
+                                    This is a test message.&apos;
+                                </content>
+                                <expected>The message should be composed correctly with markdown formatting visible in
+                                    the editor.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Send the message.</content>
+                                <expected>The message should be sent successfully and the markdown formatting should be
+                                    rendered correctly in the chat.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify the rendered message in the chat.</content>
+                                <expected>The message should appear with the markdown formatting applied, e.g., &apos;Hello
+                                    World!&apos; should be bold and the rest of the text should be normal.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8578</id>
+                    <title>Chat Prompt with Empty Input</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Navigate to the chat interface and click on the chat prompt input field.
+                                </content>
+                                <expected>The chat prompt input field is focused and ready for input.</expected>
+                            </step>
+                            <step>
+                                <content>Leave the chat prompt input field empty and click the &apos;Send&apos;
+                                    button.
+                                </content>
+                                <expected>The system should display an error message or a prompt indicating that the
+                                    input field is empty.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Observe the error message or prompt displayed by the system.</content>
+                                <expected>The error message or prompt should clearly indicate that the chat prompt
+                                    cannot be sent because the input field is empty.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8579</id>
+                    <title>Chat Prompt with Special Characters</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Enter a chat prompt containing special characters such as @, #, $, &amp;, *, (,
+                                    ), -, _, +, =, {, }, [, ], |, \, /, ?, ., &gt;, &lt;, !, ~, `, ;, :, &apos; and
+                                    &quot;.
+                                </content>
+                                <expected>The chat prompt with special characters is displayed correctly without any
+                                    errors or unexpected behavior.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Send the chat prompt to the system.</content>
+                                <expected>The chat prompt is sent successfully and the system processes it without
+                                    crashing or displaying errors.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Verify the response to the chat prompt.</content>
+                                <expected>The system responds to the chat prompt correctly, and the response is
+                                    displayed without any errors or unexpected behavior.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Check if the chat functionality remains intact after sending the chat prompt.
+                                </content>
+                                <expected>The chat functionality remains intact, and users can continue to send and
+                                    receive messages without any issues.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+                <case>
+                    <id>C8580</id>
+                    <title>Chat Prompt with Maximum Length</title>
+                    <template>Test Case (Steps)</template>
+                    <type>Other</type>
+                    <priority>Medium</priority>
+                    <estimate></estimate>
+                    <references></references>
+                    <custom>
+                        <automation_type>
+                            <id>0</id>
+                            <value>None</value>
+                        </automation_type>
+                        <steps_separated>
+                            <step>
+                                <content>Create a new chat prompt with the maximum allowed length.</content>
+                                <expected>The system should accept the prompt without any errors.</expected>
+                            </step>
+                            <step>
+                                <content>Submit the chat prompt.</content>
+                                <expected>The system should successfully submit the chat prompt.</expected>
+                            </step>
+                            <step>
+                                <content>Verify that the chat prompt is displayed correctly in the chat history.
+                                </content>
+                                <expected>The chat prompt should be displayed in its entirety without any truncation or
+                                    errors.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Send a new chat prompt that is slightly longer than the maximum allowed
+                                    length.
+                                </content>
+                                <expected>The system should display an error message indicating that the prompt exceeds
+                                    the maximum length.
+                                </expected>
+                            </step>
+                            <step>
+                                <content>Attempt to submit a chat prompt that exceeds the maximum length.</content>
+                                <expected>The system should not allow the submission and should display an error
+                                    message.
+                                </expected>
+                            </step>
+                        </steps_separated>
+                    </custom>
+                </case>
+            </cases>
+        </section>
+    </sections>
+</suite>
