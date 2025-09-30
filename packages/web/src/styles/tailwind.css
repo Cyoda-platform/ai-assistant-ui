@@ -57,7 +57,8 @@
     border-radius: 1rem;
     border-top-right-radius: 0.375rem;
     box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
-    transition: all 0.2s ease-in-out;
+    /* Remove transition to prevent layout shifts when messages appear */
+    /* transition: all 0.2s ease-in-out; */
 
     /* Dynamic padding based on content - reduced */
     padding: clamp(0.5rem, 1.5vw + 0.25rem, 1rem) clamp(0.75rem, 2vw + 0.5rem, 1.5rem);
@@ -71,6 +72,9 @@
     word-wrap: break-word;
     overflow-wrap: break-word;
     hyphens: auto;
+
+    /* CSS containment to prevent layout thrashing */
+    contain: layout style;
   }
 
   .text-responsive-container:hover {
@@ -211,7 +215,7 @@
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -262,7 +266,7 @@
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.5s ease-out;
+  animation: fadeInUp 0.2s ease-out;
 }
 
 .animate-slide-in-right {
@@ -489,6 +493,9 @@ html, body {
 /* Chat-specific scrollbar improvements */
 .chat-container {
   scrollbar-gutter: stable;
+  /* Optimize scrolling performance */
+  overflow-anchor: auto;
+  scroll-behavior: auto;
 }
 
 /* Ensure panels don't cause horizontal overflow */

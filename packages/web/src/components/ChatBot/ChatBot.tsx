@@ -55,14 +55,33 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const [chatBotPlaceholderHeight, setChatBotPlaceholderHeight] = useState(0);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const isUserNearBottomRef = useRef(true);
+  const previousMessageCountRef = useRef(0);
 
   const scrollDownMessages = (smooth = false) => {
     if (messagesContainerRef.current) {
       const container = messagesContainerRef.current;
       // Use requestAnimationFrame to ensure DOM is fully rendered
       requestAnimationFrame(() => {
-        container.scrollTop = container.scrollHeight;
+        if (smooth) {
+          container.scrollTo({
+            top: container.scrollHeight,
+            behavior: 'smooth'
+          });
+        } else {
+          container.scrollTop = container.scrollHeight;
+        }
       });
+    }
+  };
+
+  // Check if user is near bottom of chat
+  const checkIfNearBottom = () => {
+    if (messagesContainerRef.current) {
+      const container = messagesContainerRef.current;
+      const threshold = 100; // pixels from bottom
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+      isUserNearBottomRef.current = isNearBottom;
     }
   };
 
@@ -75,9 +94,32 @@ const ChatBot: React.FC<ChatBotProps> = ({
     return ['question', 'notification', 'ui_function'].includes(type) ? 22 : 14;
   };
 
+  // Add scroll listener to track user position
   useEffect(() => {
-    // Auto-scroll when messages change
-    scrollDownMessages();
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      checkIfNearBottom();
+    };
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Only auto-scroll when new messages arrive AND user is near bottom
+  useEffect(() => {
+    const newMessageCount = messages.length;
+    const hadNewMessages = newMessageCount > previousMessageCountRef.current;
+    previousMessageCountRef.current = newMessageCount;
+
+    if (hadNewMessages && isUserNearBottomRef.current) {
+      // Small delay to let DOM settle before scrolling
+      const timeoutId = setTimeout(() => {
+        scrollDownMessages(false);
+      }, 50);
+      return () => clearTimeout(timeoutId);
+    }
   }, [messages]);
 
   const renderMessage = (message: Message, index: number) => {

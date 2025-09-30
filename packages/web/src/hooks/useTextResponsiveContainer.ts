@@ -26,12 +26,12 @@ export const useTextResponsiveContainer = (
     const textLength = content?.length || 0;
     const wordCount = content?.split(/\s+/).length || 0;
     const lineCount = content?.split('\n').length || 1;
-    
+
     // Determine size variant based on content analysis
     let sizeVariant = '';
     let estimatedWidth = 'auto';
     let estimatedHeight = 'auto';
-    
+
     if (textLength <= compactThreshold) {
       sizeVariant = 'compact';
       estimatedWidth = 'min(300px, 90vw)';
@@ -45,13 +45,13 @@ export const useTextResponsiveContainer = (
       estimatedWidth = 'min(450px, 90vw)';
       estimatedHeight = 'auto';
     }
-    
+
     // Build className
     const className = [
       baseClass,
       sizeVariant && `${baseClass}.${sizeVariant}`
     ].filter(Boolean).join(' ');
-    
+
     return {
       className,
       sizeVariant,
@@ -80,16 +80,16 @@ export const useTextResponsiveStyles = (
   options: TextResponsiveContainerOptions = {}
 ) => {
   const containerInfo = useTextResponsiveContainer(content, options);
-  
+
   const styles = useMemo(() => {
     const { textLength, wordCount, lineCount } = containerInfo;
-    
+
     // Calculate dynamic padding based on content
     const basePadding = 16; // 1rem in pixels
     const paddingMultiplier = Math.min(Math.max(textLength / 100, 0.75), 2);
     const verticalPadding = Math.max(basePadding * paddingMultiplier, 12);
     const horizontalPadding = Math.max(basePadding * paddingMultiplier * 1.25, 16);
-    
+
     // Calculate width based on content
     let maxWidth = '100%';
     if (textLength <= 50) {
@@ -101,7 +101,7 @@ export const useTextResponsiveStyles = (
     } else {
       maxWidth = 'min(750px, 90vw)';
     }
-    
+
     return {
       padding: `${verticalPadding}px ${horizontalPadding}px`,
       maxWidth,
@@ -110,11 +110,11 @@ export const useTextResponsiveStyles = (
       wordWrap: 'break-word' as const,
       overflowWrap: 'break-word' as const,
       hyphens: 'auto' as const,
-      // Smooth transitions
-      transition: 'all 0.2s ease-in-out',
+      // Remove transitions to prevent layout shifts when messages appear
+      // transition: 'all 0.2s ease-in-out',
     };
   }, [containerInfo]);
-  
+
   return styles;
 };
 
