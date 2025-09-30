@@ -198,7 +198,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
           // Custom list styling
           ul({ children }) {
             return (
-              <ul className="list-disc ml-4 space-y-0.5 my-2 text-slate-300">
+              <ul className="list-disc ml-4 space-y-0.5 my-2 text-slate-300 text-base">
                 {children}
               </ul>
             );
@@ -206,7 +206,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
 
           ol({ children }) {
             return (
-              <ol className="list-decimal ml-4 space-y-0.5 my-2 text-slate-300">
+              <ol className="list-decimal ml-4 space-y-0.5 my-2 text-slate-300 text-base">
                 {children}
               </ol>
             );
@@ -214,7 +214,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
 
           li({ children }) {
             return (
-              <li className="text-slate-300 leading-relaxed">
+              <li className="text-slate-300 text-base leading-relaxed">
                 {children}
               </li>
             );
