@@ -552,6 +552,24 @@ const ChatBotView: React.FC = () => {
     return () => window.removeEventListener('focus', handleFocus);
   }, [countNewMessages]);
 
+  // Clear notifications when user scrolls on the chat page
+  useEffect(() => {
+    const handleScroll = () => {
+      // Clear all notifications for this chat when user scrolls
+      if (headerNotifications.length > 0) {
+        setHeaderNotifications([]);
+        setCountNewMessages(0);
+      }
+    };
+
+    // Find the chat messages container
+    const chatContainer = document.querySelector('.chat-container');
+    if (chatContainer) {
+      chatContainer.addEventListener('scroll', handleScroll);
+      return () => chatContainer.removeEventListener('scroll', handleScroll);
+    }
+  }, [headerNotifications.length]);
+
   // Update document title and favicon based on new message count
   useEffect(() => {
     if (countNewMessages > 0) {

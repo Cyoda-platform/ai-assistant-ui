@@ -72,6 +72,8 @@ const Header: React.FC<HeaderProps> = ({
     if (externalMarkAllAsRead) {
       externalMarkAllAsRead();
     }
+    // Close notifications dropdown after marking all as read
+    setShowNotifications(false);
   };
 
   const getNotificationIcon = (type: string) => {
@@ -254,7 +256,7 @@ const Header: React.FC<HeaderProps> = ({
 
               {/* Notifications Dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50">
+                <div className="absolute right-0 top-full mt-2 w-80 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-[9999]">
                   <div className="flex items-center justify-between p-4 border-b border-slate-700">
                     <h3 className="font-medium text-white">Notifications</h3>
                     <button
@@ -308,7 +310,7 @@ const Header: React.FC<HeaderProps> = ({
       {/* Click outside to close notifications */}
       {showNotifications && (
         <div
-          className="fixed inset-0 z-30"
+          className="fixed inset-0 z-[9998]"
           onClick={() => setShowNotifications(false)}
         />
       )}
