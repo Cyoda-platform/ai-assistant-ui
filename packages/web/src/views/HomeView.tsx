@@ -27,6 +27,8 @@ import ChatHistoryPanel from '@/components/ChatHistoryPanel/ChatHistoryPanel';
 import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
 import { useResizablePanel } from '@/hooks/useResizablePanel';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
+import eventBus from '@/plugins/eventBus';
+import { UPDATE_CHAT_LIST } from '@/helpers/HelperConstants';
 
 const HomeView: React.FC = () => {
   const [chatInput, setChatInput] = useState('');
@@ -42,6 +44,7 @@ const HomeView: React.FC = () => {
   const assistantStore = useAssistantStore();
   const authStore = useAuthStore();
   const isLoadingChats = useAssistantStore((state) => state.isLoadingChats);
+  const chatListReady = useAssistantStore((state) => state.chatListReady);
 
   // Resizable chat history panel - start at max width
   const chatHistoryResize = useResizablePanel({
@@ -59,9 +62,15 @@ const HomeView: React.FC = () => {
     storageKey: 'home-canvas-width'
   });
 
-  // Load chats on mount
+  // Load chats on mount only if not already loaded
   useEffect(() => {
     const loadChats = async () => {
+      // Skip if chat list is already loaded
+      if (chatListReady) {
+        console.log('Chat list already loaded, skipping getChats call');
+        return;
+      }
+
       try {
         await assistantStore.getChats();
       } catch (error) {
@@ -70,7 +79,18 @@ const HomeView: React.FC = () => {
     };
 
     loadChats();
-  }, []);
+
+    // Listen for chat list updates (e.g., when chat is deleted or renamed)
+    const handleUpdateChatList = () => {
+      assistantStore.getChats();
+    };
+
+    eventBus.$on(UPDATE_CHAT_LIST, handleUpdateChatList);
+
+    return () => {
+      eventBus.$off(UPDATE_CHAT_LIST, handleUpdateChatList);
+    };
+  }, [chatListReady]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -114,6 +134,12 @@ const HomeView: React.FC = () => {
       }
 
       if (response?.data?.technical_id) {
+        // Refresh chat list in background (don't await - let it load while navigating)
+        assistantStore.getChats().catch(error => {
+          console.error('Failed to refresh chat list:', error);
+        });
+
+        // Navigate immediately to chat details page
         navigate(`/chat/${response.data.technical_id}`);
       }
     } catch (error) {

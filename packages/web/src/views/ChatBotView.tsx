@@ -9,6 +9,8 @@ import ChatHistoryPanel from '@/components/ChatHistoryPanel/ChatHistoryPanel';
 import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
 import { useResizablePanel } from '@/hooks/useResizablePanel';
 import Tinycon from 'tinycon';
+import eventBus from '@/plugins/eventBus';
+import { UPDATE_CHAT_LIST } from '@/helpers/HelperConstants';
 
 interface Message {
   id: string;
@@ -35,6 +37,7 @@ const ChatBotView: React.FC = () => {
   const assistantStore = useAssistantStore();
   const chatList = useAssistantStore((state) => state.chatList); // Subscribe to chatList specifically
   const isLoadingChats = useAssistantStore((state) => state.isLoadingChats);
+  const chatListReady = useAssistantStore((state) => state.chatListReady);
   const [canvasVisible, setCanvasVisible] = useState(false);
   const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
   const [isEntityDataOpen, setIsEntityDataOpen] = useState(false);
@@ -456,9 +459,15 @@ const ChatBotView: React.FC = () => {
     }
   };
 
-  // Load chat list for sidebar
+  // Load chat list for sidebar only if not already loaded
   useEffect(() => {
     const loadChats = async () => {
+      // Skip if chat list is already loaded
+      if (chatListReady) {
+        console.log('Chat list already loaded, skipping getChats call');
+        return;
+      }
+
       try {
         await assistantStore.getChats();
       } catch (error) {
@@ -467,7 +476,18 @@ const ChatBotView: React.FC = () => {
     };
 
     loadChats();
-  }, []);
+
+    // Listen for chat list updates (e.g., when chat is deleted or renamed)
+    const handleUpdateChatList = () => {
+      assistantStore.getChats();
+    };
+
+    eventBus.$on(UPDATE_CHAT_LIST, handleUpdateChatList);
+
+    return () => {
+      eventBus.$off(UPDATE_CHAT_LIST, handleUpdateChatList);
+    };
+  }, [chatListReady]);
 
   // Initialize chat and start polling
   useEffect(() => {
