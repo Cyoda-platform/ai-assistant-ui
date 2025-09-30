@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Bell,
@@ -58,19 +58,50 @@ const Header: React.FC<HeaderProps> = ({
   const location = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
 
+  console.log('🎨 Header component rendering, externalNotifications:', externalNotifications?.length || 0);
+
   // Use external notifications if provided, otherwise use empty array
   const notifications = externalNotifications || [];
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
+  console.log('🎨 Header calculated unreadCount:', unreadCount, 'from', notifications.length, 'notifications');
+
+  // Debug: Log when notifications prop changes
+  useEffect(() => {
+    console.log('🔔 Header received notifications:', {
+      count: notifications.length,
+      unread: unreadCount,
+      notifications,
+      externalNotifications
+    });
+  }, [externalNotifications, notifications.length, unreadCount]);
+
   const markNotificationAsRead = (id: number) => {
+    console.log('🔔 Header: Mark notification as read clicked', {
+      id,
+      hasExternalHandler: !!externalMarkAsRead,
+      notificationCount: notifications.length
+    });
+
     if (externalMarkAsRead) {
       externalMarkAsRead(id);
+    } else {
+      console.warn('⚠️ Header: No external mark as read handler provided');
     }
   };
 
   const markAllAsRead = () => {
+    console.log('🔔 Header: Mark all as read clicked', {
+      hasExternalHandler: !!externalMarkAllAsRead,
+      notificationCount: notifications.length,
+      notifications
+    });
+
     if (externalMarkAllAsRead) {
+      console.log('🔔 Header: Calling external mark all as read handler');
       externalMarkAllAsRead();
+    } else {
+      console.warn('⚠️ Header: No external mark all as read handler provided');
     }
     // Close notifications dropdown after marking all as read
     setShowNotifications(false);
@@ -242,13 +273,19 @@ const Header: React.FC<HeaderProps> = ({
             {/* Notifications */}
             <div className="relative">
               <button
-                onClick={() => setShowNotifications(!showNotifications)}
+                onClick={() => {
+                  console.log('🔔 Bell clicked, current unreadCount:', unreadCount, 'notifications:', notifications.length);
+                  setShowNotifications(!showNotifications);
+                }}
                 className="relative p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
                 title="Notifications"
               >
                 <Bell size={20} />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                  <span
+                    key={`badge-${unreadCount}-${notifications.length}`}
+                    className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium"
+                  >
                     {unreadCount}
                   </span>
                 )}
@@ -256,7 +293,10 @@ const Header: React.FC<HeaderProps> = ({
 
               {/* Notifications Dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-[9999]">
+                <div
+                  className="absolute right-0 top-full mt-2 w-80 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-[10000]"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className="flex items-center justify-between p-4 border-b border-slate-700">
                     <h3 className="font-medium text-white">Notifications</h3>
                     <button
@@ -267,36 +307,50 @@ const Header: React.FC<HeaderProps> = ({
                     </button>
                   </div>
                   <div className="max-h-80 overflow-y-auto">
-                    {notifications.map((notification) => (
-                      <div
-                        key={notification.id}
-                        className={`p-4 border-b border-slate-700 hover:bg-slate-700/50 transition-colors cursor-pointer ${
-                          !notification.isRead ? 'bg-slate-700/30' : ''
-                        }`}
-                        onClick={() => markNotificationAsRead(notification.id)}
-                      >
-                        <div className="flex items-start space-x-3">
-                          {getNotificationIcon(notification.type)}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-white">{notification.title}</p>
-                            <p className="text-sm text-slate-400 mt-1">{notification.message}</p>
-                            <p className="text-xs text-slate-500 mt-2">{notification.timestamp}</p>
-                          </div>
-                          {!notification.isRead && (
-                            <div className="w-2 h-2 bg-teal-400 rounded-full"></div>
-                          )}
-                        </div>
+                    {notifications.length === 0 ? (
+                      <div className="p-8 text-center">
+                        <p className="text-sm text-slate-400">No notifications</p>
                       </div>
-                    ))}
+                    ) : (
+                      notifications.map((notification) => (
+                        <div
+                          key={notification.id}
+                          className={`p-4 border-b border-slate-700 hover:bg-slate-700/50 transition-colors cursor-pointer ${
+                            !notification.isRead ? 'bg-slate-700/30' : ''
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            markNotificationAsRead(notification.id);
+                          }}
+                        >
+                          <div className="flex items-start space-x-3">
+                            {getNotificationIcon(notification.type)}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-white">{notification.title}</p>
+                              <p className="text-sm text-slate-400 mt-1">{notification.message}</p>
+                              <p className="text-xs text-slate-500 mt-2">{notification.timestamp}</p>
+                            </div>
+                            {!notification.isRead && (
+                              <div className="w-2 h-2 bg-teal-400 rounded-full"></div>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
-                  <div
-                    className="p-3 border-t border-slate-700 cursor-pointer hover:bg-slate-700/50 transition-colors"
-                    onClick={markAllAsRead}
-                  >
-                    <span className="text-sm text-teal-400 hover:text-teal-300 transition-colors">
-                      Mark all as read
-                    </span>
-                  </div>
+                  {notifications.length > 0 && (
+                    <div
+                      className="p-3 border-t border-slate-700 cursor-pointer hover:bg-slate-700/50 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        markAllAsRead();
+                      }}
+                    >
+                      <span className="text-sm text-teal-400 hover:text-teal-300 transition-colors">
+                        Mark all as read
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -307,13 +361,13 @@ const Header: React.FC<HeaderProps> = ({
         </div>
       </header>
 
-      {/* Click outside to close notifications */}
-      {showNotifications && (
+      {/* Click outside to close notifications - TEMPORARILY DISABLED FOR DEBUGGING */}
+      {/* {showNotifications && (
         <div
-          className="fixed inset-0 z-[9998]"
+          className="fixed inset-0 z-[9999]"
           onClick={() => setShowNotifications(false)}
         />
-      )}
+      )} */}
     </>
   );
 };

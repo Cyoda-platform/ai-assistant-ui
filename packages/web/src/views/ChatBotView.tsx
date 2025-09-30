@@ -454,29 +454,58 @@ const ChatBotView: React.FC = () => {
 
   // Handle notification actions
   const handleMarkNotificationAsRead = (id: number) => {
+    console.log('📝 ChatBotView: handleMarkNotificationAsRead called', {
+      id,
+      currentNotifications: headerNotifications.length,
+      currentCount: countNewMessages
+    });
+
     setHeaderNotifications(prev => {
       const notification = prev.find(n => n.id === id);
+      console.log('📝 Found notification:', notification);
+
       // If marking an unread notification as read, decrease the count
       if (notification && !notification.isRead) {
-        setCountNewMessages(count => Math.max(0, count - 1));
+        setCountNewMessages(count => {
+          const newCount = Math.max(0, count - 1);
+          console.log('📝 Decreasing count from', count, 'to', newCount);
+          return newCount;
+        });
       }
-      return prev.map(notif =>
+
+      const updated = prev.map(notif =>
         notif.id === id ? { ...notif, isRead: true } : notif
       );
+      console.log('📝 Updated notifications:', updated);
+      return updated;
     });
   };
 
   const handleMarkAllNotificationsAsRead = () => {
-    // Count unread notifications before clearing
-    const unreadCount = headerNotifications.filter(n => !n.isRead).length;
+    console.log('📭 Mark all notifications as read called', {
+      totalNotifications: headerNotifications.length,
+      unreadCount: headerNotifications.filter(n => !n.isRead).length,
+      currentCountNewMessages: countNewMessages,
+      notifications: headerNotifications
+    });
 
-    // Clear all notifications
-    setHeaderNotifications([]);
+    // Clear all notifications - use functional update to ensure we get latest state
+    setHeaderNotifications(() => {
+      console.log('🗑️ Setting headerNotifications to empty array');
+      return [];
+    });
 
-    // Reset count if there were unread notifications
-    if (unreadCount > 0) {
-      setCountNewMessages(0);
-    }
+    // Always reset count to 0 when clearing all notifications
+    setCountNewMessages(() => {
+      console.log('🔢 Setting countNewMessages to 0');
+      return 0;
+    });
+
+    // Note: We don't clear notifiedMessagesRef here because we don't want to re-notify
+    // about messages that have already been shown. The user has acknowledged them by
+    // clicking "Mark all as read"
+
+    console.log('✅ All notifications cleared, count reset to 0');
   };
 
   // Load chat list for sidebar only if not already loaded
@@ -560,26 +589,47 @@ const ChatBotView: React.FC = () => {
     setDisabled(isLoading);
   }, [isLoading]);
 
-  // Handle document focus to reset notification count
+  // Handle document focus to reset notification count and clear notifications
   useEffect(() => {
     const handleFocus = () => {
-      if (countNewMessages > 0) {
-        setCountNewMessages(0);
-      }
+      // Use functional updates to avoid stale closure
+      setHeaderNotifications(prev => {
+        if (prev.length > 0) {
+          console.log('🔔 Window focused, clearing notifications');
+          return [];
+        }
+        return prev;
+      });
+      setCountNewMessages(prev => {
+        if (prev > 0) {
+          return 0;
+        }
+        return prev;
+      });
     };
 
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [countNewMessages]);
+  }, []); // Empty dependency array - set up once and use functional updates to access latest state
 
   // Clear notifications when user scrolls on the chat page
   useEffect(() => {
     const handleScroll = () => {
       // Clear all notifications for this chat when user scrolls
-      if (headerNotifications.length > 0) {
-        setHeaderNotifications([]);
-        setCountNewMessages(0);
-      }
+      // Use functional updates to avoid stale closure
+      setHeaderNotifications(prev => {
+        if (prev.length > 0) {
+          console.log('🔔 User scrolled, clearing notifications');
+          return [];
+        }
+        return prev;
+      });
+      setCountNewMessages(prev => {
+        if (prev > 0) {
+          return 0;
+        }
+        return prev;
+      });
     };
 
     // Find the chat messages container
@@ -588,7 +638,16 @@ const ChatBotView: React.FC = () => {
       chatContainer.addEventListener('scroll', handleScroll);
       return () => chatContainer.removeEventListener('scroll', handleScroll);
     }
-  }, [headerNotifications.length]);
+  }, []); // Empty dependency array - set up once and use functional updates to access latest state
+
+  // Debug: Log when headerNotifications changes
+  useEffect(() => {
+    console.log('🔔 headerNotifications changed:', {
+      count: headerNotifications.length,
+      unread: headerNotifications.filter(n => !n.isRead).length,
+      notifications: headerNotifications
+    });
+  }, [headerNotifications]);
 
   // Update document title and favicon based on new message count
   useEffect(() => {
