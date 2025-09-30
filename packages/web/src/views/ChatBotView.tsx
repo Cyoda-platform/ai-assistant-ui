@@ -11,6 +11,7 @@ import { useResizablePanel } from '@/hooks/useResizablePanel';
 import Tinycon from 'tinycon';
 import eventBus from '@/plugins/eventBus';
 import { UPDATE_CHAT_LIST } from '@/helpers/HelperConstants';
+import { groupChatsByDate } from '@/helpers/HelperChatGroups';
 
 interface Message {
   id: string;
@@ -570,48 +571,8 @@ const ChatBotView: React.FC = () => {
     return <div>No chat ID provided</div>;
   }
 
-  // Group chats by date similar to HomeView - memoized to react to chatList changes
-  const chatGroups = useMemo(() => {
-    const chats = chatList || [];
-    if (chats.length === 0) return [];
-
-    const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(today.getDate() - 7);
-
-    const isSameDay = (date1: Date, date2: Date) =>
-      date1.getFullYear() === date2.getFullYear() &&
-      date1.getMonth() === date2.getMonth() &&
-      date1.getDate() === date2.getDate();
-
-    const todayChats: any[] = [];
-    const yesterdayChats: any[] = [];
-    const previousWeekChats: any[] = [];
-    const olderChats: any[] = [];
-
-    chats.forEach(chat => {
-      const chatDate = new Date(chat.last_modified || chat.date);
-
-      if (isSameDay(chatDate, today)) {
-        todayChats.push(chat);
-      } else if (isSameDay(chatDate, yesterday)) {
-        yesterdayChats.push(chat);
-      } else if (chatDate >= sevenDaysAgo) {
-        previousWeekChats.push(chat);
-      } else {
-        olderChats.push(chat);
-      }
-    });
-
-    return [
-      { title: 'Today', chats: todayChats },
-      { title: 'Yesterday', chats: yesterdayChats },
-      { title: 'Previous week', chats: previousWeekChats },
-      { title: 'Older', chats: olderChats }
-    ].filter(group => group.chats.length > 0);
-  }, [chatList]);
+  // Group chats by date using shared utility - memoized to react to chatList changes
+  const chatGroups = useMemo(() => groupChatsByDate(chatList), [chatList]);
 
   return (
     <div className="main-layout bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-white">
@@ -641,7 +602,6 @@ const ChatBotView: React.FC = () => {
               onResizeMouseDown={chatHistoryResize.handleMouseDown}
               isResizing={chatHistoryResize.isResizing}
               showHomeAsActive={false}
-              onClose={() => setIsChatHistoryOpen(false)}
             />
           </div>
         )}

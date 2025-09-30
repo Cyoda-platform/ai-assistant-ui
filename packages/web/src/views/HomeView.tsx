@@ -29,6 +29,7 @@ import { useResizablePanel } from '@/hooks/useResizablePanel';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import eventBus from '@/plugins/eventBus';
 import { UPDATE_CHAT_LIST } from '@/helpers/HelperConstants';
+import { groupChatsByDate } from '@/helpers/HelperChatGroups';
 
 const HomeView: React.FC = () => {
   const [chatInput, setChatInput] = useState('');
@@ -248,49 +249,8 @@ const HomeView: React.FC = () => {
     console.log('Update notification:', data);
   };
 
-  // Group chats by date similar to Vue implementation
-  const groupChatsByDate = (chats: any[]) => {
-    if (!chats || chats.length === 0) return [];
-
-    const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(today.getDate() - 7);
-
-    const isSameDay = (date1: Date, date2: Date) =>
-      date1.getFullYear() === date2.getFullYear() &&
-      date1.getMonth() === date2.getMonth() &&
-      date1.getDate() === date2.getDate();
-
-    const todayChats: any[] = [];
-    const yesterdayChats: any[] = [];
-    const previousWeekChats: any[] = [];
-    const olderChats: any[] = [];
-
-    chats.forEach(chat => {
-      const chatDate = new Date(chat.last_modified || chat.date);
-
-      if (isSameDay(chatDate, today)) {
-        todayChats.push(chat);
-      } else if (isSameDay(chatDate, yesterday)) {
-        yesterdayChats.push(chat);
-      } else if (chatDate >= sevenDaysAgo) {
-        previousWeekChats.push(chat);
-      } else {
-        olderChats.push(chat);
-      }
-    });
-
-    return [
-      { title: 'Today', chats: todayChats },
-      { title: 'Yesterday', chats: yesterdayChats },
-      { title: 'Previous week', chats: previousWeekChats },
-      { title: 'Older', chats: olderChats }
-    ].filter(group => group.chats.length > 0);
-  };
-
-  const chatGroups = groupChatsByDate(assistantStore.chatList || []);
+  // Group chats by date using shared utility
+  const chatGroups = groupChatsByDate(assistantStore.chatList);
   const hasChats = chatGroups.length > 0;
 
   // Format relative time
