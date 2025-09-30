@@ -321,7 +321,7 @@ const HomeView: React.FC = () => {
         {canvasVisible && (
           <div
             className={`bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel ${canvasResize.isResizing ? 'resizing' : ''} ${
-              isCanvasFullscreen ? 'fixed inset-0 z-50 w-full' : ''
+              isCanvasFullscreen ? 'fixed inset-0 z-[9000] w-full' : ''
             }`}
             style={isCanvasFullscreen ? {} : { width: `${canvasResize.width}px` }}
           >
