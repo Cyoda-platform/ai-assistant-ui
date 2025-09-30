@@ -5,7 +5,6 @@ import ChatLoader from './ChatLoader';
 import ChatBotMessageQuestion from './ChatBotMessageQuestion';
 import ChatBotMessageNotification from './ChatBotMessageNotification';
 import ChatBotMessageAnswer from './ChatBotMessageAnswer';
-import ChatBotTopActions from './ChatBotTopActions';
 import ChatBotName from './ChatBotName';
 import ChatBotMessageFunction from './ChatBotMessageFunction';
 
@@ -118,25 +117,13 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
   return (
     <div className="flex-1 flex flex-col bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 h-full">
-      {/* Header */}
-      <div className="border-b border-slate-700 glass sticky top-0 z-40 flex-shrink-0">
-        <ChatBotTopActions
-          onToggleCanvas={onToggleCanvas}
-          onEntitiesDetails={onEntitiesDetails}
-          chatData={chatData}
-          canvasVisible={canvasVisible}
-        >
-          <ChatBotName technicalId={technicalId} />
-        </ChatBotTopActions>
-      </div>
-
       {/* Messages Area */}
       <div
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto chat-container min-h-0"
       >
         <div className="max-w-[90%] mx-auto p-6 w-full">
-          <div className="space-y-6">
+          <div className="space-y-3">
             {messages.map((message, index) => (
               <div key={index} className="w-full">
                 {renderMessage(message, index)}
@@ -155,8 +142,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
         </div>
       </div>
 
-      {/* Input Area */}
-      <div className="border-t border-slate-700 glass p-6 flex-shrink-0">
+      {/* Input Area at Bottom */}
+      <div className="border-t border-slate-700 glass p-4 flex-shrink-0">
         <div className="max-w-[90%] mx-auto w-full">
           <ChatBotSubmitForm
             disabled={disabled}

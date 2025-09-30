@@ -76,7 +76,7 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
   };
 
   return (
-    <div className="flex justify-end mb-6 animate-fade-in-up">
+    <div className="flex justify-end mb-3 animate-fade-in-up">
       <div className="flex items-start space-x-3 max-w-[85%]">
         {/* Message Content Container */}
         <div className="flex flex-col items-end space-y-2 flex-1">

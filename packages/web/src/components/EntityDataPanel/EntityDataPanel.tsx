@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Database, History, Clock, X, RefreshCw } from 'lucide-react';
+import { Database, History, Clock, X, RefreshCw, RotateCcw } from 'lucide-react';
 import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
 import { useResizablePanel } from '@/hooks/useResizablePanel';
 
@@ -39,6 +39,7 @@ const EntityDataPanel: React.FC<EntityDataPanelProps> = ({
 }) => {
   const [activeEntityId, setActiveEntityId] = useState<string>('');
   const [isExternalResizing, setIsExternalResizing] = useState(false);
+  const [showRestartConfirm, setShowRestartConfirm] = useState(false);
 
   // Use external width if provided, otherwise use internal resize hook
   const internalResize = useResizablePanel({
@@ -112,10 +113,19 @@ const EntityDataPanel: React.FC<EntityDataPanelProps> = ({
     }
   };
 
-  const handleRollback = () => {
+  const handleRollbackClick = () => {
+    setShowRestartConfirm(true);
+  };
+
+  const handleRollbackConfirm = () => {
+    setShowRestartConfirm(false);
     if (onRollbackChat) {
       onRollbackChat();
     }
+  };
+
+  const handleRollbackCancel = () => {
+    setShowRestartConfirm(false);
   };
 
   if (!isOpen) return null;
@@ -140,13 +150,35 @@ const EntityDataPanel: React.FC<EntityDataPanelProps> = ({
             Live
           </span>
         </div>
-        <button
-          onClick={onClose}
-          className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
-          title="Close Entity Data"
-        >
-          <X size={14} />
-        </button>
+        <div className="flex items-center space-x-2">
+          {/* Refresh Button */}
+          <button
+            onClick={handleRefresh}
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+            title="Refresh Data"
+          >
+            <RefreshCw size={16} />
+          </button>
+          {/* Restart Button */}
+          {onRollbackChat && (
+            <button
+              onClick={handleRollbackClick}
+              disabled={isLoadingRollback}
+              className="p-2 rounded-lg text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title={isLoadingRollback ? 'Restarting...' : 'Restart Workflows'}
+            >
+              <RotateCcw size={16} className={isLoadingRollback ? 'animate-spin' : ''} />
+            </button>
+          )}
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+            title="Close Panel"
+          >
+            <X size={16} />
+          </button>
+        </div>
       </div>
 
       {entitiesData.length === 0 ? (
@@ -211,71 +243,69 @@ const EntityDataPanel: React.FC<EntityDataPanelProps> = ({
             )}
           </div>
 
-          {/* Entity Versions */}
+          {/* Entity States */}
           <div className="flex-1 p-4 overflow-y-auto chat-container">
             <h4 className="text-sm font-semibold mb-4 flex items-center space-x-2 text-white">
               <History size={16} className="text-blue-400" />
-              <span>Entity Versions</span>
+              <span>Entity States</span>
             </h4>
 
             {activeEntity?.entity_versions.length === 0 ? (
               <div className="text-center py-8">
                 <History size={32} className="text-slate-600 mx-auto mb-2" />
-                <p className="text-slate-400 text-sm">No version history available</p>
+                <p className="text-slate-400 text-sm">No state history available</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {activeEntity?.entity_versions.map((version, index) => (
                   <div
                     key={index}
-                    className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 hover:border-slate-500 transition-colors"
+                    className="bg-slate-700/50 rounded-lg p-3 border border-slate-600 hover:border-slate-500 transition-colors"
                   >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="font-medium text-white text-sm">{version.state}</div>
-                        <div className="text-slate-400 text-xs mt-1 flex items-center space-x-2">
-                          <Clock size={12} />
-                          <span>{version.date}</span>
-                        </div>
-                      </div>
-                      <div className="bg-slate-600 text-slate-300 text-xs px-2 py-1 rounded font-mono">
-                        v{version.version || index + 1}
-                      </div>
+                    <div className="font-medium text-white text-sm">{version.state}</div>
+                    <div className="text-slate-400 text-xs mt-1 flex items-center space-x-2">
+                      <Clock size={12} />
+                      <span>{version.date}</span>
                     </div>
                   </div>
                 ))}
               </div>
             )}
           </div>
-
-          {/* Entity Actions */}
-          <div className="p-4 border-t border-slate-700 space-y-3">
-            <button
-              onClick={handleRefresh}
-              className="w-full bg-slate-700/80 hover:bg-slate-600 text-white py-3 rounded-lg transition-all duration-200 font-medium flex items-center justify-center space-x-2"
-            >
-              <RefreshCw size={16} />
-              <span>Refresh Data</span>
-            </button>
-
-            {onRollbackChat && (
-              <button
-                onClick={handleRollback}
-                disabled={isLoadingRollback}
-                className="w-full bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 hover:text-yellow-200 py-3 rounded-lg transition-all duration-200 font-medium border border-yellow-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoadingRollback ? 'Restarting...' : 'Restart Workflows'}
-              </button>
-            )}
-
-            <button
-              onClick={onClose}
-              className="w-full bg-red-500/20 hover:bg-red-500/30 text-red-300 hover:text-red-200 py-3 rounded-lg transition-all duration-200 font-medium border border-red-500/30"
-            >
-              Close Panel
-            </button>
-          </div>
         </>
+      )}
+
+      {/* Restart Confirmation Dialog */}
+      {showRestartConfirm && (
+        <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 border border-slate-600 rounded-xl p-6 max-w-md w-full shadow-2xl">
+            <div className="flex items-start space-x-3 mb-6">
+              <div className="p-2 bg-yellow-500/20 rounded-lg flex-shrink-0">
+                <RotateCcw size={24} className="text-yellow-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-white mb-2">Restart Workflows?</h3>
+                <p className="text-slate-300 text-sm leading-relaxed">
+                  Are you sure you'd like to restart the workflows? This action will reset all workflow states.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 justify-end mt-6">
+              <button
+                onClick={handleRollbackCancel}
+                className="px-5 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white transition-colors font-medium flex-shrink-0"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRollbackConfirm}
+                className="px-5 py-2.5 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white transition-colors font-medium flex-shrink-0"
+              >
+                Restart
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

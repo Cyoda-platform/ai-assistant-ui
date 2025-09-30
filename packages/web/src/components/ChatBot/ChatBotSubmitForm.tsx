@@ -118,61 +118,58 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
             />
           )}
 
-          <div className="flex items-end space-x-4">
-            <div className="flex-1 relative">
-              <textarea
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                placeholder={`${placeholderText} (Ctrl+K to focus)`}
-                onKeyDown={handleKeyDown}
-                disabled={disabled}
-                rows={1}
-                className="w-full bg-slate-800/80 backdrop-blur-sm border border-slate-600 rounded-xl px-4 py-4 pr-16 text-white placeholder-slate-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-200 resize-none min-h-[56px] max-h-40 overflow-y-auto scrollbar-thin"
-                style={{
-                  height: 'auto',
-                  minHeight: '56px'
-                }}
-                onInput={(e) => {
-                  const target = e.target as HTMLTextAreaElement;
-                  target.style.height = 'auto';
-                  target.style.height = Math.min(target.scrollHeight, 160) + 'px';
-                }}
-              />
+          <div className="relative">
+            <textarea
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              placeholder={placeholderText}
+              onKeyDown={handleKeyDown}
+              disabled={disabled}
+              rows={1}
+              className="w-full bg-slate-800/80 backdrop-blur-sm border-2 border-slate-600 rounded-2xl px-6 pr-24 py-4 pb-12 text-white placeholder-slate-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-200 resize-none overflow-hidden text-base"
+              style={{
+                minHeight: '60px',
+                maxHeight: '150px'
+              }}
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                target.style.height = 'auto';
+                target.style.height = Math.min(target.scrollHeight, 150) + 'px';
+              }}
+            />
 
-              {/* Keyboard Shortcut Hint */}
-              <div className="absolute right-16 top-1/2 transform -translate-y-1/2 text-xs text-slate-500 font-mono pointer-events-none">
-                ⌘K
-              </div>
-
-              {/* Attach Button */}
+            {/* Bottom Right Controls - Lovable Style */}
+            <div className="absolute right-5 bottom-8 flex items-center space-x-2">
+              {/* Attach File Button */}
               <button
                 type="button"
                 onClick={onClickAttachFile}
                 disabled={disabled}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Attach file"
               >
                 <Paperclip size={18} />
               </button>
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                disabled={disabled}
-                style={{ display: 'none' }}
-                onChange={handleFileSelect}
-                accept=".pdf,.docx,.xlsx,.pptx,.xml,.json,text/*,image/*"
-              />
+              {/* Send Button */}
+              <button
+                type="submit"
+                disabled={disabled || (!answer.trim() && !currentFile)}
+                className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:opacity-50 text-white p-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-teal-500/25 disabled:cursor-not-allowed"
+                title="Send Message (Enter)"
+              >
+                <Send size={18} />
+              </button>
             </div>
 
-            <button
-              type="submit"
-              disabled={disabled || (!answer.trim() && !currentFile)}
-              className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:from-slate-600 disabled:to-slate-700 text-white p-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed"
-              title="Send message"
-            >
-              <Send size={20} />
-            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              disabled={disabled}
+              style={{ display: 'none' }}
+              onChange={handleFileSelect}
+              accept=".pdf,.docx,.xlsx,.pptx,.xml,.json,text/*,image/*"
+            />
           </div>
 
         </div>

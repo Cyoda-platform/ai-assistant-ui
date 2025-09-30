@@ -29,6 +29,15 @@ interface Message {
   type: 'question' | 'answer' | 'notification' | 'ui_function';
 }
 
+interface HeaderNotification {
+  id: number;
+  type: 'success' | 'warning' | 'error' | 'info';
+  title: string;
+  message: string;
+  timestamp: string;
+  isRead: boolean;
+}
+
 const ChatBotView: React.FC = () => {
   const { technicalId } = useParams<{ technicalId: string }>();
   const navigate = useNavigate();
@@ -42,6 +51,8 @@ const ChatBotView: React.FC = () => {
   const [disabled, setDisabled] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatData, setChatData] = useState<any>(null);
+  const [headerNotifications, setHeaderNotifications] = useState<HeaderNotification[]>([]);
+  const notificationIdCounter = useRef(1);
 
   // Resizable panels - start at max width
   const chatHistoryResize = useResizablePanel({
@@ -93,14 +104,45 @@ const ChatBotView: React.FC = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [canvasVisible, isCanvasFullscreen]);
 
+  // Add header notification for new messages
+  const addHeaderNotification = (message: Message) => {
+    const now = new Date();
+    const timestamp = 'Just now';
+
+    if (message.type === 'question') {
+      // For questions - ring the bell (increase count)
+      const notification: HeaderNotification = {
+        id: notificationIdCounter.current++,
+        type: 'info',
+        title: 'New Question',
+        message: message.text.substring(0, 100) + (message.text.length > 100 ? '...' : ''),
+        timestamp,
+        isRead: false
+      };
+      setHeaderNotifications(prev => [notification, ...prev]);
+    } else if (message.type === 'notification') {
+      // For notifications - just add info, don't increase count
+      const notification: HeaderNotification = {
+        id: notificationIdCounter.current++,
+        type: 'warning',
+        title: 'System Notification',
+        message: message.text.substring(0, 100) + (message.text.length > 100 ? '...' : ''),
+        timestamp,
+        isRead: true // Mark as read so it doesn't increase the count
+      };
+      setHeaderNotifications(prev => [notification, ...prev]);
+    }
+  };
+
   // Add message to the messages array
-  const addMessage = (el: any): boolean => {
+  const addMessage = (el: any, isNewMessage: boolean = false): boolean => {
     let type = 'answer';
     if (el.question) type = 'question';
     else if (el.notification) type = 'notification';
     else if (el.type === 'ui_function') type = 'ui_function';
 
     let messageAdded = false;
+    let newMessageObj: Message | null = null;
 
     // Use functional update to access current state
     setMessages(prevMessages => {
@@ -123,8 +165,14 @@ const ChatBotView: React.FC = () => {
       };
 
       messageAdded = true;
+      newMessageObj = newMessage;
       return [...prevMessages, newMessage];
     });
+
+    // Add header notification if this is a new message from polling
+    if (messageAdded && isNewMessage && newMessageObj) {
+      addHeaderNotification(newMessageObj);
+    }
 
     return messageAdded;
   };
@@ -143,12 +191,28 @@ const ChatBotView: React.FC = () => {
         signal: abortControllerRef.current.signal
       });
       const { data } = await promiseIntervalRef.current;
-      setChatData(data);
+
+      // Only update chatData if entities_data has changed or is not empty
+      // This prevents flickering when entities_data temporarily becomes empty during polling
+      const newEntitiesData = data?.chat_body?.entities_data;
+      const currentEntitiesData = chatData?.chat_body?.entities_data;
+
+      // Check if entities data has actually changed
+      const entitiesChanged = JSON.stringify(newEntitiesData) !== JSON.stringify(currentEntitiesData);
+
+      // Update chatData only if:
+      // 1. It's the first load (chatData is null)
+      // 2. Entities data has changed
+      // 3. New entities data is not empty/undefined
+      if (!chatData || entitiesChanged || (newEntitiesData && Object.keys(newEntitiesData).length > 0)) {
+        setChatData(data);
+      }
 
       // Process all messages and get the last one
       let lastProcessedMessage: any = null;
       data.chat_body.dialogue.forEach((el: any) => {
-        const result = addMessage(el);
+        // Mark as new message if not first request (polling detected new message)
+        const result = addMessage(el, !isFirstRequest);
         newResults.push(result);
         lastProcessedMessage = el; // Keep track of the last message processed
       });
@@ -161,8 +225,18 @@ const ChatBotView: React.FC = () => {
         const messageType = lastMessage.question ? 'question' :
                            lastMessage.type === 'ui_function' ? 'ui_function' : 'answer';
 
+        console.log('=== Chat Blocking Logic ===');
+        console.log('Last message type:', messageType);
+        console.log('Last message:', lastMessage);
+        console.log('Should unblock?', ['question', 'ui_function'].includes(messageType));
+        console.log('==========================');
+
         if (['question', 'ui_function'].includes(messageType)) {
+          console.log('✅ UNBLOCKING CHAT - Question or UI Function received');
           setIsLoading(false);
+          setDisabled(false); // Unblock the chat when question or ui_function arrives
+        } else {
+          console.log('🔒 KEEPING CHAT BLOCKED - Waiting for question or ui_function');
         }
       }
     } finally {
@@ -233,11 +307,13 @@ const ChatBotView: React.FC = () => {
   const onApproveQuestion = async (data: any) => {
     if (!technicalId) return;
     setIsLoading(true);
+    setDisabled(true); // Block the chat when approving
     try {
       await assistantStore.postApproveQuestion(technicalId, data);
     } catch (error) {
       console.error('Error approving question:', error);
       setIsLoading(false);
+      setDisabled(false);
     }
     await loadChatHistory();
   };
@@ -268,6 +344,21 @@ const ChatBotView: React.FC = () => {
 
   const onEntitiesDetails = () => {
     setIsEntityDataOpen(!isEntityDataOpen);
+  };
+
+  // Handle notification actions
+  const handleMarkNotificationAsRead = (id: number) => {
+    setHeaderNotifications(prev =>
+      prev.map(notif =>
+        notif.id === id ? { ...notif, isRead: true } : notif
+      )
+    );
+  };
+
+  const handleMarkAllNotificationsAsRead = () => {
+    setHeaderNotifications(prev =>
+      prev.map(notif => ({ ...notif, isRead: true }))
+    );
   };
 
   // Load chat list for sidebar
@@ -385,7 +476,18 @@ const ChatBotView: React.FC = () => {
 
   return (
     <div className="main-layout bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-white">
-      <Header />
+      <Header
+        showActions={true}
+        onToggleCanvas={onToggleCanvas}
+        onToggleChatHistory={() => setIsChatHistoryOpen(!isChatHistoryOpen)}
+        onToggleEntities={onEntitiesDetails}
+        canvasVisible={canvasVisible}
+        chatHistoryVisible={isChatHistoryOpen}
+        entitiesVisible={isEntityDataOpen}
+        notifications={headerNotifications}
+        onMarkNotificationAsRead={handleMarkNotificationAsRead}
+        onMarkAllNotificationsAsRead={handleMarkAllNotificationsAsRead}
+      />
       <div className="flex h-[calc(100vh-73px)] overflow-hidden">
         {/* Enhanced Left Sidebar - Resizable Chat History Panel */}
         {isChatHistoryOpen && (
@@ -395,7 +497,7 @@ const ChatBotView: React.FC = () => {
           >
           {/* Header with Close Button */}
           <div className="p-4 border-b border-slate-700">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between">
               <h3 className="text-white font-semibold">Chat History</h3>
               <button
                 onClick={() => setIsChatHistoryOpen(false)}
@@ -405,13 +507,6 @@ const ChatBotView: React.FC = () => {
                 <X size={16} />
               </button>
             </div>
-            <button
-              onClick={() => navigate('/')}
-              className="w-full bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
-            >
-              <ArrowLeft size={16} />
-              <span>Back to Home</span>
-            </button>
           </div>
 
           {/* Navigation */}
@@ -431,11 +526,11 @@ const ChatBotView: React.FC = () => {
               </div>
 
               {/* Chat History */}
-              <div className="ml-8 space-y-3 flex-1 overflow-y-auto chat-container">
+              <div className="px-3 space-y-3 flex-1 overflow-y-auto chat-container">
                 {hasChats ? (
                   chatGroups.map((group) => (
                     <div key={group.title} className="space-y-1">
-                      <div className="text-xs font-medium text-slate-500 uppercase tracking-wider px-2 py-1">
+                      <div className="text-xs font-medium text-slate-500 uppercase tracking-wider px-3 py-1">
                         {group.title}
                       </div>
                       <div className="space-y-1">
@@ -443,7 +538,7 @@ const ChatBotView: React.FC = () => {
                           <div
                             key={chat.technical_id}
                             onClick={() => navigate(`/chat/${chat.technical_id}`)}
-                            className={`text-slate-400 hover:text-white cursor-pointer p-2 rounded-md hover:bg-slate-700/30 transition-all duration-200 text-sm ${
+                            className={`text-slate-400 hover:text-white cursor-pointer px-3 py-2 rounded-md hover:bg-slate-700/30 transition-all duration-200 text-sm ${
                               chat.technical_id === technicalId ? 'text-teal-400 hover:text-teal-300 bg-teal-500/10 border border-teal-500/20' : ''
                             }`}
                           >
@@ -473,10 +568,15 @@ const ChatBotView: React.FC = () => {
 
           {/* Footer Actions */}
           <div className="p-4 border-t border-slate-700 space-y-2">
-            <div className="flex items-center space-x-3 text-slate-400 hover:text-white cursor-pointer p-3 rounded-lg hover:bg-slate-700/50 transition-all duration-200 group">
+            <a
+              href="https://cyoda.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-3 text-slate-400 hover:text-white cursor-pointer p-3 rounded-lg hover:bg-slate-700/50 transition-all duration-200 group"
+            >
               <HelpCircle size={18} className="group-hover:scale-110 transition-transform" />
               <span className="font-medium">Help & Support</span>
-            </div>
+            </a>
             <div className="flex items-center space-x-3 text-slate-400 hover:text-white cursor-pointer p-3 rounded-lg hover:bg-slate-700/50 transition-all duration-200 group">
               <Settings size={18} className="group-hover:scale-110 transition-transform" />
               <span className="font-medium">Settings</span>
@@ -492,18 +592,7 @@ const ChatBotView: React.FC = () => {
           </div>
         )}
 
-        {/* Show Chat History Button when closed */}
-        {!isChatHistoryOpen && (
-          <div className="flex-shrink-0 p-2 border-r border-slate-700 bg-slate-800/90">
-            <button
-              onClick={() => setIsChatHistoryOpen(true)}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors"
-              title="Show chat history"
-            >
-              <History size={20} />
-            </button>
-          </div>
-        )}
+
 
         {/* Canvas Sidebar Panel - Between chat history and main content */}
         {canvasVisible && (

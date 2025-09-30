@@ -46,8 +46,8 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, id }) => {
         section1: '#334155',
         section2: '#475569',
         section3: '#64748b',
-        // Smaller font size for better fit
-        fontSize: '14px',
+        // Default font size
+        fontSize: '16px',
       },
       flowchart: {
         useMaxWidth: true,
@@ -182,7 +182,6 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, id }) => {
         <div
           ref={elementRef}
           className="mermaid-diagram flex justify-center items-center min-h-[150px] max-h-[400px] overflow-auto bg-slate-900/50 border border-slate-600 rounded-lg p-4 max-w-2xl mx-auto"
-          style={{ fontSize: '8px' }}
         />
 
         {/* Action Buttons */}

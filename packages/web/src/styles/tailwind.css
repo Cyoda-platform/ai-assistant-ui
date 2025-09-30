@@ -59,13 +59,13 @@
     box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
     transition: all 0.2s ease-in-out;
 
-    /* Dynamic padding based on content */
-    padding: clamp(0.75rem, 2vw + 0.5rem, 1.5rem) clamp(1rem, 3vw + 0.75rem, 2rem);
+    /* Dynamic padding based on content - reduced */
+    padding: clamp(0.5rem, 1.5vw + 0.25rem, 1rem) clamp(0.75rem, 2vw + 0.5rem, 1.5rem);
 
     /* Responsive width based on content */
     width: fit-content;
     max-width: 100%;
-    min-width: 200px;
+    min-width: 150px;
 
     /* Better text wrapping */
     word-wrap: break-word;
@@ -80,13 +80,13 @@
 
   /* Size variants for different text lengths */
   .text-responsive-container.compact {
-    padding: clamp(0.5rem, 1.5vw + 0.25rem, 1rem) clamp(0.75rem, 2vw + 0.5rem, 1.25rem);
-    min-width: 150px;
+    padding: clamp(0.4rem, 1vw + 0.2rem, 0.75rem) clamp(0.6rem, 1.5vw + 0.4rem, 1rem);
+    min-width: 120px;
   }
 
   .text-responsive-container.comfortable {
-    padding: clamp(1rem, 2.5vw + 0.75rem, 2rem) clamp(1.25rem, 3.5vw + 1rem, 2.5rem);
-    min-width: 250px;
+    padding: clamp(0.75rem, 2vw + 0.5rem, 1.5rem) clamp(1rem, 2.5vw + 0.75rem, 2rem);
+    min-width: 200px;
   }
 
   /* Responsive breakpoints for better text adaptation */
@@ -154,6 +154,7 @@
     border-color: rgb(20 184 166 / 0.3); /* teal-500/30 */
     color: rgb(241 245 249); /* slate-100 */
     margin-left: auto;
+    margin-bottom: 0;
     border-top-left-radius: 0.375rem; /* rounded-tl-md */
     border-top-right-radius: 1rem; /* rounded-tr-2xl */
     border-bottom-left-radius: 1rem;

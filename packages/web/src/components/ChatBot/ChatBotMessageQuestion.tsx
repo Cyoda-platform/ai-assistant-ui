@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import dayjs from 'dayjs';
-import { Bot, Clock, Copy, Check, Sparkles, CheckCircle } from 'lucide-react';
+import { Bot, Clock, Sparkles, CheckCircle } from 'lucide-react';
 import MarkdownRenderer from '../MarkdownRenderer/MarkdownRenderer';
 import { useTextResponsiveContainer } from '@/hooks/useTextResponsiveContainer';
 
@@ -23,7 +23,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
   onApproveQuestion
 }) => {
   const [isLoadingApprove, setIsLoadingApprove] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   const messageText = useMemo(() => {
     const text = message.text;
@@ -49,17 +48,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     setTimeout(() => {
       setIsLoadingApprove(false);
     }, 2000);
-  };
-
-  const handleCopy = async () => {
-    try {
-      const textToCopy = typeof message.text === 'string' ? message.text : JSON.stringify(message.text);
-      await navigator.clipboard.writeText(textToCopy);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy text:', err);
-    }
   };
 
   return (
@@ -93,16 +81,8 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
           </div>
 
           {/* Message Actions */}
-          <div className="flex items-center justify-between mt-2 px-2">
-            <button
-              onClick={handleCopy}
-              className="p-2 rounded-lg bg-slate-800/50 backdrop-blur-sm border border-slate-600 text-slate-400 hover:text-white hover:bg-slate-700/50 hover:border-slate-500 transition-all duration-200 shadow-sm hover:shadow-md"
-              title="Copy message"
-            >
-              {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
-            </button>
-
-            {message.approve && (
+          {message.approve && (
+            <div className="flex items-center justify-start mt-2 px-2">
               <button
                 onClick={onClickApproveQuestion}
                 disabled={isLoading || isLoadingApprove}
@@ -116,8 +96,8 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                 )}
                 <span className="text-sm font-medium">Approve</span>
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import MermaidDiagram from '../MermaidDiagram/MermaidDiagram';
+import { Copy, Check } from 'lucide-react';
 
 interface MarkdownRendererProps {
   children: string;
@@ -10,6 +11,41 @@ interface MarkdownRendererProps {
 }
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className = '' }) => {
+  // Component for code block with copy button
+  const CodeBlock: React.FC<{ language: string; code: string; className?: string; children?: React.ReactNode }> = ({ language, code, className: codeClassName, children: codeChildren }) => {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = async () => {
+      try {
+        await navigator.clipboard.writeText(code);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    };
+
+    return (
+      <div className="relative group my-4">
+        <div className="flex items-center justify-between bg-slate-800/50 border border-slate-600 border-b-0 rounded-t-lg px-4 py-2">
+          <span className="text-xs text-slate-400 font-mono">{language}</span>
+          <button
+            onClick={handleCopy}
+            className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
+            title="Copy code"
+          >
+            {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+          </button>
+        </div>
+        <pre className="bg-slate-900/50 border border-slate-600 rounded-b-lg p-4 overflow-x-auto mt-0">
+          <code className={codeClassName}>
+            {codeChildren}
+          </code>
+        </pre>
+      </div>
+    );
+  };
+
   return (
     <div className={`prose prose-invert prose-base max-w-none ${className}`}>
       <ReactMarkdown
@@ -31,16 +67,16 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
               );
             }
 
-            // Handle other code blocks
+            // Handle other code blocks with copy button
             if (!inline && match) {
               return (
-                <div className="relative group">
-                  <pre className="bg-slate-900/50 border border-slate-600 rounded-lg p-4 overflow-x-auto">
-                    <code className={className} {...props}>
-                      {children}
-                    </code>
-                  </pre>
-                </div>
+                <CodeBlock
+                  language={language}
+                  code={codeContent}
+                  className={className}
+                >
+                  {children}
+                </CodeBlock>
               );
             }
 
@@ -99,8 +135,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
           // Custom link styling
           a({ href, children }) {
             return (
-              <a 
-                href={href} 
+              <a
+                href={href}
                 className="text-teal-400 hover:text-teal-300 underline transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"
