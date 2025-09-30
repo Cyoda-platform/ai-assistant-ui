@@ -16,7 +16,16 @@ axiosRetry(instance, {
   retryDelay: axiosRetry.exponentialDelay,
   retryCondition: (error) => {
     const status = error?.response?.status;
+    // Don't retry on rate limiting
     if (status === 429) return false;
+
+    // Don't retry polling requests - they have their own retry logic
+    const url = error?.config?.url || '';
+    if (url.includes('/chats/') && error?.config?.method === 'get') {
+      console.log('⚠️ Skipping axios-retry for polling request:', url);
+      return false;
+    }
+
     return axiosRetry.isRetryableError(error);
   }
 });

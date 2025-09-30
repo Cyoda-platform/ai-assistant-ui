@@ -303,12 +303,29 @@ const ChatBotView: React.FC = () => {
       return;
     }
 
+    const pollStartTime = Date.now();
+    console.log(`🔄 Poll started at ${new Date().toISOString()}, current interval: ${currentIntervalRef.current}ms`);
+
     try {
       // Pass the URL technicalId to loadChatHistory for validation
       const gotNew = await loadChatHistory(urlTechnicalId);
-      currentIntervalRef.current = gotNew ? BASE_INTERVAL : Math.min(currentIntervalRef.current * 2, MAX_INTERVAL);
+
+      // Exponential backoff logic:
+      // - If new messages arrived: reset to BASE_INTERVAL to check frequently for follow-up messages
+      // - If no new messages: increase interval exponentially up to MAX_INTERVAL to reduce server load
+      const previousInterval = currentIntervalRef.current;
+      if (gotNew) {
+        currentIntervalRef.current = BASE_INTERVAL;
+        console.log(`✅ New messages detected, resetting interval to BASE_INTERVAL: ${BASE_INTERVAL}ms`);
+      } else {
+        currentIntervalRef.current = Math.min(currentIntervalRef.current * 2, MAX_INTERVAL);
+        console.log(`⏳ No new messages, increasing interval from ${previousInterval}ms to ${currentIntervalRef.current}ms (max: ${MAX_INTERVAL}ms)`);
+      }
     } catch (err) {
+      // On error, back off exponentially to avoid hammering a failing server
+      const previousInterval = currentIntervalRef.current;
       currentIntervalRef.current = Math.min(currentIntervalRef.current * 2, MAX_INTERVAL);
+      console.log(`❌ Poll error, increasing interval from ${previousInterval}ms to ${currentIntervalRef.current}ms`, err);
     }
 
     // Only schedule next poll if:
@@ -320,6 +337,8 @@ const ChatBotView: React.FC = () => {
     if (currentUrlTechnicalId === urlTechnicalId && urlTechnicalId === technicalIdRef.current) {
       const jitterFactor = 1 + (Math.random() * 2 - 1) * JITTER_PERCENT;
       const nextDelay = Math.round(currentIntervalRef.current * jitterFactor);
+      const pollDuration = Date.now() - pollStartTime;
+      console.log(`⏰ Scheduling next poll in ${nextDelay}ms (base: ${currentIntervalRef.current}ms, jitter: ${(jitterFactor - 1) * 100}%, poll took: ${pollDuration}ms)`);
       pollTimeoutRef.current = setTimeout(pollChat, nextDelay);
     } else {
       console.log('⚠️ Stopping poll - chat changed (URL or component)');
@@ -517,6 +536,7 @@ const ChatBotView: React.FC = () => {
     notifiedMessagesRef.current.clear(); // Clear notified messages for new chat
 
     // Start polling for the new chat
+    console.log(`🚀 Starting polling for chat ${technicalId} with BASE_INTERVAL: ${BASE_INTERVAL}ms, MAX_INTERVAL: ${MAX_INTERVAL}ms`);
     pollChat();
 
     return () => {
