@@ -76,7 +76,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
 
           {/* Message Bubble - Left aligned bot message */}
           <div className={`${containerInfo.className} relative group ${message.approve ? 'pb-12' : ''}`}>
-            <MarkdownRenderer className="[&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+            <MarkdownRenderer>
               {messageText}
             </MarkdownRenderer>
 

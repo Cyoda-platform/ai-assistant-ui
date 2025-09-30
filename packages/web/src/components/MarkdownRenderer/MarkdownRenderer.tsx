@@ -26,18 +26,18 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
     };
 
     return (
-      <div className="relative group my-4">
-        <div className="flex items-center justify-between bg-slate-800/50 border border-slate-600 border-b-0 rounded-t-lg px-4 py-2">
+      <div className="relative group my-2">
+        <div className="flex items-center justify-between bg-slate-800/50 border border-slate-600 border-b-0 rounded-t-md px-3 py-1.5">
           <span className="text-xs text-slate-400 font-mono">{language}</span>
           <button
             onClick={handleCopy}
-            className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
+            className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors"
             title="Copy code"
           >
-            {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
+            {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
           </button>
         </div>
-        <pre className="bg-slate-900/50 border border-slate-600 rounded-b-lg p-4 overflow-x-auto overflow-y-visible mt-0">
+        <pre className="bg-slate-900/50 border border-slate-600 rounded-b-md p-3 overflow-x-auto mt-0">
           <code className={codeClassName}>
             {codeChildren}
           </code>
@@ -47,7 +47,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
   };
 
   return (
-    <div className={`prose prose-invert prose-base max-w-none ${className}`}>
+    <div className={`markdown-content ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight]}
@@ -61,7 +61,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
             // Handle Mermaid diagrams
             if (language === 'mermaid' && !inline) {
               return (
-                <div className="my-6">
+                <div className="my-3">
                   <MermaidDiagram chart={codeContent} />
                 </div>
               );
@@ -82,7 +82,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
 
             // Inline code
             return (
-              <code className="bg-slate-900/50 px-1 py-0.5 rounded text-sm" {...props}>
+              <code className="bg-slate-800/60 px-1.5 py-0.5 rounded text-sm text-teal-300 font-mono" {...props}>
                 {children}
               </code>
             );
@@ -91,7 +91,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
           // Custom blockquote styling
           blockquote({ children }) {
             return (
-              <blockquote className="border-l-4 border-teal-400 bg-teal-500/5 pl-4 py-2 my-4 italic">
+              <blockquote className="border-l-3 border-teal-400 bg-teal-500/5 pl-3 py-1 my-2 italic text-slate-300">
                 {children}
               </blockquote>
             );
@@ -100,8 +100,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
           // Custom table styling
           table({ children }) {
             return (
-              <div className="overflow-x-auto my-6">
-                <table className="min-w-full border border-slate-600 rounded-lg overflow-hidden">
+              <div className="overflow-x-auto my-3">
+                <table className="min-w-full border border-slate-600 rounded-md overflow-hidden text-sm">
                   {children}
                 </table>
               </div>
@@ -118,7 +118,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
 
           th({ children }) {
             return (
-              <th className="px-4 py-2 text-left font-semibold text-slate-200 border-b border-slate-600">
+              <th className="px-3 py-1.5 text-left font-semibold text-slate-200 border-b border-slate-600">
                 {children}
               </th>
             );
@@ -126,7 +126,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
 
           td({ children }) {
             return (
-              <td className="px-4 py-2 text-slate-300 border-b border-slate-700">
+              <td className="px-3 py-1.5 text-slate-300 border-b border-slate-700">
                 {children}
               </td>
             );
@@ -137,7 +137,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
             return (
               <a
                 href={href}
-                className="text-teal-400 hover:text-teal-300 underline transition-colors"
+                className="text-teal-400 hover:text-teal-300 underline underline-offset-2 transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -149,7 +149,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
           // Custom heading styling
           h1({ children }) {
             return (
-              <h1 className="text-2xl font-bold text-white mb-4 mt-6 first:mt-0">
+              <h1 className="text-xl font-bold text-white mb-2 mt-3 first:mt-0">
                 {children}
               </h1>
             );
@@ -157,7 +157,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
 
           h2({ children }) {
             return (
-              <h2 className="text-xl font-bold text-white mb-3 mt-5">
+              <h2 className="text-lg font-bold text-white mb-2 mt-3">
                 {children}
               </h2>
             );
@@ -165,7 +165,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
 
           h3({ children }) {
             return (
-              <h3 className="text-lg font-semibold text-white mb-2 mt-4">
+              <h3 className="text-base font-semibold text-white mb-1.5 mt-2.5">
                 {children}
               </h3>
             );
@@ -173,7 +173,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
 
           h4({ children }) {
             return (
-              <h4 className="text-base font-semibold text-white mb-2 mt-3">
+              <h4 className="text-base font-semibold text-white mb-1.5 mt-2">
                 {children}
               </h4>
             );
@@ -181,7 +181,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
 
           h5({ children }) {
             return (
-              <h5 className="text-sm font-semibold text-white mb-2 mt-3">
+              <h5 className="text-sm font-semibold text-white mb-1 mt-2">
                 {children}
               </h5>
             );
@@ -189,7 +189,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
 
           h6({ children }) {
             return (
-              <h6 className="text-xs font-semibold text-white mb-2 mt-3">
+              <h6 className="text-sm font-semibold text-slate-200 mb-1 mt-2">
                 {children}
               </h6>
             );
@@ -198,7 +198,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
           // Custom list styling
           ul({ children }) {
             return (
-              <ul className="list-disc list-inside space-y-1 my-4 text-slate-300">
+              <ul className="list-disc ml-4 space-y-0.5 my-2 text-slate-300">
                 {children}
               </ul>
             );
@@ -206,7 +206,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
 
           ol({ children }) {
             return (
-              <ol className="list-decimal list-inside space-y-1 my-4 text-slate-300">
+              <ol className="list-decimal ml-4 space-y-0.5 my-2 text-slate-300">
                 {children}
               </ol>
             );
@@ -214,7 +214,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
 
           li({ children }) {
             return (
-              <li className="text-slate-300">
+              <li className="text-slate-300 leading-relaxed">
                 {children}
               </li>
             );
@@ -223,7 +223,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
           // Custom paragraph styling
           p({ children }) {
             return (
-              <p className="text-slate-300 leading-relaxed my-3 first:mt-0 last:mb-0">
+              <p className="text-slate-300 text-base leading-relaxed my-2 first:mt-0 last:mb-0">
                 {children}
               </p>
             );
@@ -232,7 +232,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
           // Custom horizontal rule
           hr() {
             return (
-              <hr className="border-slate-600 my-6" />
+              <hr className="border-slate-600 my-3" />
             );
           },
 

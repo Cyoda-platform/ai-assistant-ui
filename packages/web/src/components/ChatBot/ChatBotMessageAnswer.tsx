@@ -98,7 +98,7 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
 
           {/* Message Bubble - Right aligned user message */}
           <div className={`${containerInfo.className} relative group pb-12`}>
-            <MarkdownRenderer className="[&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+            <MarkdownRenderer>
               {messageText}
             </MarkdownRenderer>
             {currentFiles.length > 0 && (

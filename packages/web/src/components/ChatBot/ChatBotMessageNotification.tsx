@@ -57,7 +57,7 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
 
           {/* Message Bubble */}
           <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl rounded-tl-md px-6 py-4 shadow-lg hover:shadow-xl hover:border-slate-600 transition-all duration-200">
-            <MarkdownRenderer className="[&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+            <MarkdownRenderer>
               {messageText}
             </MarkdownRenderer>
           </div>
