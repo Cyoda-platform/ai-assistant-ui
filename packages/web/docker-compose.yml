@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      # API Configuration
+      - APP_AI_API_AUTH_value=dev-auth-token-12345
+      - APP_AI_API_BASE_value=https://api-dev.example.com
+      - APP_QUESTION_POLLING_INTERVAL_MS_value=5000
+      - APP_QUESTION_MAX_POLLING_INTERVAL_value=7000
+      
+      # Cyoda Client Configuration
+      - APP_CYODA_CLIENT_HOST_value=cyoda-dev.example.com
+      - APP_CYODA_CLIENT_ENV_PREFIX_value=dev-
+      
+      # Auth0 Configuration
+      - APP_AI_AUTH0_DOMAIN_value=dev-tenant.auth0.com
+      - APP_AI_AUTH0_CLIENT_ID_value=dev-client-id-12345
+      - APP_AI_AUTH0_AUDIENCE_value=https://api-dev.example.com
+      - APP_AI_AUTH0_REDIRECT_URI_value=http://localhost:8080
+      - APP_AI_AUTH0_ORGANIZATION_value=dev-org-id-12345
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Resource limits (optional)
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+

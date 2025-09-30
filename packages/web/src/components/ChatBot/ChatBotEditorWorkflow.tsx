@@ -377,189 +377,45 @@ const ChatBotEditorWorkflowInner = React.forwardRef<any, ChatBotEditorWorkflowPr
                 </Tooltip>
               </Controls>
               <MiniMap />
-                {hasWorkflowActions && (
-                  <div className="chat-bot-editor-workflow__actions" style={{
-                    position: 'absolute',
-                    right: '15px',
-                    bottom: '20px',
-                    zIndex: 100,
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    alignItems: 'center',
-                    gap: '8px',
-                    background: 'var(--bg-new-chat)',
-                    border: '1px solid var(--input-border)',
-                    padding: '9px 12px',
-                    borderRadius: '4px'
-                  }}>
-                    <Tooltip title="Save Workflow" placement="left">
-                      <Button
-                        type="text"
-                        icon={<SaveOutlined />}
-                        onClick={handleManualSave}
-                        className="btn-white btn-icon"
-                        disabled={validationResult?.errors.length > 0}
-                      />
-                    </Tooltip>
-                    <Tooltip title="Send Answer" placement="left">
-                      <Button
-                        type="text"
-                        icon={<SendOutlined />}
-                        onClick={onSubmitQuestion}
-                        className="btn-white btn-icon"
-                        disabled={validationResult?.errors.length > 0}
-                      />
-                    </Tooltip>
-                  </div>
-                )}
-              </div>
+            </ReactFlow>
+          )}
 
-              {/* Workflow Statistics Panel */}
-              <div style={{
-                height: '180px',
-                flexShrink: 0,
-                overflowY: 'auto',
-                paddingRight: '8px',
-                borderTop: '1px solid var(--input-border)',
-                paddingTop: '8px',
-                marginTop: '8px'
-              }}>
-                <WorkflowStatsPanel
-                  workflowData={workflowData}
-                  validationResult={validationResult}
+          {/* Workflow Actions - Positioned absolutely over the canvas */}
+          {hasWorkflowActions && nodes.length > 0 && (
+            <div className="chat-bot-editor-workflow__actions" style={{
+              position: 'absolute',
+              right: '15px',
+              bottom: '20px',
+              zIndex: 100,
+              display: 'flex',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'var(--bg-new-chat)',
+              border: '1px solid var(--input-border)',
+              padding: '9px 12px',
+              borderRadius: '4px'
+            }}>
+              <Tooltip title="Save Workflow" placement="left">
+                <Button
+                  type="text"
+                  icon={<SaveOutlined />}
+                  onClick={handleManualSave}
+                  className="btn-white btn-icon"
+                  disabled={validationResult?.errors.length > 0}
                 />
-              </div>
-            </Splitter.Panel>
+              </Tooltip>
+              <Tooltip title="Send Answer" placement="left">
+                <Button
+                  type="text"
+                  icon={<SendOutlined />}
+                  onClick={onSubmitQuestion}
+                  className="btn-white btn-icon"
+                  disabled={validationResult?.errors.length > 0}
+                />
+              </Tooltip>
+            </div>
           )}
-
-          {isShowReactFlow && (
-            <Splitter.Panel style={{ paddingLeft: '15px', height: '100%' }}>
-              <div style={{ height: '100%', position: 'relative' }}>
-                {nodes.length === 0 ? (
-                  <EmptyState onLoadSample={loadSampleWorkflow} onClear={onClear} />
-                ) : (
-                  <ReactFlow
-                    nodes={nodes}
-                    edges={edges}
-                    onConnect={onConnect}
-                    nodeTypes={nodeTypes}
-                    edgeTypes={edgeTypes}
-                    connectionMode={ConnectionMode.Loose}
-                    fitView={false}
-                    nodesDraggable={isDraggable}
-                    edgesDraggable={isDraggable}
-                    zoomOnDoubleClick={false}
-                    panOnDrag={true}
-                    selectNodesOnDrag={false}
-                    defaultViewport={{ zoom: 1.5, x: 0, y: 0 }}
-                    minZoom={0.2}
-                    maxZoom={4}
-                  >
-                  <Background />
-                  <Controls position="top-left" showFitView={false}>
-                    <Tooltip title="Zoom in" placement="top">
-                      <ControlButton onClick={zoomIn}>
-                        <ZoomInOutlined />
-                      </ControlButton>
-                    </Tooltip>
-                    <Tooltip title="Zoom out" placement="top">
-                      <ControlButton onClick={zoomOut}>
-                        <ZoomOutOutlined />
-                      </ControlButton>
-                    </Tooltip>
-                    <Tooltip title={isDraggable ? "Lock interaction" : "Unlock interaction"} placement="top">
-                      <ControlButton onClick={() => setIsDraggable(!isDraggable)}>
-                        {isDraggable ? <UnlockOutlined /> : <LockOutlined />}
-                      </ControlButton>
-                    </Tooltip>
-                    <Tooltip title="Fit to view" placement="top">
-                      <ControlButton onClick={fitView}>
-                        <ExpandOutlined />
-                      </ControlButton>
-                    </Tooltip>
-                    <Tooltip title="Undo" placement="top">
-                      <ControlButton onClick={undoAction} disabled={!canUndo}>
-                        <UndoOutlined />
-                      </ControlButton>
-                    </Tooltip>
-                    <Tooltip title="Redo" placement="top">
-                      <ControlButton onClick={redoAction} disabled={!canRedo}>
-                        <RedoOutlined />
-                      </ControlButton>
-                    </Tooltip>
-                    <Tooltip title="Reset position" placement="top">
-                      <ControlButton onClick={resetTransform}>
-                        ⌂
-                      </ControlButton>
-                    </Tooltip>
-                    <Tooltip title={layoutDirection === 'horizontal' ? 'Switch to vertical layout' : 'Switch to horizontal layout'} placement="top">
-                      <ControlButton onClick={toggleLayoutDirection}>
-                        {layoutDirection === 'horizontal' ? '↕' : '↔'}
-                      </ControlButton>
-                    </Tooltip>
-                    <Tooltip title="Add new state" placement="top">
-                      <ControlButton onClick={addNewState}>
-                        <PlusOutlined />
-                      </ControlButton>
-                    </Tooltip>
-                  </Controls>
-
-                  {/* Validation Status Panel */}
-                  <Panel position="top-right">
-                    <div style={{
-                      background: 'var(--bg-dialog-color)',
-                      border: '1px solid var(--input-border)',
-                      borderRadius: '8px',
-                      padding: '8px 12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      fontSize: '13px',
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-                    }}>
-                      {validationResult && validationResult.errors.length === 0 && validationResult.warnings.length === 0 && (
-                        <>
-                          <CheckCircleOutlined style={{ color: '#10B981', fontSize: '16px' }} />
-                          <span style={{ color: '#10B981', fontWeight: 500 }}>Valid</span>
-                        </>
-                      )}
-                      {validationResult && validationResult.errors.length > 0 && (
-                        <>
-                          <span style={{
-                            background: '#FEE2E2',
-                            color: '#DC2626',
-                            padding: '2px 8px',
-                            borderRadius: '4px',
-                            fontWeight: 500
-                          }}>
-                            {validationResult.errors.length} Error{validationResult.errors.length !== 1 ? 's' : ''}
-                          </span>
-                        </>
-                      )}
-                      {validationResult && validationResult.warnings.length > 0 && validationResult.errors.length === 0 && (
-                        <>
-                          <span style={{
-                            background: '#FEF3C7',
-                            color: '#D97706',
-                            padding: '2px 8px',
-                            borderRadius: '4px',
-                            fontWeight: 500
-                          }}>
-                            {validationResult.warnings.length} Warning{validationResult.warnings.length !== 1 ? 's' : ''}
-                          </span>
-                        </>
-                      )}
-                      {!validationResult && (
-                        <span style={{ color: '#6B7280' }}>No data</span>
-                      )}
-                    </div>
-                  </Panel>
-                </ReactFlow>
-                )}
-              </div>
-            </Splitter.Panel>
-          )}
-          </Splitter>
         </div>
       </div>
     </Spin>

@@ -24,6 +24,7 @@ interface ChatHistoryPanelProps {
   onResizeMouseDown: (e: React.MouseEvent) => void;
   isResizing: boolean;
   showHomeAsActive?: boolean; // true for home page, false for chat details
+  onClose?: () => void; // Optional close callback
 }
 
 const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
@@ -32,7 +33,8 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
   isLoading = false,
   onResizeMouseDown,
   isResizing,
-  showHomeAsActive = false
+  showHomeAsActive = false,
+  onClose
 }) => {
   const navigate = useNavigate();
 
@@ -53,8 +55,25 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
 
   return (
     <div className="h-full bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel">
+      {/* Header with Close Button */}
+      {onClose && (
+        <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
+          <div className="flex items-center space-x-2">
+            <History size={18} className="text-teal-400" />
+            <h3 className="font-semibold text-white">Chat History</h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+            title="Close Panel"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       {/* Navigation */}
-      <nav className="flex-1 flex flex-col p-4 space-y-2 overflow-hidden pt-6">
+      <nav className={`flex-1 flex flex-col p-4 space-y-2 overflow-hidden ${onClose ? 'pt-4' : 'pt-6'}`}>
         {/* Home Button */}
         <a
           href="/"

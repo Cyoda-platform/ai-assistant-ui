@@ -602,6 +602,7 @@ const ChatBotView: React.FC = () => {
               onResizeMouseDown={chatHistoryResize.handleMouseDown}
               isResizing={chatHistoryResize.isResizing}
               showHomeAsActive={false}
+              onClose={() => setIsChatHistoryOpen(false)}
             />
           </div>
         )}

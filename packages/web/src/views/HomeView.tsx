@@ -310,6 +310,7 @@ const HomeView: React.FC = () => {
               onResizeMouseDown={chatHistoryResize.handleMouseDown}
               isResizing={chatHistoryResize.isResizing}
               showHomeAsActive={true}
+              onClose={() => setIsChatHistoryOpen(false)}
             />
           </div>
         )}

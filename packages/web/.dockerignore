@@ -1,0 +1,72 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.pnp
+.pnp.js
+
+# Testing
+coverage
+.nyc_output
+
+# Development
+.env
+.env.local
+.env.development
+.env.test
+.env.template
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+DOCKER_DEPLOYMENT.md
+*.md
+
+# Source files (only dist is needed)
+src
+public
+
+# Build tools config
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
+.eslintrc.cjs
+.prettierrc
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Kubernetes
+k8s-deployment-example.yaml
+*.yaml
+*.yml
+
+# Logs
+logs
+*.log
+
+# Temporary files
+tmp
+temp
+.cache
+
