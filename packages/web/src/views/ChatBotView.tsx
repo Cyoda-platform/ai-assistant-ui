@@ -3,11 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import ChatBot from '@/components/ChatBot/ChatBot';
 import ChatBotCanvas from '@/components/ChatBot/ChatBotCanvas';
 import Header from '@/components/Header/Header';
-import { NotificationManager, useNotifications } from '@/components/Notification/Notification';
 import { useAssistantStore } from '@/stores/assistant';
 import EntityDataPanel from '@/components/EntityDataPanel/EntityDataPanel';
 import ChatHistoryPanel from '@/components/ChatHistoryPanel/ChatHistoryPanel';
+import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
 import { useResizablePanel } from '@/hooks/useResizablePanel';
+import Tinycon from 'tinycon';
 
 interface Message {
   id: string;
@@ -33,7 +34,6 @@ const ChatBotView: React.FC = () => {
   const navigate = useNavigate();
   const assistantStore = useAssistantStore();
   const chatList = useAssistantStore((state) => state.chatList); // Subscribe to chatList specifically
-  const { notifications, removeNotification, showSuccess, showError, showInfo } = useNotifications();
   const [canvasVisible, setCanvasVisible] = useState(false);
   const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
   const [isEntityDataOpen, setIsEntityDataOpen] = useState(false);
@@ -45,6 +45,8 @@ const ChatBotView: React.FC = () => {
   const [headerNotifications, setHeaderNotifications] = useState<HeaderNotification[]>([]);
   const [chatsLoading, setChatsLoading] = useState(true);
   const notificationIdCounter = useRef(1);
+  const [countNewMessages, setCountNewMessages] = useState(0);
+  const originalTitle = useRef('Cyoda AI Assistant');
 
   // Resizable panels - start at max width
   const chatHistoryResize = useResizablePanel({
@@ -72,6 +74,8 @@ const ChatBotView: React.FC = () => {
   const abortControllerRef = useRef<AbortController | null>(null);
   const promiseIntervalRef = useRef<Promise<any> | null>(null);
   const technicalIdRef = useRef<string | undefined>(technicalId); // Track current technicalId
+  const isInitialLoadRef = useRef<boolean>(true); // Track if this is the initial load of the chat
+  const notifiedMessagesRef = useRef<Set<string>>(new Set()); // Track which messages we've already notified about
 
   const BASE_INTERVAL = parseInt(import.meta.env.VITE_APP_QUESTION_POLLING_INTERVAL_MS) || 5000;
   const MAX_INTERVAL = parseInt(import.meta.env.VITE_APP_QUESTION_MAX_POLLING_INTERVAL) || 7000;
@@ -104,20 +108,21 @@ const ChatBotView: React.FC = () => {
 
   // Add header notification for new messages
   const addHeaderNotification = (message: Message) => {
-    const now = new Date();
     const timestamp = 'Just now';
 
-    if (message.type === 'question') {
-      // For questions - ring the bell (increase count)
+    if (message.type === 'question' || message.type === 'ui_function') {
+      // For questions and ui_function - ring the bell (increase count)
       const notification: HeaderNotification = {
         id: notificationIdCounter.current++,
         type: 'info',
-        title: 'New Question',
+        title: message.type === 'question' ? 'New Question' : 'Action Required',
         message: message.text.substring(0, 100) + (message.text.length > 100 ? '...' : ''),
         timestamp,
         isRead: false
       };
       setHeaderNotifications(prev => [notification, ...prev]);
+      // Increment the count for bell and tab title
+      setCountNewMessages(prev => prev + 1);
     } else if (message.type === 'notification') {
       // For notifications - just add info, don't increase count
       const notification: HeaderNotification = {
@@ -132,22 +137,21 @@ const ChatBotView: React.FC = () => {
     }
   };
 
-  // Add message to the messages array
-  const addMessage = (el: any, isNewMessage: boolean = false): boolean => {
+  // Add message to the messages array - returns true if message was added, false if it already existed
+  const addMessage = (el: any): { wasAdded: boolean; message: Message | null } => {
     let type = 'answer';
     if (el.question) type = 'question';
     else if (el.notification) type = 'notification';
     else if (el.type === 'ui_function') type = 'ui_function';
 
-    let messageAdded = false;
-    let newMessageObj: Message | null = null;
+    let wasAdded = false;
+    let addedMessage: Message | null = null;
 
     // Use functional update to access current state
     setMessages(prevMessages => {
       // Check if message already exists in current state
       const existingMessage = prevMessages.find(m => m.id === el.technical_id);
       if (existingMessage) {
-        messageAdded = false;
         return prevMessages; // No change
       }
 
@@ -162,17 +166,12 @@ const ChatBotView: React.FC = () => {
         type: type as Message['type']
       };
 
-      messageAdded = true;
-      newMessageObj = newMessage;
+      wasAdded = true;
+      addedMessage = newMessage;
       return [...prevMessages, newMessage];
     });
 
-    // Add header notification if this is a new message from polling
-    if (messageAdded && isNewMessage && newMessageObj) {
-      addHeaderNotification(newMessageObj);
-    }
-
-    return messageAdded;
+    return { wasAdded, message: addedMessage };
   };
 
   // Load chat history
@@ -190,7 +189,7 @@ const ChatBotView: React.FC = () => {
 
     abortControllerRef.current = new AbortController();
     const newResults: boolean[] = [];
-    const isFirstRequest = messages.length === 0;
+    const isFirstRequest = isInitialLoadRef.current;
 
     try {
       promiseIntervalRef.current = assistantStore.getChatById(currentTechnicalId, {
@@ -221,35 +220,47 @@ const ChatBotView: React.FC = () => {
         setChatData(data);
       }
 
-      // Process all messages and get the last one
-      let lastProcessedMessage: any = null;
+      // Process all messages
       data.chat_body.dialogue.forEach((el: any) => {
-        // Mark as new message if not first request (polling detected new message)
-        const result = addMessage(el, !isFirstRequest);
-        newResults.push(result);
-        lastProcessedMessage = el; // Keep track of the last message processed
+        // Add message and check if it was actually added (not already in state)
+        const result = addMessage(el);
+        newResults.push(result.wasAdded);
       });
 
       // Check if the last message in the dialogue is a question or ui_function
       // This indicates the AI has finished processing and the chat should be unblocked
       const dialogue = data.chat_body.dialogue;
+
       if (dialogue && dialogue.length > 0) {
         const lastMessage = dialogue[dialogue.length - 1];
         const messageType = lastMessage.question ? 'question' :
           lastMessage.type === 'ui_function' ? 'ui_function' : 'answer';
 
-        console.log('=== Chat Blocking Logic ===');
-        console.log('Last message type:', messageType);
-        console.log('Last message:', lastMessage);
-        console.log('Should unblock?', ['question', 'ui_function'].includes(messageType));
-        console.log('==========================');
-
         if (['question', 'ui_function'].includes(messageType)) {
-          console.log('✅ UNBLOCKING CHAT - Question or UI Function received');
           setIsLoading(false);
           setDisabled(false); // Unblock the chat when question or ui_function arrives
-        } else {
-          console.log('🔒 KEEPING CHAT BLOCKED - Waiting for question or ui_function');
+
+          // If this is not the initial load, add notification for the new question/ui_function
+          // BUT only if we haven't already notified about this message
+          const messageId = lastMessage.technical_id;
+          const alreadyNotified = notifiedMessagesRef.current.has(messageId);
+
+          if (!isFirstRequest && !alreadyNotified) {
+            const notificationMessage: Message = {
+              id: lastMessage.technical_id,
+              text: lastMessage.message || lastMessage.answer,
+              files: lastMessage.files,
+              editable: !!lastMessage.editable,
+              approve: !!lastMessage.approve,
+              last_modified: lastMessage.last_modified,
+              raw: lastMessage,
+              type: messageType as Message['type']
+            };
+
+            // Mark this message as notified
+            notifiedMessagesRef.current.add(messageId);
+            addHeaderNotification(notificationMessage);
+          }
         }
       }
     } catch (error: any) {
@@ -259,6 +270,10 @@ const ChatBotView: React.FC = () => {
       }
     } finally {
       promiseIntervalRef.current = null;
+      // After the first successful load, mark as no longer initial
+      if (isFirstRequest) {
+        isInitialLoadRef.current = false;
+      }
     }
 
     return newResults.some(el => el);
@@ -340,7 +355,6 @@ const ChatBotView: React.FC = () => {
       }
     } catch (error) {
       console.error('Error submitting answer:', error);
-      showError('Message Failed', 'Failed to send your message. Please try again.');
       setDisabled(false);
     }
   };
@@ -395,17 +409,29 @@ const ChatBotView: React.FC = () => {
 
   // Handle notification actions
   const handleMarkNotificationAsRead = (id: number) => {
-    setHeaderNotifications(prev =>
-      prev.map(notif =>
+    setHeaderNotifications(prev => {
+      const notification = prev.find(n => n.id === id);
+      // If marking an unread notification as read, decrease the count
+      if (notification && !notification.isRead) {
+        setCountNewMessages(count => Math.max(0, count - 1));
+      }
+      return prev.map(notif =>
         notif.id === id ? { ...notif, isRead: true } : notif
-      )
-    );
+      );
+    });
   };
 
   const handleMarkAllNotificationsAsRead = () => {
-    setHeaderNotifications(prev =>
-      prev.map(notif => ({ ...notif, isRead: true }))
-    );
+    // Count unread notifications before clearing
+    const unreadCount = headerNotifications.filter(n => !n.isRead).length;
+
+    // Clear all notifications
+    setHeaderNotifications([]);
+
+    // Reset count if there were unread notifications
+    if (unreadCount > 0) {
+      setCountNewMessages(0);
+    }
   };
 
   // Load chat list for sidebar
@@ -447,6 +473,8 @@ const ChatBotView: React.FC = () => {
     setChatData(null);
     setCanvasVisible(false);
     currentIntervalRef.current = BASE_INTERVAL;
+    isInitialLoadRef.current = true; // Reset initial load flag for new chat
+    notifiedMessagesRef.current.clear(); // Clear notified messages for new chat
 
     // Start polling for the new chat
     pollChat();
@@ -471,6 +499,33 @@ const ChatBotView: React.FC = () => {
   useEffect(() => {
     setDisabled(isLoading);
   }, [isLoading]);
+
+  // Handle document focus to reset notification count
+  useEffect(() => {
+    const handleFocus = () => {
+      if (countNewMessages > 0) {
+        setCountNewMessages(0);
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [countNewMessages]);
+
+  // Update document title and favicon based on new message count
+  useEffect(() => {
+    if (countNewMessages > 0) {
+      // Update tab title with count
+      const newTitle = `(${countNewMessages}) New question${countNewMessages > 1 ? 's' : ''}`;
+      document.title = newTitle;
+      // Update favicon with bubble
+      Tinycon.setBubble(countNewMessages);
+    } else {
+      // Reset to original title
+      document.title = originalTitle.current;
+      Tinycon.setBubble(0);
+    }
+  }, [countNewMessages]);
 
   if (!technicalId) {
     return <div>No chat ID provided</div>;
@@ -620,11 +675,6 @@ const ChatBotView: React.FC = () => {
         />
       </div>
 
-      {/* Notification Manager */}
-      <NotificationManager
-        notifications={notifications}
-        onRemove={removeNotification}
-      />
     </div>
   );
 };
