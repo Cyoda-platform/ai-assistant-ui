@@ -312,9 +312,6 @@ const ChatBotView: React.FC = () => {
 
     setDisabled(true);
 
-    // Show sending notification
-    showInfo('Message Sent', 'Your message is being processed by CYODA AI...');
-
     try {
       let response;
       if (data.files && data.files.length > 0) {
@@ -340,11 +337,6 @@ const ChatBotView: React.FC = () => {
         addMessage(answerMessage);
         setIsLoading(true);
         loadChatHistory();
-
-        // Show success notification
-        setTimeout(() => {
-          showSuccess('Response Received', 'CYODA AI has processed your request and is generating a response.');
-        }, 1000);
       }
     } catch (error) {
       console.error('Error submitting answer:', error);
