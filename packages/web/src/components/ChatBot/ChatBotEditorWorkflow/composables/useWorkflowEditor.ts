@@ -15,6 +15,7 @@ import {
 } from '../utils/smartLayout';
 import {type EditorAction, createWorkflowEditorActions} from '@/utils/editorUtils';
 import {useUndoRedo} from './useUndoRedo';
+import useAppStore from '@/stores/app';
 
 export interface WorkflowEditorProps {
     technicalId: string;
@@ -132,6 +133,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     const workflowViewportKey = computed(() => `chatBotEditorWorkflow:viewport:${props.technicalId}`);
 
     const helperStorage = new HelperStorage();
+    const appStore = useAppStore();
 
     // Function to load data for current technicalId
     const loadDataForCurrentId = () => {
@@ -149,9 +151,13 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         canvasData.value = canvasDataString || '';
         workflowMetaData.value = metaDataFromStorage || '';
 
-        // Initialize layoutDirection from loaded metadata
+        // Initialize layoutDirection from loaded metadata, or keep global setting for new workflows
         if (metaDataFromStorage && metaDataFromStorage.layoutDirection) {
+            // Existing workflow: use saved layoutDirection
             layoutDirection.value = metaDataFromStorage.layoutDirection;
+        } else {
+            // New workflow: use global setting as default
+            layoutDirection.value = appStore.workflowLayout || 'vertical';
         }
 
         // Reset loading flag after assignment
@@ -169,8 +175,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     const canvasData = ref('');
     const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
     const editorMode = ref(helperStorage.get(EDITOR_MODE, 'editorPreview'));
-    // Use workflow-specific layout direction from metadata with default fallback
-    const layoutDirection = ref<'horizontal' | 'vertical'>('vertical');
+    // Use workflow-specific layout direction from metadata with global setting as fallback
+    const layoutDirection = ref<'horizontal' | 'vertical'>(appStore.workflowLayout || 'vertical');
     const isLoading = ref(false);
     const editorActions = ref<EditorAction[]>([]);
 
