@@ -31,7 +31,7 @@ interface ChatBotCanvasProps {
   messages: any[];
   isLoading: boolean;
   technicalId: string;
-  onAnswer: (data: { answer: string; file?: File }) => void;
+  onAnswer: (data: { answer: string; files?: File[] }) => void;
   onApproveQuestion: (data: any) => void;
   onUpdateNotification: (data: any) => void;
   onToggleCanvas: () => void;

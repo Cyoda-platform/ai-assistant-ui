@@ -159,6 +159,7 @@
     border-top-right-radius: 1rem; /* rounded-tr-2xl */
     border-bottom-left-radius: 1rem;
     border-bottom-right-radius: 1rem;
+    overflow: visible; /* Prevent scroll bars in message containers */
   }
 
   .text-responsive-container.user-message:hover {
@@ -176,6 +177,7 @@
     border-top-right-radius: 0.375rem; /* rounded-tr-md */
     border-bottom-left-radius: 1rem;
     border-bottom-right-radius: 1rem;
+    overflow: visible; /* Prevent scroll bars in message containers */
   }
 
   .btn-glass {

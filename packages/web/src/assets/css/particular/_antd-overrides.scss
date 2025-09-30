@@ -132,6 +132,60 @@
   }
 }
 
+// Modal overrides for error/warning/info/success modals
+.ant-modal {
+  .ant-modal-content {
+    background-color: var(--bg-dialog-color);
+    border: 1px solid var(--accent-border);
+
+    .ant-modal-header {
+      background-color: var(--bg-dialog-color);
+      border-bottom-color: var(--accent-border);
+
+      .ant-modal-title {
+        color: var(--text-color-regular);
+      }
+    }
+
+    .ant-modal-body {
+      color: var(--text-color-regular);
+    }
+
+    .ant-modal-footer {
+      border-top-color: var(--accent-border);
+
+      .ant-btn {
+        color: var(--text-color-regular);
+        border-color: var(--accent-border);
+
+        &:hover {
+          color: var(--color-primary);
+          border-color: var(--color-primary);
+        }
+      }
+    }
+  }
+
+  // Confirm modal (error, warning, info, success)
+  &.ant-modal-confirm {
+    .ant-modal-content {
+      .ant-modal-body {
+        .ant-modal-confirm-body-wrapper {
+          .ant-modal-confirm-body {
+            .ant-modal-confirm-title {
+              color: var(--text-color-regular);
+            }
+
+            .ant-modal-confirm-content {
+              color: var(--text-color-regular);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 // Input overrides
 .ant-input {
   background-color: var(--input);

@@ -37,7 +37,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
             {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
           </button>
         </div>
-        <pre className="bg-slate-900/50 border border-slate-600 rounded-b-lg p-4 overflow-x-auto mt-0">
+        <pre className="bg-slate-900/50 border border-slate-600 rounded-b-lg p-4 overflow-x-auto overflow-y-visible mt-0">
           <code className={codeClassName}>
             {codeChildren}
           </code>

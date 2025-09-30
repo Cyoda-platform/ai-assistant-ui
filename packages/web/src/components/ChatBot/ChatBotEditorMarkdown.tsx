@@ -11,7 +11,7 @@ import { useAssistantStore } from '@/stores/assistant';
 
 interface ChatBotEditorMarkdownProps {
   technicalId: string;
-  onAnswer: (data: { answer: string; file?: File }) => void;
+  onAnswer: (data: { answer: string; files?: File[] }) => void;
 }
 
 const ChatBotEditorMarkdown: React.FC<ChatBotEditorMarkdownProps> = ({
@@ -24,7 +24,7 @@ const ChatBotEditorMarkdown: React.FC<ChatBotEditorMarkdownProps> = ({
   const [editorSize, setEditorSize] = useState<number>(50);
   const [editorMode, setEditorMode] = useState('editorPreview');
   const [canvasData, setCanvasData] = useState('');
-  
+
   const assistantStore = useAssistantStore();
   const chatBotAttachFileRef = useRef<ChatBotAttachFileRef>(null);
   const isLoadingRef = useRef(isLoading);
@@ -142,7 +142,7 @@ const ChatBotEditorMarkdown: React.FC<ChatBotEditorMarkdownProps> = ({
           onChange={setEditorMode}
           onClear={onClear}
         />
-        
+
         <Splitter
           onResize={(sizes) => {
             if (sizes && sizes[0]) {
@@ -194,10 +194,10 @@ const ChatBotEditorMarkdown: React.FC<ChatBotEditorMarkdownProps> = ({
               </div>
             </Splitter.Panel>
           )}
-          
+
           {isShowMarkdown && (
             <Splitter.Panel style={{ paddingLeft: '15px' }}>
-              <div 
+              <div
                 className="chat-bot-editor-markdown__markdown-inner"
                 style={{ height: '100%', overflowY: 'auto' }}
                 dangerouslySetInnerHTML={{ __html: canvasDataWithMarkdown }}
@@ -205,7 +205,7 @@ const ChatBotEditorMarkdown: React.FC<ChatBotEditorMarkdownProps> = ({
             </Splitter.Panel>
           )}
         </Splitter>
-        
+
         <ChatBotAttachFile
           ref={chatBotAttachFileRef}
           onFile={onFile}

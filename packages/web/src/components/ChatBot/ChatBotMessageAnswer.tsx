@@ -10,6 +10,7 @@ interface Message {
   text: string | object;
   last_modified?: string;
   file?: File;
+  files?: File[];
 }
 
 interface ChatBotMessageAnswerProps {
@@ -61,6 +62,7 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
   });
 
   const currentFile = message.file || null;
+  const currentFiles = message.files || (currentFile ? [currentFile] : []);
 
   const handleCopy = async () => {
     try {
@@ -99,9 +101,15 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
             <MarkdownRenderer className="[&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
               {messageText}
             </MarkdownRenderer>
-            {currentFile && (
+            {currentFiles.length > 0 && (
               <div className="mt-4 pt-4 border-t border-teal-500/30">
-                <FilePreview file={currentFile} />
+                <div className="flex flex-wrap gap-3">
+                  {currentFiles.map((file, index) => (
+                    <div key={`${file.name}-${index}`} className="text-xs">
+                      <FilePreview file={file} />
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

@@ -9,7 +9,7 @@ const { TextArea } = Input;
 interface ChatBotSubmitFormProps {
   layout?: 'default' | 'canvas';
   disabled: boolean;
-  onAnswer: (data: { answer: string; file?: File }) => void;
+  onAnswer: (data: { answer: string; files?: File[] }) => void;
 }
 
 const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
@@ -19,21 +19,23 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
 }) => {
   const [form] = Form.useForm();
   const [answer, setAnswer] = useState('');
-  const [currentFile, setCurrentFile] = useState<File | null>(null);
+  const [currentFiles, setCurrentFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [textareaHeight, setTextareaHeight] = useState(60);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   let dragCounter = 0;
 
   const onClickTextAnswer = async () => {
-    if (!answer.trim() && !currentFile) return;
+    if (!answer.trim() && currentFiles.length === 0) return;
 
     onAnswer({
       answer: answer,
-      file: currentFile || undefined
+      files: currentFiles.length > 0 ? currentFiles : undefined
     });
 
     setAnswer('');
-    setCurrentFile(null);
+    setCurrentFiles([]);
     form.resetFields();
   };
 
@@ -42,16 +44,29 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
-    const { isValid, message: errorMessage } = HelperUpload.validateFile(file);
-    if (!isValid) {
-      message.warning(errorMessage);
-      return;
+    const validFiles: File[] = [];
+    const invalidFiles: string[] = [];
+
+    Array.from(files).forEach(file => {
+      const { isValid, message: errorMessage } = HelperUpload.validateFile(file);
+      if (isValid) {
+        validFiles.push(file);
+      } else {
+        invalidFiles.push(`${file.name}: ${errorMessage}`);
+      }
+    });
+
+    if (invalidFiles.length > 0) {
+      message.warning(`Some files were not added:\n${invalidFiles.join('\n')}`);
     }
 
-    setCurrentFile(file);
+    if (validFiles.length > 0) {
+      setCurrentFiles(prev => [...prev, ...validFiles]);
+    }
+
     event.target.value = '';
   };
 
@@ -72,14 +87,27 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
     dragCounter = 0;
     setIsDragging(false);
 
-    const file = event.dataTransfer.files[0];
-    if (file) {
-      const { isValid, message: errorMessage } = HelperUpload.validateFile(file);
-      if (!isValid) {
-        message.warning(errorMessage);
-        return;
+    const files = event.dataTransfer.files;
+    if (files && files.length > 0) {
+      const validFiles: File[] = [];
+      const invalidFiles: string[] = [];
+
+      Array.from(files).forEach(file => {
+        const { isValid, message: errorMessage } = HelperUpload.validateFile(file);
+        if (isValid) {
+          validFiles.push(file);
+        } else {
+          invalidFiles.push(`${file.name}: ${errorMessage}`);
+        }
+      });
+
+      if (invalidFiles.length > 0) {
+        message.warning(`Some files were not added:\n${invalidFiles.join('\n')}`);
       }
-      setCurrentFile(file);
+
+      if (validFiles.length > 0) {
+        setCurrentFiles(prev => [...prev, ...validFiles]);
+      }
     }
   };
 
@@ -111,35 +139,45 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
 
       <Form form={form} onFinish={onClickTextAnswer}>
         <div className="space-y-3">
-          {currentFile && (
-            <FileSubmitPreview
-              file={currentFile}
-              onDelete={() => setCurrentFile(null)}
-            />
+          {currentFiles.length > 0 && (
+            <div className="flex flex-wrap gap-2 p-3 bg-slate-800/50 rounded-lg border border-slate-600">
+              {currentFiles.map((file, index) => (
+                <FileSubmitPreview
+                  key={`${file.name}-${index}`}
+                  file={file}
+                  onDelete={() => setCurrentFiles(prev => prev.filter((_, i) => i !== index))}
+                />
+              ))}
+            </div>
           )}
 
           <div className="relative">
             <textarea
+              ref={textareaRef}
               value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
+              onChange={(e) => {
+                setAnswer(e.target.value);
+                // Auto-resize on change
+                const target = e.target as HTMLTextAreaElement;
+                target.style.height = '60px'; // Reset to min height
+                const newHeight = Math.min(Math.max(target.scrollHeight, 60), 150);
+                setTextareaHeight(newHeight);
+              }}
               placeholder={placeholderText}
               onKeyDown={handleKeyDown}
               disabled={disabled}
               rows={1}
-              className="w-full bg-slate-800/80 backdrop-blur-sm border-2 border-slate-600 rounded-2xl px-6 pr-24 py-4 pb-12 text-white placeholder-slate-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-200 resize-none overflow-hidden text-base"
+              className="w-full bg-slate-800/80 backdrop-blur-sm border-2 border-slate-600 rounded-2xl px-6 pr-24 py-4 pb-12 text-white placeholder-slate-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-colors duration-200 resize-none text-lg"
               style={{
+                height: `${textareaHeight}px`,
                 minHeight: '60px',
-                maxHeight: '150px'
-              }}
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = 'auto';
-                target.style.height = Math.min(target.scrollHeight, 150) + 'px';
+                maxHeight: '150px',
+                overflowY: textareaHeight >= 150 ? 'auto' : 'hidden'
               }}
             />
 
             {/* Bottom Right Controls - Lovable Style */}
-            <div className="absolute right-5 bottom-8 flex items-center space-x-2">
+            <div className="absolute right-5 bottom-6 flex items-center gap-2">
               {/* Attach File Button */}
               <button
                 type="button"
@@ -154,7 +192,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
               {/* Send Button */}
               <button
                 type="submit"
-                disabled={disabled || (!answer.trim() && !currentFile)}
+                disabled={disabled || (!answer.trim() && currentFiles.length === 0)}
                 className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:opacity-50 text-white p-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-teal-500/25 disabled:cursor-not-allowed"
                 title="Send Message (Enter)"
               >
@@ -165,6 +203,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
             <input
               ref={fileInputRef}
               type="file"
+              multiple
               disabled={disabled}
               style={{ display: 'none' }}
               onChange={handleFileSelect}

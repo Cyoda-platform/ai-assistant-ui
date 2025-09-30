@@ -23,10 +23,10 @@ import { useAssistantStore } from '@/stores/assistant';
 import { useAuthStore } from '@/stores/auth';
 import Header from '@/components/Header/Header';
 import ChatBotCanvas from '@/components/ChatBot/ChatBotCanvas';
+import ChatHistoryPanel from '@/components/ChatHistoryPanel/ChatHistoryPanel';
 import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
 import { useResizablePanel } from '@/hooks/useResizablePanel';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
-import ChatBotAttachFile, { ChatBotAttachFileRef } from '@/components/ChatBot/ChatBotAttachFile';
 
 const HomeView: React.FC = () => {
   const [chatInput, setChatInput] = useState('');
@@ -35,9 +35,9 @@ const HomeView: React.FC = () => {
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(true);
   const [canvasVisible, setCanvasVisible] = useState(false);
   const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
-  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const chatInputRef = useRef<HTMLInputElement>(null);
-  const attachFileRef = useRef<ChatBotAttachFileRef>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   const assistantStore = useAssistantStore();
@@ -93,10 +93,27 @@ const HomeView: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const response = await assistantStore.postChats({
-        name: chatInput.trim(),
-        description: ''
-      });
+      let response;
+
+      // If files are attached, use FormData
+      if (attachedFiles.length > 0) {
+        const formData = new FormData();
+        formData.append('name', chatInput.trim());
+        formData.append('description', '');
+
+        // Append all files
+        attachedFiles.forEach(file => {
+          formData.append('files', file);
+        });
+
+        response = await assistantStore.postChats(formData);
+      } else {
+        // No files, use regular JSON
+        response = await assistantStore.postChats({
+          name: chatInput.trim(),
+          description: ''
+        });
+      }
 
       if (response?.data?.technical_id) {
         navigate(`/chat/${response.data.technical_id}`);
@@ -105,16 +122,37 @@ const HomeView: React.FC = () => {
       console.error('Error creating chat:', error);
     } finally {
       setIsLoading(false);
-      setAttachedFile(null);
+      setAttachedFiles([]);
+      setChatInput('');
     }
   };
 
   const handleFileAttach = () => {
-    attachFileRef.current?.openDialog(attachedFile);
+    fileInputRef.current?.click();
   };
 
-  const handleFileChange = (file: File | null) => {
-    setAttachedFile(file);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const newFiles = Array.from(files);
+      // Validate each file
+      const validFiles: File[] = [];
+      newFiles.forEach(file => {
+        // Basic validation - you can add more checks here
+        if (file.size > 10 * 1024 * 1024) { // 10MB limit
+          console.warn(`File ${file.name} is too large`);
+        } else {
+          validFiles.push(file);
+        }
+      });
+      setAttachedFiles(prev => [...prev, ...validFiles]);
+    }
+    // Reset input value to allow selecting the same file again
+    e.target.value = '';
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const quickActions = [
@@ -145,8 +183,36 @@ const HomeView: React.FC = () => {
     }
   };
 
+  // Drag and drop handlers
+  const [isDragging, setIsDragging] = useState(false);
+  let dragCounter = 0;
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter++;
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter--;
+    if (dragCounter === 0) setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter = 0;
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const newFiles = Array.from(files);
+      setAttachedFiles(prev => [...prev, ...newFiles]);
+    }
+  };
+
   // Dummy handlers for canvas (since we're on home page without active chat)
-  const handleAnswer = (data: { answer: string; file?: File }) => {
+  const handleAnswer = (data: { answer: string; files?: File[] }) => {
     console.log('Answer from canvas:', data);
   };
 
@@ -256,104 +322,16 @@ const HomeView: React.FC = () => {
         {/* Enhanced Left Sidebar - Resizable Chat History Panel */}
         {isChatHistoryOpen && (
           <div
-            className={`bg-slate-800/90 backdrop-blur-sm border-r border-slate-700 flex flex-col relative resizable-panel ${chatHistoryResize.isResizing ? 'resizing' : ''}`}
+            className={`h-full ${chatHistoryResize.isResizing ? 'resizing' : ''}`}
             style={{ width: `${chatHistoryResize.width}px` }}
           >
-          {/* Header with Close Button */}
-          <div className="p-4 border-b border-slate-700">
-            <div className="flex items-center justify-between">
-              <h3 className="text-white font-semibold">Chat History</h3>
-              <button
-                onClick={() => setIsChatHistoryOpen(false)}
-                className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors"
-                title="Close chat history"
-              >
-                <X size={16} />
-              </button>
-            </div>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 flex flex-col p-4 space-y-2 overflow-hidden">
-            <div className="flex items-center space-x-3 text-white cursor-pointer p-3 rounded-lg bg-teal-500/20 border border-teal-500/30 group">
-              <Home size={18} className="group-hover:scale-110 transition-transform" />
-              <span className="font-medium">Home</span>
-            </div>
-
-            <div className="flex-1 flex flex-col space-y-1 overflow-hidden">
-              <div className="flex items-center space-x-3 text-slate-300 hover:text-white cursor-pointer p-3 rounded-lg hover:bg-slate-700/50 transition-all duration-200 group">
-                <History size={18} className="group-hover:scale-110 transition-transform" />
-                <span className="font-medium">History</span>
-                <ChevronRight size={14} className="ml-auto group-hover:translate-x-1 transition-transform" />
-              </div>
-
-              {/* Chat History */}
-              <div className="px-3 space-y-3 flex-1 overflow-y-auto chat-container">
-                {chatsLoading ? (
-                  <div className="px-2 py-8 flex flex-col items-center justify-center space-y-4">
-                    <LoadingSpinner size="lg" />
-                    <p className="text-sm text-slate-400">Loading chat history...</p>
-                  </div>
-                ) : hasChats ? (
-                  chatGroups.map((group) => (
-                    <div key={group.title} className="space-y-1">
-                      <div className="text-xs font-medium text-slate-500 uppercase tracking-wider px-3 py-1">
-                        {group.title}
-                      </div>
-                      <div className="space-y-1">
-                        {group.chats.map((chat) => (
-                          <div
-                            key={chat.technical_id}
-                            onClick={() => navigate(`/chat/${chat.technical_id}`)}
-                            className="text-slate-400 hover:text-white cursor-pointer px-3 py-2 rounded-md hover:bg-slate-700/30 transition-all duration-200 text-sm"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <Clock size={14} className="text-slate-500 flex-shrink-0" />
-                              <span className="truncate flex-1" title={chat.name || chat.description}>
-                                {chat.name || chat.description || 'Untitled Chat'}
-                              </span>
-                            </div>
-                            <div className="text-xs text-slate-600 mt-1 ml-5">
-                              {formatRelativeTime(chat.last_modified || chat.date)}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="px-2 py-4 text-center">
-                    <div className="text-sm text-slate-500 mb-2">No chat history yet</div>
-                    <div className="text-xs text-slate-600">Start a conversation to see your chats here</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </nav>
-
-          {/* Footer Actions */}
-          <div className="p-4 border-t border-slate-700 space-y-2">
-            <a
-              href="https://cyoda.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-3 text-slate-400 hover:text-white cursor-pointer p-3 rounded-lg hover:bg-slate-700/50 transition-all duration-200 group"
-            >
-              <HelpCircle size={18} className="group-hover:scale-110 transition-transform" />
-              <span className="font-medium">Help & Support</span>
-            </a>
-            <div className="flex items-center space-x-3 text-slate-400 hover:text-white cursor-pointer p-3 rounded-lg hover:bg-slate-700/50 transition-all duration-200 group">
-              <Settings size={18} className="group-hover:scale-110 transition-transform" />
-              <span className="font-medium">Settings</span>
-            </div>
-          </div>
-
-          {/* Resize Handle for Chat History Panel */}
-          <ResizeHandle
-            onMouseDown={chatHistoryResize.handleMouseDown}
-            isResizing={chatHistoryResize.isResizing}
-            position="right"
-          />
+            <ChatHistoryPanel
+              chatGroups={chatGroups}
+              isLoading={chatsLoading}
+              onResizeMouseDown={chatHistoryResize.handleMouseDown}
+              isResizing={chatHistoryResize.isResizing}
+              showHomeAsActive={true}
+            />
           </div>
         )}
 
@@ -432,10 +410,56 @@ const HomeView: React.FC = () => {
                 ))}
               </div>
 
+              {/* File attachments display - Above input */}
+              {attachedFiles.length > 0 && (
+                <div className="mb-4 p-4 bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-2xl">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-slate-300">Attached Files ({attachedFiles.length})</span>
+                    <button
+                      type="button"
+                      onClick={() => setAttachedFiles([])}
+                      className="text-xs text-slate-400 hover:text-white transition-colors"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {attachedFiles.map((file, index) => (
+                      <div key={index} className="bg-slate-700/50 text-slate-300 px-3 py-2 rounded-lg text-sm flex items-center space-x-2 border border-slate-600">
+                        <Paperclip size={14} className="text-teal-400" />
+                        <span className="max-w-[200px] truncate">{file.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFile(index)}
+                          className="hover:text-red-400 transition-colors ml-1"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Chat Input - Lovable Style */}
               <div className="mb-6">
                 <form onSubmit={handleChatSubmit}>
-                  <div className="relative">
+                  <div
+                    className="relative"
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onDragOver={(e) => e.preventDefault()}
+                  >
+                    {isDragging && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-slate-800 bg-opacity-90 backdrop-blur-sm rounded-3xl z-10 border-2 border-dashed border-teal-500">
+                        <div className="text-center">
+                          <Paperclip size={48} className="text-teal-400 mx-auto mb-2" />
+                          <span className="text-teal-400 font-medium text-lg">Drop files here</span>
+                        </div>
+                      </div>
+                    )}
+
                     <textarea
                       ref={chatInputRef as any}
                       value={chatInput}
@@ -453,16 +477,8 @@ const HomeView: React.FC = () => {
                       disabled={isLoading}
                     />
 
-                    {/* File indicator - Top Left */}
-                    {attachedFile && (
-                      <div className="absolute left-6 top-6 bg-teal-500/20 text-teal-400 px-3 py-1 rounded-lg text-sm flex items-center space-x-2">
-                        <Paperclip size={14} />
-                        <span className="max-w-[150px] truncate">{attachedFile.name}</span>
-                      </div>
-                    )}
-
                     {/* Bottom Right Controls - Lovable Style */}
-                    <div className="absolute right-4 bottom-6 flex items-center space-x-2">
+                    <div className="absolute right-4 bottom-6 flex items-center gap-2">
                       {/* Attach File Button */}
                       <button
                         type="button"
@@ -490,8 +506,15 @@ const HomeView: React.FC = () => {
                   </div>
                 </form>
 
-                {/* Attach File Component */}
-                <ChatBotAttachFile ref={attachFileRef} onFile={handleFileChange} />
+                {/* Hidden File Input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  onChange={handleFileChange}
+                  style={{ display: 'none' }}
+                  accept=".pdf,.docx,.xlsx,.pptx,.xml,.json,text/*,image/*"
+                />
               </div>
 
               {/* Quick Actions */}

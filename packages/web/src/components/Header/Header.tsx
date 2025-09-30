@@ -57,7 +57,6 @@ const Header: React.FC<HeaderProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showActionsMenu, setShowActionsMenu] = useState(false);
 
   // Use external notifications if provided, otherwise use empty array
   const notifications = externalNotifications || [];
@@ -117,67 +116,55 @@ const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center space-x-3">
             <div className="w-px h-6 bg-slate-600 mx-2"></div>
 
-            {/* Action Buttons - Only show on home page */}
+            {/* Action Buttons - Only show on chat page */}
             {showActions && (
-              <div className="relative flex items-center space-x-2">
-                {/* Dropdown Menu Button */}
-                <button
-                  onClick={() => setShowActionsMenu(!showActionsMenu)}
-                  className="relative p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors flex items-center space-x-1"
-                  title="View Options"
-                >
-                  <Settings size={20} />
-                  <ChevronDown size={14} />
-                </button>
+              <div className="flex items-center gap-2">
+                {/* Chat History Button */}
+                {onToggleChatHistory && (
+                  <button
+                    onClick={onToggleChatHistory}
+                    className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                      chatHistoryVisible
+                        ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                    }`}
+                    title={`${chatHistoryVisible ? 'Hide' : 'Show'} History`}
+                  >
+                    <History size={18} />
+                    <span className="text-sm font-medium hidden md:inline">History</span>
+                  </button>
+                )}
 
-                {/* Dropdown Menu */}
-                {showActionsMenu && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50">
-                    <div className="py-1">
-                      {onToggleChatHistory && (
-                        <button
-                          onClick={() => {
-                            onToggleChatHistory();
-                            setShowActionsMenu(false);
-                          }}
-                          className="w-full flex items-center space-x-3 px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
-                        >
-                          <History size={16} />
-                          <span className="text-sm">
-                            {chatHistoryVisible ? 'Hide' : 'Show'} History
-                          </span>
-                        </button>
-                      )}
-                      {onToggleCanvas && (
-                        <button
-                          onClick={() => {
-                            onToggleCanvas();
-                            setShowActionsMenu(false);
-                          }}
-                          className="w-full flex items-center space-x-3 px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
-                        >
-                          <Activity size={16} />
-                          <span className="text-sm">
-                            {canvasVisible ? 'Close' : 'Open'} Canvas
-                          </span>
-                        </button>
-                      )}
-                      {onToggleEntities && (
-                        <button
-                          onClick={() => {
-                            onToggleEntities();
-                            setShowActionsMenu(false);
-                          }}
-                          className="w-full flex items-center space-x-3 px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
-                        >
-                          <Database size={16} />
-                          <span className="text-sm">
-                            {entitiesVisible ? 'Hide' : 'Show'} Entities
-                          </span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                {/* Canvas Button */}
+                {onToggleCanvas && (
+                  <button
+                    onClick={onToggleCanvas}
+                    className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                      canvasVisible
+                        ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                    }`}
+                    title={`${canvasVisible ? 'Close' : 'Open'} Canvas`}
+                  >
+                    <Activity size={18} />
+                    <span className="text-sm font-medium hidden md:inline">Canvas</span>
+                  </button>
+                )}
+
+                {/* Entities Button - Only show on chat details page */}
+                {onToggleEntities && (
+                  <button
+                    onClick={onToggleEntities}
+                    className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                      entitiesVisible
+                        ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                    }`}
+                    title={`${entitiesVisible ? 'Hide' : 'Show'} Entities`}
+                  >
+                    <Database size={18} />
+                    <span className="text-sm font-medium hidden md:inline">Entities</span>
+                  </button>
                 )}
               </div>
             )}
@@ -323,14 +310,6 @@ const Header: React.FC<HeaderProps> = ({
         <div
           className="fixed inset-0 z-30"
           onClick={() => setShowNotifications(false)}
-        />
-      )}
-
-      {/* Click outside to close actions menu */}
-      {showActionsMenu && (
-        <div
-          className="fixed inset-0 z-30"
-          onClick={() => setShowActionsMenu(false)}
         />
       )}
     </>

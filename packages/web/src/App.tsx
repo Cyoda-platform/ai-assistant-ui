@@ -122,6 +122,15 @@ const App: React.FC = () => {
         }
 
         assistantStore.setGuestChatsExist(false);
+
+        // Load chats after successful login
+        try {
+          await assistantStore.getChats();
+          console.log('Chats loaded successfully after login');
+        } catch (error) {
+          console.error('Error loading chats after login:', error);
+        }
+
         const returnTo = helperStorage.get(LOGIN_REDIRECT_URL, '/');
         helperStorage.removeItem(LOGIN_REDIRECT_URL);
 

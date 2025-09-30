@@ -22,7 +22,7 @@ import { useResizablePanel } from '@/hooks/useResizablePanel';
 interface Message {
   id: string;
   text: string;
-  file?: File;
+  files?: File[];
   editable?: boolean;
   approve?: boolean;
   raw?: any;
@@ -156,7 +156,7 @@ const ChatBotView: React.FC = () => {
       const newMessage: Message = {
         id: el.technical_id,
         text: el.message || el.answer,
-        file: el.file,
+        files: el.files,
         editable: !!el.editable,
         approve: !!el.approve,
         last_modified: el.last_modified,
@@ -223,7 +223,7 @@ const ChatBotView: React.FC = () => {
       if (dialogue && dialogue.length > 0) {
         const lastMessage = dialogue[dialogue.length - 1];
         const messageType = lastMessage.question ? 'question' :
-                           lastMessage.type === 'ui_function' ? 'ui_function' : 'answer';
+          lastMessage.type === 'ui_function' ? 'ui_function' : 'answer';
 
         console.log('=== Chat Blocking Logic ===');
         console.log('Last message type:', messageType);
@@ -260,7 +260,7 @@ const ChatBotView: React.FC = () => {
     pollTimeoutRef.current = setTimeout(pollChat, nextDelay);
   };
 
-  const onAnswer = async (data: { answer: string; file?: File }) => {
+  const onAnswer = async (data: { answer: string; files?: File[] }) => {
     if (!technicalId) return;
 
     setDisabled(true);
@@ -270,9 +270,11 @@ const ChatBotView: React.FC = () => {
 
     try {
       let response;
-      if (data.file) {
+      if (data.files && data.files.length > 0) {
         const formData = new FormData();
-        formData.append('file', data.file);
+        data.files.forEach(file => {
+          formData.append('files', file);
+        });
         formData.append('answer', data.answer);
         const result = await assistantStore.postAnswers(technicalId, formData);
         response = result.data;
@@ -286,7 +288,7 @@ const ChatBotView: React.FC = () => {
         const answerMessage = {
           technical_id: response.answer_technical_id,
           answer: data.answer,
-          file: data.file
+          files: data.files
         };
         addMessage(answerMessage);
         setIsLoading(true);

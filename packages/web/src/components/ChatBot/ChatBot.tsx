@@ -14,19 +14,21 @@ interface Message {
   raw?: any;
   last_modified?: string;
   file?: File;
+  files?: File[];
   approve?: boolean;
   editable?: boolean;
 }
 
 interface ChatBotProps {
   isLoading: boolean;
+  isLoadingHistory?: boolean;
   disabled: boolean;
   messages: Message[];
   technicalId: string;
   chatData?: any;
   canvasVisible?: boolean;
   chatHistoryVisible?: boolean;
-  onAnswer: (data: { answer: string; file?: File }) => void;
+  onAnswer: (data: { answer: string; files?: File[] }) => void;
   onApproveQuestion: (data: any) => void;
   onUpdateNotification: (data: any) => void;
   onToggleCanvas: () => void;
@@ -36,6 +38,7 @@ interface ChatBotProps {
 
 const ChatBot: React.FC<ChatBotProps> = ({
   isLoading,
+  isLoadingHistory = false,
   disabled,
   messages,
   technicalId,
@@ -122,24 +125,33 @@ const ChatBot: React.FC<ChatBotProps> = ({
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto chat-container min-h-0"
       >
-        <div className="max-w-[90%] mx-auto p-6 w-full">
-          <div className="space-y-3">
-            {messages.map((message, index) => (
-              <div key={index} className="w-full">
-                {renderMessage(message, index)}
-              </div>
-            ))}
-            {isLoading && (
-              <div className="w-full">
-                <ChatLoader />
-              </div>
-            )}
-            <div
-              ref={chatBotPlaceholderRef}
-              className="h-4"
-            />
+        {isLoadingHistory ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-teal-500/30 border-t-teal-500 rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-slate-400 text-sm">Loading chat history...</p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="max-w-[90%] mx-auto p-6 w-full">
+            <div className="space-y-3">
+              {messages.map((message, index) => (
+                <div key={index} className="w-full">
+                  {renderMessage(message, index)}
+                </div>
+              ))}
+              {isLoading && (
+                <div className="w-full">
+                  <ChatLoader />
+                </div>
+              )}
+              <div
+                ref={chatBotPlaceholderRef}
+                className="h-4"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Input Area at Bottom */}
