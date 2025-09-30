@@ -34,6 +34,7 @@ const ChatBotView: React.FC = () => {
   const navigate = useNavigate();
   const assistantStore = useAssistantStore();
   const chatList = useAssistantStore((state) => state.chatList); // Subscribe to chatList specifically
+  const isLoadingChats = useAssistantStore((state) => state.isLoadingChats);
   const [canvasVisible, setCanvasVisible] = useState(false);
   const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
   const [isEntityDataOpen, setIsEntityDataOpen] = useState(false);
@@ -43,7 +44,6 @@ const ChatBotView: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatData, setChatData] = useState<any>(null);
   const [headerNotifications, setHeaderNotifications] = useState<HeaderNotification[]>([]);
-  const [chatsLoading, setChatsLoading] = useState(true);
   const notificationIdCounter = useRef(1);
   const [countNewMessages, setCountNewMessages] = useState(0);
   const originalTitle = useRef('Cyoda AI Assistant');
@@ -459,13 +459,10 @@ const ChatBotView: React.FC = () => {
   // Load chat list for sidebar
   useEffect(() => {
     const loadChats = async () => {
-      setChatsLoading(true);
       try {
         await assistantStore.getChats();
       } catch (error) {
         console.error('Failed to load chats:', error);
-      } finally {
-        setChatsLoading(false);
       }
     };
 
@@ -620,7 +617,7 @@ const ChatBotView: React.FC = () => {
             <ChatHistoryPanel
               chatGroups={chatGroups}
               currentChatId={technicalId}
-              isLoading={chatsLoading}
+              isLoading={isLoadingChats}
               onResizeMouseDown={chatHistoryResize.handleMouseDown}
               isResizing={chatHistoryResize.isResizing}
               showHomeAsActive={false}

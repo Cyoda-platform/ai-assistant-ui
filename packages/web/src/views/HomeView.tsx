@@ -31,7 +31,6 @@ import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 const HomeView: React.FC = () => {
   const [chatInput, setChatInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [chatsLoading, setChatsLoading] = useState(true);
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(true);
   const [canvasVisible, setCanvasVisible] = useState(false);
   const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
@@ -42,6 +41,7 @@ const HomeView: React.FC = () => {
 
   const assistantStore = useAssistantStore();
   const authStore = useAuthStore();
+  const isLoadingChats = useAssistantStore((state) => state.isLoadingChats);
 
   // Resizable chat history panel - start at max width
   const chatHistoryResize = useResizablePanel({
@@ -66,8 +66,6 @@ const HomeView: React.FC = () => {
         await assistantStore.getChats();
       } catch (error) {
         console.error('Failed to load chats:', error);
-      } finally {
-        setChatsLoading(false);
       }
     };
 
@@ -322,7 +320,7 @@ const HomeView: React.FC = () => {
           >
             <ChatHistoryPanel
               chatGroups={chatGroups}
-              isLoading={chatsLoading}
+              isLoading={isLoadingChats}
               onResizeMouseDown={chatHistoryResize.handleMouseDown}
               isResizing={chatHistoryResize.isResizing}
               showHomeAsActive={true}

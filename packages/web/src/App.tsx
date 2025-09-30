@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
-import { Spin } from 'antd';
 
 // Import stores
 import { useAuthStore } from './stores/auth';
@@ -25,7 +24,6 @@ const App: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, getAccessTokenSilently, isAuthenticated, isLoading: auth0Loading, error: auth0Error } = useAuth0();
-  const [isLoading, setIsLoading] = useState(false);
   const [firstVisit, setFirstVisit] = useState(true);
 
   const authStore = useAuthStore();
@@ -85,7 +83,6 @@ const App: React.FC = () => {
     if (!isAuthenticated || (currentAuthState.token && currentAuthState.tokenType === 'private')) return;
 
     const handleAuth = async () => {
-      setIsLoading(true);
       try {
         const currentState = useAuthStore.getState();
         const oldToken = currentState.token;
@@ -123,7 +120,7 @@ const App: React.FC = () => {
 
         assistantStore.setGuestChatsExist(false);
 
-        // Load chats after successful login
+        // Load chats after successful login (loading state managed by assistant store)
         try {
           await assistantStore.getChats();
           console.log('Chats loaded successfully after login');
@@ -136,8 +133,8 @@ const App: React.FC = () => {
 
         // Navigate to return URL
         navigate(returnTo, { replace: true });
-      } finally {
-        setIsLoading(false);
+      } catch (error) {
+        console.error('Error during authentication:', error);
       }
     };
 
@@ -157,15 +154,13 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <Spin spinning={isLoading} size="large">
-        <div className="app">
-          <Outlet />
+      <div className="app">
+        <Outlet />
 
-          <LoginPopUp />
-          <ChatBotRenameDialog />
-          <ConfirmationDialog />
-        </div>
-      </Spin>
+        <LoginPopUp />
+        <ChatBotRenameDialog />
+        <ConfirmationDialog />
+      </div>
     </ErrorBoundary>
   );
 };
