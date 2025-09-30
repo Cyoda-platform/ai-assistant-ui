@@ -15,7 +15,6 @@ import {
 } from '../utils/smartLayout';
 import {type EditorAction, createWorkflowEditorActions} from '@/utils/editorUtils';
 import {useUndoRedo} from './useUndoRedo';
-import useAppStore from '@/stores/app';
 
 export interface WorkflowEditorProps {
     technicalId: string;
@@ -126,9 +125,6 @@ export interface WorkflowEdge {
 export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: any, emit?: any, isDraggable?: Ref<boolean>) {
     const EDITOR_WIDTH = 'chatBotEditorWorkflow:width';
     const EDITOR_MODE = 'chatBotEditorWorkflow:editorMode';
-    const LAYOUT_DIRECTION = 'chatBotEditorWorkflow:layoutDirection';
-
-    const appStore = useAppStore();
 
     // Reactive keys for localStorage, updated when technicalId changes
     const workflowCanvasDataKey = computed(() => `chatBotEditorWorkflow:canvasData:${props.technicalId}`);
@@ -153,6 +149,11 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         canvasData.value = canvasDataString || '';
         workflowMetaData.value = metaDataFromStorage || '';
 
+        // Initialize layoutDirection from loaded metadata
+        if (metaDataFromStorage && metaDataFromStorage.layoutDirection) {
+            layoutDirection.value = metaDataFromStorage.layoutDirection;
+        }
+
         // Reset loading flag after assignment
         isLoadingData = false;
 
@@ -168,8 +169,8 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     const canvasData = ref('');
     const editorSize = ref(helperStorage.get(EDITOR_WIDTH, '50%'));
     const editorMode = ref(helperStorage.get(EDITOR_MODE, 'editorPreview'));
-    // Use global app store setting as primary source for layout direction
-    const layoutDirection = ref<'horizontal' | 'vertical'>(appStore.workflowLayout || helperStorage.get(LAYOUT_DIRECTION, 'vertical'));
+    // Use workflow-specific layout direction from metadata with default fallback
+    const layoutDirection = ref<'horizontal' | 'vertical'>('vertical');
     const isLoading = ref(false);
     const editorActions = ref<EditorAction[]>([]);
 
@@ -387,31 +388,19 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     const metaLayoutDirection = workflowMetaData.value?.layoutDirection;
     if (metaLayoutDirection && (metaLayoutDirection === 'horizontal' || metaLayoutDirection === 'vertical')) {
         layoutDirection.value = metaLayoutDirection;
-        helperStorage.set(LAYOUT_DIRECTION, metaLayoutDirection);
-        // Also sync with app store
-        appStore.setWorkflowLayout(metaLayoutDirection);
     }
-
-    // Watch for changes in app store layout direction and sync with local state
-    watch(() => appStore.workflowLayout, (newLayout) => {
-        if (layoutDirection.value !== newLayout) {
-            layoutDirection.value = newLayout;
-            helperStorage.set(LAYOUT_DIRECTION, newLayout);
-        }
-    });
 
     const initialPositions = ref<{ [key: string]: NodePosition }>({});
     const initialTransitionLabels = ref<{ [key: string]: { x: number; y: number } }>({});
 
-    // Helper function to update metadata while preserving layoutDirection
-    const updateWorkflowMetaData = (newData: any) => {
-        const updatedData = {
-            ...workflowMetaData.value,
-            ...newData,
+    // Helper function to update metadata with current layoutDirection
+    const updateMetaDataWithPositions = (positions: any, additionalData = {}) => {
+        return {
+            ...(workflowMetaData.value || {}),
+            ...positions,
+            ...additionalData,
             layoutDirection: layoutDirection.value
         };
-        workflowMetaData.value = updatedData;
-        return updatedData;
     };
 
     const edges = computed<WorkflowEdge[]>(() => {
@@ -919,7 +908,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         }
 
         // Save current node positions too
-        workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
+        workflowMetaData.value = updateMetaDataWithPositions(currentPositions);
 
         // Update transitionLabels when renaming transition
         if (!isNewTransition && oldTransitionName && oldTransitionName !== transitionName) {
@@ -993,7 +982,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             if (transitionIndex !== -1) {
                 state.transitions.splice(transitionIndex, 1);
 
-                workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
+                workflowMetaData.value = updateMetaDataWithPositions(currentPositions);
 
                 canvasData.value = JSON.stringify(parsed, null, 2);
 
@@ -1056,7 +1045,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
 
             delete currentPositions[stateName];
 
-            const updatedMetaData: any = {...(workflowMetaData.value || {}), ...currentPositions};
+            const updatedMetaData = updateMetaDataWithPositions(currentPositions);
 
             if (updatedMetaData[stateName]) {
                 delete updatedMetaData[stateName];
@@ -1178,7 +1167,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                 delete currentPositions[oldName];
             }
 
-            const updatedMetaData: any = {...(workflowMetaData.value || {}), ...currentPositions};
+            const updatedMetaData = updateMetaDataWithPositions(currentPositions);
 
             if (updatedMetaData[oldName]) {
                 updatedMetaData[newName] = updatedMetaData[oldName];
@@ -1248,7 +1237,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
             if (transitionIndex !== -1) {
                 state.transitions[transitionIndex].next = newTarget;
 
-                workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
+                workflowMetaData.value = updateMetaDataWithPositions(currentPositions);
 
                 canvasData.value = JSON.stringify(parsed, null, 2);
 
@@ -1761,7 +1750,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     sourceState.transitions[transitionIndex].next = targetNode;
 
                     // Сохраняем текущие позиции в метаданных чтобы не потерять расположение
-                    workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
+                    workflowMetaData.value = updateMetaDataWithPositions(currentPositions);
 
                     canvasData.value = JSON.stringify(parsed, null, 2);
 
@@ -1857,7 +1846,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
                     newSourceState.transitions.push(transitionData);
 
                     // Сохраняем текущие позиции в метаданных чтобы не потерять расположение
-                    workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
+                    workflowMetaData.value = updateMetaDataWithPositions(currentPositions);
 
                     canvasData.value = JSON.stringify(parsed, null, 2);
 
@@ -1923,7 +1912,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         event.nodes.forEach((node: WorkflowNode) => {
             positions[node.id] = {...node.position};
         });
-        workflowMetaData.value = {...(workflowMetaData.value || {}), ...positions};
+        workflowMetaData.value = updateMetaDataWithPositions(positions);
         saveState(createSnapshot());
     }
 
@@ -1962,7 +1951,7 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
         nodes.value.forEach(node => {
             currentPositions[node.id] = {x: node.position.x, y: node.position.y};
         });
-        workflowMetaData.value = {...(workflowMetaData.value || {}), ...currentPositions};
+        workflowMetaData.value = updateMetaDataWithPositions(currentPositions);
 
         let parsed: WorkflowData;
         try {
@@ -2214,9 +2203,6 @@ export function useWorkflowEditor(props: WorkflowEditorProps, assistantStore?: a
     async function autoLayout() {
         // Toggle direction on each autoLayout call
         layoutDirection.value = layoutDirection.value === 'horizontal' ? 'vertical' : 'horizontal';
-        helperStorage.set(LAYOUT_DIRECTION, layoutDirection.value);
-        // Also update the global app store setting
-        appStore.setWorkflowLayout(layoutDirection.value);
         autoFitLocked.value = false; // Allow auto fit after manual layout change
 
         const parsed = JSON.parse(canvasData.value);
