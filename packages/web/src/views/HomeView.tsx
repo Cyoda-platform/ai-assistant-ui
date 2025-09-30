@@ -126,11 +126,23 @@ const HomeView: React.FC = () => {
 
   // Canvas handlers
   const handleToggleCanvas = () => {
-    setCanvasVisible(!canvasVisible);
+    const newCanvasState = !canvasVisible;
+    setCanvasVisible(newCanvasState);
+
+    // When closing canvas, exit fullscreen mode
+    if (!newCanvasState && isCanvasFullscreen) {
+      setIsCanvasFullscreen(false);
+    }
   };
 
   const handleToggleCanvasFullscreen = () => {
-    setIsCanvasFullscreen(!isCanvasFullscreen);
+    const newFullscreenState = !isCanvasFullscreen;
+    setIsCanvasFullscreen(newFullscreenState);
+
+    // Close chat history when entering fullscreen mode
+    if (newFullscreenState) {
+      setIsChatHistoryOpen(false);
+    }
   };
 
   // Dummy handlers for canvas (since we're on home page without active chat)
@@ -378,9 +390,10 @@ const HomeView: React.FC = () => {
           </div>
         )}
 
-        {/* Enhanced Main Content */}
-        <div className="flex-1 flex flex-col bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
-          <div className="p-8 flex-1 overflow-y-auto scrollbar-thin">
+        {/* Enhanced Main Content - Hidden when canvas is fullscreen */}
+        {!isCanvasFullscreen && (
+          <div className="flex-1 flex flex-col bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
+            <div className="p-8 flex-1 overflow-y-auto scrollbar-thin">
             <div className="max-w-4xl mx-auto">
               {/* Enhanced Header */}
               <div className="mb-8 animate-fade-in-up">
@@ -520,7 +533,8 @@ const HomeView: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { PlayCircle, StopCircle, Circle, ArrowRight, Lock, Unlock } from 'lucide-react';
+import { PlayCircle, StopCircle, Circle, ArrowRight, Lock, Unlock, Edit2 } from 'lucide-react';
 import { workflowTheme } from './workflowTheme';
 
 interface InformativeNodeProps {
@@ -17,12 +17,47 @@ interface InformativeNodeProps {
       processor?: string;
       criteria?: any;
     }>;
+    onLabelChange?: (oldLabel: string, newLabel: string) => void;
   };
   selected?: boolean;
 }
 
 const InformativeNode: React.FC<InformativeNodeProps> = ({ data, selected }) => {
-  const { label, isInitial, isTerminal, nodeType, transitions = [] } = data;
+  const { label, isInitial, isTerminal, nodeType, transitions = [], onLabelChange } = data;
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(label);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Focus input when editing starts
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditing(true);
+    setEditValue(label);
+  };
+
+  const handleBlur = () => {
+    if (editValue.trim() && editValue !== label && onLabelChange) {
+      onLabelChange(label, editValue.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleBlur();
+    } else if (e.key === 'Escape') {
+      setEditValue(label);
+      setIsEditing(false);
+    }
+  };
 
   // Determine node styling based on type using unified theme
   const getNodeStyle = () => {
@@ -59,18 +94,20 @@ const InformativeNode: React.FC<InformativeNodeProps> = ({ data, selected }) => 
       style={{
         background: style.background,
         border: `2px solid ${selected ? workflowTheme.nodes.selected.border : style.borderColor}`,
-        borderRadius: '12px',
-        padding: '12px 16px',
-        minWidth: '200px',
+        borderRadius: '14px',
+        padding: '14px 18px',
+        minWidth: '220px',
         boxShadow: selected
-          ? `0 8px 24px ${workflowTheme.nodes.selected.glow}`
-          : '0 4px 12px rgba(0, 0, 0, 0.3)',
+          ? `0 12px 32px ${workflowTheme.nodes.selected.glow}, 0 0 0 3px rgba(245, 158, 11, 0.2)`
+          : `0 6px 16px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2)`,
         color: workflowTheme.text.primary,
         fontSize: '13px',
-        transition: 'all 0.2s ease',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         position: 'relative',
         width: '100%',
         height: '100%',
+        backdropFilter: 'blur(8px)',
+        transform: selected ? 'scale(1.02)' : 'scale(1)',
       }}
     >
       {/* Input Handle */}
@@ -96,12 +133,53 @@ const InformativeNode: React.FC<InformativeNodeProps> = ({ data, selected }) => 
       }}>
         {style.icon}
         <div style={{ flex: 1 }}>
-          <div style={{
-            fontWeight: 600,
-            fontSize: '14px',
-            marginBottom: '2px'
-          }}>
-            {label}
+          <div
+            style={{
+              fontWeight: 600,
+              fontSize: '14px',
+              marginBottom: '2px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              cursor: isEditing ? 'text' : 'pointer'
+            }}
+            onDoubleClick={handleDoubleClick}
+            title="Double-click to edit state name"
+          >
+            {isEditing ? (
+              <input
+                ref={inputRef}
+                type="text"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onBlur={handleBlur}
+                onKeyDown={handleKeyDown}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  border: `2px solid ${workflowTheme.nodes.selected.border}`,
+                  borderRadius: '6px',
+                  padding: '4px 8px',
+                  color: workflowTheme.text.primary,
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  outline: 'none',
+                  width: '100%',
+                  fontFamily: 'inherit'
+                }}
+              />
+            ) : (
+              <>
+                {label}
+                <Edit2
+                  size={12}
+                  style={{
+                    opacity: selected ? 0.7 : 0.4,
+                    transition: 'opacity 0.2s'
+                  }}
+                />
+              </>
+            )}
           </div>
           <div style={{
             fontSize: '11px',

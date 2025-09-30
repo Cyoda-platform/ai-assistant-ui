@@ -1,13 +1,14 @@
 import React from 'react';
 import { Bot, Sparkles } from 'lucide-react';
+import LogoSmall from '@/assets/images/logo-small.svg';
 
 const ChatLoader: React.FC = () => {
   return (
     <div className="flex justify-start mb-6 animate-fade-in-up">
       <div className="flex items-start space-x-3 w-full max-w-[90%]">
         {/* AI Avatar */}
-        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 shadow-lg">
-          <Bot size={16} className="text-white" />
+        <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden">
+          <img src={LogoSmall} alt="CYODA" className="w-10 h-10" />
         </div>
 
         <div className="flex-1">

@@ -4,6 +4,7 @@ import { Bot, Clock, Zap, CheckCircle, Info, Loader2, Download } from 'lucide-re
 import { useAuthStore } from '@/stores/auth';
 import axios from 'axios';
 import FileSaver from 'file-saver';
+import LogoSmall from '@/assets/images/logo-small.svg';
 
 // Parse JWT token
 function parseJwt(token: string): Record<string, any> | null {
@@ -163,8 +164,8 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
     <div className="flex justify-start mb-6 animate-fade-in-up">
       <div className="flex items-start space-x-3 max-w-[85%]">
         {/* Bot Avatar */}
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg border-2 border-purple-400/30">
-          <Zap size={20} className="text-white" />
+        <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden">
+          <img src={LogoSmall} alt="CYODA" className="w-10 h-10" />
         </div>
 
         <div className="flex-1">
@@ -183,7 +184,7 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
           </div>
 
           {/* Action Block */}
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-xl p-4 shadow-lg">
+          <div className={`bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-xl p-4 shadow-lg relative group ${message.approve ? 'pb-12' : ''}`}>
             {/* Method and Path */}
             <div className="flex items-center space-x-3 mb-3">
               <span className={`${getMethodColor(functionData.method)} text-white text-xs font-bold px-3 py-1 rounded-md min-w-[70px] text-center`}>
@@ -242,30 +243,23 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
                 </pre>
               </div>
             )}
-          </div>
 
-          {/* Approve Button */}
-          {message.approve && (
-            <div className="mt-3 flex justify-start">
+            {/* Approve Button - Bottom Right Corner */}
+            {message.approve && (
               <button
                 onClick={handleApprove}
                 disabled={isLoadingApprove}
-                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none border border-green-400/20 flex items-center space-x-2"
+                className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-green-500 hover:bg-green-600 text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center"
+                title="Approve this response"
               >
                 {isLoadingApprove ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" />
-                    <span>Approving...</span>
-                  </>
+                  <Loader2 size={16} className="animate-spin" />
                 ) : (
-                  <>
-                    <CheckCircle size={16} />
-                    <span>Approve</span>
-                  </>
+                  <CheckCircle size={16} />
                 )}
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

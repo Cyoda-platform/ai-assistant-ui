@@ -18,6 +18,7 @@ import {
   Github
 } from 'lucide-react';
 import AuthState from '@/components/AuthState/AuthState';
+import Logo from '@/assets/images/logo.svg';
 
 interface Notification {
   id: number;
@@ -102,7 +103,7 @@ const Header: React.FC<HeaderProps> = ({
               className="flex items-center space-x-3 cursor-pointer"
               onClick={() => navigate('/')}
             >
-              <div className="text-2xl font-bold text-teal-400">CYODA</div>
+              <img src={Logo} alt="CYODA" className="h-8" />
               <span className="text-xs bg-slate-700 px-2 py-1 rounded-full text-slate-300 font-medium">ALPHA</span>
             </div>
 

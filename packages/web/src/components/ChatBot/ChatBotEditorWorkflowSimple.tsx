@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { Button, Tooltip, Spin, message, Drawer, Segmented } from 'antd';
+import { Button, Tooltip, Spin, message, Drawer, Segmented, Dropdown } from 'antd';
 import { SendOutlined, UndoOutlined, RedoOutlined, ZoomInOutlined, ZoomOutOutlined,
          LockOutlined, UnlockOutlined, ExpandOutlined, PlusOutlined,
          SaveOutlined, CodeOutlined, BarChartOutlined, FileTextOutlined, ClearOutlined,
-         ColumnHeightOutlined, ColumnWidthOutlined, CompressOutlined, FullscreenOutlined } from '@ant-design/icons';
+         ColumnHeightOutlined, ColumnWidthOutlined, CompressOutlined, FullscreenOutlined, MoreOutlined } from '@ant-design/icons';
 import {
   ReactFlow,
   Background,
@@ -20,13 +20,14 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import Editor from '@/components/Editor/Editor';
+import MonacoJsonEditor from '@/components/MonacoJsonEditor/MonacoJsonEditor';
 import WorkflowStatsPanel from './ChatBotEditorWorkflow/WorkflowStatsPanel';
 import EmptyState from './ChatBotEditorWorkflow/EmptyState';
 import InformativeNode from './ChatBotEditorWorkflow/InformativeNode';
 import { useWorkflowEditor } from '@/hooks/useWorkflowEditor';
 import { useAssistantStore } from '@/stores/assistant';
 import HelperStorage from '@/helpers/HelperStorage';
+import { workflowTheme } from './ChatBotEditorWorkflow/workflowTheme';
 
 interface ChatBotEditorWorkflowSimpleProps {
   technicalId: string;
@@ -84,10 +85,61 @@ const ChatBotEditorWorkflowSimpleInner: React.FC<ChatBotEditorWorkflowSimpleProp
   const [localNodes, setLocalNodes, onNodesChange] = useNodesState(nodes);
   const [localEdges, setLocalEdges, onEdgesChange] = useEdgesState(edges);
 
-  // Update local state when workflow data changes
+  // Handle node label change (rename state)
+  const handleNodeLabelChange = useCallback(async (oldLabel: string, newLabel: string) => {
+    if (oldLabel === newLabel || !newLabel.trim()) return;
+
+    try {
+      const workflowObj = JSON.parse(canvasData);
+
+      // Check if new label already exists
+      if (workflowObj.states[newLabel]) {
+        message.error(`State "${newLabel}" already exists`);
+        return;
+      }
+
+      // Rename the state
+      const stateData = workflowObj.states[oldLabel];
+      delete workflowObj.states[oldLabel];
+      workflowObj.states[newLabel] = stateData;
+
+      // Update initial_state if it was the renamed state
+      if (workflowObj.initial_state === oldLabel) {
+        workflowObj.initial_state = newLabel;
+      }
+
+      // Update all transitions that reference the old state
+      Object.keys(workflowObj.states).forEach(stateId => {
+        const state = workflowObj.states[stateId];
+        if (state.transitions && Array.isArray(state.transitions)) {
+          state.transitions.forEach((transition: any) => {
+            if (transition.next === oldLabel) {
+              transition.next = newLabel;
+            }
+          });
+        }
+      });
+
+      const updatedJson = JSON.stringify(workflowObj, null, 2);
+      await updateWorkflowPreserveLayout(updatedJson);
+      message.success(`State renamed from "${oldLabel}" to "${newLabel}"`);
+    } catch (error) {
+      console.error('Error renaming state:', error);
+      message.error('Failed to rename state');
+    }
+  }, [canvasData, updateWorkflowPreserveLayout]);
+
+  // Update local state when workflow data changes - add onLabelChange to node data
   React.useEffect(() => {
-    setLocalNodes(nodes);
-  }, [nodes, setLocalNodes]);
+    const nodesWithCallback = nodes.map(node => ({
+      ...node,
+      data: {
+        ...node.data,
+        onLabelChange: handleNodeLabelChange
+      }
+    }));
+    setLocalNodes(nodesWithCallback);
+  }, [nodes, setLocalNodes, handleNodeLabelChange]);
 
   React.useEffect(() => {
     setLocalEdges(edges);
@@ -220,7 +272,10 @@ const ChatBotEditorWorkflowSimpleInner: React.FC<ChatBotEditorWorkflowSimpleProp
   const hasWorkflowActions = !import.meta.env.VITE_IS_WORKFLOW_ELECTRON;
 
   return (
-    <div className="w-full h-full bg-slate-900" style={{ position: 'relative' }}>
+    <div className="w-full h-full" style={{
+      position: 'relative',
+      background: workflowTheme.background.canvas
+    }}>
       <style>{`
         .react-flow__node-default {
           background: transparent !important;
@@ -232,6 +287,58 @@ const ChatBotEditorWorkflowSimpleInner: React.FC<ChatBotEditorWorkflowSimpleProp
         }
         .react-flow__node-default.selected {
           box-shadow: none !important;
+        }
+
+        /* Modern glassmorphism controls */
+        .react-flow__controls {
+          background: ${workflowTheme.background.glass} !important;
+          backdrop-filter: blur(12px) !important;
+          border: 1px solid ${workflowTheme.border.glass} !important;
+          border-radius: 12px !important;
+          box-shadow: ${workflowTheme.shadow.lg} !important;
+        }
+
+        .react-flow__controls-button {
+          background: transparent !important;
+          border: none !important;
+          border-bottom: 1px solid ${workflowTheme.border.glass} !important;
+          color: ${workflowTheme.text.secondary} !important;
+          transition: all 0.2s ease !important;
+        }
+
+        .react-flow__controls-button:last-child {
+          border-bottom: none !important;
+        }
+
+        .react-flow__controls-button:hover {
+          background: ${workflowTheme.background.hover} !important;
+          color: ${workflowTheme.text.primary} !important;
+          transform: scale(1.05);
+        }
+
+        .react-flow__controls-button:disabled {
+          opacity: 0.3 !important;
+        }
+
+        /* Modern minimap */
+        .react-flow__minimap {
+          background: ${workflowTheme.background.glass} !important;
+          backdrop-filter: blur(12px) !important;
+          border: 1px solid ${workflowTheme.border.glass} !important;
+          border-radius: 12px !important;
+          box-shadow: ${workflowTheme.shadow.lg} !important;
+        }
+
+        /* Smooth edges */
+        .react-flow__edge-path {
+          stroke-width: 2 !important;
+          transition: stroke 0.2s ease !important;
+        }
+
+        .react-flow__edge.selected .react-flow__edge-path {
+          stroke: ${workflowTheme.edges.selected} !important;
+          stroke-width: 3 !important;
+          filter: drop-shadow(0 0 8px ${workflowTheme.edges.selected});
         }
       `}</style>
 
@@ -245,10 +352,27 @@ const ChatBotEditorWorkflowSimpleInner: React.FC<ChatBotEditorWorkflowSimpleProp
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'rgba(15, 23, 42, 0.8)',
+          background: workflowTheme.background.overlay,
+          backdropFilter: 'blur(8px)',
           zIndex: 9999
         }}>
-          <Spin size="large" />
+          <div style={{
+            background: workflowTheme.background.glass,
+            backdropFilter: 'blur(12px)',
+            padding: '32px 48px',
+            borderRadius: '16px',
+            border: `1px solid ${workflowTheme.border.glass}`,
+            boxShadow: workflowTheme.shadow.xl
+          }}>
+            <Spin size="large" />
+            <div style={{
+              marginTop: '16px',
+              color: workflowTheme.text.secondary,
+              fontSize: '14px'
+            }}>
+              Loading workflow...
+            </div>
+          </div>
         </div>
       )}
 
@@ -269,98 +393,125 @@ const ChatBotEditorWorkflowSimpleInner: React.FC<ChatBotEditorWorkflowSimpleProp
           style={{ width: '100%', height: '100%' }}
         >
           <Controls
-            className="bg-slate-800 border border-slate-600"
-            style={{
-              button: {
-                backgroundColor: '#1e293b',
-                color: '#e2e8f0',
-                border: '1px solid #475569',
-              }
-            }}
             showZoom={true}
             showFitView={true}
             showInteractive={true}
           >
-            <Tooltip title="Undo" placement="right">
+            <Tooltip title="Undo (Ctrl+Z)" placement="right">
               <ControlButton onClick={undoAction} disabled={!canUndo}>
-                <UndoOutlined />
+                <UndoOutlined style={{ fontSize: '16px' }} />
               </ControlButton>
             </Tooltip>
-            <Tooltip title="Redo" placement="right">
+            <Tooltip title="Redo (Ctrl+Y)" placement="right">
               <ControlButton onClick={redoAction} disabled={!canRedo}>
-                <RedoOutlined />
+                <RedoOutlined style={{ fontSize: '16px' }} />
               </ControlButton>
             </Tooltip>
-            <Tooltip title="Add State" placement="right">
+            <Tooltip title="Add New State" placement="right">
               <ControlButton onClick={addNewState}>
-                <PlusOutlined />
+                <PlusOutlined style={{ fontSize: '16px' }} />
               </ControlButton>
             </Tooltip>
             <Tooltip title="Reset View" placement="right">
               <ControlButton onClick={resetTransform}>
-                <CompressOutlined />
+                <CompressOutlined style={{ fontSize: '16px' }} />
               </ControlButton>
             </Tooltip>
           </Controls>
           <MiniMap
-            className="bg-slate-800 border border-slate-600"
-            nodeColor="#64748b"
-            maskColor="rgba(15, 23, 42, 0.8)"
+            nodeColor={(node) => {
+              if (node.data.isInitial) return workflowTheme.nodes.initial.color;
+              if (node.data.isTerminal) return workflowTheme.nodes.terminal.color;
+              return workflowTheme.nodes.normal.color;
+            }}
+            maskColor={workflowTheme.background.overlay}
             zoomable
             pannable
           />
           <Background
             variant="dots"
             gap={20}
-            size={1}
-            color="#475569"
+            size={1.5}
+            color={workflowTheme.border.default}
           />
 
-          {/* Layout Direction Toggle */}
+          {/* Layout Direction Toggle - Modern Glass Panel */}
           <Panel position="top-left" style={{
-            background: '#1E293B',
-            padding: '8px',
-            borderRadius: '8px',
-            border: '1px solid #475569',
-            marginTop: '60px'
+            background: workflowTheme.background.glass,
+            backdropFilter: 'blur(12px)',
+            padding: '10px',
+            borderRadius: '12px',
+            border: `1px solid ${workflowTheme.border.glass}`,
+            marginTop: '60px',
+            boxShadow: workflowTheme.shadow.lg
           }}>
-            <Tooltip title="Layout Direction">
+            <Tooltip title="Toggle Layout Direction">
               <Segmented
                 value={layoutDirection}
                 onChange={(value) => toggleLayoutDirection()}
                 options={[
                   {
-                    label: <ColumnWidthOutlined />,
+                    label: <ColumnWidthOutlined style={{ fontSize: '16px' }} />,
                     value: 'horizontal',
                   },
                   {
-                    label: <ColumnHeightOutlined />,
+                    label: <ColumnHeightOutlined style={{ fontSize: '16px' }} />,
                     value: 'vertical',
                   },
                 ]}
                 style={{
-                  background: '#0F172A',
+                  background: workflowTheme.background.node,
+                  borderRadius: '8px',
                 }}
               />
             </Tooltip>
           </Panel>
 
-          {/* Validation Status Badge */}
+          {/* Validation Status Badge - Modern Glass Panel */}
           <Panel position="top-right" style={{
-            background: '#1E293B',
-            padding: '8px 12px',
-            borderRadius: '8px',
-            border: '1px solid #475569'
+            background: workflowTheme.background.glass,
+            backdropFilter: 'blur(12px)',
+            padding: '10px 16px',
+            borderRadius: '12px',
+            border: `1px solid ${workflowTheme.border.glass}`,
+            boxShadow: workflowTheme.shadow.lg,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
           }}>
-            {validationResult?.isValid && <span style={{ color: '#10B981' }}>✓ Valid</span>}
+            {validationResult?.isValid && (
+              <span style={{
+                color: workflowTheme.status.success,
+                fontWeight: 600,
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                <span style={{ fontSize: '16px' }}>✓</span> Valid Workflow
+              </span>
+            )}
             {validationResult?.errors.length > 0 && (
-              <span style={{ color: '#DC2626' }}>{validationResult.errors.length} Errors</span>
+              <span style={{
+                color: workflowTheme.status.error,
+                fontWeight: 600,
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: workflowTheme.validation.error.background,
+                padding: '4px 10px',
+                borderRadius: '6px',
+                border: `1px solid ${workflowTheme.validation.error.border}`
+              }}>
+                <span style={{ fontSize: '16px' }}>⚠</span> {validationResult.errors.length} Error{validationResult.errors.length > 1 ? 's' : ''}
+              </span>
             )}
           </Panel>
         </ReactFlow>
       )}
 
-      {/* Floating Action Buttons */}
+      {/* Floating Action Button with Dropdown - Modern Glass Design */}
       <div style={{
         position: 'absolute',
         top: '16px',
@@ -371,95 +522,197 @@ const ChatBotEditorWorkflowSimpleInner: React.FC<ChatBotEditorWorkflowSimpleProp
         zIndex: 1000,
         pointerEvents: 'auto'
       }}>
-          <Tooltip title="Edit JSON" placement="left">
-            <Button
-              type="primary"
-              icon={<CodeOutlined />}
-              onClick={() => setShowEditorDrawer(true)}
-              size="large"
-              style={{ width: '120px' }}
-            >
-              Editor
-            </Button>
-          </Tooltip>
-          <Tooltip title="View Statistics" placement="left">
-            <Button
-              icon={<BarChartOutlined />}
-              onClick={() => setShowStatsDrawer(true)}
-              size="large"
-              style={{ width: '120px' }}
-            >
-              Stats
-            </Button>
-          </Tooltip>
-          {hasWorkflowActions && (
-            <>
-              <Tooltip title="Save Workflow" placement="left">
-                <Button
-                  icon={<SaveOutlined />}
-                  onClick={handleManualSave}
-                  disabled={validationResult?.errors.length > 0}
-                  size="large"
-                  style={{ width: '120px' }}
-                >
-                  Save
-                </Button>
-              </Tooltip>
-              <Tooltip title="Submit Workflow" placement="left">
-                <Button
-                  type="primary"
-                  icon={<SendOutlined />}
-                  onClick={onSubmitQuestion}
-                  disabled={validationResult?.errors.length > 0}
-                  size="large"
-                  style={{ width: '120px' }}
-                >
-                  Submit
-                </Button>
-              </Tooltip>
-            </>
-          )}
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: 'editor',
+                  label: 'JSON Editor',
+                  icon: <CodeOutlined style={{ color: workflowTheme.nodes.initial.color }} />,
+                  onClick: () => setShowEditorDrawer(true),
+                },
+                {
+                  key: 'stats',
+                  label: 'Statistics',
+                  icon: <BarChartOutlined style={{ color: workflowTheme.nodes.normal.color }} />,
+                  onClick: () => setShowStatsDrawer(true),
+                },
+                ...(hasWorkflowActions ? [
+                  {
+                    type: 'divider' as const,
+                  },
+                  {
+                    key: 'save',
+                    label: 'Save Workflow',
+                    icon: <SaveOutlined style={{ color: workflowTheme.status.success }} />,
+                    onClick: handleManualSave,
+                    disabled: validationResult?.errors.length > 0,
+                  },
+                  {
+                    key: 'submit',
+                    label: 'Submit Workflow',
+                    icon: <SendOutlined style={{ color: workflowTheme.status.info }} />,
+                    onClick: onSubmitQuestion,
+                    disabled: validationResult?.errors.length > 0,
+                  },
+                ] : []),
+              ],
+            }}
+            placement="bottomRight"
+            trigger={['click']}
+          >
+            <Tooltip title="Workflow Actions" placement="left">
+              <Button
+                type="primary"
+                icon={<MoreOutlined />}
+                size="large"
+                style={{
+                  width: '140px',
+                  height: '44px',
+                  background: `linear-gradient(135deg, ${workflowTheme.nodes.terminal.color} 0%, ${workflowTheme.nodes.normal.color} 100%)`,
+                  border: 'none',
+                  borderRadius: '12px',
+                  boxShadow: `0 0 20px rgba(13, 132, 132, 0.3)`,
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = workflowTheme.shadow.glowStrong;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = workflowTheme.shadow.glow;
+                }}
+              >
+                Actions
+              </Button>
+            </Tooltip>
+          </Dropdown>
         </div>
 
-        {/* Editor Drawer */}
+        {/* Editor Drawer - Modern Design */}
         <Drawer
-          title="Workflow JSON Editor"
+          title={
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              fontSize: '16px',
+              fontWeight: 600
+            }}>
+              <CodeOutlined style={{
+                fontSize: '20px',
+                color: workflowTheme.nodes.initial.color
+              }} />
+              <span>Workflow JSON Editor</span>
+            </div>
+          }
           placement="right"
-          width={600}
+          width={720}
           onClose={handleCloseEditorDrawer}
           open={showEditorDrawer}
+          styles={{
+            header: {
+              background: workflowTheme.background.glass,
+              backdropFilter: 'blur(12px)',
+              borderBottom: `1px solid ${workflowTheme.border.glass}`,
+            },
+            body: {
+              background: workflowTheme.background.canvas,
+              padding: '24px',
+            }
+          }}
           extra={
             <div style={{ display: 'flex', gap: '8px' }}>
-              <Button icon={<FileTextOutlined />} onClick={loadSampleWorkflow} size="small">
-                Sample
-              </Button>
-              <Button icon={<ClearOutlined />} onClick={onClear} size="small">
-                Clear
-              </Button>
+              <Tooltip title="Load Sample Workflow">
+                <Button
+                  icon={<FileTextOutlined />}
+                  onClick={loadSampleWorkflow}
+                  style={{
+                    borderRadius: '8px',
+                    background: workflowTheme.background.node,
+                    border: `1px solid ${workflowTheme.border.light}`,
+                    color: workflowTheme.text.secondary
+                  }}
+                >
+                  Sample
+                </Button>
+              </Tooltip>
+              <Tooltip title="Clear Workflow">
+                <Button
+                  icon={<ClearOutlined />}
+                  onClick={onClear}
+                  danger
+                  style={{
+                    borderRadius: '8px',
+                  }}
+                >
+                  Clear
+                </Button>
+              </Tooltip>
             </div>
           }
         >
-          <div style={{ marginBottom: '12px', padding: '12px', background: '#1E293B', borderRadius: '8px' }}>
-            <div style={{ fontSize: '12px', color: '#94A3B8' }}>
-              💡 <strong>Tip:</strong> Node positions are preserved when you edit the workflow.
+          <div style={{
+            marginBottom: '20px',
+            padding: '16px',
+            background: workflowTheme.background.glass,
+            backdropFilter: 'blur(12px)',
+            borderRadius: '12px',
+            border: `1px solid ${workflowTheme.border.glass}`,
+            boxShadow: workflowTheme.shadow.md
+          }}>
+            <div style={{
+              fontSize: '13px',
+              color: workflowTheme.text.secondary,
+              lineHeight: '1.6'
+            }}>
+              <span style={{ fontSize: '18px', marginRight: '8px' }}>💡</span>
+              <strong style={{ color: workflowTheme.text.primary }}>Smart Editing:</strong> Node positions are automatically preserved when you edit the workflow.
               Changes will be applied seamlessly when you close this drawer.
             </div>
           </div>
-          <Editor
+          <MonacoJsonEditor
             value={canvasData}
             onChange={handleCanvasDataChange}
-            language="json"
-            style={{ height: 'calc(100vh - 200px)' }}
+            height="calc(100vh - 280px)"
           />
         </Drawer>
 
-        {/* Stats Drawer */}
+        {/* Stats Drawer - Modern Design */}
         <Drawer
-          title="Workflow Statistics"
+          title={
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              fontSize: '16px',
+              fontWeight: 600
+            }}>
+              <BarChartOutlined style={{
+                fontSize: '20px',
+                color: workflowTheme.nodes.normal.color
+              }} />
+              <span>Workflow Statistics</span>
+            </div>
+          }
           placement="right"
-          width={400}
+          width={480}
           onClose={() => setShowStatsDrawer(false)}
           open={showStatsDrawer}
+          styles={{
+            header: {
+              background: workflowTheme.background.glass,
+              backdropFilter: 'blur(12px)',
+              borderBottom: `1px solid ${workflowTheme.border.glass}`,
+            },
+            body: {
+              background: workflowTheme.background.canvas,
+              padding: '24px',
+            }
+          }}
         >
           <WorkflowStatsPanel
             workflowData={workflowData}
@@ -467,18 +720,31 @@ const ChatBotEditorWorkflowSimpleInner: React.FC<ChatBotEditorWorkflowSimpleProp
           />
         </Drawer>
 
-        {/* Node Details Drawer */}
+        {/* Node Details Drawer - Modern Design */}
         <Drawer
           title={
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              fontSize: '16px',
+              fontWeight: 600
+            }}>
+              <FileTextOutlined style={{
+                fontSize: '20px',
+                color: workflowTheme.nodes.normal.color
+              }} />
               <span>State: {selectedNodeId}</span>
               {selectedNodeId && (
                 <span style={{
                   fontSize: '12px',
-                  padding: '2px 8px',
-                  background: '#1E293B',
-                  borderRadius: '4px',
-                  color: '#94A3B8'
+                  padding: '4px 10px',
+                  background: workflowTheme.background.glass,
+                  backdropFilter: 'blur(8px)',
+                  borderRadius: '8px',
+                  border: `1px solid ${workflowTheme.border.glass}`,
+                  color: workflowTheme.text.secondary,
+                  fontWeight: 500
                 }}>
                   {workflowData?.states?.[selectedNodeId]?.transitions?.length || 0} transitions
                 </span>
@@ -486,66 +752,159 @@ const ChatBotEditorWorkflowSimpleInner: React.FC<ChatBotEditorWorkflowSimpleProp
             </div>
           }
           placement="right"
-          width={600}
+          width={720}
           onClose={() => setShowNodeDrawer(false)}
           open={showNodeDrawer}
+          styles={{
+            header: {
+              background: workflowTheme.background.glass,
+              backdropFilter: 'blur(12px)',
+              borderBottom: `1px solid ${workflowTheme.border.glass}`,
+            },
+            body: {
+              background: workflowTheme.background.canvas,
+              padding: '24px',
+            }
+          }}
           extra={
             <div style={{ display: 'flex', gap: '8px' }}>
-              <Button onClick={() => setShowNodeDrawer(false)}>
+              <Button
+                onClick={() => setShowNodeDrawer(false)}
+                style={{
+                  borderRadius: '8px',
+                  background: workflowTheme.background.node,
+                  border: `1px solid ${workflowTheme.border.light}`,
+                  color: workflowTheme.text.secondary
+                }}
+              >
                 Cancel
               </Button>
-              <Button type="primary" onClick={handleSaveNodeChanges}>
+              <Button
+                type="primary"
+                onClick={handleSaveNodeChanges}
+                style={{
+                  borderRadius: '8px',
+                  background: `linear-gradient(135deg, ${workflowTheme.status.success} 0%, ${workflowTheme.nodes.terminal.color} 100%)`,
+                  border: 'none',
+                  fontWeight: 600
+                }}
+              >
                 Save Changes
               </Button>
             </div>
           }
         >
-          <div style={{ marginBottom: '16px' }}>
+          <div style={{ marginBottom: '20px' }}>
             <div style={{
-              padding: '12px',
-              background: '#1E293B',
-              borderRadius: '8px',
-              marginBottom: '16px'
+              padding: '16px',
+              background: workflowTheme.background.glass,
+              backdropFilter: 'blur(12px)',
+              borderRadius: '12px',
+              border: `1px solid ${workflowTheme.border.glass}`,
+              marginBottom: '20px',
+              boxShadow: workflowTheme.shadow.md
             }}>
-              <div style={{ fontSize: '12px', color: '#94A3B8', marginBottom: '4px' }}>
+              <div style={{
+                fontSize: '12px',
+                color: workflowTheme.text.muted,
+                marginBottom: '6px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                fontWeight: 600
+              }}>
                 State ID
               </div>
-              <div style={{ fontSize: '14px', fontWeight: 500, fontFamily: 'monospace' }}>
+              <div style={{
+                fontSize: '15px',
+                fontWeight: 600,
+                fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                color: workflowTheme.text.primary,
+                background: workflowTheme.background.node,
+                padding: '8px 12px',
+                borderRadius: '6px',
+                border: `1px solid ${workflowTheme.border.default}`
+              }}>
                 {selectedNodeId}
               </div>
             </div>
 
-            <div style={{ marginBottom: '8px', fontSize: '14px', fontWeight: 500 }}>
+            <div style={{
+              marginBottom: '10px',
+              fontSize: '15px',
+              fontWeight: 600,
+              color: workflowTheme.text.primary
+            }}>
               State Configuration (JSON)
             </div>
-            <div style={{ fontSize: '12px', color: '#94A3B8', marginBottom: '12px' }}>
-              Edit the state configuration below. Changes will update the workflow.
+            <div style={{
+              fontSize: '13px',
+              color: workflowTheme.text.muted,
+              marginBottom: '16px',
+              lineHeight: '1.5'
+            }}>
+              Edit the state configuration below. Changes will update the workflow seamlessly.
             </div>
           </div>
 
-          <Editor
+          <MonacoJsonEditor
             value={nodeEditData}
             onChange={setNodeEditData}
-            language="json"
-            style={{ height: 'calc(100vh - 300px)', minHeight: '400px' }}
+            height="calc(100vh - 420px)"
           />
 
           <div style={{
-            marginTop: '16px',
-            padding: '12px',
-            background: '#1E293B',
-            borderRadius: '8px',
-            fontSize: '12px',
-            color: '#94A3B8'
+            marginTop: '20px',
+            padding: '16px',
+            background: workflowTheme.background.glass,
+            backdropFilter: 'blur(12px)',
+            borderRadius: '12px',
+            border: `1px solid ${workflowTheme.border.glass}`,
+            fontSize: '13px',
+            color: workflowTheme.text.secondary,
+            boxShadow: workflowTheme.shadow.md
           }}>
-            <div style={{ fontWeight: 500, marginBottom: '8px', color: '#E2E8F0' }}>
-              💡 Tips:
+            <div style={{
+              fontWeight: 600,
+              marginBottom: '12px',
+              color: workflowTheme.text.primary,
+              fontSize: '14px'
+            }}>
+              <span style={{ fontSize: '18px', marginRight: '8px' }}>💡</span>
+              Quick Tips:
             </div>
-            <ul style={{ margin: 0, paddingLeft: '20px' }}>
-              <li>Add transitions to connect this state to others</li>
-              <li>Set <code>manual: true</code> for user-triggered transitions</li>
-              <li>Add processors to execute logic during transitions</li>
-              <li>Use criteria to conditionally allow transitions</li>
+            <ul style={{
+              margin: 0,
+              paddingLeft: '28px',
+              lineHeight: '1.8'
+            }}>
+              <li>Add <code style={{
+                background: workflowTheme.background.node,
+                padding: '2px 6px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>transitions</code> to connect this state to others</li>
+              <li>Set <code style={{
+                background: workflowTheme.background.node,
+                padding: '2px 6px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>manual: true</code> for user-triggered transitions</li>
+              <li>Add <code style={{
+                background: workflowTheme.background.node,
+                padding: '2px 6px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>processors</code> to execute logic during transitions</li>
+              <li>Use <code style={{
+                background: workflowTheme.background.node,
+                padding: '2px 6px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                fontFamily: 'monospace'
+              }}>criteria</code> to conditionally allow transitions</li>
             </ul>
           </div>
         </Drawer>

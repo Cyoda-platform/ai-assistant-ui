@@ -339,7 +339,13 @@ const ChatBotView: React.FC = () => {
   };
 
   const onToggleCanvasFullscreen = () => {
-    setIsCanvasFullscreen(!isCanvasFullscreen);
+    const newFullscreenState = !isCanvasFullscreen;
+    setIsCanvasFullscreen(newFullscreenState);
+
+    // Close chat history when entering fullscreen mode
+    if (newFullscreenState) {
+      setIsChatHistoryOpen(false);
+    }
   };
 
   const onEntitiesDetails = () => {
@@ -373,16 +379,6 @@ const ChatBotView: React.FC = () => {
     setIsLoading(true);
     setMessages([]);
     setChatData(null);
-
-    // Show welcome notification
-    setTimeout(() => {
-      showSuccess('Chat Loaded Successfully', 'Your conversation is ready with enhanced markdown rendering and real-time updates!');
-    }, 1500);
-
-    // Show additional demo notifications
-    setTimeout(() => {
-      showInfo('Feature Update', 'New notification system with message-style bubbles is now active.');
-    }, 3000);
 
     // Clear any existing polling
     if (pollTimeoutRef.current) {
