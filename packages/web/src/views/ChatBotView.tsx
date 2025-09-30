@@ -1,22 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Home,
-  History,
-  Settings,
-  HelpCircle,
-  Clock,
-  ChevronRight,
-  ArrowLeft,
-  X
-} from 'lucide-react';
 import ChatBot from '@/components/ChatBot/ChatBot';
 import ChatBotCanvas from '@/components/ChatBot/ChatBotCanvas';
 import Header from '@/components/Header/Header';
 import { NotificationManager, useNotifications } from '@/components/Notification/Notification';
 import { useAssistantStore } from '@/stores/assistant';
 import EntityDataPanel from '@/components/EntityDataPanel/EntityDataPanel';
-import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
+import ChatHistoryPanel from '@/components/ChatHistoryPanel/ChatHistoryPanel';
 import { useResizablePanel } from '@/hooks/useResizablePanel';
 
 interface Message {
@@ -42,6 +32,7 @@ const ChatBotView: React.FC = () => {
   const { technicalId } = useParams<{ technicalId: string }>();
   const navigate = useNavigate();
   const assistantStore = useAssistantStore();
+  const chatList = useAssistantStore((state) => state.chatList); // Subscribe to chatList specifically
   const { notifications, removeNotification, showSuccess, showError, showInfo } = useNotifications();
   const [canvasVisible, setCanvasVisible] = useState(false);
   const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
@@ -52,6 +43,7 @@ const ChatBotView: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatData, setChatData] = useState<any>(null);
   const [headerNotifications, setHeaderNotifications] = useState<HeaderNotification[]>([]);
+  const [chatsLoading, setChatsLoading] = useState(true);
   const notificationIdCounter = useRef(1);
 
   // Resizable panels - start at max width
@@ -79,11 +71,17 @@ const ChatBotView: React.FC = () => {
   const pollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const promiseIntervalRef = useRef<Promise<any> | null>(null);
+  const technicalIdRef = useRef<string | undefined>(technicalId); // Track current technicalId
 
   const BASE_INTERVAL = parseInt(import.meta.env.VITE_APP_QUESTION_POLLING_INTERVAL_MS) || 5000;
   const MAX_INTERVAL = parseInt(import.meta.env.VITE_APP_QUESTION_MAX_POLLING_INTERVAL) || 7000;
   const JITTER_PERCENT = 0.1;
   const currentIntervalRef = useRef(BASE_INTERVAL);
+
+  // Keep technicalIdRef in sync with technicalId
+  useEffect(() => {
+    technicalIdRef.current = technicalId;
+  }, [technicalId]);
 
   // Keyboard shortcuts for canvas
   useEffect(() => {
@@ -179,18 +177,33 @@ const ChatBotView: React.FC = () => {
 
   // Load chat history
   const loadChatHistory = async (id?: string): Promise<boolean> => {
-    if (id && id !== technicalId) return false;
-    if (promiseIntervalRef.current || !technicalId) return false;
+    // Use the ref to get the current technicalId (not the closure value)
+    const currentTechnicalId = technicalIdRef.current;
+
+    // If an id is provided, only proceed if it matches the current chat
+    if (id && id !== currentTechnicalId) {
+      console.log('⚠️ Skipping loadChatHistory - requested chat does not match current chat');
+      return false;
+    }
+
+    if (promiseIntervalRef.current || !currentTechnicalId) return false;
 
     abortControllerRef.current = new AbortController();
     const newResults: boolean[] = [];
     const isFirstRequest = messages.length === 0;
 
     try {
-      promiseIntervalRef.current = assistantStore.getChatById(technicalId, {
+      promiseIntervalRef.current = assistantStore.getChatById(currentTechnicalId, {
         signal: abortControllerRef.current.signal
       });
       const { data } = await promiseIntervalRef.current;
+
+      // Double-check that technicalId hasn't changed during the async operation
+      // If it did, discard this data as it's stale
+      if (currentTechnicalId !== technicalIdRef.current) {
+        console.log('⚠️ Discarding stale chat data - technicalId changed during fetch');
+        return false;
+      }
 
       // Only update chatData if entities_data has changed or is not empty
       // This prevents flickering when entities_data temporarily becomes empty during polling
@@ -239,6 +252,11 @@ const ChatBotView: React.FC = () => {
           console.log('🔒 KEEPING CHAT BLOCKED - Waiting for question or ui_function');
         }
       }
+    } catch (error: any) {
+      // Only log errors that aren't abort errors
+      if (error?.name !== 'AbortError' && error?.name !== 'CanceledError') {
+        console.error('Error loading chat history:', error);
+      }
     } finally {
       promiseIntervalRef.current = null;
     }
@@ -246,18 +264,47 @@ const ChatBotView: React.FC = () => {
     return newResults.some(el => el);
   };
 
-  // Poll for new messages
+  // Poll for new messages - only for the current chat from URL
   const pollChat = async () => {
+    // CRITICAL: Get technicalId from URL params, not from state or ref
+    // This ensures we only poll for the chat that's actually open in the browser
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlPath = window.location.pathname;
+    const urlTechnicalId = urlPath.split('/chat/')[1]?.split('/')[0] || urlPath.split('/chat/')[1];
+
+    // Don't continue polling if there's no technicalId in URL
+    if (!urlTechnicalId) {
+      console.log('⚠️ Stopping poll - no technicalId in URL');
+      return;
+    }
+
+    // Don't poll if the URL technicalId doesn't match our component's technicalId
+    if (urlTechnicalId !== technicalIdRef.current) {
+      console.log('⚠️ Stopping poll - URL technicalId does not match component technicalId');
+      return;
+    }
+
     try {
-      const gotNew = await loadChatHistory();
+      // Pass the URL technicalId to loadChatHistory for validation
+      const gotNew = await loadChatHistory(urlTechnicalId);
       currentIntervalRef.current = gotNew ? BASE_INTERVAL : Math.min(currentIntervalRef.current * 2, MAX_INTERVAL);
     } catch (err) {
       currentIntervalRef.current = Math.min(currentIntervalRef.current * 2, MAX_INTERVAL);
     }
 
-    const jitterFactor = 1 + (Math.random() * 2 - 1) * JITTER_PERCENT;
-    const nextDelay = Math.round(currentIntervalRef.current * jitterFactor);
-    pollTimeoutRef.current = setTimeout(pollChat, nextDelay);
+    // Only schedule next poll if:
+    // 1. The URL still has the same technicalId
+    // 2. The component's technicalId hasn't changed
+    const currentUrlPath = window.location.pathname;
+    const currentUrlTechnicalId = currentUrlPath.split('/chat/')[1]?.split('/')[0] || currentUrlPath.split('/chat/')[1];
+
+    if (currentUrlTechnicalId === urlTechnicalId && urlTechnicalId === technicalIdRef.current) {
+      const jitterFactor = 1 + (Math.random() * 2 - 1) * JITTER_PERCENT;
+      const nextDelay = Math.round(currentIntervalRef.current * jitterFactor);
+      pollTimeoutRef.current = setTimeout(pollChat, nextDelay);
+    } else {
+      console.log('⚠️ Stopping poll - chat changed (URL or component)');
+    }
   };
 
   const onAnswer = async (data: { answer: string; files?: File[] }) => {
@@ -371,35 +418,59 @@ const ChatBotView: React.FC = () => {
 
   // Load chat list for sidebar
   useEffect(() => {
-    assistantStore.getChats();
+    const loadChats = async () => {
+      setChatsLoading(true);
+      try {
+        await assistantStore.getChats();
+      } catch (error) {
+        console.error('Failed to load chats:', error);
+      } finally {
+        setChatsLoading(false);
+      }
+    };
+
+    loadChats();
   }, []);
 
   // Initialize chat and start polling
   useEffect(() => {
     if (!technicalId) return;
 
-    setIsLoading(true);
-    setMessages([]);
-    setChatData(null);
-
-    // Clear any existing polling
+    // Clear any existing polling and requests FIRST before setting new state
     if (pollTimeoutRef.current) {
       clearTimeout(pollTimeoutRef.current);
+      pollTimeoutRef.current = null;
     }
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    if (promiseIntervalRef.current) {
+      promiseIntervalRef.current = null;
     }
 
-    // Start polling
+    // Reset state for new chat
+    setIsLoading(true);
+    setMessages([]);
+    setChatData(null);
+    setCanvasVisible(false);
+    currentIntervalRef.current = BASE_INTERVAL;
+
+    // Start polling for the new chat
     pollChat();
 
     return () => {
       // Cleanup on unmount or technicalId change
       if (pollTimeoutRef.current) {
         clearTimeout(pollTimeoutRef.current);
+        pollTimeoutRef.current = null;
       }
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+      if (promiseIntervalRef.current) {
+        promiseIntervalRef.current = null;
       }
     };
   }, [technicalId]);
@@ -413,9 +484,10 @@ const ChatBotView: React.FC = () => {
     return <div>No chat ID provided</div>;
   }
 
-  // Group chats by date similar to HomeView
-  const groupChatsByDate = (chats: any[]) => {
-    if (!chats || chats.length === 0) return [];
+  // Group chats by date similar to HomeView - memoized to react to chatList changes
+  const chatGroups = useMemo(() => {
+    const chats = chatList || [];
+    if (chats.length === 0) return [];
 
     const today = new Date();
     const yesterday = new Date();
@@ -453,24 +525,7 @@ const ChatBotView: React.FC = () => {
       { title: 'Previous week', chats: previousWeekChats },
       { title: 'Older', chats: olderChats }
     ].filter(group => group.chats.length > 0);
-  };
-
-  // Format relative time
-  const formatRelativeTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
-    if (diffInDays < 7) return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
-    return date.toLocaleDateString();
-  };
-
-  const chatGroups = groupChatsByDate(assistantStore.chatList || []);
-  const hasChats = chatGroups.length > 0;
+  }, [chatList]);
 
   return (
     <div className="main-layout bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-white">
@@ -490,103 +545,18 @@ const ChatBotView: React.FC = () => {
         {/* Enhanced Left Sidebar - Resizable Chat History Panel */}
         {isChatHistoryOpen && (
           <div
-            className={`bg-slate-800/90 backdrop-blur-sm border-r border-slate-700 flex flex-col relative resizable-panel ${chatHistoryResize.isResizing ? 'resizing' : ''}`}
+            className={`resizable-panel ${chatHistoryResize.isResizing ? 'resizing' : ''}`}
             style={{ width: `${chatHistoryResize.width}px` }}
           >
-          {/* Header with Close Button */}
-          <div className="p-4 border-b border-slate-700">
-            <div className="flex items-center justify-between">
-              <h3 className="text-white font-semibold">Chat History</h3>
-              <button
-                onClick={() => setIsChatHistoryOpen(false)}
-                className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors"
-                title="Close chat history"
-              >
-                <X size={16} />
-              </button>
-            </div>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 flex flex-col p-4 space-y-2 overflow-hidden">
-            <div
-              onClick={() => navigate('/')}
-              className="flex items-center space-x-3 text-slate-300 hover:text-white cursor-pointer p-3 rounded-lg hover:bg-slate-700/50 transition-all duration-200 group"
-            >
-              <Home size={18} className="group-hover:scale-110 transition-transform" />
-              <span className="font-medium">Home</span>
-            </div>
-
-            <div className="flex-1 flex flex-col space-y-1 overflow-hidden">
-              <div className="flex items-center space-x-3 text-white cursor-pointer p-3 rounded-lg bg-teal-500/20 border border-teal-500/30 group">
-                <History size={18} className="group-hover:scale-110 transition-transform" />
-                <span className="font-medium">Current Chat</span>
-              </div>
-
-              {/* Chat History */}
-              <div className="px-3 space-y-3 flex-1 overflow-y-auto chat-container">
-                {hasChats ? (
-                  chatGroups.map((group) => (
-                    <div key={group.title} className="space-y-1">
-                      <div className="text-xs font-medium text-slate-500 uppercase tracking-wider px-3 py-1">
-                        {group.title}
-                      </div>
-                      <div className="space-y-1">
-                        {group.chats.map((chat) => (
-                          <div
-                            key={chat.technical_id}
-                            onClick={() => navigate(`/chat/${chat.technical_id}`)}
-                            className={`text-slate-400 hover:text-white cursor-pointer px-3 py-2 rounded-md hover:bg-slate-700/30 transition-all duration-200 text-sm ${
-                              chat.technical_id === technicalId ? 'text-teal-400 hover:text-teal-300 bg-teal-500/10 border border-teal-500/20' : ''
-                            }`}
-                          >
-                            <div className="flex items-center space-x-2">
-                              <Clock size={14} className={chat.technical_id === technicalId ? 'text-teal-400' : 'text-slate-500'} />
-                              <span className="truncate flex-1" title={chat.name || chat.description}>
-                                {chat.name || chat.description || 'Untitled Chat'}
-                              </span>
-                            </div>
-                            <div className="text-xs text-slate-600 mt-1 ml-5">
-                              {formatRelativeTime(chat.last_modified || chat.date)}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="px-2 py-4 text-center">
-                    <div className="text-sm text-slate-500 mb-2">No chat history yet</div>
-                    <div className="text-xs text-slate-600">Start a conversation to see your chats here</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </nav>
-
-          {/* Footer Actions */}
-          <div className="p-4 border-t border-slate-700 space-y-2">
-            <a
-              href="https://cyoda.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-3 text-slate-400 hover:text-white cursor-pointer p-3 rounded-lg hover:bg-slate-700/50 transition-all duration-200 group"
-            >
-              <HelpCircle size={18} className="group-hover:scale-110 transition-transform" />
-              <span className="font-medium">Help & Support</span>
-            </a>
-            <div className="flex items-center space-x-3 text-slate-400 hover:text-white cursor-pointer p-3 rounded-lg hover:bg-slate-700/50 transition-all duration-200 group">
-              <Settings size={18} className="group-hover:scale-110 transition-transform" />
-              <span className="font-medium">Settings</span>
-            </div>
-          </div>
-
-          {/* Resize Handle for Chat History Panel */}
-          <ResizeHandle
-            onMouseDown={chatHistoryResize.handleMouseDown}
-            isResizing={chatHistoryResize.isResizing}
-            position="right"
-          />
+            <ChatHistoryPanel
+              chatGroups={chatGroups}
+              currentChatId={technicalId}
+              isLoading={chatsLoading}
+              onResizeMouseDown={chatHistoryResize.handleMouseDown}
+              isResizing={chatHistoryResize.isResizing}
+              showHomeAsActive={false}
+              onClose={() => setIsChatHistoryOpen(false)}
+            />
           </div>
         )}
 

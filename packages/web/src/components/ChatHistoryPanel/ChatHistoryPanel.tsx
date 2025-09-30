@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, History, Clock, ChevronRight } from 'lucide-react';
+import { Home, History, Clock, ChevronRight, X } from 'lucide-react';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
 
@@ -24,6 +24,7 @@ interface ChatHistoryPanelProps {
   onResizeMouseDown: (e: React.MouseEvent) => void;
   isResizing: boolean;
   showHomeAsActive?: boolean; // true for home page, false for chat details
+  onClose?: () => void; // Optional close handler for chat details page
 }
 
 const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
@@ -32,7 +33,8 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
   isLoading = false,
   onResizeMouseDown,
   isResizing,
-  showHomeAsActive = false
+  showHomeAsActive = false,
+  onClose
 }) => {
   const navigate = useNavigate();
 
@@ -53,8 +55,24 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
 
   return (
     <div className="h-full bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel">
+      {/* Optional Header with Close Button */}
+      {onClose && (
+        <div className="p-4 border-b border-slate-700/50">
+          <div className="flex items-center justify-between">
+            <h3 className="text-white font-semibold text-sm">Chat History</h3>
+            <button
+              onClick={onClose}
+              className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors"
+              title="Close chat history"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Navigation */}
-      <nav className="flex-1 flex flex-col p-4 space-y-2 overflow-hidden pt-6">
+      <nav className={`flex-1 flex flex-col p-4 space-y-2 overflow-hidden ${onClose ? 'pt-4' : 'pt-6'}`}>
         {/* Home Button */}
         <a
           href="/"
