@@ -353,8 +353,30 @@ const ChatBotView: React.FC = () => {
         setIsLoading(true);
         loadChatHistory();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting answer:', error);
+
+      // Extract error message from response
+      let errorMessage = 'An error occurred while processing your request.';
+
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+
+      // Add error message to chat
+      const errorMsg: Message = {
+        id: `error-${Date.now()}`,
+        type: 'error',
+        text: errorMessage,
+        last_modified: new Date().toISOString(),
+        raw: error?.response?.data
+      };
+
+      setMessages(prev => [...prev, errorMsg]);
       setDisabled(false);
     }
   };

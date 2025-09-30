@@ -10,6 +10,7 @@ interface AssistantStore {
   chatList: ChatData[] | null;
   chatListReady: boolean;
   guestChatsExist: boolean;
+  isLoadingChats: boolean;
 
   // Getters
   isExistChats: boolean;
@@ -36,6 +37,7 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
   chatList: null,
   chatListReady: false,
   guestChatsExist: helperStorage.get('assistant:guestChatsExist', false),
+  isLoadingChats: false,
 
   // Getters
   get isExistChats() {
@@ -70,9 +72,21 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
   },
 
   async getChats() {
-    const response = await privateClient.get<ChatResponse>(`/v1/chats`);
-    set({ chatList: response.data.chats });
-    return response;
+    // Prevent concurrent calls
+    const state = get();
+    if (state.isLoadingChats) {
+      console.log('⚠️ getChats already in progress, skipping duplicate call');
+      return;
+    }
+
+    set({ isLoadingChats: true });
+    try {
+      const response = await privateClient.get<ChatResponse>(`/v1/chats`);
+      set({ chatList: response.data.chats, chatListReady: true });
+      return response;
+    } finally {
+      set({ isLoadingChats: false });
+    }
   },
 
   getChatById(technical_id: string, params = {}) {

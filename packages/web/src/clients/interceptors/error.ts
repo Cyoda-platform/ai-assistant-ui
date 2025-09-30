@@ -8,15 +8,42 @@ const errorInterceptor = (instance: AxiosInstance): void => {
     (response: AxiosResponse) => response,
     (error: AxiosError) => {
       const response = error.response;
-      if(response?.config?.url.includes('/v1/chats/transfer') && [403].includes(response?.status)) {
+      const url = response?.config?.url || '';
+
+      // For chat-related endpoints (answers, questions), don't show modal
+      // The error will be displayed in the chat UI instead
+      const isChatEndpoint = url.includes('/text-answers') ||
+                            url.includes('/answers') ||
+                            url.includes('/text-questions') ||
+                            url.includes('/questions');
+
+      // Special handling for /v1/chats/transfer - always show error modal
+      if(url.includes('/v1/chats/transfer') && [403].includes(response?.status)) {
         HelperErrors.handler(error);
         return Promise.reject(error);
       }
+
+      // For 403/429 errors, show login popup UNLESS it's a POST to /v1/chats (create chat)
+      // or has a specific error message that should be displayed
       if ([403, 429].includes(response?.status)) {
+        const isCreateChat = url.includes('/v1/chats') && response?.config?.method?.toUpperCase() === 'POST' && !url.includes('/text-') && !url.includes('/approve') && !url.includes('/rollback') && !url.includes('/notification');
+
+        // If it's create chat with an error message, show the error modal instead of login popup
+        if (isCreateChat && (response?.data?.message || response?.data?.error)) {
+          HelperErrors.handler(error);
+          return Promise.reject(error);
+        }
+
+        // Otherwise show login popup
         eventBus.$emit(SHOW_LOGIN_POPUP);
         return Promise.reject(error);
       }
-      HelperErrors.handler(error);
+
+      // Only show error modal if it's not a chat endpoint
+      if (!isChatEndpoint) {
+        HelperErrors.handler(error);
+      }
+
       return Promise.reject(error);
     }
   );

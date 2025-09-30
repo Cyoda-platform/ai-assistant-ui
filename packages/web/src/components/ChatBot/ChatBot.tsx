@@ -7,9 +7,10 @@ import ChatBotMessageNotification from './ChatBotMessageNotification';
 import ChatBotMessageAnswer from './ChatBotMessageAnswer';
 import ChatBotName from './ChatBotName';
 import ChatBotMessageFunction from './ChatBotMessageFunction';
+import ChatBotMessageError from './ChatBotMessageError';
 
 interface Message {
-  type: 'question' | 'answer' | 'notification' | 'ui_function';
+  type: 'question' | 'answer' | 'notification' | 'ui_function' | 'error';
   text: string;
   raw?: any;
   last_modified?: string;
@@ -111,6 +112,13 @@ const ChatBot: React.FC<ChatBotProps> = ({
             key={index}
             message={message}
             onApproveQuestion={onApproveQuestion}
+          />
+        );
+      case 'error':
+        return (
+          <ChatBotMessageError
+            key={index}
+            message={message}
           />
         );
       default:

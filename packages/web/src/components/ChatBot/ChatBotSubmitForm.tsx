@@ -157,10 +157,13 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
               value={answer}
               onChange={(e) => {
                 setAnswer(e.target.value);
-                // Auto-resize on change
+                // Auto-resize on change without causing jump
                 const target = e.target as HTMLTextAreaElement;
-                target.style.height = '60px'; // Reset to min height
+                // Temporarily set height to auto to get the correct scrollHeight
+                const currentHeight = target.style.height;
+                target.style.height = 'auto';
                 const newHeight = Math.min(Math.max(target.scrollHeight, 60), 150);
+                target.style.height = currentHeight; // Restore immediately
                 setTextareaHeight(newHeight);
               }}
               placeholder={placeholderText}

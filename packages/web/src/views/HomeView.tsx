@@ -224,11 +224,6 @@ const HomeView: React.FC = () => {
     console.log('Update notification:', data);
   };
 
-  // Load chats on mount
-  useEffect(() => {
-    assistantStore.getChats();
-  }, []);
-
   // Group chats by date similar to Vue implementation
   const groupChatsByDate = (chats: any[]) => {
     if (!chats || chats.length === 0) return [];

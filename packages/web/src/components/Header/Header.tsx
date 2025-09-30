@@ -287,13 +287,13 @@ const Header: React.FC<HeaderProps> = ({
                       </div>
                     ))}
                   </div>
-                  <div className="p-3 border-t border-slate-700">
-                    <button
-                      onClick={markAllAsRead}
-                      className="text-sm text-teal-400 hover:text-teal-300 transition-colors"
-                    >
+                  <div
+                    className="p-3 border-t border-slate-700 cursor-pointer hover:bg-slate-700/50 transition-colors"
+                    onClick={markAllAsRead}
+                  >
+                    <span className="text-sm text-teal-400 hover:text-teal-300 transition-colors">
                       Mark all as read
-                    </button>
+                    </span>
                   </div>
                 </div>
               )}
