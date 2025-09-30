@@ -1,0 +1,101 @@
+/* Mermaid Diagram Styling - Enhanced for better appearance */
+
+.mermaid-diagram {
+  /* Better text rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* SVG styling */
+.mermaid-diagram svg {
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Node styling */
+.mermaid-diagram .node rect,
+.mermaid-diagram .node circle,
+.mermaid-diagram .node ellipse,
+.mermaid-diagram .node polygon {
+  stroke-width: 2px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+/* Text styling */
+.mermaid-diagram text {
+  fill: #f1f5f9 !important;
+  font-size: 14px;
+}
+
+/* Edge/line styling */
+.mermaid-diagram .edgePath path,
+.mermaid-diagram .flowchart-link {
+  stroke-width: 2px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
+}
+
+/* Arrow styling */
+.mermaid-diagram .arrowheadPath {
+  fill: #0d9488;
+}
+
+/* Label background */
+.mermaid-diagram .edgeLabel {
+  background-color: #1e293b;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+/* Cluster/subgraph styling */
+.mermaid-diagram .cluster rect {
+  stroke-width: 2px;
+  rx: 4px;
+  ry: 4px;
+}
+
+/* Sequence diagram styling */
+.mermaid-diagram .actor {
+  stroke-width: 2px;
+}
+
+.mermaid-diagram .messageLine0,
+.mermaid-diagram .messageLine1 {
+  stroke-width: 2px;
+}
+
+/* State diagram styling */
+.mermaid-diagram .statediagram-state rect {
+  rx: 5px;
+  ry: 5px;
+}
+
+/* Class diagram styling */
+.mermaid-diagram .classGroup rect {
+  rx: 5px;
+  ry: 5px;
+}
+
+/* ER diagram styling */
+.mermaid-diagram .er.entityBox {
+  stroke-width: 2px;
+}
+
+/* Gantt chart styling */
+.mermaid-diagram .grid .tick line {
+  stroke: #475569;
+  stroke-width: 1px;
+}
+
+/* Pie chart styling */
+.mermaid-diagram .pieCircle {
+  stroke-width: 2px;
+}
+
+/* Git graph styling */
+.mermaid-diagram .commit-id,
+.mermaid-diagram .commit-msg,
+.mermaid-diagram .branch-label {
+  fill: #f1f5f9;
+  font-size: 12px;
+}
+

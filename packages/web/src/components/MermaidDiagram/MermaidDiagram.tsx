@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mermaid from 'mermaid';
 import { Copy, Download, Maximize2, Check } from 'lucide-react';
+import './MermaidDiagram.css';
 
 interface MermaidDiagramProps {
   chart: string;
@@ -14,55 +15,88 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, id }) => {
   const [svgContent, setSvgContent] = useState<string>('');
 
   useEffect(() => {
-    // Initialize Mermaid with dark theme and smaller font
+    // Initialize Mermaid with dark theme similar to Mermaid Live
     mermaid.initialize({
       startOnLoad: false,
       theme: 'dark',
       themeVariables: {
-        primaryColor: '#0D8484',
+        // Primary colors - using teal/cyan for better visibility
+        primaryColor: '#14b8a6',
         primaryTextColor: '#ffffff',
-        primaryBorderColor: '#0D8484',
-        lineColor: '#64748b',
+        primaryBorderColor: '#0d9488',
+
+        // Line and edge colors
+        lineColor: '#94a3b8',
+
+        // Background colors
+        background: 'transparent',
+        mainBkg: '#0f172a',
+        secondBkg: '#1e293b',
+        tertiaryBkg: '#334155',
+
+        // Node styling
+        nodeBkg: '#1e293b',
+        nodeBorder: '#0d9488',
+        nodeTextColor: '#f1f5f9',
+
+        // Cluster/subgraph styling
+        clusterBkg: '#0f172a',
+        clusterBorder: '#0d9488',
+
+        // Edge labels
+        edgeLabelBackground: '#1e293b',
+        edgeLabelText: '#f1f5f9',
+
+        // Link colors
+        defaultLinkColor: '#0d9488',
+
+        // Text colors
+        titleColor: '#ffffff',
+        textColor: '#f1f5f9',
+
+        // Section colors (for gantt, etc)
         sectionBkgColor: '#1e293b',
         altSectionBkgColor: '#334155',
+        sectionBkgColor2: '#475569',
+
+        // Task colors
+        activeTaskBkgColor: '#0d9488',
+        activeTaskBorderColor: '#14b8a6',
+        doneTaskBkgColor: '#475569',
+        doneTaskBorderColor: '#64748b',
+        critBkgColor: '#dc2626',
+        critBorderColor: '#ef4444',
+
+        // Grid
         gridColor: '#475569',
-        secondaryColor: '#475569',
-        tertiaryColor: '#64748b',
-        background: 'transparent',
-        mainBkg: '#1e293b',
-        secondBkg: '#334155',
-        tertiaryBkg: '#475569',
-        // Enhanced colors for better visibility
-        nodeBkg: '#334155',
-        nodeTextColor: '#ffffff',
-        edgeLabelBackground: '#1e293b',
-        clusterBkg: '#475569',
-        clusterBorder: '#0D8484',
-        defaultLinkColor: '#0D8484',
-        titleColor: '#ffffff',
-        activeTaskBkgColor: '#0D8484',
-        activeTaskBorderColor: '#ffffff',
-        section0: '#1e293b',
-        section1: '#334155',
-        section2: '#475569',
-        section3: '#64748b',
-        // Default font size
-        fontSize: '16px',
+
+        // Font size
+        fontSize: '14px',
       },
       flowchart: {
         useMaxWidth: true,
         htmlLabels: true,
         curve: 'basis',
-        nodeSpacing: 30,
-        rankSpacing: 40,
-        padding: 10,
+        nodeSpacing: 50,
+        rankSpacing: 50,
+        padding: 15,
+        diagramPadding: 8,
       },
       sequence: {
         useMaxWidth: true,
         wrap: true,
+        diagramMarginX: 50,
+        diagramMarginY: 10,
+        boxTextMargin: 5,
+        noteMargin: 10,
+        messageMargin: 35,
       },
       gantt: {
         useMaxWidth: true,
+        leftPadding: 75,
+        gridLineStartPadding: 35,
+        fontSize: 11,
+        sectionFontSize: 11,
       },
       journey: {
         useMaxWidth: true,
@@ -87,6 +121,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, id }) => {
       },
       mindmap: {
         useMaxWidth: true,
+        padding: 10,
       },
       pie: {
         useMaxWidth: true,
@@ -123,12 +158,20 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, id }) => {
         if (elementRef.current) {
           elementRef.current.innerHTML = svg;
 
-          // Style the SVG for better appearance
+          // Style the SVG for better appearance - similar to Mermaid Live
           const svgElement = elementRef.current.querySelector('svg');
           if (svgElement) {
             svgElement.style.maxWidth = '100%';
             svgElement.style.height = 'auto';
             svgElement.style.background = 'transparent';
+            svgElement.style.display = 'block';
+            svgElement.style.margin = '0 auto';
+
+            // Improve text rendering
+            const textElements = svgElement.querySelectorAll('text');
+            textElements.forEach((text) => {
+              text.style.fontFamily = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            });
           }
         }
       } catch (error) {
@@ -181,7 +224,10 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, id }) => {
         {/* Diagram Container */}
         <div
           ref={elementRef}
-          className="mermaid-diagram flex justify-center items-center min-h-[150px] max-h-[400px] overflow-auto bg-slate-900/50 border border-slate-600 rounded-lg p-4 max-w-2xl mx-auto"
+          className="mermaid-diagram flex justify-center items-center min-h-[200px] overflow-auto bg-slate-900/30 border border-slate-600/50 rounded-lg p-6"
+          style={{
+            maxHeight: 'none',
+          }}
         />
 
         {/* Action Buttons */}
