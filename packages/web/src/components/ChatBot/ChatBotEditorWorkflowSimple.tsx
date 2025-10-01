@@ -1,9 +1,10 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Button, Tooltip, Spin, message, Drawer, Segmented, Dropdown } from 'antd';
 import { SendOutlined, UndoOutlined, RedoOutlined, ZoomInOutlined, ZoomOutOutlined,
          LockOutlined, UnlockOutlined, ExpandOutlined, PlusOutlined,
          SaveOutlined, CodeOutlined, BarChartOutlined, FileTextOutlined, ClearOutlined,
-         ColumnHeightOutlined, ColumnWidthOutlined, CompressOutlined, FullscreenOutlined, MoreOutlined } from '@ant-design/icons';
+         ColumnHeightOutlined, ColumnWidthOutlined, CompressOutlined, FullscreenOutlined, MoreOutlined,
+         QuestionCircleOutlined } from '@ant-design/icons';
 import {
   ReactFlow,
   Background,
@@ -24,6 +25,7 @@ import MonacoJsonEditor from '@/components/MonacoJsonEditor/MonacoJsonEditor';
 import WorkflowStatsPanel from './ChatBotEditorWorkflow/WorkflowStatsPanel';
 import EmptyState from './ChatBotEditorWorkflow/EmptyState';
 import InformativeNode from './ChatBotEditorWorkflow/InformativeNode';
+import QuickHelpPanel from './ChatBotEditorWorkflow/QuickHelpPanel';
 import { useWorkflowEditor } from '@/hooks/useWorkflowEditor';
 import { useAssistantStore } from '@/stores/assistant';
 import HelperStorage from '@/helpers/HelperStorage';
@@ -49,10 +51,15 @@ const ChatBotEditorWorkflowSimpleInner: React.FC<ChatBotEditorWorkflowSimpleProp
   const [showNodeDrawer, setShowNodeDrawer] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [nodeEditData, setNodeEditData] = useState<string>('');
+  const [showQuickHelp, setShowQuickHelp] = useState(false);
 
   const assistantStore = useAssistantStore();
   const helperStorage = new HelperStorage();
   const reactFlowInstance = useReactFlow();
+
+  // Double-click detection state
+  const lastClickTimeRef = useRef<number>(0);
+  const lastClickPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // Use the workflow editor hook
   const {
@@ -129,17 +136,64 @@ const ChatBotEditorWorkflowSimpleInner: React.FC<ChatBotEditorWorkflowSimpleProp
     }
   }, [canvasData, updateWorkflowPreserveLayout]);
 
-  // Update local state when workflow data changes - add onLabelChange to node data
+  // Handle node name change (for inline editing)
+  const handleNodeNameChange = useCallback(async (nodeId: string, newName: string) => {
+    if (!newName.trim()) return;
+
+    try {
+      const workflowObj = JSON.parse(canvasData);
+
+      // Check if new name already exists
+      if (workflowObj.states[newName] && newName !== nodeId) {
+        message.error(`State "${newName}" already exists`);
+        return;
+      }
+
+      // If name is the same, no need to update
+      if (nodeId === newName) return;
+
+      // Rename the state
+      const stateData = workflowObj.states[nodeId];
+      delete workflowObj.states[nodeId];
+      workflowObj.states[newName] = stateData;
+
+      // Update initial_state if it was the renamed state
+      if (workflowObj.initial_state === nodeId) {
+        workflowObj.initial_state = newName;
+      }
+
+      // Update all transitions that reference the old state
+      Object.keys(workflowObj.states).forEach(stateId => {
+        const state = workflowObj.states[stateId];
+        if (state.transitions && Array.isArray(state.transitions)) {
+          state.transitions.forEach((transition: any) => {
+            if (transition.next === nodeId) {
+              transition.next = newName;
+            }
+          });
+        }
+      });
+
+      const updatedJson = JSON.stringify(workflowObj, null, 2);
+      await updateWorkflowPreserveLayout(updatedJson);
+      message.success(`State renamed to "${newName}"`);
+    } catch (error) {
+      console.error('Error renaming state:', error);
+      message.error('Failed to rename state');
+    }
+  }, [canvasData, updateWorkflowPreserveLayout]);
+
+  // Update local state when workflow data changes - add onNameChange to node data
   React.useEffect(() => {
     const nodesWithCallback = nodes.map(node => ({
       ...node,
       data: {
         ...node.data,
-        onLabelChange: handleNodeLabelChange
+        onNameChange: handleNodeNameChange
       }
     }));
     setLocalNodes(nodesWithCallback);
-  }, [nodes, setLocalNodes, handleNodeLabelChange]);
+  }, [nodes, setLocalNodes, handleNodeNameChange]);
 
   React.useEffect(() => {
     setLocalEdges(edges);
@@ -148,6 +202,38 @@ const ChatBotEditorWorkflowSimpleInner: React.FC<ChatBotEditorWorkflowSimpleProp
   const onConnect = useCallback((params: any) => {
     setLocalEdges((eds) => addEdge(params, eds));
   }, [setLocalEdges]);
+
+  // Double-click handler for canvas to add new state
+  const handleCanvasDoubleClick = useCallback((event: React.MouseEvent) => {
+    const now = Date.now();
+    const pos = { x: event.clientX, y: event.clientY };
+
+    // Check if this is a double-click (within 500ms and 5px tolerance)
+    const timeDiff = now - lastClickTimeRef.current;
+    const posDiff = Math.sqrt(
+      Math.pow(pos.x - lastClickPosRef.current.x, 2) +
+      Math.pow(pos.y - lastClickPosRef.current.y, 2)
+    );
+
+    if (timeDiff < 500 && posDiff < 5) {
+      // This is a double-click - add new state at cursor position
+      const bounds = (event.target as HTMLElement).getBoundingClientRect();
+      const position = reactFlowInstance.screenToFlowPosition({
+        x: event.clientX - bounds.left,
+        y: event.clientY - bounds.top,
+      });
+
+      // Call addNewState with the position
+      addNewState();
+
+      // Reset click tracking
+      lastClickTimeRef.current = 0;
+    } else {
+      // Track this click for potential double-click
+      lastClickTimeRef.current = now;
+      lastClickPosRef.current = pos;
+    }
+  }, [reactFlowInstance, addNewState]);
 
   // Wrapper for canvas data changes that preserves layout
   const handleCanvasDataChange = useCallback((newData: string) => {
@@ -387,6 +473,7 @@ const ChatBotEditorWorkflowSimpleInner: React.FC<ChatBotEditorWorkflowSimpleProp
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeClick={onNodeClick}
+          onPaneClick={handleCanvasDoubleClick}
           nodeTypes={nodeTypes}
           fitView
           className="bg-slate-900"
@@ -417,7 +504,21 @@ const ChatBotEditorWorkflowSimpleInner: React.FC<ChatBotEditorWorkflowSimpleProp
                 <CompressOutlined style={{ fontSize: '16px' }} />
               </ControlButton>
             </Tooltip>
+            <Tooltip title={showQuickHelp ? "Hide Quick Help" : "Show Quick Help"} placement="right">
+              <ControlButton
+                onClick={() => setShowQuickHelp(!showQuickHelp)}
+                style={{
+                  background: showQuickHelp ? 'rgba(59, 130, 246, 0.2)' : undefined,
+                  color: showQuickHelp ? '#60A5FA' : undefined
+                }}
+              >
+                <QuestionCircleOutlined style={{ fontSize: '16px' }} />
+              </ControlButton>
+            </Tooltip>
           </Controls>
+
+          {/* Quick Help Panel */}
+          <QuickHelpPanel visible={showQuickHelp} />
           <MiniMap
             nodeColor={(node) => {
               if (node.data.isInitial) return workflowTheme.nodes.initial.color;

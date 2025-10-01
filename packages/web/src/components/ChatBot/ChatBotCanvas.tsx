@@ -25,6 +25,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import ChatBotEditorWorkflowSimple from './ChatBotEditorWorkflowSimple';
+import ChatBotEditorWorkflowNew from './ChatBotEditorWorkflowNew';
 import MermaidDiagram from '../MermaidDiagram/MermaidDiagram';
 
 interface ChatBotCanvasProps {
@@ -254,7 +255,7 @@ gantt
       <div className="flex-1 relative overflow-hidden">
         {activeTab === 'workflow' ? (
           <div className="h-full">
-            <ChatBotEditorWorkflowSimple
+            <ChatBotEditorWorkflowNew
               technicalId={technicalId}
               onAnswer={onAnswer}
               onUpdate={(data) => {

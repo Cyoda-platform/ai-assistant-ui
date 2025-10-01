@@ -1,6 +1,6 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
-import { Button, Dropdown, Tooltip, Badge, Tag } from 'antd';
+import { Button, Dropdown, Tooltip, Badge, Tag, Input } from 'antd';
 import {
   MoreOutlined,
   EditOutlined,
@@ -8,7 +8,9 @@ import {
   CopyOutlined,
   ThunderboltOutlined,
   BranchesOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  CheckOutlined,
+  CloseOutlined
 } from '@ant-design/icons';
 
 interface WorkflowNodeData {
@@ -18,6 +20,7 @@ interface WorkflowNodeData {
   isTerminal?: boolean;
   isSelected?: boolean;
   nodeType?: 'initial' | 'normal' | 'final';
+  onNameChange?: (nodeId: string, newName: string) => void;
   transitions?: Array<{
     name: string;
     next: string;
@@ -32,12 +35,61 @@ interface WorkflowNodeData {
   }>;
 }
 
+// Define anchor point identifiers for the 8-point system
+type AnchorPoint =
+  | 'top-left' | 'top-center' | 'top-right'
+  | 'left-center' | 'right-center'
+  | 'bottom-left' | 'bottom-center' | 'bottom-right';
+
+// Anchor point configuration with positions and CSS styles
+const ANCHOR_POINTS: Record<AnchorPoint, {
+  position: Position;
+  style: React.CSSProperties;
+}> = {
+  'top-left': {
+    position: Position.Top,
+    style: { left: '25%', top: '-6px', transform: 'translateX(-50%)' }
+  },
+  'top-center': {
+    position: Position.Top,
+    style: { left: '50%', top: '-6px', transform: 'translateX(-50%)' }
+  },
+  'top-right': {
+    position: Position.Top,
+    style: { left: '75%', top: '-6px', transform: 'translateX(-50%)' }
+  },
+  'left-center': {
+    position: Position.Left,
+    style: { left: '-6px', top: '50%', transform: 'translateY(-50%)' }
+  },
+  'right-center': {
+    position: Position.Right,
+    style: { right: '-6px', top: '50%', transform: 'translateY(-50%)' }
+  },
+  'bottom-left': {
+    position: Position.Bottom,
+    style: { left: '25%', bottom: '-6px', transform: 'translateX(-50%)' }
+  },
+  'bottom-center': {
+    position: Position.Bottom,
+    style: { left: '50%', bottom: '-6px', transform: 'translateX(-50%)' }
+  },
+  'bottom-right': {
+    position: Position.Bottom,
+    style: { left: '75%', bottom: '-6px', transform: 'translateX(-50%)' }
+  }
+};
+
 const WorkflowNode: React.FC<NodeProps<WorkflowNodeData>> = ({
   data,
   selected,
   id
 }) => {
-  const { label, nodeId, isInitial, isTerminal, nodeType = 'normal', transitions = [] } = data;
+  const { label, nodeId, isInitial, isTerminal, nodeType = 'normal', transitions = [], onNameChange } = data;
+
+  // Inline editing state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(label || nodeId);
 
   // Determine node type and colors based on requirements
   const getNodeStyle = () => {
@@ -65,6 +117,38 @@ const WorkflowNode: React.FC<NodeProps<WorkflowNodeData>> = ({
   };
 
   const nodeStyle = getNodeStyle();
+
+  // Inline editing handlers
+  const handleStartEdit = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditing(true);
+    setEditValue(label || nodeId);
+  }, [label, nodeId]);
+
+  const handleSaveEdit = useCallback(() => {
+    const trimmedValue = editValue.trim();
+    if (trimmedValue && trimmedValue !== label && onNameChange) {
+      onNameChange(nodeId, trimmedValue);
+    }
+    setIsEditing(false);
+  }, [editValue, label, nodeId, onNameChange]);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditValue(label || nodeId);
+    setIsEditing(false);
+  }, [label, nodeId]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      handleCancelEdit();
+    }
+  }, [handleSaveEdit, handleCancelEdit]);
 
   // Calculate statistics
   const hasProcessors = transitions.some(t => t.processors && t.processors.length > 0);
@@ -114,6 +198,53 @@ const WorkflowNode: React.FC<NodeProps<WorkflowNodeData>> = ({
     },
   ];
 
+  // Render anchor point handles with 8-point system
+  const renderAnchorPoint = (anchorId: AnchorPoint) => {
+    const config = ANCHOR_POINTS[anchorId];
+
+    // Determine handle types based on position:
+    // Top and Left = Target handles (incoming connections)
+    // Bottom and Right = Source handles (outgoing connections)
+    const isSourcePosition = config.position === Position.Bottom || config.position === Position.Right;
+    const isTargetPosition = config.position === Position.Top || config.position === Position.Left;
+
+    const handleStyle: React.CSSProperties = {
+      ...config.style,
+      width: '12px',
+      height: '12px',
+      background: '#3B82F6',
+      border: '2px solid white',
+      opacity: 0.6,
+      transition: 'all 0.2s ease',
+    };
+
+    return (
+      <React.Fragment key={anchorId}>
+        {/* Render source handle for bottom and right positions */}
+        {isSourcePosition && (
+          <Handle
+            type="source"
+            position={config.position}
+            id={`${anchorId}-source`}
+            style={handleStyle}
+            className="connection-handle hover:opacity-100 hover:scale-110"
+          />
+        )}
+
+        {/* Render target handle for top and left positions */}
+        {isTargetPosition && (
+          <Handle
+            type="target"
+            position={config.position}
+            id={`${anchorId}-target`}
+            style={handleStyle}
+            className="connection-handle hover:opacity-100 hover:scale-110"
+          />
+        )}
+      </React.Fragment>
+    );
+  };
+
   return (
     <div
       className={`workflow-node ${selected ? 'selected' : ''}`}
@@ -134,65 +265,8 @@ const WorkflowNode: React.FC<NodeProps<WorkflowNodeData>> = ({
         color: nodeStyle.textColor,
       }}
     >
-      {/* Connection Handles */}
-      <Handle
-        type="source"
-        position={Position.Left}
-        id="left-source"
-        className="connection-handle universal-handle"
-        style={{ left: '-8px' }}
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="right-source"
-        className="connection-handle universal-handle"
-        style={{ right: '-8px' }}
-      />
-      <Handle
-        type="source"
-        position={Position.Top}
-        id="top-source"
-        className="connection-handle universal-handle"
-        style={{ top: '-8px' }}
-      />
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        id="bottom-source"
-        className="connection-handle universal-handle"
-        style={{ bottom: '-8px' }}
-      />
-
-      {/* Target Handles (invisible) */}
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="left-target"
-        className="connection-handle target-invisible"
-        style={{ left: '-8px', opacity: 0 }}
-      />
-      <Handle
-        type="target"
-        position={Position.Right}
-        id="right-target"
-        className="connection-handle target-invisible"
-        style={{ right: '-8px', opacity: 0 }}
-      />
-      <Handle
-        type="target"
-        position={Position.Top}
-        id="top-target"
-        className="connection-handle target-invisible"
-        style={{ top: '-8px', opacity: 0 }}
-      />
-      <Handle
-        type="target"
-        position={Position.Bottom}
-        id="bottom-target"
-        className="connection-handle target-invisible"
-        style={{ bottom: '-8px', opacity: 0 }}
-      />
+      {/* 8-Point Anchor System */}
+      {(Object.keys(ANCHOR_POINTS) as AnchorPoint[]).map(renderAnchorPoint)}
 
       {/* Node Content */}
       <div className="workflow-node__content" style={{ padding: '12px 16px' }}>
@@ -221,13 +295,81 @@ const WorkflowNode: React.FC<NodeProps<WorkflowNodeData>> = ({
                 <CheckCircleOutlined style={{ fontSize: '14px' }} />
               </Tooltip>
             )}
-            <span className="workflow-node__label" style={{
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}>
-              {label || nodeId}
-            </span>
+
+            {/* Inline Name Editor */}
+            {isEditing ? (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                flex: 1
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              >
+                <Input
+                  size="small"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onBlur={handleSaveEdit}
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  autoFocus
+                  style={{
+                    flex: 1,
+                    fontSize: '14px',
+                    fontWeight: 600
+                  }}
+                />
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<CheckOutlined />}
+                  onClick={handleSaveEdit}
+                  style={{ color: '#52c41a', padding: '0 4px' }}
+                />
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<CloseOutlined />}
+                  onClick={handleCancelEdit}
+                  style={{ color: '#ff4d4f', padding: '0 4px' }}
+                />
+              </div>
+            ) : (
+              <div
+                className="workflow-node__label-container"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  flex: 1,
+                  cursor: 'text'
+                }}
+                onDoubleClick={handleStartEdit}
+              >
+                <span className="workflow-node__label" style={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  flex: 1
+                }}>
+                  {label || nodeId}
+                </span>
+                {onNameChange && (
+                  <EditOutlined
+                    style={{
+                      fontSize: '12px',
+                      opacity: 0.6,
+                      cursor: 'pointer'
+                    }}
+                    onClick={handleStartEdit}
+                    className="hover:opacity-100"
+                  />
+                )}
+              </div>
+            )}
           </div>
 
           <Dropdown
