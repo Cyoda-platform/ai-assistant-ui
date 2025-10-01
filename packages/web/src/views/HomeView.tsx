@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Plus,
@@ -28,7 +28,7 @@ import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
 import { useResizablePanel } from '@/hooks/useResizablePanel';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import eventBus from '@/plugins/eventBus';
-import { UPDATE_CHAT_LIST } from '@/helpers/HelperConstants';
+import { UPDATE_CHAT_LIST, SHOW_LOGIN_POPUP } from '@/helpers/HelperConstants';
 import { groupChatsByDate } from '@/helpers/HelperChatGroups';
 
 const HomeView: React.FC = () => {
@@ -39,6 +39,7 @@ const HomeView: React.FC = () => {
   const [canvasVisible, setCanvasVisible] = useState(false);
   const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [pendingMessage, setPendingMessage] = useState<{ input: string; files: File[] } | null>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -105,35 +106,43 @@ const HomeView: React.FC = () => {
     };
   }, [chatListReady]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        chatInputRef.current?.focus();
-      }
-    };
+  // Check if user is a guest by parsing the token
+  const isGuestUser = useMemo(() => {
+    const token = authStore.token;
+    if (!token) return false;
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      const parsed = JSON.parse(jsonPayload);
+      const orgId = (parsed.caas_org_id || '').toLowerCase();
+      // Check if orgId starts with 'guest' (e.g., "guest.d1b4456f5-07a3-4c92-b57e-64c4b4f09d6")
+      return orgId.startsWith('guest');
+    } catch (e) {
+      return false;
+    }
+  }, [authStore.token]);
 
-  const handleChatSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatInput.trim() || isLoading) return;
-
+  // Function to actually submit the chat
+  const submitChat = async (input: string, files: File[]) => {
     setIsLoading(true);
     try {
       let response;
 
       // If files are attached, use FormData
-      if (attachedFiles.length > 0) {
+      if (files.length > 0) {
         const formData = new FormData();
-        formData.append('name', chatInput.trim());
+        formData.append('name', input);
         formData.append('description', '');
 
         // Append all files
-        attachedFiles.forEach(file => {
+        files.forEach(file => {
           formData.append('files', file);
         });
 
@@ -141,7 +150,7 @@ const HomeView: React.FC = () => {
       } else {
         // No files, use regular JSON
         response = await assistantStore.postChats({
-          name: chatInput.trim(),
+          name: input,
           description: ''
         });
       }
@@ -161,7 +170,58 @@ const HomeView: React.FC = () => {
       setIsLoading(false);
       setAttachedFiles([]);
       setChatInput('');
+      setPendingMessage(null);
     }
+  };
+
+  // Watch for authentication changes - if user logs in and there's a pending message, send it
+  useEffect(() => {
+    if (!isGuestUser && pendingMessage && authStore.token && authStore.tokenType === 'private') {
+      // User has logged in and there's a pending message
+      console.log('User logged in, sending pending message:', pendingMessage);
+      submitChat(pendingMessage.input, pendingMessage.files);
+    }
+  }, [isGuestUser, authStore.token, authStore.tokenType, pendingMessage]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        chatInputRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleChatSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || isLoading) return;
+
+    // Check if user is a guest
+    if (isGuestUser) {
+      // Capture the current input and files in local variables
+      const currentInput = chatInput.trim();
+      const currentFiles = [...attachedFiles];
+
+      // Store the pending message
+      setPendingMessage({ input: currentInput, files: currentFiles });
+
+      // Show login popup with guest user message
+      eventBus.$emit(SHOW_LOGIN_POPUP, {
+        isGuestUser: true,
+        onProceedWithoutLogin: () => {
+          // User chose to proceed without login - use the captured values
+          submitChat(currentInput, currentFiles);
+        }
+      });
+      return;
+    }
+
+    // Not a guest user, submit directly
+    await submitChat(chatInput.trim(), attachedFiles);
   };
 
   const handleFileAttach = () => {
