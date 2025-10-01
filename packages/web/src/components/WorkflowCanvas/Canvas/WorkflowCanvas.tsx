@@ -16,7 +16,11 @@ import {
 } from '@xyflow/react';
 import type { Node, Edge, Connection, OnConnect, OnReconnect } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Network, Download, Upload, FileJson } from 'lucide-react';
+import { Network, Download, Upload, FileJson, Info, X, Cloud, CloudDownload, CloudUpload } from 'lucide-react';
+import axios from 'axios';
+import { useAuthStore } from '@/stores/auth';
+import { Modal } from 'antd';
+import { useNotifications, NotificationManager } from '@/components/Notification/Notification';
 
 // Helper function to detect bidirectional connections
 function hasBidirectionalConnection(
@@ -116,8 +120,8 @@ function calculateOptimalHandles(
     } else {
       // Target is to the left
       return {
-        sourceHandle: 'right-center-source',
-        targetHandle: 'left-center-target'
+        sourceHandle: 'left-center-source',
+        targetHandle: 'right-center-target'
       };
     }
   }
@@ -137,6 +141,7 @@ interface WorkflowCanvasProps {
   onStateEdit: (stateId: string) => void;
   onTransitionEdit: (transitionId: string) => void;
   darkMode: boolean;
+  technicalId?: string;
 }
 
 const nodeTypes = {
@@ -256,13 +261,50 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   onWorkflowUpdate,
   onStateEdit,
   onTransitionEdit,
-  darkMode
+  darkMode,
+  technicalId
 }) => {
   const { screenToFlowPosition } = useReactFlow();
   const [showQuickHelp, setShowQuickHelp] = useState(false);
   const [showJsonEditor, setShowJsonEditor] = useState(true); // Open by default
+  const [showWorkflowInfo, setShowWorkflowInfo] = useState(true); // Show workflow info panel by default
   const [selectedStateId, setSelectedStateId] = useState<string | null>(null);
   const [selectedTransitionId, setSelectedTransitionId] = useState<string | null>(null);
+
+  // Notifications
+  const { notifications, removeNotification, showSuccess, showError, showInfo, showWarning } = useNotifications();
+
+  // Auth and environment URL building
+  const token = useAuthStore((state) => state.token);
+
+  // Parse token once and extract org ID
+  const orgId = useMemo(() => {
+    if (!token) return '';
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      const parsed = JSON.parse(jsonPayload);
+      return (parsed.caas_org_id || '').toLowerCase();
+    } catch (e) {
+      return '';
+    }
+  }, [token]);
+
+  // Build environment URL (same logic as ChatBotMessageFunction)
+  const buildEnvironmentUrl = useCallback((path: string) => {
+    if (!orgId) return '';
+    const envPrefix = import.meta.env.VITE_APP_CYODA_CLIENT_ENV_PREFIX || '';
+    const host = import.meta.env.VITE_APP_CYODA_CLIENT_HOST || '';
+    // Remove trailing dash from envPrefix if it exists to avoid double dash
+    const cleanPrefix = envPrefix.endsWith('-') ? envPrefix.slice(0, -1) : envPrefix;
+    return `https://${cleanPrefix}-${orgId}.${host}/api${path}`;
+  }, [orgId]);
 
   // Use ref to always get current workflow value (fixes closure issue)
   // Re-enable cleanup now that the white screen issue is resolved
@@ -852,6 +894,11 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     setShowJsonEditor(prev => !prev);
   }, []);
 
+  // Workflow Info toggle handler
+  const handleToggleWorkflowInfo = useCallback(() => {
+    setShowWorkflowInfo(prev => !prev);
+  }, []);
+
   // Handle node click to navigate in JSON editor
   const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
     setSelectedStateId(node.id);
@@ -859,9 +906,12 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   }, []);
 
   // Handle edge click to navigate in JSON editor
+  // Navigate to the source state of the transition
   const handleEdgeClick = useCallback((_event: React.MouseEvent, edge: Edge) => {
-    setSelectedTransitionId(edge.id);
-    setSelectedStateId(null);
+    // Extract source state from edge
+    const sourceStateId = edge.source;
+    setSelectedStateId(sourceStateId);
+    setSelectedTransitionId(null);
   }, []);
 
   // Handle workflow JSON save
@@ -989,6 +1039,166 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     };
     input.click();
   }, [cleanedWorkflow, onWorkflowUpdate]);
+
+  // Export workflow to environment (POST to import endpoint)
+  const handleExportToEnvironment = useCallback(async () => {
+    if (!cleanedWorkflow || !token) {
+      showWarning(
+        'Authentication Required',
+        'Please log in to export workflows to the environment'
+      );
+      return;
+    }
+
+    try {
+      // Hardcoded for now
+      const entityName = 'entity1';
+      const modelVersion = 1;
+
+      const url = buildEnvironmentUrl(`/model/${entityName}/${modelVersion}/workflow/import`);
+
+      // Prepare the payload
+      const payload = {
+        workflows: [cleanedWorkflow.configuration],
+        importMode: 'REPLACE'
+      };
+
+      console.log('=== Export to Environment Debug ===');
+      console.log('URL:', url);
+      console.log('Token:', token.substring(0, 20) + '...');
+      console.log('Payload:', payload);
+      console.log('===================================');
+
+      const response = await axios.post(url, payload, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('Export response:', response.data);
+
+      showSuccess(
+        'Workflow Exported Successfully',
+        `Workflow "${cleanedWorkflow.configuration.name}" has been exported to ${entityName} (v${modelVersion})`
+      );
+    } catch (error: any) {
+      console.error('Export to environment failed:', error);
+      const errorMsg = error?.response?.data?.message || error?.response?.data?.error || error?.message || 'Unknown error';
+
+      showError(
+        'Export Failed',
+        errorMsg
+      );
+    }
+  }, [cleanedWorkflow, token, buildEnvironmentUrl, showSuccess, showError, showWarning]);
+
+  // Import workflow from environment
+  const handleImportFromEnvironment = useCallback(async () => {
+    if (!cleanedWorkflow || !token) {
+      showWarning(
+        'Authentication Required',
+        'Please log in to import workflows from the environment'
+      );
+      return;
+    }
+
+    Modal.confirm({
+      title: 'Import Workflow from Environment',
+      content: 'This will replace your current workflow with data from the environment. Continue?',
+      okText: 'Import',
+      cancelText: 'Cancel',
+      centered: true,
+      onOk: async () => {
+        try {
+          // Hardcoded for now
+          const entityName = 'entity1';
+          const modelVersion = 1;
+
+          // First, export to get the current workflow from environment
+          const exportUrl = buildEnvironmentUrl(`/model/${entityName}/${modelVersion}/workflow/export`);
+
+          console.log('=== Import from Environment Debug ===');
+          console.log('Export URL:', exportUrl);
+          console.log('Token:', token.substring(0, 20) + '...');
+          console.log('=====================================');
+
+          const exportResponse = await axios.get(exportUrl, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          console.log('Export response:', exportResponse.data);
+
+          // Extract workflows from response
+          const workflows = exportResponse.data.workflows;
+          if (!workflows || workflows.length === 0) {
+            showWarning(
+              'No Workflows Found',
+              'No workflows found in the environment'
+            );
+            return;
+          }
+
+          // Use the first workflow
+          const config = workflows[0] as WorkflowConfiguration;
+
+          // Validate required fields
+          if (!config.version || !config.name || !config.initialState || !config.states) {
+            showError(
+              'Invalid Workflow Data',
+              'The workflow data from environment is missing required fields'
+            );
+            return;
+          }
+
+          // Create layout states for all states in the configuration
+          const stateIds = Object.keys(config.states);
+          const layoutStates = stateIds.map((stateId, index) => ({
+            id: stateId,
+            position: {
+              x: 100 + (index % 3) * 250,
+              y: 100 + Math.floor(index / 3) * 150
+            },
+            properties: {}
+          }));
+
+          // Create new workflow with imported configuration
+          const now = new Date().toISOString();
+          const newWorkflow: UIWorkflowData = {
+            ...cleanedWorkflow,
+            configuration: config,
+            layout: {
+              workflowId: cleanedWorkflow.id,
+              states: layoutStates,
+              transitions: [],
+              version: cleanedWorkflow.layout.version + 1,
+              updatedAt: now
+            },
+            updatedAt: now
+          };
+
+          // Apply auto-layout to imported workflow
+          const layoutedWorkflow = autoLayoutWorkflow(newWorkflow);
+          onWorkflowUpdate(layoutedWorkflow, 'Imported workflow from environment');
+
+          showSuccess(
+            'Workflow Imported Successfully',
+            `Workflow "${config.name}" has been imported from ${entityName} (v${modelVersion})`
+          );
+        } catch (error: any) {
+          console.error('Import from environment failed:', error);
+          const errorMsg = error?.response?.data?.message || error?.response?.data?.error || error?.message || 'Unknown error';
+
+          showError(
+            'Import Failed',
+            errorMsg
+          );
+        }
+      }
+    });
+  }, [cleanedWorkflow, token, buildEnvironmentUrl, onWorkflowUpdate, showSuccess, showError, showWarning]);
 
   // Handle double-click detection on pane
   const lastClickTimeRef = useRef<number>(0);
@@ -1153,6 +1363,14 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         <Background />
         <Controls>
           <ControlButton
+            onClick={handleToggleWorkflowInfo}
+            title="Toggle workflow info"
+            className={showWorkflowInfo ? 'bg-gradient-to-br from-lime-100 to-emerald-100 dark:from-lime-900 dark:to-emerald-900 border-2 border-lime-400' : ''}
+            data-testid="workflow-info-button"
+          >
+            <Info size={16} />
+          </ControlButton>
+          <ControlButton
             onClick={handleToggleJsonEditor}
             title="Edit workflow JSON"
             className={showJsonEditor ? 'bg-gradient-to-br from-lime-100 to-emerald-100 dark:from-lime-900 dark:to-emerald-900 border-2 border-lime-400' : ''}
@@ -1162,17 +1380,33 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           </ControlButton>
           <ControlButton
             onClick={handleExportJSON}
-            title="Export workflow as JSON"
+            title="Export workflow to file"
             data-testid="export-json-button"
           >
             <Download size={16} />
           </ControlButton>
           <ControlButton
             onClick={handleImportJSON}
-            title="Import workflow from JSON"
+            title="Import workflow from file"
             data-testid="import-json-button"
           >
             <Upload size={16} />
+          </ControlButton>
+          <ControlButton
+            onClick={handleExportToEnvironment}
+            title="Export workflow to environment (entity1/v1)"
+            data-testid="export-env-button"
+            className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30"
+          >
+            <CloudUpload size={16} className="text-blue-600 dark:text-blue-400" />
+          </ControlButton>
+          <ControlButton
+            onClick={handleImportFromEnvironment}
+            title="Import workflow from environment (entity1/v1)"
+            data-testid="import-env-button"
+            className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30"
+          >
+            <CloudDownload size={16} className="text-blue-600 dark:text-blue-400" />
           </ControlButton>
           <ControlButton
             onClick={handleAutoLayout}
@@ -1202,26 +1436,35 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           className={darkMode ? 'dark' : ''}
         />
 
-        <Panel position="top-left" className="bg-gradient-to-br from-white via-lime-50 to-emerald-50 dark:from-gray-900 dark:via-lime-950/30 dark:to-emerald-950/30 p-4 rounded-2xl shadow-2xl border-2 border-lime-200 dark:border-lime-800 backdrop-blur-md">
-          <div className="text-sm">
-            <h4 className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-lime-600 to-emerald-600 dark:from-lime-400 dark:to-emerald-400 mb-3 text-base">
-              {workflow.configuration.name}
-            </h4>
-            <div className="text-gray-700 dark:text-gray-300 space-y-2">
-              <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span>{Object.keys(workflow.configuration.states).length} states</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 rounded-full bg-pink-500"></span>
-                <span>{uiTransitions.length} transitions</span>
-              </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 pt-2 border-t border-lime-200 dark:border-lime-800">
-                Updated: {new Date(workflow.updatedAt).toLocaleDateString()}
+        {showWorkflowInfo && (
+          <Panel position="top-left" className="bg-gradient-to-br from-white via-lime-50 to-emerald-50 dark:from-gray-900 dark:via-lime-950/30 dark:to-emerald-950/30 p-4 rounded-2xl shadow-2xl border-2 border-lime-200 dark:border-lime-800 backdrop-blur-md">
+            <div className="text-sm">
+              <h4 className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-lime-600 to-emerald-600 dark:from-lime-400 dark:to-emerald-400 mb-3 text-base">
+                {workflow.configuration.name}
+              </h4>
+              <div className="text-gray-700 dark:text-gray-300 space-y-2">
+                <div className="flex items-center space-x-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span>{Object.keys(workflow.configuration.states).length} states</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="w-2 h-2 rounded-full bg-pink-500"></span>
+                  <span>{uiTransitions.length} transitions</span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-2 pt-2 border-t border-lime-200 dark:border-lime-800">
+                  <span>Updated: {new Date(workflow.updatedAt).toLocaleDateString()}</span>
+                  <button
+                    onClick={handleToggleWorkflowInfo}
+                    className="p-1 rounded-lg hover:bg-lime-100 dark:hover:bg-lime-900/30 transition-colors group"
+                    title="Close workflow info"
+                  >
+                    <X size={14} className="text-gray-500 dark:text-gray-400 group-hover:text-lime-600 dark:group-hover:text-lime-400" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </Panel>
+          </Panel>
+        )}
 
         {showQuickHelp && (
           <Panel position="top-right" className="bg-gradient-to-br from-white via-pink-50 to-fuchsia-50 dark:from-gray-900 dark:via-pink-950/30 dark:to-fuchsia-950/30 p-4 rounded-2xl shadow-2xl border-2 border-pink-200 dark:border-pink-800 backdrop-blur-md" data-testid="quick-help-panel">
@@ -1266,8 +1509,15 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           onSave={handleWorkflowJsonSave}
           selectedStateId={selectedStateId}
           selectedTransitionId={selectedTransitionId}
+          technicalId={technicalId}
         />
       )}
+
+      {/* Notification Manager */}
+      <NotificationManager
+        notifications={notifications}
+        onRemove={removeNotification}
+      />
     </div>
   );
 };

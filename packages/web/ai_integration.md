@@ -8,8 +8,3 @@ Status Code
 
 response:
 {"message":"Hello! How can I assist you today?"}
-
-
-To submit answer to chat
-
-use same apis 

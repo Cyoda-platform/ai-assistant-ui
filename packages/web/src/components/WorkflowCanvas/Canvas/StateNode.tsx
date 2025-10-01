@@ -75,39 +75,30 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
     onNameChange(state.id, newName);
   };
 
-  // Render anchor point handles with logical directional types
+  // Render anchor point handles with both source and target types
+  // This allows connections in all directions
   const renderAnchorPoint = (anchorId: AnchorPoint) => {
     const config = ANCHOR_POINTS[anchorId];
 
-    // Determine handle types based on position:
-    // Top and Left = Target handles (incoming connections)
-    // Bottom and Right = Source handles (outgoing connections)
-    const isSourcePosition = config.position === Position.Bottom || config.position === Position.Right;
-    const isTargetPosition = config.position === Position.Top || config.position === Position.Left;
-
     return (
       <React.Fragment key={anchorId}>
-        {/* Render source handle for bottom and right positions */}
-        {isSourcePosition && (
-          <Handle
-            type="source"
-            position={config.position}
-            id={`${anchorId}-source`}
-            style={config.style}
-            className={`w-3.5 h-3.5 !bg-gradient-to-br !from-pink-500 !to-fuchsia-600 !border-2 !border-white dark:!border-gray-900 opacity-70 hover:opacity-100 hover:scale-125 transition-all duration-300 shadow-md hover:shadow-lg ${config.className}`}
-          />
-        )}
+        {/* Render source handle (outgoing connections) */}
+        <Handle
+          type="source"
+          position={config.position}
+          id={`${anchorId}-source`}
+          style={config.style}
+          className={`w-3.5 h-3.5 !bg-gradient-to-br !from-pink-500 !to-fuchsia-600 !border-2 !border-white dark:!border-gray-900 opacity-70 hover:opacity-100 hover:scale-125 transition-all duration-300 shadow-md hover:shadow-lg ${config.className}`}
+        />
 
-        {/* Render target handle for top and left positions */}
-        {isTargetPosition && (
-          <Handle
-            type="target"
-            position={config.position}
-            id={`${anchorId}-target`}
-            style={config.style}
-            className={`w-3.5 h-3.5 !bg-gradient-to-br !from-lime-500 !to-emerald-600 !border-2 !border-white dark:!border-gray-900 opacity-70 hover:opacity-100 hover:scale-125 transition-all duration-300 shadow-md hover:shadow-lg ${config.className}`}
-          />
-        )}
+        {/* Render target handle (incoming connections) */}
+        <Handle
+          type="target"
+          position={config.position}
+          id={`${anchorId}-target`}
+          style={config.style}
+          className={`w-3.5 h-3.5 !bg-gradient-to-br !from-lime-500 !to-emerald-600 !border-2 !border-white dark:!border-gray-900 opacity-70 hover:opacity-100 hover:scale-125 transition-all duration-300 shadow-md hover:shadow-lg ${config.className}`}
+        />
       </React.Fragment>
     );
   };

@@ -152,7 +152,7 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
   };
 
   // Resizable panel state
-  const [panelSize, setPanelSize] = useState({ width: 896, height: 600 }); // Default: max-w-4xl ≈ 896px
+  const [panelSize, setPanelSize] = useState({ width: 672, height: 450 }); // 25% smaller than original (896x600)
   const [isResizing, setIsResizing] = useState(false);
   const [resizeDirection, setResizeDirection] = useState<string>('');
   const panelRef = useRef<HTMLDivElement>(null);

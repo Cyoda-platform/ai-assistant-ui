@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Sparkles } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import type { WorkflowConfiguration } from '../types/workflow';
+import { WorkflowAIAssistant } from './WorkflowAIAssistant';
 
 interface WorkflowJsonEditorProps {
   workflow: WorkflowConfiguration;
@@ -10,6 +11,7 @@ interface WorkflowJsonEditorProps {
   onSave: (config: WorkflowConfiguration) => void;
   selectedStateId?: string | null;
   selectedTransitionId?: string | null;
+  technicalId?: string;
 }
 
 export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
@@ -19,12 +21,17 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
   onSave,
   selectedStateId,
   selectedTransitionId,
+  technicalId,
 }) => {
   const [jsonText, setJsonText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // AI Assistant state
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [selectedText, setSelectedText] = useState<string>('');
 
   // Resizing state
   const [width, setWidth] = useState(600);
@@ -185,6 +192,50 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
+  // Handle AI Assistant hotkey (Cmd/Ctrl + K)
+  useEffect(() => {
+    const handleAIHotkey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k' && isOpen) {
+        e.preventDefault();
+        // Get selected text from editor if available
+        if (editorRef.current) {
+          const selection = editorRef.current.getSelection();
+          const selectedContent = editorRef.current.getModel()?.getValueInRange(selection);
+          setSelectedText(selectedContent || '');
+        }
+        setShowAIAssistant(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleAIHotkey);
+    return () => document.removeEventListener('keydown', handleAIHotkey);
+  }, [isOpen]);
+
+  // Handle AI suggestion application
+  const handleApplySuggestion = useCallback((suggestion: string) => {
+    try {
+      // Try to parse the suggestion as JSON
+      const parsed = JSON.parse(suggestion);
+
+      // If we have selected text, try to replace it intelligently
+      if (editorRef.current && selectedText) {
+        const selection = editorRef.current.getSelection();
+        editorRef.current.executeEdits('ai-suggestion', [{
+          range: selection,
+          text: JSON.stringify(parsed, null, 2)
+        }]);
+      } else {
+        // Otherwise, replace the entire content
+        setJsonText(JSON.stringify(parsed, null, 2));
+      }
+
+      setShowAIAssistant(false);
+    } catch (err) {
+      console.error('Failed to apply AI suggestion:', err);
+      alert('The AI suggestion is not valid JSON. Please review and apply manually.');
+    }
+  }, [selectedText]);
+
   // Navigate to selected state or transition in JSON
   useEffect(() => {
     if (!editorRef.current || !monacoRef.current || !isOpen) return;
@@ -207,19 +258,41 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
           const stateId = parts[0];
           const transitionIndex = parseInt(parts[1], 10);
 
-          // Parse the JSON to find the exact line
           try {
-            const parsed = JSON.parse(text);
-            if (parsed.states && parsed.states[stateId]) {
-              const state = parsed.states[stateId];
-              if (state.transitions && state.transitions[transitionIndex]) {
-                const transition = state.transitions[transitionIndex];
-                const transitionName = transition.name;
+            // First find the state definition as a key
+            const statesMatches = model.findMatches(
+              '"states"',
+              false,
+              false,
+              true,
+              null,
+              true
+            );
 
-                // Search for the transition name within the state's transitions array
-                // First find the state
-                const stateMatches = model.findMatches(
-                  `"${stateId}"`,
+            if (statesMatches.length > 0) {
+              const statesLine = statesMatches[0].range.startLineNumber;
+
+              // Find the state ID as a key (not a value)
+              const stateKeyPattern = `"${stateId}"\\s*:`;
+              const stateKeyMatches = model.findMatches(
+                stateKeyPattern,
+                false,
+                true, // isRegex
+                false,
+                null,
+                true
+              );
+
+              const stateKeyMatchesAfterStates = stateKeyMatches.filter(
+                m => m.range.startLineNumber > statesLine
+              );
+
+              if (stateKeyMatchesAfterStates.length > 0) {
+                const stateLineNumber = stateKeyMatchesAfterStates[0].range.startLineNumber;
+
+                // Find "transitions" array after this state
+                const transitionsMatches = model.findMatches(
+                  '"transitions"',
                   false,
                   false,
                   true,
@@ -227,81 +300,90 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
                   true
                 );
 
-                if (stateMatches.length > 0) {
-                  const stateLineNumber = stateMatches[0].range.startLineNumber;
+                const transitionsAfterState = transitionsMatches.filter(
+                  m => m.range.startLineNumber > stateLineNumber
+                );
 
-                  // Then find "transitions" after the state
-                  const transitionsMatches = model.findMatches(
-                    '"transitions"',
+                if (transitionsAfterState.length > 0) {
+                  const transitionsLineNumber = transitionsAfterState[0].range.startLineNumber;
+
+                  // Find all "name" fields after the transitions array
+                  const nameMatches = model.findMatches(
+                    '"name"\\s*:',
                     false,
+                    true, // isRegex
                     false,
-                    true,
                     null,
                     true
                   );
 
-                  const transitionsAfterState = transitionsMatches.filter(
-                    m => m.range.startLineNumber > stateLineNumber
+                  // Filter to get name fields after transitions line
+                  const namesAfterTransitions = nameMatches.filter(
+                    m => m.range.startLineNumber > transitionsLineNumber
                   );
 
-                  if (transitionsAfterState.length > 0) {
-                    const transitionsLineNumber = transitionsAfterState[0].range.startLineNumber;
+                  // Find the next state to limit our search
+                  const nextStateMatch = stateKeyMatches.find(
+                    m => m.range.startLineNumber > stateLineNumber + 1
+                  );
+                  const searchEndLine = nextStateMatch ? nextStateMatch.range.startLineNumber : model.getLineCount();
 
-                    // Find the transition name after the transitions array
-                    const nameMatches = model.findMatches(
-                      `"name"`,
-                      false,
-                      false,
-                      true,
-                      null,
-                      true
-                    );
+                  // Filter to only names within this state's scope
+                  const namesInScope = namesAfterTransitions.filter(
+                    m => m.range.startLineNumber < searchEndLine
+                  );
 
-                    const namesAfterTransitions = nameMatches.filter(
-                      m => m.range.startLineNumber > transitionsLineNumber
-                    );
-
-                    // Get the nth occurrence (based on transitionIndex)
-                    if (namesAfterTransitions.length > transitionIndex) {
-                      targetLine = namesAfterTransitions[transitionIndex].range.startLineNumber;
-                    }
+                  // Get the nth occurrence based on transitionIndex
+                  if (namesInScope.length > transitionIndex) {
+                    targetLine = namesInScope[transitionIndex].range.startLineNumber;
                   }
                 }
               }
             }
           } catch (parseErr) {
-            console.error('Error parsing JSON for navigation:', parseErr);
+            console.error('Error parsing JSON for transition navigation:', parseErr);
           }
         }
       } else if (selectedStateId) {
-        // Search for the state key in the states object
-        const stateMatches = model.findMatches(
-          `"${selectedStateId}"`,
-          false,
-          false,
-          true,
-          null,
-          true
-        );
-
-        // Find the match within "states" context
-        const statesMatches = model.findMatches(
-          '"states"',
-          false,
-          false,
-          true,
-          null,
-          true
-        );
-
-        if (statesMatches.length > 0 && stateMatches.length > 0) {
-          const statesLine = statesMatches[0].range.startLineNumber;
-          const matchesAfterStates = stateMatches.filter(
-            m => m.range.startLineNumber > statesLine
+        // Navigate to the state definition (the state ID as a key, not a value)
+        try {
+          // First find the "states" object
+          const statesMatches = model.findMatches(
+            '"states"',
+            false,
+            false,
+            true,
+            null,
+            true
           );
-          if (matchesAfterStates.length > 0) {
-            targetLine = matchesAfterStates[0].range.startLineNumber;
+
+          if (statesMatches.length > 0) {
+            const statesLine = statesMatches[0].range.startLineNumber;
+
+            // Search for the state ID as a key (followed by colon and optional whitespace)
+            // This ensures we find "state_id": { not "next": "state_id"
+            const stateKeyPattern = `"${selectedStateId}"\\s*:`;
+            const stateKeyMatches = model.findMatches(
+              stateKeyPattern,
+              false,
+              true, // isRegex = true
+              false,
+              null,
+              true
+            );
+
+            // Find the match after the "states" line
+            const stateKeyMatchesAfterStates = stateKeyMatches.filter(
+              m => m.range.startLineNumber > statesLine
+            );
+
+            if (stateKeyMatchesAfterStates.length > 0) {
+              // Found the state definition line
+              targetLine = stateKeyMatchesAfterStates[0].range.startLineNumber;
+            }
           }
+        } catch (parseErr) {
+          console.error('Error parsing JSON for state navigation:', parseErr);
         }
       }
 
@@ -506,13 +588,37 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-lime-100 dark:hover:bg-lime-900/30 transition-colors group"
-            title="Close (Esc)"
-          >
-            <X size={20} className="text-gray-500 dark:text-gray-400 group-hover:text-lime-600 dark:group-hover:text-lime-400" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* AI Assistant Button */}
+            <button
+              onClick={() => {
+                // Get selected text from editor if available
+                if (editorRef.current) {
+                  const selection = editorRef.current.getSelection();
+                  const selectedContent = editorRef.current.getModel()?.getValueInRange(selection);
+                  setSelectedText(selectedContent || '');
+                }
+                setShowAIAssistant(true);
+              }}
+              className="group relative px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
+              title="Ask AI Assistant (⌘K / Ctrl+K)"
+            >
+              <Sparkles size={16} className="text-white animate-pulse" />
+              <span className="text-white font-medium text-sm">Ask AI</span>
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span>
+              </span>
+            </button>
+
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-lime-100 dark:hover:bg-lime-900/30 transition-colors group"
+              title="Close (Esc)"
+            >
+              <X size={20} className="text-gray-500 dark:text-gray-400 group-hover:text-lime-600 dark:group-hover:text-lime-400" />
+            </button>
+          </div>
         </div>
 
         {/* Error Message */}
@@ -711,15 +817,21 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
               <strong>Live Editing:</strong> Changes apply automatically
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300"
-          >
-            <X size={14} />
-            <span>Close</span>
-          </button>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            Press <kbd className="px-2 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs">⌘K</kbd> or <kbd className="px-2 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs">Ctrl+K</kbd> for AI help
+          </div>
         </div>
       </div>
+
+      {/* AI Assistant Modal */}
+      <WorkflowAIAssistant
+        isOpen={showAIAssistant}
+        onClose={() => setShowAIAssistant(false)}
+        currentWorkflow={jsonText}
+        selectedText={selectedText}
+        onApplySuggestion={handleApplySuggestion}
+        technicalId={technicalId}
+      />
     </>
   );
 };

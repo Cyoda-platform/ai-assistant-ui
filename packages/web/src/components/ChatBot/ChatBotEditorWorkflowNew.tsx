@@ -332,6 +332,7 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
           onStateEdit={handleStateEdit}
           onTransitionEdit={handleTransitionEdit}
           darkMode={true}
+          technicalId={technicalId}
         />
 
         {/* Transition Editor Dialog */}
