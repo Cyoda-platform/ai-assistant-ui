@@ -16,6 +16,8 @@ const defaultState: Auth = {
   family_name: "",
   given_name: "",
   email: "",
+  isCyodaEmployee: false,
+  superUserMode: false,
 };
 
 interface AuthStore extends Auth {
@@ -26,11 +28,24 @@ interface AuthStore extends Auth {
   refreshAccessToken: () => Promise<void>;
   getGuestToken: () => Promise<string>;
   postTransferChats: (guestToken: string, transferAll?: boolean) => Promise<any>;
+  toggleSuperUserMode: () => void;
 }
 
+// Load stored auth data and merge with defaults to ensure new fields exist
+const storedAuth = helperStorage.get("auth", { ...defaultState });
+const initialState = { ...defaultState, ...storedAuth };
+
+console.log('🔧 Auth Store Initialization:', {
+  storedAuth,
+  defaultState,
+  initialState,
+  hasIsCyodaEmployee: 'isCyodaEmployee' in initialState,
+  isCyodaEmployeeValue: initialState.isCyodaEmployee
+});
+
 export const useAuthStore = create<AuthStore>((set, get) => ({
-  // Initial state from storage
-  ...helperStorage.get("auth", { ...defaultState }),
+  // Initial state from storage merged with defaults
+  ...initialState,
 
   // Actions
   async login(form: any) {
@@ -70,7 +85,19 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   async refreshAccessToken() {
     const token = await getToken();
-    get().saveData({ token });
+
+    // Parse JWT token to maintain caas_cyoda_employee status
+    let isCyodaEmployee = false;
+    try {
+      const parsed = parseJwt(token);
+      if (parsed) {
+        isCyodaEmployee = parsed.caas_cyoda_employee === true;
+      }
+    } catch (e) {
+      console.error('Error parsing JWT token during refresh:', e);
+    }
+
+    get().saveData({ token, isCyodaEmployee });
   },
 
   async getGuestToken() {
@@ -82,6 +109,21 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   async postTransferChats(guestToken: string, transferAll?: boolean) {
     return privateClient.post("/v1/chats/transfer", { guest_token: guestToken });
+  },
+
+  toggleSuperUserMode() {
+    set((state) => {
+      // Only allow toggle if user is a Cyoda employee
+      if (!state.isCyodaEmployee) {
+        console.warn('Super user mode is only available for Cyoda employees');
+        return state;
+      }
+      const newValue = !state.superUserMode;
+      const newState = { ...state, superUserMode: newValue };
+      helperStorage.set("auth", newState);
+      console.log('Super user mode toggled:', newValue);
+      return { superUserMode: newValue };
+    });
   },
 }));
 
@@ -105,5 +147,7 @@ function parseJwt(token: string): Record<string, any> | null {
 export const useIsLoggedIn = () => useAuthStore((state) => !!state.token && state.tokenType === 'private');
 export const useHasToken = () => useAuthStore((state) => !!state.token);
 export const useParsedToken = () => useAuthStore((state) => state.token ? parseJwt(state.token) : null);
+export const useIsCyodaEmployee = () => useAuthStore((state) => state.isCyodaEmployee);
+export const useSuperUserMode = () => useAuthStore((state) => state.superUserMode);
 
 export default useAuthStore;

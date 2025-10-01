@@ -7,6 +7,18 @@ const errorInterceptor = (instance: AxiosInstance): void => {
   instance.interceptors.response.use(
     (response: AxiosResponse) => response,
     (error: AxiosError) => {
+      // Handle connection errors (no response from server)
+      if (!error.response) {
+        // Only show error for non-polling requests
+        const url = error.config?.url || '';
+        const isPollingRequest = url.includes('/chats/') && error.config?.method?.toLowerCase() === 'get';
+
+        if (!isPollingRequest) {
+          HelperErrors.handler(error);
+        }
+        return Promise.reject(error);
+      }
+
       const response = error.response;
       const url = response?.config?.url || '';
 

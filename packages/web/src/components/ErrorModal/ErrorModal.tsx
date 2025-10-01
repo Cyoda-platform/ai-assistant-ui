@@ -45,9 +45,12 @@ const ErrorModal: React.FC<ErrorModalProps> = ({
     <Modal
       open={visible}
       onCancel={onClose}
+      onOk={onClose}
       footer={null}
       centered
       width={500}
+      keyboard={true}
+      maskClosable={true}
       className="helper-errors beautiful-modal"
       closeIcon={
         <span className="text-slate-400 hover:text-teal-400 transition-colors">

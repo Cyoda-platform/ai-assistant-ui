@@ -22,21 +22,41 @@ export default class HelperErrors {
     private static showModal(message: string, type: 'info' | 'warning' | 'error' | 'network' = 'info') {
         // Check if modal is already open
         const existingModal = document.querySelector('.helper-errors');
-        if (existingModal) return;
-
-        // Create container if it doesn't exist
-        if (!this.modalContainer) {
-            this.modalContainer = document.createElement('div');
-            document.body.appendChild(this.modalContainer);
+        if (existingModal) {
+            console.log('⚠️ Error modal already open, skipping duplicate');
+            return;
         }
+
+        // Clean up any existing modal first
+        if (this.modalRoot && this.modalContainer) {
+            try {
+                this.modalRoot.unmount();
+                this.modalContainer.remove();
+            } catch (e) {
+                console.error('Error cleaning up previous modal:', e);
+            }
+            this.modalContainer = null;
+            this.modalRoot = null;
+        }
+
+        // Create container
+        this.modalContainer = document.createElement('div');
+        document.body.appendChild(this.modalContainer);
 
         // Create root and render modal
         this.modalRoot = ReactDOM.createRoot(this.modalContainer);
 
         const handleClose = () => {
+            console.log('🔴 Closing error modal');
             if (this.modalRoot && this.modalContainer) {
-                this.modalRoot.unmount();
-                this.modalContainer.remove();
+                try {
+                    this.modalRoot.unmount();
+                    if (this.modalContainer.parentNode) {
+                        this.modalContainer.parentNode.removeChild(this.modalContainer);
+                    }
+                } catch (e) {
+                    console.error('Error closing modal:', e);
+                }
                 this.modalContainer = null;
                 this.modalRoot = null;
             }
@@ -85,10 +105,10 @@ export default class HelperErrors {
             return;
         }
 
-        // Handle network errors
-        if (data?.message === 'Network Error') {
+        // Handle network errors (including ERR_CONNECTION_REFUSED)
+        if (data?.message === 'Network Error' || data?.code === 'ERR_NETWORK' || data?.code === 'ERR_CONNECTION_REFUSED') {
             this.showModal(
-                'Unable to connect to the server. Please check your internet connection and try again.',
+                'Unable to connect to the server. Please check that the backend server is running and try again.',
                 'network'
             );
             return;

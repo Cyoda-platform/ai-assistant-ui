@@ -15,10 +15,12 @@ import {
   MessageCircle,
   Linkedin,
   BookOpen,
-  Github
+  Github,
+  Shield
 } from 'lucide-react';
 import AuthState from '@/components/AuthState/AuthState';
 import Logo from '@/assets/images/logo.svg';
+import { useSuperUserMode, useIsCyodaEmployee } from '@/stores/auth';
 
 interface Notification {
   id: number;
@@ -57,6 +59,10 @@ const Header: React.FC<HeaderProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
+
+  // Super user mode state
+  const superUserMode = useSuperUserMode();
+  const isCyodaEmployee = useIsCyodaEmployee();
 
   console.log('🎨 Header component rendering, externalNotifications:', externalNotifications?.length || 0);
 
@@ -138,6 +144,14 @@ const Header: React.FC<HeaderProps> = ({
               <img src={Logo} alt="CYODA" className="h-8" />
               <span className="text-xs bg-slate-700 px-2 py-1 rounded-full text-slate-300 font-medium">ALPHA</span>
             </div>
+
+            {/* Super User Mode Badge */}
+            {superUserMode && isCyodaEmployee && (
+              <div className="flex items-center space-x-2 bg-teal-500/20 border border-teal-500/50 px-3 py-1 rounded-full">
+                <Shield size={14} className="text-teal-400" />
+                <span className="text-xs text-teal-400 font-semibold">SUPER USER</span>
+              </div>
+            )}
 
             {/* Breadcrumb */}
             <div className="hidden md:flex items-center space-x-2 text-sm text-slate-400">

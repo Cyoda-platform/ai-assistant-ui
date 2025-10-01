@@ -94,7 +94,29 @@ const App: React.FC = () => {
           oldTokenType: currentState.tokenType
         });
 
-        useAuthStore.getState().saveData({
+        // Parse JWT token to extract caas_cyoda_employee
+        let isCyodaEmployee = false;
+        try {
+          const base64Url = token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(
+            atob(base64)
+              .split('')
+              .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+              .join('')
+          );
+          const parsed = JSON.parse(jsonPayload);
+          isCyodaEmployee = parsed.caas_cyoda_employee === true;
+          console.log('🔍 JWT Token Parsed:', {
+            caas_cyoda_employee: parsed.caas_cyoda_employee,
+            isCyodaEmployee,
+            fullParsed: parsed
+          });
+        } catch (e) {
+          console.error('❌ Error parsing JWT token:', e);
+        }
+
+        const authData = {
           token: token,
           tokenType: "private",
           refreshToken: null,
@@ -104,7 +126,12 @@ const App: React.FC = () => {
           family_name: user?.family_name || '',
           given_name: user?.given_name || '',
           email: user?.email || '',
-        });
+          isCyodaEmployee: isCyodaEmployee,
+          superUserMode: false, // Reset super user mode on login
+        };
+
+        console.log('💾 Saving auth data with isCyodaEmployee:', authData.isCyodaEmployee);
+        useAuthStore.getState().saveData(authData);
 
         if (oldToken) {
           console.log('Transferring chats from guest token to Auth0 token');

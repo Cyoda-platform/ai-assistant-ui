@@ -4,6 +4,7 @@ import ChatBot from '@/components/ChatBot/ChatBot';
 import ChatBotCanvas from '@/components/ChatBot/ChatBotCanvas';
 import Header from '@/components/Header/Header';
 import { useAssistantStore } from '@/stores/assistant';
+import { useSuperUserMode } from '@/stores/auth';
 import EntityDataPanel from '@/components/EntityDataPanel/EntityDataPanel';
 import ChatHistoryPanel from '@/components/ChatHistoryPanel/ChatHistoryPanel';
 import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
@@ -39,6 +40,7 @@ const ChatBotView: React.FC = () => {
   const chatList = useAssistantStore((state) => state.chatList); // Subscribe to chatList specifically
   const isLoadingChats = useAssistantStore((state) => state.isLoadingChats);
   const chatListReady = useAssistantStore((state) => state.chatListReady);
+  const superUserMode = useSuperUserMode(); // Watch for super user mode changes
   const [canvasVisible, setCanvasVisible] = useState(false);
   const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
   const [isEntityDataOpen, setIsEntityDataOpen] = useState(false);
@@ -537,6 +539,16 @@ const ChatBotView: React.FC = () => {
       eventBus.$off(UPDATE_CHAT_LIST, handleUpdateChatList);
     };
   }, [chatListReady]);
+
+  // Refresh chat list when super user mode changes
+  useEffect(() => {
+    if (chatListReady) {
+      console.log('🔄 Super user mode changed, refreshing chat list');
+      assistantStore.getChats().catch(error => {
+        console.error('Failed to refresh chat list after super user mode change:', error);
+      });
+    }
+  }, [superUserMode]);
 
   // Initialize chat and start polling
   useEffect(() => {

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import privateClient from "@/clients/private";
 import type { CreateChatRequest, CreateChatResponse, ChatResponse, ChatData } from "@/types/chat";
 import HelperStorage from "../helpers/HelperStorage";
+import { useAuthStore } from "./auth";
 
 const helperStorage = new HelperStorage();
 
@@ -81,16 +82,47 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
 
     set({ isLoadingChats: true });
     try {
-      const response = await privateClient.get<ChatResponse>(`/v1/chats`);
+      // Check if super user mode is enabled
+      const authState = useAuthStore.getState();
+      const isSuperMode = authState.superUserMode && authState.isCyodaEmployee;
+
+      // Build query params
+      const params: any = {};
+      if (isSuperMode) {
+        params.super = 'true';
+        console.log('🔐 Super user mode enabled - fetching all chats');
+      }
+
+      const response = await privateClient.get<ChatResponse>(`/v1/chats`, { params });
       set({ chatList: response.data.chats, chatListReady: true });
       return response;
+    } catch (error: any) {
+      console.error('❌ Failed to fetch chats:', error.message || error);
+      // Don't set chatListReady to true on error
+      throw error;
     } finally {
       set({ isLoadingChats: false });
     }
   },
 
   getChatById(technical_id: string, params = {}) {
-    return privateClient.get(`/v1/chats/${technical_id}`, params);
+    // Check if super user mode is enabled
+    const authState = useAuthStore.getState();
+    const isSuperMode = authState.superUserMode && authState.isCyodaEmployee;
+
+    // Build the config object for axios
+    const config: any = { ...params };
+
+    // Add super query parameter if in super user mode
+    if (isSuperMode) {
+      config.params = {
+        ...(config.params || {}),
+        super: 'true'
+      };
+      console.log('🔐 Super user mode enabled - fetching chat with super access');
+    }
+
+    return privateClient.get(`/v1/chats/${technical_id}`, config);
   },
 
   deleteChatById(technical_id: string) {

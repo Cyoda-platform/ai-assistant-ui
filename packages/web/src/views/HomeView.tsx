@@ -20,7 +20,7 @@ import {
   Paperclip
 } from 'lucide-react';
 import { useAssistantStore } from '@/stores/assistant';
-import { useAuthStore } from '@/stores/auth';
+import { useAuthStore, useSuperUserMode } from '@/stores/auth';
 import Header from '@/components/Header/Header';
 import ChatBotCanvas from '@/components/ChatBot/ChatBotCanvas';
 import ChatHistoryPanel from '@/components/ChatHistoryPanel/ChatHistoryPanel';
@@ -57,6 +57,7 @@ const HomeView: React.FC = () => {
 
   const assistantStore = useAssistantStore();
   const authStore = useAuthStore();
+  const superUserMode = useSuperUserMode(); // Watch for super user mode changes
   const isLoadingChats = useAssistantStore((state) => state.isLoadingChats);
   const chatListReady = useAssistantStore((state) => state.chatListReady);
 
@@ -105,6 +106,16 @@ const HomeView: React.FC = () => {
       eventBus.$off(UPDATE_CHAT_LIST, handleUpdateChatList);
     };
   }, [chatListReady]);
+
+  // Refresh chat list when super user mode changes
+  useEffect(() => {
+    if (chatListReady) {
+      console.log('🔄 Super user mode changed, refreshing chat list');
+      assistantStore.getChats().catch(error => {
+        console.error('Failed to refresh chat list after super user mode change:', error);
+      });
+    }
+  }, [superUserMode]);
 
   // Check if user is a guest by parsing the token
   const isGuestUser = useMemo(() => {

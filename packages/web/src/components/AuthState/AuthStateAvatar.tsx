@@ -2,18 +2,29 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Settings, LogOut } from 'lucide-react';
-import { useAuthStore } from '@/stores/auth';
+import { Settings, LogOut, Shield } from 'lucide-react';
+import { useAuthStore, useIsCyodaEmployee, useSuperUserMode } from '@/stores/auth';
 import SettingsDialog from '@/components/SettingsDialog/SettingsDialog';
 
 const AuthStateAvatar: React.FC = () => {
   const authStore = useAuthStore();
+  const isCyodaEmployee = useIsCyodaEmployee();
+  const superUserMode = useSuperUserMode();
   const { t } = useTranslation();
   const { logout } = useAuth0();
   const navigate = useNavigate();
   const [visibleCard, setVisibleCard] = useState(false);
   const [settingsDialogVisible, setSettingsDialogVisible] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('👤 AuthStateAvatar - Current State:', {
+      isCyodaEmployee,
+      superUserMode,
+      fullAuthStore: authStore
+    });
+  }, [isCyodaEmployee, superUserMode]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -66,7 +77,18 @@ const AuthStateAvatar: React.FC = () => {
 
   const onToggleCard = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setVisibleCard(!visibleCard);
+    const newVisibleState = !visibleCard;
+    console.log('🔽 Dropdown toggled:', {
+      newVisibleState,
+      isCyodaEmployee,
+      superUserMode,
+      willShowToggle: newVisibleState && isCyodaEmployee
+    });
+    setVisibleCard(newVisibleState);
+  };
+
+  const onToggleSuperUserMode = () => {
+    authStore.toggleSuperUserMode();
   };
 
   return (
@@ -99,6 +121,32 @@ const AuthStateAvatar: React.FC = () => {
 
           {/* Content */}
           <div className="p-2">
+            {/* Super User Mode Toggle - Only for Cyoda Employees */}
+            {isCyodaEmployee && (
+              <div className="mb-2">
+                <button
+                  onClick={onToggleSuperUserMode}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${
+                    superUserMode
+                      ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <Shield className="w-4 h-4" />
+                    <span>Super User Mode</span>
+                  </div>
+                  <div className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                    superUserMode ? 'bg-teal-500' : 'bg-slate-600'
+                  }`}>
+                    <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                      superUserMode ? 'translate-x-5' : 'translate-x-1'
+                    }`} />
+                  </div>
+                </button>
+              </div>
+            )}
+
             <button
               onClick={onClickSettings}
               className="w-full flex items-center space-x-3 px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors rounded-md text-sm"

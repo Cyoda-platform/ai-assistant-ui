@@ -8,4 +8,6 @@ export interface Auth {
   family_name: string;
   given_name: string;
   email: string;
+  isCyodaEmployee: boolean;
+  superUserMode: boolean;
 }
