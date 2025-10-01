@@ -132,8 +132,6 @@ gantt
 
   // Workflow tabs state
   const { tabs, activeTabId, openTab, updateTab, getActiveTab } = useWorkflowTabsStore();
-  const [isNewWorkflowModalOpen, setIsNewWorkflowModalOpen] = useState(false);
-  const [form] = Form.useForm();
   const activeWorkflowTab = getActiveTab();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -154,30 +152,22 @@ gantt
     }
   }, [workflowData, handleSubmit]);
 
-  // Workflow tabs handlers
+  // Workflow tabs handlers - create new tab directly without modal
   const handleNewWorkflowTab = useCallback(() => {
-    setIsNewWorkflowModalOpen(true);
-  }, []);
+    // Generate a unique counter for new tabs
+    const newTabCounter = tabs.filter(t => t.modelName.startsWith('new-workflow')).length + 1;
+    const modelName = `new-workflow-${newTabCounter}`;
+    const modelVersion = 1;
+    const workflowTechnicalId = `${modelName}_v${modelVersion}_${Date.now()}`;
 
-  const handleCreateWorkflow = useCallback(() => {
-    form.validateFields().then((values) => {
-      const { modelName, modelVersion, displayName } = values;
-
-      // Generate technical ID for storage
-      const workflowTechnicalId = `${modelName}_v${modelVersion}_${Date.now()}`;
-
-      openTab({
-        modelName,
-        modelVersion,
-        displayName: displayName || `${modelName} v${modelVersion}`,
-        isDirty: false,
-        technicalId: workflowTechnicalId,
-      });
-
-      setIsNewWorkflowModalOpen(false);
-      form.resetFields();
+    openTab({
+      modelName,
+      modelVersion,
+      displayName: `New Workflow ${newTabCounter}`,
+      isDirty: false,
+      technicalId: workflowTechnicalId,
     });
-  }, [form, openTab]);
+  }, [openTab, tabs]);
 
   const handleWorkflowUpdate = useCallback((tabId: string, data: { canvasData: string; workflowMetaData: any }) => {
     // Mark tab as dirty when workflow is updated
@@ -464,50 +454,6 @@ graph TD
         )}
       </div>
 
-      {/* New Workflow Modal */}
-      <Modal
-        title="Open Workflow"
-        open={isNewWorkflowModalOpen}
-        onOk={handleCreateWorkflow}
-        onCancel={() => {
-          setIsNewWorkflowModalOpen(false);
-          form.resetFields();
-        }}
-        okText="Open"
-        cancelText="Cancel"
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          initialValues={{ modelVersion: 1 }}
-        >
-          <Form.Item
-            label="Entity Model Name"
-            name="modelName"
-            rules={[
-              { required: true, message: 'Please enter the entity model name' },
-              { pattern: /^[a-z0-9-]+$/, message: 'Only lowercase letters, numbers, and hyphens allowed' }
-            ]}
-          >
-            <Input placeholder="e.g., user-workflow, order-process" />
-          </Form.Item>
-
-          <Form.Item
-            label="Model Version"
-            name="modelVersion"
-            rules={[{ required: true, message: 'Please enter the model version' }]}
-          >
-            <InputNumber min={1} style={{ width: '100%' }} />
-          </Form.Item>
-
-          <Form.Item
-            label="Display Name (Optional)"
-            name="displayName"
-          >
-            <Input placeholder="e.g., User Registration Workflow" />
-          </Form.Item>
-        </Form>
-      </Modal>
     </div>
   );
 };

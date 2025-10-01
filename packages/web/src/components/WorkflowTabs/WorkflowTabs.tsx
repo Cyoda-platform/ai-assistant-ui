@@ -1,7 +1,7 @@
-import React from 'react';
-import { X, Plus, FileCode2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Plus, FileCode2, Trash2, Edit2 } from 'lucide-react';
 import { useWorkflowTabsStore, WorkflowTab } from '@/stores/workflowTabs';
-import { Dropdown } from 'antd';
+import { Dropdown, Modal, Input } from 'antd';
 import type { MenuProps } from 'antd';
 
 interface WorkflowTabsProps {
@@ -9,7 +9,11 @@ interface WorkflowTabsProps {
 }
 
 export const WorkflowTabs: React.FC<WorkflowTabsProps> = ({ onNewTab }) => {
-  const { tabs, activeTabId, setActiveTab, closeTab, closeOtherTabs, closeAllTabs } = useWorkflowTabsStore();
+  const { tabs, activeTabId, setActiveTab, closeTab, closeOtherTabs, closeAllTabs, updateTab } = useWorkflowTabsStore();
+  const [editingTabId, setEditingTabId] = useState<string | null>(null);
+  const [editDisplayName, setEditDisplayName] = useState('');
+  const [editModelName, setEditModelName] = useState('');
+  const [editModelVersion, setEditModelVersion] = useState(1);
 
   const handleTabClick = (tabId: string) => {
     setActiveTab(tabId);
@@ -20,7 +24,75 @@ export const WorkflowTabs: React.FC<WorkflowTabsProps> = ({ onNewTab }) => {
     closeTab(tabId);
   };
 
+  const handleCloseAllTabs = () => {
+    Modal.confirm({
+      title: 'Close All Tabs?',
+      content: 'Are you sure you want to close all workflow tabs? Any unsaved changes will be lost.',
+      okText: 'Close All',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: () => {
+        closeAllTabs();
+      },
+    });
+  };
+
+  const handleEditTab = (tab: WorkflowTab) => {
+    setEditingTabId(tab.id);
+    setEditDisplayName(tab.displayName);
+    setEditModelName(tab.modelName);
+    setEditModelVersion(tab.modelVersion);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingTabId) return;
+
+    // Validate inputs
+    if (!editModelName.trim()) {
+      Modal.error({
+        title: 'Invalid Model Name',
+        content: 'Model name cannot be empty',
+      });
+      return;
+    }
+
+    if (editModelVersion < 1) {
+      Modal.error({
+        title: 'Invalid Version',
+        content: 'Version must be at least 1',
+      });
+      return;
+    }
+
+    // Update the tab
+    const newId = `${editModelName}_v${editModelVersion}`;
+    const technicalId = `${editModelName}_v${editModelVersion}_${Date.now()}`;
+
+    updateTab(editingTabId, {
+      id: newId,
+      modelName: editModelName,
+      modelVersion: editModelVersion,
+      displayName: editDisplayName || `${editModelName} v${editModelVersion}`,
+      technicalId,
+    });
+
+    setEditingTabId(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTabId(null);
+  };
+
   const getContextMenuItems = (tab: WorkflowTab): MenuProps['items'] => [
+    {
+      key: 'edit',
+      label: 'Edit',
+      icon: <Edit2 size={14} />,
+      onClick: () => handleEditTab(tab),
+    },
+    {
+      type: 'divider',
+    },
     {
       key: 'close',
       label: 'Close',
@@ -119,6 +191,62 @@ export const WorkflowTabs: React.FC<WorkflowTabsProps> = ({ onNewTab }) => {
           <Plus size={16} />
         </button>
       )}
+
+      {/* Edit Tab Modal */}
+      <Modal
+        title="Edit Workflow Tab"
+        open={editingTabId !== null}
+        onOk={handleSaveEdit}
+        onCancel={handleCancelEdit}
+        okText="Save"
+        cancelText="Cancel"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Display Name
+            </label>
+            <Input
+              value={editDisplayName}
+              onChange={(e) => setEditDisplayName(e.target.value)}
+              placeholder="e.g., User Registration Workflow"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Friendly name shown in the tab
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Model Name <span className="text-red-500">*</span>
+            </label>
+            <Input
+              value={editModelName}
+              onChange={(e) => setEditModelName(e.target.value)}
+              placeholder="e.g., user-registration"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Entity model name (alphanumeric, hyphens, underscores)
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Model Version <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="number"
+              min={1}
+              value={editModelVersion}
+              onChange={(e) => setEditModelVersion(parseInt(e.target.value) || 1)}
+              placeholder="1"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Version number (must be at least 1)
+            </p>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

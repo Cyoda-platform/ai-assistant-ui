@@ -12,7 +12,7 @@ export interface WorkflowTab {
 interface WorkflowTabsState {
   tabs: WorkflowTab[];
   activeTabId: string | null;
-  
+
   // Actions
   openTab: (tab: Omit<WorkflowTab, 'id'>) => void;
   closeTab: (tabId: string) => void;
@@ -30,13 +30,13 @@ export const useWorkflowTabsStore = create<WorkflowTabsState>((set, get) => ({
 
   openTab: (tabData) => {
     const { tabs, activeTabId } = get();
-    
+
     // Create unique ID from modelName and modelVersion
     const tabId = `${tabData.modelName}_v${tabData.modelVersion}`;
-    
+
     // Check if tab already exists
     const existingTab = tabs.find(t => t.id === tabId);
-    
+
     if (existingTab) {
       // Tab already exists, just activate it
       set({ activeTabId: tabId });
@@ -46,7 +46,7 @@ export const useWorkflowTabsStore = create<WorkflowTabsState>((set, get) => ({
         id: tabId,
         ...tabData,
       };
-      
+
       set({
         tabs: [...tabs, newTab],
         activeTabId: tabId,
@@ -57,12 +57,12 @@ export const useWorkflowTabsStore = create<WorkflowTabsState>((set, get) => ({
   closeTab: (tabId) => {
     const { tabs, activeTabId } = get();
     const tabIndex = tabs.findIndex(t => t.id === tabId);
-    
+
     if (tabIndex === -1) return;
-    
+
     const newTabs = tabs.filter(t => t.id !== tabId);
     let newActiveTabId = activeTabId;
-    
+
     // If closing the active tab, switch to another tab
     if (activeTabId === tabId) {
       if (newTabs.length > 0) {
@@ -73,7 +73,7 @@ export const useWorkflowTabsStore = create<WorkflowTabsState>((set, get) => ({
         newActiveTabId = null;
       }
     }
-    
+
     set({
       tabs: newTabs,
       activeTabId: newActiveTabId,
@@ -83,19 +83,31 @@ export const useWorkflowTabsStore = create<WorkflowTabsState>((set, get) => ({
   setActiveTab: (tabId) => {
     const { tabs } = get();
     const tab = tabs.find(t => t.id === tabId);
-    
+
     if (tab) {
       set({ activeTabId: tabId });
     }
   },
 
   updateTab: (tabId, updates) => {
-    const { tabs } = get();
+    const { tabs, activeTabId } = get();
+
+    // Check if the ID is being changed
+    const isIdChanging = updates.id && updates.id !== tabId;
+
     const updatedTabs = tabs.map(tab =>
       tab.id === tabId ? { ...tab, ...updates } : tab
     );
-    
-    set({ tabs: updatedTabs });
+
+    // If the active tab's ID changed, update activeTabId
+    const newActiveTabId = isIdChanging && activeTabId === tabId
+      ? updates.id
+      : activeTabId;
+
+    set({
+      tabs: updatedTabs,
+      activeTabId: newActiveTabId
+    });
   },
 
   closeAllTabs: () => {
@@ -108,7 +120,7 @@ export const useWorkflowTabsStore = create<WorkflowTabsState>((set, get) => ({
   closeOtherTabs: (tabId) => {
     const { tabs } = get();
     const tab = tabs.find(t => t.id === tabId);
-    
+
     if (tab) {
       set({
         tabs: [tab],

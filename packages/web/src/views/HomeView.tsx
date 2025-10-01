@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Plus,
   History,
@@ -32,6 +32,7 @@ import { UPDATE_CHAT_LIST } from '@/helpers/HelperConstants';
 import { groupChatsByDate } from '@/helpers/HelperChatGroups';
 
 const HomeView: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [chatInput, setChatInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(true);
@@ -41,6 +42,17 @@ const HomeView: React.FC = () => {
   const chatInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+
+  // Check if canvas should be opened from URL parameter
+  useEffect(() => {
+    const shouldOpenCanvas = searchParams.get('canvas') === 'true';
+    if (shouldOpenCanvas) {
+      setCanvasVisible(true);
+      // Remove the parameter from URL to clean it up
+      searchParams.delete('canvas');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const assistantStore = useAssistantStore();
   const authStore = useAuthStore();

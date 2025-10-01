@@ -7,48 +7,28 @@ import { FileCode2 } from 'lucide-react';
 
 export const WorkflowTabsContainer: React.FC = () => {
   const { tabs, activeTabId, openTab, updateTab, getActiveTab } = useWorkflowTabsStore();
-  const [isNewWorkflowModalOpen, setIsNewWorkflowModalOpen] = useState(false);
-  const [form] = Form.useForm();
 
   const activeTab = getActiveTab();
 
-  // Open a sample tab on first load for demo purposes
-  React.useEffect(() => {
-    if (tabs.length === 0) {
-      // Automatically open a sample workflow tab
-      openTab({
-        modelName: 'sample-workflow',
-        modelVersion: 1,
-        displayName: 'Sample Workflow',
-        isDirty: false,
-        technicalId: `sample-workflow_v1_${Date.now()}`,
-      });
-    }
-  }, []);
+  // Note: Removed auto-open sample workflow to avoid conflicts with URL parameters
+  // The WorkflowTabsView will handle auto-opening from URL params
 
+  // Create a new empty tab directly without modal
   const handleNewTab = useCallback(() => {
-    setIsNewWorkflowModalOpen(true);
-  }, []);
+    // Generate a unique counter for new tabs
+    const newTabCounter = tabs.filter(t => t.modelName.startsWith('new-workflow')).length + 1;
+    const modelName = `new-workflow-${newTabCounter}`;
+    const modelVersion = 1;
+    const technicalId = `${modelName}_v${modelVersion}_${Date.now()}`;
 
-  const handleCreateWorkflow = useCallback(() => {
-    form.validateFields().then((values) => {
-      const { modelName, modelVersion, displayName } = values;
-
-      // Generate technical ID for storage
-      const technicalId = `${modelName}_v${modelVersion}_${Date.now()}`;
-
-      openTab({
-        modelName,
-        modelVersion,
-        displayName: displayName || `${modelName} v${modelVersion}`,
-        isDirty: false,
-        technicalId,
-      });
-
-      setIsNewWorkflowModalOpen(false);
-      form.resetFields();
+    openTab({
+      modelName,
+      modelVersion,
+      displayName: `New Workflow ${newTabCounter}`,
+      isDirty: false,
+      technicalId,
     });
-  }, [form, openTab]);
+  }, [openTab, tabs]);
 
   const handleWorkflowUpdate = useCallback((tabId: string, data: { canvasData: string; workflowMetaData: any }) => {
     // Mark tab as dirty when workflow is updated
@@ -67,6 +47,8 @@ export const WorkflowTabsContainer: React.FC = () => {
             <ChatBotEditorWorkflowNew
               technicalId={activeTab.technicalId}
               onUpdate={(data) => handleWorkflowUpdate(activeTab.id, data)}
+              modelName={activeTab.modelName}
+              modelVersion={activeTab.modelVersion}
             />
           </div>
         ) : (
@@ -78,7 +60,7 @@ export const WorkflowTabsContainer: React.FC = () => {
                 No Workflow Open
               </h2>
               <p className="text-gray-500 mb-6">
-                Open a workflow to start editing
+                Click the + button to create a new workflow
               </p>
               <Button
                 type="primary"
@@ -86,63 +68,12 @@ export const WorkflowTabsContainer: React.FC = () => {
                 onClick={handleNewTab}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                Open New Workflow
+                New Workflow
               </Button>
             </div>
           </div>
         )}
       </div>
-
-      {/* New Workflow Modal */}
-      <Modal
-        title="Open New Workflow"
-        open={isNewWorkflowModalOpen}
-        onOk={handleCreateWorkflow}
-        onCancel={() => {
-          setIsNewWorkflowModalOpen(false);
-          form.resetFields();
-        }}
-        okText="Open"
-        cancelText="Cancel"
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          initialValues={{
-            modelVersion: 1,
-          }}
-        >
-          <Form.Item
-            name="modelName"
-            label="Entity Model Name"
-            rules={[
-              { required: true, message: 'Please enter the entity model name' },
-              { pattern: /^[a-zA-Z0-9_-]+$/, message: 'Only alphanumeric characters, hyphens, and underscores allowed' }
-            ]}
-          >
-            <Input placeholder="e.g., user-registration, order-processing" />
-          </Form.Item>
-
-          <Form.Item
-            name="modelVersion"
-            label="Model Version"
-            rules={[
-              { required: true, message: 'Please enter the model version' },
-              { type: 'number', min: 1, message: 'Version must be at least 1' }
-            ]}
-          >
-            <InputNumber min={1} className="w-full" />
-          </Form.Item>
-
-          <Form.Item
-            name="displayName"
-            label="Display Name (Optional)"
-            tooltip="A friendly name for the tab. If not provided, will use 'ModelName vVersion'"
-          >
-            <Input placeholder="e.g., User Registration Workflow" />
-          </Form.Item>
-        </Form>
-      </Modal>
     </div>
   );
 };

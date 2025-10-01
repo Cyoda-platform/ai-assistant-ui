@@ -16,11 +16,12 @@ import {
 } from '@xyflow/react';
 import type { Node, Edge, Connection, OnConnect, OnReconnect } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Network, Download, Upload, FileJson, Info, X, Cloud, CloudDownload, CloudUpload } from 'lucide-react';
+import { Network, Download, Upload, FileJson, Info, X, Cloud, CloudDownload, CloudUpload, Maximize2, Minimize2 } from 'lucide-react';
 import axios from 'axios';
 import { useAuthStore } from '@/stores/auth';
 import { Modal } from 'antd';
 import { useNotifications, NotificationManager } from '@/components/Notification/Notification';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // Helper function to detect bidirectional connections
 function hasBidirectionalConnection(
@@ -1333,7 +1334,31 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     [onWorkflowUpdate]
   );
 
+  // Handle opening/closing fullscreen (dedicated page)
+  const navigate = useNavigate();
+  const location = useLocation();
 
+  // Check if we're currently in fullscreen mode (on /workflows page)
+  const isInFullscreenMode = location.pathname === '/workflows';
+
+  const handleToggleFullscreen = useCallback(() => {
+    if (!modelName || !modelVersion) {
+      showWarning(
+        'Cannot Open Fullscreen',
+        'Model name and version are required to open in fullscreen mode'
+      );
+      return;
+    }
+
+    if (isInFullscreenMode) {
+      // Exit fullscreen - go to home page with canvas=true parameter
+      // This signals HomeView to open the canvas panel
+      navigate('/?canvas=true');
+    } else {
+      // Enter fullscreen - navigate to workflows page with query parameters
+      navigate(`/workflows?model=${encodeURIComponent(modelName)}&version=${encodeURIComponent(modelVersion)}`);
+    }
+  }, [modelName, modelVersion, navigate, showWarning, isInFullscreenMode]);
 
   if (!cleanedWorkflow) {
     return (
@@ -1458,6 +1483,24 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           >
             <span className="text-sm font-bold">?</span>
           </ControlButton>
+          {/* Only show fullscreen button if model name and version are available */}
+          {modelName && modelVersion && (
+            <ControlButton
+              onClick={handleToggleFullscreen}
+              title={isInFullscreenMode ? "Exit fullscreen" : "Open in fullscreen"}
+              className={isInFullscreenMode
+                ? "bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/30 dark:to-red-900/30"
+                : "bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/30 dark:to-indigo-900/30"
+              }
+              data-testid="fullscreen-button"
+            >
+              {isInFullscreenMode ? (
+                <Minimize2 size={16} className="text-orange-600 dark:text-orange-400" />
+              ) : (
+                <Maximize2 size={16} className="text-purple-600 dark:text-purple-400" />
+              )}
+            </ControlButton>
+          )}
         </Controls>
 
         <MiniMap
@@ -1501,32 +1544,114 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         )}
 
         {showQuickHelp && (
-          <Panel position="top-right" className="bg-gradient-to-br from-white via-pink-50 to-fuchsia-50 dark:from-gray-900 dark:via-pink-950/30 dark:to-fuchsia-950/30 p-4 rounded-2xl shadow-2xl border-2 border-pink-200 dark:border-pink-800 backdrop-blur-md" data-testid="quick-help-panel">
-            <div className="text-xs text-gray-700 dark:text-gray-300 space-y-2">
-              <div className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-fuchsia-600 dark:from-pink-400 dark:to-fuchsia-400 mb-3 text-sm">✨ Quick Help</div>
-              <div className="flex items-start space-x-2">
-                <span className="text-lime-500 mt-0.5">•</span>
-                <span>Double-click canvas to add state</span>
+          <Panel position="top-right" className="bg-gradient-to-br from-white via-pink-50 to-fuchsia-50 dark:from-gray-900 dark:via-pink-950/30 dark:to-fuchsia-950/30 rounded-2xl shadow-2xl border-2 border-pink-200 dark:border-pink-800 backdrop-blur-md w-72 max-h-[50vh]" data-testid="quick-help-panel">
+            <div className="p-3 overflow-y-auto max-h-[50vh] text-xs text-gray-700 dark:text-gray-300 space-y-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-pink-100 dark:[&::-webkit-scrollbar-track]:bg-pink-900/30 [&::-webkit-scrollbar-thumb]:bg-gradient-to-b [&::-webkit-scrollbar-thumb]:from-pink-400 [&::-webkit-scrollbar-thumb]:to-fuchsia-400 dark:[&::-webkit-scrollbar-thumb]:from-pink-600 dark:[&::-webkit-scrollbar-thumb]:to-fuchsia-600 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border [&::-webkit-scrollbar-thumb]:border-pink-300 dark:[&::-webkit-scrollbar-thumb]:border-pink-700">
+              <div className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-fuchsia-600 dark:from-pink-400 dark:to-fuchsia-400 mb-2 text-xs">✨ Quick Help</div>
+
+              {/* Canvas Interactions */}
+              <div className="space-y-1">
+                <div className="font-semibold text-gray-800 dark:text-gray-200 text-[10px]">Canvas Interactions</div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-lime-500 mt-0.5">•</span>
+                  <span>Double-click canvas to add new state</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-pink-500 mt-0.5">•</span>
+                  <span>Drag states to rearrange layout</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-lime-500 mt-0.5">•</span>
+                  <span>Drag from state handles (dots) to connect</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-pink-500 mt-0.5">•</span>
+                  <span>Click state/transition → jump to JSON</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-lime-500 mt-0.5">•</span>
+                  <span>Double-click transition → open editor</span>
+                </div>
               </div>
-              <div className="flex items-start space-x-2">
-                <span className="text-pink-500 mt-0.5">•</span>
-                <span>Click state/transition → jump to JSON</span>
+
+              {/* Toolbar Buttons */}
+              <div className="space-y-1 pt-2 border-t border-pink-200 dark:border-pink-800">
+                <div className="font-semibold text-gray-800 dark:text-gray-200 text-[10px]">Toolbar Buttons</div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-blue-500 mt-0.5">ℹ️</span>
+                  <span><strong>Info</strong> - Toggle workflow information panel</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-lime-500 mt-0.5">{'{}'}</span>
+                  <span><strong>JSON Editor</strong> - Edit workflow configuration as JSON</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-pink-500 mt-0.5">↓</span>
+                  <span><strong>Download</strong> - Export workflow to JSON file</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-lime-500 mt-0.5">↑</span>
+                  <span><strong>Upload</strong> - Import workflow from JSON file</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-blue-500 mt-0.5">☁↑</span>
+                  <span><strong>Cloud Export</strong> - Export to environment API</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-blue-500 mt-0.5">☁↓</span>
+                  <span><strong>Cloud Import</strong> - Import from environment API</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-pink-500 mt-0.5">⚡</span>
+                  <span><strong>Auto-arrange</strong> - Automatically layout states hierarchically</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-fuchsia-500 mt-0.5">?</span>
+                  <span><strong>Quick Help</strong> - Toggle this help panel</span>
+                </div>
+                {modelName && modelVersion && (
+                  <div className="flex items-start space-x-2">
+                    <span className="text-purple-500 mt-0.5">{isInFullscreenMode ? '⤓' : '⤢'}</span>
+                    <span><strong>Fullscreen</strong> - {isInFullscreenMode ? 'Exit fullscreen mode' : 'Open in fullscreen mode'}</span>
+                  </div>
+                )}
               </div>
-              <div className="flex items-start space-x-2">
-                <span className="text-lime-500 mt-0.5">•</span>
-                <span>Double-click transition → open editor</span>
+
+              {/* Keyboard Shortcuts */}
+              <div className="space-y-2 pt-2 border-t border-pink-200 dark:border-pink-800">
+                <div className="font-semibold text-gray-800 dark:text-gray-200 text-xs">Keyboard Shortcuts</div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-lime-500 mt-0.5">•</span>
+                  <span><strong>Delete/Backspace</strong> - Delete selected state/transition</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-pink-500 mt-0.5">•</span>
+                  <span><strong>Ctrl/Cmd + Z</strong> - Undo (via JSON editor)</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-lime-500 mt-0.5">•</span>
+                  <span><strong>Mouse Wheel</strong> - Zoom in/out</span>
+                </div>
               </div>
-              <div className="flex items-start space-x-2">
-                <span className="text-pink-500 mt-0.5">•</span>
-                <span>Drag from state handles to connect</span>
-              </div>
-              <div className="flex items-start space-x-2">
-                <span className="text-lime-500 mt-0.5">•</span>
-                <span>Drag states to rearrange</span>
-              </div>
-              <div className="flex items-start space-x-2">
-                <span className="text-pink-500 mt-0.5">•</span>
-                <span>Use layout button to auto-arrange</span>
+
+              {/* Tips */}
+              <div className="space-y-2 pt-2 border-t border-pink-200 dark:border-pink-800">
+                <div className="font-semibold text-gray-800 dark:text-gray-200 text-xs">💡 Tips</div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-lime-500 mt-0.5">•</span>
+                  <span>Use JSON editor for bulk changes</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-pink-500 mt-0.5">•</span>
+                  <span>Auto-arrange after pasting JSON</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-lime-500 mt-0.5">•</span>
+                  <span>Right-click tabs to edit name/version</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-pink-500 mt-0.5">•</span>
+                  <span>All 8 handles on states are usable</span>
+                </div>
               </div>
             </div>
           </Panel>
