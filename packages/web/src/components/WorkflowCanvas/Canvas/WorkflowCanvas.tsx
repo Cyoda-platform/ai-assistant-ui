@@ -142,6 +142,8 @@ interface WorkflowCanvasProps {
   onTransitionEdit: (transitionId: string) => void;
   darkMode: boolean;
   technicalId?: string;
+  modelName?: string;
+  modelVersion?: number;
 }
 
 const nodeTypes = {
@@ -262,7 +264,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   onStateEdit,
   onTransitionEdit,
   darkMode,
-  technicalId
+  technicalId,
+  modelName,
+  modelVersion
 }) => {
   const { screenToFlowPosition } = useReactFlow();
   const [showQuickHelp, setShowQuickHelp] = useState(false);
@@ -638,30 +642,32 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       if (!cleanedWorkflow || !params.source || !params.target) return;
 
       // Validate handle IDs to prevent React Flow errors
-      // Source handles should be on bottom/right positions and end with -source
+      // Source handles should end with -source
       if (params.sourceHandle) {
         if (!params.sourceHandle.endsWith('-source')) {
           console.error('Invalid source handle ID:', params.sourceHandle, 'should end with -source');
           return;
         }
-        // Check that source handle is from a valid source position (bottom/right)
+        // Check that source handle is from a valid position (any of the 8 positions)
         const sourcePosition = params.sourceHandle.replace('-source', '');
-        if (!['bottom-left', 'bottom-center', 'bottom-right', 'right-center'].includes(sourcePosition)) {
-          console.error('Invalid source handle position:', params.sourceHandle, 'source handles must be on bottom or right');
+        const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
+        if (!validPositions.includes(sourcePosition)) {
+          console.error('Invalid source handle position:', params.sourceHandle);
           return;
         }
       }
 
-      // Target handles should be on top/left positions and end with -target
+      // Target handles should end with -target
       if (params.targetHandle) {
         if (!params.targetHandle.endsWith('-target')) {
           console.error('Invalid target handle ID:', params.targetHandle, 'should end with -target');
           return;
         }
-        // Check that target handle is from a valid target position (top/left)
+        // Check that target handle is from a valid position (any of the 8 positions)
         const targetPosition = params.targetHandle.replace('-target', '');
-        if (!['top-left', 'top-center', 'top-right', 'left-center'].includes(targetPosition)) {
-          console.error('Invalid target handle position:', params.targetHandle, 'target handles must be on top or left');
+        const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
+        if (!validPositions.includes(targetPosition)) {
+          console.error('Invalid target handle position:', params.targetHandle);
           return;
         }
       }
@@ -737,27 +743,31 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
   // Validate connections to prevent invalid handle combinations
   const isValidConnection = useCallback((connection: Connection) => {
-    // Check that source handle ends with -source and is from bottom/right position
+    // Check that source handle ends with -source
     if (connection.sourceHandle) {
       if (!connection.sourceHandle.endsWith('-source')) {
         console.error('Invalid source handle:', connection.sourceHandle);
         return false;
       }
+      // Allow all 8 positions for source handles
       const sourcePosition = connection.sourceHandle.replace('-source', '');
-      if (!['bottom-left', 'bottom-center', 'bottom-right', 'right-center'].includes(sourcePosition)) {
+      const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
+      if (!validPositions.includes(sourcePosition)) {
         console.error('Invalid source handle position:', connection.sourceHandle);
         return false;
       }
     }
 
-    // Check that target handle ends with -target and is from top/left position
+    // Check that target handle ends with -target
     if (connection.targetHandle) {
       if (!connection.targetHandle.endsWith('-target')) {
         console.error('Invalid target handle:', connection.targetHandle);
         return false;
       }
+      // Allow all 8 positions for target handles
       const targetPosition = connection.targetHandle.replace('-target', '');
-      if (!['top-left', 'top-center', 'top-right', 'left-center'].includes(targetPosition)) {
+      const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
+      if (!validPositions.includes(targetPosition)) {
         console.error('Invalid target handle position:', connection.targetHandle);
         return false;
       }
@@ -950,7 +960,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       updatedAt: now
     };
 
-    onWorkflowUpdate(updatedWorkflow, 'Updated workflow JSON');
+    // Apply auto-layout to make it look nice
+    const layoutedWorkflow = autoLayoutWorkflow(updatedWorkflow);
+    onWorkflowUpdate(layoutedWorkflow, 'Updated workflow JSON with auto-layout');
   }, [cleanedWorkflow, onWorkflowUpdate]);
 
   // Export workflow JSON
@@ -964,11 +976,19 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       const link = document.createElement('a');
       link.href = url;
 
-      // Sanitize filename - remove special characters
-      const safeName = (cleanedWorkflow.configuration.name || 'workflow')
-        .replace(/[^a-z0-9_-]/gi, '_')
-        .toLowerCase();
-      link.download = `${safeName}.json`;
+      // Use modelName-version for filename, fallback to workflow name
+      let filename: string;
+      if (modelName && modelVersion) {
+        filename = `${modelName}_v${modelVersion}.json`;
+      } else {
+        // Fallback: sanitize workflow name
+        const safeName = (cleanedWorkflow.configuration.name || 'workflow')
+          .replace(/[^a-z0-9_-]/gi, '_')
+          .toLowerCase();
+        filename = `${safeName}.json`;
+      }
+
+      link.download = filename;
 
       document.body.appendChild(link);
       link.click();
@@ -978,7 +998,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       console.error('Export failed:', error);
       alert(`Failed to export workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [cleanedWorkflow]);
+  }, [cleanedWorkflow, modelName, modelVersion]);
 
   // Import workflow JSON
   const handleImportJSON = useCallback(() => {
@@ -1050,12 +1070,17 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       return;
     }
 
-    try {
-      // Hardcoded for now
-      const entityName = 'entity1';
-      const modelVersion = 1;
+    // Check if modelName and modelVersion are provided
+    if (!modelName || !modelVersion) {
+      showError(
+        'Missing Model Information',
+        'Model name and version are required for API export. Please ensure the workflow tab has this information.'
+      );
+      return;
+    }
 
-      const url = buildEnvironmentUrl(`/model/${entityName}/${modelVersion}/workflow/import`);
+    try {
+      const url = buildEnvironmentUrl(`/model/${modelName}/${modelVersion}/workflow/import`);
 
       // Prepare the payload
       const payload = {
@@ -1065,6 +1090,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
       console.log('=== Export to Environment Debug ===');
       console.log('URL:', url);
+      console.log('Model Name:', modelName);
+      console.log('Model Version:', modelVersion);
       console.log('Token:', token.substring(0, 20) + '...');
       console.log('Payload:', payload);
       console.log('===================================');
@@ -1080,7 +1107,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
       showSuccess(
         'Workflow Exported Successfully',
-        `Workflow "${cleanedWorkflow.configuration.name}" has been exported to ${entityName} (v${modelVersion})`
+        `Workflow "${cleanedWorkflow.configuration.name}" has been exported to ${modelName} (v${modelVersion})`
       );
     } catch (error: any) {
       console.error('Export to environment failed:', error);
@@ -1091,7 +1118,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         errorMsg
       );
     }
-  }, [cleanedWorkflow, token, buildEnvironmentUrl, showSuccess, showError, showWarning]);
+  }, [cleanedWorkflow, token, modelName, modelVersion, buildEnvironmentUrl, showSuccess, showError, showWarning]);
 
   // Import workflow from environment
   const handleImportFromEnvironment = useCallback(async () => {
@@ -1099,6 +1126,15 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       showWarning(
         'Authentication Required',
         'Please log in to import workflows from the environment'
+      );
+      return;
+    }
+
+    // Check if modelName and modelVersion are provided
+    if (!modelName || !modelVersion) {
+      showError(
+        'Missing Model Information',
+        'Model name and version are required for API import. Please ensure the workflow tab has this information.'
       );
       return;
     }
@@ -1111,15 +1147,13 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       centered: true,
       onOk: async () => {
         try {
-          // Hardcoded for now
-          const entityName = 'entity1';
-          const modelVersion = 1;
-
           // First, export to get the current workflow from environment
-          const exportUrl = buildEnvironmentUrl(`/model/${entityName}/${modelVersion}/workflow/export`);
+          const exportUrl = buildEnvironmentUrl(`/model/${modelName}/${modelVersion}/workflow/export`);
 
           console.log('=== Import from Environment Debug ===');
           console.log('Export URL:', exportUrl);
+          console.log('Model Name:', modelName);
+          console.log('Model Version:', modelVersion);
           console.log('Token:', token.substring(0, 20) + '...');
           console.log('=====================================');
 
@@ -1185,7 +1219,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
           showSuccess(
             'Workflow Imported Successfully',
-            `Workflow "${config.name}" has been imported from ${entityName} (v${modelVersion})`
+            `Workflow "${config.name}" has been imported from ${modelName} (v${modelVersion})`
           );
         } catch (error: any) {
           console.error('Import from environment failed:', error);
@@ -1198,7 +1232,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         }
       }
     });
-  }, [cleanedWorkflow, token, buildEnvironmentUrl, onWorkflowUpdate, showSuccess, showError, showWarning]);
+  }, [cleanedWorkflow, token, modelName, modelVersion, buildEnvironmentUrl, onWorkflowUpdate, showSuccess, showError, showWarning]);
 
   // Handle double-click detection on pane
   const lastClickTimeRef = useRef<number>(0);

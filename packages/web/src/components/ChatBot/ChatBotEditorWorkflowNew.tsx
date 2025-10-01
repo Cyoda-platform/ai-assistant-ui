@@ -17,6 +17,8 @@ import HelperStorage from '@/helpers/HelperStorage';
 
 interface ChatBotEditorWorkflowNewProps {
   technicalId: string;
+  modelName?: string;
+  modelVersion?: number;
   onAnswer?: (data: { answer: string; file?: File }) => void;
   onUpdate?: (data: { canvasData: string; workflowMetaData: any }) => void;
 }
@@ -87,6 +89,8 @@ function convertToStorageFormat(workflow: UIWorkflowData): string {
 
 const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
   technicalId,
+  modelName,
+  modelVersion,
   onAnswer,
   onUpdate
 }) => {
@@ -151,23 +155,33 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
             setCurrentWorkflow(workflow);
           }
         } else {
-          // Create empty workflow
+          // Create workflow with initial state
           const entityModel: EntityModelIdentifier = {
             modelName: technicalId,
             modelVersion: 1
           };
 
-          const emptyConfig: WorkflowConfiguration = {
+          const initialConfig: WorkflowConfiguration = {
             version: '1.0',
             name: 'New Workflow',
-            description: '',
-            initialState: '',
+            description: 'A new workflow ready to be configured',
+            initialState: 'INITIAL',
             active: true,
-            states: {}
+            states: {
+              'INITIAL': {
+                name: 'Initial State',
+                transitions: []
+              }
+            }
           };
 
-          const emptyLayout: CanvasLayout = {
-            states: [],
+          const initialLayout: CanvasLayout = {
+            states: [
+              {
+                id: 'INITIAL',
+                position: { x: 250, y: 150 }
+              }
+            ],
             transitions: [],
             updatedAt: new Date().toISOString()
           };
@@ -175,8 +189,8 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
           const workflow = combineWorkflowData(
             technicalId,
             entityModel,
-            emptyConfig,
-            emptyLayout
+            initialConfig,
+            initialLayout
           );
 
           setCurrentWorkflow(workflow);
@@ -333,6 +347,8 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
           onTransitionEdit={handleTransitionEdit}
           darkMode={true}
           technicalId={technicalId}
+          modelName={modelName}
+          modelVersion={modelVersion}
         />
 
         {/* Transition Editor Dialog */}

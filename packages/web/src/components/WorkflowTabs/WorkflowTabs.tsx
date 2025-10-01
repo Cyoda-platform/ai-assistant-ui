@@ -1,0 +1,125 @@
+import React from 'react';
+import { X, Plus, FileCode2 } from 'lucide-react';
+import { useWorkflowTabsStore, WorkflowTab } from '@/stores/workflowTabs';
+import { Dropdown } from 'antd';
+import type { MenuProps } from 'antd';
+
+interface WorkflowTabsProps {
+  onNewTab?: () => void;
+}
+
+export const WorkflowTabs: React.FC<WorkflowTabsProps> = ({ onNewTab }) => {
+  const { tabs, activeTabId, setActiveTab, closeTab, closeOtherTabs, closeAllTabs } = useWorkflowTabsStore();
+
+  const handleTabClick = (tabId: string) => {
+    setActiveTab(tabId);
+  };
+
+  const handleCloseTab = (e: React.MouseEvent, tabId: string) => {
+    e.stopPropagation();
+    closeTab(tabId);
+  };
+
+  const getContextMenuItems = (tab: WorkflowTab): MenuProps['items'] => [
+    {
+      key: 'close',
+      label: 'Close',
+      onClick: () => closeTab(tab.id),
+    },
+    {
+      key: 'close-others',
+      label: 'Close Others',
+      onClick: () => closeOtherTabs(tab.id),
+      disabled: tabs.length <= 1,
+    },
+    {
+      key: 'close-all',
+      label: 'Close All',
+      onClick: () => closeAllTabs(),
+    },
+  ];
+
+  return (
+    <div className="flex items-center bg-gray-900 border-b border-gray-700 overflow-x-auto min-h-[48px]">
+      {/* Tabs */}
+      <div className="flex items-center flex-1 overflow-x-auto min-h-[48px]">
+        {tabs.length === 0 && (
+          <div className="px-4 py-2.5 text-sm text-gray-500">
+            No workflows open
+          </div>
+        )}
+        {tabs.map((tab) => {
+          const isActive = tab.id === activeTabId;
+
+          return (
+            <Dropdown
+              key={tab.id}
+              menu={{ items: getContextMenuItems(tab) }}
+              trigger={['contextMenu']}
+            >
+              <div
+                onClick={() => handleTabClick(tab.id)}
+                className={`
+                  group flex items-center gap-2 px-4 py-2.5 cursor-pointer
+                  border-r border-gray-700 min-w-[180px] max-w-[240px]
+                  transition-colors relative
+                  ${isActive
+                    ? 'bg-gray-800 text-white'
+                    : 'bg-gray-900 text-gray-400 hover:bg-gray-800 hover:text-gray-300'
+                  }
+                `}
+              >
+                {/* Active indicator */}
+                {isActive && (
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-500" />
+                )}
+
+                {/* Icon */}
+                <FileCode2 size={16} className={isActive ? 'text-blue-400' : 'text-gray-500'} />
+
+                {/* Tab content */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium truncate">
+                    {tab.displayName}
+                  </div>
+                  <div className="text-xs text-gray-500 truncate">
+                    {tab.modelName} v{tab.modelVersion}
+                  </div>
+                </div>
+
+                {/* Dirty indicator */}
+                {tab.isDirty && (
+                  <div className="w-2 h-2 rounded-full bg-orange-500" title="Unsaved changes" />
+                )}
+
+                {/* Close button */}
+                <button
+                  onClick={(e) => handleCloseTab(e, tab.id)}
+                  className={`
+                    p-1 rounded hover:bg-gray-700 transition-colors
+                    ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
+                  `}
+                  title="Close tab"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            </Dropdown>
+          );
+        })}
+      </div>
+
+      {/* New tab button */}
+      {onNewTab && (
+        <button
+          onClick={onNewTab}
+          className="flex items-center gap-2 px-4 py-2.5 text-gray-400 hover:text-white hover:bg-gray-800 transition-colors border-l border-gray-700"
+          title="Open new workflow"
+        >
+          <Plus size={16} />
+        </button>
+      )}
+    </div>
+  );
+};
+

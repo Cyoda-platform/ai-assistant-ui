@@ -336,7 +336,7 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
               )}
             </button>
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
             Press <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">Enter</kbd> to send, <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">Shift+Enter</kbd> for new line
           </p>
         </div>

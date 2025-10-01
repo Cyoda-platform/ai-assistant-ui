@@ -28,6 +28,10 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
 }) => {
   const { transition, onEdit, onUpdate } = (data as unknown as LoopbackEdgeData) || {};
 
+  // Default drag offset for loop positioning
+  // TODO: Add drag functionality to allow users to adjust loop position
+  const dragOffset = { x: 0, y: 0 };
+
   // Helper function to get handle direction based on handle ID
   const getHandleDirection = (handleId: string | null): { x: number; y: number } => {
     if (!handleId) return { x: 0, y: 0 };

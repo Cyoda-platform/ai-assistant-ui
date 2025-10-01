@@ -10,6 +10,7 @@ import NewChatView from '@/views/NewChatView';
 import DashboardView from '@/views/DashboardView';
 import ChatBotView from '@/views/ChatBotView';
 import CanvasDemoView from '@/views/CanvasDemoView';
+import WorkflowTabsView from '@/views/WorkflowTabsView';
 
 // Import layouts
 import LayoutDefault from '@/layouts/LayoutDefault';
@@ -75,6 +76,10 @@ const routes = [
       {
         path: "canvas-demo",
         element: <CanvasDemoView />,
+      },
+      {
+        path: "workflows",
+        element: <WorkflowTabsView />,
       },
     ],
   },

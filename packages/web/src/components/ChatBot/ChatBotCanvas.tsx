@@ -27,6 +27,9 @@ import rehypeHighlight from 'rehype-highlight';
 import ChatBotEditorWorkflowSimple from './ChatBotEditorWorkflowSimple';
 import ChatBotEditorWorkflowNew from './ChatBotEditorWorkflowNew';
 import MermaidDiagram from '../MermaidDiagram/MermaidDiagram';
+import { WorkflowTabs } from '@/components/WorkflowTabs/WorkflowTabs';
+import { useWorkflowTabsStore } from '@/stores/workflowTabs';
+import { Modal, Form, Input, InputNumber } from 'antd';
 
 interface ChatBotCanvasProps {
   messages: any[];
@@ -127,6 +130,12 @@ gantt
   const [workflowData, setWorkflowData] = useState('');
   const [markdownMode, setMarkdownMode] = useState<MarkdownMode>('split');
 
+  // Workflow tabs state
+  const { tabs, activeTabId, openTab, updateTab, getActiveTab } = useWorkflowTabsStore();
+  const [isNewWorkflowModalOpen, setIsNewWorkflowModalOpen] = useState(false);
+  const [form] = Form.useForm();
+  const activeWorkflowTab = getActiveTab();
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = useCallback((content: string, file?: File) => {
@@ -144,6 +153,37 @@ gantt
       handleSubmit(workflowData);
     }
   }, [workflowData, handleSubmit]);
+
+  // Workflow tabs handlers
+  const handleNewWorkflowTab = useCallback(() => {
+    setIsNewWorkflowModalOpen(true);
+  }, []);
+
+  const handleCreateWorkflow = useCallback(() => {
+    form.validateFields().then((values) => {
+      const { modelName, modelVersion, displayName } = values;
+
+      // Generate technical ID for storage
+      const workflowTechnicalId = `${modelName}_v${modelVersion}_${Date.now()}`;
+
+      openTab({
+        modelName,
+        modelVersion,
+        displayName: displayName || `${modelName} v${modelVersion}`,
+        isDirty: false,
+        technicalId: workflowTechnicalId,
+      });
+
+      setIsNewWorkflowModalOpen(false);
+      form.resetFields();
+    });
+  }, [form, openTab]);
+
+  const handleWorkflowUpdate = useCallback((tabId: string, data: { canvasData: string; workflowMetaData: any }) => {
+    // Mark tab as dirty when workflow is updated
+    updateTab(tabId, { isDirty: true });
+    setWorkflowData(data.canvasData);
+  }, [updateTab]);
 
   const getMarkdownModeIcon = (mode: MarkdownMode) => {
     switch (mode) {
@@ -202,8 +242,8 @@ gantt
         </div>
       </div>
 
-      {/* Canvas Tabs */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 bg-slate-800/30">
+      {/* Canvas Tabs - Hidden for now, only showing Workflow */}
+      {/* <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 bg-slate-800/30">
         <div className="flex items-center space-x-1">
           <button
             onClick={() => setActiveTab('workflow')}
@@ -230,7 +270,7 @@ gantt
         </div>
 
         {/* Markdown Mode Selector - Only show when markdown tab is active */}
-        {activeTab === 'markdown' && (
+        {/* {activeTab === 'markdown' && (
           <div className="flex items-center space-x-1">
             {(['edit', 'split', 'preview'] as MarkdownMode[]).map((mode) => (
               <button
@@ -248,22 +288,42 @@ gantt
               </button>
             ))}
           </div>
-        )}
-      </div>
+        )} */}
+      {/* </div> */}
 
       {/* Canvas Content */}
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 relative overflow-hidden flex flex-col">
         {activeTab === 'workflow' ? (
-          <div className="h-full">
-            <ChatBotEditorWorkflowNew
-              technicalId={technicalId}
-              onAnswer={onAnswer}
-              onUpdate={(data) => {
-                console.log('Workflow updated:', data);
-                setWorkflowData(data.canvasData);
-              }}
-            />
-          </div>
+          <>
+            {/* Workflow Tabs */}
+            <WorkflowTabs onNewTab={handleNewWorkflowTab} />
+
+            {/* Workflow Editor */}
+            <div className="flex-1 overflow-hidden">
+              {activeWorkflowTab ? (
+                <ChatBotEditorWorkflowNew
+                  key={activeWorkflowTab.id}
+                  technicalId={activeWorkflowTab.technicalId}
+                  modelName={activeWorkflowTab.modelName}
+                  modelVersion={activeWorkflowTab.modelVersion}
+                  onAnswer={onAnswer}
+                  onUpdate={(data) => handleWorkflowUpdate(activeWorkflowTab.id, data)}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <Activity size={64} className="mx-auto mb-4 text-gray-600" />
+                    <h2 className="text-xl font-semibold text-gray-300 mb-2">
+                      No Workflow Open
+                    </h2>
+                    <p className="text-gray-500 mb-6">
+                      Click the + button to open a workflow
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
         ) : (
           <div className="absolute inset-0 bg-slate-900/50 p-4">
             <div className="h-full flex flex-col">
@@ -403,6 +463,51 @@ graph TD
           </div>
         )}
       </div>
+
+      {/* New Workflow Modal */}
+      <Modal
+        title="Open Workflow"
+        open={isNewWorkflowModalOpen}
+        onOk={handleCreateWorkflow}
+        onCancel={() => {
+          setIsNewWorkflowModalOpen(false);
+          form.resetFields();
+        }}
+        okText="Open"
+        cancelText="Cancel"
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{ modelVersion: 1 }}
+        >
+          <Form.Item
+            label="Entity Model Name"
+            name="modelName"
+            rules={[
+              { required: true, message: 'Please enter the entity model name' },
+              { pattern: /^[a-z0-9-]+$/, message: 'Only lowercase letters, numbers, and hyphens allowed' }
+            ]}
+          >
+            <Input placeholder="e.g., user-workflow, order-process" />
+          </Form.Item>
+
+          <Form.Item
+            label="Model Version"
+            name="modelVersion"
+            rules={[{ required: true, message: 'Please enter the model version' }]}
+          >
+            <InputNumber min={1} style={{ width: '100%' }} />
+          </Form.Item>
+
+          <Form.Item
+            label="Display Name (Optional)"
+            name="displayName"
+          >
+            <Input placeholder="e.g., User Registration Workflow" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
