@@ -1,0 +1,264 @@
+import React from 'react';
+import {
+  EdgeLabelRenderer,
+  BaseEdge,
+} from '@xyflow/react';
+import type { EdgeProps } from '@xyflow/react';
+import { Edit, Move, RotateCcw } from 'lucide-react';
+import type { UITransitionData } from '../types/workflow';
+
+// ABOUTME: This file contains the LoopbackEdge component that renders self-connecting transitions
+// with curved paths that loop around the state node for clear visual distinction.
+
+interface LoopbackEdgeData {
+  transition: UITransitionData;
+  onEdit: (transitionId: string) => void;
+  onUpdate: (transition: UITransitionData) => void;
+  isLoopback: boolean;
+}
+
+export const LoopbackEdge: React.FC<EdgeProps> = ({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  data,
+  selected,
+}) => {
+  const { transition, onEdit, onUpdate } = (data as unknown as LoopbackEdgeData) || {};
+
+  // Helper function to get handle direction based on handle ID
+  const getHandleDirection = (handleId: string | null): { x: number; y: number } => {
+    if (!handleId) return { x: 0, y: 0 };
+
+    // Extract position from handle ID (remove -source/-target suffix)
+    const position = handleId.replace(/-source$|-target$/, '');
+
+    // Map handle positions to tangent directions
+    switch (position) {
+      case 'top-left':
+      case 'top-center':
+      case 'top-right':
+        return { x: 0, y: -1 }; // Upward direction
+      case 'bottom-left':
+      case 'bottom-center':
+      case 'bottom-right':
+        return { x: 0, y: 1 }; // Downward direction
+      case 'left-center':
+        return { x: -1, y: 0 }; // Leftward direction
+      case 'right-center':
+        return { x: 1, y: 0 }; // Rightward direction
+      default:
+        return { x: 0, y: 0 };
+    }
+  };
+
+  // Create a curved loop path for self-connections
+  const createLoopPath = () => {
+    // React Flow provides the actual handle coordinates directly
+    const startX = sourceX;
+    const startY = sourceY;
+    const endX = targetX;
+    const endY = targetY;
+
+    // Get handle directions for proper tangent angles
+    const sourceDirection = getHandleDirection(transition?.sourceHandle);
+    const targetDirection = getHandleDirection(transition?.targetHandle);
+
+    // Calculate the base position for the loop (midpoint between handles)
+    const baseMidX = (startX + endX) / 2;
+    const baseMidY = (startY + endY) / 2;
+
+    // Apply user's drag offset to the loop position
+    const loopCenterX = baseMidX + dragOffset.x;
+    const loopCenterY = baseMidY + dragOffset.y;
+
+    // Calculate loop size based on distance between handles and drag offset
+    const handleDistance = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+    const baseLoopSize = Math.max(60, handleDistance * 1.5); // Ensure minimum size for visibility
+    const dragDistance = Math.sqrt(dragOffset.x * dragOffset.x + dragOffset.y * dragOffset.y);
+    const loopSize = baseLoopSize + dragDistance * 0.5;
+
+    // Create control points that respect handle directions
+    // Control point 1: extends from source handle in its natural direction
+    const controlPoint1Distance = loopSize * 0.8;
+    const controlPoint1X = startX + sourceDirection.x * controlPoint1Distance;
+    const controlPoint1Y = startY + sourceDirection.y * controlPoint1Distance;
+
+    // Control point 2: approaches target handle from its natural direction
+    const controlPoint2Distance = loopSize * 0.8;
+    const controlPoint2X = endX + targetDirection.x * controlPoint2Distance;
+    const controlPoint2Y = endY + targetDirection.y * controlPoint2Distance;
+
+    // Adjust control points to create a proper loop that goes through the drag position
+    // Blend the natural directions with the loop center position
+    const blendFactor = 0.6;
+    const finalControlPoint1X = controlPoint1X * (1 - blendFactor) + loopCenterX * blendFactor;
+    const finalControlPoint1Y = controlPoint1Y * (1 - blendFactor) + loopCenterY * blendFactor;
+    const finalControlPoint2X = controlPoint2X * (1 - blendFactor) + loopCenterX * blendFactor;
+    const finalControlPoint2Y = controlPoint2Y * (1 - blendFactor) + loopCenterY * blendFactor;
+
+    // Create the loop path using cubic bezier curves with proper tangent directions
+    const path = `M ${startX},${startY}
+                  C ${finalControlPoint1X},${finalControlPoint1Y}
+                    ${finalControlPoint2X},${finalControlPoint2Y}
+                    ${endX},${endY}`;
+
+    return {
+      path,
+      labelX: loopCenterX,
+      labelY: loopCenterY
+    };
+  };
+
+  const { path: edgePath, labelX: finalLabelX, labelY: finalLabelY } = createLoopPath();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (transition && onEdit) {
+      onEdit(transition.id);
+    }
+  };
+
+
+
+
+
+  // Determine if transition is manual or automated
+  // If manual is undefined, treat as automated (false)
+  const isManual = transition?.definition.manual === true;
+
+  // Define colors and thickness based on manual/automated state
+  const getLoopbackStyles = () => {
+    const baseStrokeWidth = 2.5;
+    const automatedStrokeWidth = 3.5;
+
+    if (selected) {
+      return {
+        className: isManual
+          ? 'stroke-pink-500 dark:stroke-pink-400'
+          : 'stroke-lime-500 dark:stroke-lime-400',
+        style: { strokeWidth: isManual ? baseStrokeWidth : automatedStrokeWidth }
+      };
+    }
+
+    if (isManual) {
+      // Manual transitions: pink/fuchsia
+      return {
+        className: 'stroke-pink-400 dark:stroke-pink-500',
+        style: { strokeWidth: baseStrokeWidth }
+      };
+    } else {
+      // Automated transitions: lime/emerald
+      return {
+        className: 'stroke-lime-500 dark:stroke-lime-400',
+        style: { strokeWidth: automatedStrokeWidth }
+      };
+    }
+  };
+
+  // Create unique marker ID for this loopback transition
+  const markerId = `arrow-loopback-${id}`;
+  const styles = getLoopbackStyles();
+
+  return (
+    <>
+      <BaseEdge
+        id={id as string}
+        path={edgePath}
+        className={styles.className}
+        style={{
+          ...styles.style,
+          transition: 'stroke 300ms ease-in-out, stroke-width 300ms ease-in-out'
+        }}
+        markerEnd={`url(#${markerId})`}
+      />
+
+      <EdgeLabelRenderer>
+        <div
+          style={{
+            position: 'absolute',
+            transform: `translate(-50%, -50%) translate(${finalLabelX}px,${finalLabelY}px)`,
+            pointerEvents: 'all',
+          }}
+          className="nodrag nopan"
+          onClick={handleClick}
+        >
+          <div
+            className={`${
+              isManual
+                ? 'bg-gradient-to-r from-pink-50 via-fuchsia-50 to-rose-50 dark:from-pink-950/30 dark:via-fuchsia-950/30 dark:to-rose-950/30'
+                : 'bg-gradient-to-r from-lime-50 via-emerald-50 to-green-50 dark:from-lime-950/30 dark:via-emerald-950/30 dark:to-green-950/30'
+            } border-2 rounded-full shadow-lg px-4 py-2 text-sm transition-all duration-300 backdrop-blur-sm ${
+              selected
+                ? isManual
+                  ? 'border-pink-400 ring-4 ring-pink-400 ring-opacity-30 bg-gradient-to-r from-pink-100 via-fuchsia-100 to-rose-100 dark:from-pink-900/40 dark:via-fuchsia-900/40 dark:to-rose-900/40'
+                  : 'border-lime-400 ring-4 ring-lime-400 ring-opacity-30 bg-gradient-to-r from-lime-100 via-emerald-100 to-green-100 dark:from-lime-900/40 dark:via-emerald-900/40 dark:to-green-900/40'
+                : isManual
+                  ? 'border-pink-300 dark:border-pink-600 hover:border-pink-400 hover:shadow-xl hover:scale-105'
+                  : 'border-lime-300 dark:border-lime-600 hover:border-lime-400 hover:shadow-xl hover:scale-105'
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              {/* Drag Handle */}
+              <div className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                <Move size={10} />
+              </div>
+
+              {/* Loop Icon */}
+              <div className="flex-shrink-0 text-pink-600 dark:text-pink-400">
+                <RotateCcw size={12} />
+              </div>
+
+              {/* Transition Name */}
+              <span className="text-gray-700 dark:text-gray-200 font-medium">
+                {transition?.definition?.name || 'Loop-back'}
+              </span>
+
+              {/* Edit Button */}
+              <button
+                onClick={handleClick}
+                onMouseDown={(e) => {
+                  e.stopPropagation(); // Prevent drag from starting
+                }}
+                className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
+                title="Edit transition"
+              >
+                <Edit size={10} />
+              </button>
+
+
+            </div>
+          </div>
+        </div>
+      </EdgeLabelRenderer>
+
+      {/* Custom arrow marker with unique ID */}
+      <defs>
+        <marker
+          id={markerId}
+          markerWidth="10"
+          markerHeight="10"
+          refX="9"
+          refY="3"
+          orient="auto"
+          markerUnits="userSpaceOnUse"
+        >
+          <path
+            d="M0,0 L0,6 L9,3 z"
+            fill={
+              selected
+                ? (isManual ? '#4b5563' : '#10b981') // match line colors when selected
+                : isManual
+                  ? '#4b5563' // dark grey for manual (gray-600)
+                  : '#10b981' // green for automated (green-500)
+            }
+            className="transition-colors duration-200"
+          />
+        </marker>
+      </defs>
+    </>
+  );
+};
