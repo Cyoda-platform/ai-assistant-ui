@@ -16,12 +16,118 @@ import {
 } from '@xyflow/react';
 import type { Node, Edge, Connection, OnConnect, OnReconnect } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Network } from 'lucide-react';
+import { Network, Download, Upload, FileJson } from 'lucide-react';
+
+// Helper function to detect bidirectional connections
+function hasBidirectionalConnection(
+  sourceId: string,
+  targetId: string,
+  transitions: UITransitionData[]
+): boolean {
+  // Check if there's a reverse transition
+  return transitions.some(
+    t => t.sourceStateId === targetId && t.targetStateId === sourceId
+  );
+}
+
+// Helper function to calculate optimal handles based on node positions
+function calculateOptimalHandles(
+  sourcePos: { x: number; y: number },
+  targetPos: { x: number; y: number },
+  isBidirectional: boolean = false,
+  isReturnPath: boolean = false
+): { sourceHandle: string; targetHandle: string } {
+  const deltaX = targetPos.x - sourcePos.x;
+  const deltaY = targetPos.y - sourcePos.y;
+  const absDeltaX = Math.abs(deltaX);
+  const absDeltaY = Math.abs(deltaY);
+
+  // For bidirectional connections, use offset handles to avoid overlap
+  if (isBidirectional) {
+    if (absDeltaY > absDeltaX * 0.6) {
+      // Vertical bidirectional - use left/right offset handles
+      if (isReturnPath) {
+        return {
+          sourceHandle: 'bottom-left-source',
+          targetHandle: 'top-left-target'
+        };
+      } else {
+        return {
+          sourceHandle: 'bottom-right-source',
+          targetHandle: 'top-right-target'
+        };
+      }
+    } else {
+      // Horizontal bidirectional - use top/bottom offset handles
+      if (deltaX > 0) {
+        // Target is to the right
+        if (isReturnPath) {
+          return {
+            sourceHandle: 'right-center-source',
+            targetHandle: 'left-center-target'
+          };
+        } else {
+          return {
+            sourceHandle: 'right-center-source',
+            targetHandle: 'left-center-target'
+          };
+        }
+      } else {
+        // Target is to the left
+        if (isReturnPath) {
+          return {
+            sourceHandle: 'right-center-source',
+            targetHandle: 'left-center-target'
+          };
+        } else {
+          return {
+            sourceHandle: 'right-center-source',
+            targetHandle: 'left-center-target'
+          };
+        }
+      }
+    }
+  }
+
+  // Standard single-direction routing
+  if (absDeltaY > absDeltaX * 0.6) {
+    // Vertical connection is dominant
+    if (deltaY > 0) {
+      // Target is below source
+      return {
+        sourceHandle: 'bottom-center-source',
+        targetHandle: 'top-center-target'
+      };
+    } else {
+      // Target is above source
+      return {
+        sourceHandle: 'bottom-center-source',
+        targetHandle: 'top-center-target'
+      };
+    }
+  } else {
+    // Horizontal connection is dominant
+    if (deltaX > 0) {
+      // Target is to the right
+      return {
+        sourceHandle: 'right-center-source',
+        targetHandle: 'left-center-target'
+      };
+    } else {
+      // Target is to the left
+      return {
+        sourceHandle: 'right-center-source',
+        targetHandle: 'left-center-target'
+      };
+    }
+  }
+}
 
 import type { UIWorkflowData, UIStateData, UITransitionData, StateDefinition, TransitionDefinition } from '../types/workflow';
 import { StateNode } from './StateNode';
 import { TransitionEdge } from './TransitionEdge';
 import { LoopbackEdge } from './LoopbackEdge';
+import { WorkflowJsonEditor } from '../Editors/WorkflowJsonEditor';
 import { generateTransitionId, generateLayoutTransitionId, migrateLayoutTransitionId, validateTransitionExists, parseLayoutTransitionId, parseTransitionId } from '../utils/transitionUtils';
 import { autoLayoutWorkflow, canAutoLayout } from '../utils/autoLayout';
 
@@ -154,6 +260,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 }) => {
   const { screenToFlowPosition } = useReactFlow();
   const [showQuickHelp, setShowQuickHelp] = useState(false);
+  const [showJsonEditor, setShowJsonEditor] = useState(true); // Open by default
+  const [selectedStateId, setSelectedStateId] = useState<string | null>(null);
+  const [selectedTransitionId, setSelectedTransitionId] = useState<string | null>(null);
 
   // Use ref to always get current workflow value (fixes closure issue)
   // Re-enable cleanup now that the white screen issue is resolved
@@ -409,15 +518,46 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         // Check if this is a loop-back transition (same source and target)
         const isLoopback = transition.sourceStateId === transition.targetStateId;
 
+        // Calculate optimal handles if not explicitly set
+        let sourceHandle = transition.sourceHandle;
+        let targetHandle = transition.targetHandle;
 
+        if (!isLoopback && (!sourceHandle || !targetHandle)) {
+          // Find source and target node positions
+          const sourceNode = newNodes.find(n => n.id === transition.sourceStateId);
+          const targetNode = newNodes.find(n => n.id === transition.targetStateId);
+
+          if (sourceNode && targetNode) {
+            // Check if this is a bidirectional connection
+            const isBidirectional = hasBidirectionalConnection(
+              transition.sourceStateId,
+              transition.targetStateId,
+              currentUiTransitions
+            );
+
+            // Determine if this is the return path (for offset routing)
+            // We consider it a return path if the source comes alphabetically after target
+            const isReturnPath = isBidirectional &&
+              transition.sourceStateId > transition.targetStateId;
+
+            const optimal = calculateOptimalHandles(
+              sourceNode.position,
+              targetNode.position,
+              isBidirectional,
+              isReturnPath
+            );
+            sourceHandle = sourceHandle || optimal.sourceHandle;
+            targetHandle = targetHandle || optimal.targetHandle;
+          }
+        }
 
         return {
           id: transition.id,
           type: isLoopback ? 'loopbackEdge' : 'transitionEdge',
           source: transition.sourceStateId,
           target: transition.targetStateId,
-          sourceHandle: transition.sourceHandle || undefined,
-          targetHandle: transition.targetHandle || undefined,
+          sourceHandle: sourceHandle || undefined,
+          targetHandle: targetHandle || undefined,
           data: {
             transition: transition,
             onEdit: currentOnTransitionEdit,
@@ -707,6 +847,149 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     setShowQuickHelp(prev => !prev);
   }, []);
 
+  // JSON Editor toggle handler
+  const handleToggleJsonEditor = useCallback(() => {
+    setShowJsonEditor(prev => !prev);
+  }, []);
+
+  // Handle node click to navigate in JSON editor
+  const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
+    setSelectedStateId(node.id);
+    setSelectedTransitionId(null);
+  }, []);
+
+  // Handle edge click to navigate in JSON editor
+  const handleEdgeClick = useCallback((_event: React.MouseEvent, edge: Edge) => {
+    setSelectedTransitionId(edge.id);
+    setSelectedStateId(null);
+  }, []);
+
+  // Handle workflow JSON save
+  const handleWorkflowJsonSave = useCallback((config: WorkflowConfiguration) => {
+    if (!cleanedWorkflow) return;
+
+    // Create layout states for any new states
+    const existingStateIds = cleanedWorkflow.layout.states.map(s => s.id);
+    const newStateIds = Object.keys(config.states).filter(id => !existingStateIds.includes(id));
+
+    const newLayoutStates = newStateIds.map((stateId, index) => ({
+      id: stateId,
+      position: {
+        x: 100 + (index % 3) * 250,
+        y: 100 + Math.floor(index / 3) * 150
+      },
+      properties: {}
+    }));
+
+    // Keep existing layout states that still exist in the new config
+    const updatedLayoutStates = cleanedWorkflow.layout.states
+      .filter(s => config.states[s.id])
+      .concat(newLayoutStates);
+
+    const now = new Date().toISOString();
+    const updatedWorkflow: UIWorkflowData = {
+      ...cleanedWorkflow,
+      configuration: config,
+      layout: {
+        ...cleanedWorkflow.layout,
+        states: updatedLayoutStates,
+        transitions: [], // Clear transitions, they'll be recreated
+        version: cleanedWorkflow.layout.version + 1,
+        updatedAt: now
+      },
+      updatedAt: now
+    };
+
+    onWorkflowUpdate(updatedWorkflow, 'Updated workflow JSON');
+  }, [cleanedWorkflow, onWorkflowUpdate]);
+
+  // Export workflow JSON
+  const handleExportJSON = useCallback(() => {
+    if (!cleanedWorkflow) return;
+
+    try {
+      const jsonString = JSON.stringify(cleanedWorkflow.configuration, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+
+      // Sanitize filename - remove special characters
+      const safeName = (cleanedWorkflow.configuration.name || 'workflow')
+        .replace(/[^a-z0-9_-]/gi, '_')
+        .toLowerCase();
+      link.download = `${safeName}.json`;
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert(`Failed to export workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [cleanedWorkflow]);
+
+  // Import workflow JSON
+  const handleImportJSON = useCallback(() => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const config = JSON.parse(text) as WorkflowConfiguration;
+
+        // Validate required fields
+        if (!config.version || !config.name || !config.initialState || !config.states) {
+          alert('Invalid workflow JSON: missing required fields (version, name, initialState, states)');
+          return;
+        }
+
+        if (Object.keys(config.states).length === 0) {
+          alert('Invalid workflow JSON: states object cannot be empty');
+          return;
+        }
+
+        // Create layout states for all states in the configuration
+        const stateIds = Object.keys(config.states);
+        const layoutStates = stateIds.map((stateId, index) => ({
+          id: stateId,
+          position: {
+            x: 100 + (index % 3) * 250,
+            y: 100 + Math.floor(index / 3) * 150
+          },
+          properties: {}
+        }));
+
+        // Create new workflow with imported configuration
+        const now = new Date().toISOString();
+        const newWorkflow: UIWorkflowData = {
+          ...cleanedWorkflow!,
+          configuration: config,
+          layout: {
+            workflowId: cleanedWorkflow!.id,
+            states: layoutStates,
+            transitions: [],
+            version: cleanedWorkflow!.layout.version + 1,
+            updatedAt: now
+          },
+          updatedAt: now
+        };
+
+        // Apply auto-layout to imported workflow
+        const layoutedWorkflow = autoLayoutWorkflow(newWorkflow);
+        onWorkflowUpdate(layoutedWorkflow, 'Imported workflow from JSON');
+      } catch (error) {
+        alert(`Error importing workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    };
+    input.click();
+  }, [cleanedWorkflow, onWorkflowUpdate]);
+
   // Handle double-click detection on pane
   const lastClickTimeRef = useRef<number>(0);
   const lastClickPositionRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -830,8 +1113,10 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   }
 
   return (
-    <div className="h-full w-full">
-      <ReactFlow
+    <div className="h-full w-full flex">
+      {/* Canvas Area */}
+      <div className="flex-1 h-full">
+        <ReactFlow
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
@@ -840,6 +1125,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         onReconnect={onReconnect}
         isValidConnection={isValidConnection}
         onNodeDragStop={onNodeDragStop}
+        onNodeClick={handleNodeClick}
+        onEdgeClick={handleEdgeClick}
         onPaneClick={onPaneClick}
 
         nodeTypes={nodeTypes}
@@ -851,9 +1138,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
         // Disable default double-click zoom behavior
         zoomOnDoubleClick={false}
-
-        // Smooth edge updates
-        edgeUpdaterRadius={10}
 
         // Optimize rendering
         nodesDraggable={true}
@@ -868,6 +1152,28 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       >
         <Background />
         <Controls>
+          <ControlButton
+            onClick={handleToggleJsonEditor}
+            title="Edit workflow JSON"
+            className={showJsonEditor ? 'bg-gradient-to-br from-lime-100 to-emerald-100 dark:from-lime-900 dark:to-emerald-900 border-2 border-lime-400' : ''}
+            data-testid="json-editor-button"
+          >
+            <FileJson size={16} />
+          </ControlButton>
+          <ControlButton
+            onClick={handleExportJSON}
+            title="Export workflow as JSON"
+            data-testid="export-json-button"
+          >
+            <Download size={16} />
+          </ControlButton>
+          <ControlButton
+            onClick={handleImportJSON}
+            title="Import workflow from JSON"
+            data-testid="import-json-button"
+          >
+            <Upload size={16} />
+          </ControlButton>
           <ControlButton
             onClick={handleAutoLayout}
             disabled={!canAutoLayout(cleanedWorkflow)}
@@ -927,32 +1233,41 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
               </div>
               <div className="flex items-start space-x-2">
                 <span className="text-pink-500 mt-0.5">•</span>
-                <span>Double-click transitions to edit</span>
+                <span>Click state/transition → jump to JSON</span>
               </div>
               <div className="flex items-start space-x-2">
                 <span className="text-lime-500 mt-0.5">•</span>
+                <span>Double-click transition → open editor</span>
+              </div>
+              <div className="flex items-start space-x-2">
+                <span className="text-pink-500 mt-0.5">•</span>
                 <span>Drag from state handles to connect</span>
               </div>
               <div className="flex items-start space-x-2">
-                <span className="text-pink-500 mt-0.5">•</span>
-                <span>Drag transition labels to reposition</span>
-              </div>
-              <div className="flex items-start space-x-2">
                 <span className="text-lime-500 mt-0.5">•</span>
-                <span>Click edit icons to modify</span>
-              </div>
-              <div className="flex items-start space-x-2">
-                <span className="text-pink-500 mt-0.5">•</span>
                 <span>Drag states to rearrange</span>
               </div>
               <div className="flex items-start space-x-2">
-                <span className="text-lime-500 mt-0.5">•</span>
+                <span className="text-pink-500 mt-0.5">•</span>
                 <span>Use layout button to auto-arrange</span>
               </div>
             </div>
           </Panel>
         )}
       </ReactFlow>
+      </div>
+
+      {/* Workflow JSON Editor Side Panel */}
+      {cleanedWorkflow && showJsonEditor && (
+        <WorkflowJsonEditor
+          workflow={cleanedWorkflow.configuration}
+          isOpen={showJsonEditor}
+          onClose={() => setShowJsonEditor(false)}
+          onSave={handleWorkflowJsonSave}
+          selectedStateId={selectedStateId}
+          selectedTransitionId={selectedTransitionId}
+        />
+      )}
     </div>
   );
 };

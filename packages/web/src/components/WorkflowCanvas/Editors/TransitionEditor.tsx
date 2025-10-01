@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Save, Trash2, Check, AlertCircle, Code2 } from 'lucide-react';
+import { X, Save, Trash2, Check, AlertCircle, Code2, Edit } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { InlineNameEditor } from './InlineNameEditor';
-import type { TransitionDefinition } from '../types/workflow';
+import type { TransitionDefinition, WorkflowConfiguration } from '../types/workflow';
 
 interface TransitionEditorProps {
   transitionId: string | null;
@@ -11,6 +11,7 @@ interface TransitionEditorProps {
   onClose: () => void;
   onSave: (transitionId: string, definition: TransitionDefinition) => void;
   onDelete?: (transitionId: string) => void;
+  workflowConfig?: WorkflowConfiguration | null; // Optional workflow context for autocomplete
 }
 
 export const TransitionEditor: React.FC<TransitionEditorProps> = ({
@@ -19,13 +20,136 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
   isOpen,
   onClose,
   onSave,
-  onDelete
+  onDelete,
+  workflowConfig
 }) => {
   const [transitionName, setTransitionName] = useState('');
   const [jsonText, setJsonText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isValid, setIsValid] = useState(true);
   const editorRef = useRef<any>(null);
+  const monacoRef = useRef<any>(null);
+
+  // Dragging state
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [position, setPosition] = useState({ x: 100, y: 100 });
+  const dragStartPos = useRef({ x: 0, y: 0 });
+
+  // Transition JSON Schema for validation
+  const transitionSchema = {
+    type: 'object',
+    required: ['name', 'next', 'manual'],
+    properties: {
+      name: {
+        type: 'string',
+        description: 'Transition name (must be unique within state)',
+        minLength: 1
+      },
+      next: {
+        type: 'string',
+        description: 'Target state code (must match a state key in workflow)',
+        minLength: 1
+      },
+      manual: {
+        type: 'boolean',
+        description: 'Whether this transition requires manual triggering (true) or is automatic (false)'
+      },
+      disabled: {
+        type: 'boolean',
+        description: 'Whether this transition is disabled and should not execute'
+      },
+      processors: {
+        type: 'array',
+        description: 'Array of processors to execute during transition (optional)',
+        items: {
+          type: 'object',
+          required: ['name', 'config', 'executionMode'],
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Processor name (e.g., "PaymentProcessor", "EmailNotifier")',
+              minLength: 1
+            },
+            executionMode: {
+              type: 'string',
+              enum: ['SYNC', 'ASYNC_NEW_TX', 'ASYNC_SAME_TX'],
+              description: 'Execution mode: SYNC (synchronous), ASYNC_NEW_TX (async new transaction), ASYNC_SAME_TX (async same transaction)'
+            },
+            config: {
+              type: 'object',
+              required: ['calculationNodesTags'],
+              description: 'Processor configuration',
+              properties: {
+                attachEntity: {
+                  type: 'boolean',
+                  description: 'Whether to attach the entity to the processor execution'
+                },
+                calculationNodesTags: {
+                  type: 'string',
+                  enum: ['cyoda_application'],
+                  description: 'Tags for calculation nodes (currently only "cyoda_application" is supported)'
+                },
+                responseTimeoutMs: {
+                  type: 'integer',
+                  description: 'Response timeout in milliseconds (e.g., 30000 for 30 seconds)',
+                  minimum: 0
+                },
+                retryPolicy: {
+                  type: 'string',
+                  enum: ['FIXED', 'EXPONENTIAL', 'LINEAR'],
+                  description: 'Retry policy: FIXED (fixed interval), EXPONENTIAL (exponential backoff), LINEAR (linear backoff)'
+                }
+              }
+            }
+          }
+        }
+      },
+      criterion: {
+        type: 'object',
+        description: 'Condition that must be met for this transition to execute (optional)',
+        required: ['type'],
+        properties: {
+          type: {
+            type: 'string',
+            enum: ['function', 'group', 'simple'],
+            description: 'Type of criterion: "simple" (single condition), "group" (multiple conditions), "function" (custom function)'
+          },
+          jsonPath: {
+            type: 'string',
+            description: 'JSON path to the field to evaluate (e.g., "$.payment.status") - required for simple criterion',
+            minLength: 1
+          },
+          operation: {
+            type: 'string',
+            enum: ['EQUALS', 'GREATER_THAN', 'GREATER_OR_EQUAL', 'LESS_THAN', 'LESS_OR_EQUAL', 'NOT_EQUALS'],
+            description: 'Comparison operation - required for simple criterion'
+          },
+          value: {
+            oneOf: [
+              { type: 'string' },
+              { type: 'number' },
+              { type: 'boolean' }
+            ],
+            description: 'Value to compare against (string, number, or boolean) - required for simple criterion'
+          },
+          operator: {
+            type: 'string',
+            enum: ['AND', 'OR'],
+            description: 'Logical operator for combining conditions - required for group criterion'
+          },
+          conditions: {
+            type: 'array',
+            description: 'Array of sub-conditions - required for group criterion',
+            items: {
+              type: 'object',
+              description: 'Individual condition (can be simple or nested group)'
+            }
+          }
+        }
+      }
+    }
+  };
 
   // Resizable panel state
   const [panelSize, setPanelSize] = useState({ width: 896, height: 600 }); // Default: max-w-4xl ≈ 896px
@@ -63,6 +187,48 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
   const validateJson = (text: string) => {
     try {
       const parsed = JSON.parse(text);
+
+      // Additional validation beyond JSON syntax
+      if (!parsed.name || typeof parsed.name !== 'string' || parsed.name.trim() === '') {
+        setError('Field "name" is required and must be a non-empty string');
+        setIsValid(false);
+        return null;
+      }
+
+      if (!parsed.next || typeof parsed.next !== 'string' || parsed.next.trim() === '') {
+        setError('Field "next" is required and must be a non-empty string (target state code)');
+        setIsValid(false);
+        return null;
+      }
+
+      if (typeof parsed.manual !== 'boolean') {
+        setError('Field "manual" is required and must be a boolean (true or false)');
+        setIsValid(false);
+        return null;
+      }
+
+      // Validate processors if present
+      if (parsed.processors && Array.isArray(parsed.processors)) {
+        for (let i = 0; i < parsed.processors.length; i++) {
+          const proc = parsed.processors[i];
+          if (!proc.name || typeof proc.name !== 'string') {
+            setError(`Processor ${i + 1}: "name" is required and must be a string`);
+            setIsValid(false);
+            return null;
+          }
+          if (!proc.executionMode || !['SYNC', 'ASYNC_NEW_TX', 'ASYNC_SAME_TX'].includes(proc.executionMode)) {
+            setError(`Processor ${i + 1}: "executionMode" must be one of: SYNC, ASYNC_NEW_TX, ASYNC_SAME_TX`);
+            setIsValid(false);
+            return null;
+          }
+          if (!proc.config || typeof proc.config !== 'object') {
+            setError(`Processor ${i + 1}: "config" is required and must be an object`);
+            setIsValid(false);
+            return null;
+          }
+        }
+      }
+
       setError(null);
       setIsValid(true);
       return parsed;
@@ -99,6 +265,63 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
       onClose();
     }
   };
+
+  // Drag handlers for moving the panel
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    // Only allow dragging from header
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('input')) {
+      return; // Don't drag if clicking buttons or inputs
+    }
+
+    setIsDragging(true);
+    dragStartPos.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    };
+  }, [position]);
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newX = e.clientX - dragStartPos.current.x;
+      const newY = e.clientY - dragStartPos.current.y;
+
+      // Constrain to viewport
+      const maxX = window.innerWidth - 400; // min width
+      const maxY = window.innerHeight - 300; // min height
+
+      setPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY))
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
+  // Handle Escape key to close
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onClose]);
 
 
 
@@ -172,35 +395,46 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
   const title = transitionId ? `Edit Transition: ${transitionId}` : 'Create Transition';
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div
+      ref={panelRef}
+      className="fixed bg-white dark:bg-gray-800 rounded-lg shadow-2xl flex flex-col border-2 border-lime-200 dark:border-lime-800 z-50"
+      style={{
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+        width: `${panelSize.width}px`,
+        height: `${panelSize.height}px`,
+        minWidth: '400px',
+        minHeight: '300px',
+        maxWidth: '95vw',
+        maxHeight: '95vh',
+        cursor: isDragging ? 'grabbing' : 'default'
+      }}
+    >
+      {/* Header with Inline Name Editor - Draggable */}
       <div
-        ref={panelRef}
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl flex flex-col relative"
-        style={{
-          width: `${panelSize.width}px`,
-          height: `${panelSize.height}px`,
-          minWidth: '400px',
-          minHeight: '300px',
-          maxWidth: '95vw',
-          maxHeight: '95vh'
-        }}
+        className="flex items-center justify-between p-4 border-b-2 border-lime-200 dark:border-lime-800 bg-gradient-to-r from-lime-50 to-emerald-50 dark:from-lime-950/30 dark:to-emerald-950/30 flex-shrink-0 cursor-grab active:cursor-grabbing"
+        onMouseDown={handleDragStart}
       >
-        {/* Header with Inline Name Editor */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div className="flex items-center space-x-3 flex-1">
-            <span className="text-lg font-medium text-gray-900 dark:text-white">Edit Transition:</span>
-            <InlineNameEditor
-              value={transitionName}
-              placeholder="Enter transition name (e.g., 'Submit for Review', 'Approve', 'Reject')"
-              onSave={setTransitionName}
-              className="flex-1"
-            />
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-lime-500 to-emerald-600 flex items-center justify-center shadow-lg flex-shrink-0">
+              <Edit size={16} className="text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs text-gray-500 dark:text-gray-400">Edit Transition</div>
+              <InlineNameEditor
+                value={transitionName}
+                placeholder="Enter transition name"
+                onSave={setTransitionName}
+                className="text-sm font-medium"
+              />
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="p-2 rounded-lg hover:bg-lime-100 dark:hover:bg-lime-900/30 transition-colors group flex-shrink-0"
+            title="Close (Esc)"
           >
-            <X size={20} />
+            <X size={18} className="text-gray-500 dark:text-gray-400 group-hover:text-lime-600 dark:group-hover:text-lime-400" />
           </button>
         </div>
 
@@ -230,8 +464,160 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
                 defaultLanguage="json"
                 value={jsonText}
                 onChange={(value) => handleTextChange(value || '')}
-                onMount={(editor) => {
+                onMount={(editor, monaco) => {
                   editorRef.current = editor;
+                  monacoRef.current = monaco;
+
+                  // Configure JSON schema validation
+                  monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+                    validate: true,
+                    schemas: [{
+                      uri: 'http://myserver/transition-schema.json',
+                      fileMatch: ['*'],
+                      schema: transitionSchema
+                    }]
+                  });
+
+                  // Register custom autocomplete provider
+                  monaco.languages.registerCompletionItemProvider('json', {
+                    provideCompletionItems: (model, position) => {
+                      const textUntilPosition = model.getValueInRange({
+                        startLineNumber: 1,
+                        startColumn: 1,
+                        endLineNumber: position.lineNumber,
+                        endColumn: position.column
+                      });
+
+                      const suggestions: any[] = [];
+
+                      // Get state names from workflow config if available
+                      const stateKeys = workflowConfig?.states ? Object.keys(workflowConfig.states) : [];
+
+                      // Suggest state names for "next" field
+                      if (textUntilPosition.includes('"next"') && textUntilPosition.endsWith(': "')) {
+                        stateKeys.forEach(stateKey => {
+                          suggestions.push({
+                            label: stateKey,
+                            kind: monaco.languages.CompletionItemKind.Value,
+                            insertText: stateKey,
+                            documentation: `Target state: ${stateKey}`,
+                            detail: 'State reference'
+                          });
+                        });
+                      }
+
+                      // Suggest processor template
+                      if (textUntilPosition.includes('"processors"') && textUntilPosition.endsWith('[')) {
+                        suggestions.push({
+                          label: 'New Processor',
+                          kind: monaco.languages.CompletionItemKind.Snippet,
+                          insertText: [
+                            '{',
+                            '  "name": "${1:ProcessorName}",',
+                            '  "executionMode": "${2|SYNC,ASYNC_NEW_TX,ASYNC_SAME_TX|}",',
+                            '  "config": {',
+                            '    "calculationNodesTags": "cyoda_application",',
+                            '    "responseTimeoutMs": ${3:30000}',
+                            '  }',
+                            '}'
+                          ].join('\n'),
+                          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                          documentation: 'Insert a new processor',
+                          detail: 'Processor template'
+                        });
+
+                        suggestions.push({
+                          label: 'Processor with Retry',
+                          kind: monaco.languages.CompletionItemKind.Snippet,
+                          insertText: [
+                            '{',
+                            '  "name": "${1:ProcessorName}",',
+                            '  "executionMode": "${2|SYNC,ASYNC_NEW_TX,ASYNC_SAME_TX|}",',
+                            '  "config": {',
+                            '    "calculationNodesTags": "cyoda_application",',
+                            '    "responseTimeoutMs": ${3:30000},',
+                            '    "retryPolicy": "${4|FIXED,EXPONENTIAL,LINEAR|}"',
+                            '  }',
+                            '}'
+                          ].join('\n'),
+                          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                          documentation: 'Insert a processor with retry policy',
+                          detail: 'Processor with retry template'
+                        });
+                      }
+
+                      // Suggest criterion templates
+                      if (textUntilPosition.includes('"criterion"') && textUntilPosition.endsWith(': {')) {
+                        suggestions.push({
+                          label: 'Simple Criterion',
+                          kind: monaco.languages.CompletionItemKind.Snippet,
+                          insertText: [
+                            '"type": "simple",',
+                            '"jsonPath": "${1:$.field.path}",',
+                            '"operation": "${2|EQUALS,NOT_EQUALS,GREATER_THAN,LESS_THAN,GREATER_OR_EQUAL,LESS_OR_EQUAL|}",',
+                            '"value": "${3:value}"'
+                          ].join('\n'),
+                          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                          documentation: 'Simple condition (single field check)',
+                          detail: 'Simple criterion'
+                        });
+
+                        suggestions.push({
+                          label: 'Group Criterion (AND)',
+                          kind: monaco.languages.CompletionItemKind.Snippet,
+                          insertText: [
+                            '"type": "group",',
+                            '"operator": "AND",',
+                            '"conditions": [',
+                            '  {',
+                            '    "type": "simple",',
+                            '    "jsonPath": "${1:$.field1}",',
+                            '    "operation": "EQUALS",',
+                            '    "value": "${2:value1}"',
+                            '  },',
+                            '  {',
+                            '    "type": "simple",',
+                            '    "jsonPath": "${3:$.field2}",',
+                            '    "operation": "EQUALS",',
+                            '    "value": "${4:value2}"',
+                            '  }',
+                            ']'
+                          ].join('\n'),
+                          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                          documentation: 'Multiple conditions combined with AND',
+                          detail: 'Group criterion (AND)'
+                        });
+
+                        suggestions.push({
+                          label: 'Group Criterion (OR)',
+                          kind: monaco.languages.CompletionItemKind.Snippet,
+                          insertText: [
+                            '"type": "group",',
+                            '"operator": "OR",',
+                            '"conditions": [',
+                            '  {',
+                            '    "type": "simple",',
+                            '    "jsonPath": "${1:$.field1}",',
+                            '    "operation": "EQUALS",',
+                            '    "value": "${2:value1}"',
+                            '  },',
+                            '  {',
+                            '    "type": "simple",',
+                            '    "jsonPath": "${3:$.field2}",',
+                            '    "operation": "EQUALS",',
+                            '    "value": "${4:value2}"',
+                            '  }',
+                            ']'
+                          ].join('\n'),
+                          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                          documentation: 'Multiple conditions combined with OR',
+                          detail: 'Group criterion (OR)'
+                        });
+                      }
+
+                      return { suggestions };
+                    }
+                  });
                 }}
                 theme="vs-dark"
                 options={{
@@ -357,6 +743,5 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
           onMouseDown={(e) => handleResizeStart(e, 'right')}
         />
       </div>
-    </div>
   );
 };

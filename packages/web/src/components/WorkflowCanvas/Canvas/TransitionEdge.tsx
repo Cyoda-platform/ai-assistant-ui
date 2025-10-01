@@ -37,7 +37,7 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
     targetPosition,
   });
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (transition && onEdit) {
       onEdit(transition.id);
@@ -101,7 +101,8 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
         className={styles.className}
         style={{
           ...styles.style,
-          transition: 'stroke 300ms ease-in-out, stroke-width 300ms ease-in-out'
+          strokeDasharray: isManual ? '8 4' : 'none',
+          transition: 'stroke 300ms ease-in-out, stroke-width 300ms ease-in-out, stroke-dasharray 300ms ease-in-out'
         }}
         markerEnd={`url(#${markerId})`}
       />
@@ -114,7 +115,8 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
             pointerEvents: 'all',
           }}
           className="nodrag nopan"
-          onClick={handleClick}
+          onDoubleClick={handleDoubleClick}
+          title="Double-click to edit transition"
         >
           <div
             className={`${
@@ -159,10 +161,10 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
 
               {/* Edit Button */}
               <button
-                onClick={handleClick}
+                onClick={handleDoubleClick}
                 onMouseDown={(e) => e.stopPropagation()}
                 className="flex-shrink-0 p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                title="Edit transition"
+                title="Click to edit transition"
               >
                 <Edit size={10} />
               </button>

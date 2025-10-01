@@ -1,6 +1,6 @@
 {
   "name": "workflow_design_schema",
-  "description": "workflow design schema",
+  "description": "Comprehensive workflow design schema with validation",
   "schema": {
     "type": "object",
     "required": [
@@ -11,25 +11,32 @@
     ],
     "properties": {
       "version": {
-        "type": "string"
+        "type": "string",
+        "description": "Workflow version (e.g., '1.0')",
+        "minLength": 1
       },
       "name": {
-        "type": "string"
+        "type": "string",
+        "description": "Workflow name",
+        "minLength": 1
       },
       "desc": {
-        "type": "string"
+        "type": "string",
+        "description": "Workflow description (optional)"
       },
       "initialState": {
         "type": "string",
-        "enum": [
-          "initial_state"
-        ]
+        "description": "Initial state code (must match a state key)",
+        "minLength": 1
       },
       "active": {
-        "type": "boolean"
+        "type": "boolean",
+        "description": "Whether the workflow is active"
       },
       "states": {
         "type": "object",
+        "description": "Map of state codes to state definitions",
+        "minProperties": 1,
         "additionalProperties": {
           "type": "object",
           "required": [
@@ -38,6 +45,7 @@
           "properties": {
             "transitions": {
               "type": "array",
+              "description": "Array of transitions from this state",
               "items": {
                 "type": "object",
                 "required": [
@@ -47,16 +55,26 @@
                 ],
                 "properties": {
                   "name": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Transition name (must be unique within state)",
+                    "minLength": 1
                   },
                   "next": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Target state code (must match a state key)",
+                    "minLength": 1
                   },
                   "manual": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "Whether this transition requires manual triggering"
+                  },
+                  "disabled": {
+                    "type": "boolean",
+                    "description": "Whether this transition is disabled"
                   },
                   "processors": {
                     "type": "array",
+                    "description": "Array of processors to execute during transition",
                     "items": {
                       "type": "object",
                       "required": [
@@ -66,10 +84,13 @@
                       ],
                       "properties": {
                         "name": {
-                          "type": "string"
+                          "type": "string",
+                          "description": "Processor name",
+                          "minLength": 1
                         },
                         "executionMode": {
                           "type": "string",
+                          "description": "Execution mode: SYNC (synchronous), ASYNC_NEW_TX (async new transaction), ASYNC_SAME_TX (async same transaction)",
                           "enum": [
                             "SYNC",
                             "ASYNC_NEW_TX",

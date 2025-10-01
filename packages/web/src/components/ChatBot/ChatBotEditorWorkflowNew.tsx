@@ -318,7 +318,7 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
         alignItems: 'center',
         justifyContent: 'center'
       }}>
-        <Spin size="large" tip="Loading workflow..." />
+        <Spin size="large" />
       </div>
     );
   }
@@ -342,6 +342,7 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
             transitionDefinition={editingTransitionDefinition}
             transitionId={editingTransitionId}
             onSave={handleTransitionSave}
+            workflowConfig={currentWorkflow?.configuration}
           />
         )}
       </div>
