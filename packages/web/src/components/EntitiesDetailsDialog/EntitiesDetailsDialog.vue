@@ -1,10 +1,11 @@
 <template>
   <el-dialog
       v-model="dialogVisible"
-      width="70%"
+      :width="dialogWidth"
       :close-on-click-modal="false"
+      class="entities-details-dialog"
   >
-    <template #header="{ close, titleId, titleClass }">
+    <template #header="{ titleId, titleClass }">
       <div class="my-header">
         <h4 :id="titleId" :class="titleClass">
           Entities Data
@@ -22,7 +23,7 @@
       </div>
     </template>
     <el-tabs>
-      <el-tab-pane v-for="workflow in workflows" :label="workflow.workflow_name">
+      <el-tab-pane v-for="workflow in workflows" :key="workflow.id" :label="workflow.workflow_name">
         <EntitiesDetailsDialogDetails :workflow="workflow"/>
       </el-tab-pane>
     </el-tabs>
@@ -35,14 +36,27 @@
 </template>
 
 <script setup lang="ts">
-import {inject, computed, ref} from "vue";
+import {inject, computed} from "vue";
+import {useWindowSize} from "@vueuse/core";
 import EntitiesDetailsDialogDetails from "@/components/EntitiesDetailsDialog/EntitiesDetailsDialogDetails.vue";
 import RollbackQuestionIcon from "@/assets/images/icons/rollback-question.svg";
 import eventBus from "@/plugins/eventBus";
 import {ROLLBACK_CHAT} from "@/helpers/HelperConstants";
+import {Ref} from "vue";
+
+interface ChatDataType {
+  chat_body?: {
+    entities_data?: Record<string, {
+      workflow_name: string;
+      next_transitions: string[];
+      entity_versions: Array<{date: string; state: string}>;
+    }>;
+  };
+}
 
 const dialogVisible = defineModel();
-const chatData = inject('chatData');
+const {width} = useWindowSize();
+const chatData = inject<Ref<ChatDataType>>('chatData');
 const isLoadingRollback = inject('isLoadingRollback');
 
 function onClickRollbackChat() {
@@ -50,7 +64,7 @@ function onClickRollbackChat() {
 }
 
 const entitiesData = computed(() => {
-  return chatData.value?.chat_body?.entities_data || {};
+  return chatData?.value?.chat_body?.entities_data || {};
 })
 
 const workflows = computed(() => {
@@ -62,12 +76,47 @@ const workflows = computed(() => {
   })
 })
 
+const dialogWidth = computed(() => {
+  return width.value <= 768 ? '95%' : '70%';
+})
+
 </script>
 
 <style scoped lang="scss">
+@use '@/assets/css/particular/breakpoints';
+
 .icon{
   margin-left: 5px;
   position: relative;
   top: 2px;
+}
+
+.entities-details-dialog {
+  :deep(.my-header) {
+    h4 {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+
+      @include breakpoints.respond-max('sm') {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .el-divider {
+        @include breakpoints.respond-max('sm') {
+          display: none;
+        }
+      }
+
+      .el-button {
+        @include breakpoints.respond-max('sm') {
+          width: 100%;
+        }
+      }
+    }
+  }
 }
 </style>
