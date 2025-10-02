@@ -6,7 +6,7 @@
     margin-bottom: 16px;
 
     @include breakpoints.respond-max('md') {
-      text-align: center;
+      text-align: right;
     }
   }
 
@@ -60,6 +60,63 @@
     #arrowhead path {
       fill: var(--bubble-text-color) !important;
       stroke: var(--bubble-text-color) !important;
+    }
+  }
+}
+
+.wrapper-mermaid, .wrapper-plantuml {
+  .diagram-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+
+    @include breakpoints.respond-max('md') {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+  }
+
+  .diagram-actions__zoom {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    @include breakpoints.respond-max('md') {
+      justify-content: flex-end;
+    }
+  }
+
+  .diagram-actions__controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    @include breakpoints.respond-max('md') {
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+  }
+
+  .diagram-actions__row {
+    display: flex;
+    gap: 12px;
+
+    @include breakpoints.respond-max('md') {
+      justify-content: flex-end;
+      gap: 8px;
+      width: 100%;
+    }
+  }
+
+  @include breakpoints.respond-max('md') {
+    .diagram-actions__row .copy,
+    .diagram-actions__row .zoom-in,
+    .diagram-actions__row .zoom-out,
+    .diagram-actions__row .zoom-reset {
+      margin-top: 0;
     }
   }
 }

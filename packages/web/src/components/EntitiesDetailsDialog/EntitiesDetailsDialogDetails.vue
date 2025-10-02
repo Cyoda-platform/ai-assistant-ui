@@ -2,10 +2,10 @@
   <div class="entities-details-dialog-details">
     <el-descriptions
       :column="1"
-      :size="size"
+      :label-style="labelStyle"
       border
     >
-      <el-descriptions-item label-width="300px">
+      <el-descriptions-item>
         <template #label>
           ID
         </template>
@@ -31,14 +31,53 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
-  workflow: any[],
+import {computed} from "vue";
+import {useWindowSize} from "@vueuse/core";
+
+interface WorkflowType {
+  id: string;
+  next_transitions: string[];
+  entity_versions: Array<{date: string; state: string}>;
+  workflow_name: string;
+}
+
+const {workflow} = defineProps<{
+  workflow: WorkflowType,
 }>();
+
+const {width} = useWindowSize();
+
+const labelStyle = computed(() => {
+  return {
+    width: width.value <= 768 ? '100px' : '300px'
+  };
+});
 
 </script>
 
 <style scoped lang="scss">
-.entities-details-dialog-details {
+@use '@/assets/css/particular/breakpoints';
 
+.entities-details-dialog-details {
+  &__entity-versions {
+    margin-top: 20px;
+
+    h3 {
+      margin-bottom: 12px;
+    }
+
+    @include breakpoints.respond-max('sm') {
+      overflow-x: auto;
+      
+      :deep(.el-table) {
+        min-width: 500px;
+        font-size: 12px;
+
+        .el-table__cell {
+          padding: 8px 4px;
+        }
+      }
+    }
+  }
 }
 </style>

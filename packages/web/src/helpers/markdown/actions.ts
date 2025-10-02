@@ -23,35 +23,61 @@ export default function markdownActions(element: HTMLElement, raw) {
     containerDiv.style.transform = `scale(${currentScale}) translate(${currentTranslateX}px, ${currentTranslateY}px)`;
   }
 
-  // Mouse events for dragging
+  // Unified drag functionality for mouse and touch events
   if (wrapContainer && containerDiv) {
     wrapContainer.style.cursor = 'grab';
     wrapContainer.style.overflow = 'hidden';
 
-    wrapContainer.addEventListener('mousedown', (e) => {
-      if (e.button === 0) { // Left mouse button
+    const getEventCoordinates = (e: MouseEvent | TouchEvent) => {
+      if (e instanceof TouchEvent) {
+        return {
+          clientX: e.touches[0]?.clientX || 0,
+          clientY: e.touches[0]?.clientY || 0
+        };
+      }
+      return { clientX: e.clientX, clientY: e.clientY };
+    };
+
+    const handleDragStart = (e: MouseEvent | TouchEvent) => {
+      const isValidMouseEvent = e instanceof MouseEvent && e.button === 0;
+      const isValidTouchEvent = e instanceof TouchEvent && e.touches.length === 1;
+      
+      if (isValidMouseEvent || isValidTouchEvent) {
         isDragging = true;
         wrapContainer.style.cursor = 'grabbing';
-        dragStartX = e.clientX - currentTranslateX;
-        dragStartY = e.clientY - currentTranslateY;
+        const { clientX, clientY } = getEventCoordinates(e);
+        dragStartX = clientX - currentTranslateX;
+        dragStartY = clientY - currentTranslateY;
         e.preventDefault();
       }
-    });
+    };
 
-    document.addEventListener('mousemove', (e) => {
-      if (isDragging) {
-        currentTranslateX = e.clientX - dragStartX;
-        currentTranslateY = e.clientY - dragStartY;
-        updateTransform();
-      }
-    });
+    const handleDragMove = (e: MouseEvent | TouchEvent) => {
+      if (!isDragging) return;
+      
+      const isValidTouchEvent = e instanceof TouchEvent && e.touches.length === 1;
+      if (e instanceof TouchEvent && !isValidTouchEvent) return;
 
-    document.addEventListener('mouseup', () => {
+      const { clientX, clientY } = getEventCoordinates(e);
+      currentTranslateX = clientX - dragStartX;
+      currentTranslateY = clientY - dragStartY;
+      updateTransform();
+      e.preventDefault();
+    };
+
+    const handleDragEnd = () => {
       if (isDragging) {
         isDragging = false;
         wrapContainer.style.cursor = 'grab';
       }
-    });
+    };
+
+    wrapContainer.addEventListener('mousedown', handleDragStart);
+    wrapContainer.addEventListener('touchstart', handleDragStart);
+    document.addEventListener('mousemove', handleDragMove);
+    document.addEventListener('touchmove', handleDragMove, { passive: false });
+    document.addEventListener('mouseup', handleDragEnd);
+    document.addEventListener('touchend', handleDragEnd);
   }
 
   if (copyButton && copySpan) {
