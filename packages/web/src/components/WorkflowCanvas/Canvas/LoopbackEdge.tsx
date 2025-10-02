@@ -28,9 +28,9 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
 }) => {
   const { transition, onEdit, onUpdate } = (data as unknown as LoopbackEdgeData) || {};
 
-  // Default drag offset for loop positioning
-  // TODO: Add drag functionality to allow users to adjust loop position
-  const dragOffset = { x: 0, y: 0 };
+  // Use labelPosition from transition layout if available, otherwise use default offset
+  // This allows users to adjust loop position by dragging the label
+  const dragOffset = transition?.labelPosition || { x: 0, y: 0 };
 
   // Helper function to get handle direction based on handle ID
   const getHandleDirection = (handleId: string | null): { x: number; y: number } => {
@@ -75,29 +75,34 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
     const baseMidY = (startY + endY) / 2;
 
     // Apply user's drag offset to the loop position
-    const loopCenterX = baseMidX + dragOffset.x;
-    const loopCenterY = baseMidY + dragOffset.y;
+    // If no drag offset is set, use a much larger default offset to push the loop away from the node
+    const defaultOffset = 120; // Large default offset
+    const effectiveDragOffsetX = dragOffset.x !== 0 ? dragOffset.x : defaultOffset;
+    const effectiveDragOffsetY = dragOffset.y !== 0 ? dragOffset.y : -defaultOffset;
+
+    const loopCenterX = baseMidX + effectiveDragOffsetX;
+    const loopCenterY = baseMidY + effectiveDragOffsetY;
 
     // Calculate loop size based on distance between handles and drag offset
     const handleDistance = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
-    const baseLoopSize = Math.max(60, handleDistance * 1.5); // Ensure minimum size for visibility
-    const dragDistance = Math.sqrt(dragOffset.x * dragOffset.x + dragOffset.y * dragOffset.y);
-    const loopSize = baseLoopSize + dragDistance * 0.5;
+    const baseLoopSize = Math.max(180, handleDistance * 4); // Further increased for even more spacing
+    const dragDistance = Math.sqrt(effectiveDragOffsetX * effectiveDragOffsetX + effectiveDragOffsetY * effectiveDragOffsetY);
+    const loopSize = baseLoopSize + dragDistance * 0.3;
 
     // Create control points that respect handle directions
     // Control point 1: extends from source handle in its natural direction
-    const controlPoint1Distance = loopSize * 0.8;
+    const controlPoint1Distance = loopSize * 2.0; // Significantly increased to 2.0 for very wide loops
     const controlPoint1X = startX + sourceDirection.x * controlPoint1Distance;
     const controlPoint1Y = startY + sourceDirection.y * controlPoint1Distance;
 
     // Control point 2: approaches target handle from its natural direction
-    const controlPoint2Distance = loopSize * 0.8;
+    const controlPoint2Distance = loopSize * 2.0; // Significantly increased to 2.0 for very wide loops
     const controlPoint2X = endX + targetDirection.x * controlPoint2Distance;
     const controlPoint2Y = endY + targetDirection.y * controlPoint2Distance;
 
     // Adjust control points to create a proper loop that goes through the drag position
     // Blend the natural directions with the loop center position
-    const blendFactor = 0.6;
+    const blendFactor = 0.3; // Further reduced blend factor to keep loop much further from node
     const finalControlPoint1X = controlPoint1X * (1 - blendFactor) + loopCenterX * blendFactor;
     const finalControlPoint1Y = controlPoint1Y * (1 - blendFactor) + loopCenterY * blendFactor;
     const finalControlPoint2X = controlPoint2X * (1 - blendFactor) + loopCenterX * blendFactor;
@@ -109,10 +114,22 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
                     ${finalControlPoint2X},${finalControlPoint2Y}
                     ${endX},${endY}`;
 
+    // Calculate label position at the midpoint of the bezier curve (t=0.5)
+    // Using the cubic bezier formula: B(t) = (1-t)³P0 + 3(1-t)²tP1 + 3(1-t)t²P2 + t³P3
+    const t = 0.5;
+    const t2 = t * t;
+    const t3 = t2 * t;
+    const mt = 1 - t;
+    const mt2 = mt * mt;
+    const mt3 = mt2 * mt;
+
+    const labelX = mt3 * startX + 3 * mt2 * t * finalControlPoint1X + 3 * mt * t2 * finalControlPoint2X + t3 * endX;
+    const labelY = mt3 * startY + 3 * mt2 * t * finalControlPoint1Y + 3 * mt * t2 * finalControlPoint2Y + t3 * endY;
+
     return {
       path,
-      labelX: loopCenterX,
-      labelY: loopCenterY
+      labelX,
+      labelY
     };
   };
 

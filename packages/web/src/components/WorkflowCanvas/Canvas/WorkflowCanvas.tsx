@@ -569,6 +569,12 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         let sourceHandle = transition.sourceHandle;
         let targetHandle = transition.targetHandle;
 
+        // For loopback transitions, ensure default handles are set if not specified
+        if (isLoopback && (!sourceHandle || !targetHandle)) {
+          sourceHandle = sourceHandle || 'top-right-source';
+          targetHandle = targetHandle || 'right-center-target';
+        }
+
         if (!isLoopback && (!sourceHandle || !targetHandle)) {
           // Find source and target node positions
           const sourceNode = newNodes.find(n => n.id === transition.sourceStateId);
@@ -707,9 +713,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
       const transitionLayout = {
         id: transitionId,
-        sourceHandle: params.sourceHandle || null,
-        targetHandle: params.targetHandle || null,
-        labelPosition: isLoopback ? { x: 30, y: -30 } : { x: 0, y: 0 }
+        sourceHandle: params.sourceHandle || (isLoopback ? 'top-right' : null),
+        targetHandle: params.targetHandle || (isLoopback ? 'right-center' : null),
+        labelPosition: isLoopback ? { x: 80, y: -80 } : { x: 0, y: 0 } // Increased default offset for loopback transitions
       };
 
 
