@@ -85,12 +85,12 @@ export const InlineNameEditor: React.FC<InlineNameEditorProps> = ({
           onClick={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
           placeholder={placeholder}
-          className={`flex-1 px-3 py-2 text-lg font-medium border border-blue-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${inputClassName}`}
+          className={`flex-1 px-3 py-2 text-lg font-medium border border-blue-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-gray-800 text-white ${inputClassName}`}
         />
         <button
           type="button"
           onClick={handleSave}
-          className="p-1 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 transition-colors"
+          className="p-1 text-green-400 hover:text-green-300 transition-colors"
           title="Save name"
         >
           <Check size={18} />
@@ -98,7 +98,7 @@ export const InlineNameEditor: React.FC<InlineNameEditorProps> = ({
         <button
           type="button"
           onClick={handleCancel}
-          className="p-1 text-gray-500 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
+          className="p-1 text-gray-400 hover:text-gray-300 transition-colors"
           title="Cancel editing"
         >
           <X size={18} />
@@ -109,14 +109,14 @@ export const InlineNameEditor: React.FC<InlineNameEditorProps> = ({
 
   return (
     <div className={`flex items-center space-x-2 group ${className}`} onDoubleClick={handleStartEdit}>
-      <span className="flex-1 text-sm font-medium text-gray-900 dark:text-white truncate">
+      <span className="flex-1 text-sm font-medium text-white truncate">
         {value || placeholder}
       </span>
       {!disabled && (
         <button
           type="button"
           onClick={handleStartEdit}
-          className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-all duration-200"
+          className="opacity-0 group-hover:opacity-100 p-1 text-gray-500 hover:text-gray-300 transition-all duration-200"
           title="Edit name"
         >
           <Edit2 size={16} />

@@ -652,14 +652,14 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       // Source handles should end with -source
       if (params.sourceHandle) {
         if (!params.sourceHandle.endsWith('-source')) {
-          console.error('Invalid source handle ID:', params.sourceHandle, 'should end with -source');
+          // User tried to drag from a target handle, silently ignore
           return;
         }
         // Check that source handle is from a valid position (any of the 8 positions)
         const sourcePosition = params.sourceHandle.replace('-source', '');
         const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
         if (!validPositions.includes(sourcePosition)) {
-          console.error('Invalid source handle position:', params.sourceHandle);
+          // Invalid position, silently ignore
           return;
         }
       }
@@ -667,14 +667,14 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       // Target handles should end with -target
       if (params.targetHandle) {
         if (!params.targetHandle.endsWith('-target')) {
-          console.error('Invalid target handle ID:', params.targetHandle, 'should end with -target');
+          // Invalid target handle, silently ignore
           return;
         }
         // Check that target handle is from a valid position (any of the 8 positions)
         const targetPosition = params.targetHandle.replace('-target', '');
         const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
         if (!validPositions.includes(targetPosition)) {
-          console.error('Invalid target handle position:', params.targetHandle);
+          // Invalid position, silently ignore
           return;
         }
       }
@@ -750,17 +750,16 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
   // Validate connections to prevent invalid handle combinations
   const isValidConnection = useCallback((connection: Connection) => {
-    // Check that source handle ends with -source
+    // Check that source handle ends with -source (silently reject if not)
     if (connection.sourceHandle) {
       if (!connection.sourceHandle.endsWith('-source')) {
-        console.error('Invalid source handle:', connection.sourceHandle);
+        // User is trying to drag from a target handle, silently reject
         return false;
       }
       // Allow all 8 positions for source handles
       const sourcePosition = connection.sourceHandle.replace('-source', '');
       const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
       if (!validPositions.includes(sourcePosition)) {
-        console.error('Invalid source handle position:', connection.sourceHandle);
         return false;
       }
     }
@@ -768,14 +767,13 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     // Check that target handle ends with -target
     if (connection.targetHandle) {
       if (!connection.targetHandle.endsWith('-target')) {
-        console.error('Invalid target handle:', connection.targetHandle);
+        // Invalid target handle, silently reject
         return false;
       }
       // Allow all 8 positions for target handles
       const targetPosition = connection.targetHandle.replace('-target', '');
       const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
       if (!validPositions.includes(targetPosition)) {
-        console.error('Invalid target handle position:', connection.targetHandle);
         return false;
       }
     }
@@ -949,6 +947,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     }));
 
     // Keep existing layout states that still exist in the new config
+    // IMPORTANT: Preserve existing positions to avoid repositioning on edit
     const updatedLayoutStates = cleanedWorkflow.layout.states
       .filter(s => config.states[s.id])
       .concat(newLayoutStates);
@@ -960,16 +959,16 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       layout: {
         ...cleanedWorkflow.layout,
         states: updatedLayoutStates,
-        transitions: [], // Clear transitions, they'll be recreated
+        transitions: cleanedWorkflow.layout.transitions, // Preserve existing transition layouts
         version: cleanedWorkflow.layout.version + 1,
         updatedAt: now
       },
       updatedAt: now
     };
 
-    // Apply auto-layout to make it look nice
-    const layoutedWorkflow = autoLayoutWorkflow(updatedWorkflow);
-    onWorkflowUpdate(layoutedWorkflow, 'Updated workflow JSON with auto-layout');
+    // Don't apply auto-layout - preserve user's manual positioning
+    // Only new states will get default positions
+    onWorkflowUpdate(updatedWorkflow, 'Updated workflow JSON');
   }, [cleanedWorkflow, onWorkflowUpdate]);
 
   // Export workflow JSON
@@ -1408,8 +1407,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         edgeTypes={edgeTypes}
         connectionMode={ConnectionMode.Loose}
         fitView
-        className={darkMode ? 'dark' : ''}
-        colorMode={darkMode ? 'dark' : 'light'}
+        className="dark"
+        colorMode="dark"
 
         // Disable default double-click zoom behavior
         zoomOnDoubleClick={false}
@@ -1516,16 +1515,16 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             if (state?.isFinal) return '#ec4899'; // pink
             return '#10b981'; // emerald
           }}
-          className={darkMode ? 'dark' : ''}
+          className="dark"
         />
 
         {showWorkflowInfo && (
-          <Panel position="top-left" className="bg-gradient-to-br from-white via-lime-50 to-emerald-50 dark:from-gray-900 dark:via-lime-950/30 dark:to-emerald-950/30 p-4 rounded-2xl shadow-2xl border-2 border-lime-200 dark:border-lime-800 backdrop-blur-md">
+          <Panel position="top-left" className="bg-gradient-to-br from-gray-900 via-lime-950/30 to-emerald-950/30 p-4 rounded-2xl shadow-2xl border-2 border-lime-800 backdrop-blur-md">
             <div className="text-sm">
-              <h4 className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-lime-600 to-emerald-600 dark:from-lime-400 dark:to-emerald-400 mb-3 text-base">
+              <h4 className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-lime-400 to-emerald-400 mb-3 text-base">
                 {workflow.configuration.name}
               </h4>
-              <div className="text-gray-700 dark:text-gray-300 space-y-2">
+              <div className="text-gray-300 space-y-2">
                 <div className="flex items-center space-x-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                   <span>{Object.keys(workflow.configuration.states).length} states</span>
@@ -1534,7 +1533,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                   <span className="w-2 h-2 rounded-full bg-pink-500"></span>
                   <span>{uiTransitions.length} transitions</span>
                 </div>
-                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-2 pt-2 border-t border-lime-200 dark:border-lime-800">
+                <div className="flex items-center justify-between text-xs text-gray-400 mt-2 pt-2 border-t border-lime-800">
                   <span>Updated: {new Date(workflow.updatedAt).toLocaleDateString()}</span>
                   <button
                     onClick={handleToggleWorkflowInfo}
@@ -1550,13 +1549,13 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         )}
 
         {showQuickHelp && (
-          <Panel position="top-right" className="bg-gradient-to-br from-white via-pink-50 to-fuchsia-50 dark:from-gray-900 dark:via-pink-950/30 dark:to-fuchsia-950/30 rounded-2xl shadow-2xl border-2 border-pink-200 dark:border-pink-800 backdrop-blur-md w-72 max-h-[50vh]" data-testid="quick-help-panel">
-            <div className="p-3 overflow-y-auto max-h-[50vh] text-xs text-gray-700 dark:text-gray-300 space-y-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-pink-100 dark:[&::-webkit-scrollbar-track]:bg-pink-900/30 [&::-webkit-scrollbar-thumb]:bg-gradient-to-b [&::-webkit-scrollbar-thumb]:from-pink-400 [&::-webkit-scrollbar-thumb]:to-fuchsia-400 dark:[&::-webkit-scrollbar-thumb]:from-pink-600 dark:[&::-webkit-scrollbar-thumb]:to-fuchsia-600 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border [&::-webkit-scrollbar-thumb]:border-pink-300 dark:[&::-webkit-scrollbar-thumb]:border-pink-700">
-              <div className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-fuchsia-600 dark:from-pink-400 dark:to-fuchsia-400 mb-2 text-xs">✨ Quick Help</div>
+          <Panel position="top-right" className="bg-gradient-to-br from-gray-900 via-pink-950/30 to-fuchsia-950/30 rounded-2xl shadow-2xl border-2 border-pink-800 backdrop-blur-md w-72 max-h-[50vh]" data-testid="quick-help-panel">
+            <div className="p-3 overflow-y-auto max-h-[50vh] text-xs text-gray-300 space-y-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-pink-900/30 [&::-webkit-scrollbar-thumb]:bg-gradient-to-b [&::-webkit-scrollbar-thumb]:from-pink-600 [&::-webkit-scrollbar-thumb]:to-fuchsia-600 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border [&::-webkit-scrollbar-thumb]:border-pink-700">
+              <div className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-fuchsia-400 mb-2 text-xs">✨ Quick Help</div>
 
               {/* Canvas Interactions */}
               <div className="space-y-1">
-                <div className="font-semibold text-gray-800 dark:text-gray-200 text-[10px]">Canvas Interactions</div>
+                <div className="font-semibold text-gray-200 text-[10px]">Canvas Interactions</div>
                 <div className="flex items-start space-x-2">
                   <span className="text-lime-500 mt-0.5">•</span>
                   <span>Double-click canvas to add new state</span>

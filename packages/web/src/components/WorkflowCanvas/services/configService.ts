@@ -11,7 +11,7 @@ const DEFAULT_CONFIG: AppConfiguration = {
     maxDepth: 50
   },
   ui: {
-    darkMode: false
+    darkMode: true // Always dark mode - light mode not supported
   }
 };
 

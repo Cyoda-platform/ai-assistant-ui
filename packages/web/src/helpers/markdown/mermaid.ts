@@ -68,14 +68,13 @@ export function renderMermaid(text, raw) {
 
 
     setTimeout(async () => {
-        // Detect theme from system preferences or stored preference
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const theme = prefersDark ? "dark" : "light";
+        // Always use dark theme - light mode not supported
+        const theme = "dark";
 
         async function render() {
             mermaid.initialize({
                 startOnLoad: false,
-                theme: theme === "dark" ? "dark" : undefined,
+                theme: "dark",
             });
 
             const element = document.getElementById(id);

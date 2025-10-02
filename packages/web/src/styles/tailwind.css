@@ -1,6 +1,20 @@
 @import "tailwindcss";
 @import "highlight.js/styles/github-dark.css";
 
+/* Force dark mode globally - light mode not supported */
+:root {
+  color-scheme: dark;
+}
+
+html {
+  color-scheme: dark !important;
+}
+
+/* Ensure all elements inherit dark color scheme */
+* {
+  color-scheme: dark;
+}
+
 /* Custom scrollbar styles */
 @layer utilities {
   .scrollbar-thin {
@@ -504,19 +518,16 @@ html, body {
   overflow: hidden;
 }
 
-/* Override SCSS scrollbar mixins to prevent conflicts */
-.theme-dark *::-webkit-scrollbar-track,
-.theme-light *::-webkit-scrollbar-track {
+/* Dark mode scrollbar styles - light mode not supported */
+.theme-dark *::-webkit-scrollbar-track {
   background: rgb(30 41 59) !important; /* slate-800 */
 }
 
-.theme-dark *::-webkit-scrollbar-thumb,
-.theme-light *::-webkit-scrollbar-thumb {
+.theme-dark *::-webkit-scrollbar-thumb {
   background: rgb(71 85 105) !important; /* slate-600 */
 }
 
-.theme-dark *,
-.theme-light * {
+.theme-dark * {
   scrollbar-color: rgb(71 85 105) rgb(30 41 59) !important;
 }
 
@@ -570,21 +581,88 @@ html, body {
   animation: fadeInScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Fashionable Login Modal Styles */
+/* Fashionable Login Modal Styles - matching workflow editor design */
 .fashionable-login-modal .ant-modal-content {
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 1rem; /* rounded-2xl */
   padding: 32px;
-  background: #000000;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3),
-              0 0 0 1px rgba(148, 163, 184, 0.1);
-  animation: fadeInScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  background: rgb(17, 24, 39); /* bg-gray-900 */
+  border: 2px solid rgb(107, 33, 168); /* border-2 border-purple-800 */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* shadow-2xl */
+  animation: slideInFromBottom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.theme-dark .fashionable-login-modal .ant-modal-content {
-  background: rgba(0, 0, 0, 0.16);
-  border: 1px solid rgba(71, 85, 105, 0.3);
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Workflow Edit Modal Styles - matching workflow editor design */
+.workflow-edit-modal .ant-modal-content {
+  overflow: hidden;
+  border-radius: 1rem; /* rounded-2xl */
+  padding: 32px;
+  background: rgba(17, 24, 39, 0.85); /* bg-gray-900 with transparency */
+  backdrop-filter: blur(12px);
+  border: 2px solid rgb(107, 33, 168); /* border-2 border-purple-800 */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* shadow-2xl */
+  animation: slideInFromBottom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.workflow-edit-modal .ant-modal-header {
+  background: transparent;
+  border-bottom: 1px solid rgb(55, 65, 81); /* border-gray-700 */
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.workflow-edit-modal .ant-modal-title {
+  color: white !important;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.workflow-edit-modal .ant-modal-close {
+  color: rgb(156, 163, 175); /* text-gray-400 */
+}
+
+.workflow-edit-modal .ant-modal-close:hover {
+  color: rgb(209, 213, 219); /* text-gray-300 */
+}
+
+.workflow-edit-modal .ant-modal-footer {
+  border-top: 1px solid rgb(55, 65, 81); /* border-gray-700 */
+  padding-top: 16px;
+  margin-top: 24px;
+}
+
+/* Hide cancel button */
+.workflow-edit-modal .ant-btn-default {
+  display: none;
+}
+
+.workflow-edit-modal .ant-btn-primary {
+  background: linear-gradient(to right, rgb(147, 51, 234), rgb(219, 39, 119)) !important; /* from-purple-600 to-pink-600 */
+  border: none !important;
+  color: white !important;
+  font-weight: 500;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.workflow-edit-modal .ant-btn-primary:hover {
+  background: linear-gradient(to right, rgb(126, 34, 206), rgb(190, 24, 93)) !important; /* from-purple-700 to-pink-700 */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  color: white !important;
+}
+
+.workflow-edit-modal .ant-btn-primary span {
+  color: white !important;
 }
 
 .fashionable-login-modal .ant-modal-close {
@@ -600,10 +678,6 @@ html, body {
 }
 
 .fashionable-login-modal .ant-modal-close:hover {
-  background-color: rgba(148, 163, 184, 0.15);
-}
-
-.theme-dark .fashionable-login-modal .ant-modal-close:hover {
   background-color: rgba(71, 85, 105, 0.3);
 }
 

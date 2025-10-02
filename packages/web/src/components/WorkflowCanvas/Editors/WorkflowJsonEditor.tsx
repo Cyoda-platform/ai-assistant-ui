@@ -562,7 +562,7 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
         }
       `}</style>
       <div
-        className="h-full bg-white dark:bg-gray-800 shadow-2xl flex flex-col border-l-2 border-lime-200 dark:border-lime-800 flex-shrink-0 relative z-10"
+        className="h-full bg-gray-800 shadow-2xl flex flex-col border-l-2 border-lime-800 flex-shrink-0 relative z-10"
         style={{ width: `${width}px` }}
       >
       {/* Left Resize Handle */}
@@ -571,19 +571,19 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
         onMouseDown={handleResizeStart}
         title="Drag to resize"
       >
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-lime-400 dark:bg-lime-600 rounded-r opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-lime-600 rounded-r opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b-2 border-lime-200 dark:border-lime-800 bg-gradient-to-r from-lime-50 to-emerald-50 dark:from-lime-950/30 dark:to-emerald-950/30 flex-shrink-0">
+        <div className="flex items-center justify-between p-4 border-b-2 border-lime-800 bg-gradient-to-r from-lime-950/30 to-emerald-950/30 flex-shrink-0">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-lime-500 to-emerald-600 flex items-center justify-center shadow-lg">
               <span className="text-white text-xl font-bold">{ }</span>
             </div>
             <div>
-              <h3 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-lime-600 to-emerald-600 dark:from-lime-400 dark:to-emerald-400">
+              <h3 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-lime-400 to-emerald-400">
                 Workflow JSON Editor
               </h3>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
+              <p className="text-xs text-gray-400">
                 Edit the complete workflow configuration
               </p>
             </div>
@@ -613,7 +613,7 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
 
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-lime-100 dark:hover:bg-lime-900/30 transition-colors group"
+              className="p-2 rounded-lg hover:bg-lime-900/30 transition-colors group"
               title="Close (Esc)"
             >
               <X size={20} className="text-gray-500 dark:text-gray-400 group-hover:text-lime-600 dark:group-hover:text-lime-400" />
@@ -623,8 +623,8 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
 
         {/* Error Message */}
         {error && (
-          <div className="mx-4 mt-3 p-2.5 bg-pink-50 dark:bg-pink-950/30 border border-pink-300 dark:border-pink-700 rounded-lg flex-shrink-0">
-            <p className="text-xs text-pink-700 dark:text-pink-300 font-medium">
+          <div className="mx-4 mt-3 p-2.5 bg-pink-950/30 border border-pink-700 rounded-lg flex-shrink-0">
+            <p className="text-xs text-pink-300 font-medium">
               ⚠️ {error}
             </p>
           </div>
@@ -810,15 +810,15 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-3 border-t-2 border-lime-200 dark:border-lime-800 bg-gradient-to-r from-lime-50 to-emerald-50 dark:from-lime-950/30 dark:to-emerald-950/30 flex-shrink-0">
+        <div className="flex items-center justify-between p-3 border-t-2 border-lime-800 bg-gradient-to-r from-lime-950/30 to-emerald-950/30 flex-shrink-0">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 rounded-full bg-lime-500 animate-pulse"></div>
-            <div className="text-xs text-gray-600 dark:text-gray-400">
+            <div className="text-xs text-gray-400">
               <strong>Live Editing:</strong> Changes apply automatically
             </div>
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">
-            Press <kbd className="px-2 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs">⌘K</kbd> or <kbd className="px-2 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs">Ctrl+K</kbd> for AI help
+          <div className="text-xs text-gray-400">
+            Press <kbd className="px-2 py-0.5 bg-gray-700 rounded text-xs">⌘K</kbd> or <kbd className="px-2 py-0.5 bg-gray-700 rounded text-xs">Ctrl+K</kbd> for AI help
           </div>
         </div>
       </div>

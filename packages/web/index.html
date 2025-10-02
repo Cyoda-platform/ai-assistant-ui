@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="">
+<html lang="" class="theme-dark">
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96"/>
@@ -11,6 +11,27 @@
     <link rel="stylesheet" href="/loader.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cyoda AI Assistant</title>
+    <!-- Force dark mode - light mode not supported -->
+    <style>
+        /* Hardcode dark theme styles before any other CSS loads */
+        html, body {
+            background-color: #11101C !important;
+            color: #e2e8f0 !important;
+        }
+    </style>
+    <script>
+        // Hardcode dark theme before any other scripts load
+        (function() {
+            document.documentElement.classList.add('theme-dark');
+            document.documentElement.classList.remove('theme-light');
+            // Store dark theme preference
+            try {
+                localStorage.setItem('app:theme', 'dark');
+            } catch (e) {
+                console.warn('Could not set theme in localStorage:', e);
+            }
+        })();
+    </script>
     <!-- Google Tag Manager -->
     <script>
         (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':

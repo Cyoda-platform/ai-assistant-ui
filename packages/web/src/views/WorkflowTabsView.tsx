@@ -39,7 +39,7 @@ const WorkflowTabsView: React.FC = () => {
       openTab({
         modelName,
         modelVersion,
-        displayName: displayName || `${modelName} v${modelVersion}`,
+        displayName: displayName || `${modelName}.${modelVersion}`,
         isDirty: false,
         technicalId: `${modelName}_v${modelVersion}`,
       });

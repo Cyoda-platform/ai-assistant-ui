@@ -397,7 +397,7 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
   return (
     <div
       ref={panelRef}
-      className="fixed bg-white dark:bg-gray-800 rounded-lg shadow-2xl flex flex-col border-2 border-lime-200 dark:border-lime-800 z-50"
+      className="fixed bg-gray-800 rounded-lg shadow-2xl flex flex-col border-2 border-lime-800 z-50"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
@@ -412,7 +412,7 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
     >
       {/* Header with Inline Name Editor - Draggable */}
       <div
-        className="flex items-center justify-between p-4 border-b-2 border-lime-200 dark:border-lime-800 bg-gradient-to-r from-lime-50 to-emerald-50 dark:from-lime-950/30 dark:to-emerald-950/30 flex-shrink-0 cursor-grab active:cursor-grabbing"
+        className="flex items-center justify-between p-4 border-b-2 border-lime-800 bg-gradient-to-r from-lime-950/30 to-emerald-950/30 flex-shrink-0 cursor-grab active:cursor-grabbing"
         onMouseDown={handleDragStart}
       >
           <div className="flex items-center space-x-3 flex-1">
@@ -420,7 +420,7 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
               <Edit size={16} className="text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-xs text-gray-500 dark:text-gray-400">Edit Transition</div>
+              <div className="text-xs text-gray-400">Edit Transition</div>
               <InlineNameEditor
                 value={transitionName}
                 placeholder="Enter transition name"
@@ -431,10 +431,10 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-lime-100 dark:hover:bg-lime-900/30 transition-colors group flex-shrink-0"
+            className="p-2 rounded-lg hover:bg-lime-900/30 transition-colors group flex-shrink-0"
             title="Close (Esc)"
           >
-            <X size={18} className="text-gray-500 dark:text-gray-400 group-hover:text-lime-600 dark:group-hover:text-lime-400" />
+            <X size={18} className="text-gray-400 group-hover:text-lime-400" />
           </button>
         </div>
 
@@ -442,12 +442,12 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
         <div className="flex-1 p-4 overflow-hidden">
           <div className="h-full flex flex-col">
             <div className="flex items-center justify-between mb-2">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="flex items-center space-x-2 text-sm font-medium text-gray-300">
                 <Code2 size={16} className="text-lime-500" />
                 <span>Transition Configuration (JSON)</span>
               </label>
               {isValid && (
-                <div className="flex items-center space-x-1 text-xs text-lime-600 dark:text-lime-400">
+                <div className="flex items-center space-x-1 text-xs text-lime-400">
                   <Check size={14} />
                   <span>Valid</span>
                 </div>
@@ -456,8 +456,8 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
 
             <div className={`flex-1 rounded-lg overflow-hidden border-2 transition-colors ${
               error
-                ? 'border-pink-400 dark:border-pink-500 shadow-lg shadow-pink-500/20'
-                : 'border-lime-300 dark:border-lime-600 shadow-lg shadow-lime-500/10'
+                ? 'border-pink-500 shadow-lg shadow-pink-500/20'
+                : 'border-lime-600 shadow-lg shadow-lime-500/10'
             }`}>
               <Editor
                 height="100%"
@@ -660,7 +660,7 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
             </div>
 
             {error && (
-              <div className="mt-3 p-3 bg-gradient-to-r from-pink-50 via-fuchsia-50 to-rose-50 dark:from-pink-950/30 dark:via-fuchsia-950/30 dark:to-rose-950/30 border-2 border-pink-300 dark:border-pink-600 rounded-lg text-sm text-pink-700 dark:text-pink-400 backdrop-blur-sm">
+              <div className="mt-3 p-3 bg-gradient-to-r from-pink-950/30 via-fuchsia-950/30 to-rose-950/30 border-2 border-pink-600 rounded-lg text-sm text-pink-400 backdrop-blur-sm">
                 <div className="flex items-start space-x-2">
                   <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
                   <div>
@@ -674,7 +674,7 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="flex justify-between p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0 bg-gradient-to-r from-gray-50 via-white to-gray-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800">
+        <div className="flex justify-between p-4 border-t border-gray-700 flex-shrink-0 bg-gradient-to-r from-gray-800 via-gray-900 to-gray-800">
           <div>
             {onDelete && (
               <button
@@ -694,7 +694,7 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
             className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-all ${
               isValid
                 ? 'bg-lime-600 hover:bg-lime-700 text-white shadow-md hover:shadow-lg hover:scale-105'
-                : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
             }`}
           >
             <Save size={16} />

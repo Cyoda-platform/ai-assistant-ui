@@ -163,7 +163,7 @@ gantt
     openTab({
       modelName,
       modelVersion,
-      displayName: `New Workflow ${newTabCounter}`,
+      displayName: `${modelName}.${modelVersion}`,
       isDirty: false,
       technicalId: workflowTechnicalId,
     });

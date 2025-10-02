@@ -151,7 +151,7 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
   // If manual is undefined, treat as automated (false)
   const isManual = transition?.definition.manual === true;
 
-  // Define colors and thickness based on manual/automated state
+  // Define colors and thickness based on manual/automated state (dark mode only)
   const getLoopbackStyles = () => {
     const baseStrokeWidth = 2.5;
     const automatedStrokeWidth = 3.5;
@@ -159,22 +159,22 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
     if (selected) {
       return {
         className: isManual
-          ? 'stroke-pink-500 dark:stroke-pink-400'
-          : 'stroke-lime-500 dark:stroke-lime-400',
+          ? 'stroke-pink-400'
+          : 'stroke-lime-400',
         style: { strokeWidth: isManual ? baseStrokeWidth : automatedStrokeWidth }
       };
     }
 
     if (isManual) {
-      // Manual transitions: pink/fuchsia
+      // Manual transitions: pink/fuchsia (dark mode only)
       return {
-        className: 'stroke-pink-400 dark:stroke-pink-500',
+        className: 'stroke-pink-500',
         style: { strokeWidth: baseStrokeWidth }
       };
     } else {
-      // Automated transitions: lime/emerald
+      // Automated transitions: lime/emerald (dark mode only)
       return {
-        className: 'stroke-lime-500 dark:stroke-lime-400',
+        className: 'stroke-lime-400',
         style: { strokeWidth: automatedStrokeWidth }
       };
     }
@@ -212,31 +212,31 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
           <div
             className={`${
               isManual
-                ? 'bg-gradient-to-r from-pink-50 via-fuchsia-50 to-rose-50 dark:from-pink-950/30 dark:via-fuchsia-950/30 dark:to-rose-950/30'
-                : 'bg-gradient-to-r from-lime-50 via-emerald-50 to-green-50 dark:from-lime-950/30 dark:via-emerald-950/30 dark:to-green-950/30'
+                ? 'bg-gradient-to-r from-pink-950/30 via-fuchsia-950/30 to-rose-950/30'
+                : 'bg-gradient-to-r from-lime-950/30 via-emerald-950/30 to-green-950/30'
             } border-2 rounded-full shadow-lg px-4 py-2 text-sm transition-all duration-300 backdrop-blur-sm ${
               selected
                 ? isManual
-                  ? 'border-pink-400 ring-4 ring-pink-400 ring-opacity-30 bg-gradient-to-r from-pink-100 via-fuchsia-100 to-rose-100 dark:from-pink-900/40 dark:via-fuchsia-900/40 dark:to-rose-900/40'
-                  : 'border-lime-400 ring-4 ring-lime-400 ring-opacity-30 bg-gradient-to-r from-lime-100 via-emerald-100 to-green-100 dark:from-lime-900/40 dark:via-emerald-900/40 dark:to-green-900/40'
+                  ? 'border-pink-400 ring-4 ring-pink-400 ring-opacity-30 bg-gradient-to-r from-pink-900/40 via-fuchsia-900/40 to-rose-900/40'
+                  : 'border-lime-400 ring-4 ring-lime-400 ring-opacity-30 bg-gradient-to-r from-lime-900/40 via-emerald-900/40 to-green-900/40'
                 : isManual
-                  ? 'border-pink-300 dark:border-pink-600 hover:border-pink-400 hover:shadow-xl hover:scale-105'
-                  : 'border-lime-300 dark:border-lime-600 hover:border-lime-400 hover:shadow-xl hover:scale-105'
+                  ? 'border-pink-600 hover:border-pink-400 hover:shadow-xl hover:scale-105'
+                  : 'border-lime-600 hover:border-lime-400 hover:shadow-xl hover:scale-105'
             }`}
           >
             <div className="flex items-center space-x-2">
               {/* Drag Handle */}
-              <div className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+              <div className="flex-shrink-0 text-gray-400 hover:text-gray-300">
                 <Move size={10} />
               </div>
 
               {/* Loop Icon */}
-              <div className="flex-shrink-0 text-pink-600 dark:text-pink-400">
+              <div className="flex-shrink-0 text-pink-400">
                 <RotateCcw size={12} />
               </div>
 
               {/* Transition Name */}
-              <span className="text-gray-700 dark:text-gray-200 font-medium">
+              <span className="text-gray-200 font-medium">
                 {transition?.definition?.name || 'Loop-back'}
               </span>
 
@@ -246,7 +246,7 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
                 onMouseDown={(e) => {
                   e.stopPropagation(); // Prevent drag from starting
                 }}
-                className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
+                className="flex-shrink-0 text-gray-400 hover:text-gray-300 transition-colors cursor-pointer"
                 title="Click to edit transition"
               >
                 <Edit size={10} />

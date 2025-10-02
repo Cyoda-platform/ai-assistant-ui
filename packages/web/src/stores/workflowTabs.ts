@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface WorkflowTab {
   id: string; // Unique identifier for the tab (combination of modelName and modelVersion)
@@ -24,17 +25,19 @@ interface WorkflowTabsState {
   hasUnsavedChanges: () => boolean;
 }
 
-export const useWorkflowTabsStore = create<WorkflowTabsState>((set, get) => ({
+export const useWorkflowTabsStore = create<WorkflowTabsState>()(
+  persist(
+    (set, get) => ({
   tabs: [],
   activeTabId: null,
 
   openTab: (tabData) => {
     const { tabs, activeTabId } = get();
 
-    // Create unique ID from modelName and modelVersion
-    const tabId = `${tabData.modelName}_v${tabData.modelVersion}`;
+    // Use technicalId as the unique identifier (it's always unique with timestamp)
+    const tabId = tabData.technicalId;
 
-    // Check if tab already exists
+    // Check if tab already exists by technicalId
     const existingTab = tabs.find(t => t.id === tabId);
 
     if (existingTab) {
@@ -138,5 +141,11 @@ export const useWorkflowTabsStore = create<WorkflowTabsState>((set, get) => ({
     const { tabs } = get();
     return tabs.some(tab => tab.isDirty);
   },
-}));
+}),
+    {
+      name: 'workflow-tabs-storage', // localStorage key
+      version: 1,
+    }
+  )
+);
 

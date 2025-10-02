@@ -64,23 +64,26 @@ export const WorkflowTabs: React.FC<WorkflowTabsProps> = ({ onNewTab }) => {
       return;
     }
 
-    // Update the tab
-    const newId = `${editModelName}_v${editModelVersion}`;
-    const technicalId = `${editModelName}_v${editModelVersion}_${Date.now()}`;
-
+    // Update the tab - keep the same ID and technicalId to preserve workflow data
     updateTab(editingTabId, {
-      id: newId,
       modelName: editModelName,
       modelVersion: editModelVersion,
-      displayName: editDisplayName || `${editModelName} v${editModelVersion}`,
-      technicalId,
+      displayName: `${editModelName}.${editModelVersion}`,
     });
 
+    // Clear editing state
     setEditingTabId(null);
+    setEditDisplayName('');
+    setEditModelName('');
+    setEditModelVersion(1);
   };
 
   const handleCancelEdit = () => {
+    // Clear editing state
     setEditingTabId(null);
+    setEditDisplayName('');
+    setEditModelName('');
+    setEditModelVersion(1);
   };
 
   const getContextMenuItems = (tab: WorkflowTab): MenuProps['items'] => [
@@ -184,8 +187,12 @@ export const WorkflowTabs: React.FC<WorkflowTabsProps> = ({ onNewTab }) => {
       {/* New tab button */}
       {onNewTab && (
         <button
-          onClick={onNewTab}
-          className="flex items-center gap-2 px-4 py-2.5 text-gray-400 hover:text-white hover:bg-gray-800 transition-colors border-l border-gray-700"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onNewTab();
+          }}
+          className="flex items-center gap-2 px-4 py-2.5 text-gray-400 hover:text-white hover:bg-gray-800 transition-colors border-l border-gray-700 relative z-10"
           title="Open new workflow"
         >
           <Plus size={16} />
@@ -199,40 +206,35 @@ export const WorkflowTabs: React.FC<WorkflowTabsProps> = ({ onNewTab }) => {
         onOk={handleSaveEdit}
         onCancel={handleCancelEdit}
         okText="Save"
-        cancelText="Cancel"
+        cancelButtonProps={{ style: { display: 'none' } }}
+        className="workflow-edit-modal"
+        centered
+        afterClose={() => {
+          setEditDisplayName('');
+          setEditModelName('');
+          setEditModelVersion(1);
+        }}
+        maskClosable={true}
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Display Name
-            </label>
-            <Input
-              value={editDisplayName}
-              onChange={(e) => setEditDisplayName(e.target.value)}
-              placeholder="e.g., User Registration Workflow"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Friendly name shown in the tab
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Model Name <span className="text-red-500">*</span>
+            <label className="block text-sm font-medium text-white mb-2">
+              Model Name <span className="text-pink-400">*</span>
             </label>
             <Input
               value={editModelName}
               onChange={(e) => setEditModelName(e.target.value)}
               placeholder="e.g., user-registration"
+              className="bg-gray-800 border-gray-700 text-white"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               Entity model name (alphanumeric, hyphens, underscores)
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Model Version <span className="text-red-500">*</span>
+            <label className="block text-sm font-medium text-white mb-2">
+              Model Version <span className="text-pink-400">*</span>
             </label>
             <Input
               type="number"
@@ -240,8 +242,9 @@ export const WorkflowTabs: React.FC<WorkflowTabsProps> = ({ onNewTab }) => {
               value={editModelVersion}
               onChange={(e) => setEditModelVersion(parseInt(e.target.value) || 1)}
               placeholder="1"
+              className="bg-gray-800 border-gray-700 text-white"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               Version number (must be at least 1)
             </p>
           </div>

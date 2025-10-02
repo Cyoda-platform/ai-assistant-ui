@@ -15,20 +15,20 @@ export const WorkflowTabsContainer: React.FC = () => {
 
   // Create a new empty tab directly without modal
   const handleNewTab = useCallback(() => {
-    // Generate a unique counter for new tabs
-    const newTabCounter = tabs.filter(t => t.modelName.startsWith('new-workflow')).length + 1;
-    const modelName = `new-workflow-${newTabCounter}`;
+    // Generate a truly unique model name using timestamp
+    const timestamp = Date.now();
+    const modelName = `new-workflow-${timestamp}`;
     const modelVersion = 1;
-    const technicalId = `${modelName}_v${modelVersion}_${Date.now()}`;
+    const technicalId = `${modelName}_v${modelVersion}_${timestamp}`;
 
     openTab({
       modelName,
       modelVersion,
-      displayName: `New Workflow ${newTabCounter}`,
+      displayName: `${modelName}.${modelVersion}`,
       isDirty: false,
       technicalId,
     });
-  }, [openTab, tabs]);
+  }, [openTab]);
 
   const handleWorkflowUpdate = useCallback((tabId: string, data: { canvasData: string; workflowMetaData: any }) => {
     // Mark tab as dirty when workflow is updated

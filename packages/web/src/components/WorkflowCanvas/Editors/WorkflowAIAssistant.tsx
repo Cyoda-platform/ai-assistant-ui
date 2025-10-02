@@ -187,25 +187,25 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-3xl mx-4 flex flex-col max-h-[85vh] border-2 border-purple-200 dark:border-purple-800 animate-in slide-in-from-bottom-4 duration-300">
+      <div className="bg-gray-900 rounded-2xl shadow-2xl w-full max-w-3xl mx-4 flex flex-col max-h-[85vh] border-2 border-purple-800 animate-in slide-in-from-bottom-4 duration-300">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 rounded-t-2xl">
+        <div className="flex items-center justify-between p-6 border-b border-gray-700 bg-gradient-to-r from-purple-950/30 to-pink-950/30 rounded-t-2xl">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h2 className="text-xl font-bold text-white">
                 AI Workflow Assistant
               </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-gray-400">
                 Ask me anything about your workflow
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="p-2 text-gray-400 hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-800"
           >
             <X size={24} />
           </button>
@@ -213,8 +213,8 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
 
         {/* Quick Prompts */}
         {messages.length === 0 && (
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+          <div className="p-6 border-b border-gray-700">
+            <p className="text-sm font-medium text-gray-300 mb-3">
               Quick actions:
             </p>
             <div className="grid grid-cols-2 gap-2">
@@ -222,10 +222,10 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
                 <button
                   key={index}
                   onClick={() => setInput(prompt.prompt)}
-                  className="flex items-center gap-2 p-3 text-left text-sm bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors border border-gray-200 dark:border-gray-700"
+                  className="flex items-center gap-2 p-3 text-left text-sm bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors border border-gray-700"
                 >
                   <span className="text-lg">{prompt.icon}</span>
-                  <span className="text-gray-700 dark:text-gray-300">{prompt.text}</span>
+                  <span className="text-gray-300">{prompt.text}</span>
                 </button>
               ))}
             </div>
@@ -256,8 +256,8 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
                     message.role === 'user'
                       ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
                       : isError
-                      ? 'bg-red-50 dark:bg-red-950/30 border-2 border-red-200 dark:border-red-800 text-red-900 dark:text-red-100'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                      ? 'bg-red-950/30 border-2 border-red-800 text-red-100'
+                      : 'bg-gray-800 text-white'
                   }`}
                 >
                   <div className="prose prose-sm dark:prose-invert max-w-none">
@@ -266,10 +266,10 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
 
                   {/* Action buttons for assistant messages */}
                   {message.role === 'assistant' && (
-                    <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex gap-2 mt-3 pt-3 border-t border-gray-700">
                       <button
                         onClick={() => copyToClipboard(message.content, index)}
-                        className="flex items-center gap-1 px-3 py-1.5 text-xs bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors border border-gray-600"
                       >
                         {copiedIndex === index ? (
                           <>
@@ -302,7 +302,7 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
 
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4">
+              <div className="bg-gray-800 rounded-2xl p-4">
                 <Loader2 className="w-5 h-5 animate-spin text-purple-500" />
               </div>
             </div>
@@ -312,7 +312,7 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
         </div>
 
         {/* Input */}
-        <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-b-2xl">
+        <div className="p-6 border-t border-gray-700 bg-gray-800/50 rounded-b-2xl">
           <div className="flex gap-3">
             <textarea
               ref={inputRef}
@@ -320,7 +320,7 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask about your workflow... (Shift+Enter for new line)"
-              className="flex-1 px-4 py-3 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 resize-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+              className="flex-1 px-4 py-3 bg-gray-900 border-2 border-gray-700 rounded-xl focus:outline-none focus:border-purple-500 resize-none text-white placeholder-gray-500"
               rows={3}
               disabled={isLoading}
             />
@@ -336,8 +336,8 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
               )}
             </button>
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
-            Press <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">Enter</kbd> to send, <kbd className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">Shift+Enter</kbd> for new line
+          <p className="text-xs text-gray-400 mt-3">
+            Press <kbd className="px-2 py-1 bg-gray-700 rounded">Enter</kbd> to send, <kbd className="px-2 py-1 bg-gray-700 rounded">Shift+Enter</kbd> for new line
           </p>
         </div>
       </div>

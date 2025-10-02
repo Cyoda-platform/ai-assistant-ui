@@ -88,7 +88,7 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
           position={config.position}
           id={`${anchorId}-source`}
           style={config.style}
-          className={`w-3.5 h-3.5 !bg-gradient-to-br !from-pink-500 !to-fuchsia-600 !border-2 !border-white dark:!border-gray-900 opacity-70 hover:opacity-100 hover:scale-125 transition-all duration-300 shadow-md hover:shadow-lg ${config.className}`}
+          className={`w-3.5 h-3.5 !bg-gradient-to-br !from-pink-500 !to-fuchsia-600 !border-2 !border-gray-900 opacity-70 hover:opacity-100 hover:scale-125 transition-all duration-300 shadow-md hover:shadow-lg ${config.className}`}
         />
 
         {/* Render target handle (incoming connections) */}
@@ -97,7 +97,8 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
           position={config.position}
           id={`${anchorId}-target`}
           style={config.style}
-          className={`w-3.5 h-3.5 !bg-gradient-to-br !from-lime-500 !to-emerald-600 !border-2 !border-white dark:!border-gray-900 opacity-70 hover:opacity-100 hover:scale-125 transition-all duration-300 shadow-md hover:shadow-lg ${config.className}`}
+          className={`w-3.5 h-3.5 !bg-gradient-to-br !from-lime-500 !to-emerald-600 !border-2 !border-gray-900 opacity-70 hover:opacity-100 hover:scale-125 transition-all duration-300 shadow-md hover:shadow-lg ${config.className}`}
+          isConnectableStart={false}
         />
       </React.Fragment>
     );
@@ -107,26 +108,26 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
     let baseClasses = "px-4 py-3 rounded-xl border-2 shadow-lg transition-all duration-300 min-w-[120px] relative backdrop-blur-sm";
 
     if (selected) {
-      baseClasses += " ring-4 ring-offset-2 dark:ring-offset-gray-900";
+      baseClasses += " ring-4 ring-offset-2 ring-offset-gray-900";
     }
 
     if (state.isInitial) {
-      // Super fashionable: Lime to Emerald to Green
-      baseClasses += " border-lime-400 dark:border-lime-500 bg-gradient-to-br from-lime-50 via-emerald-50 to-green-50 dark:from-lime-950/40 dark:via-emerald-950/40 dark:to-green-950/40";
+      // Dark mode only: Lime to Emerald to Green
+      baseClasses += " border-lime-500 bg-gradient-to-br from-lime-950/40 via-emerald-950/40 to-green-950/40";
       if (selected) {
-        baseClasses += " ring-lime-400 dark:ring-lime-500";
+        baseClasses += " ring-lime-500";
       }
     } else if (state.isFinal) {
-      // Super fashionable: Hot Pink to Fuchsia to Rose
-      baseClasses += " border-pink-400 dark:border-pink-500 bg-gradient-to-br from-pink-50 via-fuchsia-50 to-rose-50 dark:from-pink-950/40 dark:via-fuchsia-950/40 dark:to-rose-950/40";
+      // Dark mode only: Hot Pink to Fuchsia to Rose
+      baseClasses += " border-pink-500 bg-gradient-to-br from-pink-950/40 via-fuchsia-950/40 to-rose-950/40";
       if (selected) {
-        baseClasses += " ring-pink-400 dark:ring-pink-500";
+        baseClasses += " ring-pink-500";
       }
     } else {
-      // Super fashionable: Green to Pink gradient
-      baseClasses += " border-emerald-300 dark:border-emerald-600 bg-gradient-to-br from-green-50 via-emerald-50 to-pink-50 dark:from-green-950/30 dark:via-emerald-950/30 dark:to-pink-950/30 hover:border-pink-400 dark:hover:border-pink-500 hover:shadow-xl hover:scale-[1.02]";
+      // Dark mode only: Green to Pink gradient
+      baseClasses += " border-emerald-600 bg-gradient-to-br from-green-950/30 via-emerald-950/30 to-pink-950/30 hover:border-pink-500 hover:shadow-xl hover:scale-[1.02]";
       if (selected) {
-        baseClasses += " ring-pink-400 dark:ring-pink-500";
+        baseClasses += " ring-pink-500";
       }
     }
 
@@ -134,9 +135,9 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
   };
 
   const getIconColor = () => {
-    if (state.isInitial) return "text-lime-600 dark:text-lime-400";
-    if (state.isFinal) return "text-pink-600 dark:text-pink-400";
-    return "text-emerald-600 dark:text-emerald-400";
+    if (state.isInitial) return "text-lime-400";
+    if (state.isFinal) return "text-pink-400";
+    return "text-emerald-400";
   };
 
   return (

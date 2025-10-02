@@ -56,20 +56,13 @@ const App: React.FC = () => {
     });
   }, [getAccessTokenSilently]);
 
-  // Handle theme changes
+  // Handle theme changes - always enforce dark mode
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove('theme-dark', 'theme-light');
-    const currentAuthState = useAuthStore.getState();
-    const isLoggedIn = currentAuthState.token && currentAuthState.tokenType === 'private';
-
-    if (isInIframe && !isLoggedIn) {
-      root.classList.add('theme-light');
-      return;
-    }
-
-    root.classList.add(`theme-${detectTheme}`);
-  }, [detectTheme, authStore]);
+    // Always apply dark theme - light mode not supported
+    root.classList.add('theme-dark');
+  }, []);
 
   // Handle authentication state changes
   useEffect(() => {

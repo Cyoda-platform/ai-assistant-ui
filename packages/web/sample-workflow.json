@@ -1,134 +1,161 @@
 {
   "version": "1.0",
-  "name": "Order Processing Workflow",
-  "desc": "Sample workflow for order processing with validation and payment",
-  "initialState": "initial_state",
+  "name": "Study",
+  "desc": "Study Operational Management Workflow",
+  "initialState": "initial",
   "active": true,
   "states": {
-    "initial_state": {
+    "initial": {
       "transitions": [
         {
-          "name": "start_validation",
-          "next": "validate_order",
-          "manual": false,
+          "name": "create_study",
+          "next": "setup",
+          "manual": false
+        }
+      ]
+    },
+    "setup": {
+      "transitions": [
+        {
+          "name": "activate_study",
+          "next": "active",
+          "manual": true,
           "processors": [
             {
-              "name": "OrderInitProcessor",
-              "executionMode": "SYNC",
+              "name": "StudyActivationProcessor",
+              "executionMode": "ASYNC_NEW_TX",
               "config": {
+                "attachEntity": true,
                 "calculationNodesTags": "cyoda_application",
-                "attachEntity": true
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        },
+        {
+          "name": "update_study_setup",
+          "next": "setup",
+          "manual": true,
+          "processors": [
+            {
+              "name": "StudySetupProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
               }
             }
           ]
         }
       ]
     },
-    "validate_order": {
+    "active": {
       "transitions": [
         {
-          "name": "validation_passed",
-          "next": "process_payment",
-          "manual": false,
+          "name": "suspend_study",
+          "next": "suspended",
+          "manual": true,
           "processors": [
             {
-              "name": "ValidationProcessor",
-              "executionMode": "SYNC",
-              "config": {
-                "calculationNodesTags": "cyoda_application"
-              }
-            }
-          ],
-          "criterion": {
-            "type": "simple",
-            "jsonPath": "$.order.valid",
-            "operation": "EQUALS",
-            "value": true
-          }
-        },
-        {
-          "name": "validation_failed",
-          "next": "rejected",
-          "manual": false,
-          "criterion": {
-            "type": "simple",
-            "jsonPath": "$.order.valid",
-            "operation": "EQUALS",
-            "value": false
-          }
-        }
-      ]
-    },
-    "process_payment": {
-      "transitions": [
-        {
-          "name": "payment_success",
-          "next": "fulfill_order",
-          "manual": false,
-          "processors": [
-            {
-              "name": "PaymentProcessor",
+              "name": "StudySuspensionProcessor",
               "executionMode": "ASYNC_NEW_TX",
               "config": {
+                "attachEntity": true,
                 "calculationNodesTags": "cyoda_application",
-                "responseTimeoutMs": 30000,
-                "retryPolicy": "EXPONENTIAL"
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
               }
             }
-          ],
-          "criterion": {
-            "type": "simple",
-            "jsonPath": "$.payment.status",
-            "operation": "EQUALS",
-            "value": "success"
-          }
+          ]
         },
         {
-          "name": "payment_failed",
-          "next": "payment_retry",
-          "manual": false,
-          "criterion": {
-            "type": "simple",
-            "jsonPath": "$.payment.status",
-            "operation": "EQUALS",
-            "value": "failed"
-          }
-        }
-      ]
-    },
-    "payment_retry": {
-      "transitions": [
-        {
-          "name": "retry_payment",
-          "next": "process_payment",
-          "manual": true
-        },
-        {
-          "name": "cancel_order",
-          "next": "cancelled",
-          "manual": true
-        }
-      ]
-    },
-    "fulfill_order": {
-      "transitions": [
-        {
-          "name": "fulfillment_complete",
+          "name": "complete_study",
           "next": "completed",
-          "manual": false,
+          "manual": true,
           "processors": [
             {
-              "name": "FulfillmentProcessor",
-              "executionMode": "ASYNC_SAME_TX",
-              "config": {
-                "calculationNodesTags": "cyoda_application"
-              }
-            },
-            {
-              "name": "NotificationProcessor",
+              "name": "StudyCompletionProcessor",
               "executionMode": "ASYNC_NEW_TX",
               "config": {
-                "calculationNodesTags": "cyoda_application"
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        },
+        {
+          "name": "terminate_study",
+          "next": "terminated",
+          "manual": true,
+          "processors": [
+            {
+              "name": "StudyTerminationProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        },
+        {
+          "name": "update_study",
+          "next": "active",
+          "manual": true,
+          "processors": [
+            {
+              "name": "StudyUpdateProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "suspended": {
+      "transitions": [
+        {
+          "name": "resume_study",
+          "next": "active",
+          "manual": true,
+          "processors": [
+            {
+              "name": "StudyResumptionProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
+              }
+            }
+          ]
+        },
+        {
+          "name": "terminate_study",
+          "next": "terminated",
+          "manual": true,
+          "processors": [
+            {
+              "name": "StudyTerminationProcessor",
+              "executionMode": "ASYNC_NEW_TX",
+              "config": {
+                "attachEntity": true,
+                "calculationNodesTags": "cyoda_application",
+                "responseTimeoutMs": 3000,
+                "retryPolicy": "FIXED"
               }
             }
           ]
@@ -138,12 +165,8 @@
     "completed": {
       "transitions": []
     },
-    "rejected": {
-      "transitions": []
-    },
-    "cancelled": {
+    "terminated": {
       "transitions": []
     }
   }
 }
-
