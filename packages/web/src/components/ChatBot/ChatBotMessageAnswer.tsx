@@ -78,32 +78,34 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
   };
 
   return (
-    <div className="flex justify-end mb-3 animate-fade-in-up">
-      <div className="flex items-start space-x-3 max-w-[85%]">
+    <div className="flex justify-end mb-2 animate-fade-in-up">
+      <div className="flex items-start space-x-2 max-w-[85%]">
         {/* Message Content Container */}
-        <div className="flex flex-col items-end space-y-2 flex-1">
+        <div className="flex flex-col items-end space-y-1.5 flex-1">
           {/* User Badge */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1.5">
             {date && (
               <div className="flex items-center space-x-1 text-xs text-slate-500">
-                <Clock size={12} />
-                <span>{date}</span>
+                <Clock size={10} />
+                <span className="text-[10px]">{date}</span>
               </div>
             )}
-            <div className="flex items-center space-x-1.5 bg-slate-800/50 backdrop-blur-sm px-3 py-1 rounded-full border border-slate-600">
-              <span className="text-xs font-medium text-slate-300">{userName}</span>
-              <User size={12} className="text-teal-400" />
+            <div className="flex items-center space-x-1 bg-slate-800/50 backdrop-blur-sm px-2 py-0.5 rounded-full border border-slate-600">
+              <span className="text-[10px] font-medium text-slate-300">{userName}</span>
+              <User size={10} className="text-teal-400" />
             </div>
           </div>
 
           {/* Message Bubble - Right aligned user message */}
           <div className={`${containerInfo.className} relative group`}>
-            <MarkdownRenderer>
-              {messageText}
-            </MarkdownRenderer>
+            <div className="text-sm pr-6">
+              <MarkdownRenderer>
+                {messageText}
+              </MarkdownRenderer>
+            </div>
             {currentFiles.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-teal-500/30">
-                <div className="flex flex-wrap gap-3">
+              <div className="mt-3 pt-3 border-t border-teal-500/30">
+                <div className="flex flex-wrap gap-2">
                   {currentFiles.map((file, index) => (
                     <div key={`${file.name}-${index}`} className="text-xs">
                       <FilePreview file={file} />
@@ -113,19 +115,19 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
               </div>
             )}
 
-            {/* Copy Button - Bottom Right Corner */}
+            {/* Copy Button - Inside message container, top right */}
             <button
               onClick={handleCopy}
-              className="absolute -bottom-10 right-0 w-8 h-8 rounded-full bg-slate-700 hover:bg-slate-600 text-slate-400 hover:text-white transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center"
+              className="absolute top-1.5 right-1.5 w-5 h-5 rounded bg-teal-600/30 hover:bg-teal-600/50 text-slate-300 hover:text-white transition-all duration-200 flex items-center justify-center border border-teal-500/30"
               title="Copy message"
             >
-              {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
+              {copied ? <Check size={10} className="text-green-400" /> : <Copy size={10} />}
             </button>
           </div>
         </div>
 
         {/* User Avatar */}
-        <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden border-2 border-teal-500/30">
+        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 shadow-md overflow-hidden border border-teal-500/30">
           {userAvatar ? (
             <img
               src={userAvatar}
@@ -133,7 +135,7 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center text-white text-sm font-semibold">
+            <div className="w-full h-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center text-white text-[10px] font-semibold">
               {userInitials}
             </div>
           )}
