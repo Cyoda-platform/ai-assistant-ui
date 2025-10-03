@@ -274,7 +274,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   modelName,
   modelVersion
 }) => {
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, fitView } = useReactFlow();
   const [showQuickHelp, setShowQuickHelp] = useState(false);
   const [showJsonEditor, setShowJsonEditor] = useState(true); // Open by default
   const [showWorkflowInfo, setShowWorkflowInfo] = useState(true); // Show workflow info panel by default
@@ -874,6 +874,21 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     JSON.stringify(cleanedWorkflow?.configuration?.states || {}),
     cleanedWorkflow?.updatedAt, // This changes when the workflow is updated
   ]);
+
+  // Auto-center the workflow when layout is updated (e.g., after JSON import or auto-layout)
+  React.useEffect(() => {
+    if (cleanedWorkflow && nodes.length > 0) {
+      // Use a small delay to ensure nodes are rendered before fitting view
+      const timer = setTimeout(() => {
+        fitView({
+          padding: 0.2, // 20% padding around the workflow
+          duration: 300, // Smooth animation
+          maxZoom: 1.5, // Don't zoom in too much
+        });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [cleanedWorkflow?.layout?.updatedAt, nodes.length, fitView]);
 
   const onConnect = useCallback(
     (params: Connection) => {

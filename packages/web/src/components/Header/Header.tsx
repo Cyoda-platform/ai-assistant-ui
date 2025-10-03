@@ -29,6 +29,7 @@ interface Notification {
   message: string;
   timestamp: string;
   isRead: boolean;
+  messageId?: string; // ID of the related message for navigation
 }
 
 interface HeaderProps {
@@ -42,6 +43,7 @@ interface HeaderProps {
   notifications?: Notification[];
   onMarkNotificationAsRead?: (id: number) => void;
   onMarkAllNotificationsAsRead?: () => void;
+  onNotificationClick?: (notificationId: number, messageId?: string) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -54,7 +56,8 @@ const Header: React.FC<HeaderProps> = ({
   showActions = false,
   notifications: externalNotifications,
   onMarkNotificationAsRead: externalMarkAsRead,
-  onMarkAllNotificationsAsRead: externalMarkAllAsRead
+  onMarkAllNotificationsAsRead: externalMarkAllAsRead,
+  onNotificationClick: externalNotificationClick
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -334,7 +337,14 @@ const Header: React.FC<HeaderProps> = ({
                           }`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            markNotificationAsRead(notification.id);
+                            // Use external notification click handler if provided, otherwise just mark as read
+                            if (externalNotificationClick) {
+                              externalNotificationClick(notification.id, notification.messageId);
+                            } else {
+                              markNotificationAsRead(notification.id);
+                            }
+                            // Close the notification dropdown
+                            setShowNotifications(false);
                           }}
                         >
                           <div className="flex items-start space-x-3">

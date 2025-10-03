@@ -30,6 +30,7 @@ import MermaidDiagram from '../MermaidDiagram/MermaidDiagram';
 import { WorkflowTabs } from '@/components/WorkflowTabs/WorkflowTabs';
 import { useWorkflowTabsStore } from '@/stores/workflowTabs';
 import { Modal, Form, Input, InputNumber } from 'antd';
+import SettingsDialog from '@/components/SettingsDialog/SettingsDialog';
 
 interface ChatBotCanvasProps {
   messages: any[];
@@ -129,22 +130,41 @@ gantt
 `);
   const [workflowData, setWorkflowData] = useState('');
   const [markdownMode, setMarkdownMode] = useState<MarkdownMode>('split');
+  const [settingsDialogVisible, setSettingsDialogVisible] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
 
   // Workflow tabs state
   const { tabs, activeTabId, openTab, updateTab, getActiveTab } = useWorkflowTabsStore();
   const activeWorkflowTab = getActiveTab();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = useCallback((content: string, file?: File) => {
-    onAnswer({ answer: content, file });
+  const handleSubmit = useCallback((content: string, files?: File[]) => {
+    onAnswer({ answer: content, files });
   }, [onAnswer]);
 
   const handleMarkdownSubmit = useCallback(() => {
     if (markdownContent.trim()) {
-      handleSubmit(markdownContent);
+      handleSubmit(markdownContent, attachedFiles);
+      setAttachedFiles([]); // Clear files after submit
     }
-  }, [markdownContent, handleSubmit]);
+  }, [markdownContent, attachedFiles, handleSubmit]);
+
+  const handleFileAttach = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      setAttachedFiles(Array.from(files));
+    }
+  }, []);
+
+  const handleRemoveFile = useCallback((index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  }, []);
 
   const handleWorkflowSubmit = useCallback(() => {
     if (workflowData.trim()) {
@@ -217,6 +237,7 @@ gantt
             </button>
           )}
           <button
+            onClick={() => setSettingsDialogVisible(true)}
             className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
             title="Canvas Settings"
           >
@@ -433,9 +454,40 @@ graph TD
               {/* Action Bar */}
               <div className="flex items-center justify-between pt-4 border-t border-slate-600 mt-4">
                 <div className="flex items-center space-x-2">
-                  <button className="p-1.5 rounded-md hover:bg-slate-700 transition-colors text-slate-400 hover:text-white" title="Attach File">
+                  <button
+                    onClick={handleFileAttach}
+                    className="p-1.5 rounded-md hover:bg-slate-700 transition-colors text-slate-400 hover:text-white relative"
+                    title="Attach File"
+                  >
                     <PaperclipIcon size={14} />
+                    {attachedFiles.length > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-teal-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                        {attachedFiles.length}
+                      </span>
+                    )}
                   </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  {attachedFiles.length > 0 && (
+                    <div className="flex items-center space-x-1">
+                      {attachedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center space-x-1 bg-slate-700 px-2 py-1 rounded text-xs">
+                          <span className="text-slate-300">{file.name}</span>
+                          <button
+                            onClick={() => handleRemoveFile(index)}
+                            className="text-slate-400 hover:text-white"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   <span className="text-xs text-slate-500">
                     {markdownContent.length} characters
                   </span>
@@ -454,6 +506,11 @@ graph TD
         )}
       </div>
 
+      {/* Settings Dialog */}
+      <SettingsDialog
+        visible={settingsDialogVisible}
+        onClose={() => setSettingsDialogVisible(false)}
+      />
     </div>
   );
 };

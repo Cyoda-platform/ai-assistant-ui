@@ -1,8 +1,12 @@
 import React from 'react';
 import { Bot, Sparkles } from 'lucide-react';
 import LogoSmall from '@/assets/images/logo-small.svg';
+import { useTextResponsiveContainer } from '@/hooks/useTextResponsiveContainer';
 
 const ChatLoader: React.FC = () => {
+  // Use responsive container for the "AI is thinking..." text
+  const containerInfo = useTextResponsiveContainer('AI is thinking...');
+
   return (
     <div className="flex justify-start mb-6 animate-fade-in-up">
       <div className="flex items-start space-x-3 w-full max-w-[90%]">
@@ -20,8 +24,8 @@ const ChatLoader: React.FC = () => {
             </div>
           </div>
 
-          {/* Typing Indicator */}
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl rounded-tl-md px-6 py-4 shadow-lg">
+          {/* Typing Indicator - Using responsive container for compact sizing */}
+          <div className={containerInfo.className}>
             <div className="flex items-center space-x-2">
               <div className="flex space-x-1">
                 <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>

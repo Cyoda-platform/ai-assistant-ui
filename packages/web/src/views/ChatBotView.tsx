@@ -31,6 +31,7 @@ interface HeaderNotification {
   message: string;
   timestamp: string;
   isRead: boolean;
+  messageId?: string; // ID of the related message for navigation
 }
 
 const ChatBotView: React.FC = () => {
@@ -53,6 +54,7 @@ const ChatBotView: React.FC = () => {
   const notificationIdCounter = useRef(1);
   const [countNewMessages, setCountNewMessages] = useState(0);
   const originalTitle = useRef('Cyoda AI Assistant');
+  const [isLoadingRollback, setIsLoadingRollback] = useState(false);
 
   // Resizable panels - start at max width
   const chatHistoryResize = useResizablePanel({
@@ -124,7 +126,8 @@ const ChatBotView: React.FC = () => {
         title: message.type === 'question' ? 'New Question' : 'Action Required',
         message: message.text.substring(0, 100) + (message.text.length > 100 ? '...' : ''),
         timestamp,
-        isRead: false
+        isRead: false,
+        messageId: message.id // Store message ID for navigation
       };
       setHeaderNotifications(prev => [notification, ...prev]);
       // Increment the count for bell and tab title
@@ -137,7 +140,8 @@ const ChatBotView: React.FC = () => {
         title: 'System Notification',
         message: message.text.substring(0, 100) + (message.text.length > 100 ? '...' : ''),
         timestamp,
-        isRead: true // Mark as read so it doesn't increase the count
+        isRead: true, // Mark as read so it doesn't increase the count
+        messageId: message.id // Store message ID for navigation
       };
       setHeaderNotifications(prev => [notification, ...prev]);
     }
@@ -432,6 +436,20 @@ const ChatBotView: React.FC = () => {
     await loadChatHistory();
   };
 
+  const onRollbackChat = async () => {
+    if (!technicalId) return;
+    setIsLoadingRollback(true);
+    try {
+      await assistantStore.postRollback(technicalId);
+      // Reload chat history after successful rollback
+      await loadChatHistory();
+    } catch (error) {
+      console.error('Error rolling back chat:', error);
+    } finally {
+      setIsLoadingRollback(false);
+    }
+  };
+
   const onToggleCanvas = () => {
     setCanvasVisible(!canvasVisible);
     // Exit fullscreen when closing canvas
@@ -481,6 +499,25 @@ const ChatBotView: React.FC = () => {
       console.log('📝 Updated notifications:', updated);
       return updated;
     });
+  };
+
+  const handleNotificationClick = (notificationId: number, messageId?: string) => {
+    // Mark notification as read
+    handleMarkNotificationAsRead(notificationId);
+
+    // Navigate to the message if messageId is provided
+    if (messageId) {
+      // Find the message element and scroll to it
+      const messageElement = document.getElementById(`message-${messageId}`);
+      if (messageElement) {
+        messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Add a highlight effect
+        messageElement.classList.add('bg-teal-500/20');
+        setTimeout(() => {
+          messageElement.classList.remove('bg-teal-500/20');
+        }, 2000);
+      }
+    }
   };
 
   const handleMarkAllNotificationsAsRead = () => {
@@ -696,6 +733,7 @@ const ChatBotView: React.FC = () => {
         notifications={headerNotifications}
         onMarkNotificationAsRead={handleMarkNotificationAsRead}
         onMarkAllNotificationsAsRead={handleMarkAllNotificationsAsRead}
+        onNotificationClick={handleNotificationClick}
       />
       <div className="flex h-[calc(100vh-73px)] overflow-hidden">
         {/* Enhanced Left Sidebar - Resizable Chat History Panel */}
@@ -777,10 +815,8 @@ const ChatBotView: React.FC = () => {
             // Refresh entity data by reloading chat history
             loadChatHistory();
           }}
-          onRollbackChat={() => {
-            // TODO: Implement rollback functionality
-            console.log('Rolling back chat...');
-          }}
+          onRollbackChat={onRollbackChat}
+          isLoadingRollback={isLoadingRollback}
         />
       </div>
 

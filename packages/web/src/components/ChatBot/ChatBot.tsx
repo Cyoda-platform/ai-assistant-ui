@@ -186,7 +186,11 @@ const ChatBot: React.FC<ChatBotProps> = ({
           <div className="max-w-[90%] mx-auto p-6 w-full">
             <div className="space-y-3">
               {messages.map((message, index) => (
-                <div key={index} className="w-full">
+                <div
+                  key={index}
+                  id={`message-${message.id}`}
+                  className="w-full transition-colors duration-500"
+                >
                   {renderMessage(message, index)}
                 </div>
               ))}

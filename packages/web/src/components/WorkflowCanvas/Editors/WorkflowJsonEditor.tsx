@@ -576,6 +576,10 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b-2 border-lime-800 bg-gradient-to-r from-lime-950/30 to-emerald-950/30 flex-shrink-0">
           <div className="flex items-center space-x-3">
+            {/* JSON Editor Icon - Visual representation of JSON curly braces
+                Purpose: Provides a visual identifier for the JSON editor panel
+                Size: 40x40px (w-10 h-10) - matches standard icon size for panel headers
+                Alignment: Vertically centered with title text using flex items-center */}
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-lime-500 to-emerald-600 flex items-center justify-center shadow-lg">
               <span className="text-white text-xl font-bold">{ }</span>
             </div>
