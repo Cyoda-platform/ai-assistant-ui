@@ -780,6 +780,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           sourceHandle: stateToTransitionSourceHandle,
           targetHandle: stateToTransitionTargetHandle,
           animated: false,
+          reconnectable: 'target', // Only allow reconnecting the target end (transition node side)
           style: {
             stroke: edgeColor,
             strokeWidth: edgeWidth,
@@ -832,6 +833,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           sourcePosition,
           targetPosition,
           animated: !isManual, // Only animate automated transitions
+          reconnectable: 'target', // Only allow reconnecting the target end (state node side with arrow)
           style: {
             stroke: edgeColor,
             strokeWidth: edgeWidth,
@@ -1032,44 +1034,53 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     const sourceIsState = !sourceIsTransition;
     const targetIsState = !targetIsTransition;
 
-    // Only allow State → State connections
-    // Block all other combinations:
-    // - Transition → Transition (doesn't make sense)
-    // - State → Transition (transitions are auto-created)
-    // - Transition → State (use edge reconnection instead)
-    if (!(sourceIsState && targetIsState)) {
+    // Block Transition → Transition connections (doesn't make sense)
+    if (sourceIsTransition && targetIsTransition) {
       return false;
     }
 
-    // Check that source handle ends with -source (silently reject if not)
-    if (connection.sourceHandle) {
-      if (!connection.sourceHandle.endsWith('-source')) {
-        // User is trying to drag from a target handle, silently reject
-        return false;
-      }
-      // Allow all 8 positions for source handles
-      const sourcePosition = connection.sourceHandle.replace('-source', '');
-      const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
-      if (!validPositions.includes(sourcePosition)) {
-        return false;
-      }
+    // Block State → Transition connections (transitions are auto-created)
+    if (sourceIsState && targetIsTransition) {
+      return false;
     }
 
-    // Check that target handle ends with -target
-    if (connection.targetHandle) {
-      if (!connection.targetHandle.endsWith('-target')) {
-        // Invalid target handle, silently reject
-        return false;
+    // Allow State → State connections (creating new transitions)
+    // Allow Transition → State connections (reconnecting transition target)
+    if ((sourceIsState && targetIsState) || (sourceIsTransition && targetIsState)) {
+      // Validate handles
+
+      // Check that source handle ends with -source (silently reject if not)
+      if (connection.sourceHandle) {
+        if (!connection.sourceHandle.endsWith('-source')) {
+          // User is trying to drag from a target handle, silently reject
+          return false;
+        }
+        // Allow all 8 positions for source handles
+        const sourcePosition = connection.sourceHandle.replace('-source', '');
+        const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
+        if (!validPositions.includes(sourcePosition)) {
+          return false;
+        }
       }
-      // Allow all 8 positions for target handles
-      const targetPosition = connection.targetHandle.replace('-target', '');
-      const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
-      if (!validPositions.includes(targetPosition)) {
-        return false;
+
+      // Check that target handle ends with -target
+      if (connection.targetHandle) {
+        if (!connection.targetHandle.endsWith('-target')) {
+          // Invalid target handle, silently reject
+          return false;
+        }
+        // Allow all 8 positions for target handles
+        const targetPosition = connection.targetHandle.replace('-target', '');
+        const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
+        if (!validPositions.includes(targetPosition)) {
+          return false;
+        }
       }
+
+      return true;
     }
 
-    return true;
+    return false;
   }, []);
 
   const onReconnect: OnReconnect = useCallback(
