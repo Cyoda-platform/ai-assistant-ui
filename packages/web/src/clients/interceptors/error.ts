@@ -22,6 +22,14 @@ const errorInterceptor = (instance: AxiosInstance): void => {
       const response = error.response;
       const url = response?.config?.url || '';
 
+      // Skip 401 errors - they're handled by the refreshToken interceptor
+      // This interceptor runs after refreshToken, so if we see a 401 here,
+      // it means the refresh already failed or was skipped
+      if (response?.status === 401) {
+        console.log('⚠️ 401 error in errorInterceptor (after refresh attempt)');
+        return Promise.reject(error);
+      }
+
       // For chat-related endpoints (answers, questions), don't show modal
       // The error will be displayed in the chat UI instead
       const isChatEndpoint = url.includes('/text-answers') ||

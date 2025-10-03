@@ -60,6 +60,7 @@ const HomeView: React.FC = () => {
   const superUserMode = useSuperUserMode(); // Watch for super user mode changes
   const isLoadingChats = useAssistantStore((state) => state.isLoadingChats);
   const chatListReady = useAssistantStore((state) => state.chatListReady);
+  const isTransferringChats = useAssistantStore((state) => state.isTransferringChats);
 
   // Resizable chat history panel - start at max width
   const chatHistoryResize = useResizablePanel({
@@ -86,6 +87,12 @@ const HomeView: React.FC = () => {
         return;
       }
 
+      // Skip if currently transferring chats during login
+      if (isTransferringChats) {
+        console.log('Currently transferring chats, skipping getChats call');
+        return;
+      }
+
       try {
         await assistantStore.getChats();
       } catch (error) {
@@ -105,7 +112,7 @@ const HomeView: React.FC = () => {
     return () => {
       eventBus.$off(UPDATE_CHAT_LIST, handleUpdateChatList);
     };
-  }, [chatListReady]);
+  }, [chatListReady, isTransferringChats]);
 
   // Refresh chat list when super user mode changes
   useEffect(() => {

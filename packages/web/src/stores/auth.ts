@@ -84,20 +84,29 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   async refreshAccessToken() {
-    const token = await getToken();
-
-    // Parse JWT token to maintain caas_cyoda_employee status
-    let isCyodaEmployee = false;
+    console.log('🔄 refreshAccessToken called');
     try {
-      const parsed = parseJwt(token);
-      if (parsed) {
-        isCyodaEmployee = parsed.caas_cyoda_employee === true;
-      }
-    } catch (e) {
-      console.error('Error parsing JWT token during refresh:', e);
-    }
+      const token = await getToken();
+      console.log('✅ New token obtained from Auth0:', token.substring(0, 20) + '...');
 
-    get().saveData({ token, isCyodaEmployee });
+      // Parse JWT token to maintain caas_cyoda_employee status
+      let isCyodaEmployee = false;
+      try {
+        const parsed = parseJwt(token);
+        if (parsed) {
+          isCyodaEmployee = parsed.caas_cyoda_employee === true;
+          console.log('🔍 Token parsed, isCyodaEmployee:', isCyodaEmployee);
+        }
+      } catch (e) {
+        console.error('❌ Error parsing JWT token during refresh:', e);
+      }
+
+      get().saveData({ token, isCyodaEmployee });
+      console.log('✅ Token refresh complete and saved');
+    } catch (error) {
+      console.error('❌ Failed to refresh token:', error);
+      throw error;
+    }
   },
 
   async getGuestToken() {

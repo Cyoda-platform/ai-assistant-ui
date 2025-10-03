@@ -41,6 +41,7 @@ const ChatBotView: React.FC = () => {
   const chatList = useAssistantStore((state) => state.chatList); // Subscribe to chatList specifically
   const isLoadingChats = useAssistantStore((state) => state.isLoadingChats);
   const chatListReady = useAssistantStore((state) => state.chatListReady);
+  const isTransferringChats = useAssistantStore((state) => state.isTransferringChats);
   const superUserMode = useSuperUserMode(); // Watch for super user mode changes
   const [canvasVisible, setCanvasVisible] = useState(false);
   const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
@@ -564,6 +565,12 @@ const ChatBotView: React.FC = () => {
         return;
       }
 
+      // Skip if currently transferring chats during login
+      if (isTransferringChats) {
+        console.log('Currently transferring chats, skipping getChats call');
+        return;
+      }
+
       try {
         await assistantStore.getChats();
       } catch (error) {
@@ -583,7 +590,7 @@ const ChatBotView: React.FC = () => {
     return () => {
       eventBus.$off(UPDATE_CHAT_LIST, handleUpdateChatList);
     };
-  }, [chatListReady]);
+  }, [chatListReady, isTransferringChats]);
 
   // Refresh chat list when super user mode changes
   useEffect(() => {

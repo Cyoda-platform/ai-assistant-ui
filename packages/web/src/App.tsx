@@ -75,9 +75,15 @@ const App: React.FC = () => {
 
     if (!isAuthenticated || (currentAuthState.token && currentAuthState.tokenType === 'private')) return;
 
+    // Set flag immediately if we have an old token to prevent any getChats calls during transition
+    const currentState = useAuthStore.getState();
+    if (currentState.token) {
+      console.log('Setting isTransferringChats flag to prevent premature getChats calls');
+      assistantStore.setIsTransferringChats(true);
+    }
+
     const handleAuth = async () => {
       try {
-        const currentState = useAuthStore.getState();
         const oldToken = currentState.token;
         const token = await getAccessTokenSilently();
 
@@ -131,22 +137,32 @@ const App: React.FC = () => {
           try {
             await useAuthStore.getState().postTransferChats(oldToken, true);
             console.log('Chat transfer completed successfully');
+
+            // Load chats after transfer with NEW user token
+            await assistantStore.getChats();
+            console.log('Chats loaded successfully after transfer');
           } catch (error) {
             console.error('Error transferring chats:', error);
+          } finally {
+            // Clear the flag
+            assistantStore.setIsTransferringChats(false);
           }
         } else {
           console.log('No old token found, skipping chat transfer');
+
+          // Clear the flag since there's no transfer
+          assistantStore.setIsTransferringChats(false);
+
+          // Load chats for new user login
+          try {
+            await assistantStore.getChats();
+            console.log('Chats loaded successfully after login');
+          } catch (error) {
+            console.error('Error loading chats after login:', error);
+          }
         }
 
         assistantStore.setGuestChatsExist(false);
-
-        // Load chats after successful login (loading state managed by assistant store)
-        try {
-          await assistantStore.getChats();
-          console.log('Chats loaded successfully after login');
-        } catch (error) {
-          console.error('Error loading chats after login:', error);
-        }
 
         const returnTo = helperStorage.get(LOGIN_REDIRECT_URL, '/');
         helperStorage.removeItem(LOGIN_REDIRECT_URL);

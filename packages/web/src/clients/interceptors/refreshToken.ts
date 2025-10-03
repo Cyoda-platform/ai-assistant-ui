@@ -34,17 +34,33 @@ const refreshToken = (instance: AxiosInstance): void => {
                 // @ts-ignore
                 !originalConfig?.__isRetryRequest
             ) {
+                console.log('🔄 401 Unauthorized detected, attempting token refresh...', {
+                    url: originalConfig?.url,
+                    tokenType: authStore.tokenType
+                });
+
                 try {
+                    // Only attempt refresh for private (Auth0) tokens, not guest tokens
+                    if (authStore.tokenType !== 'private') {
+                        console.log('⚠️ Cannot refresh guest token, skipping retry');
+                        return Promise.reject(error);
+                    }
+
                     if (!refreshAccessTokenPromise) {
+                        console.log('🔄 Starting token refresh...');
                         refreshAccessTokenPromise = authStore.refreshAccessToken();
+                    } else {
+                        console.log('🔄 Token refresh already in progress, waiting...');
                     }
 
                     autoLogoutTimeout = setTimeout(() => {
+                        console.error('❌ Token refresh timeout after 10 seconds');
                         handleLogoutAndRedirect();
                     }, 10000);
 
                     await refreshAccessTokenPromise;
                     refreshAccessTokenPromise = null;
+                    console.log('✅ Token refresh successful');
 
                     // @ts-ignore
                     originalConfig.__isRetryRequest = true;
@@ -57,16 +73,19 @@ const refreshToken = (instance: AxiosInstance): void => {
                             ...originalConfig?.headers,
                             Authorization: `Bearer ${token}`,
                         };
+                        console.log('🔄 Retrying original request with new token:', originalConfig?.url);
                     }
                     // @ts-ignore
                     return instance.request(originalConfig);
                 } catch (e) {
+                    console.error('❌ Token refresh failed:', e);
                     handleLogoutAndRedirect();
                 } finally {
                     if (autoLogoutTimeout) clearTimeout(autoLogoutTimeout);
                     autoLogoutTimeout = null;
                 }
             } else if (response?.status === 401 && originalConfig?.__isRetryRequest) {
+                console.error('❌ 401 after retry, logging out');
                 handleLogoutAndRedirect();
             }
 

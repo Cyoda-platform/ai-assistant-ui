@@ -12,6 +12,7 @@ interface AssistantStore {
   chatListReady: boolean;
   guestChatsExist: boolean;
   isLoadingChats: boolean;
+  isTransferringChats: boolean;
 
   // Getters
   isExistChats: boolean;
@@ -31,7 +32,18 @@ interface AssistantStore {
   postApproveQuestion: (technical_id: string, event: any) => Promise<any>;
   putNotification: (technical_id: string, data: any) => Promise<any>;
   setGuestChatsExist: (value: boolean) => boolean;
+  setIsTransferringChats: (value: boolean) => void;
 }
+
+// Check if we're in the middle of an Auth0 login flow
+// If we have a guest token and the URL contains Auth0 callback params, we're transferring
+const isInLoginFlow = () => {
+  const authState = useAuthStore.getState();
+  const hasGuestToken = authState.token && authState.tokenType === 'public';
+  const urlParams = new URLSearchParams(window.location.search);
+  const hasAuthParams = urlParams.has('code') && urlParams.has('state');
+  return hasGuestToken && hasAuthParams;
+};
 
 export const useAssistantStore = create<AssistantStore>((set, get) => ({
   // Initial state
@@ -39,6 +51,7 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
   chatListReady: false,
   guestChatsExist: helperStorage.get('assistant:guestChatsExist', false),
   isLoadingChats: false,
+  isTransferringChats: isInLoginFlow(), // Start as true if we're in login flow
 
   // Getters
   get isExistChats() {
@@ -77,6 +90,12 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
     const state = get();
     if (state.isLoadingChats) {
       console.log('⚠️ getChats already in progress, skipping duplicate call');
+      return;
+    }
+
+    // Skip if currently transferring chats
+    if (state.isTransferringChats) {
+      console.log('⚠️ Currently transferring chats, skipping getChats request');
       return;
     }
 
@@ -149,5 +168,9 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
     helperStorage.set('assistant:guestChatsExist', value);
     set({ guestChatsExist: value });
     return value;
+  },
+
+  setIsTransferringChats(value: boolean) {
+    set({ isTransferringChats: value });
   }
 }));
