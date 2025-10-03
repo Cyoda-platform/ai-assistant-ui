@@ -86,9 +86,8 @@ const ChatBotView: React.FC = () => {
   const isInitialLoadRef = useRef<boolean>(true); // Track if this is the initial load of the chat
   const notifiedMessagesRef = useRef<Set<string>>(new Set()); // Track which messages we've already notified about
 
-  // Polling intervals: 1s -> 3s -> 5s -> max
+  // Polling intervals: 1s -> 3s -> 5s (stay at 5s)
   const POLLING_INTERVALS = [1000, 3000, 5000];
-  const MAX_INTERVAL = parseInt(import.meta.env.VITE_APP_QUESTION_MAX_POLLING_INTERVAL) || 60000;
   const currentIntervalIndexRef = useRef(0); // Index in POLLING_INTERVALS array
 
   // Keep technicalIdRef in sync with technicalId
@@ -192,16 +191,10 @@ const ChatBotView: React.FC = () => {
 
     // If an id is provided, only proceed if it matches the current chat
     if (id && id !== currentTechnicalId) {
-      console.log(`[loadChatHistory] Skipping - ID mismatch. Provided: ${id}, Current: ${currentTechnicalId}`);
       return false;
     }
 
-    if (promiseIntervalRef.current || !currentTechnicalId) {
-      console.log(`[loadChatHistory] Skipping - ${promiseIntervalRef.current ? 'Already loading' : 'No technicalId'}`);
-      return false;
-    }
-
-    console.log(`[loadChatHistory] Starting load for chat: ${currentTechnicalId}`);
+    if (promiseIntervalRef.current || !currentTechnicalId) return false;
 
     abortControllerRef.current = new AbortController();
     const newResults: boolean[] = [];
@@ -291,9 +284,7 @@ const ChatBotView: React.FC = () => {
       }
     }
 
-    const hasNewMessages = newResults.some(el => el);
-    console.log(`[loadChatHistory] Completed. New messages: ${hasNewMessages}, Total checked: ${newResults.length}`);
-    return hasNewMessages;
+    return newResults.some(el => el);
   };
 
   // Poll for new messages - only for the current chat from URL
@@ -320,42 +311,23 @@ const ChatBotView: React.FC = () => {
       // Pass the URL technicalId to loadChatHistory for validation
       const gotNew = await loadChatHistory(urlTechnicalId);
 
-      // Simple backoff logic: 1s -> 3s -> 5s -> max
-      const getCurrentInterval = () => {
-        if (currentIntervalIndexRef.current < POLLING_INTERVALS.length) {
-          return POLLING_INTERVALS[currentIntervalIndexRef.current];
-        }
-        return MAX_INTERVAL;
-      };
-
-      const previousInterval = getCurrentInterval();
-
+      // Simple backoff logic: 1s -> 3s -> 5s (stay at 5s)
       if (gotNew) {
         // Reset to fastest interval when new message arrives
         currentIntervalIndexRef.current = 0;
-        console.log(`[Polling] New message received! Resetting to ${POLLING_INTERVALS[0]}ms`);
       } else {
-        // Move to next slower interval
+        // Move to next slower interval, but cap at last interval (5s)
         currentIntervalIndexRef.current = Math.min(
           currentIntervalIndexRef.current + 1,
-          POLLING_INTERVALS.length // This will use MAX_INTERVAL
+          POLLING_INTERVALS.length - 1
         );
-        const newInterval = getCurrentInterval();
-        console.log(`[Polling] No new messages. Changing from ${previousInterval}ms to ${newInterval}ms`);
       }
     } catch (err) {
-      // On error, slow down polling
+      // On error, slow down polling but cap at last interval
       currentIntervalIndexRef.current = Math.min(
         currentIntervalIndexRef.current + 1,
-        POLLING_INTERVALS.length
+        POLLING_INTERVALS.length - 1
       );
-      const getCurrentInterval = () => {
-        if (currentIntervalIndexRef.current < POLLING_INTERVALS.length) {
-          return POLLING_INTERVALS[currentIntervalIndexRef.current];
-        }
-        return MAX_INTERVAL;
-      };
-      console.log(`[Polling] Error occurred. Slowing to ${getCurrentInterval()}ms`);
     }
 
     // Only schedule next poll if:
@@ -365,17 +337,8 @@ const ChatBotView: React.FC = () => {
     const currentUrlTechnicalId = currentUrlPath.split('/chat/')[1]?.split('/')[0] || currentUrlPath.split('/chat/')[1];
 
     if (currentUrlTechnicalId === urlTechnicalId && urlTechnicalId === technicalIdRef.current) {
-      const getCurrentInterval = () => {
-        if (currentIntervalIndexRef.current < POLLING_INTERVALS.length) {
-          return POLLING_INTERVALS[currentIntervalIndexRef.current];
-        }
-        return MAX_INTERVAL;
-      };
-      const nextDelay = getCurrentInterval();
-      console.log(`[Polling] Scheduling next poll in ${nextDelay}ms`);
+      const nextDelay = POLLING_INTERVALS[Math.min(currentIntervalIndexRef.current, POLLING_INTERVALS.length - 1)];
       pollTimeoutRef.current = setTimeout(pollChat, nextDelay);
-    } else {
-      console.log(`[Polling] Stopping polling - chat changed or navigated away`);
     }
   };
 
@@ -411,7 +374,6 @@ const ChatBotView: React.FC = () => {
 
         // Reset polling interval when user sends a response
         currentIntervalIndexRef.current = 0;
-        console.log(`[Polling] User sent response. Resetting to ${POLLING_INTERVALS[0]}ms`);
 
         loadChatHistory();
       }
