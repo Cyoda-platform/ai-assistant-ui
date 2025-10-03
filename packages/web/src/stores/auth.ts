@@ -35,14 +35,6 @@ interface AuthStore extends Auth {
 const storedAuth = helperStorage.get("auth", { ...defaultState });
 const initialState = { ...defaultState, ...storedAuth };
 
-console.log('🔧 Auth Store Initialization:', {
-  storedAuth,
-  defaultState,
-  initialState,
-  hasIsCyodaEmployee: 'isCyodaEmployee' in initialState,
-  isCyodaEmployeeValue: initialState.isCyodaEmployee
-});
-
 export const useAuthStore = create<AuthStore>((set, get) => ({
   // Initial state from storage merged with defaults
   ...initialState,
@@ -54,14 +46,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   saveData(data: Partial<Auth>) {
-    console.log('saveData called with:', data);
     set((state) => {
       const newState = { ...state, ...data };
-      console.log('Auth state updated:', {
-        oldState: state,
-        newState,
-        isLoggedIn: newState.token && newState.tokenType === 'private'
-      });
+
       helperStorage.set("auth", newState);
       return newState;
     });
@@ -84,10 +71,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   async refreshAccessToken() {
-    console.log('🔄 refreshAccessToken called');
     try {
       const token = await getToken();
-      console.log('✅ New token obtained from Auth0:', token.substring(0, 20) + '...');
 
       // Parse JWT token to maintain caas_cyoda_employee status
       let isCyodaEmployee = false;
@@ -95,14 +80,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         const parsed = parseJwt(token);
         if (parsed) {
           isCyodaEmployee = parsed.caas_cyoda_employee === true;
-          console.log('🔍 Token parsed, isCyodaEmployee:', isCyodaEmployee);
         }
       } catch (e) {
         console.error('❌ Error parsing JWT token during refresh:', e);
       }
 
       get().saveData({ token, isCyodaEmployee });
-      console.log('✅ Token refresh complete and saved');
     } catch (error) {
       console.error('❌ Failed to refresh token:', error);
       throw error;
@@ -130,7 +113,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       const newValue = !state.superUserMode;
       const newState = { ...state, superUserMode: newValue };
       helperStorage.set("auth", newState);
-      console.log('Super user mode toggled:', newValue);
       return { superUserMode: newValue };
     });
   },

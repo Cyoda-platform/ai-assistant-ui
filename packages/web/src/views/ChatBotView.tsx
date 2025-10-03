@@ -192,7 +192,6 @@ const ChatBotView: React.FC = () => {
 
     // If an id is provided, only proceed if it matches the current chat
     if (id && id !== currentTechnicalId) {
-      console.log('⚠️ Skipping loadChatHistory - requested chat does not match current chat');
       return false;
     }
 
@@ -211,7 +210,6 @@ const ChatBotView: React.FC = () => {
       // Double-check that technicalId hasn't changed during the async operation
       // If it did, discard this data as it's stale
       if (currentTechnicalId !== technicalIdRef.current) {
-        console.log('⚠️ Discarding stale chat data - technicalId changed during fetch');
         return false;
       }
 
@@ -300,18 +298,15 @@ const ChatBotView: React.FC = () => {
 
     // Don't continue polling if there's no technicalId in URL
     if (!urlTechnicalId) {
-      console.log('⚠️ Stopping poll - no technicalId in URL');
       return;
     }
 
     // Don't poll if the URL technicalId doesn't match our component's technicalId
     if (urlTechnicalId !== technicalIdRef.current) {
-      console.log('⚠️ Stopping poll - URL technicalId does not match component technicalId');
       return;
     }
 
     const pollStartTime = Date.now();
-    console.log(`🔄 Poll started at ${new Date().toISOString()}, current interval: ${currentIntervalRef.current}ms`);
 
     try {
       // Pass the URL technicalId to loadChatHistory for validation
@@ -323,16 +318,13 @@ const ChatBotView: React.FC = () => {
       const previousInterval = currentIntervalRef.current;
       if (gotNew) {
         currentIntervalRef.current = BASE_INTERVAL;
-        console.log(`✅ New messages detected, resetting interval to BASE_INTERVAL: ${BASE_INTERVAL}ms`);
       } else {
         currentIntervalRef.current = Math.min(currentIntervalRef.current * 2, MAX_INTERVAL);
-        console.log(`⏳ No new messages, increasing interval from ${previousInterval}ms to ${currentIntervalRef.current}ms (max: ${MAX_INTERVAL}ms)`);
       }
     } catch (err) {
       // On error, back off exponentially to avoid hammering a failing server
       const previousInterval = currentIntervalRef.current;
       currentIntervalRef.current = Math.min(currentIntervalRef.current * 2, MAX_INTERVAL);
-      console.log(`❌ Poll error, increasing interval from ${previousInterval}ms to ${currentIntervalRef.current}ms`, err);
     }
 
     // Only schedule next poll if:
@@ -345,10 +337,8 @@ const ChatBotView: React.FC = () => {
       const jitterFactor = 1 + (Math.random() * 2 - 1) * JITTER_PERCENT;
       const nextDelay = Math.round(currentIntervalRef.current * jitterFactor);
       const pollDuration = Date.now() - pollStartTime;
-      console.log(`⏰ Scheduling next poll in ${nextDelay}ms (base: ${currentIntervalRef.current}ms, jitter: ${(jitterFactor - 1) * 100}%, poll took: ${pollDuration}ms)`);
       pollTimeoutRef.current = setTimeout(pollChat, nextDelay);
     } else {
-      console.log('⚠️ Stopping poll - chat changed (URL or component)');
     }
   };
 
@@ -475,21 +465,15 @@ const ChatBotView: React.FC = () => {
 
   // Handle notification actions
   const handleMarkNotificationAsRead = (id: number) => {
-    console.log('📝 ChatBotView: handleMarkNotificationAsRead called', {
-      id,
-      currentNotifications: headerNotifications.length,
-      currentCount: countNewMessages
-    });
+
 
     setHeaderNotifications(prev => {
       const notification = prev.find(n => n.id === id);
-      console.log('📝 Found notification:', notification);
 
       // If marking an unread notification as read, decrease the count
       if (notification && !notification.isRead) {
         setCountNewMessages(count => {
           const newCount = Math.max(0, count - 1);
-          console.log('📝 Decreasing count from', count, 'to', newCount);
           return newCount;
         });
       }
@@ -497,7 +481,6 @@ const ChatBotView: React.FC = () => {
       const updated = prev.map(notif =>
         notif.id === id ? { ...notif, isRead: true } : notif
       );
-      console.log('📝 Updated notifications:', updated);
       return updated;
     });
   };
@@ -517,22 +500,14 @@ const ChatBotView: React.FC = () => {
   };
 
   const handleMarkAllNotificationsAsRead = () => {
-    console.log('📭 Mark all notifications as read called', {
-      totalNotifications: headerNotifications.length,
-      unreadCount: headerNotifications.filter(n => !n.isRead).length,
-      currentCountNewMessages: countNewMessages,
-      notifications: headerNotifications
-    });
 
     // Clear all notifications - use functional update to ensure we get latest state
     setHeaderNotifications(() => {
-      console.log('🗑️ Setting headerNotifications to empty array');
       return [];
     });
 
     // Reset the count - use functional update
     setCountNewMessages(() => {
-      console.log('🔢 Resetting countNewMessages to 0');
       return 0;
     });
 
@@ -540,15 +515,10 @@ const ChatBotView: React.FC = () => {
     Tinycon.setBubble(0);
     document.title = originalTitle.current;
 
-    console.log('✅ All notifications cleared, count reset to 0');
   };
 
   // Handle scroll to bottom - clear all notifications
   const handleScrollToBottom = () => {
-    console.log('📜 User scrolled to bottom, clearing all notifications', {
-      totalNotifications: headerNotifications.length,
-      unreadCount: headerNotifications.filter(n => !n.isRead).length
-    });
 
     // Clear all notifications when user scrolls to bottom
     if (headerNotifications.length > 0) {
@@ -561,13 +531,11 @@ const ChatBotView: React.FC = () => {
     const loadChats = async () => {
       // Skip if chat list is already loaded
       if (chatListReady) {
-        console.log('Chat list already loaded, skipping getChats call');
         return;
       }
 
       // Skip if currently transferring chats during login
       if (isTransferringChats) {
-        console.log('Currently transferring chats, skipping getChats call');
         return;
       }
 
@@ -595,10 +563,6 @@ const ChatBotView: React.FC = () => {
   // Refresh chat list when super user mode changes
   useEffect(() => {
     if (chatListReady) {
-      console.log('🔄 Super user mode changed, refreshing chat list');
-      assistantStore.getChats().catch(error => {
-        console.error('Failed to refresh chat list after super user mode change:', error);
-      });
     }
   }, [superUserMode]);
 
@@ -629,7 +593,6 @@ const ChatBotView: React.FC = () => {
     notifiedMessagesRef.current.clear(); // Clear notified messages for new chat
 
     // Start polling for the new chat
-    console.log(`🚀 Starting polling for chat ${technicalId} with BASE_INTERVAL: ${BASE_INTERVAL}ms, MAX_INTERVAL: ${MAX_INTERVAL}ms`);
     pollChat();
 
     return () => {
@@ -659,7 +622,6 @@ const ChatBotView: React.FC = () => {
       // Use functional updates to avoid stale closure
       setHeaderNotifications(prev => {
         if (prev.length > 0) {
-          console.log('🔔 Window focused, clearing notifications');
           return [];
         }
         return prev;
@@ -683,7 +645,6 @@ const ChatBotView: React.FC = () => {
       // Use functional updates to avoid stale closure
       setHeaderNotifications(prev => {
         if (prev.length > 0) {
-          console.log('🔔 User scrolled, clearing notifications');
           return [];
         }
         return prev;
@@ -706,11 +667,7 @@ const ChatBotView: React.FC = () => {
 
   // Debug: Log when headerNotifications changes
   useEffect(() => {
-    console.log('🔔 headerNotifications changed:', {
-      count: headerNotifications.length,
-      unread: headerNotifications.filter(n => !n.isRead).length,
-      notifications: headerNotifications
-    });
+
   }, [headerNotifications]);
 
   // Update document title and favicon based on new message count

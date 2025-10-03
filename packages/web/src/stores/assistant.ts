@@ -94,13 +94,11 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
     // Prevent concurrent calls
     const state = get();
     if (state.isLoadingChats) {
-      console.log('⚠️ getChats already in progress, skipping duplicate call');
       return;
     }
 
     // Skip if currently transferring chats
     if (state.isTransferringChats) {
-      console.log('⚠️ Currently transferring chats, skipping getChats request');
       return;
     }
 
@@ -114,7 +112,6 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
       const params: any = {};
       if (isSuperMode) {
         params.super = 'true';
-        console.log('🔐 Super user mode enabled - fetching all chats');
       }
 
       const response = await privateClient.get<ChatResponse>(`/v1/chats`, { params });
@@ -143,7 +140,6 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
         ...(config.params || {}),
         super: 'true'
       };
-      console.log('🔐 Super user mode enabled - fetching chat with super access');
     }
 
     return privateClient.get(`/v1/chats/${technical_id}`, config);

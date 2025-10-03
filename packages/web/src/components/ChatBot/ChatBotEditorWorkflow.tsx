@@ -134,7 +134,6 @@ const ChatBotEditorWorkflowInner = React.forwardRef<any, ChatBotEditorWorkflowPr
     setEditorMode(mode);
     setIsInitialized(true);
 
-    console.log('Editor mode loaded:', mode, 'Size:', savedEditorSize);
   }, [technicalId]);
 
   // Sync canvasData changes to initialData for proper re-initialization
@@ -156,7 +155,6 @@ const ChatBotEditorWorkflowInner = React.forwardRef<any, ChatBotEditorWorkflowPr
   const onConnect = useCallback(
     (params: Connection) => {
       // TODO: Handle connection creation in workflow data
-      console.log('Connection created:', params);
       message.info('Connection created. Edit JSON to configure transition.');
     },
     []
@@ -282,14 +280,6 @@ const ChatBotEditorWorkflowInner = React.forwardRef<any, ChatBotEditorWorkflowPr
   const isShowEditor = ['editor', 'editorPreview'].includes(validEditorMode);
   const hasWorkflowActions = !import.meta.env.VITE_IS_WORKFLOW_ELECTRON;
 
-  console.log('Render state:', {
-    editorMode: validEditorMode,
-    isShowEditor,
-    isShowReactFlow,
-    editorSize,
-    nodesCount: nodes.length,
-    isInitialized
-  });
 
   // Manual save handler
   const handleManualSave = useCallback(() => {

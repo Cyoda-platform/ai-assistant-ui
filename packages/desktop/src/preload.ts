@@ -6,7 +6,6 @@ import { contextBridge, ipcRenderer } from 'electron';
 // Expose API for renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
   reloadMainWindow: () => {
-    console.log('🔄 Reloading main window via IPC');
     ipcRenderer.invoke('reload-main-window');
   }
 });

@@ -118,7 +118,6 @@ const LayoutModern: React.FC<LayoutModernProps> = ({ children }) => {
     e.preventDefault();
     if (chatInput.trim()) {
       // Handle chat submission
-      console.log('Chat submitted:', chatInput);
       setChatInput('');
     }
   };
@@ -524,11 +523,9 @@ const example = 'Hello World';
           chatData={null} // TODO: Pass actual chat data from props or context
           onRefresh={() => {
             // TODO: Implement refresh functionality
-            console.log('Refreshing entity data...');
           }}
           onRollbackChat={() => {
             // TODO: Implement rollback functionality
-            console.log('Rolling back chat...');
           }}
         />
       </div>

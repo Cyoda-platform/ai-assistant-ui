@@ -163,17 +163,14 @@ const WorkflowNode: React.FC<NodeProps<WorkflowNodeData>> = ({
 
   const handleEditNode = useCallback(() => {
     // Handle edit node logic
-    console.log('Edit node:', nodeId);
   }, [nodeId]);
 
   const handleDeleteNode = useCallback(() => {
     // Handle delete node logic
-    console.log('Delete node:', nodeId);
   }, [nodeId]);
 
   const handleDuplicateNode = useCallback(() => {
     // Handle duplicate node logic
-    console.log('Duplicate node:', nodeId);
   }, [nodeId]);
 
   const menuItems = [

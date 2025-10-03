@@ -34,14 +34,7 @@ const App: React.FC = () => {
 
   // Debug Auth0 state changes
   useEffect(() => {
-    console.log('Auth0 state changed:', {
-      isAuthenticated,
-      auth0Loading,
-      auth0Error,
-      user: user ? { sub: user.sub, email: user.email } : null,
-      currentAuthState: useAuthStore.getState(),
-      currentURL: window.location.href
-    });
+
   }, [isAuthenticated, auth0Loading, user, auth0Error]);
 
   // Set up token getter for API calls
@@ -67,18 +60,12 @@ const App: React.FC = () => {
   // Handle authentication state changes
   useEffect(() => {
     const currentAuthState = useAuthStore.getState();
-    console.log('Authentication useEffect triggered:', {
-      isAuthenticated,
-      currentAuthState,
-      shouldSkip: !isAuthenticated || (currentAuthState.token && currentAuthState.tokenType === 'private')
-    });
 
     if (!isAuthenticated || (currentAuthState.token && currentAuthState.tokenType === 'private')) return;
 
     // Set flag immediately if we have an old token to prevent any getChats calls during transition
     const currentState = useAuthStore.getState();
     if (currentState.token) {
-      console.log('Setting isTransferringChats flag to prevent premature getChats calls');
       assistantStore.setIsTransferringChats(true);
     }
 
@@ -87,11 +74,7 @@ const App: React.FC = () => {
         const oldToken = currentState.token;
         const token = await getAccessTokenSilently();
 
-        console.log('Auth0 login detected, updating token:', {
-          oldToken: oldToken ? oldToken.substring(0, 20) + '...' : 'none',
-          newToken: token.substring(0, 20) + '...',
-          oldTokenType: currentState.tokenType
-        });
+
 
         // Parse JWT token to extract caas_cyoda_employee
         let isCyodaEmployee = false;
@@ -106,11 +89,7 @@ const App: React.FC = () => {
           );
           const parsed = JSON.parse(jsonPayload);
           isCyodaEmployee = parsed.caas_cyoda_employee === true;
-          console.log('🔍 JWT Token Parsed:', {
-            caas_cyoda_employee: parsed.caas_cyoda_employee,
-            isCyodaEmployee,
-            fullParsed: parsed
-          });
+
         } catch (e) {
           console.error('❌ Error parsing JWT token:', e);
         }
@@ -129,18 +108,14 @@ const App: React.FC = () => {
           superUserMode: false, // Reset super user mode on login
         };
 
-        console.log('💾 Saving auth data with isCyodaEmployee:', authData.isCyodaEmployee);
         useAuthStore.getState().saveData(authData);
 
         if (oldToken) {
-          console.log('Transferring chats from guest token to Auth0 token');
           try {
             await useAuthStore.getState().postTransferChats(oldToken, true);
-            console.log('Chat transfer completed successfully');
 
             // Load chats after transfer with NEW user token
             await assistantStore.getChats();
-            console.log('Chats loaded successfully after transfer');
           } catch (error) {
             console.error('Error transferring chats:', error);
           } finally {
@@ -148,7 +123,6 @@ const App: React.FC = () => {
             assistantStore.setIsTransferringChats(false);
           }
         } else {
-          console.log('No old token found, skipping chat transfer');
 
           // Clear the flag since there's no transfer
           assistantStore.setIsTransferringChats(false);
@@ -156,7 +130,6 @@ const App: React.FC = () => {
           // Load chats for new user login
           try {
             await assistantStore.getChats();
-            console.log('Chats loaded successfully after login');
           } catch (error) {
             console.error('Error loading chats after login:', error);
           }

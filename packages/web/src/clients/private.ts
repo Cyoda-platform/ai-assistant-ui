@@ -22,7 +22,6 @@ axiosRetry(instance, {
     // Don't retry polling requests - they have their own retry logic
     const url = error?.config?.url || '';
     if (url.includes('/chats/') && error?.config?.method === 'get') {
-      console.log('⚠️ Skipping axios-retry for polling request:', url);
       return false;
     }
 

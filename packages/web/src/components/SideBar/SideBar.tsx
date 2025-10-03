@@ -59,12 +59,10 @@ const SideBar: React.FC = () => {
 
   const onClickSettings = () => {
     // Handle settings click - could open settings dialog
-    console.log('Settings clicked');
   };
 
   const onClickAbout = () => {
     // Handle about click - could open about dialog
-    console.log('About clicked');
   };
 
   return (

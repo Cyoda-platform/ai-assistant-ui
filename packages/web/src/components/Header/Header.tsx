@@ -69,30 +69,16 @@ const Header: React.FC<HeaderProps> = ({
   const superUserMode = useSuperUserMode();
   const isCyodaEmployee = useIsCyodaEmployee();
 
-  console.log('🎨 Header component rendering, externalNotifications:', externalNotifications?.length || 0);
-
   // Use external notifications if provided, otherwise use empty array
   const notifications = externalNotifications || [];
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  console.log('🎨 Header calculated unreadCount:', unreadCount, 'from', notifications.length, 'notifications');
-
   // Debug: Log when notifications prop changes
   useEffect(() => {
-    console.log('🔔 Header received notifications:', {
-      count: notifications.length,
-      unread: unreadCount,
-      notifications,
-      externalNotifications
-    });
+
   }, [externalNotifications, notifications.length, unreadCount]);
 
   const markNotificationAsRead = (id: number) => {
-    console.log('🔔 Header: Mark notification as read clicked', {
-      id,
-      hasExternalHandler: !!externalMarkAsRead,
-      notificationCount: notifications.length
-    });
 
     if (externalMarkAsRead) {
       externalMarkAsRead(id);
@@ -102,14 +88,8 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   const markAllAsRead = () => {
-    console.log('🔔 Header: Mark all as read clicked', {
-      hasExternalHandler: !!externalMarkAllAsRead,
-      notificationCount: notifications.length,
-      notifications
-    });
 
     if (externalMarkAllAsRead) {
-      console.log('🔔 Header: Calling external mark all as read handler');
       externalMarkAllAsRead();
     } else {
       console.warn('⚠️ Header: No external mark all as read handler provided');
@@ -297,7 +277,6 @@ const Header: React.FC<HeaderProps> = ({
             <div className="relative">
               <button
                 onClick={() => {
-                  console.log('🔔 Bell clicked, current unreadCount:', unreadCount, 'notifications:', notifications.length);
                   setShowNotifications(!showNotifications);
                 }}
                 className="relative p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"

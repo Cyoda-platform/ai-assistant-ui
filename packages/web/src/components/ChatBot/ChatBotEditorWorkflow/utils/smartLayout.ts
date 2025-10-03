@@ -33,21 +33,20 @@ export type WorkflowStates = Record<string, WorkflowState>;
 
 // Единственная функция для layout - использует только Dagre
 export async function applyAutoLayout(
-  states: WorkflowStates, 
-  initialState: string, 
+  states: WorkflowStates,
+  initialState: string,
   isVertical: boolean = false
 ): Promise<{
   nodePositions: { [key: string]: NodePosition };
   transitionPositions: { [key: string]: {x: number, y: number} };
 }> {
-  console.log('🚀 Using Dagre layout engine');
   return applyDagreLayout(states as unknown as import('./dagreLayout').WorkflowStates, initialState, isVertical);
 }
 
 // Удобная функция для явного использования Dagre (алиас)
 export async function applyAutoLayoutWithDagre(
-  states: WorkflowStates, 
-  initialState: string, 
+  states: WorkflowStates,
+  initialState: string,
   isVertical: boolean = false
 ): Promise<{
   nodePositions: { [key: string]: NodePosition };
@@ -67,7 +66,7 @@ export function calculateSmartPosition(
 
   // Найти самую правую/нижнюю позицию
   const positions = existingNodes.map(node => node.position);
-  
+
   if (isVertical) {
     const maxY = Math.max(...positions.map(p => p.y));
     const avgX = positions.reduce((sum, p) => sum + p.x, 0) / positions.length;

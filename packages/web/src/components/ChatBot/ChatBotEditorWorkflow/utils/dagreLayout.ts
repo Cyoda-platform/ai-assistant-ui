@@ -22,7 +22,6 @@
               label2.y = centerY - pairSeparation / 2;
             }
 
-            console.log(`🚨 SAME PAIR separation: ${label1.transitionKey} -> Y=${label1.y}, ${label2.transitionKey} -> Y=${label2.y}`);
           } else {
             // Принудительно раздвигаем по вертикали с умеренным расстоянием
             const forcedSeparation = 100; // было 130
@@ -36,7 +35,6 @@
               label2.y = centerY - forcedSeparation / 2;
             }
 
-            console.log(`🚨 DIFFERENT PAIR separation: ${label1.transitionKey} -> Y=${label1.y}, ${label2.transitionKey} -> Y=${label2.y}`);
           }
  */
 

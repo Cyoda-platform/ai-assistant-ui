@@ -7,7 +7,6 @@ const ChatBotRenameDialog: React.FC = () => {
 
   const handleOk = () => {
     form.validateFields().then(values => {
-      console.log('Rename chat:', values);
       setVisible(false);
       form.resetFields();
     });

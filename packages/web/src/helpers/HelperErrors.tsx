@@ -23,7 +23,6 @@ export default class HelperErrors {
         // Check if modal is already open
         const existingModal = document.querySelector('.helper-errors');
         if (existingModal) {
-            console.log('⚠️ Error modal already open, skipping duplicate');
             return;
         }
 
@@ -47,7 +46,6 @@ export default class HelperErrors {
         this.modalRoot = ReactDOM.createRoot(this.modalContainer);
 
         const handleClose = () => {
-            console.log('🔴 Closing error modal');
             if (this.modalRoot && this.modalContainer) {
                 try {
                     this.modalRoot.unmount();

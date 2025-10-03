@@ -29,7 +29,6 @@ loadLocaleMessages('en').then(() => {
           organization: import.meta.env.VITE_APP_AUTH0_ORGANIZATION
         }}
         onRedirectCallback={(appState) => {
-          console.log('Auth0 redirect callback triggered:', appState);
           // Navigate to the intended URL or default to root
           window.history.replaceState({}, document.title, appState?.returnTo || '/');
         }}

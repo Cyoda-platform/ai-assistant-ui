@@ -149,7 +149,6 @@ app.on('ready', () => {
     globalShortcut.register('Escape', () => {
         const url = mainWindow.webContents.getURL();
         if (mainWindow && !url.includes('file:')) {
-            console.log('🔥 Escape pressed, closing auth window');
             loadAppUrl();
         }
     });
@@ -157,7 +156,6 @@ app.on('ready', () => {
     // Check command line arguments for our protocol
     const authUrl = process.argv.find((arg) => arg.startsWith(`${PROTOCOL_NAME}://`));
     if (authUrl) {
-        console.log('🔥 Received auth callback URL from command line:', authUrl);
         // Delay so the window has time to be created
         setTimeout(() => handleAuthCallback(authUrl), 1000);
     }
@@ -185,8 +183,7 @@ app.on('activate', () => {
 // Handle custom URLs (for macOS)
 app.on('open-url', (event, url) => {
     event.preventDefault();
-    console.log('🔗 Received URL:', url);
-    
+
     if (url.startsWith(`${PROTOCOL_NAME}://auth/callback`)) {
         handleAuthCallback(url);
     }

@@ -26,7 +26,6 @@ const errorInterceptor = (instance: AxiosInstance): void => {
       // This interceptor runs after refreshToken, so if we see a 401 here,
       // it means the refresh already failed or was skipped
       if (response?.status === 401) {
-        console.log('⚠️ 401 error in errorInterceptor (after refresh attempt)');
         return Promise.reject(error);
       }
 

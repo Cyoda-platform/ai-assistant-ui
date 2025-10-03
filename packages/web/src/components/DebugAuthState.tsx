@@ -50,8 +50,6 @@ const DebugAuthState: React.FC = () => {
       </div>
       <button
         onClick={() => {
-          console.log('Full Auth Store State:', authStore);
-          console.log('LocalStorage auth:', localStorage.getItem('auth'));
         }}
         className="mt-3 w-full bg-teal-500 hover:bg-teal-600 text-white text-xs py-1 px-2 rounded transition-colors"
       >

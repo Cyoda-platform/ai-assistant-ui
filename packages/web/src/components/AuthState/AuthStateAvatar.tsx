@@ -19,11 +19,7 @@ const AuthStateAvatar: React.FC = () => {
 
   // Debug logging
   useEffect(() => {
-    console.log('👤 AuthStateAvatar - Current State:', {
-      isCyodaEmployee,
-      superUserMode,
-      fullAuthStore: authStore
-    });
+
   }, [isCyodaEmployee, superUserMode]);
 
   useEffect(() => {
@@ -78,12 +74,8 @@ const AuthStateAvatar: React.FC = () => {
   const onToggleCard = (e: React.MouseEvent) => {
     e.stopPropagation();
     const newVisibleState = !visibleCard;
-    console.log('🔽 Dropdown toggled:', {
-      newVisibleState,
-      isCyodaEmployee,
-      superUserMode,
-      willShowToggle: newVisibleState && isCyodaEmployee
-    });
+
+
     setVisibleCard(newVisibleState);
   };
 

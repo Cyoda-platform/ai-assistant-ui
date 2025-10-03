@@ -106,13 +106,11 @@ const HomeView: React.FC = () => {
     const loadChats = async () => {
       // Skip if chat list is already loaded
       if (chatListReady) {
-        console.log('Chat list already loaded, skipping getChats call');
         return;
       }
 
       // Skip if currently transferring chats during login
       if (isTransferringChats) {
-        console.log('Currently transferring chats, skipping getChats call');
         return;
       }
 
@@ -140,7 +138,6 @@ const HomeView: React.FC = () => {
   // Refresh chat list when super user mode changes
   useEffect(() => {
     if (chatListReady) {
-      console.log('🔄 Super user mode changed, refreshing chat list');
       assistantStore.getChats().catch(error => {
         console.error('Failed to refresh chat list after super user mode change:', error);
       });
@@ -158,19 +155,12 @@ const HomeView: React.FC = () => {
         // Initialize on first observation
         if (initialWidthRef.current === 0) {
           initialWidthRef.current = currentWidth;
-          console.log('Initial content width set:', currentWidth);
           return;
         }
 
         const initialWidth = initialWidthRef.current;
         const widthDecrease = ((initialWidth - currentWidth) / initialWidth) * 100;
 
-        console.log('Content resize detected:', {
-          initialWidth,
-          currentWidth,
-          widthDecrease: widthDecrease.toFixed(2) + '%',
-          shouldHide: widthDecrease >= 50
-        });
 
         // Hide cards if width decreased by 50% or more
         if (widthDecrease >= 50) {
@@ -182,7 +172,6 @@ const HomeView: React.FC = () => {
         // Update initial width if content is getting larger (reset baseline)
         if (currentWidth > initialWidth) {
           initialWidthRef.current = currentWidth;
-          console.log('Baseline width updated to:', currentWidth);
         }
       }
     });
@@ -272,7 +261,6 @@ const HomeView: React.FC = () => {
   useEffect(() => {
     if (!isGuestUser && pendingMessage && authStore.token && authStore.tokenType === 'private') {
       // User has logged in and there's a pending message
-      console.log('User logged in, sending pending message:', pendingMessage);
       submitChat(pendingMessage.input, pendingMessage.files);
     }
   }, [isGuestUser, authStore.token, authStore.tokenType, pendingMessage]);
@@ -404,15 +392,12 @@ const HomeView: React.FC = () => {
 
   // Dummy handlers for canvas (since we're on home page without active chat)
   const handleAnswer = (data: { answer: string; files?: File[] }) => {
-    console.log('Answer from canvas:', data);
   };
 
   const handleApproveQuestion = (data: any) => {
-    console.log('Approve question:', data);
   };
 
   const handleUpdateNotification = (data: any) => {
-    console.log('Update notification:', data);
   };
 
   // Group chats by date using shared utility

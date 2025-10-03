@@ -87,7 +87,6 @@ export function useWorkflowEditor({
           ? storedCanvasData
           : JSON.stringify(storedCanvasData, null, 2);
         setCanvasData(canvasStr);
-        console.log('Loaded workflow from localStorage:', workflowCanvasDataKey);
       } else if (initialCanvasData) {
         setCanvasData(initialCanvasData);
       } else {

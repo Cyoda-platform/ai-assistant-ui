@@ -123,7 +123,6 @@ function CanvasDemoView() {
   const handleChatSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (chatInput.trim()) {
-      console.log('Chat submitted:', chatInput);
       setChatInput('');
     }
   };

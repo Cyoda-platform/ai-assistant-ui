@@ -39,7 +39,6 @@ const MonacoJsonEditor: React.FC<MonacoJsonEditorProps> = ({
     // Add custom keybindings
     editor.addCommand(monacoInstance.KeyMod.CtrlCmd | monacoInstance.KeyCode.KeyS, () => {
       // Trigger save action (you can emit an event here)
-      console.log('Save triggered');
     });
 
     // Format on paste
@@ -55,8 +54,8 @@ const MonacoJsonEditor: React.FC<MonacoJsonEditorProps> = ({
   };
 
   return (
-    <div style={{ 
-      height, 
+    <div style={{
+      height,
       border: '1px solid rgba(139, 92, 246, 0.3)',
       borderRadius: '12px',
       overflow: 'hidden',

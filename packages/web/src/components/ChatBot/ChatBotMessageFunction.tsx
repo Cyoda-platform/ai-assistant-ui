@@ -93,15 +93,6 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
       setIsLoading(true);
       const method = functionData.method.toLowerCase() as 'get' | 'post' | 'put' | 'delete' | 'patch';
 
-      console.log('=== UI Function Request Debug ===');
-      console.log('Method:', method);
-      console.log('Full URL:', endpointUrl);
-      console.log('Function Data:', functionData);
-      console.log('Env Prefix:', import.meta.env.VITE_APP_CYODA_CLIENT_ENV_PREFIX);
-      console.log('Org ID:', parsedToken?.caas_org_id);
-      console.log('Host:', import.meta.env.VITE_APP_CYODA_CLIENT_HOST);
-      console.log('Parsed Token:', parsedToken);
-      console.log('================================');
 
       // Create axios instance with bearer token for this specific request
       const { data } = await axios({

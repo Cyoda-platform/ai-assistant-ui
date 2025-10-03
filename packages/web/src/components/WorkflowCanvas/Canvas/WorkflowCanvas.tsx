@@ -484,7 +484,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
     if (removedNodes.length > 0 && cleanedWorkflow) {
       const removedNodeIds = removedNodes.map(change => change.id);
-      console.log('Nodes removed via keyboard:', removedNodeIds);
 
       // Separate state nodes and transition nodes
       const removedStateIds = removedNodeIds.filter(id => !id.startsWith('transition-'));
@@ -580,7 +579,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     if (removedEdges.length > 0 && cleanedWorkflow) {
       // Update workflow configuration to remove deleted transitions
       const removedEdgeIds = removedEdges.map(change => change.id);
-      console.log('Transitions removed via keyboard:', removedEdgeIds);
 
       const updatedStates = { ...cleanedWorkflow.configuration.states };
       const updatedLayoutTransitions = [...cleanedWorkflow.layout.transitions];
@@ -955,8 +953,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     (params: Connection) => {
       if (!cleanedWorkflow || !params.source || !params.target) return;
 
-      console.log('Connection attempt:', params);
-
       // Determine node types
       const sourceIsTransition = params.source.startsWith('transition-');
       const targetIsTransition = params.target.startsWith('transition-');
@@ -965,7 +961,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
       // Block transition-to-transition connections
       if (sourceIsTransition && targetIsTransition) {
-        console.log('Cannot connect transition node to transition node');
         return;
       }
 
@@ -973,21 +968,18 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
       // 1. State → State: Create new transition (normal case)
       if (sourceIsState && targetIsState) {
-        console.log('Creating new transition between states');
         // Continue with normal transition creation logic below
       }
 
       // 2. State → Transition: User is manually connecting a state to an existing transition
       //    This doesn't make sense in our model, so block it
       else if (sourceIsState && targetIsTransition) {
-        console.log('Cannot manually connect state to transition node - transitions are auto-created');
         return;
       }
 
       // 3. Transition → State: User is manually connecting a transition to a state
       //    This also doesn't make sense, so block it
       else if (sourceIsTransition && targetIsState) {
-        console.log('Cannot manually connect transition to state - use edge reconnection instead');
         return;
       }
 
@@ -1166,22 +1158,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     (oldEdge: Edge, newConnection: Connection) => {
       if (!cleanedWorkflow) return;
 
-      console.log('Edge reconnection:', {
-        oldEdgeId: oldEdge.id,
-        oldSource: oldEdge.source,
-        oldTarget: oldEdge.target,
-        oldSourceHandle: oldEdge.sourceHandle,
-        oldTargetHandle: oldEdge.targetHandle,
-        newSource: newConnection.source,
-        newTarget: newConnection.target,
-        newSourceHandle: newConnection.sourceHandle,
-        newTargetHandle: newConnection.targetHandle,
-        sourceChanged: oldEdge.source !== newConnection.source,
-        targetChanged: oldEdge.target !== newConnection.target,
-        sourceHandleChanged: oldEdge.sourceHandle !== newConnection.sourceHandle,
-        targetHandleChanged: oldEdge.targetHandle !== newConnection.targetHandle
-      });
-
       // Determine what type of edge this is
       const isStateToTransition = oldEdge.id.includes('-to-') && oldEdge.target.startsWith('transition-');
       const isTransitionToState = oldEdge.id.includes('-to-') && oldEdge.source.startsWith('transition-');
@@ -1189,7 +1165,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       if (isStateToTransition) {
         // Reconnecting the source state of a transition
         // This means changing which state the transition comes from
-        console.log('Reconnecting source state of transition');
 
         // Extract transition ID from edge
         const transitionNodeId = oldEdge.target;
@@ -1241,13 +1216,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       } else if (isTransitionToState) {
         // Reconnecting the target state of a transition
         // This means changing which state the transition goes to
-        console.log('Reconnecting target state of transition', {
-          oldTarget: oldEdge.target,
-          newTarget: newConnection.target,
-          oldTargetHandle: oldEdge.targetHandle,
-          newTargetHandle: newConnection.targetHandle,
-          sourceHandle: newConnection.sourceHandle
-        });
+
 
         // Extract transition ID from edge
         const transitionNodeId = oldEdge.source;
@@ -1290,7 +1259,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         // Do NOT save source handle - it's always calculated automatically for best appearance
         if (newConnection.targetHandle) {
           transitionLayout.transitionToStateTargetHandle = newConnection.targetHandle;
-          console.log(`Saved transition→state target handle: ${newConnection.targetHandle}`);
         }
 
         // Clear any previously saved source handle since we now always calculate it
@@ -1302,7 +1270,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           updatedLayoutTransitions.push(transitionLayout);
         }
 
-        console.log('Updated transition layout:', transitionLayout);
 
         const updatedWorkflow: UIWorkflowData = {
           ...cleanedWorkflow,
@@ -1329,19 +1296,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         const targetHandleChanged = oldEdge.targetHandle !== newConnection.targetHandle;
 
         if (!sourceChanged && !targetChanged && !sourceHandleChanged && !targetHandleChanged) {
-          console.log('No actual change in reconnection - ignoring');
           return;
         }
-
-        console.log('Reconnecting to different anchor point', {
-          edgeId: oldEdge.id,
-          sourceHandleChanged,
-          targetHandleChanged,
-          oldSourceHandle: oldEdge.sourceHandle,
-          newSourceHandle: newConnection.sourceHandle,
-          oldTargetHandle: oldEdge.targetHandle,
-          newTargetHandle: newConnection.targetHandle
-        });
 
         // Save the manual anchor point selection to the layout
         // Determine which edge this is (state→transition or transition→state)
@@ -1359,7 +1315,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           const parts = oldEdge.id.split('-to-');
           transitionId = parts[0].replace('edge-', '');
         } else {
-          console.log('Unknown edge type, cannot save anchor points');
           return;
         }
 
@@ -1726,14 +1681,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         importMode: 'REPLACE'
       };
 
-      console.log('=== Export to Environment Debug ===');
-      console.log('URL:', url);
-      console.log('Model Name:', modelName);
-      console.log('Model Version:', modelVersion);
-      console.log('Token:', token.substring(0, 20) + '...');
-      console.log('Payload:', payload);
-      console.log('===================================');
-
       const response = await axios.post(url, payload, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -1741,7 +1688,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         },
       });
 
-      console.log('Export response:', response.data);
 
       showSuccess(
         'Workflow Exported Successfully',
@@ -1788,20 +1734,12 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           // First, export to get the current workflow from environment
           const exportUrl = buildEnvironmentUrl(`/model/${modelName}/${modelVersion}/workflow/export`);
 
-          console.log('=== Import from Environment Debug ===');
-          console.log('Export URL:', exportUrl);
-          console.log('Model Name:', modelName);
-          console.log('Model Version:', modelVersion);
-          console.log('Token:', token.substring(0, 20) + '...');
-          console.log('=====================================');
-
           const exportResponse = await axios.get(exportUrl, {
             headers: {
               'Authorization': `Bearer ${token}`,
             },
           });
 
-          console.log('Export response:', exportResponse.data);
 
           // Extract workflows from response
           const workflows = exportResponse.data.workflows;

@@ -271,7 +271,6 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
 
   // Handle state edit (inline editing is handled in WorkflowCanvas)
   const handleStateEdit = useCallback((stateId: string) => {
-    console.log('State edit clicked for:', stateId);
   }, []);
 
   // Handle transition edit

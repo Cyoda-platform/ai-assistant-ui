@@ -87,21 +87,12 @@ const ChatBot: React.FC<ChatBotProps> = ({
       const isNearBottom = distanceFromBottom < threshold;
 
       // Debug logging
-      console.log('📜 Scroll position check:', {
-        scrollHeight: container.scrollHeight,
-        scrollTop: container.scrollTop,
-        clientHeight: container.clientHeight,
-        distanceFromBottom,
-        threshold,
-        isNearBottom,
-        hasCalledCallback: hasCalledScrollToBottomRef.current
-      });
+
 
       isUserNearBottomRef.current = isNearBottom;
 
       // If user scrolled to bottom and we haven't called the callback yet, call it
       if (isNearBottom && !hasCalledScrollToBottomRef.current && onScrollToBottom) {
-        console.log('🎯 Calling onScrollToBottom callback!');
         hasCalledScrollToBottomRef.current = true;
         onScrollToBottom();
       }
