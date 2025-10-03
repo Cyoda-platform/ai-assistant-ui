@@ -86,8 +86,8 @@ const ChatBotView: React.FC = () => {
   const isInitialLoadRef = useRef<boolean>(true); // Track if this is the initial load of the chat
   const notifiedMessagesRef = useRef<Set<string>>(new Set()); // Track which messages we've already notified about
 
-  const BASE_INTERVAL = parseInt(import.meta.env.VITE_APP_QUESTION_POLLING_INTERVAL_MS) || 5000;
-  const MAX_INTERVAL = parseInt(import.meta.env.VITE_APP_QUESTION_MAX_POLLING_INTERVAL) || 7000;
+  const BASE_INTERVAL = parseInt(import.meta.env.VITE_APP_QUESTION_POLLING_INTERVAL_MS) || 1000;
+  const MAX_INTERVAL = parseInt(import.meta.env.VITE_APP_QUESTION_MAX_POLLING_INTERVAL) || 60000;
   const JITTER_PERCENT = 0.1;
   const currentIntervalRef = useRef(BASE_INTERVAL);
 
