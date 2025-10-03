@@ -70,14 +70,27 @@ export interface StateLayout {
 }
 
 // Visual/positional data for transition layout
+// UPDATED: Now supports transition nodes (position) in addition to legacy edge-based layout (labelPosition, handles)
 export interface TransitionLayout {
   id: string;
+  // Legacy edge-based layout (for backward compatibility)
   labelPosition?: {
     x: number;
     y: number;
   };
-  sourceHandle?: string | null; // Handle ID for source anchor point
-  targetHandle?: string | null; // Handle ID for target anchor point
+  sourceHandle?: string | null; // Handle ID for source anchor point (legacy)
+  targetHandle?: string | null; // Handle ID for target anchor point (legacy)
+  // New node-based layout
+  position?: {
+    x: number;
+    y: number;
+  };
+  // Manual anchor point selections for edges (state→transition and transition→state)
+  stateToTransitionSourceHandle?: string | null; // Which anchor on source state
+  stateToTransitionTargetHandle?: string | null; // Which anchor on transition node
+  transitionToStateSourceHandle?: string | null; // Which anchor on transition node
+  transitionToStateTargetHandle?: string | null; // Which anchor on target state
+  properties?: Record<string, any>; // colors, styling, etc.
 }
 
 // Canvas layout information (visual/positional data only)
@@ -150,7 +163,8 @@ export interface UITransitionData {
   sourceStateId: string;
   targetStateId: string;
   definition: TransitionDefinition; // All the rich metadata (conditions, processors, etc.)
-  labelPosition?: { x: number; y: number };
+  position?: { x: number; y: number }; // Transition node position
+  labelPosition?: { x: number; y: number }; // Legacy: label position for edge-based rendering
   sourceHandle?: string | null; // Handle ID for source anchor point
   targetHandle?: string | null; // Handle ID for target anchor point
 }
@@ -201,23 +215,28 @@ export interface AppState {
 // React Flow specific types - combines state config with layout for rendering
 export interface FlowNode {
   id: string;
-  type: 'stateNode';
+  type: 'stateNode' | 'transitionNode';
   position: { x: number; y: number };
   data: {
     label: string;
-    state: UIStateData;
-    onEdit: (stateId: string, definition: StateDefinition) => void;
+    state?: UIStateData; // For state nodes
+    transition?: UITransitionData; // For transition nodes
+    onEdit?: (stateId: string, definition: StateDefinition) => void; // For state nodes
+    onTransitionEdit?: (transitionId: string) => void; // For transition nodes
+    isLoopback?: boolean; // For transition nodes
   };
 }
 
 export interface FlowEdge {
   id: string;
-  type: 'transitionEdge';
+  type: 'default' | 'transitionEdge'; // 'default' for simple edges between nodes, 'transitionEdge' for legacy
   source: string;
   target: string;
-  data: {
-    transition: UITransitionData;
-    onEdit: (transitionId: string, definition: TransitionDefinition) => void;
+  sourceHandle?: string;
+  targetHandle?: string;
+  data?: {
+    transition?: UITransitionData;
+    onEdit?: (transitionId: string, definition: TransitionDefinition) => void;
   };
 }
 
