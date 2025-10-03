@@ -529,17 +529,30 @@ const ChatBotView: React.FC = () => {
       return [];
     });
 
-    // Always reset count to 0 when clearing all notifications
+    // Reset the count - use functional update
     setCountNewMessages(() => {
-      console.log('🔢 Setting countNewMessages to 0');
+      console.log('🔢 Resetting countNewMessages to 0');
       return 0;
     });
 
-    // Note: We don't clear notifiedMessagesRef here because we don't want to re-notify
-    // about messages that have already been shown. The user has acknowledged them by
-    // clicking "Mark all as read"
+    // Reset favicon
+    Tinycon.setBubble(0);
+    document.title = originalTitle.current;
 
     console.log('✅ All notifications cleared, count reset to 0');
+  };
+
+  // Handle scroll to bottom - clear all notifications
+  const handleScrollToBottom = () => {
+    console.log('📜 User scrolled to bottom, clearing all notifications', {
+      totalNotifications: headerNotifications.length,
+      unreadCount: headerNotifications.filter(n => !n.isRead).length
+    });
+
+    // Clear all notifications when user scrolls to bottom
+    if (headerNotifications.length > 0) {
+      handleMarkAllNotificationsAsRead();
+    }
   };
 
   // Load chat list for sidebar only if not already loaded
@@ -791,6 +804,7 @@ const ChatBotView: React.FC = () => {
             onToggleCanvas={onToggleCanvas}
             onEntitiesDetails={onEntitiesDetails}
             onUpdateNotification={onUpdateNotification}
+            onScrollToBottom={handleScrollToBottom}
             disabled={disabled}
             isLoading={isLoading}
             messages={messages}

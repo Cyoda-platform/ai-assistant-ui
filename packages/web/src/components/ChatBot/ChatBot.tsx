@@ -35,6 +35,7 @@ interface ChatBotProps {
   onToggleCanvas: () => void;
   onEntitiesDetails?: () => void;
   onToggleChatHistory?: () => void;
+  onScrollToBottom?: () => void; // Callback when user scrolls to bottom
 }
 
 const ChatBot: React.FC<ChatBotProps> = ({
@@ -49,7 +50,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
   onApproveQuestion,
   onUpdateNotification,
   onToggleCanvas,
-  onEntitiesDetails
+  onEntitiesDetails,
+  onScrollToBottom
 }) => {
   const chatBotPlaceholderRef = useRef<HTMLDivElement>(null);
   const [chatBotPlaceholderHeight, setChatBotPlaceholderHeight] = useState(0);
@@ -57,6 +59,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const isUserNearBottomRef = useRef(true);
   const previousMessageCountRef = useRef(0);
+  const hasCalledScrollToBottomRef = useRef(false); // Track if we've already called the callback
 
   const scrollDownMessages = (smooth = false) => {
     if (messagesContainerRef.current) {
@@ -79,9 +82,29 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const checkIfNearBottom = () => {
     if (messagesContainerRef.current) {
       const container = messagesContainerRef.current;
-      const threshold = 100; // pixels from bottom
-      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+      const threshold = 50; // pixels from bottom - reduced for more precise detection
+      const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+      const isNearBottom = distanceFromBottom < threshold;
+
+      // Debug logging
+      console.log('📜 Scroll position check:', {
+        scrollHeight: container.scrollHeight,
+        scrollTop: container.scrollTop,
+        clientHeight: container.clientHeight,
+        distanceFromBottom,
+        threshold,
+        isNearBottom,
+        hasCalledCallback: hasCalledScrollToBottomRef.current
+      });
+
       isUserNearBottomRef.current = isNearBottom;
+
+      // If user scrolled to bottom and we haven't called the callback yet, call it
+      if (isNearBottom && !hasCalledScrollToBottomRef.current && onScrollToBottom) {
+        console.log('🎯 Calling onScrollToBottom callback!');
+        hasCalledScrollToBottomRef.current = true;
+        onScrollToBottom();
+      }
     }
   };
 
@@ -103,9 +126,12 @@ const ChatBot: React.FC<ChatBotProps> = ({
       checkIfNearBottom();
     };
 
+    // Check immediately on mount in case user is already at bottom
+    checkIfNearBottom();
+
     container.addEventListener('scroll', handleScroll, { passive: true });
     return () => container.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [onScrollToBottom]); // Re-attach listener if callback changes
 
   // Only auto-scroll when new messages arrive AND user is near bottom
   useEffect(() => {
@@ -113,10 +139,17 @@ const ChatBot: React.FC<ChatBotProps> = ({
     const hadNewMessages = newMessageCount > previousMessageCountRef.current;
     previousMessageCountRef.current = newMessageCount;
 
+    // Reset the scroll-to-bottom callback flag when new messages arrive
+    if (hadNewMessages) {
+      hasCalledScrollToBottomRef.current = false;
+    }
+
     if (hadNewMessages && isUserNearBottomRef.current) {
       // Small delay to let DOM settle before scrolling
       const timeoutId = setTimeout(() => {
         scrollDownMessages(false);
+        // Check if at bottom after scrolling
+        setTimeout(() => checkIfNearBottom(), 100);
       }, 50);
       return () => clearTimeout(timeoutId);
     }
