@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Sparkles, X, Send, Loader2, Copy, Check, Wand2 } from 'lucide-react';
+import { Sparkles, X, Send, Loader2, Copy, Check, Wand2, Paperclip, FileText } from 'lucide-react';
 import { useAssistantStore } from '@/stores/assistant';
+import HelperUpload from '@/helpers/HelperUpload';
+import { message as antdMessage } from 'antd';
 
 interface WorkflowAIAssistantProps {
   isOpen: boolean;
@@ -29,8 +31,11 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [expectWorkflowResponse, setExpectWorkflowResponse] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const assistantStore = useAssistantStore();
 
   // Auto-scroll to bottom when messages change
@@ -77,21 +82,49 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
     setInput('');
     setIsLoading(true);
 
+    // Store files to send and clear the state
+    const filesToSend = [...attachedFiles];
+    setAttachedFiles([]);
+
     try {
-      // Build context for AI
-      let contextualQuestion = input.trim();
+      // Use the question directly without adding context
+      const question = input.trim();
+      let response;
 
-      if (selectedText) {
-        contextualQuestion = `Context: I'm working on this part of the workflow JSON:\n\`\`\`json\n${selectedText}\n\`\`\`\n\nQuestion: ${input.trim()}`;
-      } else if (currentWorkflow) {
-        contextualQuestion = `Context: Here's my current workflow:\n\`\`\`json\n${currentWorkflow}\n\`\`\`\n\nQuestion: ${input.trim()}`;
+      // Choose endpoint based on expectWorkflowResponse flag
+      if (expectWorkflowResponse) {
+        // Use workflow-questions endpoint for workflow generation/modification
+        const formData = new FormData();
+        formData.append('question', question);
+        formData.append('workflow', currentWorkflow || '');
+
+        // Append all files
+        filesToSend.forEach(file => {
+          formData.append('files', file);
+        });
+
+        response = await assistantStore.postWorkflowQuestions(formData);
+      } else {
+        // Use text/questions endpoints for chat-style responses
+        if (filesToSend.length > 0) {
+          // Use questions endpoint with files
+          const formData = new FormData();
+          formData.append('question', question);
+
+          filesToSend.forEach(file => {
+            formData.append('files', file);
+          });
+
+          const chatId = technicalId || 'workflow-assistant';
+          response = await assistantStore.postQuestions(chatId, formData);
+        } else {
+          // Use text-questions endpoint without files
+          const chatId = technicalId || 'workflow-assistant';
+          response = await assistantStore.postTextQuestions(chatId, {
+            question: question
+          });
+        }
       }
-
-      // Use the assistant store to send question
-      const chatId = technicalId || 'workflow-assistant';
-      const response = await assistantStore.postTextQuestions(chatId, {
-        question: contextualQuestion
-      });
 
       const assistantMessage: Message = {
         role: 'assistant',
@@ -100,6 +133,20 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+
+      // If in workflow mode, automatically apply the response to the editor
+      if (expectWorkflowResponse && response.data.message) {
+        try {
+          // Extract JSON from the response
+          const jsonContent = extractJsonFromMessage(response.data.message);
+          if (jsonContent) {
+            onApplySuggestion(jsonContent);
+            antdMessage.success('Workflow updated in editor');
+          }
+        } catch (err) {
+          console.error('Failed to auto-apply workflow:', err);
+        }
+      }
     } catch (error: any) {
       console.error('Error sending message to AI:', error);
 
@@ -143,13 +190,44 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, selectedText, currentWorkflow, technicalId, assistantStore]);
+  }, [input, isLoading, currentWorkflow, technicalId, assistantStore, attachedFiles, expectWorkflowResponse]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+
+    for (const file of files) {
+      const { isValid, message: errorMessage } = HelperUpload.validateFile(file);
+      if (!isValid) {
+        antdMessage.warning(errorMessage);
+        continue;
+      }
+
+      // Check if file already attached
+      if (attachedFiles.some(f => f.name === file.name && f.size === file.size)) {
+        antdMessage.warning(`File "${file.name}" is already attached`);
+        continue;
+      }
+
+      setAttachedFiles(prev => [...prev, file]);
+    }
+
+    // Reset input
+    event.target.value = '';
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAttachClick = () => {
+    fileInputRef.current?.click();
   };
 
   const copyToClipboard = async (text: string, index: number) => {
@@ -177,10 +255,12 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
   };
 
   const quickPrompts = [
-    { icon: '🔄', text: 'Add a new state', prompt: 'Add a new state called "PENDING_REVIEW" with transitions to "APPROVED" and "REJECTED"' },
-    { icon: '🔗', text: 'Add transition', prompt: 'Add a transition from the current state to another state' },
-    { icon: '✨', text: 'Optimize workflow', prompt: 'Review this workflow and suggest optimizations' },
-    { icon: '🐛', text: 'Find issues', prompt: 'Check for any issues or missing required fields in this workflow' },
+    { icon: '🔄', text: 'Add a new state', prompt: 'Add a new state called "PENDING_REVIEW" with transitions to "APPROVED" and "REJECTED"', needsWorkflow: true },
+    { icon: '🔗', text: 'Add transition', prompt: 'Add a transition from the current state to another state', needsWorkflow: true },
+    { icon: '✨', text: 'Optimize workflow', prompt: 'Review this workflow and suggest optimizations', needsWorkflow: false },
+    { icon: '🐛', text: 'Find issues', prompt: 'Check for any issues or missing required fields in this workflow', needsWorkflow: false },
+    { icon: '📝', text: 'Create workflow', prompt: 'Create a simple approval workflow with states: DRAFT, PENDING, APPROVED, REJECTED', needsWorkflow: true },
+    { icon: '💡', text: 'Explain workflow', prompt: 'Explain what this workflow does and how it works', needsWorkflow: false },
   ];
 
   if (!isOpen) return null;
@@ -221,7 +301,10 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
               {quickPrompts.map((prompt, index) => (
                 <button
                   key={index}
-                  onClick={() => setInput(prompt.prompt)}
+                  onClick={() => {
+                    setInput(prompt.prompt);
+                    setExpectWorkflowResponse(prompt.needsWorkflow);
+                  }}
                   className="flex items-center gap-2 p-3 text-left text-sm bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors border border-gray-700"
                 >
                   <span className="text-lg">{prompt.icon}</span>
@@ -313,21 +396,91 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
 
         {/* Input */}
         <div className="p-6 border-t border-gray-700 bg-gray-800/50 rounded-b-2xl">
-          <div className="flex gap-3">
+          {/* File attachments preview */}
+          {attachedFiles.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {attachedFiles.map((file, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-700 rounded-lg border border-gray-600"
+                >
+                  <FileText className="w-4 h-4 text-purple-400" />
+                  <span className="text-sm text-gray-300 max-w-[200px] truncate">
+                    {file.name}
+                  </span>
+                  <button
+                    onClick={() => handleRemoveFile(index)}
+                    className="text-gray-400 hover:text-red-400 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Response Mode Toggle - Prominent */}
+          <div className={`mb-4 p-4 rounded-xl border-2 transition-all ${
+            expectWorkflowResponse
+              ? 'bg-purple-950/30 border-purple-500'
+              : 'bg-gray-800/50 border-gray-700'
+          }`}>
+            <label className="flex items-start gap-4 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={expectWorkflowResponse}
+                onChange={(e) => setExpectWorkflowResponse(e.target.checked)}
+                disabled={isLoading}
+                className="mt-1 w-6 h-6 rounded border-2 border-gray-600 bg-gray-700 text-purple-500 focus:ring-2 focus:ring-purple-500 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              />
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <Wand2 className={`w-5 h-5 ${expectWorkflowResponse ? 'text-purple-400' : 'text-gray-400'}`} />
+                  <span className={`font-semibold ${expectWorkflowResponse ? 'text-purple-300' : 'text-gray-300'} group-hover:text-white transition-colors`}>
+                    Replace workflow with AI response
+                  </span>
+                </div>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  {expectWorkflowResponse ? (
+                    <>
+                      <span className="text-purple-400 font-medium">✓ Enabled:</span> The AI will generate a complete workflow JSON that will automatically replace your current workflow in the editor.
+                    </>
+                  ) : (
+                    <>
+                      Get a conversational response without modifying your workflow. Perfect for questions, explanations, and suggestions.
+                    </>
+                  )}
+                </p>
+              </div>
+            </label>
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            style={{ display: 'none' }}
+            onChange={handleFileSelect}
+            accept=".pdf,.docx,.xlsx,.pptx,.xml,.json,text/*,image/*"
+          />
+
+          {/* Message Input with Send Button Inside */}
+          <div className="relative">
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask about your workflow... (Shift+Enter for new line)"
-              className="flex-1 px-4 py-3 bg-gray-900 border-2 border-gray-700 rounded-xl focus:outline-none focus:border-purple-500 resize-none text-white placeholder-gray-500"
+              className="w-full px-4 py-3 pr-14 bg-gray-900 border-2 border-gray-700 rounded-xl focus:outline-none focus:border-purple-500 resize-none text-white placeholder-gray-500"
               rows={3}
               disabled={isLoading}
             />
             <button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
-              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl disabled:shadow-none flex items-center gap-2 font-medium"
+              className="absolute right-2 bottom-2 p-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl disabled:shadow-none"
+              title="Send message"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -336,9 +489,22 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
               )}
             </button>
           </div>
-          <p className="text-xs text-gray-400 mt-5 translate-y-[40%]">
-            Press <kbd className="px-2 py-1 bg-gray-700 rounded">Enter</kbd> to send, <kbd className="px-2 py-1 bg-gray-700 rounded">Shift+Enter</kbd> for new line
-          </p>
+
+          {/* Bottom Actions */}
+          <div className="flex items-center justify-between mt-3">
+            <button
+              onClick={handleAttachClick}
+              disabled={isLoading}
+              className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors border border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Paperclip className="w-4 h-4" />
+              <span>Attach files</span>
+            </button>
+
+            <p className="text-xs text-gray-400">
+              Press <kbd className="px-2 py-1 bg-gray-700 rounded text-xs">Enter</kbd> to send, <kbd className="px-2 py-1 bg-gray-700 rounded text-xs">Shift+Enter</kbd> for new line
+            </p>
+          </div>
         </div>
       </div>
     </div>

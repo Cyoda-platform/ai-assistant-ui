@@ -24,6 +24,7 @@ interface AssistantStore {
   postAnswers: (technical_id: string, data: any) => Promise<any>;
   postTextQuestions: (technical_id: string, data: any) => Promise<any>;
   postQuestions: (technical_id: string, data: any) => Promise<any>;
+  postWorkflowQuestions: (data: any) => Promise<any>;
   getChats: () => Promise<any>;
   getChatById: (technical_id: string, params?: any) => Promise<any>;
   deleteChatById: (technical_id: string) => Promise<any>;
@@ -83,6 +84,10 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
 
   postQuestions(technical_id: string, data: any) {
     return privateClient.post(`/v1/chats/${technical_id}/questions`, data);
+  },
+
+  postWorkflowQuestions(data: any) {
+    return privateClient.post(`/v1/chats/workflow-questions`, data);
   },
 
   async getChats() {
