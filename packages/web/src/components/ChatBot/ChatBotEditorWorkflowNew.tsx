@@ -4,6 +4,7 @@ import { WorkflowCanvas } from '../WorkflowCanvas/Canvas/WorkflowCanvas';
 import { TransitionEditor } from '../WorkflowCanvas/Editors/TransitionEditor';
 import { historyService } from '../WorkflowCanvas/services/historyService';
 import { useKeyboardShortcuts } from '../WorkflowCanvas/hooks/useKeyboardShortcuts';
+import { useTheme } from '../WorkflowCanvas/hooks/useTheme';
 import type {
   UIWorkflowData,
   WorkflowConfiguration,
@@ -97,6 +98,9 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
   const helperStorage = useMemo(() => new HelperStorage(), []);
   const workflowCanvasDataKey = `workflow_canvas_data_${technicalId}`;
   const workflowMetaDataKey = `workflow_metadata_${technicalId}`;
+
+  // Theme management
+  const { palette } = useTheme();
 
   const [currentWorkflow, setCurrentWorkflow] = useState<UIWorkflowData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -360,6 +364,7 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
             transitionId={editingTransitionId}
             onSave={handleTransitionSave}
             workflowConfig={currentWorkflow?.configuration}
+            palette={palette}
           />
         )}
       </div>

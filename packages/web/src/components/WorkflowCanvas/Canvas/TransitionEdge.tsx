@@ -7,11 +7,13 @@ import {
 import type { EdgeProps } from '@xyflow/react';
 import { Edit, Filter, Zap } from 'lucide-react';
 import type { UITransitionData } from '../types/workflow';
+import type { ColorPalette } from '../themes/colorPalettes';
 
 interface TransitionEdgeData {
   transition: UITransitionData;
   onEdit: (transitionId: string) => void;
   onUpdate: (transition: UITransitionData) => void;
+  palette: ColorPalette;
 }
 
 export const TransitionEdge: React.FC<EdgeProps> = ({
@@ -25,7 +27,7 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
   data,
   selected,
 }) => {
-  const { transition, onEdit, onUpdate } = (data as unknown as TransitionEdgeData) || {};
+  const { transition, onEdit, onUpdate, palette } = (data as unknown as TransitionEdgeData) || {};
 
   // Calculate edge path and label position (always centered on arrow)
   const [edgePath, finalLabelX, finalLabelY] = getBezierPath({
@@ -60,36 +62,23 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
 
   // Define colors and thickness based on manual/automated state
   const getTransitionStyles = () => {
-    const baseStrokeWidth = 2.5;
-    const automatedStrokeWidth = 3.5;
+    const baseStrokeWidth = 2;
+    const strokeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
 
-    if (selected) {
-      return {
-        className: isManual
-          ? 'stroke-pink-400'
-          : 'stroke-lime-400',
-        style: { strokeWidth: isManual ? baseStrokeWidth : automatedStrokeWidth }
-      };
-    }
-
-    if (isManual) {
-      // Manual transitions: pink/fuchsia gradient (dark mode only)
-      return {
-        className: 'stroke-pink-500',
-        style: { strokeWidth: baseStrokeWidth }
-      };
-    } else {
-      // Automated transitions: lime/emerald gradient (dark mode only)
-      return {
-        className: 'stroke-lime-400',
-        style: { strokeWidth: automatedStrokeWidth }
-      };
-    }
+    return {
+      style: {
+        stroke: strokeColor,
+        strokeWidth: baseStrokeWidth,
+        opacity: selected ? 0.9 : 0.7
+      }
+    };
   };
 
   // Create unique marker ID for this transition
   const markerId = `arrow-${id}`;
   const styles = getTransitionStyles();
+  const edgeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
+  const labelBgColor = edgeColor;
 
 
 
@@ -98,7 +87,6 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
       <BaseEdge
         id={id as string}
         path={edgePath}
-        className={styles.className}
         style={{
           ...styles.style,
           strokeDasharray: isManual ? '8 4' : 'none',
@@ -119,19 +107,12 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
           title="Double-click to edit transition"
         >
           <div
-            className={`${
-              isManual
-                ? 'bg-gradient-to-r from-pink-950/30 via-fuchsia-950/30 to-rose-950/30'
-                : 'bg-gradient-to-r from-lime-950/30 via-emerald-950/30 to-green-950/30'
-            } border-2 rounded-full shadow-lg px-4 py-2 text-sm transition-all duration-300 backdrop-blur-sm ${
+            className={`border-0 rounded-full px-4 py-2 text-sm transition-all duration-300 ${
               selected
-                ? isManual
-                  ? 'border-pink-400 ring-4 ring-pink-400 ring-opacity-30 bg-gradient-to-r from-pink-900/40 via-fuchsia-900/40 to-rose-900/40'
-                  : 'border-lime-400 ring-4 ring-lime-400 ring-opacity-30 bg-gradient-to-r from-lime-900/40 via-emerald-900/40 to-green-900/40'
-                : isManual
-                  ? 'border-pink-600 hover:border-pink-400 hover:shadow-xl hover:scale-105'
-                  : 'border-lime-600 hover:border-lime-400 hover:shadow-xl hover:scale-105'
+                ? 'ring-2 ring-white ring-offset-2 ring-offset-[#0b0f1a]'
+                : 'hover:scale-105'
             }`}
+            style={{ backgroundColor: labelBgColor }}
           >
             <div className="flex items-center space-x-2">
               {/* Transition Name */}
@@ -144,13 +125,13 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
               {/* Compact Indicators */}
               <div className="flex items-center space-x-1">
                 {hasCriterion && (
-                  <div className="text-pink-400" title="Has criterion">
+                  <div className="text-white/80" title="Has criterion">
                     <Filter size={10} />
                   </div>
                 )}
 
                 {hasProcessors && (
-                  <div className="flex items-center space-x-0.5 text-green-400" title={`${transition.definition.processors!.length} processors`}>
+                  <div className="flex items-center space-x-0.5 text-white/80" title={`${transition.definition.processors!.length} processors`}>
                     <Zap size={10} />
                     <span className="text-xs">{transition.definition.processors!.length}</span>
                   </div>
@@ -188,13 +169,7 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
         >
           <path
             d="M0,0 L0,6 L9,3 z"
-            fill={
-              selected
-                ? (isManual ? '#4b5563' : '#10b981') // match line colors when selected
-                : isManual
-                  ? '#4b5563' // dark grey for manual (gray-600)
-                  : '#10b981' // green for automated (green-500)
-            }
+            fill={edgeColor}
             className="transition-colors duration-200"
           />
         </marker>

@@ -6,6 +6,7 @@ import {
 import type { EdgeProps } from '@xyflow/react';
 import { Edit, Move, RotateCcw } from 'lucide-react';
 import type { UITransitionData } from '../types/workflow';
+import type { ColorPalette } from '../themes/colorPalettes';
 
 // ABOUTME: This file contains the LoopbackEdge component that renders self-connecting transitions
 // with curved paths that loop around the state node for clear visual distinction.
@@ -15,6 +16,7 @@ interface LoopbackEdgeData {
   onEdit: (transitionId: string) => void;
   onUpdate: (transition: UITransitionData) => void;
   isLoopback: boolean;
+  palette: ColorPalette;
 }
 
 export const LoopbackEdge: React.FC<EdgeProps> = ({
@@ -26,7 +28,7 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
   data,
   selected,
 }) => {
-  const { transition, onEdit, onUpdate } = (data as unknown as LoopbackEdgeData) || {};
+  const { transition, onEdit, onUpdate, palette } = (data as unknown as LoopbackEdgeData) || {};
 
   // Use labelPosition from transition layout if available, otherwise use default offset
   // This allows users to adjust loop position by dragging the label
@@ -151,45 +153,31 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
   // If manual is undefined, treat as automated (false)
   const isManual = transition?.definition.manual === true;
 
-  // Define colors and thickness based on manual/automated state (dark mode only)
+  // Define colors and thickness based on manual/automated state
   const getLoopbackStyles = () => {
-    const baseStrokeWidth = 2.5;
-    const automatedStrokeWidth = 3.5;
+    const baseStrokeWidth = 2;
+    const strokeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
 
-    if (selected) {
-      return {
-        className: isManual
-          ? 'stroke-pink-400'
-          : 'stroke-lime-400',
-        style: { strokeWidth: isManual ? baseStrokeWidth : automatedStrokeWidth }
-      };
-    }
-
-    if (isManual) {
-      // Manual transitions: pink/fuchsia (dark mode only)
-      return {
-        className: 'stroke-pink-500',
-        style: { strokeWidth: baseStrokeWidth }
-      };
-    } else {
-      // Automated transitions: lime/emerald (dark mode only)
-      return {
-        className: 'stroke-lime-400',
-        style: { strokeWidth: automatedStrokeWidth }
-      };
-    }
+    return {
+      style: {
+        stroke: strokeColor,
+        strokeWidth: baseStrokeWidth,
+        opacity: selected ? 0.9 : 0.7
+      }
+    };
   };
 
   // Create unique marker ID for this loopback transition
   const markerId = `arrow-loopback-${id}`;
   const styles = getLoopbackStyles();
+  const edgeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
+  const labelBgColor = edgeColor;
 
   return (
     <>
       <BaseEdge
         id={id as string}
         path={edgePath}
-        className={styles.className}
         style={{
           ...styles.style,
           strokeDasharray: isManual ? '8 4' : 'none',
@@ -210,33 +198,26 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
           title="Double-click to edit transition"
         >
           <div
-            className={`${
-              isManual
-                ? 'bg-gradient-to-r from-pink-950/30 via-fuchsia-950/30 to-rose-950/30'
-                : 'bg-gradient-to-r from-lime-950/30 via-emerald-950/30 to-green-950/30'
-            } border-2 rounded-full shadow-lg px-4 py-2 text-sm transition-all duration-300 backdrop-blur-sm ${
+            className={`border-0 rounded-full px-4 py-2 text-sm transition-all duration-300 ${
               selected
-                ? isManual
-                  ? 'border-pink-400 ring-4 ring-pink-400 ring-opacity-30 bg-gradient-to-r from-pink-900/40 via-fuchsia-900/40 to-rose-900/40'
-                  : 'border-lime-400 ring-4 ring-lime-400 ring-opacity-30 bg-gradient-to-r from-lime-900/40 via-emerald-900/40 to-green-900/40'
-                : isManual
-                  ? 'border-pink-600 hover:border-pink-400 hover:shadow-xl hover:scale-105'
-                  : 'border-lime-600 hover:border-lime-400 hover:shadow-xl hover:scale-105'
+                ? 'ring-2 ring-white ring-offset-2 ring-offset-[#0b0f1a]'
+                : ''
             }`}
+            style={{ backgroundColor: labelBgColor }}
           >
             <div className="flex items-center space-x-2">
               {/* Drag Handle */}
-              <div className="flex-shrink-0 text-gray-400 hover:text-gray-300">
+              <div className="flex-shrink-0 text-white/70 hover:text-white">
                 <Move size={10} />
               </div>
 
               {/* Loop Icon */}
-              <div className="flex-shrink-0 text-pink-400">
+              <div className="flex-shrink-0 text-white">
                 <RotateCcw size={12} />
               </div>
 
               {/* Transition Name */}
-              <span className="text-gray-200 font-medium">
+              <span className="text-white font-medium">
                 {transition?.definition?.name || 'Loop-back'}
               </span>
 
@@ -271,13 +252,7 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
         >
           <path
             d="M0,0 L0,6 L9,3 z"
-            fill={
-              selected
-                ? (isManual ? '#4b5563' : '#10b981') // match line colors when selected
-                : isManual
-                  ? '#4b5563' // dark grey for manual (gray-600)
-                  : '#10b981' // green for automated (green-500)
-            }
+            fill={edgeColor}
             className="transition-colors duration-200"
           />
         </marker>

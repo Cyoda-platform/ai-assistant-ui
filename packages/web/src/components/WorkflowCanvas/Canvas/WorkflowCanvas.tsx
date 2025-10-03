@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ReactFlow,
   Background,
+  BackgroundVariant,
   Controls,
   ControlButton,
   MiniMap,
@@ -138,6 +139,8 @@ import { LoopbackEdge } from './LoopbackEdge';
 import { WorkflowJsonEditor } from '../Editors/WorkflowJsonEditor';
 import { generateTransitionId, generateLayoutTransitionId, migrateLayoutTransitionId, validateTransitionExists, parseLayoutTransitionId, parseTransitionId } from '../utils/transitionUtils';
 import { autoLayoutWorkflow, canAutoLayout } from '../utils/autoLayout';
+import { useTheme } from '../hooks/useTheme';
+import { getAvailableThemes, COLOR_PALETTES } from '../themes/colorPalettes';
 
 interface WorkflowCanvasProps {
   workflow: UIWorkflowData | null;
@@ -282,9 +285,52 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   const [selectedStateId, setSelectedStateId] = useState<string | null>(null);
   const [selectedTransitionId, setSelectedTransitionId] = useState<string | null>(null);
 
-  // Settings state
-  const [edgeType, setEdgeType] = useState<'default' | 'straight' | 'step' | 'smoothstep'>('default');
-  const [layoutDirection, setLayoutDirection] = useState<'TB' | 'LR'>('TB');
+  // Settings state with localStorage persistence
+  const [edgeType, setEdgeTypeState] = useState<'default' | 'straight' | 'step' | 'smoothstep'>(() => {
+    try {
+      const stored = localStorage.getItem('workflow-canvas-edge-type');
+      if (stored && ['default', 'straight', 'step', 'smoothstep'].includes(stored)) {
+        return stored as 'default' | 'straight' | 'step' | 'smoothstep';
+      }
+    } catch (error) {
+      console.warn('Failed to load edge type from localStorage:', error);
+    }
+    return 'default';
+  });
+
+  const [layoutDirection, setLayoutDirectionState] = useState<'TB' | 'LR'>(() => {
+    try {
+      const stored = localStorage.getItem('workflow-canvas-layout-direction');
+      if (stored && ['TB', 'LR'].includes(stored)) {
+        return stored as 'TB' | 'LR';
+      }
+    } catch (error) {
+      console.warn('Failed to load layout direction from localStorage:', error);
+    }
+    return 'TB';
+  });
+
+  // Wrapper functions to persist settings to localStorage
+  const setEdgeType = useCallback((value: 'default' | 'straight' | 'step' | 'smoothstep') => {
+    setEdgeTypeState(value);
+    try {
+      localStorage.setItem('workflow-canvas-edge-type', value);
+    } catch (error) {
+      console.warn('Failed to save edge type to localStorage:', error);
+    }
+  }, []);
+
+  const setLayoutDirection = useCallback((value: 'TB' | 'LR') => {
+    setLayoutDirectionState(value);
+    try {
+      localStorage.setItem('workflow-canvas-layout-direction', value);
+    } catch (error) {
+      console.warn('Failed to save layout direction to localStorage:', error);
+    }
+  }, []);
+
+  // Theme management
+  const { theme, setTheme, palette } = useTheme();
 
   // Notifications
   const { notifications, removeNotification, showSuccess, showError, showInfo, showWarning } = useNotifications();
@@ -676,6 +722,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           label: state.name,
           state: state,
           onNameChange: currentHandleStateNameChange,
+          palette: palette,
         },
       }));
 
@@ -711,6 +758,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             transition: transition,
             onEdit: currentOnTransitionEdit,
             isLoopback,
+            palette: palette,
           },
         };
       });
@@ -733,8 +781,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
         // Determine if transition is manual or automated for styling
         const isManual = transition.definition.manual === true;
-        const edgeColor = isManual ? '#ec4899' : '#84cc16'; // pink for manual, lime for automated
-        const edgeWidth = isManual ? 2 : 2.5;
+        const edgeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
+        const edgeWidth = 2;
 
         // For state -> transition edge:
         // Use manual selection if available, otherwise calculate optimal
@@ -781,7 +829,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         // This is the "head" edge - should not be manually reconnectable
         const edge1 = {
           id: `edge-${transition.sourceStateId}-to-${transition.id}`,
-          type: 'default',
+          type: edgeType, // Use the current edge type setting
           source: transition.sourceStateId,
           target: transitionNodeId,
           sourceHandle: stateToTransitionSourceHandle,
@@ -833,7 +881,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
         const edge2 = {
           id: `edge-${transition.id}-to-${transition.targetStateId}`,
-          type: 'default',
+          type: edgeType, // Use the current edge type setting
           source: transitionNodeId,
           target: transition.targetStateId,
           sourceHandle: transitionToStateSourceHandle,
@@ -878,23 +926,17 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     // Add dependencies to detect changes in state and transition content
     JSON.stringify(cleanedWorkflow?.configuration?.states || {}),
     cleanedWorkflow?.updatedAt, // This changes when the workflow is updated
+    palette, // Re-create nodes/edges when palette changes
+    theme, // Re-create nodes/edges when theme changes
+    edgeType, // Re-create edges when edge type changes
   ]);
 
-  // Update edge types when edgeType setting changes
-  React.useEffect(() => {
-    if (edges.length > 0) {
-      setEdges((eds) =>
-        eds.map((edge) => ({
-          ...edge,
-          type: edgeType,
-        }))
-      );
-    }
-  }, [edgeType, setEdges]);
+  // Track when auto-layout is applied to trigger fitView
+  const shouldFitViewRef = useRef(false);
 
-  // Auto-center the workflow when layout is updated (e.g., after JSON import or auto-layout)
+  // Auto-center the workflow only when explicitly requested (e.g., after auto-layout)
   React.useEffect(() => {
-    if (cleanedWorkflow && nodes.length > 0) {
+    if (shouldFitViewRef.current && cleanedWorkflow && nodes.length > 0) {
       // Use a small delay to ensure nodes are rendered before fitting view
       const timer = setTimeout(() => {
         fitView({
@@ -902,6 +944,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           duration: 300, // Smooth animation
           maxZoom: 1.5, // Don't zoom in too much
         });
+        shouldFitViewRef.current = false; // Reset flag
       }, 100);
       return () => clearTimeout(timer);
     }
@@ -1433,10 +1476,28 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
     const layoutedWorkflow = autoLayoutWorkflow(cleanedWorkflow, { direction: layoutDirection });
 
+    // Set flag to trigger fitView after layout is applied
+    shouldFitViewRef.current = true;
+
     // Apply the layout with animation by updating the workflow
     // React Flow will automatically animate the position changes
     onWorkflowUpdate(layoutedWorkflow, 'Applied auto-layout');
   }, [cleanedWorkflow, onWorkflowUpdate, layoutDirection]);
+
+  // Auto-apply layout when layout direction changes
+  const previousLayoutDirectionRef = useRef(layoutDirection);
+  React.useEffect(() => {
+    // Only auto-apply if the direction actually changed (not on initial mount)
+    if (previousLayoutDirectionRef.current !== layoutDirection && cleanedWorkflow && canAutoLayout(cleanedWorkflow)) {
+      const layoutedWorkflow = autoLayoutWorkflow(cleanedWorkflow, { direction: layoutDirection });
+
+      // Set flag to trigger fitView after layout is applied
+      shouldFitViewRef.current = true;
+
+      onWorkflowUpdate(layoutedWorkflow, `Changed layout direction to ${layoutDirection === 'TB' ? 'Top to Bottom' : 'Left to Right'}`);
+    }
+    previousLayoutDirectionRef.current = layoutDirection;
+  }, [layoutDirection, cleanedWorkflow, onWorkflowUpdate]);
 
   // Quick Help toggle handler
   const handleToggleQuickHelp = useCallback(() => {
@@ -1533,6 +1594,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     // Otherwise preserve user's manual positioning
     if (shouldAutoLayout) {
       const layoutedWorkflow = autoLayoutWorkflow(updatedWorkflow);
+      shouldFitViewRef.current = true; // Trigger fitView after auto-layout
       onWorkflowUpdate(layoutedWorkflow, 'Updated workflow JSON with auto-layout');
     } else {
       onWorkflowUpdate(updatedWorkflow, 'Updated workflow JSON');
@@ -1626,6 +1688,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
         // Apply auto-layout to imported workflow
         const layoutedWorkflow = autoLayoutWorkflow(newWorkflow);
+        shouldFitViewRef.current = true; // Trigger fitView after import
         onWorkflowUpdate(layoutedWorkflow, 'Imported workflow from JSON');
       } catch (error) {
         alert(`Error importing workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -1789,6 +1852,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
           // Apply auto-layout to imported workflow
           const layoutedWorkflow = autoLayoutWorkflow(newWorkflow);
+          shouldFitViewRef.current = true; // Trigger fitView after import
           onWorkflowUpdate(layoutedWorkflow, 'Imported workflow from environment');
 
           showSuccess(
@@ -1955,9 +2019,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   }
 
   return (
-    <div className="h-full w-full flex">
+    <div className="h-full w-full flex" style={{ background: '#0b0f1a' }}>
       {/* Canvas Area */}
-      <div className="flex-1 h-full">
+      <div className="flex-1 h-full" style={{ background: '#0b0f1a' }}>
         <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -1974,7 +2038,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         connectionMode={ConnectionMode.Loose}
-        fitView
         className="dark"
         colorMode="dark"
 
@@ -1999,7 +2062,11 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           <ControlButton
             onClick={handleToggleWorkflowInfo}
             title="Toggle workflow info"
-            className={showWorkflowInfo ? 'bg-gradient-to-br from-lime-100 to-emerald-100 dark:from-lime-900 dark:to-emerald-900 border-2 border-lime-400' : ''}
+            className={showWorkflowInfo ? 'border-2' : ''}
+            style={showWorkflowInfo ? {
+              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
+              borderColor: palette.ui.accentColor
+            } : {}}
             data-testid="workflow-info-button"
           >
             <Info size={16} />
@@ -2007,7 +2074,11 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           <ControlButton
             onClick={handleToggleJsonEditor}
             title="Edit workflow JSON"
-            className={showJsonEditor ? 'bg-gradient-to-br from-lime-100 to-emerald-100 dark:from-lime-900 dark:to-emerald-900 border-2 border-lime-400' : ''}
+            className={showJsonEditor ? 'border-2' : ''}
+            style={showJsonEditor ? {
+              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
+              borderColor: palette.ui.accentColor
+            } : {}}
             data-testid="json-editor-button"
           >
             <FileJson size={16} />
@@ -2053,7 +2124,11 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           <ControlButton
             onClick={handleToggleSettings}
             title="Canvas Settings"
-            className={showSettings ? 'bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900 dark:to-indigo-900 border-2 border-purple-400' : ''}
+            className={showSettings ? 'border-2' : ''}
+            style={showSettings ? {
+              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
+              borderColor: palette.ui.accentColor
+            } : {}}
             data-testid="settings-button"
           >
             <Settings size={16} />
@@ -2088,37 +2163,82 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
         <MiniMap
           nodeColor={(node) => {
+            // Check if it's a state node or transition node
             const state = node.data?.state as UIStateData;
-            if (state?.isInitial) return '#84cc16'; // lime
-            if (state?.isFinal) return '#ec4899'; // pink
-            return '#10b981'; // emerald
+            const transition = node.data?.transition;
+
+            if (state) {
+              // State node colors from palette
+              if (state.isInitial) return palette.colors.stateInitial;
+              if (state.isFinal) return palette.colors.stateFinal;
+              return palette.colors.stateNormal;
+            } else if (transition) {
+              // Transition node colors from palette
+              const isManual = transition.definition?.manual === true;
+              return isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
+            }
+
+            // Fallback
+            return palette.colors.stateNormal;
           }}
           className="dark"
+          style={{
+            backgroundColor: palette.ui.panelGradientFrom,
+            borderColor: palette.ui.panelBorder
+          }}
         />
 
         {showWorkflowInfo && (
-          <Panel position="top-left" className="bg-gradient-to-br from-gray-900 via-lime-950/30 to-emerald-950/30 p-4 rounded-2xl shadow-2xl border-2 border-lime-800 backdrop-blur-md">
+          <Panel
+            position="top-left"
+            className="p-4 rounded-2xl shadow-2xl border-2 backdrop-blur-md"
+            style={{
+              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientFrom}, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
+              borderColor: palette.ui.panelBorder
+            }}
+          >
             <div className="text-sm">
-              <h4 className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-lime-400 to-emerald-400 mb-3 text-base">
+              <h4
+                className="font-semibold text-transparent bg-clip-text mb-3 text-base"
+                style={{
+                  backgroundImage: `linear-gradient(to right, ${palette.ui.panelTitleFrom}, ${palette.ui.panelTitleTo})`
+                }}
+              >
                 {workflow.configuration.name}
               </h4>
               <div className="text-gray-300 space-y-2">
                 <div className="flex items-center space-x-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: palette.colors.stateNormal }}></span>
                   <span>{Object.keys(workflow.configuration.states).length} states</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="w-2 h-2 rounded-full bg-pink-500"></span>
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: palette.colors.transitionManual }}></span>
                   <span>{uiTransitions.length} transitions</span>
                 </div>
-                <div className="flex items-center justify-between text-xs text-gray-400 mt-2 pt-2 border-t border-lime-800">
+                <div
+                  className="flex items-center justify-between text-xs text-gray-400 mt-2 pt-2 border-t"
+                  style={{ borderColor: palette.ui.panelBorder }}
+                >
                   <span>Updated: {new Date(workflow.updatedAt).toLocaleDateString()}</span>
                   <button
                     onClick={handleToggleWorkflowInfo}
-                    className="p-1 rounded-lg hover:bg-lime-100 dark:hover:bg-lime-900/30 transition-colors group"
+                    className="p-1 rounded-lg transition-colors group"
+                    style={{
+                      ['--hover-bg' as any]: palette.ui.accentHover + '30'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = palette.ui.accentHover + '30'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     title="Close workflow info"
                   >
-                    <X size={14} className="text-gray-500 dark:text-gray-400 group-hover:text-lime-600 dark:group-hover:text-lime-400" />
+                    <X
+                      size={14}
+                      className="text-gray-500 dark:text-gray-400 transition-colors"
+                      style={{
+                        ['--hover-color' as any]: palette.ui.accentColor
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget as SVGElement).style.color = palette.ui.accentColor}
+                      onMouseLeave={(e) => (e.currentTarget as SVGElement).style.color = ''}
+                    />
                   </button>
                 </div>
               </div>
@@ -2127,16 +2247,38 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         )}
 
         {showSettings && (
-          <Panel position="top-right" className="bg-gradient-to-br from-gray-900 via-purple-950/30 to-indigo-950/30 rounded-2xl shadow-2xl border-2 border-purple-800 backdrop-blur-md w-80" data-testid="settings-panel">
+          <Panel
+            position="top-right"
+            className="rounded-2xl shadow-2xl border-2 backdrop-blur-md w-80"
+            style={{
+              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientFrom}, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
+              borderColor: palette.ui.panelBorder
+            }}
+            data-testid="settings-panel"
+          >
             <div className="p-4 space-y-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400 text-sm">⚙️ Canvas Settings</h3>
+                <h3
+                  className="font-semibold text-transparent bg-clip-text text-sm"
+                  style={{
+                    backgroundImage: `linear-gradient(to right, ${palette.ui.panelTitleFrom}, ${palette.ui.panelTitleTo})`
+                  }}
+                >
+                  ⚙️ Canvas Settings
+                </h3>
                 <button
                   onClick={handleToggleSettings}
-                  className="p-1 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors group"
+                  className="p-1 rounded-lg transition-colors group"
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = palette.ui.accentHover + '30'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   title="Close settings"
                 >
-                  <X size={14} className="text-gray-500 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400" />
+                  <X
+                    size={14}
+                    className="text-gray-500 dark:text-gray-400 transition-colors"
+                    onMouseEnter={(e) => (e.currentTarget as SVGElement).style.color = palette.ui.accentColor}
+                    onMouseLeave={(e) => (e.currentTarget as SVGElement).style.color = ''}
+                  />
                 </button>
               </div>
 
@@ -2146,7 +2288,13 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                 <select
                   value={edgeType}
                   onChange={(e) => setEdgeType(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-gray-800 border border-purple-700 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2"
+                  style={{
+                    borderColor: palette.ui.panelBorder,
+                    borderWidth: '1px'
+                  }}
+                  onFocus={(e) => e.currentTarget.style.boxShadow = `0 0 0 2px ${palette.ui.accentColor}40`}
+                  onBlur={(e) => e.currentTarget.style.boxShadow = 'none'}
                 >
                   <option value="default">Bezier (Default)</option>
                   <option value="straight">Straight</option>
@@ -2162,7 +2310,13 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                 <select
                   value={layoutDirection}
                   onChange={(e) => setLayoutDirection(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-gray-800 border border-purple-700 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2"
+                  style={{
+                    borderColor: palette.ui.panelBorder,
+                    borderWidth: '1px'
+                  }}
+                  onFocus={(e) => e.currentTarget.style.boxShadow = `0 0 0 2px ${palette.ui.accentColor}40`}
+                  onBlur={(e) => e.currentTarget.style.boxShadow = 'none'}
                 >
                   <option value="TB">Top to Bottom</option>
                   <option value="LR">Left to Right</option>
@@ -2170,17 +2324,56 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                 <p className="text-xs text-gray-400">Direction for auto-layout algorithm</p>
               </div>
 
+              {/* Color Theme Setting */}
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-gray-300 uppercase tracking-wider">Color Theme</label>
+                <select
+                  value={theme}
+                  onChange={(e) => setTheme(e.target.value as any)}
+                  className="w-full px-3 py-2 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2"
+                  style={{
+                    borderColor: palette.ui.panelBorder,
+                    borderWidth: '1px'
+                  }}
+                  onFocus={(e) => e.currentTarget.style.boxShadow = `0 0 0 2px ${palette.ui.accentColor}40`}
+                  onBlur={(e) => e.currentTarget.style.boxShadow = 'none'}
+                >
+                  {getAvailableThemes().map((themeName) => (
+                    <option key={themeName} value={themeName}>
+                      {COLOR_PALETTES[themeName].name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-400">{COLOR_PALETTES[theme].description}</p>
+              </div>
+
               {/* Workflow Stats */}
-              <div className="pt-3 border-t border-purple-800 space-y-2">
+              <div className="pt-3 border-t space-y-2" style={{ borderColor: palette.ui.panelBorder }}>
                 <div className="text-xs font-medium text-gray-300 uppercase tracking-wider">Workflow Stats</div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="bg-gray-800/50 rounded-lg p-2 border border-purple-700/30">
+                  <div
+                    className="bg-gray-800/50 rounded-lg p-2 border"
+                    style={{ borderColor: palette.ui.panelBorder + '30' }}
+                  >
                     <div className="text-gray-400">States</div>
-                    <div className="text-lg font-bold text-emerald-400">{cleanedWorkflow ? Object.keys(cleanedWorkflow.configuration.states).length : 0}</div>
+                    <div
+                      className="text-lg font-bold"
+                      style={{ color: palette.colors.stateNormal }}
+                    >
+                      {cleanedWorkflow ? Object.keys(cleanedWorkflow.configuration.states).length : 0}
+                    </div>
                   </div>
-                  <div className="bg-gray-800/50 rounded-lg p-2 border border-purple-700/30">
+                  <div
+                    className="bg-gray-800/50 rounded-lg p-2 border"
+                    style={{ borderColor: palette.ui.panelBorder + '30' }}
+                  >
                     <div className="text-gray-400">Transitions</div>
-                    <div className="text-lg font-bold text-pink-400">{uiTransitions.length}</div>
+                    <div
+                      className="text-lg font-bold"
+                      style={{ color: palette.colors.transitionManual }}
+                    >
+                      {uiTransitions.length}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2189,9 +2382,31 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         )}
 
         {showQuickHelp && (
-          <Panel position="top-right" className="bg-gradient-to-br from-gray-900 via-pink-950/30 to-fuchsia-950/30 rounded-2xl shadow-2xl border-2 border-pink-800 backdrop-blur-md w-72 max-h-[50vh]" data-testid="quick-help-panel">
-            <div className="p-3 overflow-y-auto max-h-[50vh] text-xs text-gray-300 space-y-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-pink-900/30 [&::-webkit-scrollbar-thumb]:bg-gradient-to-b [&::-webkit-scrollbar-thumb]:from-pink-600 [&::-webkit-scrollbar-thumb]:to-fuchsia-600 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border [&::-webkit-scrollbar-thumb]:border-pink-700">
-              <div className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-fuchsia-400 mb-2 text-xs">✨ Quick Help</div>
+          <Panel
+            position="top-right"
+            className="rounded-2xl shadow-2xl border-2 backdrop-blur-md w-72 max-h-[50vh]"
+            style={{
+              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientFrom}, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
+              borderColor: palette.ui.panelBorder
+            }}
+            data-testid="quick-help-panel"
+          >
+            <div
+              className="p-3 overflow-y-auto max-h-[50vh] text-xs text-gray-300 space-y-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border"
+              style={{
+                ['--scrollbar-track' as any]: palette.ui.panelBorder + '30',
+                ['--scrollbar-thumb' as any]: palette.ui.accentColor,
+                ['--scrollbar-border' as any]: palette.ui.panelBorder
+              }}
+            >
+              <div
+                className="font-semibold text-transparent bg-clip-text mb-2 text-xs"
+                style={{
+                  backgroundImage: `linear-gradient(to right, ${palette.ui.panelTitleFrom}, ${palette.ui.panelTitleTo})`
+                }}
+              >
+                ✨ Quick Help
+              </div>
 
               {/* Canvas Interactions */}
               <div className="space-y-1">
@@ -2314,6 +2529,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           selectedStateId={selectedStateId}
           selectedTransitionId={selectedTransitionId}
           technicalId={technicalId}
+          palette={palette}
         />
       )}
 

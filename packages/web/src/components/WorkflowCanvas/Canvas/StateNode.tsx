@@ -4,6 +4,7 @@ import type { NodeProps } from '@xyflow/react';
 import { Edit, Play, Square } from 'lucide-react';
 import type { UIStateData } from '../types/workflow';
 import { InlineNameEditor } from '../Editors/InlineNameEditor';
+import type { ColorPalette } from '../themes/colorPalettes';
 
 // ABOUTME: This file contains the StateNode component that renders individual workflow states
 // with 8 anchor points for flexible connection routing and support for loop-back transitions.
@@ -12,6 +13,7 @@ interface StateNodeData {
   label: string;
   state: UIStateData;
   onNameChange: (stateId: string, newName: string) => void;
+  palette: ColorPalette;
 }
 
 // Define anchor point identifiers for the 8-point system
@@ -69,35 +71,43 @@ const ANCHOR_POINTS: Record<AnchorPoint, {
 };
 
 export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
-  const { state, onNameChange } = data as unknown as StateNodeData;
+  const { state, onNameChange, palette } = data as unknown as StateNodeData;
 
   const handleNameChange = (newName: string) => {
     onNameChange(state.id, newName);
+  };
+
+  // Get handle color based on state type using theme palette
+  const getHandleColor = () => {
+    if (state.isInitial) return palette.colors.stateInitial;
+    if (state.isFinal) return palette.colors.stateFinal;
+    return palette.colors.stateNormal;
   };
 
   // Render anchor point handles with both source and target types
   // This allows connections in all directions
   const renderAnchorPoint = (anchorId: AnchorPoint) => {
     const config = ANCHOR_POINTS[anchorId];
+    const handleColor = getHandleColor();
 
     return (
       <React.Fragment key={anchorId}>
-        {/* Render source handle (outgoing connections) */}
+        {/* Render source handle (outgoing connections) - matches state color */}
         <Handle
           type="source"
           position={config.position}
           id={`${anchorId}-source`}
-          style={config.style}
-          className={`w-3.5 h-3.5 !bg-gradient-to-br !from-pink-500 !to-fuchsia-600 !border-2 !border-gray-900 opacity-70 hover:opacity-100 hover:scale-125 transition-all duration-300 shadow-md hover:shadow-lg ${config.className}`}
+          style={{ ...config.style, backgroundColor: handleColor }}
+          className={`w-2.5 h-2.5 !border-0 opacity-60 hover:opacity-100 hover:scale-125 transition-all duration-200 ${config.className}`}
         />
 
-        {/* Render target handle (incoming connections) */}
+        {/* Render target handle (incoming connections) - matches state color */}
         <Handle
           type="target"
           position={config.position}
           id={`${anchorId}-target`}
-          style={config.style}
-          className={`w-3.5 h-3.5 !bg-gradient-to-br !from-lime-500 !to-emerald-600 !border-2 !border-gray-900 opacity-70 hover:opacity-100 hover:scale-125 transition-all duration-300 shadow-md hover:shadow-lg ${config.className}`}
+          style={{ ...config.style, backgroundColor: handleColor }}
+          className={`w-2.5 h-2.5 !border-0 opacity-60 hover:opacity-100 hover:scale-125 transition-all duration-200 ${config.className}`}
           isConnectableStart={false}
         />
       </React.Fragment>
@@ -105,67 +115,81 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
   };
 
   const getNodeStyle = () => {
-    let baseClasses = "px-4 py-3 rounded-xl border-2 shadow-lg transition-all duration-300 min-w-[120px] relative backdrop-blur-sm";
+    // Base classes with smooth rounded corners and solid fill - NO GLOW
+    const baseClasses = "px-5 py-3 rounded-xl transition-all duration-300 min-w-[180px] relative border-0";
+    const selectedClasses = selected ? " ring-2 ring-white ring-offset-2 ring-offset-[#0b0f1a]" : "";
 
-    if (selected) {
-      baseClasses += " ring-4 ring-offset-2 ring-offset-gray-900";
-    }
+    return baseClasses + selectedClasses;
+  };
 
-    if (state.isInitial) {
-      // Dark mode only: Lime to Emerald to Green
-      baseClasses += " border-lime-500 bg-gradient-to-br from-lime-950/40 via-emerald-950/40 to-green-950/40";
-      if (selected) {
-        baseClasses += " ring-lime-500";
-      }
-    } else if (state.isFinal) {
-      // Dark mode only: Hot Pink to Fuchsia to Rose
-      baseClasses += " border-pink-500 bg-gradient-to-br from-pink-950/40 via-fuchsia-950/40 to-rose-950/40";
-      if (selected) {
-        baseClasses += " ring-pink-500";
-      }
-    } else {
-      // Dark mode only: Green to Pink gradient
-      baseClasses += " border-emerald-600 bg-gradient-to-br from-green-950/30 via-emerald-950/30 to-pink-950/30 hover:border-pink-500 hover:shadow-xl hover:scale-[1.02]";
-      if (selected) {
-        baseClasses += " ring-pink-500";
-      }
-    }
-
-    return baseClasses;
+  const getNodeBackgroundColor = () => {
+    if (state.isInitial) return palette.colors.stateInitial;
+    if (state.isFinal) return palette.colors.stateFinal;
+    return palette.colors.stateNormal;
   };
 
   const getIconColor = () => {
-    if (state.isInitial) return "text-lime-400";
-    if (state.isFinal) return "text-pink-400";
-    return "text-emerald-400";
+    // White icons on solid colored backgrounds
+    return "text-white";
   };
 
+  const getBorderColor = () => {
+    // Subtle white divider
+    return "border-white/20";
+  };
+
+  const getTransitionCount = () => {
+    // Count outgoing transitions from this state using transitionIds
+    return state.transitionIds?.length || 0;
+  };
+
+  const transitionCount = getTransitionCount();
+
   return (
-    <div className={getNodeStyle()}>
+    <div className={getNodeStyle()} style={{ backgroundColor: getNodeBackgroundColor() }}>
       {/* Render all 8 anchor points */}
       {(Object.keys(ANCHOR_POINTS) as AnchorPoint[]).map(renderAnchorPoint)}
 
       {/* Node Content */}
-      <div className="flex items-center space-x-2">
-        {/* State Type Icon */}
-        <div className={`flex-shrink-0 ${getIconColor()}`}>
-          {state.isInitial ? (
-            <Play size={14} fill="currentColor" />
-          ) : state.isFinal ? (
-            <Square size={14} fill="currentColor" />
-          ) : (
-            <div className="w-3 h-3 rounded-full border-2 border-current" />
-          )}
+      <div className="flex flex-col space-y-2">
+        {/* Header with icon and name */}
+        <div className="flex items-center space-x-2">
+          {/* State Type Icon */}
+          <div className={`flex-shrink-0 ${getIconColor()}`}>
+            {state.isInitial ? (
+              <Play size={14} fill="currentColor" />
+            ) : state.isFinal ? (
+              <Square size={14} fill="currentColor" />
+            ) : (
+              <div className="w-2.5 h-2.5 rounded-full border-2 border-current" />
+            )}
+          </div>
+
+          {/* State Name with Inline Editing - Bold white text */}
+          <div className="flex-1 min-w-0">
+            <InlineNameEditor
+              value={state.name}
+              onSave={handleNameChange}
+              className="min-w-0"
+              inputClassName="text-sm font-semibold text-white"
+            />
+          </div>
         </div>
 
-        {/* State Name with Inline Editing */}
-        <div className="flex-1 min-w-0">
-          <InlineNameEditor
-            value={state.name}
-            onSave={handleNameChange}
-            className="min-w-0"
-            inputClassName="text-sm font-medium"
-          />
+        {/* Additional Information - Subtle white sublabels with emojis */}
+        <div className={`flex items-center justify-between text-xs text-white/70 pt-2 border-t ${getBorderColor()}`}>
+          <div className="flex items-center space-x-2">
+            {/* State Type Label with emoji */}
+            <span className="font-normal">
+              {state.isInitial ? '🚀 Start' : state.isFinal ? '🏁 End' : '⚡ State'}
+            </span>
+
+            {/* Always show transition count */}
+            <span className="flex items-center space-x-1 font-normal">
+              <span>•</span>
+              <span>🔀 {transitionCount}</span>
+            </span>
+          </div>
         </div>
       </div>
     </div>

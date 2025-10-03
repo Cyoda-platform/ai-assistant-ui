@@ -25,11 +25,11 @@ export interface LayoutResult {
 }
 
 const DEFAULT_OPTIONS: Required<LayoutOptions> = {
-  nodeWidth: 180,      // Slightly larger to account for state node size
-  nodeHeight: 80,      // Slightly larger to account for state node size
-  rankSeparation: 250, // Much larger vertical spacing between levels (was 150)
-  nodeSeparation: 200, // Much larger horizontal spacing between nodes at same level (was 120)
-  edgeSeparation: 60,  // Larger spacing between parallel edges (was 40)
+  nodeWidth: 200,      // State node width (actual visual width ~180px)
+  nodeHeight: 100,     // State node height (actual visual height ~80px)
+  rankSeparation: 400, // MUCH larger vertical spacing to account for transition nodes between states (was 250)
+  nodeSeparation: 300, // MUCH larger horizontal spacing to prevent overlap (was 200)
+  edgeSeparation: 80,  // Larger spacing between parallel edges (was 60)
   direction: 'TB', // Top to Bottom
 };
 
@@ -162,11 +162,15 @@ export function calculateAutoLayout(
           }
         } else {
           // For regular transitions, position midway between source and target
+          // Transition nodes are smaller (80x40), so center them properly
+          const transitionWidth = 80;
+          const transitionHeight = 40;
+
           transitions.push({
             id: transitionId,
             position: {
-              x: (sourceNode.x + targetNode.x) / 2 - opts.nodeWidth / 4,
-              y: (sourceNode.y + targetNode.y) / 2 - opts.nodeHeight / 4,
+              x: (sourceNode.x + targetNode.x) / 2 - transitionWidth / 2,
+              y: (sourceNode.y + targetNode.y) / 2 - transitionHeight / 2,
             },
           });
         }

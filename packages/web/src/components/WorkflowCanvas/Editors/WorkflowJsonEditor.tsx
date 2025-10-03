@@ -3,6 +3,7 @@ import { X, Save, Sparkles, Upload } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import type { WorkflowConfiguration } from '../types/workflow';
 import { WorkflowAIAssistant } from './WorkflowAIAssistant';
+import type { ColorPalette } from '../themes/colorPalettes';
 
 interface WorkflowJsonEditorProps {
   workflow: WorkflowConfiguration;
@@ -12,6 +13,7 @@ interface WorkflowJsonEditorProps {
   selectedStateId?: string | null;
   selectedTransitionId?: string | null;
   technicalId?: string;
+  palette: ColorPalette;
 }
 
 export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
@@ -22,6 +24,7 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
   selectedStateId,
   selectedTransitionId,
   technicalId,
+  palette,
 }) => {
   const [jsonText, setJsonText] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -585,35 +588,57 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
 
   if (!isOpen) return null;
 
+  // Convert hex color to rgba for animations
+  const hexToRgba = (hex: string, alpha: number) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
   return (
     <>
       <style>{`
         .highlighted-line {
-          background-color: rgba(132, 204, 22, 0.2) !important;
+          background-color: ${hexToRgba(palette.ui.accentColor, 0.2)} !important;
           animation: highlight-fade 2s ease-out;
         }
         .highlighted-glyph {
-          background-color: rgba(132, 204, 22, 0.5) !important;
+          background-color: ${hexToRgba(palette.ui.accentColor, 0.5)} !important;
         }
         @keyframes highlight-fade {
-          0% { background-color: rgba(132, 204, 22, 0.4); }
-          100% { background-color: rgba(132, 204, 22, 0.1); }
+          0% { background-color: ${hexToRgba(palette.ui.accentColor, 0.4)}; }
+          100% { background-color: ${hexToRgba(palette.ui.accentColor, 0.1)}; }
         }
       `}</style>
       <div
-        className="h-full bg-gray-800 shadow-2xl flex flex-col border-l-2 border-lime-800 flex-shrink-0 relative z-10"
-        style={{ width: `${width}px` }}
+        className="h-full bg-gray-800 shadow-2xl flex flex-col border-l-2 flex-shrink-0 relative z-10"
+        style={{
+          width: `${width}px`,
+          borderColor: palette.ui.panelBorder
+        }}
       >
       {/* Left Resize Handle */}
       <div
-        className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-lime-500 hover:w-1.5 transition-all z-20 group"
+        className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:w-1.5 transition-all z-20 group"
         onMouseDown={handleResizeStart}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = palette.ui.accentColor}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
         title="Drag to resize"
       >
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-lime-600 rounded-r opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 rounded-r opacity-0 group-hover:opacity-100 transition-opacity"
+          style={{ backgroundColor: palette.ui.accentHover }}
+        />
       </div>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b-2 border-lime-800 bg-gradient-to-r from-lime-950/30 to-emerald-950/30 flex-shrink-0">
+        <div
+          className="flex items-center justify-between p-4 border-b-2 flex-shrink-0"
+          style={{
+            borderColor: palette.ui.panelBorder,
+            background: `linear-gradient(to right, ${palette.ui.panelGradientVia}30, ${palette.ui.panelGradientTo}30)`
+          }}
+        >
           <div className="flex items-center gap-3">
             {/* Import from File Button - Allows importing workflow JSON from a file
                 Purpose: Quick access to import workflow configuration
@@ -621,13 +646,27 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
                 Alignment: Vertically centered with title text using flex items-center */}
             <button
               onClick={handleImportFromFile}
-              className="w-10 h-10 rounded-xl bg-gradient-to-br from-lime-500 to-emerald-600 hover:from-lime-600 hover:to-emerald-700 flex items-center justify-center shadow-lg transition-all hover:scale-105 group"
+              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all hover:scale-105 group"
+              style={{
+                background: `linear-gradient(to bottom right, ${palette.ui.accentColor}, ${palette.ui.accentHover})`
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = `linear-gradient(to bottom right, ${palette.ui.accentHover}, ${palette.ui.panelBorder})`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = `linear-gradient(to bottom right, ${palette.ui.accentColor}, ${palette.ui.accentHover})`;
+              }}
               title="Import workflow from JSON file"
             >
               <Upload size={20} className="text-white group-hover:scale-110 transition-transform" />
             </button>
             <div>
-              <h3 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-lime-400 to-emerald-400">
+              <h3
+                className="text-lg font-bold text-transparent bg-clip-text"
+                style={{
+                  backgroundImage: `linear-gradient(to right, ${palette.ui.panelTitleFrom}, ${palette.ui.panelTitleTo})`
+                }}
+              >
                 Workflow JSON Editor
               </h3>
               <p className="text-xs text-gray-400">
@@ -660,18 +699,31 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
 
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-lime-900/30 transition-colors group"
+              className="p-2 rounded-lg transition-colors group"
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = palette.ui.accentHover + '30'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               title="Close (Esc)"
             >
-              <X size={20} className="text-gray-500 dark:text-gray-400 group-hover:text-lime-600 dark:group-hover:text-lime-400" />
+              <X
+                size={20}
+                className="text-gray-500 dark:text-gray-400 transition-colors"
+                onMouseEnter={(e) => (e.currentTarget as SVGElement).style.color = palette.ui.accentColor}
+                onMouseLeave={(e) => (e.currentTarget as SVGElement).style.color = ''}
+              />
             </button>
           </div>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="mx-4 mt-3 p-2.5 bg-pink-950/30 border border-pink-700 rounded-lg flex-shrink-0">
-            <p className="text-xs text-pink-300 font-medium">
+          <div
+            className="mx-4 mt-3 p-2.5 border rounded-lg flex-shrink-0"
+            style={{
+              backgroundColor: hexToRgba('#dc2626', 0.1),
+              borderColor: '#dc2626'
+            }}
+          >
+            <p className="text-xs font-medium" style={{ color: '#fca5a5' }}>
               ⚠️ {error}
             </p>
           </div>
@@ -679,11 +731,15 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
 
         {/* Monaco Editor */}
         <div className="flex-1 p-4 overflow-hidden">
-          <div className={`h-full rounded-lg overflow-hidden border-2 transition-colors ${
-            error
-              ? 'border-pink-400 dark:border-pink-500 shadow-lg shadow-pink-500/20'
-              : 'border-lime-300 dark:border-lime-600 shadow-lg shadow-lime-500/10'
-          }`}>
+          <div
+            className="h-full rounded-lg overflow-hidden border-2 transition-colors shadow-lg"
+            style={{
+              borderColor: error ? '#dc2626' : palette.ui.accentColor,
+              boxShadow: error
+                ? `0 10px 15px -3px ${hexToRgba('#dc2626', 0.2)}`
+                : `0 10px 15px -3px ${hexToRgba(palette.ui.accentColor, 0.1)}`
+            }}
+          >
             <Editor
               height="100%"
               defaultLanguage="json"
@@ -857,9 +913,18 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-3 border-t-2 border-lime-800 bg-gradient-to-r from-lime-950/30 to-emerald-950/30 flex-shrink-0">
+        <div
+          className="flex items-center justify-between p-3 border-t-2 flex-shrink-0"
+          style={{
+            borderColor: palette.ui.panelBorder,
+            background: `linear-gradient(to right, ${palette.ui.panelGradientVia}30, ${palette.ui.panelGradientTo}30)`
+          }}
+        >
           <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 rounded-full bg-lime-500 animate-pulse"></div>
+            <div
+              className="w-2 h-2 rounded-full animate-pulse"
+              style={{ backgroundColor: palette.ui.accentColor }}
+            ></div>
             <div className="text-xs text-gray-400">
               <strong>Live Editing:</strong> Changes apply automatically
             </div>

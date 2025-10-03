@@ -3,6 +3,7 @@ import { X, Save, Trash2, Check, AlertCircle, Code2, Edit } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { InlineNameEditor } from './InlineNameEditor';
 import type { TransitionDefinition, WorkflowConfiguration } from '../types/workflow';
+import type { ColorPalette } from '../themes/colorPalettes';
 
 interface TransitionEditorProps {
   transitionId: string | null;
@@ -12,6 +13,7 @@ interface TransitionEditorProps {
   onSave: (transitionId: string, definition: TransitionDefinition) => void;
   onDelete?: (transitionId: string) => void;
   workflowConfig?: WorkflowConfiguration | null; // Optional workflow context for autocomplete
+  palette: ColorPalette; // Color palette for theming
 }
 
 export const TransitionEditor: React.FC<TransitionEditorProps> = ({
@@ -21,7 +23,8 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
   onClose,
   onSave,
   onDelete,
-  workflowConfig
+  workflowConfig,
+  palette
 }) => {
   const [transitionName, setTransitionName] = useState('');
   const [jsonText, setJsonText] = useState('');
@@ -397,7 +400,7 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
   return (
     <div
       ref={panelRef}
-      className="fixed bg-gray-800 rounded-lg shadow-2xl flex flex-col border-2 border-lime-800 z-50"
+      className="fixed rounded-lg shadow-2xl flex flex-col border-2 z-50"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
@@ -407,16 +410,27 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
         minHeight: '300px',
         maxWidth: '95vw',
         maxHeight: '95vh',
-        cursor: isDragging ? 'grabbing' : 'default'
+        cursor: isDragging ? 'grabbing' : 'default',
+        background: `linear-gradient(to bottom right, ${palette.ui.panelGradientFrom}, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
+        borderColor: palette.ui.panelBorder
       }}
     >
       {/* Header with Inline Name Editor - Draggable */}
       <div
-        className="flex items-center justify-between p-4 border-b-2 border-lime-800 bg-gradient-to-r from-lime-950/30 to-emerald-950/30 flex-shrink-0 cursor-grab active:cursor-grabbing"
+        className="flex items-center justify-between p-4 border-b-2 flex-shrink-0 cursor-grab active:cursor-grabbing"
+        style={{
+          borderColor: palette.ui.panelBorder,
+          background: `linear-gradient(to right, ${palette.ui.panelGradientFrom}80, ${palette.ui.panelGradientVia}80)`
+        }}
         onMouseDown={handleDragStart}
       >
           <div className="flex items-center space-x-3 flex-1">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-lime-500 to-emerald-600 flex items-center justify-center shadow-lg flex-shrink-0">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center shadow-lg flex-shrink-0"
+              style={{
+                background: `linear-gradient(to bottom right, ${palette.ui.accentColor}, ${palette.ui.accentHover})`
+              }}
+            >
               <Edit size={16} className="text-white" />
             </div>
             <div className="flex-1 min-w-0">
@@ -431,10 +445,20 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-lime-900/30 transition-colors group flex-shrink-0"
+            className="p-2 rounded-lg transition-colors group flex-shrink-0"
+            style={{
+              backgroundColor: 'transparent'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${palette.ui.accentHover}30`}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title="Close (Esc)"
           >
-            <X size={18} className="text-gray-400 group-hover:text-lime-400" />
+            <X
+              size={18}
+              className="text-gray-400 transition-colors"
+              onMouseEnter={(e) => (e.currentTarget as SVGElement).style.color = palette.ui.accentColor}
+              onMouseLeave={(e) => (e.currentTarget as SVGElement).style.color = ''}
+            />
           </button>
         </div>
 
@@ -443,22 +467,26 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
           <div className="h-full flex flex-col">
             <div className="flex items-center justify-between mb-2">
               <label className="flex items-center space-x-2 text-sm font-medium text-gray-300">
-                <Code2 size={16} className="text-lime-500" />
+                <Code2 size={16} style={{ color: palette.ui.accentColor }} />
                 <span>Transition Configuration (JSON)</span>
               </label>
               {isValid && (
-                <div className="flex items-center space-x-1 text-xs text-lime-400">
+                <div className="flex items-center space-x-1 text-xs" style={{ color: palette.ui.accentColor }}>
                   <Check size={14} />
                   <span>Valid</span>
                 </div>
               )}
             </div>
 
-            <div className={`flex-1 rounded-lg overflow-hidden border-2 transition-colors ${
-              error
-                ? 'border-pink-500 shadow-lg shadow-pink-500/20'
-                : 'border-lime-600 shadow-lg shadow-lime-500/10'
-            }`}>
+            <div
+              className="flex-1 rounded-lg overflow-hidden border-2 transition-colors shadow-lg"
+              style={{
+                borderColor: error ? '#dc2626' : palette.ui.accentColor,
+                boxShadow: error
+                  ? '0 10px 15px -3px rgba(220, 38, 38, 0.2)'
+                  : `0 10px 15px -3px ${palette.ui.accentColor}20`
+              }}
+            >
               <Editor
                 height="100%"
                 defaultLanguage="json"
@@ -660,7 +688,14 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
             </div>
 
             {error && (
-              <div className="mt-3 p-3 bg-gradient-to-r from-pink-950/30 via-fuchsia-950/30 to-rose-950/30 border-2 border-pink-600 rounded-lg text-sm text-pink-400 backdrop-blur-sm">
+              <div
+                className="mt-3 p-3 border-2 rounded-lg text-sm backdrop-blur-sm"
+                style={{
+                  background: 'linear-gradient(to right, rgba(220, 38, 38, 0.1), rgba(220, 38, 38, 0.15))',
+                  borderColor: '#dc2626',
+                  color: '#fca5a5'
+                }}
+              >
                 <div className="flex items-start space-x-2">
                   <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
                   <div>
@@ -674,13 +709,31 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="flex justify-between p-4 border-t border-gray-700 flex-shrink-0 bg-gradient-to-r from-gray-800 via-gray-900 to-gray-800">
+        <div
+          className="flex justify-between p-4 border-t flex-shrink-0"
+          style={{
+            borderColor: palette.ui.panelBorder,
+            background: `linear-gradient(to right, ${palette.ui.panelGradientFrom}, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientFrom})`
+          }}
+        >
           <div>
             {onDelete && (
               <button
                 type="button"
                 onClick={handleDelete}
-                className="flex items-center space-x-2 px-4 py-2 text-sm bg-gradient-to-r from-pink-500 via-fuchsia-500 to-rose-500 hover:from-pink-600 hover:via-fuchsia-600 hover:to-rose-600 text-white rounded-lg shadow-lg shadow-pink-500/30 transition-all hover:shadow-xl hover:shadow-pink-500/40 hover:scale-105"
+                className="flex items-center space-x-2 px-4 py-2 text-sm text-white rounded-lg shadow-lg transition-all hover:shadow-xl hover:scale-105"
+                style={{
+                  background: 'linear-gradient(to right, #dc2626, #b91c1c)',
+                  boxShadow: '0 4px 6px -1px rgba(220, 38, 38, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #b91c1c, #991b1b)';
+                  e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(220, 38, 38, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(to right, #dc2626, #b91c1c)';
+                  e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(220, 38, 38, 0.3)';
+                }}
               >
                 <Trash2 size={16} />
                 <span>Delete</span>
@@ -691,11 +744,27 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
             type="button"
             onClick={handleSave}
             disabled={!isValid}
-            className={`flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-all ${
-              isValid
-                ? 'bg-lime-600 hover:bg-lime-700 text-white shadow-md hover:shadow-lg hover:scale-105'
-                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-            }`}
+            className="flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-all text-white shadow-md"
+            style={{
+              backgroundColor: isValid ? palette.ui.accentColor : '#4b5563',
+              color: isValid ? 'white' : '#9ca3af',
+              cursor: isValid ? 'pointer' : 'not-allowed',
+              opacity: isValid ? 1 : 0.6
+            }}
+            onMouseEnter={(e) => {
+              if (isValid) {
+                e.currentTarget.style.backgroundColor = palette.ui.accentHover;
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.3)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (isValid) {
+                e.currentTarget.style.backgroundColor = palette.ui.accentColor;
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+              }
+            }}
           >
             <Save size={16} />
             <span>Save</span>

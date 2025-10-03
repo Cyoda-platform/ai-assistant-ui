@@ -3,6 +3,7 @@ import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { Edit, Filter, Zap, ArrowRight, RotateCcw } from 'lucide-react';
 import type { UITransitionData } from '../types/workflow';
+import type { ColorPalette } from '../themes/colorPalettes';
 
 // ABOUTME: This file contains the TransitionNode component that renders transitions as draggable nodes
 // instead of edges, solving the React Flow edge dragging limitation.
@@ -12,6 +13,7 @@ interface TransitionNodeData {
   transition: UITransitionData;
   onEdit: (transitionId: string) => void;
   isLoopback: boolean;
+  palette: ColorPalette;
 }
 
 // Define all 8 anchor points with their positions and styles
@@ -61,7 +63,7 @@ const ANCHOR_POINTS: Record<AnchorPoint, { position: Position; style: React.CSSP
 };
 
 export const TransitionNode: React.FC<NodeProps> = ({ data, selected }) => {
-  const { transition, onEdit, isLoopback } = data as unknown as TransitionNodeData;
+  const { transition, onEdit, isLoopback, palette } = data as unknown as TransitionNodeData;
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -88,35 +90,19 @@ export const TransitionNode: React.FC<NodeProps> = ({ data, selected }) => {
   const isManual = transition.definition.manual === true;
 
   const getNodeStyle = () => {
-    let baseClasses = "px-3 py-2 rounded-lg border-2 shadow-lg transition-all duration-300 min-w-[100px] backdrop-blur-sm";
+    const baseClasses = "px-3 py-2 rounded-lg border-0 transition-all duration-300 min-w-[100px]";
+    const selectedClasses = selected ? " ring-2 ring-white ring-offset-2 ring-offset-[#0b0f1a]" : "";
 
-    if (selected) {
-      baseClasses += " ring-4 ring-offset-2 ring-offset-gray-900";
-    }
+    return baseClasses + selectedClasses;
+  };
 
-    if (isManual) {
-      // Manual transitions: pink/fuchsia gradient
-      return `${baseClasses} ${
-        selected
-          ? 'bg-gradient-to-br from-pink-900/60 via-fuchsia-900/60 to-rose-900/60 border-pink-400 ring-pink-400'
-          : 'bg-gradient-to-br from-pink-950/40 via-fuchsia-950/40 to-rose-950/40 border-pink-600 hover:border-pink-400 hover:shadow-xl'
-      }`;
-    } else {
-      // Automated transitions: lime/emerald gradient
-      return `${baseClasses} ${
-        selected
-          ? 'bg-gradient-to-br from-lime-900/60 via-emerald-900/60 to-green-900/60 border-lime-400 ring-lime-400'
-          : 'bg-gradient-to-br from-lime-950/40 via-emerald-950/40 to-green-950/40 border-lime-600 hover:border-lime-400 hover:shadow-xl'
-      }`;
-    }
+  const getNodeBackgroundColor = () => {
+    return isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
   };
 
   const getIconColor = () => {
-    if (isManual) {
-      return selected ? 'text-pink-300' : 'text-pink-400';
-    } else {
-      return selected ? 'text-lime-300' : 'text-lime-400';
-    }
+    // White icons on colored backgrounds
+    return 'text-white';
   };
 
   // Render a single anchor point with both source and target handles
@@ -124,25 +110,25 @@ export const TransitionNode: React.FC<NodeProps> = ({ data, selected }) => {
     const config = ANCHOR_POINTS[anchorId];
     return (
       <React.Fragment key={anchorId}>
-        {/* Render source handle (outgoing connections) */}
+        {/* Render source handle (outgoing connections) - invisible */}
         <Handle
           type="source"
           position={config.position}
           id={`${anchorId}-source`}
           style={config.style}
-          className={`w-3.5 h-3.5 !bg-gradient-to-br !from-purple-500 !to-pink-600 !border-2 !border-gray-900 opacity-70 hover:opacity-100 hover:scale-125 transition-all duration-300 shadow-md hover:shadow-lg ${config.className}`}
+          className={`w-2.5 h-2.5 !bg-transparent !border-0 opacity-0 ${config.className}`}
           isConnectable={true}
           isConnectableStart={true}
           isConnectableEnd={true}
         />
 
-        {/* Render target handle (incoming connections) */}
+        {/* Render target handle (incoming connections) - invisible */}
         <Handle
           type="target"
           position={config.position}
           id={`${anchorId}-target`}
           style={config.style}
-          className={`w-3.5 h-3.5 !bg-gradient-to-br !from-blue-500 !to-cyan-600 !border-2 !border-gray-900 opacity-70 hover:opacity-100 hover:scale-125 transition-all duration-300 shadow-md hover:shadow-lg ${config.className}`}
+          className={`w-2.5 h-2.5 !bg-transparent !border-0 opacity-0 ${config.className}`}
           isConnectable={true}
           isConnectableStart={true}
           isConnectableEnd={true}
@@ -154,6 +140,7 @@ export const TransitionNode: React.FC<NodeProps> = ({ data, selected }) => {
   return (
     <div
       className={getNodeStyle()}
+      style={{ backgroundColor: getNodeBackgroundColor() }}
       onDoubleClick={handleDoubleClick}
       title="Double-click to edit transition"
     >
@@ -181,13 +168,13 @@ export const TransitionNode: React.FC<NodeProps> = ({ data, selected }) => {
         {/* Indicators */}
         <div className="flex items-center space-x-1">
           {hasCriterion && (
-            <div className="text-pink-400" title="Has criterion">
+            <div className="text-white/80" title="Has criterion">
               <Filter size={10} />
             </div>
           )}
 
           {hasProcessors && (
-            <div className="flex items-center space-x-0.5 text-green-400" title={`${transition.definition.processors!.length} processors`}>
+            <div className="flex items-center space-x-0.5 text-white/80" title={`${transition.definition.processors!.length} processors`}>
               <Zap size={10} />
               <span className="text-xs">{transition.definition.processors!.length}</span>
             </div>
