@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { X, Save, Sparkles } from 'lucide-react';
+import { X, Save, Sparkles, Upload } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import type { WorkflowConfiguration } from '../types/workflow';
 import { WorkflowAIAssistant } from './WorkflowAIAssistant';
@@ -544,6 +544,45 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
     };
   }, [isResizing]);
 
+  // Import from file handler
+  const handleImportFromFile = useCallback(() => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const config = JSON.parse(text) as WorkflowConfiguration;
+
+        // Validate required fields
+        if (!config.version || !config.name || !config.initialState || !config.states) {
+          alert('Invalid workflow JSON: missing required fields (version, name, initialState, states)');
+          return;
+        }
+
+        if (Object.keys(config.states).length === 0) {
+          alert('Invalid workflow JSON: states object cannot be empty');
+          return;
+        }
+
+        // Update the editor with the imported JSON
+        const formattedJson = JSON.stringify(config, null, 2);
+        setJsonText(formattedJson);
+
+        // Trigger save after a short delay to allow the editor to update
+        setTimeout(() => {
+          onSave(config);
+        }, 100);
+      } catch (error) {
+        alert(`Error importing workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    };
+    input.click();
+  }, [onSave]);
+
   if (!isOpen) return null;
 
   return (
@@ -575,14 +614,18 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
       </div>
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b-2 border-lime-800 bg-gradient-to-r from-lime-950/30 to-emerald-950/30 flex-shrink-0">
-          <div className="flex items-center space-x-3">
-            {/* JSON Editor Icon - Visual representation of JSON curly braces
-                Purpose: Provides a visual identifier for the JSON editor panel
+          <div className="flex items-center gap-3">
+            {/* Import from File Button - Allows importing workflow JSON from a file
+                Purpose: Quick access to import workflow configuration
                 Size: 40x40px (w-10 h-10) - matches standard icon size for panel headers
                 Alignment: Vertically centered with title text using flex items-center */}
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-lime-500 to-emerald-600 flex items-center justify-center shadow-lg">
-              <span className="text-white text-xl font-bold">{ }</span>
-            </div>
+            <button
+              onClick={handleImportFromFile}
+              className="w-10 h-10 rounded-xl bg-gradient-to-br from-lime-500 to-emerald-600 hover:from-lime-600 hover:to-emerald-700 flex items-center justify-center shadow-lg transition-all hover:scale-105 group"
+              title="Import workflow from JSON file"
+            >
+              <Upload size={20} className="text-white group-hover:scale-110 transition-transform" />
+            </button>
             <div>
               <h3 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-lime-400 to-emerald-400">
                 Workflow JSON Editor

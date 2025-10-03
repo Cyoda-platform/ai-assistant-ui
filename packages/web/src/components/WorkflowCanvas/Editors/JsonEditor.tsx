@@ -90,7 +90,7 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
       <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700 flex-shrink-0">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-3">
             <h3 className="text-lg font-medium text-white">
               {title}
             </h3>

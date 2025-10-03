@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Database, History, Clock, X, RefreshCw, RotateCcw } from 'lucide-react';
+import { Database, History, Clock, X, RotateCcw } from 'lucide-react';
 import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
 import { useResizablePanel } from '@/hooks/useResizablePanel';
 
@@ -107,12 +107,6 @@ const EntityDataPanel: React.FC<EntityDataPanelProps> = ({
 
   const activeEntity = entitiesData.find(entity => entity.id === activeEntityId);
 
-  const handleRefresh = () => {
-    if (onRefresh) {
-      onRefresh();
-    }
-  };
-
   const handleRollbackClick = () => {
     setShowRestartConfirm(true);
   };
@@ -151,14 +145,6 @@ const EntityDataPanel: React.FC<EntityDataPanelProps> = ({
           </span>
         </div>
         <div className="flex items-center space-x-2">
-          {/* Refresh Button */}
-          <button
-            onClick={handleRefresh}
-            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
-            title="Refresh Data"
-          >
-            <RefreshCw size={16} />
-          </button>
           {/* Restart Button */}
           {onRollbackChat && (
             <button

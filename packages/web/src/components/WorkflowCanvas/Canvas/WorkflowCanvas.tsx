@@ -18,7 +18,7 @@ import {
 } from '@xyflow/react';
 import type { Node, Edge, Connection, OnConnect, OnReconnect } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Network, Download, Upload, FileJson, Info, X, Cloud, CloudDownload, CloudUpload, Maximize2, Minimize2 } from 'lucide-react';
+import { Network, Download, Upload, FileJson, Info, X, Cloud, CloudDownload, CloudUpload, Maximize2, Minimize2, Settings } from 'lucide-react';
 import axios from 'axios';
 import { useAuthStore } from '@/stores/auth';
 import { Modal } from 'antd';
@@ -278,8 +278,13 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   const [showQuickHelp, setShowQuickHelp] = useState(false);
   const [showJsonEditor, setShowJsonEditor] = useState(true); // Open by default
   const [showWorkflowInfo, setShowWorkflowInfo] = useState(true); // Show workflow info panel by default
+  const [showSettings, setShowSettings] = useState(false);
   const [selectedStateId, setSelectedStateId] = useState<string | null>(null);
   const [selectedTransitionId, setSelectedTransitionId] = useState<string | null>(null);
+
+  // Settings state
+  const [edgeType, setEdgeType] = useState<'default' | 'straight' | 'step' | 'smoothstep'>('default');
+  const [layoutDirection, setLayoutDirection] = useState<'TB' | 'LR'>('TB');
 
   // Notifications
   const { notifications, removeNotification, showSuccess, showError, showInfo, showWarning } = useNotifications();
@@ -1414,12 +1419,12 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   const handleAutoLayout = useCallback(() => {
     if (!cleanedWorkflow || !canAutoLayout(cleanedWorkflow)) return;
 
-    const layoutedWorkflow = autoLayoutWorkflow(cleanedWorkflow);
+    const layoutedWorkflow = autoLayoutWorkflow(cleanedWorkflow, { direction: layoutDirection });
 
     // Apply the layout with animation by updating the workflow
     // React Flow will automatically animate the position changes
     onWorkflowUpdate(layoutedWorkflow, 'Applied auto-layout');
-  }, [cleanedWorkflow, onWorkflowUpdate]);
+  }, [cleanedWorkflow, onWorkflowUpdate, layoutDirection]);
 
   // Quick Help toggle handler
   const handleToggleQuickHelp = useCallback(() => {
@@ -1434,6 +1439,11 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   // Workflow Info toggle handler
   const handleToggleWorkflowInfo = useCallback(() => {
     setShowWorkflowInfo(prev => !prev);
+  }, []);
+
+  // Settings toggle handler
+  const handleToggleSettings = useCallback(() => {
+    setShowSettings(prev => !prev);
   }, []);
 
   // Handle node click to navigate in JSON editor
@@ -1466,6 +1476,17 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     // Create layout states for any new states
     const existingStateIds = cleanedWorkflow.layout.states.map(s => s.id);
     const newStateIds = Object.keys(config.states).filter(id => !existingStateIds.includes(id));
+    const configStateIds = Object.keys(config.states);
+
+    // Detect if this is a major change that should trigger auto-layout:
+    // 1. Workflow name changed (indicates a completely different workflow)
+    // 2. More than 50% of states are new
+    // 3. More than 50% of old states were removed
+    const isWorkflowNameChanged = config.name !== cleanedWorkflow.configuration.name;
+    const newStatesRatio = newStateIds.length / Math.max(configStateIds.length, 1);
+    const removedStatesCount = existingStateIds.filter(id => !config.states[id]).length;
+    const removedStatesRatio = removedStatesCount / Math.max(existingStateIds.length, 1);
+    const shouldAutoLayout = isWorkflowNameChanged || newStatesRatio > 0.5 || removedStatesRatio > 0.5;
 
     const newLayoutStates = newStateIds.map((stateId, index) => ({
       id: stateId,
@@ -1496,9 +1517,14 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       updatedAt: now
     };
 
-    // Don't apply auto-layout - preserve user's manual positioning
-    // Only new states will get default positions
-    onWorkflowUpdate(updatedWorkflow, 'Updated workflow JSON');
+    // Apply auto-layout if this is a major change (new workflow pasted)
+    // Otherwise preserve user's manual positioning
+    if (shouldAutoLayout) {
+      const layoutedWorkflow = autoLayoutWorkflow(updatedWorkflow);
+      onWorkflowUpdate(layoutedWorkflow, 'Updated workflow JSON with auto-layout');
+    } else {
+      onWorkflowUpdate(updatedWorkflow, 'Updated workflow JSON');
+    }
   }, [cleanedWorkflow, onWorkflowUpdate]);
 
   // Export workflow JSON
@@ -1952,7 +1978,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         // Smooth animations
         defaultEdgeOptions={{
           animated: false,
-          style: { strokeWidth: 2 }
+          style: { strokeWidth: 2 },
+          type: edgeType
         }}
       >
         <Background />
@@ -2010,6 +2037,14 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             data-testid="auto-layout-button"
           >
             <Network size={16} />
+          </ControlButton>
+          <ControlButton
+            onClick={handleToggleSettings}
+            title="Canvas Settings"
+            className={showSettings ? 'bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900 dark:to-indigo-900 border-2 border-purple-400' : ''}
+            data-testid="settings-button"
+          >
+            <Settings size={16} />
           </ControlButton>
           <ControlButton
             onClick={handleToggleQuickHelp}
@@ -2073,6 +2108,68 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                   >
                     <X size={14} className="text-gray-500 dark:text-gray-400 group-hover:text-lime-600 dark:group-hover:text-lime-400" />
                   </button>
+                </div>
+              </div>
+            </div>
+          </Panel>
+        )}
+
+        {showSettings && (
+          <Panel position="top-right" className="bg-gradient-to-br from-gray-900 via-purple-950/30 to-indigo-950/30 rounded-2xl shadow-2xl border-2 border-purple-800 backdrop-blur-md w-80" data-testid="settings-panel">
+            <div className="p-4 space-y-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400 text-sm">⚙️ Canvas Settings</h3>
+                <button
+                  onClick={handleToggleSettings}
+                  className="p-1 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors group"
+                  title="Close settings"
+                >
+                  <X size={14} className="text-gray-500 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400" />
+                </button>
+              </div>
+
+              {/* Edge Type Setting */}
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-gray-300 uppercase tracking-wider">Edge Type</label>
+                <select
+                  value={edgeType}
+                  onChange={(e) => setEdgeType(e.target.value as any)}
+                  className="w-full px-3 py-2 bg-gray-800 border border-purple-700 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="default">Bezier (Default)</option>
+                  <option value="straight">Straight</option>
+                  <option value="step">Step</option>
+                  <option value="smoothstep">Smooth Step</option>
+                </select>
+                <p className="text-xs text-gray-400">Changes the style of connection lines between nodes</p>
+              </div>
+
+              {/* Layout Direction Setting */}
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-gray-300 uppercase tracking-wider">Auto-Layout Direction</label>
+                <select
+                  value={layoutDirection}
+                  onChange={(e) => setLayoutDirection(e.target.value as any)}
+                  className="w-full px-3 py-2 bg-gray-800 border border-purple-700 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="TB">Top to Bottom</option>
+                  <option value="LR">Left to Right</option>
+                </select>
+                <p className="text-xs text-gray-400">Direction for auto-layout algorithm</p>
+              </div>
+
+              {/* Workflow Stats */}
+              <div className="pt-3 border-t border-purple-800 space-y-2">
+                <div className="text-xs font-medium text-gray-300 uppercase tracking-wider">Workflow Stats</div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="bg-gray-800/50 rounded-lg p-2 border border-purple-700/30">
+                    <div className="text-gray-400">States</div>
+                    <div className="text-lg font-bold text-emerald-400">{cleanedWorkflow ? Object.keys(cleanedWorkflow.configuration.states).length : 0}</div>
+                  </div>
+                  <div className="bg-gray-800/50 rounded-lg p-2 border border-purple-700/30">
+                    <div className="text-gray-400">Transitions</div>
+                    <div className="text-lg font-bold text-pink-400">{uiTransitions.length}</div>
+                  </div>
                 </div>
               </div>
             </div>

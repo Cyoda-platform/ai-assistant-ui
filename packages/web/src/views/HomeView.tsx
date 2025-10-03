@@ -167,12 +167,15 @@ const HomeView: React.FC = () => {
       }
 
       if (response?.data?.technical_id) {
-        // Refresh chat list in background (don't await - let it load while navigating)
-        assistantStore.getChats().catch(error => {
+        // Wait for chat list to refresh before navigating
+        // This ensures the new chat appears in the sidebar
+        try {
+          await assistantStore.getChats();
+        } catch (error) {
           console.error('Failed to refresh chat list:', error);
-        });
+        }
 
-        // Navigate immediately to chat details page
+        // Navigate to chat details page after chat list is updated
         navigate(`/chat/${response.data.technical_id}`);
       }
     } catch (error) {
