@@ -40,9 +40,13 @@ const HomeView: React.FC = () => {
   const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [pendingMessage, setPendingMessage] = useState<{ input: string; files: File[] } | null>(null);
+  const [isResizing, setIsResizing] = useState(false);
   const chatInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const initialWidthRef = useRef<number>(0);
+  const mainContentRef = useRef<HTMLDivElement>(null);
 
   // Check if canvas should be opened from URL parameter
   useEffect(() => {
@@ -123,6 +127,56 @@ const HomeView: React.FC = () => {
       });
     }
   }, [superUserMode]);
+
+  // Detect main content area resize and hide feature cards when width decreased by 50%
+  useEffect(() => {
+    if (!mainContentRef.current) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const currentWidth = entry.contentRect.width;
+
+        // Initialize on first observation
+        if (initialWidthRef.current === 0) {
+          initialWidthRef.current = currentWidth;
+          console.log('Initial content width set:', currentWidth);
+          return;
+        }
+
+        const initialWidth = initialWidthRef.current;
+        const widthDecrease = ((initialWidth - currentWidth) / initialWidth) * 100;
+
+        console.log('Content resize detected:', {
+          initialWidth,
+          currentWidth,
+          widthDecrease: widthDecrease.toFixed(2) + '%',
+          shouldHide: widthDecrease >= 50
+        });
+
+        // Hide cards if width decreased by 50% or more
+        if (widthDecrease >= 50) {
+          setIsResizing(true);
+        } else {
+          setIsResizing(false);
+        }
+
+        // Update initial width if content is getting larger (reset baseline)
+        if (currentWidth > initialWidth) {
+          initialWidthRef.current = currentWidth;
+          console.log('Baseline width updated to:', currentWidth);
+        }
+      }
+    });
+
+    resizeObserver.observe(mainContentRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Check if user is a guest by parsing the token
   const isGuestUser = useMemo(() => {
@@ -443,7 +497,7 @@ const HomeView: React.FC = () => {
 
         {/* Enhanced Main Content - Hidden when canvas is fullscreen */}
         {!isCanvasFullscreen && (
-          <div className="flex-1 flex flex-col bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
+          <div ref={mainContentRef} className="flex-1 flex flex-col bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
             <div className="p-8 flex-1 overflow-y-auto scrollbar-thin">
             <div className="max-w-4xl mx-auto">
               {/* Enhanced Header */}
@@ -461,27 +515,29 @@ const HomeView: React.FC = () => {
               </div>
 
               {/* Enhanced Feature Cards */}
-              <div className="grid md:grid-cols-3 gap-6 mb-8">
-                {features.map((feature, index) => (
-                  <div
-                    key={index}
-                    className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-slate-600 transition-all duration-200 animate-fade-in-up hover:shadow-xl hover:shadow-slate-900/20"
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  >
-                    <div className="flex items-start space-x-4">
-                      <div className={`w-10 h-10 rounded-lg bg-${feature.color}-500 flex items-center justify-center flex-shrink-0 shadow-lg`}>
-                        {feature.icon}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-white mb-2">{feature.title}</h3>
-                        <p className="text-slate-300 text-sm leading-relaxed">
-                          {feature.description}
-                        </p>
+              {!isResizing && (
+                <div className="grid md:grid-cols-3 gap-6 mb-8">
+                  {features.map((feature, index) => (
+                    <div
+                      key={index}
+                      className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-slate-600 transition-all duration-200 animate-fade-in-up hover:shadow-xl hover:shadow-slate-900/20"
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      <div className="flex items-start space-x-4">
+                        <div className={`w-10 h-10 rounded-lg bg-${feature.color}-500 flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                          {feature.icon}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-white mb-2">{feature.title}</h3>
+                          <p className="text-slate-300 text-sm leading-relaxed">
+                            {feature.description}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
               {/* Chat Input - Lovable Style */}
               <div className="mb-6">

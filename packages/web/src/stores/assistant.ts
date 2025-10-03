@@ -78,7 +78,7 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
   },
 
   postTextQuestions(technical_id: string, data: any) {
-    return privateClient.post(`/v1/chats/${technical_id}/text-questions`, data);
+    return privateClient.post(`/v1/chats/text-questions`, data);
   },
 
   postQuestions(technical_id: string, data: any) {
