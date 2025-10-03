@@ -60,7 +60,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
         <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
           <div className="flex items-center space-x-2">
             <History size={18} className="text-teal-400" />
-            <h3 className="font-semibold text-white">Chat History</h3>
+            <h3 className="font-semibold text-white translate-y-[20%]">Chat History</h3>
           </div>
           <button
             onClick={onClose}
@@ -100,7 +100,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
           }`}
         >
           <Home size={19} className="group-hover:scale-110 transition-transform flex-shrink-0" />
-          <span className="font-semibold text-sm">Home</span>
+          <span className="font-semibold text-sm">New Chat</span>
         </a>
 
         {/* Current Chat / History Header */}

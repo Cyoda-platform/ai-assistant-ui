@@ -184,7 +184,7 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
           </div>
 
           {/* Action Block */}
-          <div className={`bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-xl p-4 shadow-lg relative group ${message.approve ? 'pb-12' : ''}`}>
+          <div className={`bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-3xl p-4 shadow-lg relative group ${message.approve ? 'pb-12' : ''}`}>
             {/* Method and Path */}
             <div className="flex items-center space-x-3 mb-3">
               <span className={`${getMethodColor(functionData.method)} text-white text-xs font-bold px-3 py-1 rounded-md min-w-[70px] text-center`}>

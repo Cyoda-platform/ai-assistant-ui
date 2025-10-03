@@ -476,37 +476,6 @@ const HomeView: React.FC = () => {
                 ))}
               </div>
 
-              {/* File attachments display - Above input */}
-              {attachedFiles.length > 0 && (
-                <div className="mb-4 p-4 bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-2xl">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium text-slate-300">Attached Files ({attachedFiles.length})</span>
-                    <button
-                      type="button"
-                      onClick={() => setAttachedFiles([])}
-                      className="text-xs text-slate-400 hover:text-white transition-colors"
-                    >
-                      Clear All
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {attachedFiles.map((file, index) => (
-                      <div key={index} className="bg-slate-700/50 text-slate-300 px-3 py-2 rounded-lg text-sm flex items-center space-x-2 border border-slate-600">
-                        <Paperclip size={14} className="text-teal-400" />
-                        <span className="max-w-[200px] truncate">{file.name}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveFile(index)}
-                          className="hover:text-red-400 transition-colors ml-1"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* Chat Input - Lovable Style */}
               <div className="mb-6">
                 <form onSubmit={handleChatSubmit}>
@@ -538,7 +507,7 @@ const HomeView: React.FC = () => {
                       }}
                       placeholder="What would you like to build together today?"
                       rows={1}
-                      className="w-full bg-slate-800/60 backdrop-blur-sm border-2 border-slate-600/50 rounded-3xl pl-6 pr-6 pb-16 pt-6 text-white placeholder-slate-400 focus:outline-none focus:border-teal-500/80 focus:bg-slate-800/80 transition-all duration-200 text-2xl shadow-2xl resize-none overflow-hidden"
+                      className="w-full bg-slate-800/60 backdrop-blur-sm border-2 border-slate-600/50 rounded-3xl pl-6 pr-6 pb-16 pt-6 text-white placeholder-slate-400 focus:outline-none focus:border-teal-500/80 focus:bg-slate-800/80 transition-all duration-200 text-2xl shadow-2xl resize-none overflow-hidden translate-y-[20%]"
                       style={{ minHeight: '135px', maxHeight: '300px' }}
                       disabled={isLoading}
                     />
@@ -572,6 +541,37 @@ const HomeView: React.FC = () => {
                   </div>
                 </form>
 
+                {/* File attachments display - Below input */}
+                {attachedFiles.length > 0 && (
+                  <div className="mt-4 p-4 bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-2xl  translate-y-[10%]">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-medium text-slate-300">Attached Files ({attachedFiles.length})</span>
+                      <button
+                        type="button"
+                        onClick={() => setAttachedFiles([])}
+                        className="text-xs text-slate-400 hover:text-white transition-colors"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {attachedFiles.map((file, index) => (
+                        <div key={index} className="bg-slate-700/50 text-slate-300 px-3 py-2 rounded-lg text-sm flex items-center space-x-2 border border-slate-600">
+                          <Paperclip size={14} className="text-teal-400" />
+                          <span className="max-w-[200px] truncate">{file.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFile(index)}
+                            className="hover:text-red-400 transition-colors ml-1"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Hidden File Input */}
                 <input
                   ref={fileInputRef}
@@ -584,7 +584,7 @@ const HomeView: React.FC = () => {
               </div>
 
               {/* Quick Actions */}
-              <div className="mb-6">
+              <div className="mb-6 translate-y-[20%]">
                 <h2 className="text-xl font-semibold mb-3 flex items-center space-x-2">
                   <Zap className="text-teal-400" size={20} />
                   <span>Quick Start</span>
@@ -609,7 +609,7 @@ const HomeView: React.FC = () => {
               </div>
 
               {/* Footer */}
-              <div className="mt-8">
+              <div className="mt-8  translate-y-[50%]">
                 <p className="text-center text-slate-600 text-xs leading-relaxed">
                   By using this service, you confirm that you have read and agree to our{' '}
                   <a href="https://cyoda.com/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300 underline transition-colors">Terms & Conditions</a>

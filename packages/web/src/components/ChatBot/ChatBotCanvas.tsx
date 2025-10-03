@@ -223,7 +223,7 @@ gantt
       <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
         <div className="flex items-center space-x-2">
           <Activity size={18} className="text-teal-400" />
-          <h3 className="font-semibold text-white">Canvas</h3>
+          <h3 className="font-semibold text-white translate-y-[20%]">Canvas</h3>
           <span className="text-xs bg-teal-500/20 text-teal-300 px-2 py-1 rounded-full">Active</span>
         </div>
         <div className="flex items-center space-x-2">
@@ -236,13 +236,6 @@ gantt
               {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
             </button>
           )}
-          <button
-            onClick={() => setSettingsDialogVisible(true)}
-            className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
-            title="Canvas Settings"
-          >
-            <Settings size={14} />
-          </button>
           <button
             onClick={onToggleCanvas}
             className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"

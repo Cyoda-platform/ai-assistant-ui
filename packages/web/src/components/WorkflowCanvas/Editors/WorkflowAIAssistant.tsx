@@ -189,13 +189,13 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] animate-in fade-in duration-200">
       <div className="bg-gray-900 rounded-2xl shadow-2xl w-full max-w-3xl mx-4 flex flex-col max-h-[85vh] border-2 border-purple-800 animate-in slide-in-from-bottom-4 duration-300">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-700 bg-gradient-to-r from-purple-950/30 to-pink-950/30 rounded-t-2xl">
+        <div className="flex items-center justify-between p-4 border-b border-gray-700 bg-gradient-to-r from-purple-950/30 to-pink-950/30 rounded-t-2xl">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">
+              <h2 className="text-xl font-bold text-white translate-y-[20%]">
                 AI Workflow Assistant
               </h2>
               <p className="text-sm text-gray-400">
@@ -336,7 +336,7 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
               )}
             </button>
           </div>
-          <p className="text-xs text-gray-400 mt-3">
+          <p className="text-xs text-gray-400 mt-5 translate-y-[40%]">
             Press <kbd className="px-2 py-1 bg-gray-700 rounded">Enter</kbd> to send, <kbd className="px-2 py-1 bg-gray-700 rounded">Shift+Enter</kbd> for new line
           </p>
         </div>

@@ -880,6 +880,18 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     cleanedWorkflow?.updatedAt, // This changes when the workflow is updated
   ]);
 
+  // Update edge types when edgeType setting changes
+  React.useEffect(() => {
+    if (edges.length > 0) {
+      setEdges((eds) =>
+        eds.map((edge) => ({
+          ...edge,
+          type: edgeType,
+        }))
+      );
+    }
+  }, [edgeType, setEdges]);
+
   // Auto-center the workflow when layout is updated (e.g., after JSON import or auto-layout)
   React.useEffect(() => {
     if (cleanedWorkflow && nodes.length > 0) {

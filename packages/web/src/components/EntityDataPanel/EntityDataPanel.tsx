@@ -139,7 +139,7 @@ const EntityDataPanel: React.FC<EntityDataPanelProps> = ({
       <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
         <div className="flex items-center space-x-2">
           <Database size={18} className="text-blue-400" />
-          <h3 className="font-semibold text-white">Entity Data</h3>
+          <h3 className="font-semibold text-white translate-y-[20%]">Entity Data</h3>
           <span className="bg-blue-500/20 text-blue-300 text-xs px-2 py-1 rounded-full font-medium">
             Live
           </span>

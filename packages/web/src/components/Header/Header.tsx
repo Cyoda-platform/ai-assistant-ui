@@ -16,7 +16,8 @@ import {
   Linkedin,
   BookOpen,
   Github,
-  Shield
+  Shield,
+  Menu
 } from 'lucide-react';
 import AuthState from '@/components/AuthState/AuthState';
 import Logo from '@/assets/images/logo.svg';
@@ -62,6 +63,7 @@ const Header: React.FC<HeaderProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   // Super user mode state
   const superUserMode = useSuperUserMode();
@@ -138,32 +140,36 @@ const Header: React.FC<HeaderProps> = ({
   return (
     <>
       <header className="border-b border-slate-700 bg-slate-800/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="flex items-center justify-between px-6 py-3">
-          <div className="flex items-center space-x-6">
-            <div
-              className="flex items-center space-x-3 cursor-pointer"
-              onClick={() => navigate('/')}
+        <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 py-3">
+          {/* Left Section - Logo */}
+          <div className="flex items-center space-x-2 sm:space-x-4 md:space-x-6">
+            <a
+              href="/"
+              className="flex items-center space-x-2 sm:space-x-3 cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                // Close canvas if it's visible
+                if (canvasVisible && onToggleCanvas) {
+                  onToggleCanvas();
+                }
+                navigate('/');
+              }}
             >
-              <img src={Logo} alt="CYODA" className="h-8" />
+              <img src={Logo} alt="CYODA" className="h-6 sm:h-7 md:h-8" />
               <span className="text-xs bg-slate-700 px-2 py-1 rounded-full text-slate-300 font-medium">ALPHA</span>
-            </div>
+            </a>
 
-            {/* Super User Mode Badge */}
+            {/* Super User Mode Badge - Hidden on mobile */}
             {superUserMode && isCyodaEmployee && (
-              <div className="flex items-center space-x-2 bg-teal-500/20 border border-teal-500/50 px-3 py-1 rounded-full">
+              <div className="hidden sm:flex items-center space-x-2 bg-teal-500/20 border border-teal-500/50 px-3 py-1 rounded-full">
                 <Shield size={14} className="text-teal-400" />
                 <span className="text-xs text-teal-400 font-semibold">SUPER USER</span>
               </div>
             )}
-
-            {/* Breadcrumb */}
-            <div className="hidden md:flex items-center space-x-2 text-sm text-slate-400">
-              <ChevronRight size={14} />
-              <span>{getBreadcrumb()}</span>
-            </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          {/* Right Section - Desktop */}
+          <div className="hidden md:flex items-center space-x-3">
             <div className="w-px h-6 bg-slate-600 mx-2"></div>
 
             {/* Action Buttons - Only show on chat page */}
@@ -219,8 +225,8 @@ const Header: React.FC<HeaderProps> = ({
               </div>
             )}
 
-            {/* Social Media Buttons */}
-            <div className="flex items-center space-x-2">
+            {/* Social Media Buttons - Hidden on mobile and tablet */}
+            <div className="hidden lg:flex items-center space-x-2">
               {/* Documentation */}
               <a
                 href="https://docs.cyoda.net/"
@@ -255,14 +261,14 @@ const Header: React.FC<HeaderProps> = ({
               </a>
             </div>
 
-            <div className="w-px h-6 bg-slate-600"></div>
+            <div className="hidden lg:block w-px h-6 bg-slate-600"></div>
 
-            {/* Discord */}
+            {/* Discord - Hidden on mobile */}
             <a
               href="https://discord.com/invite/95rdAyBZr2"
               target="_blank"
               rel="noopener noreferrer"
-              className="relative p-2 rounded-lg text-slate-400 hover:text-white hover:bg-indigo-600 transition-all duration-200 group"
+              className="hidden lg:block relative p-2 rounded-lg text-slate-400 hover:text-white hover:bg-indigo-600 transition-all duration-200 group"
               title="Join our Discord Community"
             >
               <svg
@@ -311,7 +317,7 @@ const Header: React.FC<HeaderProps> = ({
               {/* Notifications Dropdown */}
               {showNotifications && (
                 <div
-                  className="absolute right-0 top-full mt-2 w-80 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-[10000]"
+                  className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-[10000]"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex items-center justify-between p-4 border-b border-slate-700">
@@ -382,16 +388,164 @@ const Header: React.FC<HeaderProps> = ({
             {/* User Profile */}
             <AuthState />
           </div>
+
+          {/* Mobile Right Section - Menu Only */}
+          <div className="flex md:hidden items-center space-x-2">
+            {/* Hamburger Menu Button */}
+            <button
+              onClick={() => {
+                setShowMobileMenu(!showMobileMenu);
+              }}
+              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+              title="Menu"
+            >
+              {showMobileMenu ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {showMobileMenu && (
+          <div className="md:hidden border-t border-slate-700 bg-slate-800/95 backdrop-blur-sm">
+            <div className="px-3 py-4 space-y-3">
+              {/* Super User Mode Badge - Mobile */}
+              {superUserMode && isCyodaEmployee && (
+                <div className="flex items-center space-x-2 bg-teal-500/20 border border-teal-500/50 px-3 py-2 rounded-lg">
+                  <Shield size={14} className="text-teal-400" />
+                  <span className="text-xs text-teal-400 font-semibold">SUPER USER MODE</span>
+                </div>
+              )}
+
+              {/* Action Buttons - Mobile */}
+              {showActions && (
+                <div className="space-y-2">
+                  {onToggleChatHistory && (
+                    <button
+                      onClick={() => {
+                        onToggleChatHistory();
+                        setShowMobileMenu(false);
+                      }}
+                      className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
+                        chatHistoryVisible
+                          ? 'bg-teal-500/20 text-teal-400'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                      }`}
+                    >
+                      <History size={20} />
+                      <span className="text-sm font-medium">{chatHistoryVisible ? 'Hide' : 'Show'} History</span>
+                    </button>
+                  )}
+
+                  {onToggleCanvas && (
+                    <button
+                      onClick={() => {
+                        onToggleCanvas();
+                        setShowMobileMenu(false);
+                      }}
+                      className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
+                        canvasVisible
+                          ? 'bg-teal-500/20 text-teal-400'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                      }`}
+                    >
+                      <Activity size={20} />
+                      <span className="text-sm font-medium">{canvasVisible ? 'Close' : 'Open'} Canvas</span>
+                    </button>
+                  )}
+
+                  {onToggleEntities && (
+                    <button
+                      onClick={() => {
+                        onToggleEntities();
+                        setShowMobileMenu(false);
+                      }}
+                      className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
+                        entitiesVisible
+                          ? 'bg-teal-500/20 text-teal-400'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                      }`}
+                    >
+                      <Database size={20} />
+                      <span className="text-sm font-medium">{entitiesVisible ? 'Hide' : 'Show'} Entities</span>
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Divider */}
+              <div className="border-t border-slate-700 my-3"></div>
+
+              {/* Social Links - Mobile */}
+              <div className="space-y-2">
+                <a
+                  href="https://docs.cyoda.net/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                >
+                  <BookOpen size={20} />
+                  <span className="text-sm font-medium">Documentation</span>
+                </a>
+
+                <a
+                  href="https://github.com/Cyoda-platform"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                >
+                  <Github size={20} />
+                  <span className="text-sm font-medium">GitHub</span>
+                </a>
+
+                <a
+                  href="https://www.linkedin.com/company/cyoda"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                >
+                  <Linkedin size={20} />
+                  <span className="text-sm font-medium">LinkedIn</span>
+                </a>
+
+                <a
+                  href="https://discord.com/invite/95rdAyBZr2"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                >
+                  <MessageCircle size={20} />
+                  <span className="text-sm font-medium">Discord Community</span>
+                </a>
+              </div>
+
+              {/* User Profile - Mobile */}
+              <div className="border-t border-slate-700 pt-3">
+                <AuthState />
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
-      {/* Click outside to close notifications - TEMPORARILY DISABLED FOR DEBUGGING */}
-      {/* {showNotifications && (
+      {/* Click outside to close mobile menu */}
+      {showMobileMenu && (
         <div
-          className="fixed inset-0 z-[9999]"
-          onClick={() => setShowNotifications(false)}
+          className="fixed inset-0 z-30"
+          onClick={() => {
+            setShowMobileMenu(false);
+          }}
         />
-      )} */}
+      )}
+
+      {/* Click outside to close notifications (desktop only) */}
+      {showNotifications && (
+        <div
+          className="fixed inset-0 z-30"
+          onClick={() => {
+            setShowNotifications(false);
+          }}
+        />
+      )}
     </>
   );
 };

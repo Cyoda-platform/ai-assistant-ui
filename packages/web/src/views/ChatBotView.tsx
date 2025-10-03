@@ -511,11 +511,6 @@ const ChatBotView: React.FC = () => {
       const messageElement = document.getElementById(`message-${messageId}`);
       if (messageElement) {
         messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Add a highlight effect
-        messageElement.classList.add('bg-teal-500/20');
-        setTimeout(() => {
-          messageElement.classList.remove('bg-teal-500/20');
-        }, 2000);
       }
     }
   };
