@@ -18,6 +18,7 @@ interface Message {
   content: string;
   timestamp: Date;
   isError?: boolean;
+  workflowVersion?: string; // JSON string of the workflow if it's a workflow response
 }
 
 export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
@@ -34,6 +35,8 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [expectWorkflowResponse, setExpectWorkflowResponse] = useState(false);
+  const [previewedWorkflow, setPreviewedWorkflow] = useState<string | null>(null); // Currently previewed workflow JSON
+  const [originalWorkflow, setOriginalWorkflow] = useState<string>(currentWorkflow); // Store original for rollback
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -127,27 +130,27 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
         }
       }
 
+      // If in workflow mode, extract and store the workflow JSON
+      let workflowVersion: string | undefined;
+      if (expectWorkflowResponse && response.data.message) {
+        try {
+          const jsonContent = extractJsonFromMessage(response.data.message);
+          if (jsonContent) {
+            workflowVersion = jsonContent;
+          }
+        } catch (err) {
+          console.error('Failed to extract workflow JSON:', err);
+        }
+      }
+
       const assistantMessage: Message = {
         role: 'assistant',
         content: response.data.message || 'I apologize, but I could not generate a response.',
-        timestamp: new Date()
+        timestamp: new Date(),
+        workflowVersion
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-
-      // If in workflow mode, automatically apply the response to the editor
-      if (expectWorkflowResponse && response.data.message) {
-        try {
-          // Extract JSON from the response
-          const jsonContent = extractJsonFromMessage(response.data.message);
-          if (jsonContent) {
-            onApplySuggestion(jsonContent);
-            antdMessage.success('Workflow updated in editor');
-          }
-        } catch (err) {
-          console.error('Failed to auto-apply workflow:', err);
-        }
-      }
     } catch (error: any) {
       console.error('Error sending message to AI:', error);
 
@@ -232,6 +235,43 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
     fileInputRef.current?.click();
   };
 
+  const handlePreviewWorkflow = useCallback((workflowJson: string) => {
+    try {
+      // Store original if not already stored
+      if (!originalWorkflow || originalWorkflow === currentWorkflow) {
+        setOriginalWorkflow(currentWorkflow);
+      }
+
+      // Apply preview to canvas
+      onApplySuggestion(workflowJson);
+      setPreviewedWorkflow(workflowJson);
+      antdMessage.info('Previewing AI-generated workflow on canvas');
+    } catch (err) {
+      console.error('Failed to preview workflow:', err);
+      antdMessage.error('Failed to preview workflow');
+    }
+  }, [currentWorkflow, originalWorkflow, onApplySuggestion]);
+
+  const handleApplyWorkflow = useCallback((workflowJson: string) => {
+    try {
+      onApplySuggestion(workflowJson);
+      setPreviewedWorkflow(null);
+      setOriginalWorkflow(workflowJson); // Update original to the applied version
+      antdMessage.success('Workflow applied successfully');
+    } catch (err) {
+      console.error('Failed to apply workflow:', err);
+      antdMessage.error('Failed to apply workflow');
+    }
+  }, [onApplySuggestion]);
+
+  const handleRollback = useCallback(() => {
+    if (originalWorkflow) {
+      onApplySuggestion(originalWorkflow);
+      setPreviewedWorkflow(null);
+      antdMessage.success('Rolled back to original workflow');
+    }
+  }, [originalWorkflow, onApplySuggestion]);
+
   const copyToClipboard = async (text: string, index: number) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -293,6 +333,38 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
           </button>
         </div>
 
+        {/* Preview Banner */}
+        {previewedWorkflow && (
+          <div className="px-6 py-3 bg-purple-950/50 border-b-2 border-purple-500">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium text-purple-300">
+                    Previewing AI-generated workflow on canvas
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleApplyWorkflow(previewedWorkflow)}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  <Check size={14} />
+                  <span>Apply</span>
+                </button>
+                <button
+                  onClick={handleRollback}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                >
+                  <X size={14} />
+                  <span>Rollback</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Quick Prompts */}
         {messages.length === 0 && (
           <div className="p-6 border-b border-gray-700">
@@ -341,34 +413,80 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
                   </div>
 
                   {/* Action buttons for assistant messages */}
-                  {message.role === 'assistant' && (
-                    <div className="flex gap-2 mt-3 pt-3 border-t border-gray-700">
-                      <button
-                        onClick={() => copyToClipboard(message.content, index)}
-                        className="flex items-center gap-1 px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors border border-gray-600"
-                      >
-                        {copiedIndex === index ? (
-                          <>
-                            <Check size={14} className="text-green-500" />
-                            <span>Copied!</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy size={14} />
-                            <span>Copy</span>
-                          </>
-                        )}
-                      </button>
-
-                      {jsonContent && (
-                        <button
-                          onClick={() => onApplySuggestion(jsonContent)}
-                          className="flex items-center gap-1 px-3 py-1.5 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 rounded-lg transition-colors shadow-sm"
-                        >
-                          <Wand2 size={14} />
-                          <span>Apply JSON</span>
-                        </button>
+                  {message.role === 'assistant' && !message.isError && (
+                    <div className="flex flex-col gap-2 mt-3 pt-3 border-t border-gray-700">
+                      {/* Workflow version controls */}
+                      {message.workflowVersion && (
+                        <div className="flex flex-col gap-2 p-3 bg-purple-950/30 border border-purple-700 rounded-lg">
+                          <div className="flex items-center gap-2 text-xs text-purple-300 font-medium">
+                            <Wand2 size={14} />
+                            <span>AI-Generated Workflow</span>
+                            {previewedWorkflow === message.workflowVersion && (
+                              <span className="ml-auto px-2 py-0.5 bg-purple-500 text-white rounded text-xs">
+                                Previewing
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            {previewedWorkflow === message.workflowVersion ? (
+                              <>
+                                <button
+                                  onClick={() => handleApplyWorkflow(message.workflowVersion!)}
+                                  className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-xs bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium"
+                                >
+                                  <Check size={14} />
+                                  <span>Apply Changes</span>
+                                </button>
+                                <button
+                                  onClick={handleRollback}
+                                  className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                                >
+                                  <X size={14} />
+                                  <span>Rollback</span>
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => handlePreviewWorkflow(message.workflowVersion!)}
+                                className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-xs bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg transition-colors font-medium"
+                              >
+                                <Wand2 size={14} />
+                                <span>Preview on Canvas</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       )}
+
+                      {/* Standard action buttons */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => copyToClipboard(message.content, index)}
+                          className="flex items-center gap-1 px-3 py-1.5 text-xs bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors border border-gray-600"
+                        >
+                          {copiedIndex === index ? (
+                            <>
+                              <Check size={14} className="text-green-500" />
+                              <span>Copied!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={14} />
+                              <span>Copy</span>
+                            </>
+                          )}
+                        </button>
+
+                        {jsonContent && !message.workflowVersion && (
+                          <button
+                            onClick={() => onApplySuggestion(jsonContent)}
+                            className="flex items-center gap-1 px-3 py-1.5 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 rounded-lg transition-colors shadow-sm"
+                          >
+                            <Wand2 size={14} />
+                            <span>Apply JSON</span>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

@@ -942,7 +942,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         fitView({
           padding: 0.2, // 20% padding around the workflow
           duration: 300, // Smooth animation
-          maxZoom: 1.5, // Don't zoom in too much
+          minZoom: 0.05, // Allow zooming out to 5% for very large workflows
+          maxZoom: 1.5, // Don't zoom in too much for small workflows
         });
         shouldFitViewRef.current = false; // Reset flag
       }, 100);
@@ -1997,6 +1998,16 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     }
   }, [modelName, modelVersion, navigate, showWarning, isInFullscreenMode]);
 
+  // Handler to fit the entire workflow in view
+  const handleFitView = useCallback(() => {
+    fitView({
+      padding: 0.2, // 20% padding around the workflow
+      duration: 300, // Smooth animation
+      minZoom: 0.05, // Allow zooming out to 5% for very large workflows
+      maxZoom: 1.5, // Don't zoom in too much for small workflows
+    });
+  }, [fitView]);
+
   if (!cleanedWorkflow) {
     return (
       <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
@@ -2043,6 +2054,11 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
         // Disable default double-click zoom behavior
         zoomOnDoubleClick={false}
+
+        // Enhanced zoom settings for very large workflows
+        minZoom={0.05}  // Allow zooming out to 5% to see very large workflows
+        maxZoom={4}     // Allow zooming in to 400% for detail work
+        defaultViewport={{ zoom: 1, x: 0, y: 0 }}
 
         // Optimize rendering
         nodesDraggable={true}
@@ -2120,6 +2136,14 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             data-testid="auto-layout-button"
           >
             <Network size={16} />
+          </ControlButton>
+          <ControlButton
+            onClick={handleFitView}
+            title="Fit entire workflow in view (works for very large workflows)"
+            data-testid="fit-view-button"
+            className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30"
+          >
+            <Maximize2 size={16} className="text-green-600 dark:text-green-400" />
           </ControlButton>
           <ControlButton
             onClick={handleToggleSettings}

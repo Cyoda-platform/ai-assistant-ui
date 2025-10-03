@@ -219,17 +219,32 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
     try {
       // Try to parse the suggestion as JSON
       const parsed = JSON.parse(suggestion);
+      const formattedJson = JSON.stringify(parsed, null, 2);
 
       // If we have selected text, try to replace it intelligently
       if (editorRef.current && selectedText) {
         const selection = editorRef.current.getSelection();
         editorRef.current.executeEdits('ai-suggestion', [{
           range: selection,
-          text: JSON.stringify(parsed, null, 2)
+          text: formattedJson
         }]);
+        // Trigger save after a short delay to allow editor to update
+        setTimeout(() => {
+          const currentValue = editorRef.current?.getValue();
+          if (currentValue) {
+            try {
+              const updatedParsed = JSON.parse(currentValue);
+              onSave(updatedParsed);
+            } catch (e) {
+              console.error('Failed to save after partial edit:', e);
+            }
+          }
+        }, 100);
       } else {
-        // Otherwise, replace the entire content
-        setJsonText(JSON.stringify(parsed, null, 2));
+        // Otherwise, replace the entire content and save immediately
+        setJsonText(formattedJson);
+        // Trigger save immediately for full replacement
+        onSave(parsed);
       }
 
       setShowAIAssistant(false);
@@ -237,7 +252,7 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
       console.error('Failed to apply AI suggestion:', err);
       alert('The AI suggestion is not valid JSON. Please review and apply manually.');
     }
-  }, [selectedText]);
+  }, [selectedText, onSave]);
 
   // Navigate to selected state or transition in JSON
   useEffect(() => {

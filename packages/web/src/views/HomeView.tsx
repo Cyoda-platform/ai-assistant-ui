@@ -59,6 +59,25 @@ const HomeView: React.FC = () => {
     }
   }, [searchParams, setSearchParams]);
 
+  // Check for 'name' URL parameter and populate chat input
+  useEffect(() => {
+    const nameParam = searchParams.get('name');
+    if (nameParam) {
+      // Decode the URL parameter and set it as chat input
+      const decodedName = decodeURIComponent(nameParam);
+      setChatInput(decodedName);
+
+      // Focus the chat input after a short delay to ensure it's rendered
+      setTimeout(() => {
+        chatInputRef.current?.focus();
+      }, 100);
+
+      // Remove the parameter from URL to clean it up
+      searchParams.delete('name');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
   const assistantStore = useAssistantStore();
   const authStore = useAuthStore();
   const superUserMode = useSuperUserMode(); // Watch for super user mode changes
