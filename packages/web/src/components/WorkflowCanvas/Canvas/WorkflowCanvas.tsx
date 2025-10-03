@@ -752,26 +752,28 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         }
 
         // For transition -> state edge:
-        // Use manual selection if available, otherwise calculate optimal
-        let transitionToStateSourceHandle = layout?.transitionToStateSourceHandle;
+        // Source handle (transition node side): ALWAYS calculate automatically for best appearance
+        // Target handle (state node side): Use manual selection if available, otherwise calculate
+        let transitionToStateSourceHandle: string;
         let transitionToStateTargetHandle = layout?.transitionToStateTargetHandle;
 
-        if (!transitionToStateSourceHandle || !transitionToStateTargetHandle) {
-          if (isLoopback) {
-            // For loopback: use right handle on transition to come back to bottom-right of state
-            transitionToStateSourceHandle = 'right-center-source';
-            transitionToStateTargetHandle = 'bottom-right-target';
-          } else {
-            const anchors = calculateOptimalAnchorPoints(
-              transitionNode.position,
-              targetState.position
-            );
-            transitionToStateSourceHandle = transitionToStateSourceHandle || anchors.sourceHandle;
-            transitionToStateTargetHandle = transitionToStateTargetHandle || anchors.targetHandle;
-          }
+        if (isLoopback) {
+          // For loopback: use right handle on transition to come back to bottom-right of state
+          transitionToStateSourceHandle = 'right-center-source';
+          transitionToStateTargetHandle = transitionToStateTargetHandle || 'bottom-right-target';
+        } else {
+          // Always calculate optimal source handle based on node positions
+          const anchors = calculateOptimalAnchorPoints(
+            transitionNode.position,
+            targetState.position
+          );
+          transitionToStateSourceHandle = anchors.sourceHandle;
+          // Use manual target handle if available, otherwise use calculated
+          transitionToStateTargetHandle = transitionToStateTargetHandle || anchors.targetHandle;
         }
 
-        // Edge from source state to transition node (no specific direction)
+        // Edge from source state to transition node (no specific direction, no arrow)
+        // This is the "head" edge - should not be manually reconnectable
         const edge1 = {
           id: `edge-${transition.sourceStateId}-to-${transition.id}`,
           type: 'default',
@@ -780,7 +782,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           sourceHandle: stateToTransitionSourceHandle,
           targetHandle: stateToTransitionTargetHandle,
           animated: false,
-          reconnectable: 'target', // Only allow reconnecting the target end (transition node side)
+          reconnectable: false, // Disallow manual reconnection - this edge moves automatically
           style: {
             stroke: edgeColor,
             strokeWidth: edgeWidth,
@@ -789,7 +791,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         };
         newEdges.push(edge1);
 
-        // Edge from transition node to target state (with direction identification)
+        // Edge from transition node to target state (with arrow marker)
+        // This is the "tail" edge - users can reconnect the arrow end to any state anchor point
         // Calculate direction based on relative positions
         const deltaX = targetState.position.x - transitionNode.position.x;
         const deltaY = targetState.position.y - transitionNode.position.y;
@@ -1162,7 +1165,13 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       } else if (isTransitionToState) {
         // Reconnecting the target state of a transition
         // This means changing which state the transition goes to
-        console.log('Reconnecting target state of transition');
+        console.log('Reconnecting target state of transition', {
+          oldTarget: oldEdge.target,
+          newTarget: newConnection.target,
+          oldTargetHandle: oldEdge.targetHandle,
+          newTargetHandle: newConnection.targetHandle,
+          sourceHandle: newConnection.sourceHandle
+        });
 
         // Extract transition ID from edge
         const transitionNodeId = oldEdge.source;
@@ -1192,6 +1201,33 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           };
         }
 
+        // Save the anchor point selection for the target handle only
+        // Source handle (transition node side) is always calculated automatically
+        const updatedLayoutTransitions = [...(cleanedWorkflow.layout.transitions || [])];
+        const existingTransitionIndex = updatedLayoutTransitions.findIndex(t => t.id === transitionId);
+
+        let transitionLayout = existingTransitionIndex >= 0
+          ? { ...updatedLayoutTransitions[existingTransitionIndex] }
+          : { id: transitionId };
+
+        // Only save the target handle (state node side with arrow) - user's manual selection
+        // Do NOT save source handle - it's always calculated automatically for best appearance
+        if (newConnection.targetHandle) {
+          transitionLayout.transitionToStateTargetHandle = newConnection.targetHandle;
+          console.log(`Saved transition→state target handle: ${newConnection.targetHandle}`);
+        }
+
+        // Clear any previously saved source handle since we now always calculate it
+        transitionLayout.transitionToStateSourceHandle = null;
+
+        if (existingTransitionIndex >= 0) {
+          updatedLayoutTransitions[existingTransitionIndex] = transitionLayout;
+        } else {
+          updatedLayoutTransitions.push(transitionLayout);
+        }
+
+        console.log('Updated transition layout:', transitionLayout);
+
         const updatedWorkflow: UIWorkflowData = {
           ...cleanedWorkflow,
           configuration: {
@@ -1200,6 +1236,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           },
           layout: {
             ...cleanedWorkflow.layout,
+            transitions: updatedLayoutTransitions,
             updatedAt: new Date().toISOString()
           }
         };
@@ -1260,6 +1297,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
         // Save the manual anchor point selections
         if (isStateToTransition) {
+          // State→Transition edge: This should not happen since we made it non-reconnectable
+          // But if it does, save both handles for state→transition edge
           if (sourceHandleChanged) {
             transitionLayout.stateToTransitionSourceHandle = newConnection.sourceHandle || null;
           }
@@ -1267,12 +1306,13 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             transitionLayout.stateToTransitionTargetHandle = newConnection.targetHandle || null;
           }
         } else if (isTransitionToState) {
-          if (sourceHandleChanged) {
-            transitionLayout.transitionToStateSourceHandle = newConnection.sourceHandle || null;
-          }
+          // Transition→State edge: Only save target handle (state node side)
+          // Source handle (transition node side) is always calculated automatically
           if (targetHandleChanged) {
             transitionLayout.transitionToStateTargetHandle = newConnection.targetHandle || null;
           }
+          // Clear any previously saved source handle
+          transitionLayout.transitionToStateSourceHandle = null;
         }
 
         if (existingTransitionIndex >= 0) {
