@@ -83,7 +83,7 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
   },
 
   postQuestions(technical_id: string, data: any) {
-    return privateClient.post(`/v1/chats/${technical_id}/questions`, data);
+    return privateClient.post(`/v1/chats/questions`, data);
   },
 
   postWorkflowQuestions(data: any) {

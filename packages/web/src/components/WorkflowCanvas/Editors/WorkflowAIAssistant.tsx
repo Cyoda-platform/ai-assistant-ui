@@ -17,6 +17,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  isError?: boolean;
 }
 
 export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
@@ -184,7 +185,8 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
       const errorMessage: Message = {
         role: 'assistant',
         content: errorContent,
-        timestamp: new Date()
+        timestamp: new Date(),
+        isError: true
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
@@ -319,15 +321,6 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {messages.map((message, index) => {
             const jsonContent = message.role === 'assistant' ? extractJsonFromMessage(message.content) : null;
-            const isError = message.role === 'assistant' && (
-              message.content.includes('Error') ||
-              message.content.includes('403') ||
-              message.content.includes('401') ||
-              message.content.includes('429') ||
-              message.content.includes('500') ||
-              message.content.includes('Access Denied') ||
-              message.content.includes('Network Error')
-            );
 
             return (
               <div
@@ -338,7 +331,7 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
                   className={`max-w-[80%] rounded-2xl p-4 ${
                     message.role === 'user'
                       ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
-                      : isError
+                      : message.isError
                       ? 'bg-red-950/30 border-2 border-red-800 text-red-100'
                       : 'bg-gray-800 text-white'
                   }`}
@@ -479,7 +472,7 @@ export const WorkflowAIAssistant: React.FC<WorkflowAIAssistantProps> = ({
             <button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
-              className="absolute right-2 bottom-2 p-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl disabled:shadow-none"
+              className="absolute right-3 bottom-3 p-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl disabled:shadow-none"
               title="Send message"
             >
               {isLoading ? (
