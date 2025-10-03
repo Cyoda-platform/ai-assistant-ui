@@ -86,8 +86,15 @@ const ChatBotView: React.FC = () => {
   const isInitialLoadRef = useRef<boolean>(true); // Track if this is the initial load of the chat
   const notifiedMessagesRef = useRef<Set<string>>(new Set()); // Track which messages we've already notified about
 
-  // Polling intervals: 1s -> 3s -> 5s (stay at 5s)
-  const POLLING_INTERVALS = [1000, 3000, 5000];
+  // Polling intervals: 1-1-1-3-3-3-5-5-5-10-10-10-10-10-20-30 (stay at 30s)
+  const POLLING_INTERVALS = [
+    1000, 1000, 1000,           // 3x at 1s
+    3000, 3000, 3000,           // 3x at 3s
+    5000, 5000, 5000,           // 3x at 5s
+    10000, 10000, 10000, 10000, 10000,  // 5x at 10s
+    20000,                      // 1x at 20s
+    30000                       // stay at 30s
+  ];
   const currentIntervalIndexRef = useRef(0); // Index in POLLING_INTERVALS array
 
   // Keep technicalIdRef in sync with technicalId
@@ -311,12 +318,12 @@ const ChatBotView: React.FC = () => {
       // Pass the URL technicalId to loadChatHistory for validation
       const gotNew = await loadChatHistory(urlTechnicalId);
 
-      // Simple backoff logic: 1s -> 3s -> 5s (stay at 5s)
+      // Backoff logic: 1-1-1-3-3-3-5-5-5-10-10-10-10-10-20-30 (stay at 30s)
       if (gotNew) {
         // Reset to fastest interval when new message arrives
         currentIntervalIndexRef.current = 0;
       } else {
-        // Move to next slower interval, but cap at last interval (5s)
+        // Move to next interval, but cap at last interval (30s)
         currentIntervalIndexRef.current = Math.min(
           currentIntervalIndexRef.current + 1,
           POLLING_INTERVALS.length - 1
