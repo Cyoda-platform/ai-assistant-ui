@@ -19,7 +19,10 @@ import {
   Unlock,
   Eye,
   FileText,
-  Columns2
+  Columns2,
+  Network,
+  Database,
+  Code
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -29,8 +32,10 @@ import ChatBotEditorWorkflowNew from './ChatBotEditorWorkflowNew';
 import MermaidDiagram from '../MermaidDiagram/MermaidDiagram';
 import { WorkflowTabs } from '@/components/WorkflowTabs/WorkflowTabs';
 import { useWorkflowTabsStore } from '@/stores/workflowTabs';
+import { AppsTabsContainer } from '@/components/AppsTabs';
 import { Modal, Form, Input, InputNumber } from 'antd';
 import SettingsDialog from '@/components/SettingsDialog/SettingsDialog';
+import { AppsCanvas, samplePortalData } from '@/components/AppsCanvas';
 
 interface ChatBotCanvasProps {
   messages: any[];
@@ -57,7 +62,7 @@ const ChatBotCanvas: React.FC<ChatBotCanvasProps> = ({
   isFullscreen = false,
   onToggleFullscreen
 }) => {
-  const [activeTab, setActiveTab] = useState<'workflow' | 'markdown'>('workflow');
+  const [activeTab, setActiveTab] = useState<'apps' | 'data' | 'workflow' | 'requirement' | 'code'>('apps');
   const [markdownContent, setMarkdownContent] = useState(`# Welcome to Canvas Markdown Editor
 
 This editor supports **GitHub Flavored Markdown** with real-time preview and Mermaid diagrams!
@@ -246,9 +251,31 @@ gantt
         </div>
       </div>
 
-      {/* Canvas Tabs - Hidden for now, only showing Workflow */}
-      {/* <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 bg-slate-800/30">
+      {/* Canvas Tabs */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 bg-slate-800/30">
         <div className="flex items-center space-x-1">
+          <button
+            onClick={() => setActiveTab('apps')}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
+              activeTab === 'apps'
+                ? 'bg-teal-500 text-white shadow-md'
+                : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+            }`}
+          >
+            <Network size={14} />
+            <span>Apps</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('data')}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
+              activeTab === 'data'
+                ? 'bg-teal-500 text-white shadow-md'
+                : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+            }`}
+          >
+            <Database size={14} />
+            <span>Data</span>
+          </button>
           <button
             onClick={() => setActiveTab('workflow')}
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
@@ -261,20 +288,31 @@ gantt
             <span>Workflow</span>
           </button>
           <button
-            onClick={() => setActiveTab('markdown')}
+            onClick={() => setActiveTab('requirement')}
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
-              activeTab === 'markdown'
+              activeTab === 'requirement'
                 ? 'bg-teal-500 text-white shadow-md'
                 : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
             }`}
           >
-            <Grid3X3 size={14} />
-            <span>Markdown</span>
+            <FileText size={14} />
+            <span>Requirement</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('code')}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
+              activeTab === 'code'
+                ? 'bg-teal-500 text-white shadow-md'
+                : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+            }`}
+          >
+            <Code size={14} />
+            <span>Code</span>
           </button>
         </div>
 
         {/* Markdown Mode Selector - Only show when markdown tab is active */}
-        {/* {activeTab === 'markdown' && (
+        {activeTab === 'markdown' && (
           <div className="flex items-center space-x-1">
             {(['edit', 'split', 'preview'] as MarkdownMode[]).map((mode) => (
               <button
@@ -292,12 +330,27 @@ gantt
               </button>
             ))}
           </div>
-        )} */}
-      {/* </div> */}
+        )}
+      </div>
 
       {/* Canvas Content */}
       <div className="flex-1 relative overflow-hidden flex flex-col">
-        {activeTab === 'workflow' ? (
+        {activeTab === 'apps' ? (
+          <AppsTabsContainer />
+        ) : activeTab === 'data' ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <Database size={64} className="mx-auto mb-4 text-gray-600" />
+              <h2 className="text-xl font-semibold text-gray-300 mb-2">
+                Data Editor
+              </h2>
+              <p className="text-gray-500 mb-6">
+                JSON, CSV, Code editors and file upload tools
+              </p>
+              <p className="text-gray-400 text-sm">Coming soon...</p>
+            </div>
+          </div>
+        ) : activeTab === 'workflow' ? (
           <>
             {/* Workflow Tabs */}
             <WorkflowTabs onNewTab={handleNewWorkflowTab} />
@@ -328,6 +381,32 @@ gantt
               )}
             </div>
           </>
+        ) : activeTab === 'requirement' ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <FileText size={64} className="mx-auto mb-4 text-gray-600" />
+              <h2 className="text-xl font-semibold text-gray-300 mb-2">
+                Requirements Management
+              </h2>
+              <p className="text-gray-500 mb-6">
+                Track and manage business requirements
+              </p>
+              <p className="text-gray-400 text-sm">Coming soon...</p>
+            </div>
+          </div>
+        ) : activeTab === 'code' ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <Code size={64} className="mx-auto mb-4 text-gray-600" />
+              <h2 className="text-xl font-semibold text-gray-300 mb-2">
+                Code Editor
+              </h2>
+              <p className="text-gray-500 mb-6">
+                View and edit code files
+              </p>
+              <p className="text-gray-400 text-sm">Coming soon...</p>
+            </div>
+          </div>
         ) : (
           <div className="absolute inset-0 bg-slate-900/50 p-4">
             <div className="h-full flex flex-col">
