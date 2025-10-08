@@ -1,70 +1,20 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { AppsTabs } from './AppsTabs';
 import { useAppsTabsStore } from '@/stores/appsTabs';
-import { AppsCanvas } from '../AppsCanvas';
+import { AppsCanvas, sampleAppData } from '../AppsCanvas';
 import { Modal, Form, Input, InputNumber, Button } from 'antd';
 import { FileCode2 } from 'lucide-react';
-import type { UIWorkflowData } from '../WorkflowCanvas/types/workflow';
+import type { AppRoot } from '../AppsCanvas/types/appSchema';
 
 export const AppsTabsContainer: React.FC = () => {
   const { tabs, activeTabId, openTab, updateTab, getActiveTab } = useAppsTabsStore();
 
   const activeTab = getActiveTab();
 
-  // Create a dummy workflow for the canvas to display
-  const dummyWorkflow = useMemo((): UIWorkflowData | null => {
-    if (!activeTab) return null;
-
-    return {
-      technicalId: activeTab.technicalId,
-      configuration: {
-        name: activeTab.displayName,
-        initialState: 'start',
-        states: {
-          start: {
-            name: 'Start',
-            transitions: [
-              {
-                next: 'end',
-                condition: 'true'
-              }
-            ]
-          },
-          end: {
-            name: 'End',
-            transitions: []
-          }
-        }
-      },
-      layout: {
-        version: 1,
-        states: [
-          {
-            id: 'start',
-            position: { x: 100, y: 100 },
-            properties: {}
-          },
-          {
-            id: 'end',
-            position: { x: 400, y: 100 },
-            properties: {}
-          }
-        ],
-        transitions: [
-          {
-            id: 'start-0',
-            position: { x: 250, y: 100 },
-            sourceHandle: null,
-            targetHandle: null
-          }
-        ],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-  }, [activeTab]);
+  // Use sample app data from app_config_example.json
+  const appData = useMemo((): AppRoot => {
+    return sampleAppData;
+  }, []);
 
   // Note: Removed auto-open sample app to avoid conflicts with URL parameters
   // The AppTabsView will handle auto-opening from URL params
@@ -98,24 +48,17 @@ export const AppsTabsContainer: React.FC = () => {
 
       {/* Content Area */}
       <div className="flex-1 relative overflow-hidden">
-        {activeTab && dummyWorkflow ? (
+        {activeTab ? (
           <div key={activeTab.id} className="h-full">
             <AppsCanvas
-              workflow={dummyWorkflow}
-              onWorkflowUpdate={(updatedWorkflow) => {
-                console.log('Workflow updated:', updatedWorkflow);
+              appData={appData}
+              onNavigate={(tab, targetId) => {
+                console.log('Navigate to:', tab, targetId);
+              }}
+              onAppDataUpdate={(updatedAppData) => {
+                console.log('App data updated:', updatedAppData);
                 updateTab(activeTab.id, { isDirty: true });
               }}
-              onStateEdit={(stateId) => {
-                console.log('Edit state:', stateId);
-              }}
-              onTransitionEdit={(transitionId) => {
-                console.log('Edit transition:', transitionId);
-              }}
-              darkMode={true}
-              technicalId={activeTab.technicalId}
-              modelName={activeTab.modelName}
-              modelVersion={activeTab.modelVersion}
             />
           </div>
         ) : (

@@ -1,16 +1,26 @@
-# Portal Canvas - React Flow Navigation System
+# Apps Canvas - React Flow Navigation System
 
 ## Overview
 
-The Portal Canvas is an interactive, graph-based navigation system built with React Flow that visualizes the relationships between **Entities**, **Versions**, **Workflows**, and **Requirements**.
+The Apps Canvas is an interactive, graph-based navigation system built with React Flow that visualizes the relationships between **Environments**, **Apps**, **Requirements**, **Entity Versions**, **Workflows**, and **Code**.
+
+## ✅ Drag and Drop Enabled!
+
+All nodes are now **fully draggable**! You can:
+- **Drag any node** to reposition it on the canvas
+- **Snap to grid** (optional, toggle in settings)
+- **Auto-layout** with multiple algorithms (hierarchical, grid, circular)
+- **Zoom and pan** freely across the canvas
 
 ## Architecture
 
 ```
-Entity (Model)
-  └─ Version 1, 2, 3...
-      └─ Workflow A, B, C...
-          └─ Requirement 1, 2, 3...
+Environment (Production, Staging, Dev)
+  └─ App 1, 2, 3...
+      └─ Requirement (versioned) 1.0, 2.0...
+          └─ Entity-Version (Customer v1, v2...)
+              └─ Workflow A, B, C...
+                  └─ Code Files (TypeScript, Python...)
 ```
 
 ### Key Concepts
@@ -73,10 +83,11 @@ Entity (Model)
 
 - **Click**: Select node, trigger callback
 - **Double-click**: Edit workflow (for workflow nodes)
-- **Drag**: Reposition nodes
+- **Drag**: Reposition nodes freely (✅ FULLY ENABLED!)
 - **Zoom**: Mouse wheel or controls
 - **Pan**: Click and drag canvas
 - **Minimap**: Quick navigation for large graphs
+- **Snap to Grid**: Optional grid snapping for precise alignment
 
 ### 🎛️ Controls
 
@@ -91,7 +102,7 @@ Entity (Model)
 ### Basic Example
 
 ```tsx
-import { PortalCanvas, samplePortalData } from '@/components/PortalCanvas';
+import { AppsCanvas, samplePortalData } from '@/components/AppsCanvas';
 
 function MyComponent() {
   return (
