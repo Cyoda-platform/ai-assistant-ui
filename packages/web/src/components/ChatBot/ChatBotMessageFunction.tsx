@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import dayjs from 'dayjs';
 import { Bot, Clock, Zap, CheckCircle, Info, Loader2, Download } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
-import axios from 'axios';
+import privateClient from '@/clients/private';
 import FileSaver from 'file-saver';
 import LogoSmall from '@/assets/images/logo-small.svg';
 
@@ -93,13 +93,12 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
       setIsLoading(true);
       const method = functionData.method.toLowerCase() as 'get' | 'post' | 'put' | 'delete' | 'patch';
 
-
-      // Create axios instance with bearer token for this specific request
-      const { data } = await axios({
+      // Use privateClient to benefit from refresh token interceptor
+      // The URL is absolute, so it will override the baseURL
+      const { data } = await privateClient({
         method,
         url: endpointUrl,
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
