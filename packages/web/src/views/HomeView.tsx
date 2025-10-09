@@ -585,23 +585,23 @@ const HomeView: React.FC = () => {
                       <button
                         type="button"
                         onClick={handleFileAttach}
-                        className="p-0.5 sm:p-1 md:p-1.5 rounded-md sm:rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
+                        className="p-0.5 sm:p-1 md:p-1.5 rounded-md sm:rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200 flex items-center justify-center"
                         title="Attach file"
                       >
-                        <Paperclip className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-[17px] md:h-[17px]" />
+                        <Paperclip className="w-3 h-3 sm:w-4 sm:h-4 md:w-[17px] md:h-[17px]" />
                       </button>
 
                       {/* Send Button */}
                       <button
                         type="submit"
                         disabled={!chatInput.trim() || isLoading}
-                        className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:opacity-50 text-white p-0.5 sm:p-1 md:p-1.5 rounded-md sm:rounded-lg transition-all duration-200 shadow-lg hover:shadow-teal-500/25 disabled:cursor-not-allowed"
+                        className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:opacity-50 text-white p-0.5 sm:p-1 md:p-1.5 rounded-md sm:rounded-lg transition-all duration-200 shadow-lg hover:shadow-teal-500/25 disabled:cursor-not-allowed flex items-center justify-center"
                         title="Send Message (Enter)"
                       >
                         {isLoading ? (
-                          <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <div className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         ) : (
-                          <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-[17px] md:h-[17px]" />
+                          <Send className="w-3 h-3 sm:w-4 sm:h-4 md:w-[17px] md:h-[17px]" />
                         )}
                       </button>
                     </div>
