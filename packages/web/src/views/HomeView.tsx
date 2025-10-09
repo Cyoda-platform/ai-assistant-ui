@@ -501,39 +501,39 @@ const HomeView: React.FC = () => {
 
         {/* Enhanced Main Content - Hidden when canvas is fullscreen */}
         {!isCanvasFullscreen && (
-          <div ref={mainContentRef} className="flex-1 flex flex-col bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
-            <div className="p-8 flex-1 overflow-y-auto scrollbar-thin">
-            <div className="max-w-4xl mx-auto">
+          <div ref={mainContentRef} className="flex-1 overflow-y-auto scrollbar-thin bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
+            <div className="p-3 sm:p-4 md:p-4 lg:p-5 xl:p-6 min-h-full flex flex-col">
+            <div className="max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl mx-auto w-full flex-1 flex flex-col">
               {/* Enhanced Header */}
-              <div className="mb-8 animate-fade-in-up">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-green-400 uppercase tracking-wider">Ready to Build</span>
+              <div className="mb-3 sm:mb-4 md:mb-4 lg:mb-5 xl:mb-6 animate-fade-in-up">
+                <div className="flex items-center space-x-2 sm:space-x-2.5 md:space-x-3 mb-2 sm:mb-2 md:mb-3">
+                  <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-xs sm:text-sm md:text-sm font-medium text-green-400 uppercase tracking-wider">Ready to Build</span>
                 </div>
-                <h1 className="text-3xl font-bold mb-3 bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+                <h1 className="text-xl sm:text-2xl md:text-2xl lg:text-3xl xl:text-4xl font-bold mb-2 sm:mb-2 md:mb-2.5 bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
                   Welcome to CYODA AI Assistant
                 </h1>
-                <p className="text-slate-400 text-lg leading-relaxed">
+                <p className="text-slate-400 text-sm sm:text-base md:text-base lg:text-lg leading-relaxed">
                   Build, deploy and scale data-intensive operational services with intelligent assistance
                 </p>
               </div>
 
               {/* Enhanced Feature Cards */}
               {!isResizing && (
-                <div className="grid md:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-3 md:gap-4 lg:gap-4 mb-3 sm:mb-4 md:mb-4 lg:mb-5 xl:mb-6">
                   {features.map((feature, index) => (
                     <div
                       key={index}
-                      className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-slate-600 transition-all duration-200 animate-fade-in-up hover:shadow-xl hover:shadow-slate-900/20"
+                      className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg sm:rounded-xl p-3 sm:p-3 md:p-4 lg:p-4 hover:border-slate-600 transition-all duration-200 animate-fade-in-up hover:shadow-xl hover:shadow-slate-900/20"
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
-                      <div className="flex items-start space-x-4">
-                        <div className={`w-10 h-10 rounded-lg bg-${feature.color}-500 flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                      <div className="flex items-start space-x-2 sm:space-x-3 md:space-x-3">
+                        <div className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-lg bg-${feature.color}-500 flex items-center justify-center flex-shrink-0 shadow-lg`}>
                           {feature.icon}
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-white mb-2">{feature.title}</h3>
-                          <p className="text-slate-300 text-sm leading-relaxed">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-white mb-1 sm:mb-1.5 md:mb-1.5 text-sm sm:text-base md:text-base">{feature.title}</h3>
+                          <p className="text-slate-300 text-xs sm:text-sm md:text-sm leading-relaxed">
                             {feature.description}
                           </p>
                         </div>
@@ -544,7 +544,7 @@ const HomeView: React.FC = () => {
               )}
 
               {/* Chat Input - Lovable Style */}
-              <div className="mb-6">
+              <div className="mb-4">
                 <form onSubmit={handleChatSubmit}>
                   <div
                     className="relative"
@@ -574,34 +574,34 @@ const HomeView: React.FC = () => {
                       }}
                       placeholder="What would you like to build together today?"
                       rows={1}
-                      className="w-full bg-slate-800/60 backdrop-blur-sm border-2 border-slate-600/50 rounded-3xl pl-6 pr-6 pb-16 pt-6 text-white placeholder-slate-400 focus:outline-none focus:border-teal-500/80 focus:bg-slate-800/80 transition-all duration-200 text-2xl shadow-2xl resize-none overflow-hidden translate-y-[20%]"
-                      style={{ minHeight: '135px', maxHeight: '300px' }}
+                      className="w-full bg-slate-800/60 backdrop-blur-sm border-2 border-slate-600/50 rounded-2xl sm:rounded-2xl md:rounded-3xl px-3 sm:px-4 md:pl-6 md:pr-6 pb-7 sm:pb-9 md:pb-11 lg:pb-13 pt-3 sm:pt-4 md:pt-4 lg:pt-5 text-white placeholder-slate-400 focus:outline-none focus:border-teal-500/80 focus:bg-slate-800/80 transition-all duration-200 text-base sm:text-lg md:text-lg lg:text-xl shadow-2xl resize-none overflow-hidden"
+                      style={{ minHeight: '70px', maxHeight: '300px' }}
                       disabled={isLoading}
                     />
 
                     {/* Bottom Right Controls - Lovable Style */}
-                    <div className="absolute right-4 bottom-6 flex items-center gap-2">
+                    <div className="absolute right-2 sm:right-3 md:right-4 bottom-2.5 sm:bottom-3 md:bottom-4 lg:bottom-5 flex items-center gap-0.5 sm:gap-1 md:gap-1.5">
                       {/* Attach File Button */}
                       <button
                         type="button"
                         onClick={handleFileAttach}
-                        className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
+                        className="p-0.5 sm:p-1 md:p-1.5 rounded-md sm:rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
                         title="Attach file"
                       >
-                        <Paperclip size={18} />
+                        <Paperclip className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-[17px] md:h-[17px]" />
                       </button>
 
                       {/* Send Button */}
                       <button
                         type="submit"
                         disabled={!chatInput.trim() || isLoading}
-                        className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:opacity-50 text-white p-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-teal-500/25 disabled:cursor-not-allowed"
+                        className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:opacity-50 text-white p-0.5 sm:p-1 md:p-1.5 rounded-md sm:rounded-lg transition-all duration-200 shadow-lg hover:shadow-teal-500/25 disabled:cursor-not-allowed"
                         title="Send Message (Enter)"
                       >
                         {isLoading ? (
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         ) : (
-                          <Send size={18} />
+                          <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-[17px] md:h-[17px]" />
                         )}
                       </button>
                     </div>
@@ -610,9 +610,9 @@ const HomeView: React.FC = () => {
 
                 {/* File attachments display - Below input */}
                 {attachedFiles.length > 0 && (
-                  <div className="mt-4 p-4 bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-2xl  translate-y-[10%]">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium text-slate-300">Attached Files ({attachedFiles.length})</span>
+                  <div className="mt-2 sm:mt-3 md:mt-4 p-2 sm:p-3 md:p-4 bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-lg sm:rounded-xl md:rounded-2xl">
+                    <div className="flex items-center justify-between mb-2 sm:mb-2.5 md:mb-3">
+                      <span className="text-xs sm:text-sm font-medium text-slate-300">Attached Files ({attachedFiles.length})</span>
                       <button
                         type="button"
                         onClick={() => setAttachedFiles([])}
@@ -621,17 +621,17 @@ const HomeView: React.FC = () => {
                         Clear All
                       </button>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                       {attachedFiles.map((file, index) => (
-                        <div key={index} className="bg-slate-700/50 text-slate-300 px-3 py-2 rounded-lg text-sm flex items-center space-x-2 border border-slate-600">
-                          <Paperclip size={14} className="text-teal-400" />
-                          <span className="max-w-[200px] truncate">{file.name}</span>
+                        <div key={index} className="bg-slate-700/50 text-slate-300 px-2 sm:px-2.5 md:px-3 py-1.5 sm:py-1.5 md:py-2 rounded-md sm:rounded-lg text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 border border-slate-600">
+                          <Paperclip size={12} className="sm:w-[13px] sm:h-[13px] md:w-[14px] md:h-[14px] text-teal-400 flex-shrink-0" />
+                          <span className="max-w-[100px] sm:max-w-[150px] md:max-w-[200px] truncate">{file.name}</span>
                           <button
                             type="button"
                             onClick={() => handleRemoveFile(index)}
-                            className="hover:text-red-400 transition-colors ml-1"
+                            className="hover:text-red-400 transition-colors ml-1 flex-shrink-0"
                           >
-                            <X size={14} />
+                            <X size={12} className="sm:w-[13px] sm:h-[13px] md:w-[14px] md:h-[14px]" />
                           </button>
                         </div>
                       ))}
@@ -651,39 +651,41 @@ const HomeView: React.FC = () => {
               </div>
 
               {/* Quick Actions */}
-              <div className="mb-6 translate-y-[20%]">
-                <h2 className="text-xl font-semibold mb-3 flex items-center space-x-2">
-                  <Zap className="text-teal-400" size={20} />
+              <div className="mb-4">
+                <h2 className="text-sm sm:text-base md:text-base lg:text-lg font-semibold mb-2 sm:mb-2.5 md:mb-2.5 flex items-center space-x-1.5 sm:space-x-2 text-slate-400">
+                  <Zap className="text-teal-400" size={16} className="sm:w-[18px] sm:h-[18px] md:w-5 md:h-5" />
                   <span>Quick Start</span>
                 </h2>
 
-                <div className="grid md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-2 sm:gap-2.5 md:gap-2.5">
                   {quickActions.map((action, index) => (
                     <button
                       key={index}
                       onClick={action.action}
-                      className="text-left p-4 glass-light rounded-lg hover:border-slate-600 transition-all duration-200 group"
+                      className="text-left p-2 sm:p-2.5 md:p-3 lg:p-3 glass-light rounded-md sm:rounded-lg hover:border-teal-500/50 hover:bg-teal-500/10 transition-all duration-200 group"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-300 group-hover:text-white transition-colors">
+                        <span className="text-xs sm:text-sm md:text-sm text-slate-300 group-hover:text-white transition-colors line-clamp-2">
                           {action.label}
                         </span>
-                        <ChevronRight size={16} className="text-slate-500 group-hover:text-teal-400 group-hover:translate-x-1 transition-all" />
+                        <ChevronRight size={12} className="sm:w-[14px] sm:h-[14px] md:w-4 md:h-4 text-slate-500 group-hover:text-teal-400 group-hover:translate-x-1 transition-all flex-shrink-0 ml-1" />
                       </div>
                     </button>
                   ))}
                 </div>
               </div>
 
+              {/* Spacer to push footer to bottom */}
+              <div className="flex-1"></div>
+
               {/* Footer */}
-              <div className="mt-8  translate-y-[50%]">
-                <p className="text-center text-slate-600 text-xs leading-relaxed">
+              <div className="mt-auto pt-4 pb-3">
+                <p className="text-center text-slate-600 text-[10px] sm:text-xs md:text-xs leading-relaxed px-2">
                   By using this service, you confirm that you have read and agree to our{' '}
                   <a href="https://cyoda.com/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300 underline transition-colors">Terms & Conditions</a>
                   {' '}and{' '}
                   <a href="https://cyoda.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300 underline transition-colors">Privacy Policy</a>
-                </p>
-                <p className="text-center text-slate-600 text-xs mt-2">
+                  {' • '}
                   Copyright © 2025 <a href="https://cyoda.com/" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300 transition-colors">CYODA Ltd</a>.
                 </p>
               </div>
