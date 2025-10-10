@@ -146,6 +146,17 @@ const ChatBot: React.FC<ChatBotProps> = ({
     }
   }, [messages]);
 
+  // Auto-scroll when loading starts (Cyoda starts typing)
+  useEffect(() => {
+    if (isLoading) {
+      // Small delay to let the loader appear before scrolling
+      const timeoutId = setTimeout(() => {
+        scrollDownMessages(true);
+      }, 100);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isLoading]);
+
   const renderMessage = (message: Message, index: number) => {
     switch (message.type) {
       case 'question':
