@@ -98,7 +98,7 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
 
           {/* Message Bubble - Right aligned user message */}
           <div className={`${containerInfo.className} relative group`}>
-            <div className="text-sm pr-6">
+            <div className="text-sm pr-6 sm:pr-6 md:pr-8">
               <MarkdownRenderer>
                 {messageText}
               </MarkdownRenderer>
@@ -118,10 +118,10 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
             {/* Copy Button - Inside message container, top right */}
             <button
               onClick={handleCopy}
-              className="absolute top-1.5 right-1.5 w-5 h-5 rounded bg-teal-600/30 hover:bg-teal-600/50 text-slate-300 hover:text-white transition-all duration-200 flex items-center justify-center border border-teal-500/30"
+              className="absolute top-1.5 right-1.5 w-6 h-6 rounded bg-teal-600/30 hover:bg-teal-600/50 text-slate-300 hover:text-white transition-all duration-200 flex items-center justify-center border border-teal-500/30"
               title="Copy message"
             >
-              {copied ? <Check size={10} className="text-green-400" /> : <Copy size={10} />}
+              {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
             </button>
           </div>
         </div>

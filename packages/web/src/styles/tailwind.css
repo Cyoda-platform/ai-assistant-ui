@@ -114,6 +114,11 @@ html {
       min-width: 0;
       width: 100%;
     }
+
+    /* Ensure adequate padding for user messages with copy button on mobile */
+    .text-responsive-container.user-message {
+      padding-right: 2.5rem; /* Increased from 1rem to make room for copy button */
+    }
   }
 
   @media (min-width: 641px) and (max-width: 1024px) {
