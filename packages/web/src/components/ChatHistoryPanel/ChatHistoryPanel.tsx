@@ -25,6 +25,7 @@ interface ChatHistoryPanelProps {
   isResizing: boolean;
   showHomeAsActive?: boolean; // true for home page, false for chat details
   onClose?: () => void; // Optional close callback
+  onDeleteChat?: (chatId: string) => void; // Optional delete callback
 }
 
 const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
@@ -34,9 +35,26 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
   onResizeMouseDown,
   isResizing,
   showHomeAsActive = false,
-  onClose
+  onClose,
+  onDeleteChat
 }) => {
   const navigate = useNavigate();
+
+  const handleDeleteChat = (e: React.MouseEvent, chatId: string, chatName?: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Show confirmation dialog
+    const confirmMessage = chatName
+      ? `Are you sure you want to delete "${chatName}"?`
+      : 'Are you sure you want to delete this chat?';
+
+    if (window.confirm(confirmMessage)) {
+      if (onDeleteChat) {
+        onDeleteChat(chatId);
+      }
+    }
+  };
 
   const formatRelativeTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -151,7 +169,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
                             window.open(`/chat/${chat.technical_id}`, '_blank');
                           }
                         }}
-                        className={`group block cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-200 text-sm no-underline ${
+                        className={`group block cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-200 text-sm no-underline relative ${
                           chat.technical_id === currentChatId
                             ? 'bg-slate-700/70 border border-slate-600/60 text-slate-300 shadow-sm'
                             : 'text-slate-400 hover:text-slate-300 hover:bg-slate-700/40 border border-transparent'
@@ -164,7 +182,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
                               chat.technical_id === currentChatId ? 'text-slate-300' : 'text-slate-500 group-hover:text-slate-400'
                             }`}
                           />
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0 pr-6">
                             <div className={`truncate font-medium ${
                               chat.technical_id === currentChatId ? 'text-slate-300' : 'text-slate-400 group-hover:text-slate-300'
                             }`} title={chat.name || chat.description}>
@@ -176,6 +194,15 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
                               {formatRelativeTime(chat.last_modified || chat.date || '')}
                             </div>
                           </div>
+                          {onDeleteChat && (
+                            <button
+                              onClick={(e) => handleDeleteChat(e, chat.technical_id, chat.name || chat.description)}
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1.5 rounded-md bg-red-600/20 hover:bg-red-600/40 text-red-400 hover:text-red-300 transition-all duration-200 border border-red-500/30"
+                              title="Delete chat"
+                            >
+                              <X size={14} />
+                            </button>
+                          )}
                         </div>
                       </a>
                     ))}

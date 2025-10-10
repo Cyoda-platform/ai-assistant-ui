@@ -537,6 +537,23 @@ const ChatBotView: React.FC = () => {
     }
   };
 
+  // Handle delete chat
+  const handleDeleteChat = async (chatId: string) => {
+    try {
+      await assistantStore.deleteChatById(chatId);
+
+      // Refresh the chat list
+      await assistantStore.getChats();
+
+      // If we're currently viewing the deleted chat, redirect to home
+      if (chatId === technicalId) {
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+    }
+  };
+
   // Load chat list for sidebar only if not already loaded
   useEffect(() => {
     const loadChats = async () => {
@@ -733,6 +750,7 @@ const ChatBotView: React.FC = () => {
               isResizing={chatHistoryResize.isResizing}
               showHomeAsActive={false}
               onClose={() => setIsChatHistoryOpen(false)}
+              onDeleteChat={handleDeleteChat}
             />
           </div>
         )}

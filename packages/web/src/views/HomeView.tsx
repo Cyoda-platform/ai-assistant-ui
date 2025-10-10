@@ -400,6 +400,17 @@ const HomeView: React.FC = () => {
   const handleUpdateNotification = (data: any) => {
   };
 
+  // Handle delete chat
+  const handleDeleteChat = async (chatId: string) => {
+    try {
+      await assistantStore.deleteChatById(chatId);
+      // Refresh the chat list
+      await assistantStore.getChats();
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+    }
+  };
+
   // Group chats by date using shared utility
   const chatGroups = groupChatsByDate(assistantStore.chatList);
   const hasChats = chatGroups.length > 0;
@@ -462,6 +473,7 @@ const HomeView: React.FC = () => {
               isResizing={chatHistoryResize.isResizing}
               showHomeAsActive={true}
               onClose={() => setIsChatHistoryOpen(false)}
+              onDeleteChat={handleDeleteChat}
             />
           </div>
         )}
