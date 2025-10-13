@@ -484,7 +484,7 @@ const HomeView: React.FC = () => {
         {canvasVisible && (
           <div
             className={`bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel ${canvasResize.isResizing ? 'resizing' : ''} ${
-              isCanvasFullscreen ? 'fixed inset-0 z-[9000] w-full' : ''
+              isCanvasFullscreen ? 'flex-1' : ''
             }`}
             style={isCanvasFullscreen ? {} : { width: `${canvasResize.width}px` }}
           >
@@ -665,7 +665,7 @@ const HomeView: React.FC = () => {
               {/* Quick Actions */}
               <div className="mb-4">
                 <h2 className="text-sm sm:text-base md:text-base lg:text-lg font-semibold mb-2 sm:mb-2.5 md:mb-2.5 flex items-center space-x-1.5 sm:space-x-2 text-slate-400">
-                  <Zap className="text-teal-400" size={16} className="sm:w-[18px] sm:h-[18px] md:w-5 md:h-5" />
+                  <Zap className="text-teal-400 w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5" />
                   <span>Quick Start</span>
                 </h2>
 
