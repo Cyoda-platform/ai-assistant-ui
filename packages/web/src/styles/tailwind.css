@@ -954,3 +954,106 @@ header .ant-card .ant-card-actions a:hover {
   background-color: #334155 !important;
   color: white !important;
 }
+
+/* Landing Page Optimizations for 1920x1080 and larger screens */
+@media (min-width: 1920px) {
+  /* Increase max-widths for landing page content */
+  .max-w-full.sm\:max-w-2xl.md\:max-w-3xl.lg\:max-w-4xl.xl\:max-w-5xl.\32xl\:max-w-6xl {
+    max-width: 100rem !important; /* Increased from 72rem (6xl) to 100rem */
+  }
+
+  /* Increase padding for main container */
+  .p-3.sm\:p-4.md\:p-4.lg\:p-5.xl\:p-6 {
+    padding: 3rem !important; /* Increased from 1.5rem (p-6) */
+  }
+
+  /* Increase margins between sections */
+  .mb-3.sm\:mb-4.md\:mb-4.lg\:mb-5.xl\:mb-6 {
+    margin-bottom: 3rem !important; /* Increased from 1.5rem (mb-6) */
+  }
+
+  /* Increase font sizes for headings */
+  .text-xl.sm\:text-2xl.md\:text-2xl.lg\:text-3xl.xl\:text-4xl {
+    font-size: 3.5rem !important; /* Increased from 2.25rem (4xl) to 3.5rem */
+    line-height: 1.1 !important;
+  }
+
+  /* Increase subtitle font size */
+  .text-sm.sm\:text-base.md\:text-base.lg\:text-lg {
+    font-size: 1.5rem !important; /* Increased from 1.125rem (lg) */
+    line-height: 1.75rem !important;
+  }
+
+  /* Increase card text sizes */
+  .text-xs.sm\:text-sm.md\:text-sm {
+    font-size: 1rem !important; /* Increased from 0.875rem (sm) to base */
+  }
+
+  /* Increase card title sizes */
+  .text-sm.sm\:text-base.md\:text-base {
+    font-size: 1.25rem !important; /* Increased from 1rem (base) to xl */
+    font-weight: 600 !important;
+  }
+
+  /* Increase icon sizes */
+  .w-8.h-8.sm\:w-9.sm\:h-9.md\:w-10.md\:h-10,
+  .w-2.h-2.sm\:w-2\.5.sm\:h-2\.5.md\:w-3.md\:h-3 {
+    width: 3.5rem !important;
+    height: 3.5rem !important;
+  }
+
+  /* Increase gap between cards */
+  .gap-3.sm\:gap-3.md\:gap-4.lg\:gap-4 {
+    gap: 2rem !important; /* Increased from 1rem (gap-4) */
+  }
+
+  /* Increase textarea size */
+  textarea.w-full {
+    min-height: 120px !important; /* Increased from 70px */
+    font-size: 1.25rem !important; /* Larger text */
+    padding: 1.5rem 2rem !important;
+  }
+
+  /* Increase button sizes */
+  button[type="submit"],
+  button[type="button"] {
+    padding: 1rem 1.5rem !important;
+    font-size: 1.125rem !important;
+  }
+
+  /* Increase quick start button sizes */
+  .text-left.p-2.sm\:p-2\.5.md\:p-3.lg\:p-3 {
+    padding: 1.25rem !important; /* Increased from 0.75rem (p-3) */
+  }
+
+  /* Increase spacing in feature cards */
+  .space-x-2.sm\:space-x-2\.5.md\:space-x-3 > * + * {
+    margin-left: 1.5rem !important;
+  }
+
+  /* Scale up the entire landing page layout */
+  .min-h-full.flex.flex-col {
+    padding: 2rem !important;
+  }
+}
+
+/* Additional optimizations for standard 1080p (1920x1080) */
+@media (min-width: 1024px) and (max-width: 1919px) {
+  /* Moderate increases for smaller desktop screens */
+  .max-w-full.sm\:max-w-2xl.md\:max-w-3xl.lg\:max-w-4xl.xl\:max-w-5xl.\32xl\:max-w-6xl {
+    max-width: 85rem !important; /* Moderate increase */
+  }
+
+  .text-xl.sm\:text-2xl.md\:text-2xl.lg\:text-3xl.xl\:text-4xl {
+    font-size: 2.75rem !important;
+  }
+
+  .p-3.sm\:p-4.md\:p-4.lg\:p-5.xl\:p-6 {
+    padding: 2rem !important;
+  }
+
+  textarea.w-full {
+    min-height: 100px !important;
+    font-size: 1.125rem !important;
+  }
+}
