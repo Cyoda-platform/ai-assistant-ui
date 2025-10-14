@@ -142,3 +142,4 @@ Files to Modify:
 3. Header.tsx - Already responsive ✅
 4. ChatHistoryPanel.tsx - Make width responsive
 5. useResizablePanel.ts - Add responsive defaults
+6. 
