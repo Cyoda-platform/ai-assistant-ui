@@ -267,7 +267,7 @@ html {
   @media (min-width: 641px) and (max-width: 1024px) {
     /* Optimize panel widths for tablets */
     .resizable-panel {
-      max-width: 45vw;
+      /* Removed max-width constraint to allow free resizing */
       min-width: 280px;
     }
 
@@ -287,7 +287,7 @@ html {
 
     /* Allow wider panels on desktop */
     .resizable-panel {
-      max-width: 600px;
+      /* Removed max-width constraint to allow free resizing */
       min-width: 320px;
     }
   }
@@ -957,103 +957,104 @@ header .ant-card .ant-card-actions a:hover {
 
 /* Landing Page Optimizations for 1920x1080 and larger screens */
 @media (min-width: 1920px) {
+  /* Keep base font size reasonable - don't scale up */
+  html {
+    font-size: 16px !important; /* Prevent base font size from scaling */
+  }
+
   /* Increase max-widths for landing page content */
   .max-w-full.sm\:max-w-2xl.md\:max-w-3xl.lg\:max-w-4xl.xl\:max-w-5xl.\32xl\:max-w-6xl {
-    max-width: 100rem !important; /* Increased from 72rem (6xl) to 100rem */
+    max-width: 80rem !important; /* Moderate increase from 72rem (6xl) */
   }
 
   /* Increase padding for main container */
   .p-3.sm\:p-4.md\:p-4.lg\:p-5.xl\:p-6 {
-    padding: 3rem !important; /* Increased from 1.5rem (p-6) */
+    padding: 2rem !important; /* Moderate increase from 1.5rem (p-6) */
   }
 
   /* Increase margins between sections */
   .mb-3.sm\:mb-4.md\:mb-4.lg\:mb-5.xl\:mb-6 {
-    margin-bottom: 3rem !important; /* Increased from 1.5rem (mb-6) */
+    margin-bottom: 2rem !important; /* Moderate increase from 1.5rem (mb-6) */
   }
 
   /* Increase font sizes for headings */
   .text-xl.sm\:text-2xl.md\:text-2xl.lg\:text-3xl.xl\:text-4xl {
-    font-size: 3.5rem !important; /* Increased from 2.25rem (4xl) to 3.5rem */
-    line-height: 1.1 !important;
+    font-size: 2.5rem !important; /* Moderate increase from 2.25rem (4xl) */
+    line-height: 1.2 !important;
   }
 
   /* Increase subtitle font size */
   .text-sm.sm\:text-base.md\:text-base.lg\:text-lg {
-    font-size: 1.5rem !important; /* Increased from 1.125rem (lg) */
+    font-size: 1.25rem !important; /* Moderate increase from 1.125rem (lg) */
     line-height: 1.75rem !important;
   }
 
   /* Increase card text sizes */
   .text-xs.sm\:text-sm.md\:text-sm {
-    font-size: 1rem !important; /* Increased from 0.875rem (sm) to base */
+    font-size: 0.9375rem !important; /* Slight increase from 0.875rem (sm) */
   }
 
   /* Increase card title sizes */
   .text-sm.sm\:text-base.md\:text-base {
-    font-size: 1.25rem !important; /* Increased from 1rem (base) to xl */
+    font-size: 1.0625rem !important; /* Slight increase from 1rem (base) */
     font-weight: 600 !important;
   }
 
-  /* Increase icon sizes */
+  /* Increase icon sizes moderately */
   .w-8.h-8.sm\:w-9.sm\:h-9.md\:w-10.md\:h-10,
   .w-2.h-2.sm\:w-2\.5.sm\:h-2\.5.md\:w-3.md\:h-3 {
-    width: 3.5rem !important;
-    height: 3.5rem !important;
+    width: 2.75rem !important; /* Moderate increase */
+    height: 2.75rem !important;
   }
 
   /* Increase gap between cards */
   .gap-3.sm\:gap-3.md\:gap-4.lg\:gap-4 {
-    gap: 2rem !important; /* Increased from 1rem (gap-4) */
+    gap: 1.25rem !important; /* Moderate increase from 1rem (gap-4) */
   }
 
-  /* Increase textarea size */
-  textarea.w-full {
-    min-height: 120px !important; /* Increased from 70px */
-    font-size: 1.25rem !important; /* Larger text */
-    padding: 1.5rem 2rem !important;
+  /* Increase textarea size moderately - only for landing page */
+  textarea.w-full:not(.bg-slate-800\/80):not(.bg-slate-800\/60):not(.bg-gray-900) {
+    min-height: 80px !important; /* Moderate increase from 70px */
+    font-size: 1rem !important; /* Keep standard text size */
+    padding: 1rem 1.5rem !important; /* Moderate padding */
   }
 
-  /* Increase button sizes */
-  button[type="submit"],
-  button[type="button"] {
-    padding: 1rem 1.5rem !important;
-    font-size: 1.125rem !important;
-  }
+  /* Don't override button sizes - they should use their component-specific styles */
+  /* Removed global button overrides to prevent oversized buttons */
 
   /* Increase quick start button sizes */
   .text-left.p-2.sm\:p-2\.5.md\:p-3.lg\:p-3 {
-    padding: 1.25rem !important; /* Increased from 0.75rem (p-3) */
+    padding: 1rem !important; /* Moderate increase from 0.75rem (p-3) */
   }
 
   /* Increase spacing in feature cards */
   .space-x-2.sm\:space-x-2\.5.md\:space-x-3 > * + * {
-    margin-left: 1.5rem !important;
+    margin-left: 1rem !important; /* Moderate spacing */
   }
 
   /* Scale up the entire landing page layout */
   .min-h-full.flex.flex-col {
-    padding: 2rem !important;
+    padding: 1.5rem !important; /* Moderate padding */
   }
 }
 
-/* Additional optimizations for standard 1080p (1920x1080) */
+/* Additional optimizations for standard desktop (1024px - 1919px) */
 @media (min-width: 1024px) and (max-width: 1919px) {
-  /* Moderate increases for smaller desktop screens */
+  /* Keep sizes reasonable for standard desktop screens */
   .max-w-full.sm\:max-w-2xl.md\:max-w-3xl.lg\:max-w-4xl.xl\:max-w-5xl.\32xl\:max-w-6xl {
-    max-width: 85rem !important; /* Moderate increase */
+    max-width: 72rem !important; /* Standard 6xl */
   }
 
   .text-xl.sm\:text-2xl.md\:text-2xl.lg\:text-3xl.xl\:text-4xl {
-    font-size: 2.75rem !important;
+    font-size: 2.25rem !important; /* Standard 4xl */
   }
 
   .p-3.sm\:p-4.md\:p-4.lg\:p-5.xl\:p-6 {
-    padding: 2rem !important;
+    padding: 1.5rem !important; /* Standard p-6 */
   }
 
   textarea.w-full {
-    min-height: 100px !important;
-    font-size: 1.125rem !important;
+    min-height: 70px !important; /* Standard height */
+    font-size: 1rem !important; /* Standard font size */
   }
 }

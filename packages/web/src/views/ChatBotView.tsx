@@ -44,7 +44,6 @@ const ChatBotView: React.FC = () => {
   const isTransferringChats = useAssistantStore((state) => state.isTransferringChats);
   const superUserMode = useSuperUserMode(); // Watch for super user mode changes
   const [canvasVisible, setCanvasVisible] = useState(false);
-  const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
   const [isEntityDataOpen, setIsEntityDataOpen] = useState(false);
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -72,10 +71,11 @@ const ChatBotView: React.FC = () => {
     storageKey: 'entityData-width'
   });
 
+  // Resizable canvas panel - no max width constraint
   const canvasResize = useResizablePanel({
-    defaultWidth: 800, // Start at maximum width for canvas
-    minWidth: 400,     // Minimum width for canvas
-    maxWidth: 1200,    // Maximum width for canvas
+    defaultWidth: 800,   // Start at maximum width for canvas
+    minWidth: 400,       // Minimum width for canvas
+    maxWidth: 999999,    // No real constraint - allow unlimited expansion
     storageKey: 'canvas-width'
   });
 
@@ -102,24 +102,7 @@ const ChatBotView: React.FC = () => {
     technicalIdRef.current = technicalId;
   }, [technicalId]);
 
-  // Keyboard shortcuts for canvas
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+Shift+F or F11 for fullscreen toggle (only when canvas is open)
-      if (canvasVisible && ((e.ctrlKey && e.shiftKey && e.key === 'F') || e.key === 'F11')) {
-        e.preventDefault();
-        setIsCanvasFullscreen(!isCanvasFullscreen);
-      }
-      // Escape to exit fullscreen
-      if (isCanvasFullscreen && e.key === 'Escape') {
-        e.preventDefault();
-        setIsCanvasFullscreen(false);
-      }
-    };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [canvasVisible, isCanvasFullscreen]);
 
   // Add header notification for new messages
   const addHeaderNotification = (message: Message) => {
@@ -454,20 +437,6 @@ const ChatBotView: React.FC = () => {
 
   const onToggleCanvas = () => {
     setCanvasVisible(!canvasVisible);
-    // Exit fullscreen when closing canvas
-    if (canvasVisible && isCanvasFullscreen) {
-      setIsCanvasFullscreen(false);
-    }
-  };
-
-  const onToggleCanvasFullscreen = () => {
-    const newFullscreenState = !isCanvasFullscreen;
-    setIsCanvasFullscreen(newFullscreenState);
-
-    // Close chat history when entering fullscreen mode
-    if (newFullscreenState) {
-      setIsChatHistoryOpen(false);
-    }
   };
 
   const onEntitiesDetails = () => {
@@ -740,7 +709,10 @@ const ChatBotView: React.FC = () => {
         {isChatHistoryOpen && (
           <div
             className={`resizable-panel ${chatHistoryResize.isResizing ? 'resizing' : ''}`}
-            style={{ width: `${chatHistoryResize.width}px` }}
+            style={{
+              width: `${chatHistoryResize.width}px`,
+              zIndex: chatHistoryResize.isResizing ? 30 : 10
+            }}
           >
             <ChatHistoryPanel
               chatGroups={chatGroups}
@@ -760,10 +732,11 @@ const ChatBotView: React.FC = () => {
         {/* Canvas Sidebar Panel - Between chat history and main content */}
         {canvasVisible && (
           <div
-            className={`bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel ${canvasResize.isResizing ? 'resizing' : ''} ${
-              isCanvasFullscreen ? 'fixed inset-0 z-[9000] w-full' : ''
-            }`}
-            style={isCanvasFullscreen ? {} : { width: `${canvasResize.width}px` }}
+            className={`bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel ${canvasResize.isResizing ? 'resizing' : ''}`}
+            style={{
+              width: `${canvasResize.width}px`,
+              zIndex: canvasResize.isResizing ? 30 : 11
+            }}
           >
             <ChatBotCanvas
               technicalId={technicalId}
@@ -773,23 +746,19 @@ const ChatBotView: React.FC = () => {
               onApproveQuestion={onApproveQuestion}
               onUpdateNotification={onUpdateNotification}
               onToggleCanvas={onToggleCanvas}
-              isFullscreen={isCanvasFullscreen}
-              onToggleFullscreen={onToggleCanvasFullscreen}
             />
 
-            {/* Resize Handle - Hide in fullscreen mode */}
-            {!isCanvasFullscreen && (
-              <ResizeHandle
-                position="right"
-                onMouseDown={canvasResize.handleMouseDown}
-                isResizing={canvasResize.isResizing}
-              />
-            )}
+            {/* Resize Handle */}
+            <ResizeHandle
+              position="right"
+              onMouseDown={canvasResize.handleMouseDown}
+              isResizing={canvasResize.isResizing}
+            />
           </div>
         )}
 
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col min-h-0 main-content">
+        <div className="flex-1 flex flex-col min-h-0 min-w-0 main-content">
           <ChatBot
             technicalId={technicalId}
             onAnswer={onAnswer}

@@ -633,17 +633,23 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
           borderColor: palette.ui.panelBorder
         }}
       >
-      {/* Left Resize Handle */}
+      {/* Left Resize Handle - only captures events when directly over it */}
       <div
-        className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:w-1.5 transition-all z-20 group"
+        className="absolute top-0 bottom-0 cursor-ew-resize transition-all group hover:bg-opacity-50"
         onMouseDown={handleResizeStart}
         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = palette.ui.accentColor}
         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
         title="Drag to resize"
+        style={{
+          left: '0px',   // Position at the panel edge
+          width: '4px',  // Very narrow to minimize blocking
+          zIndex: 1,     // Very low z-index
+          pointerEvents: 'auto'
+        }}
       >
         <div
           className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 rounded-r opacity-0 group-hover:opacity-100 transition-opacity"
-          style={{ backgroundColor: palette.ui.accentHover }}
+          style={{ backgroundColor: palette.ui.accentHover, pointerEvents: 'none' }}
         />
       </div>
         {/* Header */}

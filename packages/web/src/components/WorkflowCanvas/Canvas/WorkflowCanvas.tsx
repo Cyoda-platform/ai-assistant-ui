@@ -19,7 +19,7 @@ import {
 } from '@xyflow/react';
 import type { Node, Edge, Connection, OnConnect, OnReconnect } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Network, Download, Upload, FileJson, Info, X, Cloud, CloudDownload, CloudUpload, Maximize2, Minimize2, Settings } from 'lucide-react';
+import { Network, Download, Upload, FileJson, Info, X, Cloud, CloudDownload, CloudUpload, Settings, Expand, Maximize2, Minimize2 } from 'lucide-react';
 import axios from 'axios';
 import { useAuthStore } from '@/stores/auth';
 import { Modal } from 'antd';
@@ -277,13 +277,28 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   modelName,
   modelVersion
 }) => {
-  const { screenToFlowPosition, fitView } = useReactFlow();
+  const { screenToFlowPosition, fitView, getViewport } = useReactFlow();
   const [showQuickHelp, setShowQuickHelp] = useState(false);
   const [showJsonEditor, setShowJsonEditor] = useState(true); // Open by default
   const [showWorkflowInfo, setShowWorkflowInfo] = useState(true); // Show workflow info panel by default
   const [showSettings, setShowSettings] = useState(false);
   const [selectedStateId, setSelectedStateId] = useState<string | null>(null);
   const [selectedTransitionId, setSelectedTransitionId] = useState<string | null>(null);
+
+  // Debug: Log viewport changes
+  const handleMoveEnd = useCallback((event: any, viewport: any) => {
+    console.log('🔍 Viewport moved:', viewport);
+    console.log('📍 Position - x:', viewport.x, 'y:', viewport.y, 'zoom:', viewport.zoom);
+  }, []);
+
+  // Debug: Log configuration on mount
+  React.useEffect(() => {
+    console.log('🎯 Canvas Configuration:');
+    console.log('  - translateExtent:', undefined);
+    console.log('  - nodeExtent:', undefined);
+    console.log('  - panOnDrag:', true);
+    console.log('  - This should allow UNLIMITED panning!');
+  }, []);
 
   // Settings state with localStorage persistence
   const [edgeType, setEdgeTypeState] = useState<'default' | 'straight' | 'step' | 'smoothstep'>(() => {
@@ -1983,6 +1998,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         onNodeClick={handleNodeClick}
         onEdgeClick={handleEdgeClick}
         onPaneClick={onPaneClick}
+        onMoveEnd={handleMoveEnd}
 
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
@@ -1997,6 +2013,20 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         minZoom={0.05}  // Allow zooming out to 5% to see very large workflows
         maxZoom={4}     // Allow zooming in to 400% for detail work
         defaultViewport={{ zoom: 1, x: 0, y: 0 }}
+
+        // Enable panning and interaction
+        panOnDrag={[1, 2]}  // Enable canvas panning with left (1) and middle (2) mouse buttons
+        panOnScroll={false}  // Disable panning on scroll (use scroll for zoom)
+        zoomOnScroll={true}  // Enable zoom on scroll
+        selectNodesOnDrag={false}  // Don't select nodes when dragging canvas
+        preventScrolling={false}  // Allow scrolling
+
+        // Allow unlimited panning in all directions - NO BOUNDARIES
+        translateExtent={undefined}  // Remove all viewport boundaries for unlimited panning
+        nodeExtent={undefined}  // Remove all node placement boundaries
+
+        // Ensure viewport can move freely
+        fitViewOptions={{ padding: 0.2, minZoom: 0.05, maxZoom: 1.5 }}
 
         // Optimize rendering
         nodesDraggable={true}
@@ -2081,7 +2111,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             data-testid="fit-view-button"
             className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30"
           >
-            <Maximize2 size={16} className="text-green-600 dark:text-green-400" />
+            <Expand size={16} className="text-green-600 dark:text-green-400" />
           </ControlButton>
           <ControlButton
             onClick={handleToggleSettings}
@@ -2103,11 +2133,11 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           >
             <span className="text-sm font-bold">?</span>
           </ControlButton>
-          {/* Only show fullscreen button if model name and version are available */}
+          {/* Fullscreen button - only show if model name and version are available */}
           {modelName && modelVersion && (
             <ControlButton
               onClick={handleToggleFullscreen}
-              title={isInFullscreenMode ? "Exit fullscreen" : "Open in fullscreen"}
+              title={isInFullscreenMode ? "Exit Fullscreen" : "Open in Fullscreen"}
               className={isInFullscreenMode
                 ? "bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/30 dark:to-red-900/30"
                 : "bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/30 dark:to-indigo-900/30"
@@ -2433,7 +2463,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                 {modelName && modelVersion && (
                   <div className="flex items-start space-x-2">
                     <span className="text-purple-500 mt-0.5">{isInFullscreenMode ? '⤓' : '⤢'}</span>
-                    <span><strong>Fullscreen</strong> - {isInFullscreenMode ? 'Exit fullscreen mode' : 'Open in fullscreen mode'}</span>
+                    <span><strong>Fullscreen</strong> - {isInFullscreenMode ? 'Exit fullscreen mode' : 'Open in dedicated fullscreen page'}</span>
                   </div>
                 )}
               </div>

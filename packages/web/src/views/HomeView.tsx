@@ -37,7 +37,6 @@ const HomeView: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(true);
   const [canvasVisible, setCanvasVisible] = useState(false);
-  const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [pendingMessage, setPendingMessage] = useState<{ input: string; files: File[] } | null>(null);
   const [isResizing, setIsResizing] = useState(false);
@@ -93,11 +92,11 @@ const HomeView: React.FC = () => {
     storageKey: 'home-chatHistory-width'
   });
 
-  // Resizable canvas panel
+  // Resizable canvas panel - no max width constraint
   const canvasResize = useResizablePanel({
     defaultWidth: 800,
     minWidth: 400,
-    maxWidth: 1200,
+    maxWidth: 999999, // No real constraint - allow unlimited expansion
     storageKey: 'home-canvas-width'
   });
 
@@ -343,23 +342,7 @@ const HomeView: React.FC = () => {
 
   // Canvas handlers
   const handleToggleCanvas = () => {
-    const newCanvasState = !canvasVisible;
-    setCanvasVisible(newCanvasState);
-
-    // When closing canvas, exit fullscreen mode
-    if (!newCanvasState && isCanvasFullscreen) {
-      setIsCanvasFullscreen(false);
-    }
-  };
-
-  const handleToggleCanvasFullscreen = () => {
-    const newFullscreenState = !isCanvasFullscreen;
-    setIsCanvasFullscreen(newFullscreenState);
-
-    // Close chat history when entering fullscreen mode
-    if (newFullscreenState) {
-      setIsChatHistoryOpen(false);
-    }
+    setCanvasVisible(!canvasVisible);
   };
 
   // Drag and drop handlers
@@ -464,7 +447,10 @@ const HomeView: React.FC = () => {
         {isChatHistoryOpen && (
           <div
             className={`h-full ${chatHistoryResize.isResizing ? 'resizing' : ''}`}
-            style={{ width: `${chatHistoryResize.width}px` }}
+            style={{
+              width: `${chatHistoryResize.width}px`,
+              zIndex: chatHistoryResize.isResizing ? 30 : 10
+            }}
           >
             <ChatHistoryPanel
               chatGroups={chatGroups}
@@ -483,10 +469,11 @@ const HomeView: React.FC = () => {
         {/* Canvas Sidebar Panel */}
         {canvasVisible && (
           <div
-            className={`bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel ${canvasResize.isResizing ? 'resizing' : ''} ${
-              isCanvasFullscreen ? 'flex-1' : ''
-            }`}
-            style={isCanvasFullscreen ? {} : { width: `${canvasResize.width}px` }}
+            className={`bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel ${canvasResize.isResizing ? 'resizing' : ''}`}
+            style={{
+              width: `${canvasResize.width}px`,
+              zIndex: canvasResize.isResizing ? 30 : 11
+            }}
           >
             <ChatBotCanvas
               technicalId="home-canvas"
@@ -496,56 +483,51 @@ const HomeView: React.FC = () => {
               onApproveQuestion={handleApproveQuestion}
               onUpdateNotification={handleUpdateNotification}
               onToggleCanvas={handleToggleCanvas}
-              isFullscreen={isCanvasFullscreen}
-              onToggleFullscreen={handleToggleCanvasFullscreen}
             />
 
-            {/* Resize Handle - Hide in fullscreen mode */}
-            {!isCanvasFullscreen && (
-              <ResizeHandle
-                position="right"
-                onMouseDown={canvasResize.handleMouseDown}
-                isResizing={canvasResize.isResizing}
-              />
-            )}
+            {/* Resize Handle */}
+            <ResizeHandle
+              position="right"
+              onMouseDown={canvasResize.handleMouseDown}
+              isResizing={canvasResize.isResizing}
+            />
           </div>
         )}
 
-        {/* Enhanced Main Content - Hidden when canvas is fullscreen */}
-        {!isCanvasFullscreen && (
-          <div ref={mainContentRef} className="flex-1 overflow-y-auto scrollbar-thin bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
-            <div className="p-3 sm:p-4 md:p-4 lg:p-5 xl:p-6 min-h-full flex flex-col">
-            <div className="max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl mx-auto w-full flex-1 flex flex-col">
+        {/* Enhanced Main Content */}
+        <div ref={mainContentRef} className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden scrollbar-thin bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
+            <div className="p-3 sm:p-4 md:p-4 lg:p-5 xl:p-6 min-h-full flex flex-col min-w-0">
+            <div className={`w-full flex-1 flex flex-col min-w-0 ${canvasVisible ? '' : 'max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl mx-auto'}`}>
               {/* Enhanced Header */}
-              <div className="mb-3 sm:mb-4 md:mb-4 lg:mb-5 xl:mb-6 animate-fade-in-up">
-                <div className="flex items-center space-x-2 sm:space-x-2.5 md:space-x-3 mb-2 sm:mb-2 md:mb-3">
-                  <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-xs sm:text-sm md:text-sm font-medium text-green-400 uppercase tracking-wider">Ready to Build</span>
+              <div className="mb-6 animate-fade-in-up">
+                <div className="flex items-center space-x-2 mb-3">
+                  <div className="w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-medium text-green-400 uppercase tracking-wider">Ready to Build</span>
                 </div>
-                <h1 className="text-xl sm:text-2xl md:text-2xl lg:text-3xl xl:text-4xl font-bold mb-2 sm:mb-2 md:mb-2.5 bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+                <h1 className="text-2xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
                   Welcome to CYODA AI Assistant
                 </h1>
-                <p className="text-slate-400 text-sm sm:text-base md:text-base lg:text-lg leading-relaxed">
+                <p className="text-slate-400 text-base leading-relaxed">
                   Build, deploy and scale data-intensive operational services with intelligent assistance
                 </p>
               </div>
 
               {/* Enhanced Feature Cards */}
               {!isResizing && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-3 md:gap-4 lg:gap-4 mb-3 sm:mb-4 md:mb-4 lg:mb-5 xl:mb-6">
+                <div className="grid md:grid-cols-3 gap-4 mb-6 min-w-0">
                   {features.map((feature, index) => (
                     <div
                       key={index}
-                      className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg sm:rounded-xl p-3 sm:p-3 md:p-4 lg:p-4 hover:border-slate-600 transition-all duration-200 animate-fade-in-up hover:shadow-xl hover:shadow-slate-900/20"
+                      className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-4 hover:border-slate-600 transition-all duration-200 animate-fade-in-up hover:shadow-xl hover:shadow-slate-900/20"
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
-                      <div className="flex items-start space-x-2 sm:space-x-3 md:space-x-3">
-                        <div className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-lg bg-${feature.color}-500 flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                      <div className="flex items-start space-x-3">
+                        <div className={`w-9 h-9 rounded-lg bg-${feature.color}-500 flex items-center justify-center flex-shrink-0 shadow-lg`}>
                           {feature.icon}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-white mb-1 sm:mb-1.5 md:mb-1.5 text-sm sm:text-base md:text-base">{feature.title}</h3>
-                          <p className="text-slate-300 text-xs sm:text-sm md:text-sm leading-relaxed">
+                          <h3 className="font-semibold text-white mb-1.5 text-sm">{feature.title}</h3>
+                          <p className="text-slate-300 text-xs leading-relaxed">
                             {feature.description}
                           </p>
                         </div>
@@ -586,34 +568,36 @@ const HomeView: React.FC = () => {
                       }}
                       placeholder="What would you like to build together today?"
                       rows={1}
-                      className="w-full bg-slate-800/60 backdrop-blur-sm border-2 border-slate-600/50 rounded-2xl sm:rounded-2xl md:rounded-3xl px-3 sm:px-4 md:pl-6 md:pr-6 pb-7 sm:pb-9 md:pb-11 lg:pb-13 pt-3 sm:pt-4 md:pt-4 lg:pt-5 text-white placeholder-slate-400 focus:outline-none focus:border-teal-500/80 focus:bg-slate-800/80 transition-all duration-200 text-base sm:text-lg md:text-lg lg:text-xl shadow-2xl resize-none overflow-hidden"
-                      style={{ minHeight: '70px', maxHeight: '300px' }}
+                      className="w-full bg-slate-800/60 backdrop-blur-sm border-2 border-slate-600/50 rounded-3xl px-6 pr-28 py-4 text-white placeholder-slate-400 focus:outline-none focus:border-teal-500/80 focus:bg-slate-800/80 transition-all duration-200 text-lg shadow-2xl resize-none overflow-hidden"
+                      style={{ minHeight: '60px', maxHeight: '300px' }}
                       disabled={isLoading}
                     />
 
                     {/* Bottom Right Controls - Lovable Style */}
-                    <div className="absolute right-2 sm:right-3 md:right-4 bottom-2.5 sm:bottom-3 md:bottom-4 lg:bottom-5 flex items-center gap-0.5 sm:gap-1 md:gap-1.5">
+                    <div className="absolute right-4 bottom-4 flex items-center gap-2 z-10">
                       {/* Attach File Button */}
                       <button
                         type="button"
                         onClick={handleFileAttach}
-                        className="p-0.5 sm:p-1 md:p-1.5 rounded-md sm:rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200 flex items-center justify-center"
+                        className="rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200 flex items-center justify-center flex-shrink-0"
+                        style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px', maxWidth: '40px', maxHeight: '40px' }}
                         title="Attach file"
                       >
-                        <Paperclip className="w-3 h-3 sm:w-4 sm:h-4 md:w-[17px] md:h-[17px]" />
+                        <Paperclip size={18} />
                       </button>
 
                       {/* Send Button */}
                       <button
                         type="submit"
                         disabled={!chatInput.trim() || isLoading}
-                        className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:opacity-50 text-white p-0.5 sm:p-1 md:p-1.5 rounded-md sm:rounded-lg transition-all duration-200 shadow-lg hover:shadow-teal-500/25 disabled:cursor-not-allowed flex items-center justify-center"
+                        className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:opacity-50 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-teal-500/25 disabled:cursor-not-allowed flex items-center justify-center flex-shrink-0"
+                        style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px', maxWidth: '40px', maxHeight: '40px' }}
                         title="Send Message (Enter)"
                       >
                         {isLoading ? (
-                          <div className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         ) : (
-                          <Send className="w-3 h-3 sm:w-4 sm:h-4 md:w-[17px] md:h-[17px]" />
+                          <Send size={18} />
                         )}
                       </button>
                     </div>
@@ -664,8 +648,8 @@ const HomeView: React.FC = () => {
 
               {/* Quick Actions */}
               <div className="mb-4">
-                <h2 className="text-sm sm:text-base md:text-base lg:text-lg font-semibold mb-2 sm:mb-2.5 md:mb-2.5 flex items-center space-x-1.5 sm:space-x-2 text-slate-400">
-                  <Zap className="text-teal-400 w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5" />
+                <h2 className="text-base font-semibold mb-2 sm:mb-2.5 md:mb-2.5 flex items-center space-x-1.5 sm:space-x-2 text-slate-400">
+                  <Zap className="text-teal-400 w-5 h-5" />
                   <span>Quick Start</span>
                 </h2>
 
@@ -703,8 +687,7 @@ const HomeView: React.FC = () => {
               </div>
             </div>
           </div>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

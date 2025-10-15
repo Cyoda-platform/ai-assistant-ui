@@ -12,8 +12,6 @@ import {
   Redo2,
   ZoomIn,
   ZoomOut,
-  Maximize,
-  Minimize,
   Plus,
   Lock,
   Unlock,
@@ -40,8 +38,6 @@ interface ChatBotCanvasProps {
   onApproveQuestion: (data: any) => void;
   onUpdateNotification: (data: any) => void;
   onToggleCanvas: () => void;
-  isFullscreen?: boolean;
-  onToggleFullscreen?: () => void;
 }
 
 type MarkdownMode = 'preview' | 'split' | 'edit';
@@ -53,9 +49,7 @@ const ChatBotCanvas: React.FC<ChatBotCanvasProps> = ({
   onAnswer,
   onApproveQuestion,
   onUpdateNotification,
-  onToggleCanvas,
-  isFullscreen = false,
-  onToggleFullscreen
+  onToggleCanvas
 }) => {
   const [activeTab, setActiveTab] = useState<'workflow' | 'markdown'>('workflow');
   const [markdownContent, setMarkdownContent] = useState(`# Welcome to Canvas Markdown Editor
@@ -227,15 +221,6 @@ gantt
           <span className="text-xs bg-teal-500/20 text-teal-300 px-2 py-1 rounded-full">Active</span>
         </div>
         <div className="flex items-center space-x-2">
-          {onToggleFullscreen && (
-            <button
-              onClick={onToggleFullscreen}
-              className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
-              title={isFullscreen ? "Exit Fullscreen (Esc)" : "Fullscreen (Ctrl+Shift+F)"}
-            >
-              {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
-            </button>
-          )}
           <button
             onClick={onToggleCanvas}
             className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
