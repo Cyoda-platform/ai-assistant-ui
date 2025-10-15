@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, History, Clock, ChevronRight, X } from 'lucide-react';
+import { Home, History, Clock, ChevronRight, X, AlertTriangle } from 'lucide-react';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
 
@@ -39,21 +39,27 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
   onDeleteChat
 }) => {
   const navigate = useNavigate();
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [chatToDelete, setChatToDelete] = useState<{ id: string; name?: string } | null>(null);
 
-  const handleDeleteChat = (e: React.MouseEvent, chatId: string, chatName?: string) => {
+  const handleDeleteClick = (e: React.MouseEvent, chatId: string, chatName?: string) => {
     e.preventDefault();
     e.stopPropagation();
+    setChatToDelete({ id: chatId, name: chatName });
+    setDeleteModalOpen(true);
+  };
 
-    // Show confirmation dialog
-    const confirmMessage = chatName
-      ? `Are you sure you want to delete "${chatName}"?`
-      : 'Are you sure you want to delete this chat?';
-
-    if (window.confirm(confirmMessage)) {
-      if (onDeleteChat) {
-        onDeleteChat(chatId);
-      }
+  const handleConfirmDelete = () => {
+    if (chatToDelete && onDeleteChat) {
+      onDeleteChat(chatToDelete.id);
     }
+    setDeleteModalOpen(false);
+    setChatToDelete(null);
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteModalOpen(false);
+    setChatToDelete(null);
   };
 
   const formatRelativeTime = (dateString: string) => {
@@ -196,11 +202,11 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
                           </div>
                           {onDeleteChat && (
                             <button
-                              onClick={(e) => handleDeleteChat(e, chat.technical_id, chat.name || chat.description)}
-                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1.5 rounded-md bg-red-600/20 hover:bg-red-600/40 text-red-400 hover:text-red-300 transition-all duration-200 border border-red-500/30"
+                              onClick={(e) => handleDeleteClick(e, chat.technical_id, chat.name || chat.description)}
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1.5 rounded-md bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 transition-all duration-200 shadow-lg hover:shadow-teal-500/25"
                               title="Delete chat"
                             >
-                              <X size={14} />
+                              <X size={14} className="text-white" />
                             </button>
                           )}
                         </div>
@@ -236,6 +242,53 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
 
       {/* Resize Handle */}
       <ResizeHandle onMouseDown={onResizeMouseDown} isResizing={isResizing} position="right" />
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-800 rounded-xl shadow-2xl border border-slate-700 max-w-md w-full mx-4 overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center space-x-3 p-6 border-b border-slate-700">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-500/20">
+                <AlertTriangle size={24} className="text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white">Delete Chat</h3>
+                <p className="text-sm text-slate-400">This action cannot be undone</p>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-6">
+              <p className="text-slate-300 mb-2">
+                Are you sure you want to delete this chat?
+              </p>
+              {chatToDelete?.name && (
+                <div className="mt-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700">
+                  <p className="text-sm text-slate-400 mb-1">Chat name:</p>
+                  <p className="text-white font-medium truncate">{chatToDelete.name}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end space-x-3 p-6 border-t border-slate-700 bg-slate-900/30">
+              <button
+                onClick={handleCancelDelete}
+                className="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-red-500/25"
+              >
+                Delete Chat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

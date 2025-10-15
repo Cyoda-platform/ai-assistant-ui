@@ -3,7 +3,7 @@ import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
 import { Database, GitBranch, Workflow, FileText, CheckCircle, Clock, Code } from 'lucide-react';
 
-interface EntityVersionNodeData {
+interface EntityNodeData {
   entityName: string;
   version: string;
   description?: string;
@@ -16,7 +16,7 @@ interface EntityVersionNodeData {
   onClick?: () => void;
 }
 
-export const EntityVersionNode: React.FC<NodeProps<EntityVersionNodeData>> = ({ data, selected }) => {
+export const EntityNode: React.FC<NodeProps<EntityNodeData>> = ({ data, selected }) => {
   const { entityName, version, description, state, workflowCount, requirementCount, codeCount, isActive, updatedAt, onClick } = data;
 
   const getStateColor = () => {
