@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { X, Save, Sparkles, Upload } from 'lucide-react';
+import { X, Save, Upload, Send } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import type { WorkflowConfiguration } from '../types/workflow';
-import { WorkflowAIAssistant } from './WorkflowAIAssistant';
 import type { ColorPalette } from '../themes/colorPalettes';
 
 interface WorkflowJsonEditorProps {
@@ -14,6 +13,7 @@ interface WorkflowJsonEditorProps {
   selectedTransitionId?: string | null;
   technicalId?: string;
   palette: ColorPalette;
+  onSendToChat?: (data: string) => void;
 }
 
 export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
@@ -25,6 +25,7 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
   selectedTransitionId,
   technicalId,
   palette,
+  onSendToChat,
 }) => {
   const [jsonText, setJsonText] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -32,9 +33,6 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
   const monacoRef = useRef<any>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // AI Assistant state
-  const [showAIAssistant, setShowAIAssistant] = useState(false);
-  const [selectedText, setSelectedText] = useState<string>('');
 
   // Resizing state
   const [width, setWidth] = useState(600);
@@ -195,24 +193,6 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
-  // Handle AI Assistant hotkey (Cmd/Ctrl + K)
-  useEffect(() => {
-    const handleAIHotkey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k' && isOpen) {
-        e.preventDefault();
-        // Get selected text from editor if available
-        if (editorRef.current) {
-          const selection = editorRef.current.getSelection();
-          const selectedContent = editorRef.current.getModel()?.getValueInRange(selection);
-          setSelectedText(selectedContent || '');
-        }
-        setShowAIAssistant(true);
-      }
-    };
-
-    document.addEventListener('keydown', handleAIHotkey);
-    return () => document.removeEventListener('keydown', handleAIHotkey);
-  }, [isOpen]);
 
   // Handle AI suggestion application
   const handleApplySuggestion = useCallback((suggestion: string) => {
@@ -222,37 +202,44 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
       const formattedJson = JSON.stringify(parsed, null, 2);
 
       // If we have selected text, try to replace it intelligently
-      if (editorRef.current && selectedText) {
+      if (editorRef.current) {
         const selection = editorRef.current.getSelection();
-        editorRef.current.executeEdits('ai-suggestion', [{
-          range: selection,
-          text: formattedJson
-        }]);
-        // Trigger save after a short delay to allow editor to update
-        setTimeout(() => {
-          const currentValue = editorRef.current?.getValue();
-          if (currentValue) {
-            try {
-              const updatedParsed = JSON.parse(currentValue);
-              onSave(updatedParsed);
-            } catch (e) {
-              console.error('Failed to save after partial edit:', e);
+        const selectedText = editorRef.current.getModel()?.getValueInRange(selection);
+
+        if (selectedText && selectedText.trim()) {
+          editorRef.current.executeEdits('ai-suggestion', [{
+            range: selection,
+            text: formattedJson
+          }]);
+          // Trigger save after a short delay to allow editor to update
+          setTimeout(() => {
+            const currentValue = editorRef.current?.getValue();
+            if (currentValue) {
+              try {
+                const updatedParsed = JSON.parse(currentValue);
+                onSave(updatedParsed);
+              } catch (e) {
+                console.error('Failed to save after partial edit:', e);
+              }
             }
-          }
-        }, 100);
+          }, 100);
+        } else {
+          // Otherwise, replace the entire content and save immediately
+          setJsonText(formattedJson);
+          // Trigger save immediately for full replacement
+          onSave(parsed);
+        }
       } else {
-        // Otherwise, replace the entire content and save immediately
+        // No editor ref, just update the text
         setJsonText(formattedJson);
-        // Trigger save immediately for full replacement
         onSave(parsed);
       }
 
-      setShowAIAssistant(false);
     } catch (err) {
       console.error('Failed to apply AI suggestion:', err);
       alert('The AI suggestion is not valid JSON. Please review and apply manually.');
     }
-  }, [selectedText, onSave]);
+  }, [onSave]);
 
   // Navigate to selected state or transition in JSON
   useEffect(() => {
@@ -562,6 +549,57 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
     };
   }, [isResizing]);
 
+  // Save workflow handler
+  const handleSaveWorkflow = useCallback(() => {
+    try {
+      const parsed = JSON.parse(jsonText);
+      onSave(parsed);
+
+      // Show success notification
+      const notification = document.createElement('div');
+      notification.textContent = '✅ Workflow saved successfully!';
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        z-index: 10000;
+        font-weight: 500;
+        animation: slideIn 0.3s ease-out;
+      `;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+      }, 2000);
+    } catch (err) {
+      // Error is already shown in the editor
+      console.error('Cannot save invalid JSON:', err);
+    }
+  }, [jsonText, onSave]);
+
+  // Keyboard shortcut for save (Ctrl+S / Cmd+S)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        if (!error) {
+          handleSaveWorkflow();
+        }
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isOpen, error, handleSaveWorkflow]);
+
   // Import from file handler
   const handleImportFromFile = useCallback(() => {
     const input = document.createElement('input');
@@ -601,6 +639,14 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
     input.click();
   }, [onSave]);
 
+  // Send to chat handler
+  const handleSendToChat = useCallback(() => {
+    if (!onSendToChat) return;
+
+    const message = `Here is the workflow configuration:\n\n\`\`\`json\n${jsonText}\n\`\`\`\n\nPlease review this workflow and help me improve it.`;
+    onSendToChat(message);
+  }, [onSendToChat, jsonText]);
+
   if (!isOpen) return null;
 
   // Convert hex color to rgba for animations
@@ -614,6 +660,28 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
   return (
     <>
       <style>{`
+        @keyframes slideIn {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+
+        @keyframes slideOut {
+          from {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+        }
+
         .highlighted-line {
           background-color: ${hexToRgba(palette.ui.accentColor, 0.2)} !important;
           animation: highlight-fade 2s ease-out;
@@ -655,6 +723,34 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
           }}
         >
           <div className="flex items-center gap-3">
+            {/* Save Workflow Button - Saves the current workflow configuration
+                Purpose: Persist workflow changes to storage
+                Size: 40x40px (w-10 h-10) - matches standard icon size for panel headers
+                Alignment: Vertically centered with title text using flex items-center */}
+            <button
+              onClick={handleSaveWorkflow}
+              disabled={!!error}
+              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all hover:scale-105 group disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                background: error
+                  ? '#6b7280'
+                  : `linear-gradient(to bottom right, #10b981, #059669)`
+              }}
+              onMouseEnter={(e) => {
+                if (!error) {
+                  e.currentTarget.style.background = `linear-gradient(to bottom right, #059669, #047857)`;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!error) {
+                  e.currentTarget.style.background = `linear-gradient(to bottom right, #10b981, #059669)`;
+                }
+              }}
+              title={error ? "Fix JSON errors before saving" : "Save workflow (Ctrl+S)"}
+            >
+              <Save size={20} className="text-white group-hover:scale-110 transition-transform" />
+            </button>
+
             {/* Import from File Button - Allows importing workflow JSON from a file
                 Purpose: Quick access to import workflow configuration
                 Size: 40x40px (w-10 h-10) - matches standard icon size for panel headers
@@ -675,6 +771,36 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
             >
               <Upload size={20} className="text-white group-hover:scale-110 transition-transform" />
             </button>
+
+            {/* Send to Chat Button - Sends workflow to chat for AI assistance
+                Purpose: Quick access to send workflow to chat
+                Size: 40x40px (w-10 h-10) - matches standard icon size for panel headers
+                Alignment: Vertically centered with title text using flex items-center */}
+            {onSendToChat && (
+              <button
+                onClick={handleSendToChat}
+                disabled={!!error}
+                className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all hover:scale-105 group disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  background: error
+                    ? '#6b7280'
+                    : `linear-gradient(to bottom right, #14b8a6, #0d9488)`
+                }}
+                onMouseEnter={(e) => {
+                  if (!error) {
+                    e.currentTarget.style.background = `linear-gradient(to bottom right, #0d9488, #0f766e)`;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!error) {
+                    e.currentTarget.style.background = `linear-gradient(to bottom right, #14b8a6, #0d9488)`;
+                  }
+                }}
+                title={error ? "Fix JSON errors before sending to chat" : "Send workflow to chat"}
+              >
+                <Send size={20} className="text-white group-hover:scale-110 transition-transform" />
+              </button>
+            )}
             <div>
               <h3
                 className="text-lg font-bold text-transparent bg-clip-text"
@@ -690,28 +816,6 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {/* AI Assistant Button */}
-            <button
-              onClick={() => {
-                // Get selected text from editor if available
-                if (editorRef.current) {
-                  const selection = editorRef.current.getSelection();
-                  const selectedContent = editorRef.current.getModel()?.getValueInRange(selection);
-                  setSelectedText(selectedContent || '');
-                }
-                setShowAIAssistant(true);
-              }}
-              className="group relative px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
-              title="Ask AI Assistant (⌘K / Ctrl+K)"
-            >
-              <Sparkles size={16} className="text-white animate-pulse" />
-              <span className="text-white font-medium text-sm">Ask AI</span>
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span>
-              </span>
-            </button>
-
             <button
               onClick={onClose}
               className="p-2 rounded-lg transition-colors group"
@@ -944,22 +1048,10 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
               <strong>Live Editing:</strong> Changes apply automatically
             </div>
           </div>
-          <div className="text-xs text-gray-400">
-            Press <kbd className="px-2 py-0.5 bg-gray-700 rounded text-xs">⌘K</kbd> or <kbd className="px-2 py-0.5 bg-gray-700 rounded text-xs">Ctrl+K</kbd> for AI help
-          </div>
         </div>
       </div>
-
-      {/* AI Assistant Modal */}
-      <WorkflowAIAssistant
-        isOpen={showAIAssistant}
-        onClose={() => setShowAIAssistant(false)}
-        currentWorkflow={jsonText}
-        selectedText={selectedText}
-        onApplySuggestion={handleApplySuggestion}
-        technicalId={technicalId}
-      />
     </>
   );
 };
 
+export default WorkflowJsonEditor;

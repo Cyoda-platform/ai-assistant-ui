@@ -236,6 +236,28 @@ const HomeView: React.FC = () => {
       }
 
       if (response?.data?.technical_id) {
+        const technicalId = response.data.technical_id;
+
+        // Initialize empty app config in localStorage for this chat
+        try {
+          const appConfigs = JSON.parse(localStorage.getItem('mock_api_app_configs') || '{}');
+          if (!appConfigs[technicalId]) {
+            appConfigs[technicalId] = {
+              id: technicalId,
+              name: input.substring(0, 100), // Use first 100 chars of chat input as app name
+              entities: [],
+              workflows: [],
+              environments: [],
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            };
+            localStorage.setItem('mock_api_app_configs', JSON.stringify(appConfigs));
+            console.log('✅ Initialized app config for new chat:', technicalId);
+          }
+        } catch (error) {
+          console.error('Failed to initialize app config:', error);
+        }
+
         // Wait for chat list to refresh before navigating
         // This ensures the new chat appears in the sidebar
         try {
@@ -244,8 +266,8 @@ const HomeView: React.FC = () => {
           console.error('Failed to refresh chat list:', error);
         }
 
-        // Navigate to chat details page after chat list is updated
-        navigate(`/chat/${response.data.technical_id}`);
+        // Navigate to chat details page with canvas open
+        navigate(`/chat/${technicalId}?openCanvas=true`);
       }
     } catch (error) {
       console.error('Error creating chat:', error);

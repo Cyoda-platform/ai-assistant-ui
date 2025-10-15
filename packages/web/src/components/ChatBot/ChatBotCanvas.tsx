@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   X,
   Settings,
@@ -22,7 +22,8 @@ import {
   Columns2,
   Network,
   Database,
-  Code
+  Code,
+  Server
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -32,10 +33,14 @@ import ChatBotEditorWorkflowNew from './ChatBotEditorWorkflowNew';
 import MermaidDiagram from '../MermaidDiagram/MermaidDiagram';
 import { WorkflowTabs } from '@/components/WorkflowTabs/WorkflowTabs';
 import { useWorkflowTabsStore } from '@/stores/workflowTabs';
+import { useAppsTabsStore } from '@/stores/appsTabs';
 import { AppsTabsContainer } from '@/components/AppsTabs';
 import { Modal, Form, Input, InputNumber } from 'antd';
 import SettingsDialog from '@/components/SettingsDialog/SettingsDialog';
 import { AppsCanvas, samplePortalData } from '@/components/AppsCanvas';
+import { EnvironmentEditor } from '@/components/EnvironmentEditor';
+import { EntityEditor } from '@/components/EntityEditor';
+import { RequirementEditor } from '@/components/RequirementEditor';
 
 interface ChatBotCanvasProps {
   messages: any[];
@@ -62,7 +67,20 @@ const ChatBotCanvas: React.FC<ChatBotCanvasProps> = ({
   isFullscreen = false,
   onToggleFullscreen
 }) => {
-  const [activeTab, setActiveTab] = useState<'apps' | 'data' | 'workflow' | 'requirement' | 'code'>('apps');
+  const [activeTab, setActiveTab] = useState<'apps' | 'data' | 'workflow' | 'requirement' | 'code' | 'environments'>('apps');
+
+  // Get active app tab to extract app ID
+  const { getActiveTab: getActiveAppTab } = useAppsTabsStore();
+
+  // State for navigation context (what entity/environment/workflow to show)
+  const [navigationContext, setNavigationContext] = useState<{
+    targetId: string;
+    targetType: string;
+    data?: any;
+  } | null>(null);
+
+  // State to trigger app data reload when returning to apps tab
+  const [shouldReloadAppData, setShouldReloadAppData] = useState(false);
   const [markdownContent, setMarkdownContent] = useState(`# Welcome to Canvas Markdown Editor
 
 This editor supports **GitHub Flavored Markdown** with real-time preview and Mermaid diagrams!
@@ -177,6 +195,80 @@ gantt
     }
   }, [workflowData, handleSubmit]);
 
+  // Store workflow ID and entity ID for saving
+  const [currentWorkflowId, setCurrentWorkflowId] = useState<string | null>(null);
+  const [currentWorkflowEntityId, setCurrentWorkflowEntityId] = useState<string | null>(null);
+
+  // Auto-open workflow tab when navigating from AppsCanvas
+  useEffect(() => {
+    if (activeTab === 'workflow' && navigationContext?.targetId) {
+      const workflowId = navigationContext.targetId;
+      const workflowData = navigationContext.data;
+
+      console.log('🎯 Opening workflow tab:', { workflowId, workflowData });
+      console.log('🔍 Full navigation context:', JSON.parse(JSON.stringify(navigationContext)));
+      console.log('🔍 workflowData type:', typeof workflowData, 'is object?', workflowData && typeof workflowData === 'object');
+      console.log('🔍 workflowData keys:', workflowData ? Object.keys(workflowData) : 'null');
+      console.log('🔍 workflowData.entity_id direct access:', workflowData && workflowData['entity_id']);
+      console.log('🔑 Entity ID from navigation:', {
+        entity_id: workflowData?.entity_id,
+        entity_name: workflowData?.entity_name,
+        entity_version: workflowData?.entity_version,
+        fullData: workflowData
+      });
+
+      // Store workflow ID and entity ID for later use in saving
+      setCurrentWorkflowId(workflowId);
+      const extractedEntityId = workflowData?.entity_id || workflowData?.['entity_id'] || null;
+      console.log('🔑 Extracted entity_id:', extractedEntityId);
+      setCurrentWorkflowEntityId(extractedEntityId);
+
+      // Extract workflow name and version from ID or data
+      // Workflow ID format: workflow-{name}-{version} or just use data
+      let modelName = 'workflow';
+      let modelVersion = 1;
+
+      if (workflowData?.name) {
+        modelName = workflowData.name;
+      } else {
+        // Parse from ID: workflow-customer-onboarding-1 -> customer-onboarding
+        const parts = workflowId.replace('workflow-', '').split('-');
+        if (parts.length > 1) {
+          modelVersion = parseInt(parts[parts.length - 1]) || 1;
+          modelName = parts.slice(0, -1).join('-');
+        } else {
+          modelName = workflowId.replace('workflow-', '');
+        }
+      }
+
+      const technicalId = `${modelName}_v${modelVersion}_${Date.now()}`;
+
+      // Check if this workflow tab is already open
+      const existingTab = tabs.find(
+        tab => tab.modelName === modelName && tab.modelVersion === modelVersion
+      );
+
+      if (!existingTab) {
+        openTab({
+          modelName,
+          modelVersion,
+          displayName: `${modelName}.${modelVersion}`,
+          isDirty: false,
+          technicalId,
+          // Store entity_id in tab metadata for later use
+          metadata: {
+            entity_id: extractedEntityId,
+            entity_name: workflowData?.entity_name,
+            entity_version: workflowData?.entity_version,
+          }
+        });
+      }
+
+      // Clear navigation context after opening
+      setNavigationContext(null);
+    }
+  }, [activeTab, navigationContext, tabs, openTab]);
+
   // Workflow tabs handlers - create new tab directly without modal
   const handleNewWorkflowTab = useCallback(() => {
     // Generate a unique counter for new tabs
@@ -222,6 +314,29 @@ gantt
     }
   };
 
+  // Helper to get current app ID from navigation context or active app tab
+  const getCurrentAppId = () => {
+    // The technicalId prop is the chat ID, which is what we need for API calls
+    // This is the most reliable source
+    if (technicalId) {
+      return technicalId;
+    }
+
+    // Fallback: try to get from navigation context data
+    if (navigationContext?.data?.appId) {
+      return navigationContext.data.appId;
+    }
+
+    // Last resort: try active app tab
+    const activeAppTab = getActiveAppTab();
+    if (activeAppTab) {
+      return activeAppTab.technicalId;
+    }
+
+    console.warn('⚠️ No technicalId, navigation context, or active app tab found');
+    return 'app-default'; // Fallback
+  };
+
   return (
     <div className="flex flex-col h-full bg-slate-800/95 backdrop-blur-sm">
       {/* Canvas Header */}
@@ -255,7 +370,11 @@ gantt
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 bg-slate-800/30">
         <div className="flex items-center space-x-1">
           <button
-            onClick={() => setActiveTab('apps')}
+            onClick={() => {
+              setActiveTab('apps');
+              // Trigger reload when returning to apps tab
+              setShouldReloadAppData(true);
+            }}
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
               activeTab === 'apps'
                 ? 'bg-teal-500 text-white shadow-md'
@@ -309,6 +428,17 @@ gantt
             <Code size={14} />
             <span>Code</span>
           </button>
+          <button
+            onClick={() => setActiveTab('environments')}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
+              activeTab === 'environments'
+                ? 'bg-teal-500 text-white shadow-md'
+                : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+            }`}
+          >
+            <Server size={14} />
+            <span>Environments</span>
+          </button>
         </div>
 
         {/* Markdown Mode Selector - Only show when markdown tab is active */}
@@ -336,20 +466,43 @@ gantt
       {/* Canvas Content */}
       <div className="flex-1 relative overflow-hidden flex flex-col">
         {activeTab === 'apps' ? (
-          <AppsTabsContainer />
+          <AppsTabsContainer
+            chatId={technicalId}
+            shouldReload={shouldReloadAppData}
+            onReloadComplete={() => setShouldReloadAppData(false)}
+            onSendToChat={(appJson) => {
+              // Send the app JSON to chat with a nice message
+              const message = `Here is my app configuration:\n\n\`\`\`json\n${appJson}\n\`\`\`\n\nPlease review this configuration and help me improve it.`;
+              onAnswer({ answer: message });
+            }}
+            onNavigate={(tab, targetId, data) => {
+              console.log('🧭 Navigation requested:', { tab, targetId, data });
+              setActiveTab(tab);
+              setNavigationContext({ targetId, targetType: tab, data });
+            }}
+          />
         ) : activeTab === 'data' ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <Database size={64} className="mx-auto mb-4 text-gray-600" />
-              <h2 className="text-xl font-semibold text-gray-300 mb-2">
-                Data Editor
-              </h2>
-              <p className="text-gray-500 mb-6">
-                JSON, CSV, Code editors and file upload tools
-              </p>
-              <p className="text-gray-400 text-sm">Coming soon...</p>
+          navigationContext?.targetId ? (
+            <EntityEditor
+              appId={getCurrentAppId()}
+              entityId={navigationContext.targetId}
+              onSendToChat={(message) => {
+                onAnswer({ answer: message });
+              }}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <Database size={64} className="mx-auto mb-4 text-gray-600" />
+                <h2 className="text-xl font-semibold text-gray-300 mb-2">
+                  No Entity Selected
+                </h2>
+                <p className="text-gray-500">
+                  Double-click an entity node in the Apps canvas to view and edit it
+                </p>
+              </div>
             </div>
-          </div>
+          )
         ) : activeTab === 'workflow' ? (
           <>
             {/* Workflow Tabs */}
@@ -363,6 +516,9 @@ gantt
                   technicalId={activeWorkflowTab.technicalId}
                   modelName={activeWorkflowTab.modelName}
                   modelVersion={activeWorkflowTab.modelVersion}
+                  workflowId={currentWorkflowId || undefined}
+                  entityId={currentWorkflowEntityId || undefined}
+                  appId={getCurrentAppId()}
                   onAnswer={onAnswer}
                   onUpdate={(data) => handleWorkflowUpdate(activeWorkflowTab.id, data)}
                 />
@@ -382,18 +538,26 @@ gantt
             </div>
           </>
         ) : activeTab === 'requirement' ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <FileText size={64} className="mx-auto mb-4 text-gray-600" />
-              <h2 className="text-xl font-semibold text-gray-300 mb-2">
-                Requirements Management
-              </h2>
-              <p className="text-gray-500 mb-6">
-                Track and manage business requirements
-              </p>
-              <p className="text-gray-400 text-sm">Coming soon...</p>
+          navigationContext?.targetId ? (
+            <RequirementEditor
+              appId={getCurrentAppId()}
+              onSendToChat={(message) => {
+                onAnswer({ answer: message });
+              }}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <FileText size={64} className="mx-auto mb-4 text-gray-600" />
+                <h2 className="text-xl font-semibold text-gray-300 mb-2">
+                  No App Selected
+                </h2>
+                <p className="text-gray-500">
+                  Double-click an app node in the Apps canvas to view and edit requirements
+                </p>
+              </div>
             </div>
-          </div>
+          )
         ) : activeTab === 'code' ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
@@ -407,6 +571,28 @@ gantt
               <p className="text-gray-400 text-sm">Coming soon...</p>
             </div>
           </div>
+        ) : activeTab === 'environments' ? (
+          navigationContext?.targetId ? (
+            <EnvironmentEditor
+              appId={getCurrentAppId()}
+              environmentId={navigationContext.targetId}
+              onSendToChat={(message) => {
+                onAnswer({ answer: message });
+              }}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <Server size={64} className="mx-auto mb-4 text-gray-600" />
+                <h2 className="text-xl font-semibold text-gray-300 mb-2">
+                  No Environment Selected
+                </h2>
+                <p className="text-gray-500">
+                  Double-click an environment node in the Apps canvas to view and edit it
+                </p>
+              </div>
+            </div>
+          )
         ) : (
           <div className="absolute inset-0 bg-slate-900/50 p-4">
             <div className="h-full flex flex-col">

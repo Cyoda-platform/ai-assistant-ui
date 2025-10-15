@@ -19,7 +19,7 @@ import {
 } from '@xyflow/react';
 import type { Node, Edge, Connection, OnConnect, OnReconnect } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Network, Download, Upload, FileJson, Info, X, Cloud, CloudDownload, CloudUpload, Maximize2, Minimize2, Settings } from 'lucide-react';
+import { Network, Download, Upload, FileJson, Info, X, Cloud, CloudDownload, CloudUpload, Maximize2, Minimize2, Settings, Send } from 'lucide-react';
 import axios from 'axios';
 import { useAuthStore } from '@/stores/auth';
 import { Modal } from 'antd';
@@ -147,6 +147,7 @@ interface WorkflowCanvasProps {
   onWorkflowUpdate: (workflow: UIWorkflowData, description?: string) => void;
   onStateEdit: (stateId: string) => void;
   onTransitionEdit: (transitionId: string) => void;
+  onSendToChat?: (data: string) => void;
   darkMode: boolean;
   technicalId?: string;
   modelName?: string;
@@ -272,6 +273,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   onWorkflowUpdate,
   onStateEdit,
   onTransitionEdit,
+  onSendToChat,
   darkMode,
   technicalId,
   modelName,
@@ -417,7 +419,29 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   const handleStateNameChangeRef = useRef(handleStateNameChange);
   handleStateNameChangeRef.current = handleStateNameChange;
 
+  // Handle sending state data to chat
+  const handleStateSendToChat = useCallback((stateData: UIStateData) => {
+    if (!onSendToChat) return;
 
+    const stateJson = JSON.stringify(stateData, null, 2);
+    onSendToChat(stateJson);
+    console.log('📤 Sent state to chat:', stateData);
+  }, [onSendToChat]);
+
+  const handleStateSendToChatRef = useRef(handleStateSendToChat);
+  handleStateSendToChatRef.current = handleStateSendToChat;
+
+  // Handle sending transition data to chat
+  const handleTransitionSendToChat = useCallback((transitionData: UITransitionData) => {
+    if (!onSendToChat) return;
+
+    const transitionJson = JSON.stringify(transitionData, null, 2);
+    onSendToChat(transitionJson);
+    console.log('📤 Sent transition to chat:', transitionData);
+  }, [onSendToChat]);
+
+  const handleTransitionSendToChatRef = useRef(handleTransitionSendToChat);
+  handleTransitionSendToChatRef.current = handleTransitionSendToChat;
 
   const handleTransitionUpdate = useCallback((updatedTransition: UITransitionData) => {
     if (!cleanedWorkflow) return;
@@ -710,6 +734,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       const currentOnTransitionEdit = onTransitionEditRef.current;
       const currentHandleTransitionUpdate = handleTransitionUpdateRef.current;
       const currentHandleStateNameChange = handleStateNameChangeRef.current;
+      const currentHandleStateSendToChat = handleStateSendToChatRef.current;
+      const currentHandleTransitionSendToChat = handleTransitionSendToChatRef.current;
 
       // Create state nodes
       const stateNodes = currentUiStates.map((state) => ({
@@ -720,6 +746,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           label: state.name,
           state: state,
           onNameChange: currentHandleStateNameChange,
+          onSendToChat: onSendToChat ? currentHandleStateSendToChat : undefined,
           palette: palette,
         },
       }));
@@ -755,6 +782,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             label: transition.definition.name || 'Unnamed',
             transition: transition,
             onEdit: currentOnTransitionEdit,
+            onSendToChat: onSendToChat ? currentHandleTransitionSendToChat : undefined,
             isLoopback,
             palette: palette,
           },
@@ -1946,6 +1974,16 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     });
   }, [fitView]);
 
+  // Handler to send entire workflow to chat
+  const handleSendWorkflowToChat = useCallback(() => {
+    if (!onSendToChat || !cleanedWorkflow) return;
+
+    const workflowJson = JSON.stringify(cleanedWorkflow, null, 2);
+    const message = `Here is the complete workflow:\n\n\`\`\`json\n${workflowJson}\n\`\`\`\n\nPlease review this workflow and help me improve it.`;
+    onSendToChat(message);
+    console.log('📤 Sent entire workflow to chat');
+  }, [onSendToChat, cleanedWorkflow]);
+
   if (!cleanedWorkflow) {
     return (
       <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
@@ -2013,6 +2051,19 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       >
         <Background />
         <Controls>
+          {onSendToChat && (
+            <ControlButton
+              onClick={handleSendWorkflowToChat}
+              title="Send entire workflow to chat"
+              className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 border-2"
+              style={{
+                borderColor: '#14b8a6'
+              }}
+              data-testid="send-to-chat-button"
+            >
+              <Send size={16} className="text-white" />
+            </ControlButton>
+          )}
           <ControlButton
             onClick={handleToggleWorkflowInfo}
             title="Toggle workflow info"
@@ -2398,6 +2449,12 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
               {/* Toolbar Buttons */}
               <div className="space-y-1 pt-2 border-t border-pink-200 dark:border-pink-800">
                 <div className="font-semibold text-gray-800 dark:text-gray-200 text-[10px]">Toolbar Buttons</div>
+                {onSendToChat && (
+                  <div className="flex items-start space-x-2">
+                    <span className="text-teal-500 mt-0.5">📤</span>
+                    <span><strong>Send to Chat</strong> - Send entire workflow to AI assistant</span>
+                  </div>
+                )}
                 <div className="flex items-start space-x-2">
                   <span className="text-blue-500 mt-0.5">ℹ️</span>
                   <span><strong>Info</strong> - Toggle workflow information panel</span>
@@ -2491,6 +2548,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           selectedStateId={selectedStateId}
           selectedTransitionId={selectedTransitionId}
           technicalId={technicalId}
+          onSendToChat={onSendToChat}
           palette={palette}
         />
       )}

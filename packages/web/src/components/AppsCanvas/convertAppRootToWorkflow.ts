@@ -11,10 +11,153 @@
 import type { AppRoot } from './types/appSchema';
 import type { UIWorkflowData } from '../WorkflowCanvas/types/workflow';
 
+/**
+ * Convert AppRoot to simplified workflow view (for new apps)
+ * Shows only: App name, Environments group, Entities group
+ */
+export function convertAppRootToSimplifiedWorkflow(
+  appRoot: AppRoot,
+  onAddNewInstance?: (groupType: string, entityId?: string) => void,
+  onNodeUpdate?: (nodeId: string, nodeType: string, updatedMetadata: any) => void,
+  onSendToChat?: (nodeData: any, nodeType: string) => void
+): UIWorkflowData {
+  const states: Record<string, any> = {};
+  const layoutStates: any[] = [];
+  const layoutTransitions: any[] = [];
+
+  // Generate unique IDs
+  const appId = 'app-root';
+
+  // ========================================
+  // 1. APP NODE (Top Center)
+  // ========================================
+  states[appId] = {
+    name: appRoot.app.name,
+    transitions: []
+  };
+
+  layoutStates.push({
+    id: appId,
+    type: 'appNode',
+    position: { x: 600, y: 50 },
+    data: {
+      label: appRoot.app.name,
+      metadata: {
+        name: appRoot.app.name,
+        version: appRoot.app.version,
+        author: appRoot.app.author,
+        description: appRoot.app.description,
+        license: appRoot.app.license,
+        repository: appRoot.app.repository,
+        requirement: appRoot.app.requirement
+      },
+      onUpdate: onNodeUpdate ? (updatedMetadata: any) => onNodeUpdate(appId, 'app', updatedMetadata) : undefined,
+      onSendToChat: onSendToChat
+    },
+    properties: {
+      color: '#9333ea', // Purple
+      type: 'app'
+    }
+  });
+
+  // ========================================
+  // 2. ENVIRONMENTS GROUP NODE (Root only)
+  // ========================================
+  const environmentsGroupId = 'group-environments';
+
+  states[environmentsGroupId] = {
+    name: 'Environments',
+    transitions: []
+  };
+
+  layoutStates.push({
+    id: environmentsGroupId,
+    type: 'groupNode',
+    position: { x: 300, y: 250 },
+    data: {
+      label: 'Environments',
+      metadata: {
+        groupType: 'environments',
+        count: appRoot.app.environments.length,
+        onAddNew: onAddNewInstance ? () => onAddNewInstance('environments') : undefined,
+        onSendToChat: onSendToChat
+      }
+    },
+    properties: {
+      color: '#059669', // Dark green
+      type: 'group'
+    }
+  });
+
+  // Edge: App → Environments Group
+  layoutTransitions.push({
+    id: `${appId}-to-${environmentsGroupId}`,
+    source: appId,
+    target: environmentsGroupId,
+    label: ''
+  });
+
+  // ========================================
+  // 3. ENTITIES GROUP NODE (Root only)
+  // ========================================
+  const entitiesGroupId = 'group-entities';
+
+  states[entitiesGroupId] = {
+    name: 'Entities',
+    transitions: []
+  };
+
+  layoutStates.push({
+    id: entitiesGroupId,
+    type: 'groupNode',
+    position: { x: 900, y: 250 },
+    data: {
+      label: 'Entities',
+      metadata: {
+        groupType: 'entities',
+        count: appRoot.app.entities.length,
+        onAddNew: onAddNewInstance ? () => onAddNewInstance('entities') : undefined,
+        onSendToChat: onSendToChat
+      }
+    },
+    properties: {
+      color: '#2563eb', // Dark blue
+      type: 'group'
+    }
+  });
+
+  // Edge: App → Entities Group
+  layoutTransitions.push({
+    id: `${appId}-to-${entitiesGroupId}`,
+    source: appId,
+    target: entitiesGroupId,
+    label: ''
+  });
+
+  // ========================================
+  // 4. BUILD WORKFLOW DATA
+  // ========================================
+  return {
+    configuration: {
+      version: '1.0',
+      name: appRoot.app.name,
+      desc: appRoot.app.description,
+      initialState: appId,
+      active: true,
+      states: states
+    },
+    layout: {
+      states: layoutStates,
+      transitions: layoutTransitions
+    }
+  };
+}
+
 export function convertAppRootToWorkflow(
   appRoot: AppRoot,
   onAddNewInstance?: (groupType: string, entityId?: string) => void,
-  onNodeUpdate?: (nodeId: string, nodeType: string, updatedMetadata: any) => void
+  onNodeUpdate?: (nodeId: string, nodeType: string, updatedMetadata: any) => void,
+  onSendToChat?: (nodeData: any, nodeType: string) => void
 ): UIWorkflowData {
   const states: Record<string, any> = {};
   const layoutStates: any[] = [];
@@ -46,7 +189,8 @@ export function convertAppRootToWorkflow(
         repository: appRoot.app.repository,
         requirement: appRoot.app.requirement
       },
-      onUpdate: onNodeUpdate ? (updatedMetadata: any) => onNodeUpdate(appId, 'app', updatedMetadata) : undefined
+      onUpdate: onNodeUpdate ? (updatedMetadata: any) => onNodeUpdate(appId, 'app', updatedMetadata) : undefined,
+      onSendToChat: onSendToChat
     },
     properties: {
       color: '#9333ea', // Purple
@@ -73,7 +217,8 @@ export function convertAppRootToWorkflow(
       metadata: {
         groupType: 'environments',
         count: appRoot.app.environments.length,
-        onAddNew: onAddNewInstance ? () => onAddNewInstance('environments') : undefined
+        onAddNew: onAddNewInstance ? () => onAddNewInstance('environments') : undefined,
+        onSendToChat: onSendToChat
       }
     },
     properties: {
@@ -116,7 +261,8 @@ export function convertAppRootToWorkflow(
           url: env.url,
           status: env.status
         },
-        onUpdate: onNodeUpdate ? (updatedMetadata: any) => onNodeUpdate(envId, 'environment', updatedMetadata) : undefined
+        onUpdate: onNodeUpdate ? (updatedMetadata: any) => onNodeUpdate(envId, 'environment', updatedMetadata) : undefined,
+        onSendToChat: onSendToChat
       },
       properties: {
         color: '#10b981', // Green
@@ -152,7 +298,8 @@ export function convertAppRootToWorkflow(
       metadata: {
         groupType: 'entities',
         count: appRoot.app.entities.length,
-        onAddNew: onAddNewInstance ? () => onAddNewInstance('entities') : undefined
+        onAddNew: onAddNewInstance ? () => onAddNewInstance('entities') : undefined,
+        onSendToChat: onSendToChat
       }
     },
     properties: {
@@ -198,7 +345,8 @@ export function convertAppRootToWorkflow(
           github_url: entity.github_url,
           model: entity.model
         },
-        onUpdate: onNodeUpdate ? (updatedMetadata: any) => onNodeUpdate(entityId, 'entity', updatedMetadata) : undefined
+        onUpdate: onNodeUpdate ? (updatedMetadata: any) => onNodeUpdate(entityId, 'entity', updatedMetadata) : undefined,
+        onSendToChat: onSendToChat
       },
       properties: {
         color: '#3b82f6', // Blue
@@ -233,7 +381,8 @@ export function convertAppRootToWorkflow(
         metadata: {
           groupType: 'workflows',
           count: entity.workflows.length,
-          onAddNew: onAddNewInstance ? () => onAddNewInstance('workflows', entityId) : undefined
+          onAddNew: onAddNewInstance ? () => onAddNewInstance('workflows', entityId) : undefined,
+          onSendToChat: onSendToChat
         }
       },
       properties: {
@@ -268,6 +417,13 @@ export function convertAppRootToWorkflow(
         transitions: []
       };
 
+      console.log(`📝 Creating workflow node "${workflow.name}" for entity "${entity.name}":`, {
+        workflowId,
+        entityId,
+        entity_name: entity.name,
+        entity_version: entity.version
+      });
+
       layoutStates.push({
         id: workflowId,
         type: 'workflowNode', // Custom node type
@@ -279,12 +435,16 @@ export function convertAppRootToWorkflow(
           label: workflow.name,
           metadata: {
             name: workflow.name,
+            entity_id: entityId, // Store entity ID for workflow association
+            entity_name: entity.name, // Store entity name for reference
+            entity_version: entity.version, // Store entity version for reference
             cyoda_url: workflow.cyoda_url,
             github_url: workflow.github_url,
             stateCount: stateCount,
             states: workflow.config.states
           },
-          onUpdate: onNodeUpdate ? (updatedMetadata: any) => onNodeUpdate(workflowId, 'workflow', updatedMetadata) : undefined
+          onUpdate: onNodeUpdate ? (updatedMetadata: any) => onNodeUpdate(workflowId, 'workflow', updatedMetadata) : undefined,
+          onSendToChat: onSendToChat
         },
         properties: {
           color: '#f59e0b', // Orange

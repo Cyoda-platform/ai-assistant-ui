@@ -14,8 +14,23 @@ import App from './App';
 import { router } from './router';
 import i18n, { loadLocaleMessages } from './plugins/i18n';
 
-// Load translations and then render the app
-loadLocaleMessages('en').then(() => {
+// Start MSW mock server in development
+async function enableMocking() {
+  if (import.meta.env.MODE !== 'development') {
+    return;
+  }
+
+  const { worker } = await import('./mocks/browser');
+
+  // `worker.start()` returns a Promise that resolves
+  // once the Service Worker is up and ready to intercept requests.
+  return worker.start({
+    onUnhandledRequest: 'bypass', // Don't warn about unhandled requests
+  });
+}
+
+// Load translations, start MSW, and then render the app
+Promise.all([loadLocaleMessages('en'), enableMocking()]).then(() => {
   const root = ReactDOM.createRoot(document.getElementById('app')!);
 
   root.render(

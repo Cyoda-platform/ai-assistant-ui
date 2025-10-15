@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { X, Save, Download, Upload, Sparkles } from 'lucide-react';
+import { X, Save, Download, Upload, Sparkles, Send } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import type { AppRoot } from './types/appSchema';
 import { validateAppConfig, downloadAppConfig } from './loadAppConfig';
@@ -11,6 +11,7 @@ interface AppsJsonEditorProps {
   onSave: (config: AppRoot) => void;
   navigateToNode?: string | null;
   onNavigated?: () => void;
+  onSendToChat?: (appJson: string) => void;
   palette?: {
     ui: {
       panelBorder: string;
@@ -123,6 +124,7 @@ export const AppsJsonEditor: React.FC<AppsJsonEditorProps> = ({
   onSave,
   navigateToNode,
   onNavigated,
+  onSendToChat,
   palette,
 }) => {
   const [jsonText, setJsonText] = useState('');
@@ -485,6 +487,26 @@ export const AppsJsonEditor: React.FC<AppsJsonEditorProps> = ({
     }
   }, [jsonText]);
 
+  // Handle send to chat
+  const handleSendToChat = useCallback(() => {
+    if (!onSendToChat) return;
+
+    try {
+      const parsed = JSON.parse(jsonText);
+      const validation = validateAppConfig(parsed);
+
+      if (!validation.valid) {
+        setError(`Cannot send invalid config: ${validation.errors.join(', ')}`);
+        return;
+      }
+
+      onSendToChat(jsonText);
+      console.log('📤 Sent app config to chat');
+    } catch (e: any) {
+      setError(`Invalid JSON: ${e.message}`);
+    }
+  }, [jsonText, onSendToChat]);
+
   // Handle import
   const handleImport = useCallback(() => {
     const input = document.createElement('input');
@@ -565,25 +587,29 @@ export const AppsJsonEditor: React.FC<AppsJsonEditorProps> = ({
           background: `linear-gradient(to right, ${activePalette.ui.panelGradientVia}30, ${activePalette.ui.panelGradientTo}30)`
         }}
       >
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={handleImport}
-            className="p-2 rounded-lg hover:bg-gray-700 text-gray-300 hover:text-white transition-all hover:scale-105"
-            title="Import from file"
-          >
-            <Upload size={18} />
-          </button>
-          <h3 className="text-lg font-semibold text-white">App Configuration</h3>
-        </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={handleSave}
-            className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-all hover:scale-105 flex items-center space-x-1.5 text-sm font-medium"
-            title="Save changes (Cmd/Ctrl+S)"
-          >
-            <Save size={14} />
-            <span>Save</span>
-          </button>
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-6">
+            {onSendToChat && (
+              <button
+                onClick={handleSendToChat}
+                className={`
+                  px-4 py-2 rounded-lg font-medium text-sm
+                  transition-all duration-200
+                  flex items-center space-x-2
+                  ${error
+                    ? 'bg-gray-700/50 text-gray-500 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white shadow-lg hover:shadow-teal-500/25'
+                  }
+                `}
+                title={error ? `Fix errors before sending to chat:\n${error}` : "Send app configuration to chat for AI review"}
+                disabled={!!error}
+              >
+                <Send size={16} />
+                <span>Send to Chat</span>
+              </button>
+            )}
+            <h3 className="text-lg font-semibold text-white">App Configuration</h3>
+          </div>
           <button
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-gray-700 text-gray-400 hover:text-white transition-all hover:scale-105"
@@ -653,12 +679,19 @@ export const AppsJsonEditor: React.FC<AppsJsonEditorProps> = ({
           </span>
           <span>Auto-save: 500ms</span>
         </div>
-        <div className="flex items-center space-x-4 text-xs text-gray-400">
-          <span>Esc to close</span>
-          <span>Cmd/Ctrl+S to save</span>
-          <span className={error ? 'text-red-400' : 'text-green-400'}>
-            {error ? '❌ Invalid' : '✅ Valid'}
-          </span>
+        <div className="flex items-center space-x-4 text-xs">
+          <span className="text-gray-400">Esc to close</span>
+          {error ? (
+            <span className="text-red-400 flex items-center space-x-1">
+              <span>❌</span>
+              <span className="font-medium">Invalid JSON - Fix errors to send to chat</span>
+            </span>
+          ) : (
+            <span className="text-green-400 flex items-center space-x-1">
+              <span>✅</span>
+              <span className="font-medium">Valid - Ready to send to chat</span>
+            </span>
+          )}
         </div>
       </div>
     </div>

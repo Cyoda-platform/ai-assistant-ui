@@ -15,11 +15,16 @@ import type {
 import { parseTransitionId, getTransitionDefinition } from '../WorkflowCanvas/utils/transitionUtils';
 import { Spin } from 'antd';
 import HelperStorage from '@/helpers/HelperStorage';
+import apiService from '@/services/apiService';
+import { useAppsTabsStore } from '@/stores/appsTabs';
 
 interface ChatBotEditorWorkflowNewProps {
   technicalId: string;
   modelName?: string;
   modelVersion?: number;
+  workflowId?: string; // ID from AppsCanvas navigation (e.g., "workflow-customer-onboarding")
+  entityId?: string; // Entity ID from AppsCanvas navigation (e.g., "entity-pet-1")
+  appId?: string; // App ID for API calls
   onAnswer?: (data: { answer: string; file?: File }) => void;
   onUpdate?: (data: { canvasData: string; workflowMetaData: any }) => void;
 }
@@ -92,6 +97,9 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
   technicalId,
   modelName,
   modelVersion,
+  workflowId,
+  entityId,
+  appId,
   onAnswer,
   onUpdate
 }) => {
@@ -210,6 +218,24 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
     updateHistoryState();
   }, [technicalId, helperStorage, workflowCanvasDataKey, updateHistoryState]);
 
+  // Get current app ID - use prop if provided, otherwise fallback to active app tab
+  const getCurrentAppId = useCallback(() => {
+    // Use appId prop if provided
+    if (appId) {
+      return appId;
+    }
+
+    // Fallback to active app tab
+    const { getActiveTab } = useAppsTabsStore.getState();
+    const activeTab = getActiveTab();
+    if (activeTab) {
+      return activeTab.technicalId; // Use technicalId which is the actual app ID
+    }
+
+    console.warn('⚠️ No appId provided and no active app tab found');
+    return 'default-app';
+  }, [appId]);
+
   // Handle workflow updates
   const handleWorkflowUpdate = useCallback(async (
     workflow: UIWorkflowData,
@@ -228,6 +254,42 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
     const storageFormat = convertToStorageFormat(workflow);
     helperStorage.set(workflowCanvasDataKey, storageFormat);
 
+    // Also save to mock API for persistence and reload mechanism
+    try {
+      const appId = getCurrentAppId();
+      // Use workflowId from props if available, otherwise generate from modelName
+      const apiWorkflowId = workflowId || `workflow-${modelName || technicalId}`;
+
+      console.log('💾 Saving workflow to API:', { appId, workflowId: apiWorkflowId, workflow });
+      console.log('🔑 Workflow identity:', {
+        modelName: workflow.entityModel?.modelName,
+        modelVersion: workflow.entityModel?.modelVersion,
+        workflowName: workflow.configuration.name
+      });
+
+      // Use entity_id if provided (for association), otherwise use empty string
+      // The workflow is identified by its own modelName and modelVersion
+      const finalEntityId = entityId || '';
+
+      // Convert workflow configuration to API format
+      // Include model name and version from entity model to match parent entity
+      const workflowData = {
+        entity_id: finalEntityId,
+        name: workflow.configuration.name,
+        description: workflow.configuration.description || '',
+        states: workflow.configuration.states,
+        model_name: workflow.entityModel?.modelName || modelName,
+        model_version: workflow.entityModel?.modelVersion || modelVersion,
+      };
+
+      console.log('📤 Sending workflow data to API:', workflowData);
+      await apiService.saveWorkflowDetail(appId, apiWorkflowId, workflowData);
+      console.log('✅ Workflow saved to API successfully');
+    } catch (error) {
+      console.error('❌ Failed to save workflow to API:', error);
+      // Don't fail the whole operation if API save fails
+    }
+
     // Notify parent component
     if (onUpdate) {
       onUpdate({
@@ -239,7 +301,7 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
         }
       });
     }
-  }, [currentWorkflow, technicalId, updateHistoryState, helperStorage, workflowCanvasDataKey, onUpdate]);
+  }, [currentWorkflow, technicalId, modelName, workflowId, entityId, updateHistoryState, helperStorage, workflowCanvasDataKey, onUpdate, getCurrentAppId]);
 
   // Handle undo
   const handleUndo = useCallback(() => {
@@ -348,6 +410,10 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
           onWorkflowUpdate={handleWorkflowUpdate}
           onStateEdit={handleStateEdit}
           onTransitionEdit={handleTransitionEdit}
+          onSendToChat={onAnswer ? (data) => {
+            const message = `Here is the workflow data:\n\n\`\`\`json\n${data}\n\`\`\`\n\nPlease review this and help me improve it.`;
+            onAnswer({ answer: message });
+          } : undefined}
           darkMode={true}
           technicalId={technicalId}
           modelName={modelName}

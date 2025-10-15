@@ -9,35 +9,76 @@ const { TextArea } = Input;
 interface ChatBotSubmitFormProps {
   layout?: 'default' | 'canvas';
   disabled: boolean;
-  onAnswer: (data: { answer: string; files?: File[] }) => void;
+  onAnswer: (data: { answer: string; files?: File[]; mode?: 'workflow' | 'qa'; canvasOptions?: CanvasOptions }) => void;
+  showCanvasButton?: boolean; // Show Canvas button when canvas is open
+  activeCanvasTab?: 'apps' | 'data' | 'workflow' | 'requirement' | 'code' | 'environments'; // Active tab in canvas
+}
+
+interface CanvasOptions {
+  returnWorkflowJSON?: boolean;
+  returnAppJSON?: boolean;
+  returnEntityJSON?: boolean;
+  returnRequirementJSON?: boolean;
+  returnEnvironmentJSON?: boolean;
 }
 
 const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
   layout = 'default',
   disabled,
-  onAnswer
+  onAnswer,
+  showCanvasButton = false,
+  activeCanvasTab
 }) => {
   const [form] = Form.useForm();
   const [answer, setAnswer] = useState('');
   const [currentFiles, setCurrentFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [textareaHeight, setTextareaHeight] = useState(60);
+  const [showCanvasOptions, setShowCanvasOptions] = useState(false);
+  const [canvasOptions, setCanvasOptions] = useState<CanvasOptions>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   let dragCounter = 0;
 
-  const onClickTextAnswer = async () => {
+  const onClickTextAnswer = async (mode: 'workflow' | 'qa' = 'workflow') => {
     if (!answer.trim() && currentFiles.length === 0) return;
 
     onAnswer({
       answer: answer,
-      files: currentFiles.length > 0 ? currentFiles : undefined
+      files: currentFiles.length > 0 ? currentFiles : undefined,
+      mode: mode,
+      canvasOptions: mode === 'qa' ? canvasOptions : undefined
     });
 
     setAnswer('');
     setCurrentFiles([]);
+    setCanvasOptions({});
+    setShowCanvasOptions(false);
     form.resetFields();
   };
+
+  // Get context-aware options based on active canvas tab
+  const getCanvasOptionsForTab = (): Array<{ key: keyof CanvasOptions; label: string }> => {
+    switch (activeCanvasTab) {
+      case 'workflow':
+        return [{ key: 'returnWorkflowJSON', label: 'Return Workflow JSON' }];
+      case 'apps':
+        return [
+          { key: 'returnAppJSON', label: 'Return App JSON' },
+          { key: 'returnWorkflowJSON', label: 'Return Workflow JSON' }
+        ];
+      case 'data':
+        return [{ key: 'returnEntityJSON', label: 'Return Entity JSON' }];
+      case 'requirement':
+        return [{ key: 'returnRequirementJSON', label: 'Return Requirement JSON' }];
+      case 'environments':
+        return [{ key: 'returnEnvironmentJSON', label: 'Return Environment JSON' }];
+      default:
+        return [];
+    }
+  };
+
+  const availableOptions = getCanvasOptionsForTab();
 
   const onClickAttachFile = () => {
     fileInputRef.current?.click();
@@ -114,7 +155,8 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
-      onClickTextAnswer();
+      // Default to Canvas mode when canvas is open, otherwise Workflow mode
+      onClickTextAnswer(showCanvasButton ? 'qa' : 'workflow');
     }
   };
 
@@ -139,6 +181,44 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
 
       <Form form={form} onFinish={onClickTextAnswer}>
         <div className="space-y-3">
+          {/* Canvas Options - Show when canvas button is visible */}
+          {showCanvasButton && availableOptions.length > 0 && (
+            <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-purple-300">Canvas Options:</span>
+                <button
+                  type="button"
+                  onClick={() => setShowCanvasOptions(!showCanvasOptions)}
+                  className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                >
+                  {showCanvasOptions ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              {showCanvasOptions && (
+                <div className="space-y-2 mt-2">
+                  {availableOptions.map(option => (
+                    <label key={option.key} className="flex items-center space-x-2 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={canvasOptions[option.key] || false}
+                        onChange={(e) => {
+                          setCanvasOptions(prev => ({
+                            ...prev,
+                            [option.key]: e.target.checked
+                          }));
+                        }}
+                        className="w-4 h-4 rounded border-purple-500/50 bg-purple-900/30 text-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-colors"
+                      />
+                      <span className="text-sm text-slate-300 group-hover:text-white transition-colors">
+                        {option.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {currentFiles.length > 0 && (
             <div className="flex flex-wrap gap-2 p-3 bg-slate-800/50 rounded-lg border border-slate-600">
               {currentFiles.map((file, index) => (
@@ -192,14 +272,30 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
                 <Paperclip size={18} />
               </button>
 
-              {/* Send Button */}
+              {/* Canvas Button - Only show when canvas is open */}
+              {showCanvasButton && (
+                <button
+                  type="button"
+                  onClick={() => onClickTextAnswer('qa')}
+                  disabled={disabled || (!answer.trim() && currentFiles.length === 0)}
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 disabled:opacity-50 text-white px-3 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-purple-500/25 disabled:cursor-not-allowed flex items-center gap-1.5"
+                  title="Ask Canvas Assistant - Quick answers about canvas content, workflow JSON, etc. (Enter)"
+                >
+                  <Send size={16} />
+                  <span className="text-xs font-medium">Canvas</span>
+                </button>
+              )}
+
+              {/* Workflow Mode Button - Always visible */}
               <button
-                type="submit"
+                type="button"
+                onClick={() => onClickTextAnswer('workflow')}
                 disabled={disabled || (!answer.trim() && currentFiles.length === 0)}
-                className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:opacity-50 text-white p-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-teal-500/25 disabled:cursor-not-allowed"
-                title="Send Message (Enter)"
+                className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:opacity-50 text-white px-3 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-teal-500/25 disabled:cursor-not-allowed flex items-center gap-1.5"
+                title="Send to Workflow (Enter)"
               >
-                <Send size={18} />
+                <Send size={16} />
+                <span className="text-xs font-medium">Workflow</span>
               </button>
             </div>
 

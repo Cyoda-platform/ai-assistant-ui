@@ -48,6 +48,7 @@ export interface Entity {
 }
 
 export interface AppData {
+  id?: string; // Optional app ID
   name: string;
   description: string;
   version: string;
@@ -68,10 +69,10 @@ export interface AppRoot {
  */
 export function convertAppRootToPortalData(appRoot: AppRoot): any {
   const { app } = appRoot;
-  
+
   // Generate IDs
   const generateId = (prefix: string, index: number) => `${prefix}-${index}`;
-  
+
   // Create environment nodes
   const environments = app.environments.map((env, i) => ({
     id: generateId('env', i),
@@ -82,7 +83,7 @@ export function convertAppRootToPortalData(appRoot: AppRoot): any {
     appCount: 1,
     status: env.status as 'active' | 'inactive' | 'maintenance'
   }));
-  
+
   // Create app node
   const apps = [{
     id: 'app-0',
@@ -94,7 +95,7 @@ export function convertAppRootToPortalData(appRoot: AppRoot): any {
     version: app.version,
     status: 'running' as const
   }];
-  
+
   // Create requirement node
   const requirements = [{
     id: 'req-0',
@@ -109,7 +110,7 @@ export function convertAppRootToPortalData(appRoot: AppRoot): any {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   }];
-  
+
   // Create entity version nodes
   const entityVersions = app.entities.map((entity, i) => ({
     id: generateId('entity', i),
@@ -126,7 +127,7 @@ export function convertAppRootToPortalData(appRoot: AppRoot): any {
     sampleData: entity.model,
     dataFormat: 'json' as const
   }));
-  
+
   // Create workflow nodes
   const workflows: any[] = [];
   app.entities.forEach((entity, entityIndex) => {
@@ -138,14 +139,14 @@ export function convertAppRootToPortalData(appRoot: AppRoot): any {
         type: 'workflow' as const,
         stateCount: Object.keys(workflow.config.states).length,
         transitionCount: Object.values(workflow.config.states).reduce(
-          (sum, state) => sum + state.transitions.length, 
+          (sum, state) => sum + state.transitions.length,
           0
         ),
         updatedAt: new Date().toISOString()
       });
     });
   });
-  
+
   return {
     environments,
     apps,
@@ -162,7 +163,7 @@ export function convertAppRootToPortalData(appRoot: AppRoot): any {
 export function convertPortalDataToAppRoot(portalData: any, originalAppRoot: AppRoot): AppRoot {
   // This is a simplified reverse conversion
   // In a real implementation, you'd need to track which nodes map to which parts of the schema
-  
+
   return {
     app: {
       ...originalAppRoot.app,

@@ -9,16 +9,206 @@ export interface LayoutConfig {
   levelSpacing: number;
 }
 
-const defaultConfig: LayoutConfig = {
-  nodeSpacing: {
-    horizontal: 250,
-    vertical: 150
-  },
-  levelSpacing: 200
+// All nodes now have consistent width of 300px
+const NODE_WIDTH = 300;
+
+// Node height estimates (collapsed state)
+const NODE_HEIGHTS: Record<string, number> = {
+  environmentNode: 80,
+  appNode: 80,
+  requirementNode: 80,
+  entityVersionNode: 80,
+  workflowNode: 80,
+  codeNode: 80,
+  default: 80
 };
 
+const defaultConfig: LayoutConfig = {
+  nodeSpacing: {
+    horizontal: 400, // NODE_WIDTH (300) + gap (100)
+    vertical: 150    // NODE_HEIGHT (80) + gap (70)
+  },
+  levelSpacing: 200  // Vertical spacing between hierarchy levels
+};
+
+interface TreeNode {
+  id: string;
+  node: Node;
+  children: TreeNode[];
+  x: number;
+  y: number;
+  mod: number; // Modifier for positioning
+}
+
 /**
- * Hierarchical layout - organizes nodes in 6 levels
+ * Tree layout algorithm with proper spacing
+ * Uses a modified Reingold-Tilford algorithm:
+ * - Parent nodes are centered over their children
+ * - Siblings are evenly spaced
+ * - Subtrees don't overlap
+ */
+export function hierarchicalLayout(
+  nodes: Node[],
+  edges: Edge[],
+  config: LayoutConfig = defaultConfig
+): Node[] {
+  if (nodes.length === 0) return [];
+
+  // Build adjacency map
+  const childrenMap = new Map<string, string[]>();
+  const parentMap = new Map<string, string>();
+  const nodeMap = new Map<string, Node>();
+
+  nodes.forEach(node => nodeMap.set(node.id, node));
+
+  edges.forEach(edge => {
+    if (!childrenMap.has(edge.source)) {
+      childrenMap.set(edge.source, []);
+    }
+    childrenMap.get(edge.source)!.push(edge.target);
+    parentMap.set(edge.target, edge.source);
+  });
+
+  // Find root nodes (nodes with no parents)
+  const rootNodes = nodes.filter(n => !parentMap.has(n.id));
+
+  if (rootNodes.length === 0) {
+    // Fallback: simple grid layout if no clear hierarchy
+    return gridLayout(nodes, edges, config);
+  }
+
+  // Build tree structure for each root
+  const trees: TreeNode[] = [];
+  rootNodes.forEach(rootNode => {
+    const tree = buildTree(rootNode.id, nodeMap, childrenMap);
+    if (tree) trees.push(tree);
+  });
+
+  // Calculate positions for each tree
+  const positioned: Node[] = [];
+  let currentTreeX = 100;
+
+  trees.forEach((tree, treeIndex) => {
+    // First pass: calculate relative positions
+    calculateInitialX(tree, 0);
+
+    // Second pass: collect all nodes and find bounds
+    const treeNodes: TreeNode[] = [];
+    collectNodes(tree, treeNodes);
+
+    // Find min X to normalize positions
+    let minX = Infinity;
+    let maxX = -Infinity;
+    treeNodes.forEach(node => {
+      minX = Math.min(minX, node.x);
+      maxX = Math.max(maxX, node.x);
+    });
+
+    // Adjust positions to start from currentTreeX
+    const offsetX = currentTreeX - minX;
+
+    treeNodes.forEach(node => {
+      const finalX = node.x + offsetX;
+      positioned.push({
+        ...node.node,
+        position: {
+          x: finalX,
+          y: node.y
+        }
+      });
+      maxX = Math.max(maxX, finalX);
+    });
+
+    // Update position for next tree
+    currentTreeX = maxX + config.nodeSpacing.horizontal * 2;
+  });
+
+  return positioned;
+}
+
+/**
+ * Build tree structure from nodes and edges
+ */
+function buildTree(
+  nodeId: string,
+  nodeMap: Map<string, Node>,
+  childrenMap: Map<string, string[]>
+): TreeNode | null {
+  const node = nodeMap.get(nodeId);
+  if (!node) return null;
+
+  const childIds = childrenMap.get(nodeId) || [];
+  const children: TreeNode[] = [];
+
+  childIds.forEach(childId => {
+    const childTree = buildTree(childId, nodeMap, childrenMap);
+    if (childTree) children.push(childTree);
+  });
+
+  return {
+    id: nodeId,
+    node: node,
+    children: children,
+    x: 0,
+    y: 0,
+    mod: 0
+  };
+}
+
+/**
+ * Calculate positions recursively
+ * Each node is positioned relative to its parent
+ */
+function calculateInitialX(tree: TreeNode, depth: number, parentX: number = 0): void {
+  tree.y = 100 + depth * defaultConfig.levelSpacing;
+
+  if (tree.children.length === 0) {
+    // Leaf node - positioned at parent's X
+    tree.x = parentX;
+    tree.mod = 0;
+    return;
+  }
+
+  // Recursively calculate positions for all children first
+  const numChildren = tree.children.length;
+  const spacing = defaultConfig.nodeSpacing.horizontal;
+
+  if (numChildren === 1) {
+    // Single child - parent directly above child
+    const childX = parentX;
+    calculateInitialX(tree.children[0], depth + 1, childX);
+    tree.x = childX;
+    tree.mod = 0;
+    return;
+  }
+
+  // Position children evenly spaced around parent
+  // Calculate total width needed
+  const totalWidth = (numChildren - 1) * spacing;
+
+  // Start from the left of parent
+  let currentX = parentX - totalWidth / 2;
+
+  tree.children.forEach((child, index) => {
+    calculateInitialX(child, depth + 1, currentX);
+    currentX += spacing;
+  });
+
+  // Parent is centered over children
+  tree.x = parentX;
+  tree.mod = 0;
+}
+
+/**
+ * Collect all nodes from tree into a flat array
+ */
+function collectNodes(tree: TreeNode, result: TreeNode[]): void {
+  result.push(tree);
+  tree.children.forEach(child => collectNodes(child, result));
+}
+
+/**
+ * Legacy hierarchical layout - organizes nodes in 6 levels
  * Level 0: Environments
  * Level 1: Apps
  * Level 2: Requirements (versioned)
@@ -26,7 +216,7 @@ const defaultConfig: LayoutConfig = {
  * Level 4: Workflows
  * Level 5: Code
  */
-export function hierarchicalLayout(
+export function hierarchicalLayoutLegacy(
   nodes: Node[],
   edges: Edge[],
   config: LayoutConfig = defaultConfig

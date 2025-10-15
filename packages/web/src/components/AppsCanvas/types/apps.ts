@@ -99,7 +99,7 @@ export interface PortalData {
 }
 
 // Canvas tab types
-export type CanvasTab = 'portal' | 'data' | 'workflow' | 'requirement' | 'code';
+export type CanvasTab = 'portal' | 'data' | 'workflow' | 'requirement' | 'code' | 'environments';
 
 // View modes for the portal
 export type PortalViewMode = 'overview' | 'environment-focus' | 'app-focus' | 'requirement-focus';

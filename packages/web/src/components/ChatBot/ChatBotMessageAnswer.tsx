@@ -11,6 +11,7 @@ interface Message {
   last_modified?: string;
   file?: File;
   files?: File[];
+  isCanvasQA?: boolean; // Mark Canvas QA messages for pink styling
 }
 
 interface ChatBotMessageAnswerProps {
@@ -97,7 +98,7 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
           </div>
 
           {/* Message Bubble - Right aligned user message */}
-          <div className={`${containerInfo.className} relative group`}>
+          <div className={`${containerInfo.className} relative group ${message.isCanvasQA ? 'canvas-qa-answer' : ''}`}>
             <div className="text-sm pr-6">
               <MarkdownRenderer>
                 {messageText}

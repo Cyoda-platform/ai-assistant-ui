@@ -19,7 +19,8 @@ import {
 } from '@xyflow/react';
 import type { Node, Edge, NodeChange, Connection, OnReconnect } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Settings, HelpCircle, Download, Upload, Maximize2, Minimize2, AlignHorizontalDistributeCenter, AlignVerticalDistributeCenter, FileJson } from 'lucide-react';
+import { Settings, HelpCircle, Download, Upload, Maximize2, Minimize2, FileJson, Network } from 'lucide-react';
+import { hierarchicalLayout } from './utils/layoutAlgorithms';
 
 import { AppNode } from './nodes/AppNode';
 import { EnvironmentNode } from './nodes/EnvironmentNode';
@@ -41,7 +42,7 @@ const nodeTypes = {
 
 interface AppsReactFlowProps {
   workflowData: UIWorkflowData;
-  onNodeClick?: (nodeId: string, nodeType: string) => void;
+  onNodeDoubleClick?: (nodeId: string, nodeType: string, nodeData?: any) => void;
   onExport?: () => void;
   onImport?: () => void;
   isFullscreen?: boolean;
@@ -52,7 +53,7 @@ interface AppsReactFlowProps {
 
 export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
   workflowData,
-  onNodeClick,
+  onNodeDoubleClick,
   onExport,
   onImport,
   isFullscreen,
@@ -264,38 +265,35 @@ export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
     setEdges(initialEdges);
   }, [initialEdges, setEdges]);
 
-  // Handle node click
-  const handleNodeClick = useCallback(
+  // Handle node double-click for navigation
+  const handleNodeDoubleClick = useCallback(
     (event: React.MouseEvent, node: Node) => {
       const nodeType = node.data?.metadata?.type || node.type || 'unknown';
-      onNodeClick?.(node.id, nodeType);
+      // Pass node metadata for workflows to include entity information
+      const nodeData = node.data?.metadata;
+
+      console.log('🖱️ AppsReactFlow: Node double-clicked:', {
+        nodeId: node.id,
+        nodeType,
+        nodeData,
+        hasEntityId: !!nodeData?.entity_id
+      });
+
+      onNodeDoubleClick?.(node.id, nodeType, nodeData);
     },
-    [onNodeClick]
+    [onNodeDoubleClick]
   );
 
-  // Auto-align nodes horizontally
-  const alignHorizontally = useCallback(() => {
-    const updatedNodes = nodes.map((node, index) => ({
-      ...node,
-      position: {
-        x: 100 + index * 300, // Distribute horizontally with 300px spacing
-        y: node.position.y,
-      },
-    }));
-    setNodes(updatedNodes);
-  }, [nodes, setNodes]);
+  // Auto-layout using hierarchical algorithm
+  const handleAutoLayout = useCallback(() => {
+    const layoutedNodes = hierarchicalLayout(nodes, edges);
+    setNodes(layoutedNodes);
 
-  // Auto-align nodes vertically
-  const alignVertically = useCallback(() => {
-    const updatedNodes = nodes.map((node, index) => ({
-      ...node,
-      position: {
-        x: node.position.x,
-        y: 100 + index * 200, // Distribute vertically with 200px spacing
-      },
-    }));
-    setNodes(updatedNodes);
-  }, [nodes, setNodes]);
+    // Fit view after layout with a small delay to ensure nodes are positioned
+    setTimeout(() => {
+      fitView({ padding: 0.2, duration: 800 });
+    }, 100);
+  }, [nodes, edges, setNodes, fitView]);
 
   // Handle edge reconnection - allow users to manually move edges
   const onReconnect: OnReconnect = useCallback(
@@ -384,7 +382,7 @@ export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
         nodeTypes={nodeTypes}
         onNodesChange={handleNodesChange}
         onEdgesChange={onEdgesChange}
-        onNodeClick={handleNodeClick}
+        onNodeDoubleClick={handleNodeDoubleClick}
         onConnect={onConnect}
         onReconnect={onReconnect}
         connectionMode={ConnectionMode.Loose}
@@ -414,22 +412,13 @@ export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
         {showGrid && <Background color="#475569" gap={16} variant={gridVariant} />}
 
         <Controls className="bg-slate-800 border-slate-700">
-          {/* Align Horizontally Button */}
+          {/* Auto Layout Button */}
           <ControlButton
-            onClick={alignHorizontally}
-            title="Align Horizontally"
+            onClick={handleAutoLayout}
+            title="Auto Layout"
             className="hover:bg-slate-700"
           >
-            <AlignHorizontalDistributeCenter size={16} />
-          </ControlButton>
-
-          {/* Align Vertically Button */}
-          <ControlButton
-            onClick={alignVertically}
-            title="Align Vertically"
-            className="hover:bg-slate-700"
-          >
-            <AlignVerticalDistributeCenter size={16} />
+            <Network size={16} />
           </ControlButton>
 
           {/* Settings Button */}

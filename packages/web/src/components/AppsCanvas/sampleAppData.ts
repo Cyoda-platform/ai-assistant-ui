@@ -63,6 +63,28 @@ export const sampleAppData: AppRoot = {
 };
 
 /**
+ * Empty app template for new apps
+ * Shows only app name, environments group, and entities group
+ *
+ * Note: This template includes only required fields.
+ * Optional fields (description, version, author, license, repository, requirement)
+ * can be added later but are not required for validation.
+ */
+export const emptyAppTemplate: AppRoot = {
+  app: {
+    name: "New App",
+    description: "",
+    version: "",
+    author: "",
+    license: "",
+    repository: "",
+    requirement: "",
+    environments: [],
+    entities: []
+  }
+};
+
+/**
  * Export for use in AppsCanvas
  */
 export default sampleAppData;

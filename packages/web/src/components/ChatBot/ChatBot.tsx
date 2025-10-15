@@ -10,6 +10,7 @@ import ChatBotMessageFunction from './ChatBotMessageFunction';
 import ChatBotMessageError from './ChatBotMessageError';
 
 interface Message {
+  id?: string;
   type: 'question' | 'answer' | 'notification' | 'ui_function' | 'error';
   text: string;
   raw?: any;
@@ -18,6 +19,15 @@ interface Message {
   files?: File[];
   approve?: boolean;
   editable?: boolean;
+  isCanvasQA?: boolean; // Mark Canvas QA messages for pink styling
+}
+
+interface CanvasOptions {
+  returnWorkflowJSON?: boolean;
+  returnAppJSON?: boolean;
+  returnEntityJSON?: boolean;
+  returnRequirementJSON?: boolean;
+  returnEnvironmentJSON?: boolean;
 }
 
 interface ChatBotProps {
@@ -29,13 +39,15 @@ interface ChatBotProps {
   chatData?: any;
   canvasVisible?: boolean;
   chatHistoryVisible?: boolean;
-  onAnswer: (data: { answer: string; files?: File[] }) => void;
+  onAnswer: (data: { answer: string; files?: File[]; mode?: 'workflow' | 'qa'; canvasOptions?: CanvasOptions }) => void;
   onApproveQuestion: (data: any) => void;
   onUpdateNotification: (data: any) => void;
   onToggleCanvas: () => void;
   onEntitiesDetails?: () => void;
   onToggleChatHistory?: () => void;
   onScrollToBottom?: () => void; // Callback when user scrolls to bottom
+  onAddToCanvas?: (result: { id: string; type: string; data: any }) => void;
+  activeCanvasTab?: 'apps' | 'data' | 'workflow' | 'requirement' | 'code' | 'environments'; // Active tab in canvas
 }
 
 const ChatBot: React.FC<ChatBotProps> = ({
@@ -51,7 +63,9 @@ const ChatBot: React.FC<ChatBotProps> = ({
   onUpdateNotification,
   onToggleCanvas,
   onEntitiesDetails,
-  onScrollToBottom
+  onScrollToBottom,
+  onAddToCanvas,
+  activeCanvasTab
 }) => {
   const chatBotPlaceholderRef = useRef<HTMLDivElement>(null);
   const [chatBotPlaceholderHeight, setChatBotPlaceholderHeight] = useState(0);
@@ -155,6 +169,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
             message={message}
             isLoading={isLoading}
             onApproveQuestion={onApproveQuestion}
+            onAddToCanvas={onAddToCanvas}
           />
         );
       case 'notification':
@@ -238,6 +253,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
           <ChatBotSubmitForm
             disabled={disabled}
             onAnswer={onAnswer}
+            showCanvasButton={canvasVisible}
+            activeCanvasTab={activeCanvasTab}
           />
         </div>
       </div>

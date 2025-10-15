@@ -12,6 +12,7 @@ import type { ColorPalette } from '../themes/colorPalettes';
 interface TransitionNodeData {
   transition: UITransitionData;
   onEdit: (transitionId: string) => void;
+  onSendToChat?: (transitionData: UITransitionData) => void;
   isLoopback: boolean;
   palette: ColorPalette;
 }
@@ -63,7 +64,7 @@ const ANCHOR_POINTS: Record<AnchorPoint, { position: Position; style: React.CSSP
 };
 
 export const TransitionNode: React.FC<NodeProps> = ({ data, selected }) => {
-  const { transition, onEdit, isLoopback, palette } = data as unknown as TransitionNodeData;
+  const { transition, onEdit, onSendToChat, isLoopback, palette } = data as unknown as TransitionNodeData;
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -76,6 +77,13 @@ export const TransitionNode: React.FC<NodeProps> = ({ data, selected }) => {
     e.stopPropagation();
     if (transition && onEdit) {
       onEdit(transition.id);
+    }
+  };
+
+  const handleSendToChat = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onSendToChat && transition) {
+      onSendToChat(transition);
     }
   };
 
@@ -180,6 +188,18 @@ export const TransitionNode: React.FC<NodeProps> = ({ data, selected }) => {
             </div>
           )}
         </div>
+
+        {/* Send to Chat Button */}
+        {onSendToChat && (
+          <button
+            onClick={handleSendToChat}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="flex-shrink-0 p-0.5 text-white/80 hover:text-white transition-colors"
+            title="Send transition to chat"
+          >
+            <ArrowRight size={10} />
+          </button>
+        )}
 
         {/* Edit Button */}
         <button

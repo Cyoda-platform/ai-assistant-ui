@@ -47,6 +47,31 @@ html {
   .scrollbar-track-slate-800::-webkit-scrollbar-track {
     background: rgb(30 41 59);
   }
+
+  /* Canvas QA message styles - Pink/Purple theme */
+  .canvas-qa-question {
+    background: linear-gradient(135deg, rgb(126 34 206 / 0.15), rgb(168 85 247 / 0.1)) !important;
+    border-color: rgb(168 85 247 / 0.3) !important;
+  }
+
+  .canvas-qa-answer {
+    background: linear-gradient(135deg, rgb(168 85 247 / 0.2), rgb(192 132 252 / 0.15)) !important;
+    border-color: rgb(192 132 252 / 0.4) !important;
+  }
+
+  /* Shimmer animation for Send to Chat button */
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 3s infinite;
+  }
 }
 
 /* Glassmorphism effects */

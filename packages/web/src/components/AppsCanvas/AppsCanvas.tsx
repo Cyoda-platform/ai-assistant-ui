@@ -5,7 +5,7 @@ import type { PortalData, CanvasTab } from './types/apps';
 import type { AppRoot } from './types/appSchema';
 import { AppsJsonEditor } from './AppsJsonEditor';
 import { AppsReactFlow } from './AppsReactFlow';
-import { convertAppRootToWorkflow, convertWorkflowToAppRoot } from './convertAppRootToWorkflow';
+import { convertAppRootToWorkflow, convertAppRootToSimplifiedWorkflow, convertWorkflowToAppRoot } from './convertAppRootToWorkflow';
 import { downloadAppConfig, validateAppConfig } from './loadAppConfig';
 
 interface AppsCanvasProps {
@@ -17,6 +17,8 @@ interface AppsCanvasProps {
   onAppDataUpdate?: (appData: AppRoot) => void;
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
+  simplified?: boolean; // Show simplified view (only app name, environments group, entities group)
+  onSendToChat?: (appJson: string) => void; // Send app JSON to chat
 }
 
 /**
@@ -326,7 +328,9 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
   onDataUpdate,
   onAppDataUpdate,
   isFullscreen,
-  onToggleFullscreen
+  onToggleFullscreen,
+  simplified = false,
+  onSendToChat
 }) => {
   // State for custom JSON editor
   const [showJsonEditor, setShowJsonEditor] = useState(true);
@@ -355,6 +359,7 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
         status: 'inactive'
       };
       updatedData.app.environments.push(newEnv);
+      console.log('✅ Environment added:', newEnv.name);
     } else if (groupType === 'entities') {
       // Add new entity
       const newEntity = {
@@ -363,20 +368,35 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
         description: 'New entity',
         cyoda_url: 'https://example.com',
         github_url: 'https://github.com',
-        model: {},
+        model: {
+          name: 'Sample',
+          age: 0,
+          breed: 'Default'
+        },
         workflows: []
       };
       updatedData.app.entities.push(newEntity);
+      console.log('✅ Entity added:', newEntity.name);
     } else if (groupType === 'workflows' && entityId) {
       // Add new workflow to specific entity
-      const entityIdParts = entityId.replace('entity-', '').split('-');
-      const entityName = entityIdParts.slice(0, -1).join(' ');
+      console.log('🔧 Adding workflow to entity:', entityId);
 
-      const entity = updatedData.app.entities.find(e =>
-        e.name.toLowerCase().replace(/\s+/g, '-') === entityName
-      );
+      // Parse entity ID: format is "entity-{name}-{version}"
+      // Example: "entity-pet-1" -> name="pet", version="1"
+      const entityIdParts = entityId.replace('entity-', '').split('-');
+      const version = entityIdParts[entityIdParts.length - 1]; // Last part is version
+      const entityName = entityIdParts.slice(0, -1).join('-'); // Everything before version is name
+
+      console.log('🔍 Looking for entity:', { entityName, version, allEntities: updatedData.app.entities });
+
+      const entity = updatedData.app.entities.find(e => {
+        const nameMatch = e.name.toLowerCase().replace(/\s+/g, '-') === entityName.toLowerCase();
+        const versionMatch = e.version.toLowerCase().replace(/\s+/g, '-') === version.toLowerCase();
+        return nameMatch && versionMatch;
+      });
 
       if (entity) {
+        console.log('✅ Found entity, adding workflow');
         const newWorkflow = {
           name: `new-workflow-${entity.workflows.length + 1}`,
           cyoda_url: 'https://example.com',
@@ -390,6 +410,9 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
           }
         };
         entity.workflows.push(newWorkflow);
+        console.log('✅ Workflow added:', newWorkflow.name);
+      } else {
+        console.error('❌ Entity not found for ID:', entityId, { entityName, version });
       }
     }
 
@@ -443,11 +466,25 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
     onAppDataUpdate?.(updatedData);
   }, [currentAppData, onAppDataUpdate]);
 
+  // Handle sending node data to chat
+  const handleNodeSendToChat = useCallback((nodeData: any, nodeType: string) => {
+    if (!onSendToChat) return;
+
+    const nodeJson = JSON.stringify(nodeData, null, 2);
+    onSendToChat(nodeJson);
+
+    console.log(`📤 Sent ${nodeType} to chat:`, nodeData);
+  }, [onSendToChat]);
+
   // Convert data to Workflow format for visualization
   const workflowData = useMemo(() => {
     if (currentAppData) {
-      // Use new direct conversion for AppRoot with add handlers and update handlers
-      return convertAppRootToWorkflow(currentAppData, handleAddNewInstance, handleNodeUpdate);
+      // Use simplified view for new apps (only app name, environments group, entities group)
+      if (simplified) {
+        return convertAppRootToSimplifiedWorkflow(currentAppData, handleAddNewInstance, handleNodeUpdate, handleNodeSendToChat);
+      }
+      // Use full view for existing apps
+      return convertAppRootToWorkflow(currentAppData, handleAddNewInstance, handleNodeUpdate, handleNodeSendToChat);
     }
     // Return empty workflow
     return {
@@ -472,7 +509,7 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
         transitions: []
       }
     };
-  }, [currentAppData, handleAddNewInstance, handleNodeUpdate]);
+  }, [currentAppData, simplified, handleAddNewInstance, handleNodeUpdate]);
 
   // Handle JSON editor save
   const handleJsonEditorSave = useCallback((updatedAppData: AppRoot) => {
@@ -481,18 +518,65 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
     onAppDataUpdate?.(updatedAppData);
   }, [onAppDataUpdate]);
 
-  // Handle node clicks - scroll JSON editor to the clicked node
-  const handleNodeClick = useCallback((nodeId: string, nodeType: string) => {
-    console.log('🎯 Node clicked:', nodeId, nodeType);
-
-    // Open JSON editor if not already open
-    if (!showJsonEditor) {
-      setShowJsonEditor(true);
+  // Handle send to chat
+  const handleSendToChat = useCallback(() => {
+    if (!currentAppData) {
+      console.warn('⚠️ No app data to send to chat');
+      return;
     }
 
-    // Set the node to navigate to
-    setJsonEditorNavigateToNode(nodeId);
-  }, [showJsonEditor]);
+    // Convert app data to formatted JSON string
+    const appJson = JSON.stringify(currentAppData, null, 2);
+    console.log('📤 Sending app JSON to chat:', appJson.substring(0, 100) + '...');
+
+    onSendToChat?.(appJson);
+  }, [currentAppData, onSendToChat]);
+
+  // Handle node double-clicks - navigate to appropriate tab
+  const handleNodeDoubleClick = useCallback((nodeId: string, nodeType: string, nodeData?: any) => {
+    console.log('🎯 Node double-clicked:', nodeId, nodeType, nodeData);
+
+    // Determine if we should navigate to another tab
+    let shouldNavigate = false;
+    let targetTab: CanvasTab | null = null;
+
+    switch (nodeType) {
+      case 'appNode':
+        // App root node - navigate to Requirement tab
+        shouldNavigate = true;
+        targetTab = 'requirement';
+        break;
+      case 'environmentNode':
+        shouldNavigate = true;
+        targetTab = 'environments';
+        break;
+      case 'entityNode':
+        shouldNavigate = true;
+        targetTab = 'data';
+        break;
+      case 'workflowNode':
+        shouldNavigate = true;
+        targetTab = 'workflow';
+        break;
+      default:
+        // Unknown node type, stay on apps tab
+        shouldNavigate = false;
+        break;
+    }
+
+    if (shouldNavigate && targetTab && onNavigate) {
+      // Navigate to the appropriate tab, passing node data for workflows
+      onNavigate(targetTab, nodeId, nodeData);
+    } else {
+      // Open JSON editor if not already open
+      if (!showJsonEditor) {
+        setShowJsonEditor(true);
+      }
+
+      // Set the node to navigate to in JSON editor
+      setJsonEditorNavigateToNode(nodeId);
+    }
+  }, [showJsonEditor, onNavigate]);
 
   // Handle export to file
   const handleExport = useCallback(() => {
@@ -601,7 +685,7 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
         {/* Custom React Flow Canvas */}
         <AppsReactFlow
           workflowData={workflowData}
-          onNodeClick={handleNodeClick}
+          onNodeDoubleClick={handleNodeDoubleClick}
           onExport={handleExport}
           onImport={handleImport}
           isFullscreen={isFullscreen}
@@ -623,6 +707,7 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
               setShowJsonEditor(false);
             }}
             onSave={handleJsonEditorSave}
+            onSendToChat={onSendToChat ? handleSendToChat : undefined}
             navigateToNode={jsonEditorNavigateToNode}
             onNavigated={() => setJsonEditorNavigateToNode(null)}
             palette={{

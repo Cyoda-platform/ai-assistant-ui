@@ -1,6 +1,6 @@
 import React from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { Folder, Hash, Plus } from 'lucide-react';
+import { Folder, Hash, Plus, ArrowRight } from 'lucide-react';
 
 interface GroupNodeProps {
   data: {
@@ -9,6 +9,7 @@ interface GroupNodeProps {
       groupType?: string;
       count?: number;
       onAddNew?: () => void;
+      onSendToChat?: (nodeData: any, nodeType: string) => void;
     };
   };
 }
@@ -18,6 +19,7 @@ export const GroupNode: React.FC<GroupNodeProps> = ({ data }) => {
   const groupType = metadata?.groupType || 'group';
   const count = metadata?.count || 0;
   const onAddNew = metadata?.onAddNew;
+  const onSendToChat = metadata?.onSendToChat;
 
   // Color based on group type
   const getColor = () => {
@@ -40,25 +42,50 @@ export const GroupNode: React.FC<GroupNodeProps> = ({ data }) => {
     onAddNew?.();
   };
 
+  const handleSendToChat = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onSendToChat) {
+      const groupData = {
+        label,
+        groupType,
+        count
+      };
+      onSendToChat(groupData, 'group');
+    }
+  };
+
   return (
     <div className={`px-6 py-4 shadow-xl rounded-lg border-2 ${colors.border} bg-gradient-to-br ${colors.bg} min-w-[200px]`}>
-      {/* Header with Add Button */}
+      {/* Header with Buttons */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center space-x-2">
           <Folder size={20} className={colors.text} />
           <h3 className={`font-bold text-lg ${colors.text}`}>{label}</h3>
         </div>
 
-        {/* Add New Button */}
-        {onAddNew && (
-          <button
-            onClick={handleAddNew}
-            className={`p-1 rounded ${colors.hover} transition-colors ${colors.text}`}
-            title={`Add new ${groupType === 'environments' ? 'environment' : groupType === 'entities' ? 'entity' : 'workflow'}`}
-          >
-            <Plus size={18} />
-          </button>
-        )}
+        <div className="flex items-center space-x-1">
+          {/* Send to Chat Button */}
+          {onSendToChat && (
+            <button
+              onClick={handleSendToChat}
+              className={`p-1 rounded ${colors.hover} transition-colors ${colors.text}`}
+              title={`Send ${groupType} group to chat`}
+            >
+              <ArrowRight size={18} />
+            </button>
+          )}
+
+          {/* Add New Button */}
+          {onAddNew && (
+            <button
+              onClick={handleAddNew}
+              className={`p-1 rounded ${colors.hover} transition-colors ${colors.text}`}
+              title={`Add new ${groupType === 'environments' ? 'environment' : groupType === 'entities' ? 'entity' : 'workflow'}`}
+            >
+              <Plus size={18} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Count */}

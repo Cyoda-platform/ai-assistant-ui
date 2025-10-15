@@ -15,7 +15,7 @@ interface AppsTabsState {
   activeTabId: string | null;
 
   // Actions
-  openTab: (tab: Omit<AppTab, 'id'>) => void;
+  openTab: (tab: Omit<AppTab, 'id'>) => AppTab;
   closeTab: (tabId: string) => void;
   setActiveTab: (tabId: string) => void;
   updateTab: (tabId: string, updates: Partial<AppTab>) => void;
@@ -43,6 +43,7 @@ export const useAppsTabsStore = create<AppsTabsState>()(
     if (existingTab) {
       // Tab already exists, just activate it
       set({ activeTabId: tabId });
+      return existingTab;
     } else {
       // Create new tab
       const newTab: AppTab = {
@@ -54,6 +55,8 @@ export const useAppsTabsStore = create<AppsTabsState>()(
         tabs: [...tabs, newTab],
         activeTabId: tabId,
       });
+
+      return newTab;
     }
   },
 

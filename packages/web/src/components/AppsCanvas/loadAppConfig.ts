@@ -31,6 +31,16 @@ export async function loadExampleAppConfig(): Promise<AppRoot> {
 
 /**
  * Validate app config against schema
+ *
+ * Required fields:
+ * - app.name (string)
+ * - app.entities (array)
+ * - entity.name (string) for each entity
+ * - workflow.name (string) for each workflow
+ *
+ * Optional fields:
+ * - app.environments (array) - if present, only environment.name is required
+ * - All other fields (description, urls, model, etc.) are optional
  */
 export function validateAppConfig(config: any): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
@@ -43,76 +53,49 @@ export function validateAppConfig(config: any): { valid: boolean; errors: string
 
   const app = config.app;
 
-  // Check required app fields
-  const requiredFields = ['name', 'description', 'version', 'author', 'license', 'repository', 'requirement', 'environments', 'entities'];
-  requiredFields.forEach(field => {
-    if (!app[field]) {
-      errors.push(`Missing required field: app.${field}`);
-    }
-  });
-
-  // Validate environments
-  if (app.environments && Array.isArray(app.environments)) {
-    app.environments.forEach((env: any, index: number) => {
-      if (!env.name) errors.push(`Missing name in environment ${index}`);
-      if (!env.url) errors.push(`Missing url in environment ${index}`);
-      if (!env.status) errors.push(`Missing status in environment ${index}`);
-    });
-  } else {
-    errors.push('environments must be an array');
+  // Only app name is required
+  if (!app.name || typeof app.name !== 'string' || !app.name.trim()) {
+    errors.push('Missing required field: app.name');
   }
 
-  // Validate entities
-  if (app.entities && Array.isArray(app.entities)) {
+  // Entities array is required (but can be empty)
+  if (!Array.isArray(app.entities)) {
+    errors.push('app.entities must be an array');
+  } else {
+    // Validate entities - only name is required
     app.entities.forEach((entity: any, index: number) => {
-      if (!entity.name) errors.push(`Missing name in entity ${index}`);
-      if (!entity.version) errors.push(`Missing version in entity ${index}`);
-      if (!entity.description) errors.push(`Missing description in entity ${index}`);
-      if (!entity.cyoda_url) errors.push(`Missing cyoda_url in entity ${index}`);
-      if (!entity.github_url) errors.push(`Missing github_url in entity ${index}`);
-      if (!entity.model) errors.push(`Missing model in entity ${index}`);
-      if (!entity.workflows) errors.push(`Missing workflows in entity ${index}`);
-
-      // Validate model
-      if (entity.model) {
-        if (!entity.model.name) errors.push(`Missing model.name in entity ${index}`);
-        if (typeof entity.model.age !== 'number') errors.push(`Missing or invalid model.age in entity ${index}`);
-        if (!entity.model.breed) errors.push(`Missing model.breed in entity ${index}`);
+      if (!entity.name || typeof entity.name !== 'string' || !entity.name.trim()) {
+        errors.push(`Missing required field: name in entity ${index}`);
       }
 
-      // Validate workflows
-      if (entity.workflows && Array.isArray(entity.workflows)) {
-        entity.workflows.forEach((workflow: any, wIndex: number) => {
-          if (!workflow.name) errors.push(`Missing name in entity ${index}, workflow ${wIndex}`);
-          if (!workflow.cyoda_url) errors.push(`Missing cyoda_url in entity ${index}, workflow ${wIndex}`);
-          if (!workflow.github_url) errors.push(`Missing github_url in entity ${index}, workflow ${wIndex}`);
-          if (!workflow.config) errors.push(`Missing config in entity ${index}, workflow ${wIndex}`);
-
-          // Validate workflow config
-          if (workflow.config) {
-            if (!workflow.config.states) {
-              errors.push(`Missing config.states in entity ${index}, workflow ${wIndex}`);
-            } else {
-              // Validate states
-              Object.entries(workflow.config.states).forEach(([stateName, state]: [string, any]) => {
-                if (!state.transitions || !Array.isArray(state.transitions)) {
-                  errors.push(`Missing or invalid transitions in entity ${index}, workflow ${wIndex}, state ${stateName}`);
-                } else {
-                  state.transitions.forEach((transition: any, tIndex: number) => {
-                    if (!transition.name) errors.push(`Missing name in entity ${index}, workflow ${wIndex}, state ${stateName}, transition ${tIndex}`);
-                    if (!transition.next) errors.push(`Missing next in entity ${index}, workflow ${wIndex}, state ${stateName}, transition ${tIndex}`);
-                  });
-                }
-              });
+      // Validate workflows if they exist
+      if (entity.workflows !== undefined) {
+        if (!Array.isArray(entity.workflows)) {
+          errors.push(`workflows must be an array in entity ${index}`);
+        } else {
+          entity.workflows.forEach((workflow: any, wIndex: number) => {
+            // Only workflow name is required
+            if (!workflow.name || typeof workflow.name !== 'string' || !workflow.name.trim()) {
+              errors.push(`Missing required field: name in entity ${index}, workflow ${wIndex}`);
             }
-          }
-        });
-      } else {
-        errors.push(`workflows must be an array in entity ${index}`);
+          });
+        }
       }
     });
-  } else {
-    errors.push('entities must be an array');
+  }
+
+  // Validate environments if they exist (optional)
+  if (app.environments !== undefined) {
+    if (!Array.isArray(app.environments)) {
+      errors.push('app.environments must be an array');
+    } else {
+      app.environments.forEach((env: any, index: number) => {
+        // Only environment name is required
+        if (!env.name || typeof env.name !== 'string' || !env.name.trim()) {
+          errors.push(`Missing required field: name in environment ${index}`);
+        }
+      });
+    }
   }
 
   return {
