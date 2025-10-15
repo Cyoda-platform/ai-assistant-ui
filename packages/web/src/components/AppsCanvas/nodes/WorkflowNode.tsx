@@ -1,185 +1,98 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { Workflow, ExternalLink, GitBranch, Hash, Code, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
-import { NodeJsonEditor } from './NodeJsonEditor';
+import type { NodeProps } from '@xyflow/react';
+import { Workflow, Circle, ArrowRight, Clock } from 'lucide-react';
 
-interface WorkflowNodeProps {
-  data: {
-    label: string;
-    metadata: {
-      name: string;
-      cyoda_url: string;
-      github_url: string;
-      stateCount: number;
-      states: Record<string, any>;
-    };
-    onUpdate?: (updatedMetadata: any) => void;
-    onSendToChat?: (nodeData: any, nodeType: string) => void;
-  };
+interface WorkflowNodeData {
+  name: string;
+  stateCount: number;
+  transitionCount: number;
+  updatedAt: string;
+  onClick?: () => void;
+  onEdit?: () => void;
 }
 
-export const WorkflowNode: React.FC<WorkflowNodeProps> = ({ data }) => {
-  const { metadata, onUpdate, onSendToChat } = data;
-  const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+export const WorkflowNode: React.FC<NodeProps<WorkflowNodeData>> = ({ data, selected }) => {
+  const { name, stateCount, transitionCount, updatedAt, onClick, onEdit } = data;
 
-  // Get state names
-  const stateNames = Object.keys(metadata.states);
-
-  const handleJsonSave = (updatedData: any) => {
-    if (onUpdate) {
-      onUpdate(updatedData);
-    }
-  };
-
-  const handleOpenEditor = (e: React.MouseEvent) => {
+  const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsEditorOpen(true);
-  };
-
-  const handleToggleExpand = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsExpanded(!isExpanded);
-  };
-
-  const handleSendToChat = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onSendToChat) {
-      onSendToChat(metadata, 'workflow');
+    if (onEdit) {
+      onEdit();
     }
   };
 
   return (
-    <>
-      <div className="bg-gradient-to-br from-orange-600 to-orange-800 rounded-lg shadow-lg border-2 border-orange-400 w-[300px] relative">
-        {/* Header */}
-        <div className="px-3 py-2 border-b border-orange-400/30 bg-orange-900/30">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 flex-1 min-w-0">
-              <Workflow className="text-orange-200 flex-shrink-0" size={20} />
-              <h3 className="text-base font-bold text-white truncate">{metadata.name}</h3>
-            </div>
-            <div className="flex items-center space-x-1 flex-shrink-0">
-              <button
-                onClick={handleToggleExpand}
-                className="p-1 hover:bg-orange-700 rounded transition-colors"
-                title={isExpanded ? "Collapse" : "Expand"}
-              >
-                {isExpanded ? (
-                  <ChevronUp size={16} className="text-orange-200" />
-                ) : (
-                  <ChevronDown size={16} className="text-orange-200" />
-                )}
-              </button>
-              {onSendToChat && (
-                <button
-                  onClick={handleSendToChat}
-                  className="p-1 hover:bg-orange-700 rounded transition-colors"
-                  title="Send workflow to chat"
-                >
-                  <ArrowRight size={16} className="text-orange-200" />
-                </button>
-              )}
-              <button
-                onClick={handleOpenEditor}
-                className="p-1 hover:bg-orange-700 rounded transition-colors"
-                title="Edit JSON"
-              >
-                <Code size={16} className="text-orange-200" />
-              </button>
-            </div>
+    <div
+      className={`
+        bg-gradient-to-br from-purple-600 to-purple-700
+        rounded-lg shadow-lg border-2 transition-all duration-300
+        min-w-[140px] max-w-[180px] cursor-pointer
+        ${selected 
+          ? 'border-purple-300 ring-4 ring-purple-300/50 scale-105' 
+          : 'border-purple-400/50 hover:border-purple-300 hover:scale-102'
+        }
+      `}
+      onClick={onClick}
+      onDoubleClick={handleDoubleClick}
+      title="Double-click to edit workflow"
+    >
+      {/* Handles */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="top"
+        className="w-2 h-2 !bg-purple-300 !border-2 !border-white"
+      />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="bottom"
+        className="w-2 h-2 !bg-purple-300 !border-2 !border-white"
+      />
+
+      {/* Header */}
+      <div className="p-2.5 border-b border-purple-400/30">
+        <div className="flex items-center space-x-2">
+          <div className="flex-shrink-0 w-7 h-7 bg-white/20 rounded flex items-center justify-center">
+            <Workflow size={14} className="text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h5 className="text-white font-semibold text-xs truncate">{name}</h5>
           </div>
         </div>
-
-      {/* Content - Collapsible */}
-      {isExpanded && (
-        <div className="px-3 py-2 space-y-2">
-          {/* State Count */}
-          <div className="flex items-center space-x-2">
-            <Hash className="text-orange-300 flex-shrink-0" size={14} />
-            <div className="flex-1 min-w-0">
-              <p className="text-orange-200 text-xs font-semibold">States</p>
-              <p className="text-white text-sm">{metadata.stateCount} states</p>
-            </div>
-          </div>
-
-          {/* State Names */}
-          <div className="flex items-start space-x-2">
-            <GitBranch className="text-orange-300 mt-0.5 flex-shrink-0" size={14} />
-            <div className="flex-1 min-w-0">
-              <p className="text-orange-200 text-xs font-semibold">State Flow</p>
-              <div className="text-white text-sm space-y-0.5 max-h-32 overflow-y-auto">
-                {stateNames.map((stateName, index) => {
-                  const state = metadata.states[stateName];
-                  const transitions = state.transitions || [];
-
-                  return (
-                    <div key={stateName} className="flex items-start space-x-1">
-                      <span className="text-orange-300 flex-shrink-0">•</span>
-                      <div className="flex-1 min-w-0">
-                        <span className="truncate block">{stateName}</span>
-                        {transitions.length > 0 && (
-                          <span className="text-orange-300 text-xs truncate block">
-                            → {transitions.map((t: any) => t.next).join(', ')}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* URLs */}
-          <div className="pt-1 border-t border-orange-400/20 space-y-1">
-            <div className="flex items-center space-x-1">
-              <ExternalLink className="text-orange-300 flex-shrink-0" size={12} />
-              <a
-                href={metadata.cyoda_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-orange-200 text-xs hover:text-white truncate"
-              >
-                Cyoda
-              </a>
-            </div>
-            <div className="flex items-center space-x-1">
-              <ExternalLink className="text-orange-300 flex-shrink-0" size={12} />
-              <a
-                href={metadata.github_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-orange-200 text-xs hover:text-white truncate"
-              >
-                GitHub
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-
-        {/* Handles - 8 anchor points for maximum flexibility */}
-        <Handle type="source" position={Position.Top} id="top" className="!bg-orange-400" />
-        <Handle type="source" position={Position.Right} id="right" className="!bg-orange-400" />
-        <Handle type="source" position={Position.Bottom} id="bottom" className="!bg-orange-400" />
-        <Handle type="source" position={Position.Left} id="left" className="!bg-orange-400" />
-
-        <Handle type="target" position={Position.Top} id="top-target" className="!bg-orange-400" />
-        <Handle type="target" position={Position.Right} id="right-target" className="!bg-orange-400" />
-        <Handle type="target" position={Position.Bottom} id="bottom-target" className="!bg-orange-400" />
-        <Handle type="target" position={Position.Left} id="left-target" className="!bg-orange-400" />
       </div>
 
-      {/* JSON Editor Modal */}
-      <NodeJsonEditor
-        data={metadata}
-        onSave={handleJsonSave}
-        title={`Edit Workflow: ${metadata.name}`}
-        isOpen={isEditorOpen}
-        onClose={() => setIsEditorOpen(false)}
-      />
-    </>
+      {/* Stats */}
+      <div className="p-2 space-y-1">
+        <div className="flex items-center justify-between text-white/90 text-[10px]">
+          <div className="flex items-center space-x-1">
+            <Circle size={10} />
+            <span>States</span>
+          </div>
+          <span className="font-semibold bg-white/20 px-1.5 py-0.5 rounded-full">
+            {stateCount}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-white/90 text-[10px]">
+          <div className="flex items-center space-x-1">
+            <ArrowRight size={10} />
+            <span>Transitions</span>
+          </div>
+          <span className="font-semibold bg-white/20 px-1.5 py-0.5 rounded-full">
+            {transitionCount}
+          </span>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="px-2 pb-2">
+        <div className="flex items-center justify-center space-x-1 text-white/70 text-[9px] bg-white/10 rounded py-0.5">
+          <Clock size={8} />
+          <span>{new Date(updatedAt).toLocaleDateString()}</span>
+        </div>
+      </div>
+    </div>
   );
 };
 
