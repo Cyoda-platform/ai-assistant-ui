@@ -89,7 +89,7 @@ export const NewAppDialog: React.FC<NewAppDialogProps> = ({
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20">
             <Code className="text-blue-600 dark:text-blue-400" size={18} />
           </div>
-          <span className="text-base font-semibold text-gray-900 dark:text-gray-100">
+          <span className="text-base font-semibold text-white">
             Create New Application
           </span>
         </div>
@@ -153,11 +153,11 @@ export const NewAppDialog: React.FC<NewAppDialogProps> = ({
         </div>
 
         {/* Info Box */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-          <p className="text-sm text-blue-800 dark:text-blue-300">
+        <div className="bg-gradient-to-r from-teal-700 to-teal-800 rounded-lg p-3">
+          <p className="text-sm text-white">
             <strong>What happens next:</strong>
           </p>
-          <ul className="mt-2 text-xs text-blue-700 dark:text-blue-400 space-y-1 list-disc list-inside">
+          <ul className="mt-2 text-xs text-white space-y-1 list-disc list-inside">
             <li>A new chat will be created with the AI assistant</li>
             <li>The assistant will guide you through building your Cyoda app</li>
             <li>You'll be able to interact with the assistant to customize your app</li>

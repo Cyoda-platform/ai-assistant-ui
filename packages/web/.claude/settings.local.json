@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run dev)"
+      "Bash(npm run dev)",
+      "Read(//c/Users/user/ai-assistant-ui/**)"
     ],
     "deny": [],
     "ask": []

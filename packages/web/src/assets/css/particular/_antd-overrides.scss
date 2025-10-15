@@ -30,19 +30,25 @@
   }
 
   .ant-modal-close {
+    top: 20px;
+
     .ant-modal-close-x {
-      width: 20px;
-      height: 20px;
-      background-color: var(--bg-dialog-close-color);
-      border-radius: 3px;
+      width: auto;
+      height: auto;
+      padding: 0.5rem;
+      background: linear-gradient(to right, #14b8a6, #0d9488);
+      border-radius: 0.5rem;
       color: #FFFFFF;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all 0.3s;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 
       &:hover {
-        opacity: 0.8;
+        background: linear-gradient(to right, #0d9488, #0f766e);
+        box-shadow: 0 0 15px rgba(20, 184, 166, 0.25);
+        transform: scale(1.05);
       }
     }
   }
