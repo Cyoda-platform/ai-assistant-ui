@@ -47,7 +47,7 @@ const WorkflowTabsView: React.FC = () => {
   }, [searchParams, openTab, tabs]);
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-gray-900">
+    <div className="h-screen w-screen overflow-hidden bg-gray-900" style={{ position: 'fixed', top: 0, left: 0 }}>
       <WorkflowTabsContainer />
     </div>
   );

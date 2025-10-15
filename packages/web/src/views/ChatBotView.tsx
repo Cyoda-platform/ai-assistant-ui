@@ -13,7 +13,6 @@ import Tinycon from 'tinycon';
 import eventBus from '@/plugins/eventBus';
 import { UPDATE_CHAT_LIST } from '@/helpers/HelperConstants';
 import { groupChatsByDate } from '@/helpers/HelperChatGroups';
-import { useAppsTabsStore } from '@/stores/appsTabs';
 
 interface Message {
   id: string;
@@ -44,16 +43,9 @@ const ChatBotView: React.FC = () => {
   const chatListReady = useAssistantStore((state) => state.chatListReady);
   const isTransferringChats = useAssistantStore((state) => state.isTransferringChats);
   const superUserMode = useSuperUserMode(); // Watch for super user mode changes
-
-  // Check URL parameters for opening panels
-  const urlParams = new URLSearchParams(window.location.search);
-  const shouldOpenCanvas = urlParams.get('openCanvas') === 'true';
-  const shouldOpenHistory = urlParams.get('openHistory') === 'true';
-
-  const [canvasVisible, setCanvasVisible] = useState(shouldOpenCanvas);
-  const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
+  const [canvasVisible, setCanvasVisible] = useState(false);
   const [isEntityDataOpen, setIsEntityDataOpen] = useState(false);
-  const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(shouldOpenHistory || true);
+  const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [disabled, setDisabled] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -79,10 +71,11 @@ const ChatBotView: React.FC = () => {
     storageKey: 'entityData-width'
   });
 
+  // Resizable canvas panel - no max width constraint
   const canvasResize = useResizablePanel({
-    defaultWidth: 800, // Start at maximum width for canvas
-    minWidth: 400,     // Minimum width for canvas
-    maxWidth: 1200,    // Maximum width for canvas
+    defaultWidth: 800,   // Start at maximum width for canvas
+    minWidth: 400,       // Minimum width for canvas
+    maxWidth: 999999,    // No real constraint - allow unlimited expansion
     storageKey: 'canvas-width'
   });
 
@@ -109,54 +102,7 @@ const ChatBotView: React.FC = () => {
     technicalIdRef.current = technicalId;
   }, [technicalId]);
 
-  // Automatically open app tab when canvas is opened for a new chat
-  const { openTab: openAppTab } = useAppsTabsStore();
-  const hasOpenedAppTabRef = useRef(false);
 
-  useEffect(() => {
-    // Only run once when canvas is opened from URL parameter
-    if (canvasVisible && shouldOpenCanvas && technicalId && !hasOpenedAppTabRef.current) {
-      hasOpenedAppTabRef.current = true;
-
-      // Extract app name from chat data or use a default
-      const appName = chatData?.name || 'New App';
-
-      // Open the app tab in the canvas
-      openAppTab({
-        modelName: appName,
-        modelVersion: 1,
-        displayName: appName,
-        isDirty: false,
-        technicalId: technicalId
-      });
-
-      console.log('✅ Automatically opened app tab for new chat:', technicalId);
-    }
-  }, [canvasVisible, shouldOpenCanvas, technicalId, chatData, openAppTab]);
-
-  // Reset the flag when technicalId changes (navigating to a different chat)
-  useEffect(() => {
-    hasOpenedAppTabRef.current = false;
-  }, [technicalId]);
-
-  // Keyboard shortcuts for canvas
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+Shift+F or F11 for fullscreen toggle (only when canvas is open)
-      if (canvasVisible && ((e.ctrlKey && e.shiftKey && e.key === 'F') || e.key === 'F11')) {
-        e.preventDefault();
-        setIsCanvasFullscreen(!isCanvasFullscreen);
-      }
-      // Escape to exit fullscreen
-      if (isCanvasFullscreen && e.key === 'Escape') {
-        e.preventDefault();
-        setIsCanvasFullscreen(false);
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [canvasVisible, isCanvasFullscreen]);
 
   // Add header notification for new messages
   const addHeaderNotification = (message: Message) => {
@@ -386,103 +332,40 @@ const ChatBotView: React.FC = () => {
     }
   };
 
-  const onAnswer = async (data: { answer: string; files?: File[]; mode?: 'workflow' | 'qa'; canvasOptions?: any }) => {
+  const onAnswer = async (data: { answer: string; files?: File[] }) => {
     if (!technicalId) return;
 
     setDisabled(true);
 
     try {
       let response;
-      const mode = data.mode || 'workflow'; // Default to workflow mode
-
-      if (mode === 'qa') {
-        // QA Mode: Use questions endpoint (no workflow state management)
-        console.log('📝 QA Mode: Sending question...', { canvasOptions: data.canvasOptions });
-
-        // Build question with canvas options context
-        let questionText = data.answer;
-        if (data.canvasOptions) {
-          const options = data.canvasOptions;
-          if (options.returnWorkflowJSON) {
-            questionText += '\n\n[Canvas Context: Return Workflow JSON]';
-          }
-          if (options.returnAppJSON) {
-            questionText += '\n\n[Canvas Context: Return App JSON]';
-          }
-          if (options.returnEntityJSON) {
-            questionText += '\n\n[Canvas Context: Return Entity JSON]';
-          }
-          if (options.returnRequirementJSON) {
-            questionText += '\n\n[Canvas Context: Return Requirement JSON]';
-          }
-          if (options.returnEnvironmentJSON) {
-            questionText += '\n\n[Canvas Context: Return Environment JSON]';
-          }
-        }
-
-        if (data.files && data.files.length > 0) {
-          const formData = new FormData();
-          data.files.forEach(file => {
-            formData.append('files', file);
-          });
-          formData.append('question', questionText);
-          const result = await assistantStore.postQuestions(technicalId, formData);
-          response = result.data;
-        } else {
-          const result = await assistantStore.postTextQuestions(technicalId, {
-            question: questionText
-          });
-          response = result.data;
-        }
-
-        // For QA mode, add both question and answer immediately
-        if (response) {
-          const questionMessage = {
-            technical_id: `qa-q-${Date.now()}`,
-            question: data.answer,
-            files: data.files,
-            isCanvasQA: true // Mark as Canvas QA for styling
-          };
-          const answerMessage = {
-            technical_id: `qa-a-${Date.now()}`,
-            answer: response.answer || response.message || 'No response received',
-            isCanvasQA: true // Mark as Canvas QA for styling
-          };
-          addMessage(questionMessage);
-          addMessage(answerMessage);
-          setDisabled(false);
-        }
+      if (data.files && data.files.length > 0) {
+        const formData = new FormData();
+        data.files.forEach(file => {
+          formData.append('files', file);
+        });
+        formData.append('answer', data.answer);
+        const result = await assistantStore.postAnswers(technicalId, formData);
+        response = result.data;
       } else {
-        // Workflow Mode: Use answers endpoint (workflow state management)
-        console.log('🔄 Workflow Mode: Sending answer...');
-        if (data.files && data.files.length > 0) {
-          const formData = new FormData();
-          data.files.forEach(file => {
-            formData.append('files', file);
-          });
-          formData.append('answer', data.answer);
-          const result = await assistantStore.postAnswers(technicalId, formData);
-          response = result.data;
-        } else {
-          const result = await assistantStore.postTextAnswers(technicalId, data);
-          response = result.data;
-        }
+        const result = await assistantStore.postTextAnswers(technicalId, data);
+        response = result.data;
+      }
 
-        if (response?.answer_technical_id) {
-          // Add the answer message immediately
-          const answerMessage = {
-            technical_id: response.answer_technical_id,
-            answer: data.answer,
-            files: data.files
-          };
-          addMessage(answerMessage);
-          setIsLoading(true);
+      if (response?.answer_technical_id) {
+        // Add the answer message immediately
+        const answerMessage = {
+          technical_id: response.answer_technical_id,
+          answer: data.answer,
+          files: data.files
+        };
+        addMessage(answerMessage);
+        setIsLoading(true);
 
-          // Reset polling interval when user sends a response
-          currentIntervalIndexRef.current = 0;
+        // Reset polling interval when user sends a response
+        currentIntervalIndexRef.current = 0;
 
-          loadChatHistory();
-        }
+        loadChatHistory();
       }
     } catch (error: any) {
       console.error('Error submitting answer:', error);
@@ -526,102 +409,6 @@ const ChatBotView: React.FC = () => {
     await loadChatHistory();
   };
 
-  const handleAddToCanvas = (result: { id: string; type: string; data: any }) => {
-    console.log('🎨 Adding to canvas:', result);
-
-    // Update localStorage appData
-    const appData = JSON.parse(localStorage.getItem('appData') || '{}');
-
-    if (result.type === 'app') {
-      // Replace entire app
-      appData.app = result.data;
-    } else if (result.type === 'entity') {
-      // Add entity to app
-      if (!appData.app) {
-        console.error('No app found in appData');
-        return;
-      }
-      if (!appData.app.entities) {
-        appData.app.entities = [];
-      }
-      // Check if entity already exists
-      const existingIndex = appData.app.entities.findIndex((e: any) => e.id === result.id);
-      if (existingIndex >= 0) {
-        appData.app.entities[existingIndex] = {
-          id: result.data.id,
-          name: result.data.name,
-          version: result.data.version,
-          description: result.data.description,
-        };
-      } else {
-        appData.app.entities.push({
-          id: result.data.id,
-          name: result.data.name,
-          version: result.data.version,
-          description: result.data.description,
-        });
-      }
-    } else if (result.type === 'workflow') {
-      // Add workflow to app
-      if (!appData.app) {
-        console.error('No app found in appData');
-        return;
-      }
-      if (!appData.app.workflows) {
-        appData.app.workflows = [];
-      }
-      const existingIndex = appData.app.workflows.findIndex((w: any) => w.id === result.id);
-      if (existingIndex >= 0) {
-        appData.app.workflows[existingIndex] = {
-          id: result.data.id,
-          name: result.data.name,
-          entity_id: result.data.entity_id,
-          description: result.data.description,
-        };
-      } else {
-        appData.app.workflows.push({
-          id: result.data.id,
-          name: result.data.name,
-          entity_id: result.data.entity_id,
-          description: result.data.description,
-        });
-      }
-    } else if (result.type === 'environment') {
-      // Add environment to app
-      if (!appData.app) {
-        console.error('No app found in appData');
-        return;
-      }
-      if (!appData.app.environments) {
-        appData.app.environments = [];
-      }
-      const existingIndex = appData.app.environments.findIndex((e: any) => e.id === result.id);
-      if (existingIndex >= 0) {
-        appData.app.environments[existingIndex] = {
-          id: result.data.id,
-          name: result.data.name,
-          url: result.data.url,
-          status: result.data.status,
-        };
-      } else {
-        appData.app.environments.push({
-          id: result.data.id,
-          name: result.data.name,
-          url: result.data.url,
-          status: result.data.status,
-        });
-      }
-    }
-
-    // Save updated appData
-    localStorage.setItem('appData', JSON.stringify(appData));
-
-    // Trigger canvas refresh by emitting event or updating state
-    window.dispatchEvent(new Event('storage'));
-
-    console.log('✅ Canvas updated with new data');
-  };
-
   const onUpdateNotification = async (data: any) => {
     if (!technicalId) return;
     setIsLoading(true);
@@ -650,20 +437,6 @@ const ChatBotView: React.FC = () => {
 
   const onToggleCanvas = () => {
     setCanvasVisible(!canvasVisible);
-    // Exit fullscreen when closing canvas
-    if (canvasVisible && isCanvasFullscreen) {
-      setIsCanvasFullscreen(false);
-    }
-  };
-
-  const onToggleCanvasFullscreen = () => {
-    const newFullscreenState = !isCanvasFullscreen;
-    setIsCanvasFullscreen(newFullscreenState);
-
-    // Close chat history when entering fullscreen mode
-    if (newFullscreenState) {
-      setIsChatHistoryOpen(false);
-    }
   };
 
   const onEntitiesDetails = () => {
@@ -733,6 +506,23 @@ const ChatBotView: React.FC = () => {
     }
   };
 
+  // Handle delete chat
+  const handleDeleteChat = async (chatId: string) => {
+    try {
+      await assistantStore.deleteChatById(chatId);
+
+      // Refresh the chat list
+      await assistantStore.getChats();
+
+      // If we're currently viewing the deleted chat, redirect to home
+      if (chatId === technicalId) {
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+    }
+  };
+
   // Load chat list for sidebar only if not already loaded
   useEffect(() => {
     const loadChats = async () => {
@@ -794,12 +584,7 @@ const ChatBotView: React.FC = () => {
     setIsLoading(true);
     setMessages([]);
     setChatData(null);
-
-    // Check URL parameters to see if canvas should be open
-    const urlParams = new URLSearchParams(window.location.search);
-    const shouldOpenCanvas = urlParams.get('openCanvas') === 'true';
-    setCanvasVisible(shouldOpenCanvas);
-
+    setCanvasVisible(false);
     currentIntervalIndexRef.current = 0; // Reset to fastest polling
     isInitialLoadRef.current = true; // Reset initial load flag for new chat
     notifiedMessagesRef.current.clear(); // Clear notified messages for new chat
@@ -924,7 +709,10 @@ const ChatBotView: React.FC = () => {
         {isChatHistoryOpen && (
           <div
             className={`resizable-panel ${chatHistoryResize.isResizing ? 'resizing' : ''}`}
-            style={{ width: `${chatHistoryResize.width}px` }}
+            style={{
+              width: `${chatHistoryResize.width}px`,
+              zIndex: chatHistoryResize.isResizing ? 30 : 10
+            }}
           >
             <ChatHistoryPanel
               chatGroups={chatGroups}
@@ -934,6 +722,7 @@ const ChatBotView: React.FC = () => {
               isResizing={chatHistoryResize.isResizing}
               showHomeAsActive={false}
               onClose={() => setIsChatHistoryOpen(false)}
+              onDeleteChat={handleDeleteChat}
             />
           </div>
         )}
@@ -943,10 +732,11 @@ const ChatBotView: React.FC = () => {
         {/* Canvas Sidebar Panel - Between chat history and main content */}
         {canvasVisible && (
           <div
-            className={`bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel ${canvasResize.isResizing ? 'resizing' : ''} ${
-              isCanvasFullscreen ? 'fixed inset-0 z-[9000] w-full' : ''
-            }`}
-            style={isCanvasFullscreen ? {} : { width: `${canvasResize.width}px` }}
+            className={`bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel ${canvasResize.isResizing ? 'resizing' : ''}`}
+            style={{
+              width: `${canvasResize.width}px`,
+              zIndex: canvasResize.isResizing ? 30 : 11
+            }}
           >
             <ChatBotCanvas
               technicalId={technicalId}
@@ -956,23 +746,19 @@ const ChatBotView: React.FC = () => {
               onApproveQuestion={onApproveQuestion}
               onUpdateNotification={onUpdateNotification}
               onToggleCanvas={onToggleCanvas}
-              isFullscreen={isCanvasFullscreen}
-              onToggleFullscreen={onToggleCanvasFullscreen}
             />
 
-            {/* Resize Handle - Hide in fullscreen mode */}
-            {!isCanvasFullscreen && (
-              <ResizeHandle
-                position="right"
-                onMouseDown={canvasResize.handleMouseDown}
-                isResizing={canvasResize.isResizing}
-              />
-            )}
+            {/* Resize Handle */}
+            <ResizeHandle
+              position="right"
+              onMouseDown={canvasResize.handleMouseDown}
+              isResizing={canvasResize.isResizing}
+            />
           </div>
         )}
 
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col min-h-0 main-content">
+        <div className="flex-1 flex flex-col min-h-0 min-w-0 main-content">
           <ChatBot
             technicalId={technicalId}
             onAnswer={onAnswer}
@@ -981,7 +767,6 @@ const ChatBotView: React.FC = () => {
             onEntitiesDetails={onEntitiesDetails}
             onUpdateNotification={onUpdateNotification}
             onScrollToBottom={handleScrollToBottom}
-            onAddToCanvas={handleAddToCanvas}
             disabled={disabled}
             isLoading={isLoading}
             messages={messages}
