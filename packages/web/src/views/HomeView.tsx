@@ -670,7 +670,7 @@ const HomeView: React.FC = () => {
 
               {/* Quick Actions */}
               <div className="mb-4">
-                <h2 className="text-base font-semibold mb-2 sm:mb-2.5 md:mb-2.5 flex items-center space-x-1.5 sm:space-x-2 text-slate-400">
+                <h2 className="text-base font-semibold mb-2 sm:mb-2.5 md:mb-2.5 flex items-center space-x-1.5 sm:space-x-2 text-white">
                   <Zap className="text-teal-400 w-5 h-5" />
                   <span>Quick Start</span>
                 </h2>
