@@ -121,3 +121,4 @@ export const EntityNode: React.FC<NodeProps<EntityNodeData>> = ({ data, selected
   );
 };
 
+export default EntityNode;
