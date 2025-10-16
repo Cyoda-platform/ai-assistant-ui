@@ -48,6 +48,8 @@ interface ChatBotCanvasProps {
   onApproveQuestion: (data: any) => void;
   onUpdateNotification: (data: any) => void;
   onToggleCanvas: () => void;
+  activeTab?: 'apps' | 'data' | 'workflow' | 'requirement' | 'code' | 'environments';
+  onActiveTabChange?: (tab: 'apps' | 'data' | 'workflow' | 'requirement' | 'code' | 'environments') => void;
 }
 
 type MarkdownMode = 'preview' | 'split' | 'edit';
@@ -59,9 +61,23 @@ const ChatBotCanvas: React.FC<ChatBotCanvasProps> = ({
   onAnswer,
   onApproveQuestion,
   onUpdateNotification,
-  onToggleCanvas
+  onToggleCanvas,
+  activeTab: externalActiveTab,
+  onActiveTabChange
 }) => {
-  const [activeTab, setActiveTab] = useState<'apps' | 'data' | 'workflow' | 'requirement' | 'code' | 'environments'>('apps');
+  const [internalActiveTab, setInternalActiveTab] = useState<'apps' | 'data' | 'workflow' | 'requirement' | 'code' | 'environments'>('apps');
+
+  // Use external activeTab if provided, otherwise use internal state
+  const activeTab = externalActiveTab !== undefined ? externalActiveTab : internalActiveTab;
+
+  // Handle tab change - call external handler if provided, otherwise use internal state
+  const handleTabChange = useCallback((tab: 'apps' | 'data' | 'workflow' | 'requirement' | 'code' | 'environments') => {
+    if (onActiveTabChange) {
+      onActiveTabChange(tab);
+    } else {
+      setInternalActiveTab(tab);
+    }
+  }, [onActiveTabChange]);
 
   // Get active app tab to extract app ID
   const { getActiveTab: getActiveAppTab } = useAppsTabsStore();
@@ -356,7 +372,7 @@ gantt
         <div className="flex items-center space-x-1">
           <button
             onClick={() => {
-              setActiveTab('apps');
+              handleTabChange('apps');
               // Trigger reload when returning to apps tab
               setShouldReloadAppData(true);
             }}
@@ -370,7 +386,7 @@ gantt
             <span>Apps</span>
           </button>
           <button
-            onClick={() => setActiveTab('data')}
+            onClick={() => handleTabChange('data')}
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
               activeTab === 'data'
                 ? 'bg-teal-500 text-white shadow-md'
@@ -381,7 +397,7 @@ gantt
             <span>Data</span>
           </button>
           <button
-            onClick={() => setActiveTab('workflow')}
+            onClick={() => handleTabChange('workflow')}
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
               activeTab === 'workflow'
                 ? 'bg-teal-500 text-white shadow-md'
@@ -392,7 +408,7 @@ gantt
             <span>Workflow</span>
           </button>
           <button
-            onClick={() => setActiveTab('requirement')}
+            onClick={() => handleTabChange('requirement')}
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
               activeTab === 'requirement'
                 ? 'bg-teal-500 text-white shadow-md'
@@ -403,7 +419,7 @@ gantt
             <span>Requirement</span>
           </button>
           <button
-            onClick={() => setActiveTab('code')}
+            onClick={() => handleTabChange('code')}
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
               activeTab === 'code'
                 ? 'bg-teal-500 text-white shadow-md'
@@ -414,7 +430,7 @@ gantt
             <span>Code</span>
           </button>
           <button
-            onClick={() => setActiveTab('environments')}
+            onClick={() => handleTabChange('environments')}
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
               activeTab === 'environments'
                 ? 'bg-teal-500 text-white shadow-md'
@@ -462,7 +478,7 @@ gantt
             }}
             onNavigate={(tab, targetId, data) => {
               console.log('🧭 Navigation requested:', { tab, targetId, data });
-              setActiveTab(tab);
+              handleTabChange(tab);
               setNavigationContext({ targetId, targetType: tab, data });
             }}
           />

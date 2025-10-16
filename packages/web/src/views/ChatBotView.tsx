@@ -13,6 +13,7 @@ import Tinycon from 'tinycon';
 import eventBus from '@/plugins/eventBus';
 import { UPDATE_CHAT_LIST } from '@/helpers/HelperConstants';
 import { groupChatsByDate } from '@/helpers/HelperChatGroups';
+import { useWorkflowExampleDetection } from '@/hooks/useWorkflowExampleDetection';
 
 interface Message {
   id: string;
@@ -44,6 +45,7 @@ const ChatBotView: React.FC = () => {
   const isTransferringChats = useAssistantStore((state) => state.isTransferringChats);
   const superUserMode = useSuperUserMode(); // Watch for super user mode changes
   const [canvasVisible, setCanvasVisible] = useState(false);
+  const [canvasActiveTab, setCanvasActiveTab] = useState<'apps' | 'data' | 'workflow' | 'requirement' | 'code' | 'environments'>('apps');
   const [isEntityDataOpen, setIsEntityDataOpen] = useState(false);
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -443,6 +445,34 @@ const ChatBotView: React.FC = () => {
     setIsEntityDataOpen(!isEntityDataOpen);
   };
 
+  // Workflow example detection hook
+  useWorkflowExampleDetection({
+    messages,
+    canvasVisible,
+    activeCanvasTab: canvasActiveTab,
+    onOpenCanvas: () => {
+      if (!canvasVisible) {
+        setCanvasVisible(true);
+      }
+    },
+    onSwitchToWorkflowTab: () => {
+      setCanvasActiveTab('workflow');
+    },
+    onSendMessage: (message: string) => {
+      // Add the explanation as an AI answer message
+      const aiMessage: Message = {
+        id: `workflow-explanation-${Date.now()}`,
+        type: 'answer',
+        text: message,
+        editable: false,
+        approve: false,
+        raw: {}
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    },
+    technicalId: technicalId || ''
+  });
+
   // Handle notification actions
   const handleMarkNotificationAsRead = (id: number) => {
 
@@ -746,6 +776,8 @@ const ChatBotView: React.FC = () => {
               onApproveQuestion={onApproveQuestion}
               onUpdateNotification={onUpdateNotification}
               onToggleCanvas={onToggleCanvas}
+              activeTab={canvasActiveTab}
+              onActiveTabChange={setCanvasActiveTab}
             />
 
             {/* Resize Handle */}
