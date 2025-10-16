@@ -76,20 +76,22 @@
 
   &.ant-btn-primary {
     color: #fff;
-    background-color: var(--color-primary);
-    border-color: var(--color-primary);
+    background: linear-gradient(to right, #14b8a6, #0d9488) !important;
+    border-color: transparent;
     transition: all 0.5s;
     font-family: 'PingFang SC', Arial, sans-serif;
     box-shadow: none;
 
     &:disabled {
-      background: linear-gradient(0deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), #0D8484;
+      background: linear-gradient(to right, #14b8a6, #0d9488) !important;
+      opacity: 0.6;
       border-color: transparent;
+      color: #fff;
     }
 
     &:hover:not(:disabled) {
-      background: linear-gradient(0deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), #0D8484;
-      border-color: var(--color-primary-ligter);
+      background: linear-gradient(to right, #0d9488, #0f766e) !important;
+      border-color: transparent;
       color: #fff;
     }
   }
