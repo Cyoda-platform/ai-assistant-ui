@@ -487,6 +487,10 @@ export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
         {showMinimap && (
           <MiniMap
             className="bg-slate-800 border-slate-700"
+            style={{
+              backgroundColor: '#1e293b',
+            }}
+            maskColor="rgba(15, 23, 42, 0.8)"
             nodeColor={(node) => {
               if (node.type === 'appNode') return '#9333ea';
               if (node.type === 'environmentNode') return '#10b981';

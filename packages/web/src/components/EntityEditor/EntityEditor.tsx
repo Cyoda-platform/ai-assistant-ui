@@ -296,7 +296,7 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, onS
             <p className="text-sm text-gray-400">{currentEntity.description}</p>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           {/* Send to Chat Button */}
           {onSendToChat && (
             <button
@@ -314,50 +314,48 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, onS
           )}
 
           {/* View Mode Toggle */}
-          <div className="flex items-center space-x-1 bg-gray-700 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode('graph')}
-              className={`px-3 py-1.5 rounded text-sm transition-colors ${
-                viewMode === 'graph'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-300 hover:text-white'
-              }`}
-            >
-              <Network size={16} className="inline mr-1" />
-              Graph
-            </button>
-            <button
-              onClick={() => setViewMode('tree')}
-              className={`px-3 py-1.5 rounded text-sm transition-colors ${
-                viewMode === 'tree'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-300 hover:text-white'
-              }`}
-            >
-              Tree
-            </button>
-            <button
-              onClick={() => setViewMode('split')}
-              className={`px-3 py-1.5 rounded text-sm transition-colors ${
-                viewMode === 'split'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-300 hover:text-white'
-              }`}
-            >
-              Split
-            </button>
-            <button
-              onClick={() => setViewMode('json')}
-              className={`px-3 py-1.5 rounded text-sm transition-colors ${
-                viewMode === 'json'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-300 hover:text-white'
-              }`}
-            >
-              <FileJson size={16} className="inline mr-1" />
-              JSON
-            </button>
-          </div>
+          <button
+            onClick={() => setViewMode('graph')}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
+              viewMode === 'graph'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600'
+            }`}
+          >
+            <Network size={16} />
+            <span>Graph</span>
+          </button>
+          <button
+            onClick={() => setViewMode('tree')}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
+              viewMode === 'tree'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600'
+            }`}
+          >
+            <span>Tree</span>
+          </button>
+          <button
+            onClick={() => setViewMode('split')}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
+              viewMode === 'split'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600'
+            }`}
+          >
+            <span>Split</span>
+          </button>
+          <button
+            onClick={() => setViewMode('json')}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
+              viewMode === 'json'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600'
+            }`}
+          >
+            <FileJson size={16} />
+            <span>JSON</span>
+          </button>
 
           {!editMode ? (
             <button

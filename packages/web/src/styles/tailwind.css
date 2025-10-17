@@ -980,6 +980,24 @@ header .ant-card .ant-card-actions a:hover {
   color: white !important;
 }
 
+/* ReactFlow MiniMap Dark Theme */
+.react-flow__minimap {
+  background-color: #1e293b !important;
+  border: 1px solid #475569 !important;
+}
+
+.react-flow__minimap-svg {
+  background-color: #1e293b !important;
+}
+
+.react-flow__minimap-mask {
+  fill: rgba(15, 23, 42, 0.8) !important;
+}
+
+.react-flow__minimap-node {
+  stroke: none !important;
+}
+
 /* Landing Page Optimizations for 1920x1080 and larger screens */
 @media (min-width: 1920px) {
   /* Keep base font size reasonable - don't scale up */

@@ -187,7 +187,7 @@ Additional notes and considerations...
             <p className="text-sm text-gray-400">Application Requirements Document</p>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           {/* Send to Chat Button */}
           {onSendToChat && (
             <button
@@ -205,40 +205,40 @@ Additional notes and considerations...
 
           {/* View Mode Toggle */}
           {!editMode && (
-            <div className="flex items-center space-x-1 bg-gray-700 rounded-lg p-1">
+            <>
               <button
                 onClick={() => setViewMode('preview')}
-                className={`px-3 py-1.5 rounded text-sm transition-colors ${
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
                   viewMode === 'preview'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 hover:text-white'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600'
                 }`}
               >
-                <Eye size={16} className="inline mr-1" />
-                Preview
+                <Eye size={16} />
+                <span>Preview</span>
               </button>
               <button
                 onClick={() => setViewMode('split')}
-                className={`px-3 py-1.5 rounded text-sm transition-colors ${
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
                   viewMode === 'split'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 hover:text-white'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600'
                 }`}
               >
-                Split
+                <span>Split</span>
               </button>
               <button
                 onClick={() => setViewMode('markdown')}
-                className={`px-3 py-1.5 rounded text-sm transition-colors ${
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
                   viewMode === 'markdown'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 hover:text-white'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600'
                 }`}
               >
-                <Code2 size={16} className="inline mr-1" />
-                Markdown
+                <Code2 size={16} />
+                <span>Markdown</span>
               </button>
-            </div>
+            </>
           )}
 
           {!editMode ? (

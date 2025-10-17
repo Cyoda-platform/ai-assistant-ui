@@ -369,7 +369,7 @@ gantt
 
       {/* Canvas Tabs */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 bg-slate-800/30">
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => {
               handleTabChange('apps');
