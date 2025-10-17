@@ -8,7 +8,7 @@
     "initial": {
       "transitions": [
         {
-          "name": "create_study",
+          "name": "create_study ",
           "next": "setup",
           "manual": false
         }
