@@ -42,19 +42,16 @@ export const EntityNode: React.FC<NodeProps<EntityNodeData>> = ({ data, selected
       `}
       onClick={onClick}
     >
-      {/* Handles for connections */}
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        id="bottom"
-        className="w-3 h-3 !bg-white !border-2 !border-current"
-      />
-      <Handle
-        type="target"
-        position={Position.Top}
-        id="top"
-        className="w-3 h-3 !bg-white !border-2 !border-current"
-      />
+      {/* Handles for connections - 8 anchor points for maximum flexibility */}
+      <Handle type="source" position={Position.Top} id="top" className="w-3 h-3 !bg-white !border-2 !border-current" />
+      <Handle type="source" position={Position.Right} id="right" className="w-3 h-3 !bg-white !border-2 !border-current" />
+      <Handle type="source" position={Position.Bottom} id="bottom" className="w-3 h-3 !bg-white !border-2 !border-current" />
+      <Handle type="source" position={Position.Left} id="left" className="w-3 h-3 !bg-white !border-2 !border-current" />
+
+      <Handle type="target" position={Position.Top} id="top-target" className="w-3 h-3 !bg-white !border-2 !border-current" />
+      <Handle type="target" position={Position.Right} id="right-target" className="w-3 h-3 !bg-white !border-2 !border-current" />
+      <Handle type="target" position={Position.Bottom} id="bottom-target" className="w-3 h-3 !bg-white !border-2 !border-current" />
+      <Handle type="target" position={Position.Left} id="left-target" className="w-3 h-3 !bg-white !border-2 !border-current" />
 
       {/* Header */}
       <div className="p-4 border-b border-white/20">

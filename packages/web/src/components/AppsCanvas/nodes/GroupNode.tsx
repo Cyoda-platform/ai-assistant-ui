@@ -39,6 +39,8 @@ export const GroupNode: React.FC<GroupNodeProps> = ({ data }) => {
 
   const handleAddNew = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent node selection
+    e.preventDefault(); // Prevent any default behavior
+    console.log('🖱️ GroupNode: Add button clicked for', groupType);
     onAddNew?.();
   };
 

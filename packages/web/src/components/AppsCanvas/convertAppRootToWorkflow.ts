@@ -41,8 +41,16 @@ export function convertAppRootToSimplifiedWorkflow(
     type: 'appNode',
     position: { x: 600, y: 50 },
     data: {
-      label: appRoot.app.name,
+      // AppNode expects: name, description, requirementCount, version, status
+      name: appRoot.app.name,
+      description: appRoot.app.description,
+      requirementCount: appRoot.app.requirement ? 1 : 0,
+      version: appRoot.app.version,
+      status: 'running' as const,
+      onClick: () => console.log('App node clicked'),
+      // Store full metadata for editing
       metadata: {
+        type: 'appNode', // Add type to metadata for navigation
         name: appRoot.app.name,
         version: appRoot.app.version,
         author: appRoot.app.author,
@@ -179,8 +187,16 @@ export function convertAppRootToWorkflow(
     type: 'appNode', // Custom node type
     position: { x: 600, y: 50 },
     data: {
-      label: appRoot.app.name,
+      // AppNode expects: name, description, requirementCount, version, status
+      name: appRoot.app.name,
+      description: appRoot.app.description,
+      requirementCount: appRoot.app.requirement ? 1 : 0,
+      version: appRoot.app.version,
+      status: 'running' as const,
+      onClick: () => console.log('App node clicked'),
+      // Store full metadata for editing
       metadata: {
+        type: 'appNode', // Add type to metadata for navigation
         name: appRoot.app.name,
         version: appRoot.app.version,
         author: appRoot.app.author,
@@ -255,8 +271,16 @@ export function convertAppRootToWorkflow(
       type: 'environmentNode', // Custom node type
       position: { x: envStartX, y: envStartY + index * envSpacingY },
       data: {
-        label: env.name,
+        // EnvironmentNode expects: name, environmentType, description, appCount, status
+        name: env.name,
+        environmentType: 'development' as const, // Default to development
+        description: env.url,
+        appCount: 0,
+        status: (env.status === 'active' ? 'active' : 'inactive') as const,
+        onClick: () => console.log('Environment node clicked:', env.name),
+        // Store full metadata for editing
         metadata: {
+          type: 'environmentNode', // Add type to metadata for navigation
           name: env.name,
           url: env.url,
           status: env.status
@@ -336,8 +360,20 @@ export function convertAppRootToWorkflow(
       type: 'entityNode', // Custom node type
       position: { x: entityStartX, y: entityStartY + entityIndex * entitySpacingY },
       data: {
-        label: `${entity.name} ${entity.version}`,
+        // EntityNode expects: entityName, version, description, state, workflowCount, requirementCount, codeCount, isActive, updatedAt
+        entityName: entity.name,
+        version: entity.version,
+        description: entity.description,
+        state: 'active',
+        workflowCount: entity.workflows?.length || 0,
+        requirementCount: 0,
+        codeCount: 0,
+        isActive: true,
+        updatedAt: new Date().toISOString(),
+        onClick: () => console.log('Entity node clicked:', entity.name),
+        // Store full metadata for editing
         metadata: {
+          type: 'entityNode', // Add type to metadata for navigation
           name: entity.name,
           version: entity.version,
           description: entity.description,
@@ -424,6 +460,14 @@ export function convertAppRootToWorkflow(
         entity_version: entity.version
       });
 
+      // Count transitions in workflow
+      let transitionCount = 0;
+      Object.values(workflow.config.states).forEach((state: any) => {
+        if (state.transitions) {
+          transitionCount += state.transitions.length;
+        }
+      });
+
       layoutStates.push({
         id: workflowId,
         type: 'workflowNode', // Custom node type
@@ -432,8 +476,16 @@ export function convertAppRootToWorkflow(
           y: workflowStartY + workflowIndex * workflowSpacingY
         },
         data: {
-          label: workflow.name,
+          // WorkflowNode expects: name, stateCount, transitionCount, updatedAt
+          name: workflow.name,
+          stateCount: stateCount,
+          transitionCount: transitionCount,
+          updatedAt: new Date().toISOString(),
+          onClick: () => console.log('Workflow node clicked:', workflow.name),
+          onEdit: () => console.log('Workflow node edit:', workflow.name),
+          // Store full metadata for editing
           metadata: {
+            type: 'workflowNode', // Add type to metadata for navigation
             name: workflow.name,
             entity_id: entityId, // Store entity ID for workflow association
             entity_name: entity.name, // Store entity name for reference

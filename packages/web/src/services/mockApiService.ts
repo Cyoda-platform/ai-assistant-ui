@@ -373,15 +373,15 @@ export async function saveEntityDetail(
   const existingEntity = entities[entityId];
 
   const now = new Date().toISOString();
+
+  // Preserve all fields from the incoming data, not just known fields
+  // This allows the EntityEditor to save any JSON structure
   const updatedEntity: Entity = {
+    ...existingEntity, // Start with existing entity
+    ...data, // Override with all incoming data fields
+    // Force these fields to maintain consistency
     id: entityId,
     app_id: appId,
-    name: data.name || existingEntity?.name || '',
-    version: data.version || existingEntity?.version || '1',
-    description: data.description || existingEntity?.description || '',
-    cyoda_url: data.cyoda_url || existingEntity?.cyoda_url,
-    github_url: data.github_url || existingEntity?.github_url,
-    model: data.model || existingEntity?.model || {},
     created_at: existingEntity?.created_at || now,
     updated_at: now,
   };
@@ -407,15 +407,15 @@ export async function saveWorkflowDetail(
   const existingWorkflow = workflows[workflowId];
 
   const now = new Date().toISOString();
+
+  // Preserve all fields from the incoming data, not just known fields
+  // This allows editors to save any JSON structure
   const updatedWorkflow: Workflow = {
+    ...existingWorkflow, // Start with existing workflow
+    ...data, // Override with all incoming data fields
+    // Force these fields to maintain consistency
     id: workflowId,
     app_id: appId,
-    entity_id: data.entity_id || existingWorkflow?.entity_id || '',
-    name: data.name || existingWorkflow?.name || '',
-    description: data.description || existingWorkflow?.description || '',
-    cyoda_url: data.cyoda_url || existingWorkflow?.cyoda_url,
-    github_url: data.github_url || existingWorkflow?.github_url,
-    states: data.states || existingWorkflow?.states || {},
     created_at: existingWorkflow?.created_at || now,
     updated_at: now,
   };

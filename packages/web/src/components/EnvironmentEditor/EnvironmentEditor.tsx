@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Server, Globe, CheckCircle, XCircle, Edit2, Save, X, Loader2, Send } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Server, Globe, CheckCircle, XCircle, Edit2, Save, X, Loader2, Send, BarChart3 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import apiService from '@/services/apiService';
+import { mockDiagramsConfig } from '@/components/AppsCanvas/mockDiagrams';
+import DashboardChart from '@/components/AppsCanvas/nodes/DashboardChart';
+import type { DashboardChartConfig } from '@/components/AppsCanvas/types/diagrams';
 
 interface Environment {
   id?: string;
@@ -30,6 +33,7 @@ export const EnvironmentEditor: React.FC<EnvironmentEditorProps> = ({ appId, env
   const [jsonMode, setJsonMode] = useState(false);
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
+  const [showDiagrams, setShowDiagrams] = useState(false);
 
   // Load environment data from API
   useEffect(() => {
@@ -101,6 +105,27 @@ export const EnvironmentEditor: React.FC<EnvironmentEditorProps> = ({ appId, env
     setJsonMode(false);
     setJsonError(null);
   };
+
+  // Get charts for current environment
+  const environmentCharts = useMemo(() => {
+    if (!environment) return null;
+
+    const envNameToType: Record<string, string> = {
+      'production': 'production',
+      'staging': 'staging',
+      'development': 'development',
+      'test': 'test'
+    };
+
+    const envType = envNameToType[environment.name.toLowerCase()];
+    if (!envType) return null;
+
+    const envConfig = mockDiagramsConfig.environments.find(
+      e => e.environmentId === envType
+    );
+
+    return envConfig?.charts || null;
+  }, [environment]);
 
   // Loading state
   if (loading) {
@@ -188,6 +213,21 @@ export const EnvironmentEditor: React.FC<EnvironmentEditorProps> = ({ appId, env
             </button>
           )}
 
+          {/* Dashboard Toggle Button */}
+          {environmentCharts && !editMode && (
+            <button
+              onClick={() => setShowDiagrams(!showDiagrams)}
+              className={`px-4 py-2 ${
+                showDiagrams
+                  ? 'bg-cyan-600 hover:bg-cyan-700'
+                  : 'bg-gray-700 hover:bg-gray-600'
+              } text-white rounded-lg flex items-center space-x-2 transition-colors`}
+            >
+              <BarChart3 size={16} />
+              <span>{showDiagrams ? 'Hide Dashboard' : 'Show Dashboard'}</span>
+            </button>
+          )}
+
           {!editMode ? (
             <button
               onClick={() => setEditMode(true)}
@@ -234,9 +274,18 @@ export const EnvironmentEditor: React.FC<EnvironmentEditorProps> = ({ appId, env
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto p-6">
-        {jsonMode ? (
-          <div className="h-full flex flex-col">
+      <div className="flex-1 overflow-hidden">
+        {showDiagrams && environmentCharts ? (
+          /* Dashboard View */
+          <div className="h-full overflow-auto p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {environmentCharts.map((chart) => (
+                <DashboardChart key={chart.id} config={chart} />
+              ))}
+            </div>
+          </div>
+        ) : jsonMode ? (
+          <div className="h-full flex flex-col p-6">
             <div className="flex-1 rounded-lg overflow-hidden border-2 border-gray-700">
               <Editor
                 height="100%"
@@ -265,7 +314,7 @@ export const EnvironmentEditor: React.FC<EnvironmentEditorProps> = ({ appId, env
             )}
           </div>
         ) : (
-          <div className="max-w-2xl mx-auto space-y-6">
+          <div className="max-w-2xl mx-auto space-y-6 p-6 overflow-auto h-full">
             {/* Status Badge */}
             <div className="flex items-center justify-center">
               <div className={`px-6 py-3 rounded-full flex items-center space-x-2 ${

@@ -629,16 +629,14 @@ export const handlers = [
     const existingEntity = entities[entityId as string];
     const timestamp = new Date().toISOString();
 
-    // Create or update entity (auto-create if doesn't exist)
+    // Preserve all fields from the incoming data, not just known fields
+    // This allows the EntityEditor to save any JSON structure
     const updatedEntity = {
+      ...existingEntity, // Start with existing entity
+      ...body, // Override with all incoming data fields
+      // Force these fields to maintain consistency
       id: entityId as string,
       app_id: appId as string,
-      name: body.name || existingEntity?.name || '',
-      version: body.version || existingEntity?.version || '1',
-      description: body.description || existingEntity?.description || '',
-      cyoda_url: body.cyoda_url || existingEntity?.cyoda_url,
-      github_url: body.github_url || existingEntity?.github_url,
-      model: body.model || existingEntity?.model || {},
       created_at: existingEntity?.created_at || timestamp,
       updated_at: timestamp,
     };
@@ -684,18 +682,14 @@ export const handlers = [
     const existingWorkflow = workflows[workflowId as string];
     const timestamp = new Date().toISOString();
 
-    // Create or update workflow (auto-create if doesn't exist)
+    // Preserve all fields from the incoming data, not just known fields
+    // This allows editors to save any JSON structure
     const updatedWorkflow = {
+      ...existingWorkflow, // Start with existing workflow
+      ...body, // Override with all incoming data fields
+      // Force these fields to maintain consistency
       id: workflowId as string,
       app_id: appId as string,
-      entity_id: body.entity_id || existingWorkflow?.entity_id || '',
-      name: body.name || existingWorkflow?.name || '',
-      description: body.description || existingWorkflow?.description || '',
-      cyoda_url: body.cyoda_url || existingWorkflow?.cyoda_url,
-      github_url: body.github_url || existingWorkflow?.github_url,
-      states: body.states || existingWorkflow?.states || {},
-      model_name: body.model_name || existingWorkflow?.model_name,
-      model_version: body.model_version || existingWorkflow?.model_version,
       created_at: existingWorkflow?.created_at || timestamp,
       updated_at: timestamp,
     };

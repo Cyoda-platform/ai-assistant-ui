@@ -4,14 +4,9 @@ import Editor from '@monaco-editor/react';
 import { JsonGraphVisualizer } from './JsonGraphVisualizer';
 import apiService from '@/services/apiService';
 
+// Entity can be any valid JSON object - no schema restrictions
 interface Entity {
-  name: string;
-  version: string;
-  description: string;
-  cyoda_url: string;
-  github_url: string;
-  model: any;
-  workflows?: any[];
+  [key: string]: any;
 }
 
 interface EntityEditorProps {
@@ -118,7 +113,7 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, onS
   const [error, setError] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [editedEntity, setEditedEntity] = useState<Entity | null>(null);
-  const [viewMode, setViewMode] = useState<'tree' | 'json' | 'split' | 'graph'>('graph');
+  const [viewMode, setViewMode] = useState<'tree' | 'json' | 'split' | 'graph'>('json'); // JSON is the default
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [jsonWarnings, setJsonWarnings] = useState<string[]>([]);
@@ -149,23 +144,11 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, onS
     loadEntity();
   }, [appId, entityId]);
 
-  // JSON validation and linting
+  // JSON validation - only check for valid JSON syntax, no schema validation
   const validateJson = (text: string) => {
-    const warnings: string[] = [];
-
     try {
-      const parsed = JSON.parse(text);
-
-      // Lint checks
-      if (!parsed.name) warnings.push('Missing required field: name');
-      if (!parsed.version) warnings.push('Missing required field: version');
-      if (!parsed.description) warnings.push('Missing recommended field: description');
-      if (!parsed.model) warnings.push('Missing required field: model');
-      if (parsed.workflows && !Array.isArray(parsed.workflows)) {
-        warnings.push('Field "workflows" should be an array');
-      }
-
-      setJsonWarnings(warnings);
+      JSON.parse(text);
+      setJsonWarnings([]);
       setJsonError(null);
     } catch (err: any) {
       setJsonError(err.message);
@@ -227,6 +210,15 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, onS
     const text = value || '';
     setJsonText(text);
     validateJson(text);
+
+    // Update editedEntity in real-time so graph/tree views stay synchronized
+    try {
+      const parsed = JSON.parse(text);
+      setEditedEntity(parsed);
+    } catch (err) {
+      // If JSON is invalid, don't update editedEntity
+      // The error will be shown by validateJson
+    }
   };
 
   if (loading) {
@@ -291,9 +283,12 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, onS
           <Database size={24} className="text-blue-400" />
           <div>
             <h2 className="text-xl font-bold text-white">
-              {currentEntity.name} <span className="text-gray-400">v{currentEntity.version}</span>
+              {currentEntity.name || 'Entity'}
+              {currentEntity.version && <span className="text-gray-400"> v{currentEntity.version}</span>}
             </h2>
-            <p className="text-sm text-gray-400">{currentEntity.description}</p>
+            {currentEntity.description && (
+              <p className="text-sm text-gray-400">{currentEntity.description}</p>
+            )}
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -313,8 +308,20 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, onS
             </button>
           )}
 
-          {/* View Mode Toggle */}
+          {/* View Mode Toggle - JSON first, then display modes */}
           <div className="flex items-center space-x-1 bg-gray-700 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('json')}
+              className={`px-3 py-1.5 rounded text-sm transition-colors ${
+                viewMode === 'json'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              <FileJson size={16} className="inline mr-1" />
+              JSON
+            </button>
+            <div className="w-px h-6 bg-gray-600 mx-1"></div>
             <button
               onClick={() => setViewMode('graph')}
               className={`px-3 py-1.5 rounded text-sm transition-colors ${
@@ -345,17 +352,6 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, onS
               }`}
             >
               Split
-            </button>
-            <button
-              onClick={() => setViewMode('json')}
-              className={`px-3 py-1.5 rounded text-sm transition-colors ${
-                viewMode === 'json'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-300 hover:text-white'
-              }`}
-            >
-              <FileJson size={16} className="inline mr-1" />
-              JSON
             </button>
           </div>
 
@@ -404,9 +400,10 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, onS
         {viewMode === 'graph' ? (
           <div className="h-full">
             <JsonGraphVisualizer
+              key={JSON.stringify(currentEntity)}
               data={currentEntity}
               onNodeClick={(path, value) => {
-                console.log('Node clicked:', path, value);
+                console.log('🎯 Node clicked:', path, value);
               }}
             />
           </div>
@@ -483,7 +480,7 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, onS
                   <h3 className="text-sm font-semibold text-gray-400 mb-3">Tree Preview</h3>
                   <div className="bg-gray-900 rounded-lg p-4 overflow-auto">
                     {!jsonError && editedEntity && (
-                      <TreeNode label={editedEntity.name} value={editedEntity} />
+                      <TreeNode label={editedEntity.name || 'Entity'} value={editedEntity} />
                     )}
                     {jsonError && (
                       <div className="text-red-400 text-sm">
@@ -524,34 +521,40 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, onS
                 <span>Entity Structure</span>
               </h3>
               <div className="bg-gray-900 rounded-lg p-4 overflow-auto max-h-[600px]">
-                <TreeNode label={currentEntity.name} value={currentEntity} />
+                <TreeNode label={currentEntity.name || 'Entity'} value={currentEntity} />
               </div>
 
-              {/* Quick Info */}
-              <div className="mt-6 grid grid-cols-2 gap-4">
-                <div className="bg-gray-900 rounded-lg p-4">
-                  <div className="text-sm text-gray-400 mb-1">Cyoda URL</div>
-                  <a
-                    href={currentEntity.cyoda_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 hover:text-blue-300 underline text-sm break-all"
-                  >
-                    {currentEntity.cyoda_url}
-                  </a>
+              {/* Quick Info - only show if fields exist */}
+              {(currentEntity.cyoda_url || currentEntity.github_url) && (
+                <div className="mt-6 grid grid-cols-2 gap-4">
+                  {currentEntity.cyoda_url && (
+                    <div className="bg-gray-900 rounded-lg p-4">
+                      <div className="text-sm text-gray-400 mb-1">Cyoda URL</div>
+                      <a
+                        href={currentEntity.cyoda_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 underline text-sm break-all"
+                      >
+                        {currentEntity.cyoda_url}
+                      </a>
+                    </div>
+                  )}
+                  {currentEntity.github_url && (
+                    <div className="bg-gray-900 rounded-lg p-4">
+                      <div className="text-sm text-gray-400 mb-1">GitHub URL</div>
+                      <a
+                        href={currentEntity.github_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 underline text-sm break-all"
+                      >
+                        {currentEntity.github_url}
+                      </a>
+                    </div>
+                  )}
                 </div>
-                <div className="bg-gray-900 rounded-lg p-4">
-                  <div className="text-sm text-gray-400 mb-1">GitHub URL</div>
-                  <a
-                    href={currentEntity.github_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 hover:text-blue-300 underline text-sm break-all"
-                  >
-                    {currentEntity.github_url}
-                  </a>
-                </div>
-              </div>
+              )}
 
               {currentEntity.workflows && currentEntity.workflows.length > 0 && (
                 <div className="mt-4 bg-gray-900 rounded-lg p-4">
@@ -559,7 +562,7 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, onS
                   <div className="space-y-2">
                     {currentEntity.workflows.map((workflow: any, index: number) => (
                       <div key={index} className="text-sm text-white bg-gray-800 rounded px-3 py-2">
-                        {workflow.name}
+                        {workflow.name || 'Unnamed Workflow'}
                       </div>
                     ))}
                   </div>

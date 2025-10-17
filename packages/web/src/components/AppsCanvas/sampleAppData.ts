@@ -18,7 +18,22 @@ export const sampleAppData: AppRoot = {
     environments: [
       {
         name: "production",
-        url: "https://api.example.com",
+        url: "https://api.production.example.com",
+        status: "active"
+      },
+      {
+        name: "staging",
+        url: "https://api.staging.example.com",
+        status: "active"
+      },
+      {
+        name: "development",
+        url: "https://api.dev.example.com",
+        status: "active"
+      },
+      {
+        name: "test",
+        url: "https://api.test.example.com",
         status: "active"
       }
     ],
