@@ -318,7 +318,7 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, onS
             onClick={() => setViewMode('graph')}
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
               viewMode === 'graph'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? 'bg-teal-600 text-white shadow-md'
                 : 'bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600'
             }`}
           >
@@ -329,7 +329,7 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, onS
             onClick={() => setViewMode('tree')}
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
               viewMode === 'tree'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? 'bg-teal-600 text-white shadow-md'
                 : 'bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600'
             }`}
           >
@@ -339,7 +339,7 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, onS
             onClick={() => setViewMode('split')}
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
               viewMode === 'split'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? 'bg-teal-600 text-white shadow-md'
                 : 'bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600'
             }`}
           >
@@ -349,7 +349,7 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, onS
             onClick={() => setViewMode('json')}
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
               viewMode === 'json'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? 'bg-teal-600 text-white shadow-md'
                 : 'bg-gray-700 text-gray-300 hover:text-white hover:bg-gray-600'
             }`}
           >
@@ -360,7 +360,7 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, onS
           {!editMode ? (
             <button
               onClick={() => setEditMode(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center space-x-2 transition-colors"
+              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg flex items-center space-x-2 transition-colors"
             >
               <Edit2 size={16} />
               <span>Edit</span>

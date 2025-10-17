@@ -53,10 +53,10 @@ export const EnvironmentNode: React.FC<{ data: EnvironmentNodeData }> = ({ data 
     <div
       onClick={data.onClick}
       className={`
-        min-w-[280px] rounded-xl border-2 shadow-2xl
+        min-w-[220px] rounded-lg border-2 shadow-lg
         bg-gradient-to-br ${getEnvironmentColor()}
         backdrop-blur-sm transition-all duration-300
-        hover:scale-105 hover:shadow-3xl cursor-pointer
+        hover:scale-105 hover:shadow-xl cursor-pointer
         relative overflow-hidden
       `}
     >
@@ -64,22 +64,22 @@ export const EnvironmentNode: React.FC<{ data: EnvironmentNodeData }> = ({ data 
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
 
       {/* Status indicator */}
-      <div className="absolute top-3 right-3">
-        <div className={`w-3 h-3 rounded-full ${getStatusColor()} animate-pulse`} />
+      <div className="absolute top-2 right-2">
+        <div className={`w-2 h-2 rounded-full ${getStatusColor()} animate-pulse`} />
       </div>
 
       {/* Content */}
-      <div className="relative p-4">
+      <div className="relative p-2.5">
         {/* Header */}
-        <div className="flex items-start space-x-3 mb-3">
-          <div className="p-2 bg-white/10 rounded-lg backdrop-blur-sm">
+        <div className="flex items-start space-x-2 mb-2">
+          <div className="p-1.5 bg-white/10 rounded backdrop-blur-sm">
             {getEnvironmentIcon()}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-white truncate">
+            <h3 className="text-sm font-bold text-white truncate">
               {data.name}
             </h3>
-            <p className="text-xs text-white/70 uppercase tracking-wider">
+            <p className="text-[9px] text-white/70 uppercase tracking-wide">
               {data.environmentType}
             </p>
           </div>
@@ -87,20 +87,20 @@ export const EnvironmentNode: React.FC<{ data: EnvironmentNodeData }> = ({ data 
 
         {/* Description */}
         {data.description && (
-          <p className="text-sm text-white/80 mb-3 line-clamp-2">
+          <p className="text-[10px] text-white/80 mb-2 line-clamp-1">
             {data.description}
           </p>
         )}
 
         {/* Stats */}
-        <div className="flex items-center justify-between pt-3 border-t border-white/20">
-          <div className="flex items-center space-x-2">
-            <div className="text-xs text-white/70">Apps</div>
-            <div className="px-2 py-1 bg-white/20 rounded-md text-sm font-semibold text-white">
+        <div className="flex items-center justify-between pt-2 border-t border-white/20">
+          <div className="flex items-center space-x-1.5">
+            <div className="text-[10px] text-white/70">Apps</div>
+            <div className="px-1.5 py-0.5 bg-white/20 rounded text-[10px] font-semibold text-white">
               {data.appCount}
             </div>
           </div>
-          <div className="text-xs text-white/70 capitalize">
+          <div className="text-[9px] text-white/70 capitalize">
             {data.status}
           </div>
         </div>

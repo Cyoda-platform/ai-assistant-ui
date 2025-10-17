@@ -137,9 +137,9 @@ export const AppsJsonEditor: React.FC<AppsJsonEditorProps> = ({
   const [width, setWidth] = useState(() => {
     try {
       const stored = localStorage.getItem('apps-json-editor-width');
-      return stored ? parseInt(stored, 10) : 600;
+      return stored ? parseInt(stored, 10) : 450;
     } catch {
-      return 600;
+      return 450;
     }
   });
   const [isResizing, setIsResizing] = useState(false);
@@ -581,21 +581,21 @@ export const AppsJsonEditor: React.FC<AppsJsonEditorProps> = ({
 
       {/* Header */}
       <div
-        className="flex items-center justify-between p-4 border-b-2 flex-shrink-0"
+        className="flex items-center justify-between p-2.5 border-b-2 flex-shrink-0"
         style={{
           borderColor: activePalette.ui.panelBorder,
           background: `linear-gradient(to right, ${activePalette.ui.panelGradientVia}30, ${activePalette.ui.panelGradientTo}30)`
         }}
       >
         <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
             {onSendToChat && (
               <button
                 onClick={handleSendToChat}
                 className={`
-                  px-4 py-2 rounded-lg font-medium text-sm
+                  px-2.5 py-1.5 rounded-lg font-medium text-xs
                   transition-all duration-200
-                  flex items-center space-x-2
+                  flex items-center space-x-1.5
                   ${error
                     ? 'bg-gray-700/50 text-gray-500 cursor-not-allowed'
                     : 'bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white shadow-lg hover:shadow-teal-500/25'
@@ -604,18 +604,18 @@ export const AppsJsonEditor: React.FC<AppsJsonEditorProps> = ({
                 title={error ? `Fix errors before sending to chat:\n${error}` : "Send app configuration to chat for AI review"}
                 disabled={!!error}
               >
-                <Send size={16} />
+                <Send size={13} />
                 <span>Send to Chat</span>
               </button>
             )}
-            <h3 className="text-lg font-semibold text-white">App Configuration</h3>
+            <h3 className="text-sm font-semibold text-white">App Config</h3>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-700 text-gray-400 hover:text-white transition-all hover:scale-105"
+            className="p-1.5 rounded-lg hover:bg-gray-700 text-gray-400 hover:text-white transition-all hover:scale-105"
             title="Close editor (Esc)"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
       </div>
@@ -636,7 +636,7 @@ export const AppsJsonEditor: React.FC<AppsJsonEditorProps> = ({
       )}
 
       {/* Editor */}
-      <div className="flex-1 p-4 overflow-hidden">
+      <div className="flex-1 p-2 overflow-hidden">
         <div
           className="h-full rounded-lg overflow-hidden border-2"
           style={{ borderColor: activePalette.ui.panelBorder }}
@@ -650,8 +650,8 @@ export const AppsJsonEditor: React.FC<AppsJsonEditorProps> = ({
             theme="vs-dark"
             options={{
               readOnly: false,
-              minimap: { enabled: true },
-              fontSize: 13,
+              minimap: { enabled: false },
+              fontSize: 11,
               lineNumbers: 'on',
               scrollBeyondLastLine: false,
               automaticLayout: true,
@@ -666,30 +666,30 @@ export const AppsJsonEditor: React.FC<AppsJsonEditorProps> = ({
 
       {/* Footer */}
       <div
-        className="flex items-center justify-between p-3 border-t-2 flex-shrink-0"
+        className="flex items-center justify-between p-2 border-t-2 flex-shrink-0"
         style={{
           borderColor: activePalette.ui.panelBorder,
           background: activePalette.ui.panelGradientTo + '40'
         }}
       >
-        <div className="flex items-center space-x-4 text-xs text-gray-400">
+        <div className="flex items-center space-x-2 text-[10px] text-gray-400">
           <span className="flex items-center space-x-1">
-            <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
-            <span>Live editing</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></span>
+            <span>Live</span>
           </span>
-          <span>Auto-save: 500ms</span>
+          <span>Auto-save</span>
         </div>
-        <div className="flex items-center space-x-4 text-xs">
-          <span className="text-gray-400">Esc to close</span>
+        <div className="flex items-center space-x-2 text-[10px]">
+          <span className="text-gray-400">Esc</span>
           {error ? (
-            <span className="text-red-400 flex items-center space-x-1">
+            <span className="text-red-400 flex items-center space-x-0.5">
               <span>❌</span>
-              <span className="font-medium">Invalid JSON - Fix errors to send to chat</span>
+              <span className="font-medium">Invalid</span>
             </span>
           ) : (
-            <span className="text-green-400 flex items-center space-x-1">
+            <span className="text-green-400 flex items-center space-x-0.5">
               <span>✅</span>
-              <span className="font-medium">Valid - Ready to send to chat</span>
+              <span className="font-medium">Valid</span>
             </span>
           )}
         </div>

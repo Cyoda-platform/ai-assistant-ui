@@ -33,10 +33,10 @@ export const EntityNode: React.FC<NodeProps<EntityVersionNodeData>> = ({ data, s
     <div
       className={`
         bg-gradient-to-br ${getStateColor()}
-        rounded-xl shadow-2xl border-2 transition-all duration-300
-        min-w-[220px] max-w-[280px] cursor-pointer
+        rounded-lg shadow-lg border-2 transition-all duration-300
+        min-w-[180px] max-w-[220px] cursor-pointer
         ${selected
-          ? 'border-white ring-4 ring-white/50 scale-105'
+          ? 'border-white ring-2 ring-white/50 scale-105'
           : 'border-white/30 hover:border-white/60 hover:scale-102'
         }
       `}
@@ -57,54 +57,54 @@ export const EntityNode: React.FC<NodeProps<EntityVersionNodeData>> = ({ data, s
       />
 
       {/* Header */}
-      <div className="p-4 border-b border-white/20">
-        <div className="flex items-center space-x-3">
-          <div className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-            <Database size={20} className="text-white" />
+      <div className="p-2.5 border-b border-white/20">
+        <div className="flex items-center space-x-2">
+          <div className="flex-shrink-0 w-7 h-7 bg-white/20 rounded flex items-center justify-center">
+            <Database size={16} className="text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-white font-bold text-base truncate">{entityName}</h3>
-            <div className="flex items-center space-x-2 mt-0.5">
-              <span className="text-white/80 text-xs font-medium">v{version}</span>
-              <div className="flex items-center space-x-1">
+            <h3 className="text-white font-bold text-sm truncate">{entityName}</h3>
+            <div className="flex items-center space-x-1.5 mt-0.5">
+              <span className="text-white/80 text-[10px] font-medium">v{version}</span>
+              <div className="flex items-center space-x-0.5">
                 {getStateIcon()}
-                <span className="text-white/70 text-[10px]">{state}</span>
+                <span className="text-white/70 text-[9px]">{state}</span>
               </div>
             </div>
           </div>
         </div>
         {description && (
-          <p className="text-white/80 text-xs mt-2 line-clamp-2">{description}</p>
+          <p className="text-white/80 text-[10px] mt-1.5 line-clamp-1">{description}</p>
         )}
       </div>
 
       {/* Stats */}
-      <div className="p-3 space-y-2">
-        <div className="flex items-center justify-between text-white/90 text-xs">
-          <div className="flex items-center space-x-2">
-            <Workflow size={14} />
+      <div className="p-2 space-y-1">
+        <div className="flex items-center justify-between text-white/90 text-[10px]">
+          <div className="flex items-center space-x-1">
+            <Workflow size={11} />
             <span>Workflows</span>
           </div>
-          <span className="font-semibold bg-white/20 px-2 py-0.5 rounded-full">
+          <span className="font-semibold bg-white/20 px-1.5 py-0.5 rounded-full text-[9px]">
             {workflowCount}
           </span>
         </div>
-        <div className="flex items-center justify-between text-white/90 text-xs">
-          <div className="flex items-center space-x-2">
-            <FileText size={14} />
-            <span>Requirements</span>
+        <div className="flex items-center justify-between text-white/90 text-[10px]">
+          <div className="flex items-center space-x-1">
+            <FileText size={11} />
+            <span>Reqs</span>
           </div>
-          <span className="font-semibold bg-white/20 px-2 py-0.5 rounded-full">
+          <span className="font-semibold bg-white/20 px-1.5 py-0.5 rounded-full text-[9px]">
             {requirementCount}
           </span>
         </div>
         {codeCount !== undefined && codeCount > 0 && (
-          <div className="flex items-center justify-between text-white/90 text-xs">
-            <div className="flex items-center space-x-2">
-              <Code size={14} />
+          <div className="flex items-center justify-between text-white/90 text-[10px]">
+            <div className="flex items-center space-x-1">
+              <Code size={11} />
               <span>Code</span>
             </div>
-            <span className="font-semibold bg-white/20 px-2 py-0.5 rounded-full">
+            <span className="font-semibold bg-white/20 px-1.5 py-0.5 rounded-full text-[9px]">
               {codeCount}
             </span>
           </div>
@@ -112,9 +112,9 @@ export const EntityNode: React.FC<NodeProps<EntityVersionNodeData>> = ({ data, s
       </div>
 
       {/* Footer hint */}
-      <div className="px-3 pb-3">
-        <div className="text-white/70 text-[10px] text-center bg-white/10 rounded py-1">
-          Click to view data • Updated {new Date(updatedAt).toLocaleDateString()}
+      <div className="px-2 pb-2">
+        <div className="text-white/70 text-[8px] text-center bg-white/10 rounded py-0.5">
+          {new Date(updatedAt).toLocaleDateString()}
         </div>
       </div>
     </div>

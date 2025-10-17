@@ -27,9 +27,9 @@ export const WorkflowNode: React.FC<NodeProps<WorkflowNodeData>> = ({ data, sele
       className={`
         bg-gradient-to-br from-purple-600 to-purple-700
         rounded-lg shadow-lg border-2 transition-all duration-300
-        min-w-[140px] max-w-[180px] cursor-pointer
-        ${selected 
-          ? 'border-purple-300 ring-4 ring-purple-300/50 scale-105' 
+        min-w-[120px] max-w-[150px] cursor-pointer
+        ${selected
+          ? 'border-purple-300 ring-2 ring-purple-300/50 scale-105'
           : 'border-purple-400/50 hover:border-purple-300 hover:scale-102'
         }
       `}
@@ -52,43 +52,43 @@ export const WorkflowNode: React.FC<NodeProps<WorkflowNodeData>> = ({ data, sele
       />
 
       {/* Header */}
-      <div className="p-2.5 border-b border-purple-400/30">
-        <div className="flex items-center space-x-2">
-          <div className="flex-shrink-0 w-7 h-7 bg-white/20 rounded flex items-center justify-center">
-            <Workflow size={14} className="text-white" />
+      <div className="p-2 border-b border-purple-400/30">
+        <div className="flex items-center space-x-1.5">
+          <div className="flex-shrink-0 w-6 h-6 bg-white/20 rounded flex items-center justify-center">
+            <Workflow size={12} className="text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <h5 className="text-white font-semibold text-xs truncate">{name}</h5>
+            <h5 className="text-white font-semibold text-[10px] truncate">{name}</h5>
           </div>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="p-2 space-y-1">
-        <div className="flex items-center justify-between text-white/90 text-[10px]">
-          <div className="flex items-center space-x-1">
-            <Circle size={10} />
+      <div className="p-1.5 space-y-0.5">
+        <div className="flex items-center justify-between text-white/90 text-[9px]">
+          <div className="flex items-center space-x-0.5">
+            <Circle size={8} />
             <span>States</span>
           </div>
-          <span className="font-semibold bg-white/20 px-1.5 py-0.5 rounded-full">
+          <span className="font-semibold bg-white/20 px-1 py-0.5 rounded-full text-[8px]">
             {stateCount}
           </span>
         </div>
-        <div className="flex items-center justify-between text-white/90 text-[10px]">
-          <div className="flex items-center space-x-1">
-            <ArrowRight size={10} />
-            <span>Transitions</span>
+        <div className="flex items-center justify-between text-white/90 text-[9px]">
+          <div className="flex items-center space-x-0.5">
+            <ArrowRight size={8} />
+            <span>Trans</span>
           </div>
-          <span className="font-semibold bg-white/20 px-1.5 py-0.5 rounded-full">
+          <span className="font-semibold bg-white/20 px-1 py-0.5 rounded-full text-[8px]">
             {transitionCount}
           </span>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="px-2 pb-2">
-        <div className="flex items-center justify-center space-x-1 text-white/70 text-[9px] bg-white/10 rounded py-0.5">
-          <Clock size={8} />
+      <div className="px-1.5 pb-1.5">
+        <div className="flex items-center justify-center space-x-0.5 text-white/70 text-[8px] bg-white/10 rounded py-0.5">
+          <Clock size={7} />
           <span>{new Date(updatedAt).toLocaleDateString()}</span>
         </div>
       </div>

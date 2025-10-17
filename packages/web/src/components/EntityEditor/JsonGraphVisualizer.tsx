@@ -104,10 +104,16 @@ const jsonToGraph = (obj: any, parentId: string = '', parentLabel: string = 'roo
         target: currentNodeId,
         type: 'smoothstep',
         animated: false,
-        style: { stroke: '#64748b', strokeWidth: 2 },
+        style: {
+          stroke: '#94a3b8',
+          strokeWidth: 2.5,
+          strokeOpacity: 0.8,
+        },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: '#64748b',
+          color: '#94a3b8',
+          width: 20,
+          height: 20,
         },
       });
     }
@@ -262,6 +268,11 @@ export const JsonGraphVisualizer: React.FC<JsonGraphVisualizerProps> = ({ data, 
         defaultEdgeOptions={{
           type: 'smoothstep',
           animated: false,
+          style: {
+            stroke: '#94a3b8',
+            strokeWidth: 2.5,
+            strokeOpacity: 0.8,
+          },
         }}
       >
         <Background color="#475569" gap={16} />
