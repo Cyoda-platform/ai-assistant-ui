@@ -8,7 +8,9 @@
       "Bash(npm install:*)",
       "Bash(git add .)",
       "Bash(git add src/components/AppsCanvas/nodes/WorkflowNode.tsx)",
-      "Bash(git add .claude/settings.local.json src/components/AppsCanvas/Nodes/AppNode.tsx src/components/AppsCanvas/Nodes/EntityNode.tsx src/components/AppsCanvas/Nodes/EnvironmentNode.tsx src/components/AppsCanvas/Nodes/WorkflowNode.tsx)"
+      "Bash(git add .claude/settings.local.json src/components/AppsCanvas/Nodes/AppNode.tsx src/components/AppsCanvas/Nodes/EntityNode.tsx src/components/AppsCanvas/Nodes/EnvironmentNode.tsx src/components/AppsCanvas/Nodes/WorkflowNode.tsx)",
+      "Bash(git add -f src/components/AppsCanvas/Nodes/)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nMerge origin/new-ux with local changes and add diagrams feature\n\n- Resolved merge conflict in WorkflowNode.tsx (chose larger sizing)\n- Added diagrams feature with JSON schema and example config\n- Added recharts dependency for dashboard visualizations\n- Updated node components with improved styling and 8-way handles\n- Added DiagramNode component for mermaid/chartjs diagram support\n- Updated AppsCanvas with diagram support and navigation improvements\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []
