@@ -1,2 +1,0 @@
-2. Make more compact the editing of requirements
-   Make more compact the editing of requirements. Make more compact legend. And json of entities also. Too many fields require schema changes just to enter data. No metadata is needed.
