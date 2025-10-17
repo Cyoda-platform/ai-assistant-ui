@@ -55,23 +55,23 @@ export const GroupNode: React.FC<GroupNodeProps> = ({ data }) => {
   };
 
   return (
-    <div className={`px-6 py-4 shadow-xl rounded-lg border-2 ${colors.border} bg-gradient-to-br ${colors.bg} min-w-[200px]`}>
+    <div className={`px-3 py-2.5 shadow-lg rounded-lg border-2 ${colors.border} bg-gradient-to-br ${colors.bg} min-w-[160px]`}>
       {/* Header with Buttons */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center space-x-2">
-          <Folder size={20} className={colors.text} />
-          <h3 className={`font-bold text-lg ${colors.text}`}>{label}</h3>
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center space-x-1.5">
+          <Folder size={14} className={colors.text} />
+          <h3 className={`font-bold text-sm ${colors.text}`}>{label}</h3>
         </div>
 
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-0.5">
           {/* Send to Chat Button */}
           {onSendToChat && (
             <button
               onClick={handleSendToChat}
-              className={`p-1 rounded ${colors.hover} transition-colors ${colors.text}`}
+              className={`p-0.5 rounded ${colors.hover} transition-colors ${colors.text}`}
               title={`Send ${groupType} group to chat`}
             >
-              <ArrowRight size={18} />
+              <ArrowRight size={13} />
             </button>
           )}
 
@@ -79,18 +79,18 @@ export const GroupNode: React.FC<GroupNodeProps> = ({ data }) => {
           {onAddNew && (
             <button
               onClick={handleAddNew}
-              className={`p-1 rounded ${colors.hover} transition-colors ${colors.text}`}
+              className={`p-0.5 rounded ${colors.hover} transition-colors ${colors.text}`}
               title={`Add new ${groupType === 'environments' ? 'environment' : groupType === 'entities' ? 'entity' : 'workflow'}`}
             >
-              <Plus size={18} />
+              <Plus size={13} />
             </button>
           )}
         </div>
       </div>
 
       {/* Count */}
-      <div className="flex items-center space-x-2 text-sm opacity-90">
-        <Hash size={14} className={colors.text} />
+      <div className="flex items-center space-x-1 text-[10px] opacity-90">
+        <Hash size={10} className={colors.text} />
         <span className={colors.text}>{count} item{count !== 1 ? 's' : ''}</span>
       </div>
 
