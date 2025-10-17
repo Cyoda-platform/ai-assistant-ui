@@ -44,7 +44,10 @@ const ChatBotView: React.FC = () => {
   const chatListReady = useAssistantStore((state) => state.chatListReady);
   const isTransferringChats = useAssistantStore((state) => state.isTransferringChats);
   const superUserMode = useSuperUserMode(); // Watch for super user mode changes
-  const [canvasVisible, setCanvasVisible] = useState(false);
+  const [canvasVisible, setCanvasVisible] = useState(() => {
+    console.log('[Canvas State] Initializing canvasVisible to false');
+    return false;
+  });
   const [canvasActiveTab, setCanvasActiveTab] = useState<'apps' | 'data' | 'workflow' | 'requirement' | 'code' | 'environments'>('apps');
   const [isEntityDataOpen, setIsEntityDataOpen] = useState(false);
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(true);
@@ -87,6 +90,7 @@ const ChatBotView: React.FC = () => {
   const technicalIdRef = useRef<string | undefined>(technicalId); // Track current technicalId
   const isInitialLoadRef = useRef<boolean>(true); // Track if this is the initial load of the chat
   const notifiedMessagesRef = useRef<Set<string>>(new Set()); // Track which messages we've already notified about
+  const hasAutoOpenedCanvasRef = useRef<boolean>(false); // Track if we've already auto-opened canvas for entities_data
 
   // Polling intervals: 1-1-1-3-3-3-5-5-5-10-10-10-10-10-20-30 (stay at 30s)
   const POLLING_INTERVALS = [
@@ -103,6 +107,12 @@ const ChatBotView: React.FC = () => {
   useEffect(() => {
     technicalIdRef.current = technicalId;
   }, [technicalId]);
+
+  // Debug: Track canvas visibility changes
+  useEffect(() => {
+    console.log('[Canvas State] canvasVisible changed to:', canvasVisible);
+    console.trace('[Canvas State] Stack trace for canvas visibility change');
+  }, [canvasVisible]);
 
 
 
@@ -219,9 +229,21 @@ const ChatBotView: React.FC = () => {
       if (!chatData || entitiesChanged || (newEntitiesData && Object.keys(newEntitiesData).length > 0)) {
         setChatData(data);
 
-        // Open canvas automatically when entities_data is available
-        if (newEntitiesData && Object.keys(newEntitiesData).length > 0 && !canvasVisible) {
-          setCanvasVisible(true);
+        // Open canvas automatically when entities_data is available for the FIRST TIME only
+        // This prevents the canvas from reopening after the user manually closes it
+        if (newEntitiesData && Object.keys(newEntitiesData).length > 0 && !hasAutoOpenedCanvasRef.current) {
+          console.log('[Canvas Auto-Open] Conditions:', {
+            hasEntitiesData: true,
+            canvasVisible,
+            hasAutoOpened: hasAutoOpenedCanvasRef.current,
+            willOpen: !canvasVisible
+          });
+
+          if (!canvasVisible) {
+            console.log('[Canvas Auto-Open] Opening canvas for the first time');
+            setCanvasVisible(true);
+          }
+          hasAutoOpenedCanvasRef.current = true; // Mark that we've auto-opened the canvas
         }
       }
 
@@ -443,6 +465,7 @@ const ChatBotView: React.FC = () => {
   };
 
   const onToggleCanvas = () => {
+    console.log('[Canvas Toggle] User toggled canvas:', { from: canvasVisible, to: !canvasVisible });
     setCanvasVisible(!canvasVisible);
   };
 
@@ -457,6 +480,7 @@ const ChatBotView: React.FC = () => {
     activeCanvasTab: canvasActiveTab,
     onOpenCanvas: () => {
       if (!canvasVisible) {
+        console.log('[Canvas Auto-Open] Workflow example detection triggered canvas open');
         setCanvasVisible(true);
       }
     },
@@ -623,6 +647,7 @@ const ChatBotView: React.FC = () => {
     currentIntervalIndexRef.current = 0; // Reset to fastest polling
     isInitialLoadRef.current = true; // Reset initial load flag for new chat
     notifiedMessagesRef.current.clear(); // Clear notified messages for new chat
+    hasAutoOpenedCanvasRef.current = false; // Reset auto-open flag for new chat
 
     // Start polling for the new chat
     pollChat();
