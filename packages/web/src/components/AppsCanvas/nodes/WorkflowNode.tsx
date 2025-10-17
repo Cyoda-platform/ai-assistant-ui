@@ -27,9 +27,9 @@ export const WorkflowNode: React.FC<NodeProps<WorkflowNodeData>> = ({ data, sele
       className={`
         bg-gradient-to-br from-purple-600 to-purple-700
         rounded-lg shadow-lg border-2 transition-all duration-300
-        min-w-[120px] max-w-[150px] cursor-pointer
+        min-w-[140px] max-w-[180px] cursor-pointer
         ${selected
-          ? 'border-purple-300 ring-2 ring-purple-300/50 scale-105'
+          ? 'border-purple-300 ring-4 ring-purple-300/50 scale-105'
           : 'border-purple-400/50 hover:border-purple-300 hover:scale-102'
         }
       `}
@@ -37,19 +37,16 @@ export const WorkflowNode: React.FC<NodeProps<WorkflowNodeData>> = ({ data, sele
       onDoubleClick={handleDoubleClick}
       title="Double-click to edit workflow"
     >
-      {/* Handles */}
-      <Handle
-        type="target"
-        position={Position.Top}
-        id="top"
-        className="w-2 h-2 !bg-purple-300 !border-2 !border-white"
-      />
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        id="bottom"
-        className="w-2 h-2 !bg-purple-300 !border-2 !border-white"
-      />
+      {/* Handles - 8 anchor points for maximum flexibility */}
+      <Handle type="source" position={Position.Top} id="top" className="w-2 h-2 !bg-purple-300 !border-2 !border-white" />
+      <Handle type="source" position={Position.Right} id="right" className="w-2 h-2 !bg-purple-300 !border-2 !border-white" />
+      <Handle type="source" position={Position.Bottom} id="bottom" className="w-2 h-2 !bg-purple-300 !border-2 !border-white" />
+      <Handle type="source" position={Position.Left} id="left" className="w-2 h-2 !bg-purple-300 !border-2 !border-white" />
+
+      <Handle type="target" position={Position.Top} id="top-target" className="w-2 h-2 !bg-purple-300 !border-2 !border-white" />
+      <Handle type="target" position={Position.Right} id="right-target" className="w-2 h-2 !bg-purple-300 !border-2 !border-white" />
+      <Handle type="target" position={Position.Bottom} id="bottom-target" className="w-2 h-2 !bg-purple-300 !border-2 !border-white" />
+      <Handle type="target" position={Position.Left} id="left-target" className="w-2 h-2 !bg-purple-300 !border-2 !border-white" />
 
       {/* Header */}
       <div className="p-2 border-b border-purple-400/30">

@@ -27,6 +27,7 @@ import { EnvironmentNode } from './nodes/EnvironmentNode';
 import { EntityNode } from './nodes/EntityNode';
 import { WorkflowNode } from './nodes/WorkflowNode';
 import { GroupNode } from './nodes/GroupNode';
+import { DiagramNode } from './nodes/DiagramNode';
 import type { UIWorkflowData } from '../WorkflowCanvas/types/workflow';
 import { AppsSettings } from './AppsSettings';
 import { AppsQuickHelp } from './AppsQuickHelp';
@@ -38,6 +39,7 @@ const nodeTypes = {
   entityNode: EntityNode,
   workflowNode: WorkflowNode,
   groupNode: GroupNode,
+  diagramNode: DiagramNode,
 };
 
 interface AppsReactFlowProps {
@@ -182,13 +184,22 @@ export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
 
   // Convert workflow data to React Flow nodes
   const initialNodes: Node[] = useMemo(() => {
-    return workflowData.layout.states.map((state) => ({
+    const nodes = workflowData.layout.states.map((state) => ({
       id: state.id,
       type: state.type || 'default',
       position: state.position,
       data: state.data || { label: state.id },
       draggable: true,
     }));
+
+    // Check for duplicate node IDs
+    const nodeIds = nodes.map(n => n.id);
+    const duplicates = nodeIds.filter((id, index) => nodeIds.indexOf(id) !== index);
+    if (duplicates.length > 0) {
+      console.error('❌ Duplicate node IDs found:', duplicates);
+    }
+
+    return nodes;
   }, [workflowData]);
 
   // Helper function to determine best anchor points based on node positions
@@ -242,10 +253,10 @@ export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
         label: transition.label,
         type: edgeType,
         animated: false,
-        style: { stroke: '#64748b', strokeWidth: 2 },
+        style: { stroke: '#94a3b8', strokeWidth: 2 },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: '#64748b',
+          color: '#94a3b8',
         },
       };
     });
@@ -264,6 +275,25 @@ export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
   useEffect(() => {
     setEdges(initialEdges);
   }, [initialEdges, setEdges]);
+
+  // Handle node click for navigation (single click)
+  const handleNodeClick = useCallback(
+    (event: React.MouseEvent, node: Node) => {
+      const nodeType = node.data?.metadata?.type || node.type || 'unknown';
+      // Pass node metadata for workflows to include entity information
+      const nodeData = node.data?.metadata;
+
+      console.log('🖱️ AppsReactFlow: Node clicked:', {
+        nodeId: node.id,
+        nodeType,
+        nodeData,
+        hasEntityId: !!nodeData?.entity_id
+      });
+
+      onNodeDoubleClick?.(node.id, nodeType, nodeData);
+    },
+    [onNodeDoubleClick]
+  );
 
   // Handle node double-click for navigation
   const handleNodeDoubleClick = useCallback(
@@ -310,10 +340,10 @@ export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
         ...connection,
         type: edgeType,
         animated: false,
-        style: { stroke: '#64748b', strokeWidth: 2 },
+        style: { stroke: '#94a3b8', strokeWidth: 2 },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: '#64748b',
+          color: '#94a3b8',
         },
       }, eds));
     },
@@ -382,10 +412,12 @@ export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
         nodeTypes={nodeTypes}
         onNodesChange={handleNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodeClick={handleNodeClick}
         onNodeDoubleClick={handleNodeDoubleClick}
         onConnect={onConnect}
         onReconnect={onReconnect}
         connectionMode={ConnectionMode.Loose}
+        colorMode="dark"
         fitView
         fitViewOptions={{
           padding: 0.2,
@@ -396,9 +428,10 @@ export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
         defaultEdgeOptions={{
           type: edgeType,
           animated: false,
+          style: { stroke: '#94a3b8', strokeWidth: 2 },
           markerEnd: {
             type: MarkerType.ArrowClosed,
-            color: '#64748b',
+            color: '#94a3b8',
           },
         }}
         nodesDraggable={true}

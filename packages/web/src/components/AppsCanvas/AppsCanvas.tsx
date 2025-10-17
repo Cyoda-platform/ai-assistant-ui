@@ -12,7 +12,7 @@ interface AppsCanvasProps {
   // Support both PortalData and AppRoot (from app_schema.json)
   data?: PortalData;
   appData?: AppRoot;
-  onNavigate?: (tab: CanvasTab, targetId: string) => void;
+  onNavigate?: (tab: CanvasTab, targetId: string, data?: any) => void;
   onDataUpdate?: (data: PortalData) => void;
   onAppDataUpdate?: (appData: AppRoot) => void;
   isFullscreen?: boolean;
@@ -345,9 +345,21 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
     }
   }, [appData]);
 
+  // Use ref to track if we're currently processing an add operation
+  const isAddingRef = React.useRef(false);
+
   // Handle adding new instance from group node
   const handleAddNewInstance = useCallback((groupType: string, entityId?: string) => {
+    // Prevent multiple simultaneous adds
+    if (isAddingRef.current) {
+      console.warn('⚠️ Already adding an instance, ignoring duplicate call');
+      return;
+    }
+
     if (!currentAppData) return;
+
+    isAddingRef.current = true;
+    console.log('🔧 Adding new instance:', { groupType, entityId });
 
     const updatedData = JSON.parse(JSON.stringify(currentAppData)) as AppRoot;
 
@@ -418,6 +430,11 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
 
     setCurrentAppData(updatedData);
     onAppDataUpdate?.(updatedData);
+
+    // Reset the flag after a short delay to allow the state update to complete
+    setTimeout(() => {
+      isAddingRef.current = false;
+    }, 100);
   }, [currentAppData, onAppDataUpdate]);
 
   // Handle node data updates from inline JSON editors
@@ -476,15 +493,37 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
     console.log(`📤 Sent ${nodeType} to chat:`, nodeData);
   }, [onSendToChat]);
 
+  // Use refs to store stable callback references
+  const handleAddNewInstanceRef = React.useRef(handleAddNewInstance);
+  const handleNodeUpdateRef = React.useRef(handleNodeUpdate);
+  const handleNodeSendToChatRef = React.useRef(handleNodeSendToChat);
+
+  // Update refs when callbacks change
+  React.useEffect(() => {
+    handleAddNewInstanceRef.current = handleAddNewInstance;
+    handleNodeUpdateRef.current = handleNodeUpdate;
+    handleNodeSendToChatRef.current = handleNodeSendToChat;
+  }, [handleAddNewInstance, handleNodeUpdate, handleNodeSendToChat]);
+
   // Convert data to Workflow format for visualization
   const workflowData = useMemo(() => {
     if (currentAppData) {
       // Use simplified view for new apps (only app name, environments group, entities group)
       if (simplified) {
-        return convertAppRootToSimplifiedWorkflow(currentAppData, handleAddNewInstance, handleNodeUpdate, handleNodeSendToChat);
+        return convertAppRootToSimplifiedWorkflow(
+          currentAppData,
+          (...args) => handleAddNewInstanceRef.current(...args),
+          (...args) => handleNodeUpdateRef.current(...args),
+          (...args) => handleNodeSendToChatRef.current(...args)
+        );
       }
       // Use full view for existing apps
-      return convertAppRootToWorkflow(currentAppData, handleAddNewInstance, handleNodeUpdate, handleNodeSendToChat);
+      return convertAppRootToWorkflow(
+        currentAppData,
+        (...args) => handleAddNewInstanceRef.current(...args),
+        (...args) => handleNodeUpdateRef.current(...args),
+        (...args) => handleNodeSendToChatRef.current(...args)
+      );
     }
     // Return empty workflow
     return {
@@ -509,7 +548,7 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
         transitions: []
       }
     };
-  }, [currentAppData, simplified, handleAddNewInstance, handleNodeUpdate]);
+  }, [currentAppData, simplified]);
 
   // Handle JSON editor save
   const handleJsonEditorSave = useCallback((updatedAppData: AppRoot) => {

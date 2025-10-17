@@ -340,8 +340,27 @@ export const AppsTabsContainer: React.FC<AppsTabsContainerProps> = ({
     return appData.app.environments.length === 0 && appData.app.entities.length === 0;
   }, [activeTab, appData]);
 
-  // Note: Removed auto-open sample app to avoid conflicts with URL parameters
-  // The AppTabsView will handle auto-opening from URL params
+  // Auto-open sample app when canvas is first opened (no tabs exist)
+  useEffect(() => {
+    // Only auto-open if there are no tabs at all
+    if (tabs.length === 0) {
+      console.log('📱 Auto-opening sample app tab on canvas initialization');
+
+      // Create a sample app tab
+      const timestamp = Date.now();
+      const modelName = 'pet-store';
+      const modelVersion = 1;
+      const technicalId = `${modelName}_v${modelVersion}_${timestamp}`;
+
+      openTab({
+        modelName,
+        modelVersion,
+        displayName: 'Pet Store (Sample)',
+        isDirty: false,
+        technicalId,
+      });
+    }
+  }, [tabs.length, openTab]); // Run when tabs.length changes or openTab changes
 
   // Open new app dialog when user clicks + button
   const handleNewTab = useCallback(() => {

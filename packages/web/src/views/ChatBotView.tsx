@@ -218,6 +218,11 @@ const ChatBotView: React.FC = () => {
       // 3. New entities data is not empty/undefined
       if (!chatData || entitiesChanged || (newEntitiesData && Object.keys(newEntitiesData).length > 0)) {
         setChatData(data);
+
+        // Open canvas automatically when entities_data is available
+        if (newEntitiesData && Object.keys(newEntitiesData).length > 0 && !canvasVisible) {
+          setCanvasVisible(true);
+        }
       }
 
       // Process all messages

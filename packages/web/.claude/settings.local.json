@@ -5,7 +5,10 @@
       "Read(//c/Users/user/ai-assistant-ui/**)",
       "Bash(find:*)",
       "Read(//c/Users/user/Pictures/new_folder/**)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(git add .)",
+      "Bash(git add src/components/AppsCanvas/nodes/WorkflowNode.tsx)",
+      "Bash(git add .claude/settings.local.json src/components/AppsCanvas/Nodes/AppNode.tsx src/components/AppsCanvas/Nodes/EntityNode.tsx src/components/AppsCanvas/Nodes/EnvironmentNode.tsx src/components/AppsCanvas/Nodes/WorkflowNode.tsx)"
     ],
     "deny": [],
     "ask": []

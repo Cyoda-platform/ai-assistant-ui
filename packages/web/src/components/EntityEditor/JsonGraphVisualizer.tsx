@@ -25,7 +25,7 @@ const JsonNode: React.FC<{ data: any }> = ({ data }) => {
 
   const getNodeStyle = () => {
     const baseStyle = 'px-4 py-2 rounded-lg border-2 shadow-lg transition-all hover:shadow-xl';
-    
+
     switch (type) {
       case 'object':
         return `${baseStyle} bg-blue-900/80 border-blue-500 text-blue-100`;
@@ -104,16 +104,10 @@ const jsonToGraph = (obj: any, parentId: string = '', parentLabel: string = 'roo
         target: currentNodeId,
         type: 'smoothstep',
         animated: false,
-        style: {
-          stroke: '#94a3b8',
-          strokeWidth: 2.5,
-          strokeOpacity: 0.8,
-        },
+        style: { stroke: '#64748b', strokeWidth: 2 },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: '#94a3b8',
-          width: 20,
-          height: 20,
+          color: '#64748b',
         },
       });
     }
@@ -268,11 +262,6 @@ export const JsonGraphVisualizer: React.FC<JsonGraphVisualizerProps> = ({ data, 
         defaultEdgeOptions={{
           type: 'smoothstep',
           animated: false,
-          style: {
-            stroke: '#94a3b8',
-            strokeWidth: 2.5,
-            strokeOpacity: 0.8,
-          },
         }}
       >
         <Background color="#475569" gap={16} />
