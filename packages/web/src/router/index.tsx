@@ -11,6 +11,7 @@ import DashboardView from '@/views/DashboardView';
 import ChatBotView from '@/views/ChatBotView';
 import CanvasDemoView from '@/views/CanvasDemoView';
 import WorkflowTabsView from '@/views/WorkflowTabsView';
+import EnvironmentsView from '@/views/EnvironmentsView';
 
 // Import layouts
 import LayoutDefault from '@/layouts/LayoutDefault';
@@ -80,6 +81,10 @@ const routes = [
       {
         path: "workflows",
         element: <WorkflowTabsView />,
+      },
+      {
+        path: "environments",
+        element: <EnvironmentsView />,
       },
     ],
   },

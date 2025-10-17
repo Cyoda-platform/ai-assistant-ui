@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npm run dev)",
       "Read(//c/Users/user/ai-assistant-ui/**)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Read(//c/Users/user/Pictures/new_folder/**)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []
