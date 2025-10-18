@@ -50,7 +50,7 @@ This now correctly identifies any token where `caas_org_id` starts with "guest" 
 
 ### 3. Test "Log in" Option
 1. Follow steps 1-4 above
-2. Click "Log in" button
+2. Click "Log in"  button
 3. Complete Auth0 login flow
 4. **Expected**: After login, user is redirected back
 5. **Expected**: Message is automatically sent with authenticated token
