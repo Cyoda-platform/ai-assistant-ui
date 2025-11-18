@@ -65,7 +65,9 @@ const LoginPopUp: React.FC = () => {
       width={520}
       footer={null}
       closeIcon={
-        <X className="w-5 h-5 text-gray-400 hover:text-gray-300 transition-colors" />
+        <div className="flex items-center justify-center w-8 h-8 aspect-square rounded-md bg-gradient-to-r from-fuchsia-500 to-pink-500 hover:from-fuchsia-600 hover:to-pink-600 transition-all duration-200 shadow-lg hover:shadow-fuchsia-500/25">
+          <X className="w-5 h-5 text-white" />
+        </div>
       }
     >
       {isGuestUser ? (
@@ -166,16 +168,16 @@ const LoginPopUp: React.FC = () => {
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="flex flex-col gap-3">
             <button
               onClick={handleLogin}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition-all duration-200"
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 !text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition-all duration-200"
             >
               Log in
             </button>
             <button
               onClick={handleCancel}
-              className="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-3 px-6 rounded-lg transition-all duration-200"
+              className="w-full bg-gray-800 hover:bg-gray-700 !text-white font-medium py-3 px-6 rounded-lg transition-all duration-200"
             >
               Cancel
             </button>

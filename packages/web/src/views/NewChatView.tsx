@@ -13,6 +13,7 @@ const { Title } = Typography;
 
 interface CreateChatResponse {
   technical_id: string;
+  initialMessage?: string; // Optional initial message to send after creation
 }
 
 const NewChatView: React.FC = () => {
@@ -20,7 +21,14 @@ const NewChatView: React.FC = () => {
   const navigate = useNavigate();
 
   const onCreated = (data: CreateChatResponse) => {
-    navigate(`/chat-bot/view/${data.technical_id}`);
+    console.log('[NewChatView] onCreated called with:', data);
+    console.log('[NewChatView] Navigating with state:', { initialMessage: data.initialMessage });
+
+    // Navigate to chat, passing initialMessage via state if present
+    // Use the correct route: /chat/:technicalId (not /chat-bot/view/:technicalId)
+    navigate(`/chat/${data.technical_id}`, {
+      state: { initialMessage: data.initialMessage }
+    });
   };
 
   return (

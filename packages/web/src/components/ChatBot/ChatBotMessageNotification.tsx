@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import dayjs from 'dayjs';
-import { Bell, Clock, Sparkles } from 'lucide-react';
+import { Bell, Clock, Sparkles, Activity, ArrowRight } from 'lucide-react';
 import MarkdownRenderer from '../MarkdownRenderer/MarkdownRenderer';
 import LogoSmall from '@/assets/images/logo-small.svg';
 
@@ -8,16 +8,23 @@ interface Message {
   text: string | object;
   last_modified?: string;
   editable?: boolean;
+  raw?: {
+    background_task_id?: string;
+    hook?: any;
+    [key: string]: any;
+  };
 }
 
 interface ChatBotMessageNotificationProps {
   message: Message;
   onUpdateNotification: (data: any) => void;
+  onOpenTaskPanel?: () => void;
 }
 
 const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
   message,
-  onUpdateNotification
+  onUpdateNotification,
+  onOpenTaskPanel
 }) => {
   const messageText = useMemo(() => {
     const text = message.text;
@@ -32,6 +39,9 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
     return dayjs(message.last_modified).format('HH:mm');
   }, [message.last_modified]);
 
+  // Check if this is a background task notification
+  const isBackgroundTask = !!message.raw?.background_task_ids;
+
   return (
     <div className="flex justify-start mb-6 animate-fade-in-up">
       <div className="flex items-start space-x-3 w-full max-w-[95%]">
@@ -44,8 +54,17 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
           {/* Notification Badge */}
           <div className="flex items-center space-x-2 mb-2">
             <div className="flex items-center space-x-1.5 bg-slate-800/50 backdrop-blur-sm px-3 py-1 rounded-full border border-slate-600">
-              <Sparkles size={12} className="text-pink-400" />
-              <span className="text-xs font-medium text-slate-300">CYODA NOTIFICATION</span>
+              {isBackgroundTask ? (
+                <>
+                  <Activity size={12} className="text-teal-400" />
+                  <span className="text-xs font-medium text-slate-300">BACKGROUND TASK</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles size={12} className="text-pink-400" />
+                  <span className="text-xs font-medium text-slate-300">CYODA NOTIFICATION</span>
+                </>
+              )}
             </div>
             {date && (
               <div className="flex items-center space-x-1 text-xs text-slate-500">
@@ -57,9 +76,24 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
 
           {/* Message Bubble */}
           <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-3xl rounded-tl-md px-6 py-4 shadow-lg hover:shadow-xl hover:border-slate-600 transition-all duration-200">
-            <MarkdownRenderer>
-              {messageText}
-            </MarkdownRenderer>
+            <div className="space-y-4">
+              {/* Display the actual message content */}
+              <MarkdownRenderer>
+                {messageText}
+              </MarkdownRenderer>
+
+              {/* Show "View Task Progress" button for background tasks */}
+              {isBackgroundTask && onOpenTaskPanel && (
+                <button
+                  onClick={onOpenTaskPanel}
+                  className="flex items-center space-x-2 px-4 py-2 bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/50 hover:border-teal-500 rounded-lg text-teal-300 hover:text-teal-200 transition-all duration-200 group"
+                >
+                  <Activity size={16} />
+                  <span className="font-medium">View Task Progress</span>
+                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

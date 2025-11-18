@@ -8,8 +8,11 @@ import ChatBotMessageAnswer from './ChatBotMessageAnswer';
 import ChatBotName from './ChatBotName';
 import ChatBotMessageFunction from './ChatBotMessageFunction';
 import ChatBotMessageError from './ChatBotMessageError';
+import StreamingMessage from './StreamingMessage';
+import type { StreamingState } from '@/types/streaming';
 
 interface Message {
+  id?: string;
   type: 'question' | 'answer' | 'notification' | 'ui_function' | 'error';
   text: string;
   raw?: any;
@@ -18,6 +21,15 @@ interface Message {
   files?: File[];
   approve?: boolean;
   editable?: boolean;
+  isCanvasQA?: boolean; // Mark Canvas QA messages for pink styling
+}
+
+interface CanvasOptions {
+  returnWorkflowJSON?: boolean;
+  returnAppJSON?: boolean;
+  returnEntityJSON?: boolean;
+  returnRequirementJSON?: boolean;
+  returnEnvironmentJSON?: boolean;
 }
 
 interface ChatBotProps {
@@ -29,13 +41,24 @@ interface ChatBotProps {
   chatData?: any;
   canvasVisible?: boolean;
   chatHistoryVisible?: boolean;
-  onAnswer: (data: { answer: string; files?: File[] }) => void;
+  streamingState?: StreamingState; // SSE streaming state
+  onAnswer: (data: { answer: string; files?: File[]; mode?: 'workflow' | 'qa'; canvasOptions?: CanvasOptions }) => void;
   onApproveQuestion: (data: any) => void;
   onUpdateNotification: (data: any) => void;
   onToggleCanvas: () => void;
   onEntitiesDetails?: () => void;
   onToggleChatHistory?: () => void;
   onScrollToBottom?: () => void; // Callback when user scrolls to bottom
+  onAddToCanvas?: (result: { id: string; type: string; data: any }) => void;
+  onStopRequest?: () => void; // Callback to stop current request
+  onRollbackCanvasAI?: () => void; // Callback to rollback Canvas AI changes
+  onRetryCanvasAI?: (messageId: string) => void; // Callback to retry Canvas AI request
+  activeCanvasTab?: 'apps' | 'data' | 'workflow' | 'requirement' | 'code'; // Active tab in canvas
+  hasCanvasAIRollback?: boolean; // Whether there are Canvas AI changes to rollback
+  onOpenTaskPanel?: () => void; // Callback to open task panel
+  onRetryStreaming?: () => void; // Callback to retry streaming
+  isRetrying?: boolean; // Whether streaming retry is in progress
+  onSetTextareaContent?: (callback: (content: string) => void) => void; // Expose method to set textarea content
 }
 
 const ChatBot: React.FC<ChatBotProps> = ({
@@ -46,12 +69,23 @@ const ChatBot: React.FC<ChatBotProps> = ({
   technicalId,
   chatData,
   canvasVisible = false,
+  streamingState,
   onAnswer,
   onApproveQuestion,
   onUpdateNotification,
   onToggleCanvas,
   onEntitiesDetails,
-  onScrollToBottom
+  onScrollToBottom,
+  onAddToCanvas,
+  onRollbackCanvasAI,
+  onRetryCanvasAI,
+  activeCanvasTab,
+  hasCanvasAIRollback = false,
+  onOpenTaskPanel,
+  onRetryStreaming,
+  isRetrying = false,
+  onStopRequest,
+  onSetTextareaContent
 }) => {
   const chatBotPlaceholderRef = useRef<HTMLDivElement>(null);
   const [chatBotPlaceholderHeight, setChatBotPlaceholderHeight] = useState(0);
@@ -146,6 +180,22 @@ const ChatBot: React.FC<ChatBotProps> = ({
     }
   }, [messages]);
 
+  // Debug streaming state
+  useEffect(() => {
+    console.log('[ChatBot] Streaming state changed:', streamingState);
+  }, [streamingState]);
+
+  // Auto-scroll when loading starts (Cyoda starts typing)
+  useEffect(() => {
+    if (isLoading) {
+      // Small delay to let the loader appear before scrolling
+      const timeoutId = setTimeout(() => {
+        scrollDownMessages(true);
+      }, 100);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isLoading]);
+
   const renderMessage = (message: Message, index: number) => {
     switch (message.type) {
       case 'question':
@@ -155,6 +205,12 @@ const ChatBot: React.FC<ChatBotProps> = ({
             message={message}
             isLoading={isLoading}
             onApproveQuestion={onApproveQuestion}
+            onAddToCanvas={onAddToCanvas}
+            onRollbackCanvasAI={onRollbackCanvasAI}
+            onRetryCanvasAI={onRetryCanvasAI}
+            hasRollback={hasCanvasAIRollback}
+            technicalId={technicalId}
+            onOpenCanvas={onToggleCanvas}
           />
         );
       case 'notification':
@@ -163,6 +219,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
             key={index}
             message={message}
             onUpdateNotification={onUpdateNotification}
+            onOpenTaskPanel={onOpenTaskPanel}
           />
         );
       case 'answer':
@@ -218,9 +275,44 @@ const ChatBot: React.FC<ChatBotProps> = ({
                   {renderMessage(message, index)}
                 </div>
               ))}
-              {isLoading && (
+              {/* Show streaming message if streaming is active */}
+              {streamingState?.isStreaming && (
                 <div className="w-full">
-                  <ChatLoader />
+                  <StreamingMessage
+                    content={streamingState.accumulatedContent}
+                    agentName={streamingState.currentAgent}
+                    isComplete={false}
+                    events={streamingState.events}
+                    error={streamingState.error}
+                    errorDetails={streamingState.errorDetails}
+                    onRetry={onRetryStreaming}
+                    isRetrying={isRetrying}
+                  />
+                </div>
+              )}
+              {/* Show streaming error with retry option if not streaming but has error */}
+              {!streamingState?.isStreaming && streamingState?.error && (
+                <div className="w-full">
+                  <StreamingMessage
+                    content={streamingState.accumulatedContent}
+                    agentName={streamingState.currentAgent}
+                    isComplete={false}
+                    events={streamingState.events}
+                    error={streamingState.error}
+                    errorDetails={streamingState.errorDetails}
+                    onRetry={onRetryStreaming}
+                    isRetrying={isRetrying}
+                  />
+                </div>
+              )}
+              {/* Show loader if loading but not streaming */}
+              {isLoading && !streamingState?.isStreaming && (
+                <div className="w-full">
+                  <ChatLoader
+                    agentName={streamingState?.currentAgent}
+                    toolName={streamingState?.currentTool}
+                    toolArgs={streamingState?.toolArgs}
+                  />
                 </div>
               )}
               <div
@@ -238,6 +330,11 @@ const ChatBot: React.FC<ChatBotProps> = ({
           <ChatBotSubmitForm
             disabled={disabled}
             onAnswer={onAnswer}
+            showCanvasButton={canvasVisible}
+            activeCanvasTab={activeCanvasTab}
+            isAIThinking={isLoading || streamingState?.isStreaming}
+            onStopRequest={onStopRequest}
+            onSetTextareaContent={onSetTextareaContent}
           />
         </div>
       </div>

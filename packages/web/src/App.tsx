@@ -19,6 +19,7 @@ import { isInIframe } from './helpers/HelperIframe';
 import { setTokenGetter } from './helpers/HelperAuth';
 import { useDetectTheme } from './helpers/HelperTheme';
 import { useNavigationGuards } from './router';
+import { initializeCleanState } from './utils/clearTestData';
 
 const App: React.FC = () => {
   const location = useLocation();
@@ -48,6 +49,11 @@ const App: React.FC = () => {
       }
     });
   }, [getAccessTokenSilently]);
+
+  // Initialize clean state on app load
+  useEffect(() => {
+    initializeCleanState();
+  }, []);
 
   // Handle theme changes - always enforce dark mode
   useEffect(() => {

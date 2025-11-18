@@ -17,13 +17,20 @@ import {
   X,
   Maximize2,
   Minimize2,
-  Paperclip
+  Paperclip,
+  Rocket,
+  Search,
+  Database,
+  GitBranch,
+  BarChart3,
+  Package
 } from 'lucide-react';
 import { useAssistantStore } from '@/stores/assistant';
 import { useAuthStore, useSuperUserMode } from '@/stores/auth';
 import Header from '@/components/Header/Header';
-import ChatBotCanvas from '@/components/ChatBot/ChatBotCanvas';
+
 import ChatHistoryPanel from '@/components/ChatHistoryPanel/ChatHistoryPanel';
+import EnvironmentsPanel from '@/components/EnvironmentsPanel/EnvironmentsPanel';
 import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
 import { useResizablePanel } from '@/hooks/useResizablePanel';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
@@ -36,28 +43,19 @@ const HomeView: React.FC = () => {
   const [chatInput, setChatInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(true);
-  const [canvasVisible, setCanvasVisible] = useState(false);
-  const [isCanvasFullscreen, setIsCanvasFullscreen] = useState(false);
+  const [isEnvironmentsOpen, setIsEnvironmentsOpen] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [pendingMessage, setPendingMessage] = useState<{ input: string; files: File[] } | null>(null);
   const [isResizing, setIsResizing] = useState(false);
-  const chatInputRef = useRef<HTMLInputElement>(null);
+  const [textareaHeight, setTextareaHeight] = useState(60);
+  const chatInputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initialWidthRef = useRef<number>(0);
   const mainContentRef = useRef<HTMLDivElement>(null);
 
-  // Check if canvas should be opened from URL parameter
-  useEffect(() => {
-    const shouldOpenCanvas = searchParams.get('canvas') === 'true';
-    if (shouldOpenCanvas) {
-      setCanvasVisible(true);
-      // Remove the parameter from URL to clean it up
-      searchParams.delete('canvas');
-      setSearchParams(searchParams, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
+
 
   // Check for 'name' URL parameter and populate chat input
   useEffect(() => {
@@ -78,6 +76,24 @@ const HomeView: React.FC = () => {
     }
   }, [searchParams, setSearchParams]);
 
+  // Auto-resize textarea based on content
+  const adjustTextareaHeight = () => {
+    if (chatInputRef.current) {
+      const textarea = chatInputRef.current;
+      // Reset height to auto to get the correct scrollHeight
+      textarea.style.height = 'auto';
+      // Calculate new height based on content
+      const newHeight = Math.max(60, Math.min(300, textarea.scrollHeight));
+      setTextareaHeight(newHeight);
+      textarea.style.height = `${newHeight}px`;
+    }
+  };
+
+  // Auto-resize when content changes
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [chatInput]);
+
   const assistantStore = useAssistantStore();
   const authStore = useAuthStore();
   const superUserMode = useSuperUserMode(); // Watch for super user mode changes
@@ -93,13 +109,22 @@ const HomeView: React.FC = () => {
     storageKey: 'home-chatHistory-width'
   });
 
-  // Resizable canvas panel
-  const canvasResize = useResizablePanel({
-    defaultWidth: 800,
-    minWidth: 400,
-    maxWidth: 1200,
-    storageKey: 'home-canvas-width'
+  // Resizable environments panel
+  const environmentsResize = useResizablePanel({
+    defaultWidth: 500,  // Start at 500px
+    minWidth: 350,      // Minimum width for environments
+    maxWidth: 1200,     // Maximum width - very wide
+    storageKey: 'home-environments-width'
   });
+
+  // Check if returning from fullscreen and reopen environments panel
+  useEffect(() => {
+    const wasInFullscreen = localStorage.getItem('environments-width-before-fullscreen');
+    if (wasInFullscreen) {
+      // Reopen the environments panel
+      setIsEnvironmentsOpen(true);
+    }
+  }, []);
 
   // Load chats on mount only if not already loaded
   useEffect(() => {
@@ -212,13 +237,27 @@ const HomeView: React.FC = () => {
   // Function to actually submit the chat
   const submitChat = async (input: string, files: File[]) => {
     setIsLoading(true);
+
+    // Store the full message to be sent after chat creation
+    const initialMessage = input;
+
+    // Generate temporary ID for optimistic navigation
+    const tempId = `temp-${Date.now()}`;
+
+    // Navigate immediately with temp ID - show preloader in chat view
+    console.log('[HomeView] Navigating to temp chat:', tempId);
+    navigate(`/chat/${tempId}?openCanvas=true&creating=true`);
+
     try {
       let response;
+
+      // Create chat with proper name (first 50 chars of message)
+      const chatName = input.substring(0, 50) + (input.length > 50 ? '...' : '');
 
       // If files are attached, use FormData
       if (files.length > 0) {
         const formData = new FormData();
-        formData.append('name', input);
+        formData.append('name', chatName);
         formData.append('description', '');
 
         // Append all files
@@ -230,29 +269,37 @@ const HomeView: React.FC = () => {
       } else {
         // No files, use regular JSON
         response = await assistantStore.postChats({
-          name: input,
+          name: chatName,
           description: ''
         });
       }
 
       if (response?.data?.technical_id) {
-        // Wait for chat list to refresh before navigating
-        // This ensures the new chat appears in the sidebar
-        try {
-          await assistantStore.getChats();
-        } catch (error) {
-          console.error('Failed to refresh chat list:', error);
-        }
+        const realId = response.data.technical_id;
 
-        // Navigate to chat details page after chat list is updated
-        navigate(`/chat/${response.data.technical_id}`);
+        // Refresh chat list in background
+        assistantStore.getChats().catch(error => {
+          console.error('Failed to refresh chat list:', error);
+        });
+
+        // Navigate to real chat ID with initial message in localStorage
+        console.log('[HomeView] Navigating to real chat:', realId);
+        console.log('[HomeView] Storing initial message in localStorage:', initialMessage);
+
+        // Store initial message in localStorage so ChatBotView can pick it up
+        localStorage.setItem(`initial-message-${realId}`, initialMessage);
+
+        navigate(`/chat/${realId}?openCanvas=true`, { replace: true });
       }
     } catch (error) {
       console.error('Error creating chat:', error);
+      // On error, navigate back to home
+      navigate('/', { replace: true });
     } finally {
       setIsLoading(false);
       setAttachedFiles([]);
       setChatInput('');
+      setTextareaHeight(60); // Reset to default height
       setPendingMessage(null);
     }
   };
@@ -335,32 +382,45 @@ const HomeView: React.FC = () => {
   };
 
   const quickActions = [
-    { label: 'Deploy my environment', action: () => setChatInput('Deploy my environment') },
-    { label: 'What is my CYODA env?', action: () => setChatInput('What is my CYODA environment?') },
-    { label: 'Build a REST API', action: () => setChatInput('Build a REST API application') },
-    { label: 'Help with workflows', action: () => setChatInput('Help me understand CYODA workflows') }
+    {
+      label: 'What is CYODA?',
+      action: () => setChatInput('What is CYODA and how does it work?'),
+      icon: <Info size={20} className="text-slate-300" />,
+      description: 'Learn about the CYODA platform'
+    },
+    {
+      label: 'What is my CYODA env?',
+      action: () => setChatInput('Show me my current CYODA environment status and configuration'),
+      icon: <Search size={20} className="text-slate-300" />,
+      description: 'Check environment status'
+    },
+    {
+      label: 'Build a REST API',
+      action: () => setChatInput('Build a complete REST API with CRUD operations for customer management'),
+      icon: <Zap size={20} className="text-slate-300" />,
+      description: 'Create a full REST API application'
+    },
+    {
+      label: 'Help with workflows',
+      action: () => setChatInput('Create a workflow for Order entity with create, update, and cancel transitions'),
+      icon: <GitBranch size={20} className="text-slate-300" />,
+      description: 'Design entity workflows'
+    },
+    {
+      label: 'Analyze my repository',
+      action: () => setChatInput('Analyze my repository structure and show all entities, workflows, and files'),
+      icon: <BarChart3 size={20} className="text-slate-300" />,
+      description: 'Get repository insights'
+    },
+    {
+      label: 'Add new entity',
+      action: () => setChatInput('Add a Customer entity with id, name, email, and phone fields'),
+      icon: <Database size={20} className="text-slate-300" />,
+      description: 'Create data entities'
+    }
   ];
 
-  // Canvas handlers
-  const handleToggleCanvas = () => {
-    const newCanvasState = !canvasVisible;
-    setCanvasVisible(newCanvasState);
 
-    // When closing canvas, exit fullscreen mode
-    if (!newCanvasState && isCanvasFullscreen) {
-      setIsCanvasFullscreen(false);
-    }
-  };
-
-  const handleToggleCanvasFullscreen = () => {
-    const newFullscreenState = !isCanvasFullscreen;
-    setIsCanvasFullscreen(newFullscreenState);
-
-    // Close chat history when entering fullscreen mode
-    if (newFullscreenState) {
-      setIsChatHistoryOpen(false);
-    }
-  };
 
   // Drag and drop handlers
   const [isDragging, setIsDragging] = useState(false);
@@ -400,6 +460,17 @@ const HomeView: React.FC = () => {
   const handleUpdateNotification = (data: any) => {
   };
 
+  // Handle delete chat
+  const handleDeleteChat = async (chatId: string) => {
+    try {
+      await assistantStore.deleteChatById(chatId);
+      // Refresh the chat list
+      await assistantStore.getChats();
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+    }
+  };
+
   // Group chats by date using shared utility
   const chatGroups = groupChatsByDate(assistantStore.chatList);
   const hasChats = chatGroups.length > 0;
@@ -420,22 +491,22 @@ const HomeView: React.FC = () => {
 
   const features = [
     {
-      icon: <CheckCircle2 size={20} className="text-green-400" />,
-      title: 'AI-Powered Development',
-      description: 'Build applications with intelligent assistance and automated workflows.',
-      color: 'green'
+      icon: <Rocket size={20} className="text-teal-400" />,
+      title: 'Complete Application Generation',
+      description: 'Generate full applications with entities, workflows, REST APIs, and database schemas in Python or Java.',
+      color: 'teal'
     },
     {
-      icon: <Info size={20} className="text-blue-400" />,
+      icon: <Database size={20} className="text-teal-400" />,
       title: 'Entity-Driven Architecture',
-      description: 'Leverage CYODA\'s entity database for scalable, event-driven applications.',
-      color: 'blue'
+      description: 'Create data entities with validation, processors, and automatic CRUD operations using CYODA\'s EDBMS.',
+      color: 'teal'
     },
     {
-      icon: <Zap size={20} className="text-purple-400" />,
-      title: 'Rapid Prototyping',
-      description: 'From concept to deployment in minutes with intelligent code generation.',
-      color: 'purple'
+      icon: <GitBranch size={20} className="text-teal-400" />,
+      title: 'Intelligent Workflows',
+      description: 'Design state machines and business logic with visual workflow editors and automated transitions.',
+      color: 'teal'
     }
   ];
 
@@ -443,17 +514,21 @@ const HomeView: React.FC = () => {
     <div className="main-layout bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-white">
       <Header
         showActions={true}
-        onToggleCanvas={handleToggleCanvas}
         onToggleChatHistory={() => setIsChatHistoryOpen(!isChatHistoryOpen)}
-        canvasVisible={canvasVisible}
+        onToggleEnvironments={() => setIsEnvironmentsOpen(!isEnvironmentsOpen)}
         chatHistoryVisible={isChatHistoryOpen}
+        environmentsVisible={isEnvironmentsOpen}
+        showCanvasButton={false}
       />
       <div className="flex h-[calc(100vh-73px)] overflow-hidden">
         {/* Enhanced Left Sidebar - Resizable Chat History Panel */}
         {isChatHistoryOpen && (
           <div
             className={`h-full ${chatHistoryResize.isResizing ? 'resizing' : ''}`}
-            style={{ width: `${chatHistoryResize.width}px` }}
+            style={{
+              width: `${chatHistoryResize.width}px`,
+              zIndex: chatHistoryResize.isResizing ? 30 : 10
+            }}
           >
             <ChatHistoryPanel
               chatGroups={chatGroups}
@@ -462,78 +537,74 @@ const HomeView: React.FC = () => {
               isResizing={chatHistoryResize.isResizing}
               showHomeAsActive={true}
               onClose={() => setIsChatHistoryOpen(false)}
+              onDeleteChat={handleDeleteChat}
+              hasMoreChats={assistantStore.hasMoreChats}
+              isLoadingMore={assistantStore.isLoadingMoreChats}
+              onLoadMore={() => assistantStore.loadMoreChats()}
             />
           </div>
         )}
 
-
-
-        {/* Canvas Sidebar Panel */}
-        {canvasVisible && (
+        {/* Environments Panel */}
+        {isEnvironmentsOpen && (
           <div
-            className={`bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel ${canvasResize.isResizing ? 'resizing' : ''} ${
-              isCanvasFullscreen ? 'fixed inset-0 z-[9000] w-full' : ''
-            }`}
-            style={isCanvasFullscreen ? {} : { width: `${canvasResize.width}px` }}
+            className={`h-full ${environmentsResize.isResizing ? 'resizing' : ''}`}
+            style={{
+              width: `${environmentsResize.width}px`,
+              zIndex: environmentsResize.isResizing ? 30 : 10
+            }}
           >
-            <ChatBotCanvas
-              technicalId="home-canvas"
-              messages={[]}
-              isLoading={false}
-              onAnswer={handleAnswer}
-              onApproveQuestion={handleApproveQuestion}
-              onUpdateNotification={handleUpdateNotification}
-              onToggleCanvas={handleToggleCanvas}
-              isFullscreen={isCanvasFullscreen}
-              onToggleFullscreen={handleToggleCanvasFullscreen}
+            <EnvironmentsPanel
+              onResizeMouseDown={environmentsResize.handleMouseDown}
+              isResizing={environmentsResize.isResizing}
+              onClose={() => setIsEnvironmentsOpen(false)}
+              isFullscreen={false}
+              onToggleFullscreen={() => {
+                // Save current width before going fullscreen
+                localStorage.setItem('environments-width-before-fullscreen', environmentsResize.width.toString());
+                navigate('/environments', { state: { from: '/' } });
+              }}
             />
-
-            {/* Resize Handle - Hide in fullscreen mode */}
-            {!isCanvasFullscreen && (
-              <ResizeHandle
-                position="right"
-                onMouseDown={canvasResize.handleMouseDown}
-                isResizing={canvasResize.isResizing}
-              />
-            )}
           </div>
         )}
 
-        {/* Enhanced Main Content - Hidden when canvas is fullscreen */}
-        {!isCanvasFullscreen && (
-          <div ref={mainContentRef} className="flex-1 flex flex-col bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
-            <div className="p-8 flex-1 overflow-y-auto scrollbar-thin">
-            <div className="max-w-4xl mx-auto">
+        {/* Enhanced Main Content */}
+        <div ref={mainContentRef} className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden scrollbar-thin bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
+            <div className="p-3 sm:p-4 md:p-4 lg:p-5 xl:p-6 min-h-full flex flex-col min-w-0">
+            <div className="w-full flex-1 flex flex-col min-w-0 max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl mx-auto">
               {/* Enhanced Header */}
-              <div className="mb-8 animate-fade-in-up">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-green-400 uppercase tracking-wider">Ready to Build</span>
+              <div className="mb-6 animate-fade-in-up" style={{ marginTop: '32px' }}>
+                <div className="flex items-center space-x-2 mb-3">
+                  <div className="w-2.5 h-2.5 bg-teal-400 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-medium text-teal-400 uppercase tracking-wider">Ready to Build</span>
                 </div>
-                <h1 className="text-3xl font-bold mb-3 bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
-                  Welcome to CYODA AI Assistant
-                </h1>
-                <p className="text-slate-400 text-lg leading-relaxed">
-                  Build, deploy and scale data-intensive operational services with intelligent assistance
+                <div className="flex items-center space-x-3 mb-2">
+                  <img src="/favicon.svg" alt="CYODA" className="w-10 h-10" style={{ transform: 'translateY(-25%)', width: '42px', height: '42px' }} />
+                  <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+                    Welcome to CYODA AI Assistant
+                  </h1>
+                </div>
+                <p className="text-slate-400 text-base leading-relaxed">
+                  Create complete applications with entities, workflows, and REST APIs using intelligent code generation
                 </p>
               </div>
 
               {/* Enhanced Feature Cards */}
               {!isResizing && (
-                <div className="grid md:grid-cols-3 gap-6 mb-8">
+                <div className="grid md:grid-cols-3 gap-4 mb-6 min-w-0">
                   {features.map((feature, index) => (
                     <div
                       key={index}
-                      className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-slate-600 transition-all duration-200 animate-fade-in-up hover:shadow-xl hover:shadow-slate-900/20"
+                      className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-4 hover:border-slate-600 hover:bg-slate-800/70 transition-all duration-200 animate-fade-in-up hover:shadow-lg"
                       style={{ animationDelay: `${index * 0.1}s` }}
                     >
-                      <div className="flex items-start space-x-4">
-                        <div className={`w-10 h-10 rounded-lg bg-${feature.color}-500 flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                      <div className="flex items-start space-x-3">
+                        <div className="w-9 h-9 rounded-lg bg-teal-500/20 border border-teal-500/30 flex items-center justify-center flex-shrink-0">
                           {feature.icon}
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-white mb-2">{feature.title}</h3>
-                          <p className="text-slate-300 text-sm leading-relaxed">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-white mb-1.5 text-sm">{feature.title}</h3>
+                          <p className="text-slate-300 text-xs leading-relaxed">
                             {feature.description}
                           </p>
                         </div>
@@ -544,7 +615,7 @@ const HomeView: React.FC = () => {
               )}
 
               {/* Chat Input - Lovable Style */}
-              <div className="mb-6">
+              <div className="mb-4">
                 <form onSubmit={handleChatSubmit}>
                   <div
                     className="relative"
@@ -563,9 +634,15 @@ const HomeView: React.FC = () => {
                     )}
 
                     <textarea
-                      ref={chatInputRef as any}
+                      ref={chatInputRef}
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
+                      onPaste={() => {
+                        // Allow the paste to happen first, then adjust height
+                        setTimeout(() => {
+                          adjustTextareaHeight();
+                        }, 0);
+                      }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -574,18 +651,25 @@ const HomeView: React.FC = () => {
                       }}
                       placeholder="What would you like to build together today?"
                       rows={1}
-                      className="w-full bg-slate-800/60 backdrop-blur-sm border-2 border-slate-600/50 rounded-3xl pl-6 pr-6 pb-16 pt-6 text-white placeholder-slate-400 focus:outline-none focus:border-teal-500/80 focus:bg-slate-800/80 transition-all duration-200 text-2xl shadow-2xl resize-none overflow-hidden translate-y-[20%]"
-                      style={{ minHeight: '135px', maxHeight: '300px' }}
+                      className="w-full bg-slate-800/60 backdrop-blur-sm border-2 border-slate-600/50 rounded-3xl px-6 pr-28 py-4 text-white placeholder-slate-400 focus:outline-none focus:border-teal-500/80 focus:bg-slate-800/80 transition-all duration-200 text-lg shadow-2xl resize-none"
+                      style={{
+                        height: `${textareaHeight}px`,
+                        minHeight: '60px',
+                        maxHeight: '300px',
+                        overflowY: textareaHeight >= 300 ? 'auto' : 'hidden',
+                        lineHeight: '1.5'
+                      }}
                       disabled={isLoading}
                     />
 
                     {/* Bottom Right Controls - Lovable Style */}
-                    <div className="absolute right-4 bottom-6 flex items-center gap-2">
+                    <div className="absolute right-4 bottom-4 flex items-center z-10">
                       {/* Attach File Button */}
                       <button
                         type="button"
                         onClick={handleFileAttach}
-                        className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
+                        className="rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200 flex items-center justify-center flex-shrink-0"
+                        style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px', maxWidth: '40px', maxHeight: '40px', transform: 'translateX(25%)' }}
                         title="Attach file"
                       >
                         <Paperclip size={18} />
@@ -595,13 +679,14 @@ const HomeView: React.FC = () => {
                       <button
                         type="submit"
                         disabled={!chatInput.trim() || isLoading}
-                        className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:opacity-50 text-white p-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-teal-500/25 disabled:cursor-not-allowed"
+                        className="text-emerald-400 hover:text-emerald-500 hover:scale-110 transition-all duration-200 flex items-center justify-center flex-shrink-0 p-3"
+                        style={{ transform: 'translateY(5%)' }}
                         title="Send Message (Enter)"
                       >
                         {isLoading ? (
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <div className="w-6 h-6 border-2 border-emerald-400/30 border-t-emerald-600 rounded-full animate-spin" />
                         ) : (
-                          <Send size={18} />
+                          <Send size={24} className="text-emerald-400" />
                         )}
                       </button>
                     </div>
@@ -610,9 +695,9 @@ const HomeView: React.FC = () => {
 
                 {/* File attachments display - Below input */}
                 {attachedFiles.length > 0 && (
-                  <div className="mt-4 p-4 bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-2xl  translate-y-[10%]">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium text-slate-300">Attached Files ({attachedFiles.length})</span>
+                  <div className="mt-2 sm:mt-3 md:mt-4 p-2 sm:p-3 md:p-4 bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-lg sm:rounded-xl md:rounded-2xl">
+                    <div className="flex items-center justify-between mb-2 sm:mb-2.5 md:mb-3">
+                      <span className="text-xs sm:text-sm font-medium text-slate-300">Attached Files ({attachedFiles.length})</span>
                       <button
                         type="button"
                         onClick={() => setAttachedFiles([])}
@@ -621,17 +706,17 @@ const HomeView: React.FC = () => {
                         Clear All
                       </button>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                       {attachedFiles.map((file, index) => (
-                        <div key={index} className="bg-slate-700/50 text-slate-300 px-3 py-2 rounded-lg text-sm flex items-center space-x-2 border border-slate-600">
-                          <Paperclip size={14} className="text-teal-400" />
-                          <span className="max-w-[200px] truncate">{file.name}</span>
+                        <div key={index} className="bg-slate-700/50 text-slate-300 px-2 sm:px-2.5 md:px-3 py-1.5 sm:py-1.5 md:py-2 rounded-md sm:rounded-lg text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 border border-slate-600">
+                          <Paperclip size={12} className="sm:w-[13px] sm:h-[13px] md:w-[14px] md:h-[14px] text-teal-400 flex-shrink-0" />
+                          <span className="max-w-[100px] sm:max-w-[150px] md:max-w-[200px] truncate">{file.name}</span>
                           <button
                             type="button"
                             onClick={() => handleRemoveFile(index)}
-                            className="hover:text-red-400 transition-colors ml-1"
+                            className="hover:text-red-400 transition-colors ml-1 flex-shrink-0"
                           >
-                            <X size={14} />
+                            <X size={12} className="sm:w-[13px] sm:h-[13px] md:w-[14px] md:h-[14px]" />
                           </button>
                         </div>
                       ))}
@@ -651,46 +736,55 @@ const HomeView: React.FC = () => {
               </div>
 
               {/* Quick Actions */}
-              <div className="mb-6 translate-y-[20%]">
-                <h2 className="text-xl font-semibold mb-3 flex items-center space-x-2">
-                  <Zap className="text-teal-400" size={20} />
-                  <span>Quick Start</span>
+              <div className="mb-4">
+                <h2 className="text-base font-semibold mb-2 sm:mb-2.5 md:mb-2.5 flex items-center space-x-1.5 sm:space-x-2 text-white">
+                  <Activity className="text-teal-400 w-5 h-5" />
+                  <span>Conversation starters</span>
                 </h2>
 
-                <div className="grid md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3 sm:gap-3 md:gap-4">
                   {quickActions.map((action, index) => (
                     <button
                       key={index}
                       onClick={action.action}
-                      className="text-left p-4 glass-light rounded-lg hover:border-slate-600 transition-all duration-200 group"
+                      className="text-left p-3 sm:p-4 md:p-4 lg:p-4 glass-light rounded-lg hover:border-teal-500/50 hover:bg-teal-500/10 transition-all duration-200 group"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-300 group-hover:text-white transition-colors">
-                          {action.label}
-                        </span>
-                        <ChevronRight size={16} className="text-slate-500 group-hover:text-teal-400 group-hover:translate-x-1 transition-all" />
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 mt-0.5 p-2 rounded-lg bg-slate-700/50 border border-slate-600 group-hover:bg-slate-600/50 group-hover:border-slate-500 transition-all duration-200">
+                          {action.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm sm:text-base font-medium text-slate-200 group-hover:text-white transition-colors mb-1">
+                            {action.label}
+                          </div>
+                          <div className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors line-clamp-2">
+                            {action.description}
+                          </div>
+                        </div>
+                        <ChevronRight size={14} className="text-slate-500 group-hover:text-teal-400 group-hover:translate-x-1 transition-all flex-shrink-0 mt-1" />
                       </div>
                     </button>
                   ))}
                 </div>
               </div>
 
+              {/* Spacer to push footer to bottom */}
+              <div className="flex-1"></div>
+
               {/* Footer */}
-              <div className="mt-8  translate-y-[50%]">
-                <p className="text-center text-slate-600 text-xs leading-relaxed">
+              <div className="mt-auto pt-4 pb-3">
+                <p className="text-center text-slate-400 text-[10px] sm:text-xs md:text-xs leading-relaxed px-2">
                   By using this service, you confirm that you have read and agree to our{' '}
-                  <a href="https://cyoda.com/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300 underline transition-colors">Terms & Conditions</a>
+                  <a href="https://cyoda.com/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 underline transition-colors font-medium">Terms & Conditions</a>
                   {' '}and{' '}
-                  <a href="https://cyoda.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300 underline transition-colors">Privacy Policy</a>
-                </p>
-                <p className="text-center text-slate-600 text-xs mt-2">
-                  Copyright © 2025 <a href="https://cyoda.com/" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300 transition-colors">CYODA Ltd</a>.
+                  <a href="https://cyoda.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 underline transition-colors font-medium">Privacy Policy</a>
+                  {' • '}
+                  Copyright © 2025 <a href="https://cyoda.com/" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium">CYODA Ltd</a>.
                 </p>
               </div>
             </div>
           </div>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

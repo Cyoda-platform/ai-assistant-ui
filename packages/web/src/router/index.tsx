@@ -11,6 +11,8 @@ import DashboardView from '@/views/DashboardView';
 import ChatBotView from '@/views/ChatBotView';
 import CanvasDemoView from '@/views/CanvasDemoView';
 import WorkflowTabsView from '@/views/WorkflowTabsView';
+import EnvironmentsPage from '@/pages/EnvironmentsPage';
+import TestContextMenu from '@/components/ChatHistoryPanel/TestContextMenu';
 
 // Import layouts
 import LayoutDefault from '@/layouts/LayoutDefault';
@@ -80,6 +82,14 @@ const routes = [
       {
         path: "workflows",
         element: <WorkflowTabsView />,
+      },
+      {
+        path: "environments",
+        element: <EnvironmentsPage />,
+      },
+      {
+        path: "test-context-menu",
+        element: <TestContextMenu />,
       },
     ],
   },

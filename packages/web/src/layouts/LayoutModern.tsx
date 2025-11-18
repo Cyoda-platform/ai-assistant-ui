@@ -493,7 +493,13 @@ const example = 'Hello World';
               <button
                 type="submit"
                 disabled={!chatInput.trim()}
-                className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:from-slate-600 disabled:to-slate-700 text-white p-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed"
+                className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 disabled:from-slate-600 disabled:to-slate-700 text-white p-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
+                style={{
+                  transform: 'translateY(15%)',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(15%) scale(1.05)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(15%) scale(1)'}
                 title="Send Message"
               >
                 <Send size={20} />
@@ -521,12 +527,6 @@ const example = 'Hello World';
           isOpen={isEntityDataOpen}
           onClose={() => setIsEntityDataOpen(false)}
           chatData={null} // TODO: Pass actual chat data from props or context
-          onRefresh={() => {
-            // TODO: Implement refresh functionality
-          }}
-          onRollbackChat={() => {
-            // TODO: Implement rollback functionality
-          }}
         />
       </div>
 

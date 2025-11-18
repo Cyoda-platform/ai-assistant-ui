@@ -138,14 +138,6 @@ const AuthStateAvatar: React.FC = () => {
                 </button>
               </div>
             )}
-
-            <button
-              onClick={onClickSettings}
-              className="w-full flex items-center space-x-3 px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors rounded-md text-sm"
-            >
-              <Settings className="w-4 h-4" />
-              <span>{t('side_bar.links.settings')}</span>
-            </button>
           </div>
 
           {/* Footer Actions */}
@@ -155,7 +147,7 @@ const AuthStateAvatar: React.FC = () => {
               className="w-full flex items-center space-x-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors text-sm"
             >
               <LogOut className="w-4 h-4" />
-              <span>{t('side_bar.logout')}</span>
+              <span>logout</span>
             </button>
           </div>
         </div>

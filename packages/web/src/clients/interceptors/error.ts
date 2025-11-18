@@ -36,6 +36,16 @@ const errorInterceptor = (instance: AxiosInstance): void => {
                             url.includes('/text-questions') ||
                             url.includes('/questions');
 
+      // For task-related endpoints, don't show modal
+      // The error will be displayed in the task dashboard UI instead
+      const isTaskEndpoint = url.includes('/v1/tasks');
+
+      // For app-config GET by-conversation endpoint, 404 is expected (no config exists yet)
+      // The service handles this gracefully by returning null and creating a new config
+      const isAppConfigGetByConversation = url.includes('/v1/app-config/by-conversation') &&
+                                           response?.config?.method?.toLowerCase() === 'get' &&
+                                           response?.status === 404;
+
       // Special handling for /v1/chats/transfer - always show error modal
       if(url.includes('/v1/chats/transfer') && [403].includes(response?.status)) {
         HelperErrors.handler(error);
@@ -58,8 +68,8 @@ const errorInterceptor = (instance: AxiosInstance): void => {
         return Promise.reject(error);
       }
 
-      // Only show error modal if it's not a chat endpoint
-      if (!isChatEndpoint) {
+      // Only show error modal if it's not a chat, task, or app-config GET by-conversation endpoint
+      if (!isChatEndpoint && !isTaskEndpoint && !isAppConfigGetByConversation) {
         HelperErrors.handler(error);
       }
 

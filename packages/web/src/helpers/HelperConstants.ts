@@ -6,3 +6,5 @@ export const DELETE_CHAT_CLEAR_INTERVALS_BY_TECHNICAL_ID = 'delete-chat:clear-in
 export const RENAME_CHAT_START = 'rename-chat:start';
 export const LOAD_CHAT_HISTORY = 'load-chat-history';
 export const ROLLBACK_CHAT = 'rollback-chat';
+export const SEND_INITIAL_MESSAGE = 'send-initial-message';
+export const CHAT_READY = 'chat-ready';

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import { Edit, Play, Square } from 'lucide-react';
+import { Edit, Play, Square, ArrowRight } from 'lucide-react';
 import type { UIStateData } from '../types/workflow';
 import { InlineNameEditor } from '../Editors/InlineNameEditor';
 import type { ColorPalette } from '../themes/colorPalettes';
@@ -13,6 +13,7 @@ interface StateNodeData {
   label: string;
   state: UIStateData;
   onNameChange: (stateId: string, newName: string) => void;
+  onSendToChat?: (stateData: UIStateData) => void;
   palette: ColorPalette;
 }
 
@@ -71,10 +72,17 @@ const ANCHOR_POINTS: Record<AnchorPoint, {
 };
 
 export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
-  const { state, onNameChange, palette } = data as unknown as StateNodeData;
+  const { state, onNameChange, onSendToChat, palette } = data as unknown as StateNodeData;
 
   const handleNameChange = (newName: string) => {
     onNameChange(state.id, newName);
+  };
+
+  const handleSendToChat = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onSendToChat) {
+      onSendToChat(state);
+    }
   };
 
   // Get handle color based on state type using theme palette
@@ -174,6 +182,17 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
               inputClassName="text-sm font-semibold text-white"
             />
           </div>
+
+          {/* Send to Chat Button */}
+          {onSendToChat && (
+            <button
+              onClick={handleSendToChat}
+              className="flex-shrink-0 p-1 hover:bg-white/20 rounded transition-colors"
+              title="Send state to chat"
+            >
+              <ArrowRight size={14} className="text-white" />
+            </button>
+          )}
         </div>
 
         {/* Additional Information - Subtle white sublabels with emojis */}

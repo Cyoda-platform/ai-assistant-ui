@@ -12,6 +12,7 @@ const { TextArea } = Input;
 
 interface CreateChatResponse {
   technical_id: string;
+  initialMessage?: string; // Optional initial message to send after creation
 }
 
 interface NewChatProps {
@@ -43,13 +44,40 @@ const NewChat: React.FC<NewChatProps> = ({ onCreated }) => {
 
   const handleSubmit = async (values: { name: string; description: string }) => {
     setIsLoading(true);
+
+    // Store the full message to be sent after chat creation
+    const initialMessage = values.name;
+
+    // Generate temporary ID and navigate immediately
+    // Pass initialMessage so it's available when we navigate to the real chat
+    const tempId = `temp-${Date.now()}`;
+    onCreated({ technical_id: tempId, initialMessage });
+
     try {
-      const { data } = await assistantStore.postChats(values);
+      // Step 1: Create chat with proper name (not the message)
+      // Use first 50 chars of message as chat name
+      const chatName = values.name.substring(0, 50) + (values.name.length > 50 ? '...' : '');
+
+      const { data } = await assistantStore.postChats({
+        name: chatName,
+        description: values.description || ''
+      });
+
       if (!authStore.isLoggedIn) {
         assistantStore.setGuestChatsExist(true);
       }
-      onCreated(data);
+
+      // Navigate to real chat ID (will replace the temp one)
+      // Pass the initial message so ChatBotView can send it via streaming
+      onCreated({
+        technical_id: data.technical_id,
+        initialMessage: initialMessage // Pass message to be sent after navigation
+      });
       eventBus.$emit(UPDATE_CHAT_LIST);
+    } catch (error) {
+      console.error('Error creating chat:', error);
+      // On error, the user is already on the temp chat page
+      // The ChatBotView will handle showing an error state
     } finally {
       setIsLoading(false);
     }

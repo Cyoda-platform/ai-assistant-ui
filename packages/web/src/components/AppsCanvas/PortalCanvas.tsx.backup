@@ -1,0 +1,637 @@
+import React, { useCallback, useMemo, useState, useRef } from 'react';
+import {
+  ReactFlow,
+  Background,
+  BackgroundVariant,
+  Controls,
+  ControlButton,
+  MiniMap,
+  useNodesState,
+  useEdgesState,
+  Panel,
+  ReactFlowProvider,
+  MarkerType,
+  useReactFlow,
+  addEdge,
+  Connection
+} from '@xyflow/react';
+import type { Node, Edge, OnConnect } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import {
+  LayoutGrid,
+  Network,
+  Circle,
+  GitBranch,
+  Maximize2,
+  Minimize2,
+  Filter,
+  RefreshCw,
+  FileJson,
+  Settings,
+  Info,
+  Download,
+  Upload,
+  Save,
+  Undo2,
+  Redo2,
+  ZoomIn,
+  ZoomOut,
+  Trash2
+} from 'lucide-react';
+
+import { EntityVersionNode } from './Nodes/EntityNode';
+import { WorkflowNode } from './Nodes/WorkflowNode';
+import { RequirementNode } from './Nodes/RequirementNode';
+import { CodeNode } from './Nodes/CodeNode';
+import { EnvironmentNode } from './Nodes/EnvironmentNode';
+import { AppNode } from './Nodes/AppNode';
+import { layoutAlgorithms } from './utils/layoutAlgorithms';
+import type { PortalData, LayoutAlgorithm, PortalFilters, CanvasTab, PortalSettings } from './types/portal';
+import { WorkflowJsonEditor } from '../WorkflowCanvas/Editors/WorkflowJsonEditor';
+
+const nodeTypes = {
+  environmentNode: EnvironmentNode,
+  appNode: AppNode,
+  requirementNode: RequirementNode,
+  entityVersionNode: EntityVersionNode,
+  workflowNode: WorkflowNode,
+  codeNode: CodeNode,
+};
+
+interface PortalCanvasProps {
+  data: PortalData;
+  onNavigate?: (tab: CanvasTab, targetId: string) => void;
+  onDataUpdate?: (data: PortalData) => void;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
+}
+
+const PortalCanvasInner: React.FC<PortalCanvasProps> = ({
+  data,
+  onNavigate,
+  onDataUpdate,
+  isFullscreen = false,
+  onToggleFullscreen
+}) => {
+  const { fitView, zoomIn, zoomOut } = useReactFlow();
+
+  // UI State
+  const [layoutAlgorithm, setLayoutAlgorithm] = useState<LayoutAlgorithm>('hierarchical');
+  const [showJsonEditor, setShowJsonEditor] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showInfo, setShowInfo] = useState(true);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  // Filters
+  const [filters, setFilters] = useState<PortalFilters>({
+    showEnvironments: true,
+    showApps: true,
+    showRequirements: true,
+    showEntityVersions: true,
+    showWorkflows: true,
+    showCode: true
+  });
+
+  // Settings with localStorage persistence
+  const [settings, setSettings] = useState<PortalSettings>(() => {
+    try {
+      const saved = localStorage.getItem('portal-canvas-settings');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.warn('Failed to load portal settings:', error);
+    }
+    return {
+      autoLayout: true,
+      showMinimap: true,
+      showGrid: true,
+      snapToGrid: false,
+      gridSize: 20,
+      theme: 'dark'
+    };
+  });
+
+  // Persist settings to localStorage
+  const updateSettings = useCallback((newSettings: Partial<PortalSettings>) => {
+    setSettings(prev => {
+      const updated = { ...prev, ...newSettings };
+      try {
+        localStorage.setItem('portal-canvas-settings', JSON.stringify(updated));
+      } catch (error) {
+        console.warn('Failed to save portal settings:', error);
+      }
+      return updated;
+    });
+  }, []);
+
+  // Convert portal data to React Flow nodes
+  const initialNodes = useMemo(() => {
+    const nodes: Node[] = [];
+
+    // Environment nodes (Level 1)
+    if (filters.showEnvironments) {
+      data.environments.forEach(env => {
+        nodes.push({
+          id: env.id,
+          type: 'environmentNode',
+          position: { x: 0, y: 0 },
+          data: {
+            name: env.name,
+            environmentType: env.environmentType,
+            description: env.description,
+            appCount: env.appCount,
+            status: env.status,
+            onClick: () => setSelectedNodeId(env.id)
+          }
+        });
+      });
+    }
+
+    // App nodes (Level 2)
+    if (filters.showApps) {
+      data.apps.forEach(app => {
+        nodes.push({
+          id: app.id,
+          type: 'appNode',
+          position: { x: 0, y: 0 },
+          data: {
+            name: app.name,
+            description: app.description,
+            requirementCount: app.requirementCount,
+            version: app.version,
+            status: app.status,
+            onClick: () => setSelectedNodeId(app.id)
+          }
+        });
+      });
+    }
+
+    // Requirement nodes (Level 3 - versioned!)
+    if (filters.showRequirements) {
+      data.requirements.forEach(requirement => {
+        nodes.push({
+          id: requirement.id,
+          type: 'requirementNode',
+          position: { x: 0, y: 0 },
+          data: {
+            title: requirement.title,
+            version: requirement.version,
+            description: requirement.description,
+            status: requirement.status,
+            priority: requirement.priority,
+            entityCount: requirement.entityCount,
+            updatedAt: requirement.updatedAt,
+            onClick: () => {
+              setSelectedNodeId(requirement.id);
+              onNavigate?.('requirement', requirement.id);
+            }
+          }
+        });
+      });
+    }
+
+    // Entity-Version nodes (Level 4)
+    if (filters.showEntityVersions) {
+      data.entityVersions.forEach(entityVersion => {
+        nodes.push({
+          id: entityVersion.id,
+          type: 'entityVersionNode',
+          position: { x: 0, y: 0 },
+          data: {
+            entityName: entityVersion.entityName,
+            version: entityVersion.version,
+            description: entityVersion.description,
+            state: entityVersion.state,
+            workflowCount: entityVersion.workflowCount,
+            codeCount: data.code?.filter(c => c.entityVersionId === entityVersion.id).length || 0,
+            isActive: entityVersion.isActive,
+            updatedAt: entityVersion.updatedAt,
+            onClick: () => {
+              setSelectedNodeId(entityVersion.id);
+              onNavigate?.('data', entityVersion.id);
+            }
+          }
+        });
+      });
+    }
+
+    // Workflow nodes (Level 5)
+    if (filters.showWorkflows) {
+      data.workflows.forEach(workflow => {
+        nodes.push({
+          id: workflow.id,
+          type: 'workflowNode',
+          position: { x: 0, y: 0 },
+          data: {
+            entityVersionId: workflow.entityVersionId,
+            name: workflow.name,
+            stateCount: workflow.stateCount,
+            transitionCount: workflow.transitionCount,
+            updatedAt: workflow.updatedAt,
+            onClick: () => {
+              setSelectedNodeId(workflow.id);
+              onNavigate?.('workflow', workflow.id);
+            },
+            onEdit: () => onNavigate?.('workflow', workflow.id)
+          }
+        });
+      });
+    }
+
+    // Code nodes (Level 6)
+    if (filters.showCode && data.code) {
+      data.code.forEach(code => {
+        nodes.push({
+          id: code.id,
+          type: 'codeNode',
+          position: { x: 0, y: 0 },
+          data: {
+            entityVersionId: code.entityVersionId,
+            workflowId: code.workflowId,
+            name: code.name,
+            language: code.language,
+            description: code.description,
+            linesOfCode: code.linesOfCode,
+            onClick: () => {
+              setSelectedNodeId(code.id);
+              onNavigate?.('code', code.id);
+            }
+          }
+        });
+      });
+    }
+
+    return nodes;
+  }, [data, filters, onNavigate]);
+
+  // Convert portal data to React Flow edges
+  const initialEdges = useMemo(() => {
+    const edges: Edge[] = [];
+
+    // Level 1→2: Environment → App edges
+    if (filters.showEnvironments && filters.showApps) {
+      data.apps.forEach(app => {
+        edges.push({
+          id: `env-app-${app.environmentId}-${app.id}`,
+          source: app.environmentId,
+          target: app.id,
+          type: 'smoothstep',
+          animated: false,
+          style: { stroke: '#14b8a6', strokeWidth: 2 },
+          markerEnd: { type: MarkerType.ArrowClosed, color: '#14b8a6' }
+        });
+      });
+    }
+
+    // Level 2→3: App → Requirement edges
+    if (filters.showApps && filters.showRequirements) {
+      data.requirements.forEach(requirement => {
+        edges.push({
+          id: `app-req-${requirement.appId}-${requirement.id}`,
+          source: requirement.appId,
+          target: requirement.id,
+          type: 'smoothstep',
+          animated: false,
+          style: { stroke: '#f59e0b', strokeWidth: 2 },
+          markerEnd: { type: MarkerType.ArrowClosed, color: '#f59e0b' }
+        });
+      });
+    }
+
+    // Level 3→4: Requirement → EntityVersion edges
+    if (filters.showRequirements && filters.showEntityVersions) {
+      data.entityVersions.forEach(entityVersion => {
+        edges.push({
+          id: `req-ev-${entityVersion.requirementId}-${entityVersion.id}`,
+          source: entityVersion.requirementId,
+          target: entityVersion.id,
+          type: 'smoothstep',
+          animated: false,
+          style: { stroke: '#3b82f6', strokeWidth: 2 },
+          markerEnd: { type: MarkerType.ArrowClosed, color: '#3b82f6' }
+        });
+      });
+    }
+
+    // Level 4→5: EntityVersion → Workflow edges
+    if (filters.showEntityVersions && filters.showWorkflows) {
+      data.workflows.forEach(workflow => {
+        edges.push({
+          id: `ev-w-${workflow.entityVersionId}-${workflow.id}`,
+          source: workflow.entityVersionId,
+          target: workflow.id,
+          type: 'smoothstep',
+          animated: false,
+          style: { stroke: '#a78bfa', strokeWidth: 2 },
+          markerEnd: { type: MarkerType.ArrowClosed, color: '#a78bfa' }
+        });
+      });
+    }
+
+    // Level 5→6: Workflow → Code edges
+    if (filters.showWorkflows && filters.showCode && data.code) {
+      data.code.forEach(code => {
+        if (code.workflowId) {
+          edges.push({
+            id: `w-c-${code.workflowId}-${code.id}`,
+            source: code.workflowId,
+            target: code.id,
+            type: 'smoothstep',
+            animated: false,
+            style: { stroke: '#10b981', strokeWidth: 1.5 },
+            markerEnd: { type: MarkerType.ArrowClosed, color: '#10b981' }
+          });
+        }
+      });
+    }
+
+    return edges;
+  }, [data, filters]);
+
+  // Apply layout algorithm
+  const layoutedNodes = useMemo(() => {
+    const layoutFn = layoutAlgorithms[layoutAlgorithm];
+    return layoutFn(initialNodes, initialEdges);
+  }, [initialNodes, initialEdges, layoutAlgorithm]);
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  // Update nodes when layout changes
+  React.useEffect(() => {
+    setNodes(layoutedNodes);
+  }, [layoutedNodes, setNodes]);
+
+  // Update edges when filters change
+  React.useEffect(() => {
+    setEdges(initialEdges);
+  }, [initialEdges, setEdges]);
+
+  const handleRelayout = useCallback(() => {
+    const layoutFn = layoutAlgorithms[layoutAlgorithm];
+    const newNodes = layoutFn(nodes, edges);
+    setNodes(newNodes);
+  }, [layoutAlgorithm, nodes, edges, setNodes]);
+
+  return (
+    <div className="h-full w-full" style={{ background: '#0f172a' }}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        nodeTypes={nodeTypes}
+        fitView
+        minZoom={0.1}
+        maxZoom={2}
+        className="dark"
+        colorMode="dark"
+        nodesDraggable={true}
+        nodesConnectable={false}
+        elementsSelectable={true}
+      >
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={20}
+          size={1}
+          color="#334155"
+        />
+        <Controls className="bg-slate-800/90 border border-slate-600 rounded-lg">
+          <ControlButton onClick={() => zoomIn()} title="Zoom In">
+            <ZoomIn size={16} />
+          </ControlButton>
+          <ControlButton onClick={() => zoomOut()} title="Zoom Out">
+            <ZoomOut size={16} />
+          </ControlButton>
+          <ControlButton onClick={() => fitView()} title="Fit View">
+            <Maximize2 size={16} />
+          </ControlButton>
+        </Controls>
+
+        {settings.showMinimap && (
+          <MiniMap
+            className="bg-slate-800/90 border border-slate-600 rounded-lg"
+            nodeColor={(node) => {
+              switch (node.type) {
+                case 'environmentNode': return '#10b981';
+                case 'appNode': return '#14b8a6';
+                case 'requirementNode': return '#f59e0b';
+                case 'entityVersionNode': return '#2563eb';
+                case 'workflowNode': return '#9333ea';
+                case 'codeNode': return '#10b981';
+                default: return '#64748b';
+              }
+            }}
+            maskColor="rgba(15, 23, 42, 0.8)"
+          />
+        )}
+
+        {/* Toolbar - Top Left */}
+        <Panel position="top-left" className="bg-slate-800/95 border border-slate-600 rounded-lg p-2">
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => setShowJsonEditor(!showJsonEditor)}
+              className={`p-2 rounded transition-colors ${showJsonEditor ? 'bg-teal-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
+              title="JSON Editor"
+            >
+              <FileJson size={18} />
+            </button>
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className={`p-2 rounded transition-colors ${showSettings ? 'bg-teal-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
+              title="Settings"
+            >
+              <Settings size={18} />
+            </button>
+            <button
+              onClick={() => setShowInfo(!showInfo)}
+              className={`p-2 rounded transition-colors ${showInfo ? 'bg-teal-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
+              title="Info"
+            >
+              <Info size={18} />
+            </button>
+            <div className="w-px h-6 bg-slate-600 mx-1" />
+            <button
+              onClick={handleRelayout}
+              className="p-2 rounded bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors"
+              title="Re-layout"
+            >
+              <RefreshCw size={18} />
+            </button>
+            {onToggleFullscreen && (
+              <button
+                onClick={onToggleFullscreen}
+                className="p-2 rounded bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors"
+                title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+              >
+                {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+              </button>
+            )}
+          </div>
+        </Panel>
+
+        {/* Layout Control Panel - Top Right */}
+        <Panel position="top-right" className="bg-slate-800/95 border border-slate-600 rounded-lg p-3 space-y-2">
+          <div className="space-y-1">
+            <label className="text-xs text-slate-300 font-medium">Layout</label>
+            <div className="flex space-x-1">
+              <button
+                onClick={() => setLayoutAlgorithm('hierarchical')}
+                className={`p-1.5 rounded ${layoutAlgorithm === 'hierarchical' ? 'bg-blue-600' : 'bg-slate-700 hover:bg-slate-600'}`}
+                title="Hierarchical"
+              >
+                <Network size={16} className="text-white" />
+              </button>
+              <button
+                onClick={() => setLayoutAlgorithm('grid')}
+                className={`p-1.5 rounded ${layoutAlgorithm === 'grid' ? 'bg-blue-600' : 'bg-slate-700 hover:bg-slate-600'}`}
+                title="Grid"
+              >
+                <LayoutGrid size={16} className="text-white" />
+              </button>
+              <button
+                onClick={() => setLayoutAlgorithm('circular')}
+                className={`p-1.5 rounded ${layoutAlgorithm === 'circular' ? 'bg-blue-600' : 'bg-slate-700 hover:bg-slate-600'}`}
+                title="Circular"
+              >
+                <Circle size={16} className="text-white" />
+              </button>
+            </div>
+          </div>
+        </Panel>
+
+        {/* Info Panel - Bottom Right */}
+        {showInfo && (
+          <Panel position="bottom-right" className="bg-slate-800/95 border border-slate-600 rounded-lg p-3 max-w-sm">
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-white flex items-center space-x-2">
+                <Info size={16} className="text-teal-400" />
+                <span>Portal Overview</span>
+              </h3>
+              <div className="text-xs text-slate-300 space-y-1">
+                <div className="flex justify-between">
+                  <span>Environments:</span>
+                  <span className="font-semibold">{data.environments.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Applications:</span>
+                  <span className="font-semibold">{data.apps.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Requirements:</span>
+                  <span className="font-semibold">{data.requirements.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Entities:</span>
+                  <span className="font-semibold">{data.entityVersions.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Workflows:</span>
+                  <span className="font-semibold">{data.workflows.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Code Files:</span>
+                  <span className="font-semibold">{data.code?.length || 0}</span>
+                </div>
+              </div>
+            </div>
+          </Panel>
+        )}
+
+        {/* Settings Panel - Right Side */}
+        {showSettings && (
+          <Panel position="top-right" className="bg-slate-800/95 border border-slate-600 rounded-lg p-4 mt-24 max-w-xs">
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-white flex items-center space-x-2">
+                <Settings size={16} className="text-teal-400" />
+                <span>Settings</span>
+              </h3>
+
+              <div className="space-y-2">
+                <label className="flex items-center justify-between text-xs text-slate-300">
+                  <span>Show Minimap</span>
+                  <input
+                    type="checkbox"
+                    checked={settings.showMinimap}
+                    onChange={(e) => updateSettings({ showMinimap: e.target.checked })}
+                    className="rounded"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between text-xs text-slate-300">
+                  <span>Show Grid</span>
+                  <input
+                    type="checkbox"
+                    checked={settings.showGrid}
+                    onChange={(e) => updateSettings({ showGrid: e.target.checked })}
+                    className="rounded"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between text-xs text-slate-300">
+                  <span>Snap to Grid</span>
+                  <input
+                    type="checkbox"
+                    checked={settings.snapToGrid}
+                    onChange={(e) => updateSettings({ snapToGrid: e.target.checked })}
+                    className="rounded"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between text-xs text-slate-300">
+                  <span>Auto Layout</span>
+                  <input
+                    type="checkbox"
+                    checked={settings.autoLayout}
+                    onChange={(e) => updateSettings({ autoLayout: e.target.checked })}
+                    className="rounded"
+                  />
+                </label>
+              </div>
+            </div>
+          </Panel>
+        )}
+      </ReactFlow>
+
+      {/* JSON Editor Sidebar */}
+      {showJsonEditor && (
+        <div className="absolute top-0 right-0 h-full w-96 bg-slate-900/95 border-l border-slate-700 shadow-2xl z-10 flex flex-col">
+          <div className="flex items-center justify-between p-3 border-b border-slate-700">
+            <h3 className="text-sm font-semibold text-white flex items-center space-x-2">
+              <FileJson size={16} className="text-teal-400" />
+              <span>Portal Data (JSON)</span>
+            </h3>
+            <button
+              onClick={() => setShowJsonEditor(false)}
+              className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-hidden">
+            <WorkflowJsonEditor
+              workflow={data as any}
+              onWorkflowUpdate={(updatedData) => {
+                onDataUpdate?.(updatedData as any);
+              }}
+              selectedStateId={selectedNodeId}
+              selectedTransitionId={null}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Wrapper with ReactFlowProvider
+export const PortalCanvas: React.FC<PortalCanvasProps> = (props) => {
+  return (
+    <ReactFlowProvider>
+      <PortalCanvasInner {...props} />
+    </ReactFlowProvider>
+  );
+};
+

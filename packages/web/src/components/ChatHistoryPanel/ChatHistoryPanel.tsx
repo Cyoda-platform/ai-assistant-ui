@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, History, Clock, ChevronRight, X } from 'lucide-react';
+import { Home, History, Clock, ChevronRight, X, AlertTriangle } from 'lucide-react';
+import { Modal } from 'antd';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
+import { formatRelativeTime } from '@/utils/dateUtils';
+import ChatContextMenu from './ChatContextMenu';
+import ChatBotRenameDialog from '@/components/ChatBot/ChatBotRenameDialog';
+import './ChatContextMenu.css';
 
 interface Chat {
   technical_id: string;
@@ -25,6 +30,11 @@ interface ChatHistoryPanelProps {
   isResizing: boolean;
   showHomeAsActive?: boolean; // true for home page, false for chat details
   onClose?: () => void; // Optional close callback
+  onDeleteChat?: (chatId: string) => void; // Optional delete callback
+  onRenameChat?: (chatId: string, newName: string) => void; // Optional rename callback
+  hasMoreChats?: boolean; // Whether there are more chats to load
+  isLoadingMore?: boolean; // Whether more chats are being loaded
+  onLoadMore?: () => void; // Callback to load more chats
 }
 
 const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
@@ -34,21 +44,55 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
   onResizeMouseDown,
   isResizing,
   showHomeAsActive = false,
-  onClose
+  onClose,
+  onDeleteChat,
+  onRenameChat,
+  hasMoreChats = false,
+  isLoadingMore = false,
+  onLoadMore
 }) => {
   const navigate = useNavigate();
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [chatToDelete, setChatToDelete] = useState<{ id: string; name?: string } | null>(null);
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [chatToRename, setChatToRename] = useState<{ id: string; name: string } | null>(null);
 
-  const formatRelativeTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+  const handleDeleteClick = (e: React.MouseEvent, chatId: string, chatName?: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setChatToDelete({ id: chatId, name: chatName });
+    setDeleteModalOpen(true);
+  };
 
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
-    if (diffInDays < 7) return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
-    return date.toLocaleDateString();
+  const handleConfirmDelete = () => {
+    if (chatToDelete && onDeleteChat) {
+      onDeleteChat(chatToDelete.id);
+    }
+    setDeleteModalOpen(false);
+    setChatToDelete(null);
+  };
+
+  const handleRenameClick = (chatId: string, chatName: string) => {
+    setChatToRename({ id: chatId, name: chatName });
+    setRenameDialogOpen(true);
+  };
+
+  const handleRenameSuccess = (newName: string) => {
+    if (chatToRename && onRenameChat) {
+      onRenameChat(chatToRename.id, newName);
+    }
+    setRenameDialogOpen(false);
+    setChatToRename(null);
+  };
+
+  const handleRenameCancel = () => {
+    setRenameDialogOpen(false);
+    setChatToRename(null);
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteModalOpen(false);
+    setChatToDelete(null);
   };
 
   const hasChats = chatGroups.length > 0;
@@ -132,31 +176,40 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
                   </div>
                   <div className="space-y-1">
                     {group.chats.map((chat) => (
-                      <a
+                      <ChatContextMenu
                         key={chat.technical_id}
-                        href={`/chat/${chat.technical_id}`}
-                        onClick={(e) => {
-                          // Allow default behavior for middle-click and Ctrl/Cmd+click
-                          if (e.button === 1 || e.ctrlKey || e.metaKey) {
-                            return;
-                          }
-                          // Prevent default and use navigate for normal clicks
-                          e.preventDefault();
-                          navigate(`/chat/${chat.technical_id}`);
-                        }}
-                        onAuxClick={(e) => {
-                          // Handle middle-click (button 1)
-                          if (e.button === 1) {
-                            e.preventDefault();
-                            window.open(`/chat/${chat.technical_id}`, '_blank');
-                          }
-                        }}
-                        className={`group block cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-200 text-sm no-underline ${
-                          chat.technical_id === currentChatId
-                            ? 'bg-slate-700/70 border border-slate-600/60 text-slate-300 shadow-sm'
-                            : 'text-slate-400 hover:text-slate-300 hover:bg-slate-700/40 border border-transparent'
-                        }`}
+                        chatId={chat.technical_id}
+                        chatName={chat.name || chat.description || 'Untitled Chat'}
+                        chatDescription={chat.description}
+                        chatDate={chat.last_modified || chat.date}
+                        onRename={handleRenameClick}
+                        onDelete={(chatId, chatName) => handleDeleteClick({} as React.MouseEvent, chatId, chatName)}
+                        showMenuButton={true}
                       >
+                        <a
+                          href={`/chat/${chat.technical_id}`}
+                          onClick={(e) => {
+                            // Allow default behavior for middle-click and Ctrl/Cmd+click
+                            if (e.button === 1 || e.ctrlKey || e.metaKey) {
+                              return;
+                            }
+                            // Prevent default and use navigate for normal clicks
+                            e.preventDefault();
+                            navigate(`/chat/${chat.technical_id}`);
+                          }}
+                          onAuxClick={(e) => {
+                            // Handle middle-click (button 1)
+                            if (e.button === 1) {
+                              e.preventDefault();
+                              window.open(`/chat/${chat.technical_id}`, '_blank');
+                            }
+                          }}
+                          className={`group block cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-200 text-sm no-underline relative chat-item-hover ${
+                            chat.technical_id === currentChatId
+                              ? 'bg-slate-700/70 border border-slate-600/60 text-slate-300 shadow-sm'
+                              : 'text-slate-400 hover:text-slate-300 hover:bg-slate-700/40 border border-transparent hover:border-slate-600/30'
+                          }`}
+                        >
                         <div className="flex items-start space-x-2.5">
                           <Clock
                             size={16}
@@ -164,7 +217,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
                               chat.technical_id === currentChatId ? 'text-slate-300' : 'text-slate-500 group-hover:text-slate-400'
                             }`}
                           />
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0 pr-10">
                             <div className={`truncate font-medium ${
                               chat.technical_id === currentChatId ? 'text-slate-300' : 'text-slate-400 group-hover:text-slate-300'
                             }`} title={chat.name || chat.description}>
@@ -177,7 +230,8 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
                             </div>
                           </div>
                         </div>
-                      </a>
+                        </a>
+                      </ChatContextMenu>
                     ))}
                   </div>
                 </div>
@@ -186,6 +240,26 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
               <div className="px-2 py-8 text-center">
                 <div className="text-sm text-slate-400 mb-1 font-medium">No chat history yet</div>
                 <div className="text-xs text-slate-500">Start a conversation to see your chats here</div>
+              </div>
+            )}
+
+            {/* Load More Button */}
+            {hasMoreChats && !isLoading && (
+              <div className="px-2 pb-4">
+                <button
+                  onClick={onLoadMore}
+                  disabled={isLoadingMore}
+                  className="w-full px-4 py-2.5 rounded-lg bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 hover:border-slate-500 text-slate-300 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  {isLoadingMore ? (
+                    <>
+                      <LoadingSpinner size="sm" />
+                      <span className="text-sm">Loading...</span>
+                    </>
+                  ) : (
+                    <span className="text-sm font-medium">Load More Chats</span>
+                  )}
+                </button>
               </div>
             )}
           </div>
@@ -209,6 +283,62 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
 
       {/* Resize Handle */}
       <ResizeHandle onMouseDown={onResizeMouseDown} isResizing={isResizing} position="right" />
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-800 rounded-xl shadow-2xl border border-slate-700 max-w-md w-full mx-4 overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center space-x-3 p-6 border-b border-slate-700">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-500/20">
+                <AlertTriangle size={24} className="text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white">Delete Chat</h3>
+                <p className="text-sm text-slate-400">This action cannot be undone</p>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-6">
+              <p className="text-slate-300 mb-2">
+                Are you sure you want to delete this chat?
+              </p>
+              {chatToDelete?.name && (
+                <div className="mt-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700">
+                  <p className="text-sm text-slate-400 mb-1">Chat name:</p>
+                  <p className="text-white font-medium truncate">{chatToDelete.name}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end space-x-3 p-6 border-t border-slate-700 bg-slate-900/30">
+              <button
+                onClick={handleCancelDelete}
+                className="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-red-500/25"
+              >
+                Delete Chat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename Dialog */}
+      <ChatBotRenameDialog
+        visible={renameDialogOpen}
+        chatId={chatToRename?.id || null}
+        currentName={chatToRename?.name || ''}
+        onClose={handleRenameCancel}
+        onSuccess={handleRenameSuccess}
+      />
     </div>
   );
 };

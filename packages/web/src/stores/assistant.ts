@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 import privateClient from "@/clients/private";
 import type { CreateChatRequest, CreateChatResponse, ChatResponse, ChatData } from "@/types/chat";
+import type { SSEChatEvent } from "@/types/streaming";
 import HelperStorage from "../helpers/HelperStorage";
 import { useAuthStore } from "./auth";
+import streamingService from "@/services/streamingService";
 
 const helperStorage = new HelperStorage();
 
@@ -13,6 +15,9 @@ interface AssistantStore {
   guestChatsExist: boolean;
   isLoadingChats: boolean;
   isTransferringChats: boolean;
+  nextCursor: string | null;
+  hasMoreChats: boolean;
+  isLoadingMoreChats: boolean;
 
   // Getters
   isExistChats: boolean;
@@ -25,7 +30,9 @@ interface AssistantStore {
   postTextQuestions: (technical_id: string, data: any) => Promise<any>;
   postQuestions: (technical_id: string, data: any) => Promise<any>;
   postWorkflowQuestions: (data: any) => Promise<any>;
-  getChats: () => Promise<any>;
+  postCanvasQuestion: (data: any) => Promise<any>;
+  getChats: (reset?: boolean) => Promise<any>;
+  loadMoreChats: () => Promise<any>;
   getChatById: (technical_id: string, params?: any) => Promise<any>;
   deleteChatById: (technical_id: string) => Promise<any>;
   renameChatById: (technical_id: string, data: any) => Promise<any>;
@@ -34,6 +41,23 @@ interface AssistantStore {
   putNotification: (technical_id: string, data: any) => Promise<any>;
   setGuestChatsExist: (value: boolean) => boolean;
   setIsTransferringChats: (value: boolean) => void;
+
+  // Streaming Actions
+  streamChatMessage: (
+    conversationId: string,
+    message: string,
+    onEvent: (event: SSEChatEvent) => void,
+    onError?: (error: Error) => void,
+    onComplete?: () => void
+  ) => Promise<AbortController>;
+
+  retryChatMessage: (
+    conversationId: string,
+    message: string,
+    onEvent: (event: SSEChatEvent) => void,
+    onError?: (error: Error) => void,
+    onComplete?: () => void
+  ) => Promise<AbortController>;
 }
 
 // Check if we're in the middle of an Auth0 login flow
@@ -53,6 +77,9 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
   guestChatsExist: helperStorage.get('assistant:guestChatsExist', false),
   isLoadingChats: false,
   isTransferringChats: isInLoginFlow(), // Start as true if we're in login flow
+  nextCursor: null,
+  hasMoreChats: false,
+  isLoadingMoreChats: false,
 
   // Getters
   get isExistChats() {
@@ -90,7 +117,11 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
     return privateClient.post(`/v1/chats/workflow-questions`, data);
   },
 
-  async getChats() {
+  postCanvasQuestion(data: any) {
+    return privateClient.post(`/v1/chats/canvas-questions`, data);
+  },
+
+  async getChats(reset = false) {
     // Prevent concurrent calls
     const state = get();
     if (state.isLoadingChats) {
@@ -114,8 +145,21 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
         params.super = 'true';
       }
 
+      // Reset pagination if requested
+      if (reset) {
+        set({ chatList: null, nextCursor: null, hasMoreChats: false });
+      }
+
       const response = await privateClient.get<ChatResponse>(`/v1/chats`, { params });
-      set({ chatList: response.data.chats, chatListReady: true });
+
+      // Update state with pagination info
+      set({
+        chatList: response.data.chats,
+        chatListReady: true,
+        nextCursor: response.data.next_cursor || null,
+        hasMoreChats: response.data.has_more || false
+      });
+
       return response;
     } catch (error: any) {
       console.error('❌ Failed to fetch chats:', error.message || error);
@@ -123,6 +167,57 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
       throw error;
     } finally {
       set({ isLoadingChats: false });
+    }
+  },
+
+  async loadMoreChats() {
+    const state = get();
+
+    // Prevent concurrent calls
+    if (state.isLoadingMoreChats || state.isLoadingChats) {
+      return;
+    }
+
+    // Check if there are more chats to load
+    if (!state.hasMoreChats || !state.nextCursor) {
+      console.log('📋 No more chats to load');
+      return;
+    }
+
+    set({ isLoadingMoreChats: true });
+    try {
+      // Check if super user mode is enabled
+      const authState = useAuthStore.getState();
+      const isSuperMode = authState.superUserMode && authState.isCyodaEmployee;
+
+      // Build query params with cursor
+      const params: any = {
+        before: state.nextCursor
+      };
+      if (isSuperMode) {
+        params.super = 'true';
+      }
+
+      console.log('📋 Loading more chats with cursor:', state.nextCursor);
+      const response = await privateClient.get<ChatResponse>(`/v1/chats`, { params });
+
+      // Append new chats to existing list
+      const currentChats = state.chatList || [];
+      const newChats = response.data.chats || [];
+
+      set({
+        chatList: [...currentChats, ...newChats],
+        nextCursor: response.data.next_cursor || null,
+        hasMoreChats: response.data.has_more || false
+      });
+
+      console.log(`✅ Loaded ${newChats.length} more chats. Total: ${currentChats.length + newChats.length}`);
+      return response;
+    } catch (error: any) {
+      console.error('❌ Failed to load more chats:', error.message || error);
+      throw error;
+    } finally {
+      set({ isLoadingMoreChats: false });
     }
   },
 
@@ -173,5 +268,47 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
 
   setIsTransferringChats(value: boolean) {
     set({ isTransferringChats: value });
+  },
+
+  // Streaming Actions
+  async streamChatMessage(
+    conversationId: string,
+    message: string,
+    onEvent: (event: SSEChatEvent) => void,
+    onError?: (error: Error) => void,
+    onComplete?: () => void
+  ) {
+    const authState = useAuthStore.getState();
+    const token = authState.token || '';
+
+    return streamingService.streamChatMessage(
+      conversationId,
+      message,
+      token,
+      onEvent,
+      onError,
+      onComplete
+    );
+  },
+
+  // Retry streaming method
+  async retryChatMessage(
+    conversationId: string,
+    message: string,
+    onEvent: (event: SSEChatEvent) => void,
+    onError?: (error: Error) => void,
+    onComplete?: () => void
+  ) {
+    const authState = useAuthStore.getState();
+    const token = authState.token || '';
+
+    return streamingService.retryChatMessage(
+      conversationId,
+      message,
+      token,
+      onEvent,
+      onError,
+      onComplete
+    );
   }
 }));

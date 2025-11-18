@@ -17,11 +17,12 @@ import {
   BookOpen,
   Github,
   Shield,
-  Menu
+  Menu,
+  Server
 } from 'lucide-react';
 import AuthState from '@/components/AuthState/AuthState';
 import Logo from '@/assets/images/logo.svg';
-import { useSuperUserMode, useIsCyodaEmployee } from '@/stores/auth';
+import { useSuperUserMode, useIsCyodaEmployee, useAuthStore } from '@/stores/auth';
 
 interface Notification {
   id: number;
@@ -37,33 +38,55 @@ interface HeaderProps {
   onToggleCanvas?: () => void;
   onToggleChatHistory?: () => void;
   onToggleEntities?: () => void;
+  onToggleEnvironments?: () => void;
   canvasVisible?: boolean;
   chatHistoryVisible?: boolean;
   entitiesVisible?: boolean;
+  environmentsVisible?: boolean;
   showActions?: boolean;
   notifications?: Notification[];
   onMarkNotificationAsRead?: (id: number) => void;
   onMarkAllNotificationsAsRead?: () => void;
   onNotificationClick?: (notificationId: number, messageId?: string) => void;
+  isArchivedChat?: boolean; // Disable canvas for archived chats
+  showCanvasButton?: boolean; // Show canvas button only on chat pages
+  showRepositoryConfigPrompt?: boolean; // Whether to show repository config prompt
+  onConfigureRepository?: () => void; // Handler for configure new repository action
+  onUseExistingRepository?: () => void; // Handler for use existing repository action
+  onCloseRepositoryConfigPrompt?: () => void; // Handler for closing the prompt
+  isLoadingCanvasToggle?: boolean; // Whether canvas toggle is loading
 }
 
 const Header: React.FC<HeaderProps> = ({
   onToggleCanvas,
   onToggleChatHistory,
   onToggleEntities,
+  onToggleEnvironments,
   canvasVisible = false,
   chatHistoryVisible = true,
   entitiesVisible = false,
+  environmentsVisible = false,
   showActions = false,
   notifications: externalNotifications,
   onMarkNotificationAsRead: externalMarkAsRead,
   onMarkAllNotificationsAsRead: externalMarkAllAsRead,
-  onNotificationClick: externalNotificationClick
+  onNotificationClick: externalNotificationClick,
+  isArchivedChat = false,
+  showCanvasButton = true, // Default to true for backward compatibility
+  showRepositoryConfigPrompt = false,
+  onConfigureRepository,
+  onUseExistingRepository,
+  onCloseRepositoryConfigPrompt,
+  isLoadingCanvasToggle = false
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  // Check if user is logged in (not in guest mode)
+  const { token, tokenType } = useAuthStore();
+  const isLoggedIn = !!token && tokenType === 'private';
 
   // Super user mode state
   const superUserMode = useSuperUserMode();
@@ -171,19 +194,101 @@ const Header: React.FC<HeaderProps> = ({
                   </button>
                 )}
 
-                {/* Canvas Button */}
-                {onToggleCanvas && (
+                {/* Canvas Button - Only show on chat pages */}
+                {onToggleCanvas && showCanvasButton && (
+                  <div className="relative">
+                    <button
+                      onClick={onToggleCanvas}
+                      disabled={isArchivedChat || isLoadingCanvasToggle}
+                      className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                        isArchivedChat || isLoadingCanvasToggle
+                          ? 'text-slate-600 cursor-not-allowed opacity-50'
+                          : canvasVisible
+                          ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                      }`}
+                      title={isArchivedChat ? 'Canvas not available for archived chats' : isLoadingCanvasToggle ? 'Loading...' : `${canvasVisible ? 'Close' : 'Open'} Canvas`}
+                    >
+                      {isLoadingCanvasToggle ? (
+                        <div className="w-4 h-4 border-2 border-teal-500/30 border-t-teal-500 rounded-full animate-spin" />
+                      ) : (
+                        <Activity size={18} />
+                      )}
+                      <span className="text-sm font-medium hidden md:inline">Canvas</span>
+                    </button>
+
+                    {/* Repository Config Info Block */}
+                    {showRepositoryConfigPrompt && (
+                      <div className="absolute top-full right-0 mt-2 w-80 z-50 animate-slideDown">
+                        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-teal-500/30 rounded-xl shadow-2xl overflow-hidden backdrop-blur-sm">
+                          {/* Glow effect */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-transparent pointer-events-none"></div>
+
+                          {/* Close button */}
+                          <button
+                            onClick={onCloseRepositoryConfigPrompt}
+                            className="absolute top-3 right-3 w-6 h-6 rounded-full bg-slate-700/50 hover:bg-slate-600 flex items-center justify-center transition-colors z-10"
+                            title="Close"
+                          >
+                            <X size={14} className="text-slate-300" />
+                          </button>
+
+                          <div className="relative p-4">
+                            {/* Icon and Title */}
+                            <div className="flex items-start space-x-3 mb-3">
+                              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center">
+                                <Github size={20} className="text-teal-400" />
+                              </div>
+                              <div className="flex-1 pr-6">
+                                <h3 className="text-sm font-semibold text-slate-100 mb-1">
+                                  Repository Not Configured
+                                </h3>
+                                <p className="text-xs text-slate-400 leading-relaxed">
+                                  Canvas requires a GitHub repository branch to be configured for this conversation.
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-4 mt-3">
+                              <button
+                                onClick={onConfigureRepository}
+                                className="px-3 py-1 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white text-xs font-medium rounded-md transition-all duration-200 shadow-md shadow-teal-500/20 hover:shadow-teal-500/30 flex items-center space-x-1.5"
+                              >
+                                <Github size={12} />
+                                <span>New Branch</span>
+                              </button>
+
+                              <button
+                                onClick={onUseExistingRepository}
+                                className="px-3 py-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-xs font-medium rounded-md transition-all duration-200 shadow-md shadow-blue-600/20 hover:shadow-blue-600/30 flex items-center space-x-1.5"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2v0a2 2 0 01-2-2v-2a2 2 0 00-2-2H8z" />
+                                </svg>
+                                <span>Existing Branch</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Environments Button - Only show for logged in users */}
+                {onToggleEnvironments && isLoggedIn && (
                   <button
-                    onClick={onToggleCanvas}
+                    onClick={onToggleEnvironments}
                     className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
-                      canvasVisible
+                      environmentsVisible
                         ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
                         : 'text-slate-400 hover:text-white hover:bg-slate-700'
                     }`}
-                    title={`${canvasVisible ? 'Close' : 'Open'} Canvas`}
+                    title={`${environmentsVisible ? 'Hide' : 'Show'} Environments`}
                   >
-                    <Activity size={18} />
-                    <span className="text-sm font-medium hidden md:inline">Canvas</span>
+                    <Server size={18} />
+                    <span className="text-sm font-medium hidden md:inline">Environments</span>
                   </button>
                 )}
 
@@ -415,20 +520,48 @@ const Header: React.FC<HeaderProps> = ({
                     </button>
                   )}
 
-                  {onToggleCanvas && (
+                  {onToggleCanvas && showCanvasButton && (
                     <button
                       onClick={() => {
-                        onToggleCanvas();
-                        setShowMobileMenu(false);
+                        if (!isArchivedChat && !isLoadingCanvasToggle) {
+                          onToggleCanvas();
+                          setShowMobileMenu(false);
+                        }
                       }}
+                      disabled={isArchivedChat || isLoadingCanvasToggle}
                       className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
-                        canvasVisible
+                        isArchivedChat || isLoadingCanvasToggle
+                          ? 'text-slate-600 cursor-not-allowed opacity-50'
+                          : canvasVisible
                           ? 'bg-teal-500/20 text-teal-400'
                           : 'text-slate-400 hover:text-white hover:bg-slate-700'
                       }`}
                     >
-                      <Activity size={20} />
-                      <span className="text-sm font-medium">{canvasVisible ? 'Close' : 'Open'} Canvas</span>
+                      {isLoadingCanvasToggle ? (
+                        <div className="w-5 h-5 border-2 border-teal-500/30 border-t-teal-500 rounded-full animate-spin" />
+                      ) : (
+                        <Activity size={20} />
+                      )}
+                      <span className="text-sm font-medium">
+                        {isLoadingCanvasToggle ? 'Loading...' : isArchivedChat ? 'Canvas (Archived)' : canvasVisible ? 'Close Canvas' : 'Open Canvas'}
+                      </span>
+                    </button>
+                  )}
+
+                  {onToggleEnvironments && isLoggedIn && (
+                    <button
+                      onClick={() => {
+                        onToggleEnvironments();
+                        setShowMobileMenu(false);
+                      }}
+                      className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
+                        environmentsVisible
+                          ? 'bg-teal-500/20 text-teal-400'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                      }`}
+                    >
+                      <Server size={20} />
+                      <span className="text-sm font-medium">{environmentsVisible ? 'Hide' : 'Show'} Environments</span>
                     </button>
                   )}
 

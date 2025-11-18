@@ -60,12 +60,28 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
   // Parse the UI function data
   const functionData = useMemo<UIFunctionData | null>(() => {
     try {
-      const text = typeof message.text === 'string' ? message.text : JSON.stringify(message.text);
-      // Replace single quotes with double quotes for valid JSON
-      const jsonText = text.replace(/'/g, '"');
-      return JSON.parse(jsonText);
+      // If message.text is already an object, use it directly
+      if (typeof message.text === 'object' && message.text !== null) {
+        return message.text as UIFunctionData;
+      }
+
+      // If it's a string, try to parse it as JSON
+      if (typeof message.text === 'string') {
+        // Handle empty strings
+        if (!message.text.trim()) {
+          console.error('UI function data is empty string');
+          return null;
+        }
+
+        // Replace single quotes with double quotes for valid JSON
+        const jsonText = message.text.replace(/'/g, '"');
+        return JSON.parse(jsonText);
+      }
+
+      console.error('UI function data is neither object nor string:', typeof message.text);
+      return null;
     } catch (error) {
-      console.error('Failed to parse UI function data:', error);
+      console.error('Failed to parse UI function data:', error, 'Raw data:', message.text);
       return null;
     }
   }, [message.text]);
@@ -209,7 +225,7 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
                 ) : (
                   <>
                     <Zap size={16} />
-                    <span>Try it out</span>
+                    <span>Run it</span>
                   </>
                 )}
               </button>
