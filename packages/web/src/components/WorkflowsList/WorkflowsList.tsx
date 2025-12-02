@@ -25,55 +25,35 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
 }) => {
 
 
-  // Get entities directly from AppRoot (single source of truth)
-  const entities = appData.app.entities || [];
-
-  // Debug: Log entities and workflows
-  useEffect(() => {
-    console.log('📊 WorkflowsList - Entities:', entities.map(e => ({
-      name: e.name,
-      version: e.version,
-      workflowsCount: e.workflows.length,
-      workflows: e.workflows.map(w => w.name)
-    })));
-  }, [entities]);
-
-  // Flatten workflows from all entities with entity information
+  // Get workflows from entities (workflows are now nested in entity.workflows)
   const workflows = useMemo(() => {
-    const allWorkflows: WorkflowWithEntity[] = [];
-    entities.forEach(entity => {
-      entity.workflows.forEach(workflow => {
-        allWorkflows.push({
-          ...workflow,
-          entity_name: entity.name,
-          entity_version: entity.version
-        });
+    const allWorkflows: any[] = [];
+
+    // Collect workflows from all entities
+    if (appData.app.entities && Array.isArray(appData.app.entities)) {
+      appData.app.entities.forEach((entity: any) => {
+        if (entity.workflows && Array.isArray(entity.workflows)) {
+          entity.workflows.forEach((workflow: any) => {
+            allWorkflows.push({
+              ...workflow,
+              entity_name: entity.name,
+              entity_version: entity.version
+            });
+          });
+        }
       });
-    });
-    console.log('📋 WorkflowsList - Total workflows:', allWorkflows.length, allWorkflows.map(w => w.name));
+    }
+
+    // Also check metadata workflows as fallback (for backward compatibility)
+    const metadataWorkflows = (appData.app.metadata as any)?.workflows || [];
+    if (metadataWorkflows.length > 0) {
+      console.log('📋 WorkflowsList - Found workflows in metadata (legacy):', metadataWorkflows.length);
+      allWorkflows.push(...metadataWorkflows);
+    }
+
+    console.log('📋 WorkflowsList - Total workflows from entities:', allWorkflows.length, allWorkflows.map((w: any) => w.name));
     return allWorkflows;
-  }, [entities]);
-
-  // Group workflows by entity
-  const workflowsByEntity = useMemo(() => {
-    const grouped: Record<string, { entity: Entity; workflows: WorkflowWithEntity[] }> = {};
-
-    entities.forEach(entity => {
-      const entityKey = `${entity.name}-${entity.version}`;
-      if (entity.workflows.length > 0) {
-        grouped[entityKey] = {
-          entity,
-          workflows: entity.workflows.map(workflow => ({
-            ...workflow,
-            entity_name: entity.name,
-            entity_version: entity.version
-          }))
-        };
-      }
-    });
-
-    return grouped;
-  }, [entities]);
+  }, [appData]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -93,37 +73,11 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
     try {
       let updatedAppData = { ...appData };
 
-      // Create a default entity if none exist
-      if (updatedAppData.app.entities.length === 0) {
-        const defaultEntity: Entity = {
-          name: 'Default Entity',
-          version: '1',
-          description: 'Default entity for new workflow',
-          cyoda_url: '',
-          github_url: '',
-          model: {
-            fields: {
-              id: { type: 'string', required: true, description: 'Unique identifier' },
-              name: { type: 'string', required: true, description: 'Entity name' },
-              created_at: { type: 'datetime', required: true, description: 'Creation timestamp' },
-              updated_at: { type: 'datetime', required: true, description: 'Last update timestamp' }
-            }
-          },
-          workflows: []
-        };
-
-        updatedAppData = {
-          ...updatedAppData,
-          app: {
-            ...updatedAppData.app,
-            entities: [defaultEntity]
-          }
-        };
-      }
-
       // Create new workflow with default configuration
-      const newWorkflow: Workflow = {
+      const newWorkflow = {
+        id: `workflow-new-${Date.now()}`,
         name: 'New Workflow',
+        description: 'New workflow',
         cyoda_url: '',
         github_url: '',
         config: {
@@ -153,9 +107,14 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
         }
       };
 
-      // Add workflow to the first entity (or the newly created default entity)
-      const targetEntity = updatedAppData.app.entities[0];
-      targetEntity.workflows.push(newWorkflow);
+      // Add workflow to metadata
+      if (!updatedAppData.app.metadata) {
+        updatedAppData.app.metadata = {};
+      }
+      if (!(updatedAppData.app.metadata as any).workflows) {
+        (updatedAppData.app.metadata as any).workflows = [];
+      }
+      (updatedAppData.app.metadata as any).workflows.push(newWorkflow);
 
       console.log('✅ Workflow created:', newWorkflow);
 
@@ -239,87 +198,62 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
               </p>
           </div>
         ) : (
-          <div className="w-full space-y-5">
-            {Object.entries(workflowsByEntity).map(([entityKey, { entity, workflows: entityWorkflows }]) => (
-              <div key={entityKey} className="space-y-3">
-                {/* Entity Header */}
-                <div className="flex items-center space-x-3 px-1">
-                  <div className="p-2 bg-teal-500/10 rounded-lg">
-                    <Database size={18} className="text-teal-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white text-lg">
-                      {entity.name} <span className="text-teal-400 text-sm">v{entity.version}</span>
-                    </h3>
-                    <p className="text-xs text-gray-400">
-                      {entityWorkflows.length} {entityWorkflows.length === 1 ? 'workflow' : 'workflows'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Workflows Grid for this Entity */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {entityWorkflows.map((workflow, index) => {
-                    // Generate workflow ID from name
-                    const workflowId = `workflow-${workflow.name.toLowerCase().replace(/\s+/g, '-')}`;
-
-                    return (
-                      <div
-                        key={`${workflow.entity_name}-${workflow.entity_version}-${workflow.name}`}
-                        onClick={() => onWorkflowClick(workflowId, workflow)}
-                        className="bg-gradient-to-br from-slate-800 to-slate-800/50 border border-slate-700/50 rounded-xl p-5 hover:border-purple-500/50 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 cursor-pointer group hover:scale-105 hover:-translate-y-1"
-                        style={{
-                          animationDelay: `${index * 50}ms`,
-                          animation: 'fadeInUp 0.5s ease-out forwards',
-                        }}
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition-colors">
-                              <Activity size={18} className="text-purple-400 group-hover:text-purple-300 transition-colors" />
-                            </div>
-                            <h4 className="font-semibold text-white group-hover:text-purple-300 transition-colors text-lg">
-                              {workflow.name}
-                            </h4>
-                          </div>
-                        </div>
-
-                        <p className="text-sm text-gray-400 mb-4 line-clamp-2 leading-relaxed">
-                          {workflow.description || 'No description provided'}
-                        </p>
-
-                        <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-slate-700/50">
-                          <div className="flex items-center space-x-3">
-                            <div className="flex items-center space-x-1">
-                              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                              <span>{getStateCount(workflow)} states</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <div className="w-2 h-2 bg-teal-400 rounded-full"></div>
-                              <span>{getTransitionCount(workflow)} trans</span>
-                            </div>
-                          </div>
-                          {(workflow.cyoda_url || workflow.github_url) && (
-                            <div className="flex items-center space-x-2">
-                              {workflow.cyoda_url && (
-                                <div className="p-1 bg-purple-500/10 rounded" title="Cyoda URL">
-                                  <ExternalLink size={12} className="text-purple-400" />
-                                </div>
-                              )}
-                              {workflow.github_url && (
-                                <div className="p-1 bg-teal-500/10 rounded" title="GitHub URL">
-                                  <ExternalLink size={12} className="text-teal-400" />
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {workflows.map((workflow: any, index: number) => {
+              return (
+                <div
+                  key={`${workflow.name}-${index}`}
+                  onClick={() => onWorkflowClick(`workflow-${workflow.name.toLowerCase()}`, workflow)}
+                  className="bg-gradient-to-br from-slate-800 to-slate-800/50 border border-slate-700/50 rounded-xl p-5 hover:border-purple-500/50 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 cursor-pointer group hover:scale-105 hover:-translate-y-1"
+                  style={{
+                    animationDelay: `${index * 50}ms`,
+                    animation: 'fadeInUp 0.5s ease-out forwards',
+                  }}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition-colors">
+                        <Activity size={18} className="text-purple-400 group-hover:text-purple-300 transition-colors" />
                       </div>
-                    );
-                  })}
+                      <h4 className="font-semibold text-white group-hover:text-purple-300 transition-colors text-lg">
+                        {workflow.name}
+                      </h4>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-gray-400 mb-4 line-clamp-2 leading-relaxed">
+                    {workflow.description || 'No description provided'}
+                  </p>
+
+                  <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-slate-700/50">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-1">
+                        <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                        <span>{getStateCount(workflow)} states</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <div className="w-2 h-2 bg-teal-400 rounded-full"></div>
+                        <span>{getTransitionCount(workflow)} trans</span>
+                      </div>
+                    </div>
+                    {(workflow.cyoda_url || workflow.github_url) && (
+                      <div className="flex items-center space-x-2">
+                        {workflow.cyoda_url && (
+                          <div className="p-1 bg-purple-500/10 rounded" title="Cyoda URL">
+                            <ExternalLink size={12} className="text-purple-400" />
+                          </div>
+                        )}
+                        {workflow.github_url && (
+                          <div className="p-1 bg-teal-500/10 rounded" title="GitHub URL">
+                            <ExternalLink size={12} className="text-teal-400" />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

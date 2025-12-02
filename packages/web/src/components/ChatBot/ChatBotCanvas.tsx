@@ -22,7 +22,8 @@ import {
   Database,
   Code,
   RefreshCw,
-  GitPullRequest
+  GitPullRequest,
+  ArrowLeft
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -30,8 +31,7 @@ import rehypeHighlight from 'rehype-highlight';
 import ChatBotEditorWorkflowSimple from './ChatBotEditorWorkflowSimple';
 import ChatBotEditorWorkflowNew from './ChatBotEditorWorkflowNew';
 import MermaidDiagram from '../MermaidDiagram/MermaidDiagram';
-import { WorkflowTabs } from '@/components/WorkflowTabs/WorkflowTabs';
-import { useWorkflowTabsStore } from '@/stores/workflowTabs';
+
 import { useAppsTabsStore } from '@/stores/appsTabs';
 import { AppsTabsContainer } from '@/components/AppsTabs';
 import { Modal, Form, Input, InputNumber } from 'antd';
@@ -56,10 +56,10 @@ interface ChatBotCanvasProps {
   onApproveQuestion: (data: any) => void;
   onUpdateNotification: (data: any) => void;
   onToggleCanvas: () => void;
-  activeTab?: 'apps' | 'data' | 'workflow' | 'requirement' | 'code';
-  onActiveTabChange?: (tab: 'apps' | 'data' | 'workflow' | 'requirement' | 'code') => void;
+  activeTab?: 'data' | 'workflow' | 'requirement' | 'code';
+  onActiveTabChange?: (tab: 'data' | 'workflow' | 'requirement' | 'code') => void;
   triggerCanvasReload?: boolean; // Trigger to reload canvas data
-  setTextareaContentCallback?: ((content: string) => void) | null; // Callback to set textarea content
+  setTextareaContentCallback?: ((content: string, options?: { collapse?: boolean }) => void) | null; // Callback to set textarea content
 }
 
 type MarkdownMode = 'preview' | 'split' | 'edit';
@@ -78,15 +78,18 @@ const ChatBotCanvas: React.FC<ChatBotCanvasProps> = ({
   triggerCanvasReload = false,
   setTextareaContentCallback
 }) => {
-  const [internalActiveTab, setInternalActiveTab] = useState<'apps' | 'data' | 'workflow' | 'requirement' | 'code'>('apps');
+  const [internalActiveTab, setInternalActiveTab] = useState<'data' | 'workflow' | 'requirement' | 'code'>('requirement');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isPulling, setIsPulling] = useState(false);
+  const [isLoadingAppData, setIsLoadingAppData] = useState(false);
 
   // Use external activeTab if provided, otherwise use internal state
   const activeTab = externalActiveTab !== undefined ? externalActiveTab : internalActiveTab;
 
   // Handle tab change - call external handler if provided, otherwise use internal state
-  const handleTabChange = useCallback((tab: 'apps' | 'data' | 'workflow' | 'requirement' | 'code') => {
+  const handleTabChange = useCallback((tab: 'data' | 'workflow' | 'requirement' | 'code') => {
+    // Clear navigation context when switching tabs to avoid stale data
+    setNavigationContext(null);
     if (onActiveTabChange) {
       onActiveTabChange(tab);
     } else {
@@ -197,15 +200,32 @@ const ChatBotCanvas: React.FC<ChatBotCanvasProps> = ({
     }
 
     if (cachedData) {
-      console.log('📦 ChatBotCanvas: Using cached repository data');
+      const workflowCount = cachedData.app?.entities?.reduce((sum: number, e: any) => sum + (e.workflows?.length || 0), 0) || 0;
+      console.log('📦 ChatBotCanvas: Using cached repository data', {
+        entities: cachedData.app?.entities?.length || 0,
+        workflows: workflowCount,
+        requirements: cachedData.app?.requirements?.length || 0
+      });
       setCurrentAppData(cachedData);
+      setIsLoadingAppData(false);
     } else {
       console.log('🔄 ChatBotCanvas: Loading repository data');
+      setIsLoadingAppData(true);
       // Load repository data (will be cached automatically)
       loadRepository(technicalId, githubRepository).then((data) => {
+        const workflowCount = data?.app?.entities?.reduce((sum: number, e: any) => sum + (e.workflows?.length || 0), 0) || 0;
+        console.log('✅ Repository data loaded:', {
+          entities: data?.app?.entities?.length || 0,
+          workflows: workflowCount,
+          requirements: data?.app?.requirements?.length || 0
+        });
         if (data) {
           setCurrentAppData(data);
         }
+        setIsLoadingAppData(false);
+      }).catch((error) => {
+        console.error('❌ Error loading repository data:', error);
+        setIsLoadingAppData(false);
       });
     }
   }, [technicalId, githubRepository]);
@@ -217,6 +237,33 @@ const ChatBotCanvas: React.FC<ChatBotCanvasProps> = ({
   const [currentAppData, setCurrentAppData] = useState<any>(null);
   const [updateAppData, setUpdateAppData] = useState<((appData: any) => void) | null>(null);
   const hasSetupUpdateFnRef = useRef(false);
+
+  // Subscribe to repository store cache changes to detect when data is loaded externally (e.g., from SSE hooks)
+  const repositoryData = useRepositoryStore((state) =>
+    technicalId ? state.cache[technicalId]?.data : null
+  );
+
+  // Update currentAppData when repository store cache changes (e.g., from SSE hook refresh)
+  useEffect(() => {
+    if (repositoryData && technicalId) {
+      console.log('📊 ChatBotCanvas: Repository store cache updated, syncing currentAppData:', {
+        technicalId,
+        entities: repositoryData.app?.entities?.length || 0,
+        entityNames: repositoryData.app?.entities?.map((e: any) => e.name) || []
+      });
+      setCurrentAppData(repositoryData);
+    }
+  }, [repositoryData, technicalId]);
+
+  // Debug: log when currentAppData changes
+  useEffect(() => {
+    console.log('📊 currentAppData updated:', {
+      hasData: !!currentAppData,
+      entities: currentAppData?.app?.entities?.length || 0,
+      workflows: currentAppData?.app?.workflows?.length || 0,
+      requirements: currentAppData?.app?.requirements?.length || 0
+    });
+  }, [currentAppData]);
 
   // Watch for external trigger to reload canvas
   useEffect(() => {
@@ -300,10 +347,6 @@ gantt
   const [settingsDialogVisible, setSettingsDialogVisible] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
 
-  // Workflow tabs state
-  const { tabs, activeTabId, openTab, updateTab, getActiveTab } = useWorkflowTabsStore();
-  const activeWorkflowTab = getActiveTab();
-
   // Repository store (replaces app-config)
   const repositoryStore = useRepositoryStore();
 
@@ -356,106 +399,6 @@ gantt
   // Store workflow ID and entity ID for saving
   const [currentWorkflowId, setCurrentWorkflowId] = useState<string | null>(null);
   const [currentWorkflowEntityId, setCurrentWorkflowEntityId] = useState<string | null>(null);
-
-  // Auto-open workflow tab when navigating from AppsCanvas
-  useEffect(() => {
-    if (activeTab === 'workflow' && navigationContext?.targetId) {
-      const workflowId = navigationContext.targetId;
-      const workflowData = navigationContext.data;
-
-      console.log('🎯 Opening workflow tab:', { workflowId, workflowData });
-      console.log('🔍 Full navigation context:', JSON.parse(JSON.stringify(navigationContext)));
-      console.log('🔍 workflowData type:', typeof workflowData, 'is object?', workflowData && typeof workflowData === 'object');
-      console.log('🔍 workflowData keys:', workflowData ? Object.keys(workflowData) : 'null');
-      console.log('🔍 workflowData.entity_id direct access:', workflowData && workflowData['entity_id']);
-      console.log('🔑 Entity ID from navigation:', {
-        entity_id: workflowData?.entity_id,
-        entity_name: workflowData?.entity_name,
-        entity_version: workflowData?.entity_version,
-        fullData: workflowData
-      });
-
-      // Store workflow ID and entity ID for later use in saving
-      setCurrentWorkflowId(workflowId);
-
-      // Extract entity ID from workflow data
-      // WorkflowWithEntity has entity_name and entity_version
-      let extractedEntityId = workflowData?.entity_id || null;
-      if (!extractedEntityId && workflowData?.entity_name && workflowData?.entity_version) {
-        // Construct entity ID from entity_name and entity_version
-        extractedEntityId = `${workflowData.entity_name}-${workflowData.entity_version}`;
-      }
-      console.log('🔑 Extracted entity_id:', extractedEntityId, 'from workflow data:', workflowData);
-      setCurrentWorkflowEntityId(extractedEntityId);
-
-      // Extract workflow name and version from ID or data
-      // Workflow ID format: workflow-{name}-{version} or just use data
-      let modelName = 'workflow';
-      let modelVersion = 1;
-
-      if (workflowData?.name) {
-        modelName = workflowData.name;
-      } else {
-        // Parse from ID: workflow-customer-onboarding-1 -> customer-onboarding
-        const parts = workflowId.replace('workflow-', '').split('-');
-        if (parts.length > 1) {
-          modelVersion = parseInt(parts[parts.length - 1]) || 1;
-          modelName = parts.slice(0, -1).join('-');
-        } else {
-          modelName = workflowId.replace('workflow-', '');
-        }
-      }
-
-      const technicalId = `${modelName}_v${modelVersion}_${Date.now()}`;
-
-      // Check if this workflow tab is already open
-      const existingTab = tabs.find(
-        tab => tab.modelName === modelName && tab.modelVersion === modelVersion
-      );
-
-      if (!existingTab) {
-        openTab({
-          modelName,
-          modelVersion,
-          displayName: `${modelName}.${modelVersion}`,
-          isDirty: false,
-          technicalId,
-          // Store entity_id in tab metadata for later use
-          metadata: {
-            entity_id: extractedEntityId,
-            entity_name: workflowData?.entity_name,
-            entity_version: workflowData?.entity_version,
-          }
-        });
-      }
-
-      // Clear navigation context after opening
-      setNavigationContext(null);
-    }
-  }, [activeTab, navigationContext, tabs, openTab]);
-
-  // Workflow tabs handlers - create new tab directly without modal
-  const handleNewWorkflowTab = useCallback(() => {
-    // Generate a unique counter for new tabs
-    const newTabCounter = tabs.filter(t => t.modelName.startsWith('new-workflow')).length + 1;
-    const modelName = `new-workflow-${newTabCounter}`;
-    const modelVersion = 1;
-    const workflowTechnicalId = `${modelName}_v${modelVersion}_${Date.now()}`;
-
-    openTab({
-      modelName,
-      modelVersion,
-      displayName: `${modelName}.${modelVersion}`,
-      isDirty: false,
-      technicalId: workflowTechnicalId,
-    });
-  }, [openTab, tabs]);
-
-  const handleWorkflowUpdate = useCallback((tabId: string, data: { canvasData: string; workflowMetaData: any }) => {
-    // Mark tab as dirty when workflow is updated
-    updateTab(tabId, { isDirty: true });
-    setWorkflowData(data.canvasData);
-  }, [updateTab]);
 
   const getMarkdownModeIcon = (mode: MarkdownMode) => {
     switch (mode) {
@@ -548,21 +491,35 @@ gantt
       <div className="border-b border-slate-700 bg-slate-800/30">
         {/* Resource Tabs - Reordered: App, Requirements, Entities, Workflows, Code */}
         <div className="px-4 py-3 flex items-center gap-2">
-          <button
-            onClick={() => {
-              handleTabChange('apps');
-              // Trigger reload when returning to apps tab
-              setShouldReloadAppData(true);
-            }}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 flex items-center space-x-1.5 ${
-              activeTab === 'apps'
-                ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40'
-                : 'text-slate-400 hover:text-white hover:bg-slate-700/50 border border-transparent'
-            }`}
-          >
-            <Network size={13} />
-            <span>App</span>
-          </button>
+          {/* Back button - shown when viewing a detail (entity/workflow/requirement) */}
+          {navigationContext && (
+            <button
+              onClick={() => setNavigationContext(null)}
+              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 text-slate-300 hover:text-white"
+              title="Back to list"
+            >
+              <ArrowLeft size={12} />
+              <span>Back</span>
+            </button>
+          )}
+
+          {/* Send to Chat button - shown when viewing a detail */}
+          {navigationContext && setTextareaContentCallback && (
+            <button
+              onClick={() => {
+                if (navigationContext.data) {
+                  const content = navigationContext.data.model || navigationContext.data.content || navigationContext.data;
+                  const jsonContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+                  setTextareaContentCallback(jsonContent);
+                }
+              }}
+              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-teal-600/80 hover:bg-teal-500/80 border border-teal-500 text-white"
+              title="Send to chat"
+            >
+              <Send size={12} />
+              <span>Send to Chat</span>
+            </button>
+          )}
 
           {/* Spacer to push action buttons to the right */}
           <div className="flex-1" />
@@ -654,49 +611,26 @@ gantt
 
       {/* Canvas Content */}
       <div className="flex-1 relative overflow-hidden flex flex-col">
-        {activeTab === 'apps' ? (
-          <AppsTabsContainer
-            chatId={technicalId}
-            githubRepository={githubRepository}
-            shouldReload={shouldReloadAppData}
-            onReloadComplete={() => setShouldReloadAppData(false)}
-            onSendToChat={(appJson) => {
-              if (setTextareaContentCallback) {
-                setTextareaContentCallback(appJson);
-              }
-            }}
-            onNavigate={(tab, targetId, data) => {
-              console.log('🧭 Navigation requested:', { tab, targetId, data });
-              handleTabChange(tab);
-              setNavigationContext({ targetId, targetType: tab, data });
-            }}
-            onAppDataChange={(appData, updateFn) => {
-              console.log('📡 ChatBotCanvas received onAppDataChange:', {
-                entities: appData.app.entities.length,
-                workflows: appData.app.entities.reduce((sum, e) => sum + e.workflows.length, 0),
-                appData
-              });
-              // Store current app data for use in other tabs
-              setCurrentAppData(appData);
-              // Store update function
-              setUpdateAppData(() => updateFn);
-            }}
-          />
-        ) : activeTab === 'data' ? (
+        {activeTab === 'data' ? (
           navigationContext?.targetId ? (
             // Show entity editor when an entity is selected
             <EntityEditor
               appId={getCurrentAppId()}
               entityId={navigationContext.targetId}
               entityData={(() => {
-                // Match by entity ID format: entity-{name}-{version}
-                const foundEntity = currentAppData?.app.entities.find(e => {
+                // First, check if entity data was passed directly in navigation context (from hooks)
+                if (navigationContext.data) {
+                  console.log('📦 Using entity data from navigation context:', navigationContext.data);
+                  return navigationContext.data;
+                }
+                // Otherwise, look up entity from currentAppData
+                const foundEntity = currentAppData?.app?.entities?.find(e => {
                   const entityId = `entity-${e.name.toLowerCase()}-${e.version}`;
                   console.log('🔍 Comparing:', { entityId, targetId: navigationContext.targetId, match: entityId === navigationContext.targetId });
                   return entityId === navigationContext.targetId;
                 });
                 console.log('📦 Found entity:', foundEntity);
-                console.log('📦 All entities:', currentAppData?.app.entities);
+                console.log('📦 All entities:', currentAppData?.app?.entities);
                 return foundEntity;
               })()}
               onSendToChat={(message) => {
@@ -713,7 +647,7 @@ gantt
             />
           ) : (
             // Show entities list when no entity is selected
-            currentAppData && updateAppData ? (
+            currentAppData ? (
               <EntitiesList
                 appId={getCurrentAppId()}
                 appData={currentAppData}
@@ -735,226 +669,177 @@ gantt
                   updateLocalData(updatedAppData);
                 }}
                 onEntityClick={(entityId) => {
-                  // Navigate to entity editor
-                  setNavigationContext({ targetId: entityId, targetType: 'data' });
+                  // Find entity data and navigate to entity editor
+                  const entity = currentAppData?.app?.entities?.find(e => {
+                    const id = `entity-${e.name.toLowerCase()}-${e.version}`;
+                    return id === entityId;
+                  });
+                  setNavigationContext({ targetId: entityId, targetType: 'data', data: entity });
                 }}
                 onEntityCreated={(entityId) => {
-                  // Optionally navigate to the new entity
-                  setNavigationContext({ targetId: entityId, targetType: 'data' });
+                  // Find entity data and navigate to the new entity
+                  const entity = currentAppData?.app?.entities?.find(e => {
+                    const id = `entity-${e.name.toLowerCase()}-${e.version}`;
+                    return id === entityId;
+                  });
+                  setNavigationContext({ targetId: entityId, targetType: 'data', data: entity });
                 }}
               />
+            ) : !githubRepository ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="text-gray-400 mb-2">No repository configured</div>
+                  <div className="text-xs text-gray-500">Configure a GitHub repository to view entities</div>
+                </div>
+              </div>
+            ) : isLoadingAppData ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="animate-spin mb-3">
+                    <RefreshCw size={24} className="text-blue-400" />
+                  </div>
+                  <div className="text-gray-400">Loading entities...</div>
+                </div>
+              </div>
             ) : (
               <div className="flex items-center justify-center h-full">
-                <div className="text-gray-400">Loading app data...</div>
+                <div className="text-center">
+                  <div className="text-gray-400 mb-2">No entities found</div>
+                  <div className="text-xs text-gray-500">Create an entity to get started</div>
+                  <div className="text-xs text-gray-600 mt-2">
+                    Debug: entities={currentAppData?.app?.entities?.length || 0}
+                  </div>
+                </div>
               </div>
             )
           )
         ) : activeTab === 'workflow' ? (
-          // Show workflow editor when a workflow tab is open, otherwise show list
-          activeWorkflowTab ? (
-            <>
-              <WorkflowTabs onNewTab={handleNewWorkflowTab} />
-              <ChatBotEditorWorkflowNew
-                technicalId={activeWorkflowTab.technicalId}
-                modelName={activeWorkflowTab.modelName}
-                modelVersion={activeWorkflowTab.modelVersion}
-                workflowId={currentWorkflowId || undefined}
-                entityId={currentWorkflowEntityId || undefined}
-                appId={getCurrentAppId()}
-                appData={currentAppData}
-                onAnswer={onAnswer}
-                setTextareaContentCallback={setTextareaContentCallback}
-                onBack={() => {
-                  // Close the workflow tab and return to workflows list
-                  const { closeTab } = useWorkflowTabsStore.getState();
-                  if (activeWorkflowTab) {
-                    closeTab(activeWorkflowTab.id);
-                  }
-                  // Clear workflow context
-                  setCurrentWorkflowId(null);
-                  setCurrentWorkflowEntityId(null);
-                }}
-                onUpdate={async (data) => {
-                  console.log('🔄 Workflow updated:', data);
+          // Show workflow editor when a workflow is selected, otherwise show list
+          navigationContext?.targetId && navigationContext?.targetType === 'workflow' ? (
+            <ChatBotEditorWorkflowNew
+              technicalId={`workflow_${navigationContext.targetId}`}
+              modelName={navigationContext.data?.name || navigationContext.targetId.replace('workflow-', '')}
+              modelVersion={navigationContext.data?.version || 1}
+              workflowId={navigationContext.targetId}
+              entityId={navigationContext.data?.entity_name && navigationContext.data?.entity_version
+                ? `${navigationContext.data.entity_name}-${navigationContext.data.entity_version}`
+                : undefined}
+              appId={getCurrentAppId()}
+              appData={currentAppData}
+              workflowData={navigationContext.data}
+              onAnswer={onAnswer}
+              setTextareaContentCallback={setTextareaContentCallback}
+              onBack={() => {
+                // Clear navigation context to return to workflows list
+                setNavigationContext(null);
+                setCurrentWorkflowId(null);
+                setCurrentWorkflowEntityId(null);
+              }}
+              onUpdate={async (data) => {
+                console.log('🔄 Workflow updated:', data);
 
-                  // Update the workflow in AppRoot
-                  if (currentAppData && updateAppData && currentWorkflowId && currentWorkflowEntityId) {
-                    try {
-                      // Parse the workflow data
-                      const workflowData = JSON.parse(data.canvasData);
+                // Update the workflow in AppRoot
+                const workflowEntityId = navigationContext.data?.entity_name && navigationContext.data?.entity_version
+                  ? `${navigationContext.data.entity_name}-${navigationContext.data.entity_version}`
+                  : null;
 
-                      // Find the entity and workflow in AppRoot
-                      const updatedAppData = { ...currentAppData };
-                      const entity = updatedAppData.app.entities.find(
-                        e => `${e.name}-${e.version}` === currentWorkflowEntityId
+                if (currentAppData && updateAppData && navigationContext.targetId && workflowEntityId) {
+                  try {
+                    // Parse the workflow data
+                    const workflowData = JSON.parse(data.canvasData);
+
+                    // Find the entity and workflow in AppRoot
+                    const updatedAppData = { ...currentAppData };
+                    const entity = updatedAppData.app.entities.find(
+                      e => `${e.name}-${e.version}` === workflowEntityId
+                    );
+
+                    if (entity) {
+                      // Find the workflow in the entity
+                      const workflowIndex = entity.workflows.findIndex(
+                        w => `workflow-${w.name}` === navigationContext.targetId
                       );
 
-                      if (entity) {
-                        // Find the workflow in the entity
-                        const workflowIndex = entity.workflows.findIndex(
-                          w => `workflow-${w.name}` === currentWorkflowId
-                        );
+                      if (workflowIndex !== -1) {
+                        // Update the workflow config
+                        entity.workflows[workflowIndex] = {
+                          ...entity.workflows[workflowIndex],
+                          config: workflowData.configuration || workflowData.config || workflowData
+                        };
 
-                        if (workflowIndex !== -1) {
-                          // Update the workflow config
-                          entity.workflows[workflowIndex] = {
-                            ...entity.workflows[workflowIndex],
-                            config: workflowData.configuration || workflowData.config || workflowData
-                          };
+                        // Update AppRoot
+                        updateAppData(updatedAppData);
+                        setCurrentAppData(updatedAppData);
+                        console.log('✅ Workflow updated in AppRoot');
 
-                          // Update AppRoot
-                          updateAppData(updatedAppData);
-                          setCurrentAppData(updatedAppData);
-                          console.log('✅ Workflow updated in AppRoot');
-
-                          // Update local data
-                          updateLocalData(updatedAppData);
-                        }
+                        // Update local data
+                        updateLocalData(updatedAppData);
                       }
-                    } catch (error) {
-                      console.error('❌ Failed to update workflow in AppRoot:', error);
                     }
+                  } catch (error) {
+                    console.error('❌ Failed to update workflow in AppRoot:', error);
                   }
-
-                  // Mark tab as dirty
-                  updateTab(activeWorkflowTab.id, { isDirty: true });
-                }}
-              />
-            </>
+                }
+              }}
+            />
           ) : (
-            // Show workflows list when no workflow tab is open
-            currentAppData && updateAppData ? (
+            // Show workflows list when no workflow is selected
+            currentAppData ? (
               <WorkflowsList
                 appId={getCurrentAppId()}
                 appData={currentAppData}
-                onAppDataUpdate={async (updatedAppData) => {
-                  console.log('📥 WorkflowsList called onAppDataUpdate:', {
-                    entities: updatedAppData.app.entities.length,
-                    workflows: updatedAppData.app.entities.reduce((sum, e) => sum + e.workflows.length, 0),
-                    updateAppData: typeof updateAppData,
-                    updatedAppData
-                  });
-                  // Update app data in AppsTabsContainer
-                  updateAppData(updatedAppData);
-                  setCurrentAppData(updatedAppData);
-
-                  // Update local data
-                  updateLocalData(updatedAppData);
-
-                  // Also persist to localStorage with chat-specific keys (same as AppsCanvas does)
-                  try {
-                    const appId = getCurrentAppId();
-
-                    // Helper to get chat ID from URL
-                    const getChatId = () => {
-                      const path = window.location.pathname || window.location.hash;
-                      const match = path.match(/\/chat\/([^\/\?#]+)/);
-                      return match ? match[1] : 'default';
-                    };
-
-                    const chatId = getChatId();
-                    const entitiesKey = `mock_api_entities_chat_${chatId}`;
-                    const workflowsKey = `mock_api_workflows_chat_${chatId}`;
-
-                    console.log('💾 WorkflowsList save - updated data:', {
-                      appId,
-                      chatId,
-                      entitiesKey,
-                      workflowsKey,
-                      entitiesCount: updatedAppData.app.entities?.length || 0,
-                      workflowsCount: updatedAppData.app.entities?.reduce((sum: number, e: any) => sum + (e.workflows?.length || 0), 0) || 0,
-                      entities: updatedAppData.app.entities
-                    });
-
-                    // Save entities to mock API storage
-                    if (updatedAppData.app.entities && updatedAppData.app.entities.length > 0) {
-                      const entitiesStorage = JSON.parse(localStorage.getItem(entitiesKey) || '{}');
-                      updatedAppData.app.entities.forEach((entity: any) => {
-                        const entityId = `entity-${entity.name.toLowerCase()}-${entity.version || '1'}`;
-                        entitiesStorage[entityId] = {
-                          id: entityId,
-                          app_id: appId,
-                          name: entity.name,
-                          version: entity.version || '1',
-                          description: entity.description || '',
-                          cyoda_url: entity.cyoda_url || '',
-                          github_url: entity.github_url || '',
-                          model: entity.model || {},
-                          created_at: entitiesStorage[entityId]?.created_at || new Date().toISOString(),
-                          updated_at: new Date().toISOString(),
-                        };
-                      });
-                      localStorage.setItem(entitiesKey, JSON.stringify(entitiesStorage));
-                      console.log(`📦 Saved ${updatedAppData.app.entities.length} entities to ${entitiesKey}:`, Object.keys(entitiesStorage));
-                    } else {
-                      console.log('⚠️ No entities to save!');
-                    }
-
-                    // Save workflows to mock API storage
-                    if (updatedAppData.app.entities && updatedAppData.app.entities.length > 0) {
-                      const workflowsStorage = JSON.parse(localStorage.getItem(workflowsKey) || '{}');
-                      let workflowCount = 0;
-                      updatedAppData.app.entities.forEach((entity: any) => {
-                        const entityId = `entity-${entity.name.toLowerCase()}-${entity.version || '1'}`;
-                        entity.workflows?.forEach((workflow: any) => {
-                          console.log('💾 Saving workflow:', {
-                            name: workflow.name,
-                            hasConfig: !!workflow.config,
-                            hasStates: !!workflow.config?.states,
-                            states: workflow.config?.states,
-                            fullWorkflow: workflow
-                          });
-                          const workflowId = workflow.id || `workflow-${workflow.name.toLowerCase().replace(/\s+/g, '-')}`;
-                          workflowsStorage[workflowId] = {
-                            id: workflowId,
-                            app_id: appId,
-                            entity_id: entityId,
-                            name: workflow.name,
-                            description: workflow.description || '',
-                            cyoda_url: workflow.cyoda_url || '',
-                            github_url: workflow.github_url || '',
-                            states: workflow.config?.states || {},
-                            model_name: entity.name,
-                            model_version: entity.version || '1',
-                            created_at: workflowsStorage[workflowId]?.created_at || new Date().toISOString(),
-                            updated_at: new Date().toISOString(),
-                          };
-                          console.log('💾 Saved workflow to storage:', workflowsStorage[workflowId]);
-                          workflowCount++;
-                        });
-                      });
-                      localStorage.setItem(workflowsKey, JSON.stringify(workflowsStorage));
-                      console.log(`📦 Saved ${workflowCount} workflows to ${workflowsKey}:`, Object.keys(workflowsStorage));
-                    } else {
-                      console.log('⚠️ No workflows to save!');
-                    }
-
-                    console.log('✅ WorkflowsList changes persisted to chat-specific localStorage keys');
-                  } catch (err) {
-                    console.error('❌ Failed to persist workflow changes:', err);
-                  }
-
-                  console.log('✅ Called updateAppData and setCurrentAppData');
-                }}
                 onWorkflowClick={(workflowId, workflowData) => {
-                  console.log('🎯 Opening workflow:', { workflowId, workflowData });
+                  console.log('🧭 Navigating to workflow:', { workflowId, workflowData });
+                  setCurrentWorkflowId(workflowId);
 
-                  // Set navigation context with workflow data
+                  // Extract entity ID from workflow data
+                  const entityId = workflowData?.entity_name && workflowData?.entity_version
+                    ? `${workflowData.entity_name}-${workflowData.entity_version}`
+                    : null;
+                  setCurrentWorkflowEntityId(entityId);
+
+                  // Set navigation context to show workflow editor
                   setNavigationContext({
                     targetId: workflowId,
                     targetType: 'workflow',
                     data: workflowData,
                   });
-
-                  // The useEffect will handle opening the workflow tab
                 }}
-                onWorkflowCreated={(workflowId) => {
-                  // No need to trigger reload - data is already updated
+                onAppDataUpdate={async (updatedAppData) => {
+                  console.log('📥 WorkflowsList called onAppDataUpdate');
+                  if (updateAppData) {
+                    updateAppData(updatedAppData);
+                  }
+                  setCurrentAppData(updatedAppData);
+                  updateLocalData(updatedAppData);
                 }}
               />
+            ) : !githubRepository ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="text-gray-400 mb-2">No repository configured</div>
+                  <div className="text-xs text-gray-500">Configure a GitHub repository to view workflows</div>
+                </div>
+              </div>
+            ) : isLoadingAppData ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="animate-spin mb-3">
+                    <RefreshCw size={24} className="text-blue-400" />
+                  </div>
+                  <div className="text-gray-400">Loading workflows...</div>
+                </div>
+              </div>
             ) : (
               <div className="flex items-center justify-center h-full">
-                <div className="text-gray-400">Loading app data...</div>
+                <div className="text-center">
+                  <div className="text-gray-400 mb-2">No workflows found</div>
+                  <div className="text-xs text-gray-500">Create a workflow to get started</div>
+                  <div className="text-xs text-gray-600 mt-2">
+                    Debug: entities={currentAppData?.app?.entities?.length || 0},
+                    workflows={currentAppData?.app?.entities?.reduce((sum: number, e: any) => sum + (e.workflows?.length || 0), 0) || 0}
+                  </div>
+                </div>
               </div>
             )
           )
@@ -978,13 +863,16 @@ gantt
             />
           ) : (
             // Show requirements list when no requirement is selected
-            currentAppData && updateAppData ? (
+            currentAppData ? (
               <RequirementsList
                 appId={getCurrentAppId()}
                 appData={currentAppData}
                 onRequirementClick={(requirementId) => {
                   console.log('🧭 Navigating to requirement:', requirementId);
-                  setNavigationContext({ targetId: requirementId, targetType: 'requirement' });
+                  // Find requirement data by id
+                  const requirement = currentAppData?.app?.requirements?.find(r => r.id === requirementId);
+                  console.log('📦 Found requirement:', requirement);
+                  setNavigationContext({ targetId: requirementId, targetType: 'requirement', data: requirement });
                 }}
                 onAppDataUpdate={async (updatedAppData) => {
                   console.log('📥 RequirementsList called onAppDataUpdate:', {
@@ -1007,9 +895,28 @@ gantt
                   // No need to trigger reload - data is already updated
                 }}
               />
+            ) : !githubRepository ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="text-gray-400 mb-2">No repository configured</div>
+                  <div className="text-xs text-gray-500">Configure a GitHub repository to view requirements</div>
+                </div>
+              </div>
+            ) : isLoadingAppData ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="animate-spin mb-3">
+                    <RefreshCw size={24} className="text-blue-400" />
+                  </div>
+                  <div className="text-gray-400">Loading requirements...</div>
+                </div>
+              </div>
             ) : (
               <div className="flex items-center justify-center h-full">
-                <div className="text-gray-400">Loading app data...</div>
+                <div className="text-center">
+                  <div className="text-gray-400 mb-2">No requirements found</div>
+                  <div className="text-xs text-gray-500">Create a requirement to get started</div>
+                </div>
               </div>
             )
           )

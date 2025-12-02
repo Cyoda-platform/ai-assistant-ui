@@ -1,15 +1,19 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import dayjs from 'dayjs';
-import { Bell, Clock, Sparkles, Activity, ArrowRight } from 'lucide-react';
+import { Bell, Clock, Sparkles, Activity, ArrowRight, RefreshCw, Loader2 } from 'lucide-react';
 import MarkdownRenderer from '../MarkdownRenderer/MarkdownRenderer';
 import LogoSmall from '@/assets/images/logo-small.svg';
+import { useRepositoryStore } from '@/stores/repository';
 
 interface Message {
+  id?: string;
+  type?: string;
   text: string | object;
   last_modified?: string;
   editable?: boolean;
   raw?: {
     background_task_id?: string;
+    background_task_ids?: string[];
     hook?: any;
     [key: string]: any;
   };
@@ -19,13 +23,21 @@ interface ChatBotMessageNotificationProps {
   message: Message;
   onUpdateNotification: (data: any) => void;
   onOpenTaskPanel?: () => void;
+  onOpenCanvas?: () => void;
+  technicalId?: string;
+  githubRepository?: any;
 }
 
 const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
   message,
   onUpdateNotification,
-  onOpenTaskPanel
+  onOpenTaskPanel,
+  onOpenCanvas,
+  technicalId,
+  githubRepository
 }) => {
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
   const messageText = useMemo(() => {
     const text = message.text;
     if (typeof text === 'object' && text !== null) {
@@ -39,8 +51,47 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
     return dayjs(message.last_modified).format('HH:mm');
   }, [message.last_modified]);
 
-  // Check if this is a background task notification
-  const isBackgroundTask = !!message.raw?.background_task_ids;
+  // Check hook type
+  const hook = message.raw?.hook;
+  const isBackgroundTask = !!message.raw?.background_task_ids || hook?.type === 'background_task' || (hook?.type === 'combined' && hook?.hooks?.some((h: any) => h.type === 'background_task'));
+  const isCodeChanges = hook?.type === 'code_changes' || (hook?.type === 'combined' && hook?.hooks?.some((h: any) => h.type === 'code_changes'));
+
+  // Debug logging
+  console.log('🔍 ChatBotMessageNotification render:', {
+    messageType: message.type,
+    hasBackgroundTaskIds: !!message.raw?.background_task_ids,
+    backgroundTaskIds: message.raw?.background_task_ids,
+    hookType: hook?.type,
+    isBackgroundTask,
+    hasOnOpenTaskPanel: !!onOpenTaskPanel,
+    messageId: message.id
+  });
+
+  // Handle canvas refresh for code changes
+  const handleRefreshCanvas = async () => {
+    if (!technicalId || !githubRepository) {
+      console.warn('⚠️ Cannot refresh canvas: missing repository info or conversation ID');
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      console.log('🔍 Refreshing canvas due to code changes...');
+      const { clearCache, loadRepository } = useRepositoryStore.getState();
+      clearCache(technicalId);
+      await loadRepository(technicalId, githubRepository);
+      console.log('✅ Canvas refresh complete');
+
+      // Open canvas if callback provided
+      if (onOpenCanvas) {
+        onOpenCanvas();
+      }
+    } catch (error) {
+      console.error('❌ Canvas refresh failed:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   return (
     <div className="flex justify-start mb-6 animate-fade-in-up">
@@ -54,7 +105,12 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
           {/* Notification Badge */}
           <div className="flex items-center space-x-2 mb-2">
             <div className="flex items-center space-x-1.5 bg-slate-800/50 backdrop-blur-sm px-3 py-1 rounded-full border border-slate-600">
-              {isBackgroundTask ? (
+              {isCodeChanges ? (
+                <>
+                  <RefreshCw size={12} className="text-cyan-400" />
+                  <span className="text-xs font-medium text-slate-300">CODE CHANGES</span>
+                </>
+              ) : isBackgroundTask ? (
                 <>
                   <Activity size={12} className="text-teal-400" />
                   <span className="text-xs font-medium text-slate-300">BACKGROUND TASK</span>
@@ -82,17 +138,45 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
                 {messageText}
               </MarkdownRenderer>
 
-              {/* Show "View Task Progress" button for background tasks */}
-              {isBackgroundTask && onOpenTaskPanel && (
-                <button
-                  onClick={onOpenTaskPanel}
-                  className="flex items-center space-x-2 px-4 py-2 bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/50 hover:border-teal-500 rounded-lg text-teal-300 hover:text-teal-200 transition-all duration-200 group"
-                >
-                  <Activity size={16} />
-                  <span className="font-medium">View Task Progress</span>
-                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                </button>
-              )}
+              {/* Action buttons container */}
+              <div className="flex flex-wrap gap-3">
+                {/* Show "Refresh Canvas" button for code changes */}
+                {isCodeChanges && (
+                  <button
+                    onClick={handleRefreshCanvas}
+                    disabled={isAnalyzing}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-teal-500/20 hover:from-cyan-500/30 hover:to-teal-500/30 border border-cyan-500/50 hover:border-cyan-500 rounded-lg text-cyan-300 hover:text-cyan-200 transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        <span className="font-medium">Analyzing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw size={16} />
+                        <span className="font-medium">Refresh & Open Canvas</span>
+                        <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
+                  </button>
+                )}
+
+                {/* Show "View Task Progress" button for background tasks */}
+                {isBackgroundTask && onOpenTaskPanel && (
+                  <button
+                    onClick={() => {
+                      console.log('🎯 View Task Progress button clicked');
+                      onOpenTaskPanel();
+                    }}
+                    className="flex items-center space-x-2 px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/50 hover:border-emerald-500 rounded-lg text-emerald-300 hover:text-emerald-200 transition-all duration-200 group"
+                  >
+                    <Activity size={16} />
+                    <span className="font-medium">View Task Progress</span>
+                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

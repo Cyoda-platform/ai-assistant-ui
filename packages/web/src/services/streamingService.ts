@@ -6,7 +6,7 @@ import { SSEEvent, SSEChatEvent, SSETaskEvent } from '@/types/streaming';
  */
 class StreamingService {
   private readonly TIMEOUT_MS = 600000; // 10 minutes (matches server STREAM_TIMEOUT)
-  private readonly MAX_RECONNECT_ATTEMPTS = 5; // Increased from 3
+  private readonly MAX_RECONNECT_ATTEMPTS = 2; // Reduced from 5 - prevent concurrent requests instead
   private readonly HEARTBEAT_INTERVAL = 30000; // 30 seconds
   private readonly PERSISTENCE_KEY_PREFIX = 'stream_state_';
   private readonly MAX_CONTENT_SIZE = 1024 * 1024; // 1MB limit for accumulated content
@@ -21,13 +21,16 @@ class StreamingService {
     message: string;
   }>();
 
+  // Active streams tracking to prevent concurrent requests
+  private activeStreams = new Map<string, AbortController>();
+
   // Circuit breaker state
   private circuitBreaker = {
     failures: 0,
     lastFailureTime: 0,
     state: 'CLOSED' as 'CLOSED' | 'OPEN' | 'HALF_OPEN',
     failureThreshold: 5,
-    recoveryTimeout: 60000, // 1 minute
+    recoveryTimeout: 120000, // 2 minute
   };
 
   // Health monitoring
@@ -93,6 +96,14 @@ class StreamingService {
     onError?: (error: Error) => void,
     onComplete?: () => void
   ): Promise<AbortController> {
+    // Check if there's already an active stream for this conversation
+    const existingStream = this.activeStreams.get(conversationId);
+    if (existingStream) {
+      console.log(`[SSE] Aborting existing stream for conversation ${conversationId}`);
+      existingStream.abort();
+      this.activeStreams.delete(conversationId);
+    }
+
     // Periodic cleanup of old states
     this.cleanupOldStates();
     // Check circuit breaker
@@ -114,11 +125,15 @@ class StreamingService {
       this.healthStats.averageStreamDuration =
         (this.healthStats.averageStreamDuration * (this.healthStats.successfulStreams - 1) + duration) /
         this.healthStats.successfulStreams;
+      // Remove from active streams
+      this.activeStreams.delete(conversationId);
       onComplete?.();
     };
 
     const wrappedOnError = (error: Error) => {
       this.recordFailure();
+      // Remove from active streams
+      this.activeStreams.delete(conversationId);
       onError?.(error);
     };
 
@@ -211,10 +226,14 @@ class StreamingService {
     const url = `${import.meta.env.VITE_APP_API_BASE}/v1/chats/${conversationId}/stream`;
     const abortController = new AbortController();
 
+    // Register this stream as active
+    this.activeStreams.set(conversationId, abortController);
+
     // Load previous stream state for recovery
     const previousState = this.loadStreamState(conversationId);
     let accumulatedContent = previousState?.accumulatedContent || '';
     let lastEventId = previousState?.lastEventId || '';
+    let currentEventId = lastEventId; // Declare here so it's accessible in catch block
 
     // If we have previous content, emit it first for continuity
     if (previousState && previousState.accumulatedContent) {
@@ -267,7 +286,7 @@ class StreamingService {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
-      let currentEventId = lastEventId;
+      // currentEventId already declared at function scope
 
       // Read stream
       while (true) {

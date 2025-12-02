@@ -45,6 +45,13 @@ export interface BackgroundTask {
   process_pid?: number;
   build_job_id?: string;
   statistics: TaskStatistics;
+  metadata?: {
+    output?: string;
+    elapsed_time?: number;
+    changed_files?: string[];
+    total_files?: number;
+    [key: string]: any;
+  };
 }
 
 export interface TaskListResponse {

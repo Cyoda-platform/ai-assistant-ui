@@ -11,6 +11,7 @@ import { useRepositoryStore } from '@/stores/repository';
 import EntityDataPanel from '@/components/EntityDataPanel/EntityDataPanel';
 import ChatHistoryPanel from '@/components/ChatHistoryPanel/ChatHistoryPanel';
 import EnvironmentsPanel from '@/components/EnvironmentsPanel/EnvironmentsPanel';
+import TasksPanel from '@/components/TasksPanel/TasksPanel';
 import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
 import { useResizablePanel } from '@/hooks/useResizablePanel';
 import Tinycon from 'tinycon';
@@ -32,8 +33,9 @@ interface Message {
   editable?: boolean;
   approve?: boolean;
   raw?: any;
-  type: 'question' | 'answer' | 'notification' | 'ui_function';
+  type: 'ai' | 'user' | 'notification' | 'ui_function';
   isCanvasQA?: boolean;
+  hook_message?: string; // Separated hook message from agent response
 }
 
 interface HeaderNotification {
@@ -87,13 +89,14 @@ const ChatBotView: React.FC = () => {
         console.warn('[Canvas State] Failed to load canvas active tab from localStorage:', error);
       }
     }
-    return 'apps';
+    return 'requirement';
   });
   const [triggerCanvasReload, setTriggerCanvasReload] = useState(false);
   const [isEntityDataOpen, setIsEntityDataOpen] = useState(false);
-  const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(true);
+  const [isTasksPanelOpen, setIsTasksPanelOpen] = useState(false);
+  const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(false);
   const [isEnvironmentsOpen, setIsEnvironmentsOpen] = useState(false);
-  const [setTextareaContentCallback, setSetTextareaContentCallback] = useState<((content: string) => void) | null>(null);
+  const [setTextareaContentCallback, setSetTextareaContentCallback] = useState<((content: string, options?: { collapse?: boolean }) => void) | null>(null);
   const [lastCanvasAIChange, setLastCanvasAIChange] = useState<{
     entities: Record<string, any>;
     workflows: Record<string, any>;
@@ -108,7 +111,7 @@ const ChatBotView: React.FC = () => {
   const [headerNotifications, setHeaderNotifications] = useState<HeaderNotification[]>([]);
   const notificationIdCounter = useRef(1);
   const [countNewMessages, setCountNewMessages] = useState(0);
-  const originalTitle = useRef('Cyoda AI Assistant');
+  const originalTitle = useRef('Cyoda AI Studio: Solve.Build. Deploy');
   const [isLoadingRollback, setIsLoadingRollback] = useState(false);
   const [showRepositoryConfigPrompt, setShowRepositoryConfigPrompt] = useState(false);
   const [isLoadingCanvasToggle, setIsLoadingCanvasToggle] = useState(false);
@@ -142,6 +145,19 @@ const ChatBotView: React.FC = () => {
       // Reopen the environments panel
       setIsEnvironmentsOpen(true);
     }
+  }, []);
+
+  // Listen for openEnvironmentsPanel event from deployment options UI
+  useEffect(() => {
+    const handleOpenEnvironmentsPanel = (event: any) => {
+      console.log('[ChatBotView] Opening environments panel from deployment options');
+      setIsEnvironmentsOpen(true);
+    };
+
+    window.addEventListener('openEnvironmentsPanel', handleOpenEnvironmentsPanel);
+    return () => {
+      window.removeEventListener('openEnvironmentsPanel', handleOpenEnvironmentsPanel);
+    };
   }, []);
 
   // Resizable canvas panel - no max width constraint
@@ -327,25 +343,16 @@ const ChatBotView: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty deps - only run on mount
 
-  // Handle openCanvas query parameter
+  // Handle openCanvas query parameter - disabled auto-opening
   useEffect(() => {
     const shouldOpenCanvas = searchParams.get('openCanvas') === 'true';
-    if (shouldOpenCanvas && !canvasVisible) {
-      // Check if current chat is archived
-      const currentChat = chatList?.find(chat => chat.technical_id === technicalId);
-      const isArchived = currentChat?.status === 'archived';
-
-      if (!isArchived) {
-        console.log('[Canvas Auto-Open] Opening canvas from URL parameter');
-        setCanvasVisible(true);
-      } else {
-        console.log('[Canvas Auto-Open] Cannot open canvas for archived chat via URL parameter');
-      }
-      // Remove the parameter from URL to clean it up
+    if (shouldOpenCanvas) {
+      // Just clean up the URL parameter without auto-opening canvas
+      console.log('[Canvas Auto-Open] Ignoring openCanvas URL parameter - auto-opening disabled');
       searchParams.delete('openCanvas');
       setSearchParams(searchParams, { replace: true });
     }
-  }, [searchParams, setSearchParams, canvasVisible, chatList, technicalId]);
+  }, [searchParams, setSearchParams, technicalId]);
 
   // Add header notification for new messages
   const addHeaderNotification = (message: Message) => {
@@ -539,41 +546,41 @@ const ChatBotView: React.FC = () => {
         const chatBody = data?.chat_body;
         const hasRepositoryInfo = !!(chatBody?.repository_name && chatBody?.repository_owner && chatBody?.repository_branch);
 
-        // Auto-open canvas when repository info becomes available (GitHub mode)
-        if (hasRepositoryInfo && !hasAutoOpenedCanvasRef.current && !isArchived) {
-          console.log('[Canvas Auto-Open] Conditions:', {
-            hasRepositoryInfo: true,
-            canvasVisible,
-            hasAutoOpened: hasAutoOpenedCanvasRef.current,
-            isArchived,
-            willOpen: !canvasVisible,
-            repositoryName: chatBody?.repository_name,
-            repositoryOwner: chatBody?.repository_owner,
-            repositoryBranch: chatBody?.repository_branch
-          });
+        // Auto-open canvas disabled - users can manually open canvas when needed
+        // if (hasRepositoryInfo && !hasAutoOpenedCanvasRef.current && !isArchived) {
+        //   console.log('[Canvas Auto-Open] Conditions:', {
+        //     hasRepositoryInfo: true,
+        //     canvasVisible,
+        //     hasAutoOpened: hasAutoOpenedCanvasRef.current,
+        //     isArchived,
+        //     willOpen: !canvasVisible,
+        //     repositoryName: chatBody?.repository_name,
+        //     repositoryOwner: chatBody?.repository_owner,
+        //     repositoryBranch: chatBody?.repository_branch
+        //   });
 
-          if (!canvasVisible) {
-            console.log('[Canvas Auto-Open] Opening canvas for the first time (GitHub mode)');
-            setCanvasVisible(true);
-          }
-          hasAutoOpenedCanvasRef.current = true; // Mark that we've auto-opened the canvas
-        }
-        // Fallback: Auto-open for AppConfig mode when entities_data is available
-        else if (newEntitiesData && Object.keys(newEntitiesData).length > 0 && !hasAutoOpenedCanvasRef.current && !isArchived && !hasRepositoryInfo) {
-          console.log('[Canvas Auto-Open] Conditions:', {
-            hasEntitiesData: true,
-            canvasVisible,
-            hasAutoOpened: hasAutoOpenedCanvasRef.current,
-            isArchived,
-            willOpen: !canvasVisible
-          });
+        //   if (!canvasVisible) {
+        //     console.log('[Canvas Auto-Open] Opening canvas for the first time (GitHub mode)');
+        //     setCanvasVisible(true);
+        //   }
+        //   hasAutoOpenedCanvasRef.current = true; // Mark that we've auto-opened the canvas
+        // }
+        // // Fallback: Auto-open for AppConfig mode when entities_data is available
+        // else if (newEntitiesData && Object.keys(newEntitiesData).length > 0 && !hasAutoOpenedCanvasRef.current && !isArchived && !hasRepositoryInfo) {
+        //   console.log('[Canvas Auto-Open] Conditions:', {
+        //     hasEntitiesData: true,
+        //     canvasVisible,
+        //     hasAutoOpened: hasAutoOpenedCanvasRef.current,
+        //     isArchived,
+        //     willOpen: !canvasVisible
+        //   });
 
-          if (!canvasVisible) {
-            console.log('[Canvas Auto-Open] Opening canvas for the first time (AppConfig mode)');
-            setCanvasVisible(true);
-          }
-          hasAutoOpenedCanvasRef.current = true; // Mark that we've auto-opened the canvas
-        }
+        //   if (!canvasVisible) {
+        //     console.log('[Canvas Auto-Open] Opening canvas for the first time (AppConfig mode)');
+        //     setCanvasVisible(true);
+        //   }
+        //   hasAutoOpenedCanvasRef.current = true; // Mark that we've auto-opened the canvas
+        // }
       }
 
       // Clean up messages without IDs (temporary optimistic messages) and process all new messages in a single update
@@ -583,7 +590,10 @@ const ChatBotView: React.FC = () => {
 
         // Process all messages from dialogue
         data.chat_body.dialogue.forEach((el: any) => {
-          const messageText = el.message || el.answer || '';
+          // Ensure messageText is always a string
+          let rawMessageText = el.message || el.answer || '';
+          const messageText = typeof rawMessageText === 'string' ? rawMessageText : String(rawMessageText || '');
+
           const backgroundTaskIds = el.hook?.background_task_ids || extractBackgroundTaskIds(messageText);
           const uiFunctionsFromField = el.ui_functions || [];
           const uiFunctionsFromText = extractUIFunctions(messageText) || [];
@@ -606,8 +616,8 @@ const ChatBotView: React.FC = () => {
             return; // Skip this message
           }
 
-          let type = 'answer';
-          if (el.question) type = 'question';
+          let type = 'user';
+          if (el.type === 'ai') type = 'ai';
           else if (el.notification) type = 'notification';
           else if (el.type === 'ui_function') type = 'ui_function';
 
@@ -638,6 +648,18 @@ const ChatBotView: React.FC = () => {
             : messageText;
 
           // Normal message
+          // Build raw object: spread el (excluding raw), then merge el.raw fields
+          const rawObject: any = {
+            ...el,
+            ui_functions: allUIFunctions.length > 0 ? allUIFunctions : undefined,
+            hook: el.metadata?.hook  // Restore hook from metadata
+          };
+
+          // Merge el.raw fields (including debug_history) into raw object
+          if (el.raw) {
+            Object.assign(rawObject, el.raw);
+          }
+
           const newMessage: Message = {
             id: el.technical_id,
             text: finalMessageText,
@@ -645,10 +667,7 @@ const ChatBotView: React.FC = () => {
             editable: !!el.editable,
             approve: !!el.approve,
             last_modified: el.last_modified,
-            raw: {
-              ...el,
-              ui_functions: allUIFunctions.length > 0 ? allUIFunctions : undefined
-            },
+            raw: rawObject,
             type: type as Message['type'],
             isCanvasQA: !!el.isCanvasQA
           };
@@ -656,7 +675,8 @@ const ChatBotView: React.FC = () => {
             id: newMessage.id,
             adk_session_id: el.adk_session_id,
             type: newMessage.type,
-            text: newMessage.text.substring(0, 50)
+            text: newMessage.text.substring(0, 50),
+            hasDebugHistory: !!newMessage.raw?.debug_history
           });
           currentMessages.push(newMessage);
 
@@ -691,12 +711,12 @@ const ChatBotView: React.FC = () => {
 
       if (dialogue && dialogue.length > 0) {
         const lastMessage = dialogue[dialogue.length - 1];
-        const messageType = lastMessage.question ? 'question' :
-          lastMessage.type === 'ui_function' ? 'ui_function' : 'answer';
+        const messageType = lastMessage.type === 'ai' ? 'ai' :
+          lastMessage.type === 'ui_function' ? 'ui_function' : 'user';
 
-        if (['question', 'ui_function'].includes(messageType)) {
+        if (['ai', 'ui_function'].includes(messageType)) {
           setIsLoading(false);
-          setDisabled(false); // Unblock the chat when question or ui_function arrives
+          setDisabled(false); // Unblock the chat when ai or ui_function arrives
 
           // If this is not the initial load, add notification for the new question/ui_function
           // BUT only if we haven't already notified about this message
@@ -826,6 +846,24 @@ const ChatBotView: React.FC = () => {
       case 'tool_response':
         console.log('[SSE] Tool response:', event.tool_name, event.tool_response);
         eventsRef.current = [...eventsRef.current, eventRecord]; // Update ref
+
+        // If tool response has a message, display it immediately
+        if (event.tool_response) {
+          const toolMessage: Message = {
+            id: `tool-${event.tool_id || Date.now()}`,
+            type: 'function',
+            text: event.tool_response,
+            last_modified: new Date().toISOString(),
+            raw: {
+              tool_name: event.tool_name,
+              tool_id: event.tool_id,
+              hook: event.hook,
+              sse_events: [eventRecord]
+            }
+          };
+          setMessages(prev => [...prev, toolMessage]);
+        }
+
         setStreamingState(prev => ({
           ...prev,
           currentTool: undefined,
@@ -901,9 +939,184 @@ const ChatBotView: React.FC = () => {
         console.log('[SSE] Final events array:', finalEvents);
         console.log('[SSE] Final events count:', finalEvents.length);
 
-        // Check if this is a background task hook
-        // First check if it's in the hook field, then check if it's embedded in the response text
-        const backgroundTaskIds = event.hook?.background_task_ids || extractBackgroundTaskIds(event.response);
+        // Check for hooks in the response
+        const hook = event.hook;
+        const backgroundTaskIds = hook?.background_task_ids || extractBackgroundTaskIds(event.response);
+
+        // Handle combined hooks - check what type of hooks are inside
+        if (hook?.type === 'combined') {
+          console.log('[SSE] Combined hook detected:', hook);
+
+          // Check if this is a build hook (has background_task + option_selection)
+          const hasBackgroundTask = hook.hooks?.some((h: any) => h?.type === 'background_task');
+          const hasOptionSelection = hook.hooks?.some((h: any) => h?.type === 'option_selection');
+
+          if (hasBackgroundTask && hasOptionSelection) {
+            // This is a build hook - don't open canvas, let the message component handle it
+            console.log('[SSE] Build hook detected (background_task + option_selection), skipping canvas open');
+          } else {
+            // This is a code changes combined hook - open canvas
+            console.log('[SSE] Code changes combined hook detected, opening canvas');
+
+            // Determine which tab to open based on resource_type from hook
+            let tabToOpen: 'apps' | 'data' | 'workflow' | 'requirement' | 'code' | 'environments' = 'data';
+            const resourceType = hook?.data?.resource_type;
+
+            if (resourceType === 'entity') {
+              tabToOpen = 'data';
+              console.log('[SSE] Entity resource type, opening data tab');
+            } else if (resourceType === 'workflow') {
+              tabToOpen = 'workflow';
+              console.log('[SSE] Workflow resource type, opening workflow tab');
+            } else if (resourceType === 'requirement') {
+              tabToOpen = 'requirement';
+              console.log('[SSE] Requirement resource type, opening requirement tab');
+            } else {
+              // Fallback: detect from resources if resource_type not provided
+              const resources = hook?.data?.resources || {};
+              if (resources.entities && resources.entities.length > 0) {
+                tabToOpen = 'data';
+                console.log('[SSE] Entities detected in resources, opening data tab');
+              } else if (resources.workflows && resources.workflows.length > 0) {
+                tabToOpen = 'workflow';
+                console.log('[SSE] Workflows detected in resources, opening workflow tab');
+              } else if (resources.requirements && resources.requirements.length > 0) {
+                tabToOpen = 'requirement';
+                console.log('[SSE] Requirements detected in resources, opening requirement tab');
+              }
+            }
+
+            // Open canvas and set the appropriate tab
+            setCanvasVisible(true);
+            setCanvasActiveTab(tabToOpen);
+
+            // Auto-refresh canvas - use hook data if githubRepository not available
+            if (technicalId) {
+              // Try to get repository info from hook data first, then fall back to githubRepository
+              const hookRepoInfo = hook?.data?.repository_owner && hook?.data?.repository_name && hook?.data?.branch_name
+                ? {
+                    repositoryName: hook.data.repository_name,
+                    owner: hook.data.repository_owner,
+                    branch: hook.data.branch_name,
+                  }
+                : null;
+
+              const repoInfoToUse = hookRepoInfo || githubRepository;
+
+              if (repoInfoToUse) {
+                console.log('[SSE] Auto-refreshing canvas due to code changes...', repoInfoToUse);
+                const { clearCache, loadRepository } = useRepositoryStore.getState();
+                clearCache(technicalId);
+                // Trigger reload in background (don't await)
+                loadRepository(technicalId, repoInfoToUse).catch(err => {
+                  console.error('[SSE] Failed to auto-refresh canvas:', err);
+                });
+              } else {
+                console.log('[SSE] Cannot refresh canvas - no repository info available');
+              }
+            }
+          }
+        }
+
+        // Handle code changes hook (non-combined)
+        if (hook?.type === 'code_changes') {
+          console.log('[SSE] Code changes hook detected:', hook);
+
+          // Determine which tab to open based on resource_type from hook
+          let tabToOpen: 'apps' | 'data' | 'workflow' | 'requirement' | 'code' | 'environments' = 'data';
+          const resourceType = hook?.data?.resource_type;
+
+          if (resourceType === 'entity') {
+            tabToOpen = 'data';
+            console.log('[SSE] Entity resource type, opening data tab');
+          } else if (resourceType === 'workflow') {
+            tabToOpen = 'workflow';
+            console.log('[SSE] Workflow resource type, opening workflow tab');
+          } else if (resourceType === 'requirement') {
+            tabToOpen = 'requirement';
+            console.log('[SSE] Requirement resource type, opening requirement tab');
+          } else {
+            // Fallback: detect from resources if resource_type not provided
+            const resources = hook?.data?.resources || {};
+            if (resources.entities && resources.entities.length > 0) {
+              tabToOpen = 'data';
+              console.log('[SSE] Entities detected in resources, opening data tab');
+            } else if (resources.workflows && resources.workflows.length > 0) {
+              tabToOpen = 'workflow';
+              console.log('[SSE] Workflows detected in resources, opening workflow tab');
+            } else if (resources.requirements && resources.requirements.length > 0) {
+              tabToOpen = 'requirement';
+              console.log('[SSE] Requirements detected in resources, opening requirement tab');
+            }
+          }
+
+          // Open canvas and set the appropriate tab
+          setCanvasVisible(true);
+          setCanvasActiveTab(tabToOpen);
+
+          // Auto-refresh canvas - use hook data if githubRepository not available
+          if (technicalId) {
+            // Try to get repository info from hook data first, then fall back to githubRepository
+            const hookRepoInfo = hook?.data?.repository_owner && hook?.data?.repository_name && hook?.data?.branch_name
+              ? {
+                  repositoryName: hook.data.repository_name,
+                  owner: hook.data.repository_owner,
+                  branch: hook.data.branch_name,
+                }
+              : null;
+
+            const repoInfoToUse = hookRepoInfo || githubRepository;
+
+            if (repoInfoToUse) {
+              console.log('[SSE] Auto-refreshing canvas due to code changes...', repoInfoToUse);
+              const { clearCache, loadRepository } = useRepositoryStore.getState();
+              clearCache(technicalId);
+              // Trigger reload in background (don't await)
+              loadRepository(technicalId, repoInfoToUse).catch(err => {
+                console.error('[SSE] Failed to auto-refresh canvas:', err);
+              });
+            } else {
+              console.log('[SSE] Cannot refresh canvas - no repository info available');
+            }
+          }
+        }
+
+        // Handle cloud window hook - opens the Environments panel
+        if (hook?.type === 'cloud_window') {
+          console.log('[SSE] Cloud window hook detected:', hook);
+          console.log('[SSE] Opening environments panel...');
+          setIsEnvironmentsOpen(true);
+        }
+
+        // Handle canvas_tab hook - opens a specific canvas tab
+        if (hook?.type === 'canvas_tab') {
+          console.log('[SSE] Canvas tab hook detected:', hook);
+          const tabName = hook?.data?.tab_name;
+          console.log('[SSE] Opening canvas tab:', tabName);
+
+          // Map tab names to canvas tab values
+          const tabMap: Record<string, 'data' | 'workflow' | 'requirement' | 'code' | 'environments'> = {
+            'entities': 'data',
+            'workflows': 'workflow',
+            'requirements': 'requirement',
+            'cloud': 'environments'
+          };
+
+          const canvasTab = tabMap[tabName] || 'requirement';
+
+          // Open canvas and switch to the specified tab
+          setCanvasVisible(true);
+          setCanvasActiveTab(canvasTab);
+        }
+
+        // Handle combined hooks that may contain cloud_window
+        if (hook?.type === 'combined' && hook?.hooks) {
+          const hasCloudWindowHook = hook.hooks.some((subHook: any) => subHook.type === 'cloud_window');
+          if (hasCloudWindowHook) {
+            console.log('[SSE] Cloud window hook detected in combined hooks');
+            setIsEnvironmentsOpen(true);
+          }
+        }
 
         // If background task detected, show notification with actual message
         // and a redirect option to the task dashboard
@@ -954,19 +1167,22 @@ const ChatBotView: React.FC = () => {
 
         // Check for UI functions - first in the ui_functions field, then in the response text
         const uiFunctionsFromField = event.ui_functions || [];
-        const uiFunctionsFromText = extractUIFunctions(event.response) || [];
+        // Use agent_message if available (separated from hook message), otherwise use response
+        const responseToCheck = event.response || '';
+        const uiFunctionsFromText = extractUIFunctions(responseToCheck) || [];
         const allUIFunctions = [...uiFunctionsFromField, ...uiFunctionsFromText];
 
         // Determine the message text (remove JSON code block if UI functions were extracted from text)
         const messageText = uiFunctionsFromText.length > 0
-          ? removeJsonCodeBlock(event.response)
-          : event.response;
+          ? removeJsonCodeBlock(responseToCheck)
+          : responseToCheck;
 
         // Normal message (no background task hook)
         const aiMessage: Message = {
           id: event.adk_session_id || `msg-${Date.now()}`, // Use session ID from SSE
-          type: 'question',
+          type: 'ai',
           text: messageText,
+          hook_message: event.hook_message, // Separated hook message if exists
           last_modified: new Date().toISOString(),
           raw: {
             adk_session_id: event.adk_session_id,
@@ -1010,6 +1226,25 @@ const ChatBotView: React.FC = () => {
           console.log('[SSE] Last message raw:', newMessages[newMessages.length - 1]?.raw);
           return newMessages;
         });
+
+        // Update chatData with repository info from SSE response if available
+        // This ensures githubRepository state is updated for the Analyze button
+        const repoInfo = event.repository_info;
+        if (repoInfo?.repository_name && repoInfo?.repository_owner && repoInfo?.repository_branch) {
+          console.log('[SSE] Updating chatData with repository info from SSE response:', repoInfo);
+          setChatData((prev: any) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              chat_body: {
+                ...prev.chat_body,
+                repository_name: repoInfo.repository_name,
+                repository_owner: repoInfo.repository_owner,
+                repository_branch: repoInfo.repository_branch,
+              }
+            };
+          });
+        }
 
         // Reset streaming state
         setStreamingState({
@@ -1084,7 +1319,7 @@ const ChatBotView: React.FC = () => {
       // Display user question immediately (no ID)
       const userMessage: Message = {
         id: '', // No ID - will be replaced by polling
-        type: 'answer',
+        type: 'user',
         text: data.answer,
         last_modified: new Date().toISOString(),
         isCanvasQA: data.mode === 'qa',
@@ -1140,7 +1375,7 @@ const ChatBotView: React.FC = () => {
           // Display AI response immediately
           const aiMessage: Message = {
             id: response.id || `canvas-qa-${Date.now()}`,
-            type: 'question',
+            type: 'ai',
             text: response.message || 'Configuration generated',
             last_modified: new Date().toISOString(),
             isCanvasQA: true,
@@ -1235,7 +1470,7 @@ const ChatBotView: React.FC = () => {
         // Display AI response immediately
         const aiMessage: Message = {
           id: response.id || `msg-${Date.now()}`,
-          type: 'question',
+          type: 'ai',
           text: response.message,
           last_modified: new Date().toISOString(),
           raw: response
@@ -1256,7 +1491,7 @@ const ChatBotView: React.FC = () => {
         // Show a placeholder message indicating processing
         const processingMessage: Message = {
           id: response.answer_technical_id,
-          type: 'question',
+          type: 'ai',
           text: 'Processing your request...',
           last_modified: new Date().toISOString(),
           raw: response
@@ -1373,8 +1608,17 @@ const ChatBotView: React.FC = () => {
       setIsLoadingCanvasToggle(true);
 
       try {
-        // Fetch repository info without loading messages
-        const { hasRepo, repoData } = await fetchRepositoryInfo();
+        // Fetch full conversation data to update chatData state
+        const { data } = await assistantStore.getChatById(technicalId);
+
+        // Update chatData so githubRepository gets extracted
+        if (data) {
+          setChatData(data);
+        }
+
+        // Check if repository is configured
+        const chatBody = data?.chat_body;
+        const hasRepo = !!(chatBody?.repository_name && chatBody?.repository_owner && chatBody?.repository_branch);
 
         if (hasRepo) {
           console.log('[Canvas Toggle] Repository now configured, opening canvas');
@@ -1420,7 +1664,7 @@ const ChatBotView: React.FC = () => {
   // Handle use existing repository click
   const handleUseExistingRepository = () => {
     setShowRepositoryConfigPrompt(false);
-    onAnswer({ answer: 'please use my existing branch in this chat' });
+    onAnswer({ answer: 'Please, clone my github repository branch...' });
   };
 
   // Handle close repository config prompt
@@ -1429,7 +1673,7 @@ const ChatBotView: React.FC = () => {
   };
 
   // Handle setting textarea content from canvas "Send to Chat" buttons
-  const handleSetTextareaContent = (callback: (content: string) => void) => {
+  const handleSetTextareaContent = (callback: (content: string, options?: { collapse?: boolean }) => void) => {
     setSetTextareaContentCallback(() => callback);
   };
 
@@ -1493,7 +1737,7 @@ const ChatBotView: React.FC = () => {
     const messageIndex = messages.findIndex(m => m.id === messageId);
     if (messageIndex > 0) {
       const userMessage = messages[messageIndex - 1];
-      if (userMessage && userMessage.type === 'answer') {
+      if (userMessage && userMessage.type === 'user') {
         // Re-send the question
         console.log('🔄 Retrying Canvas AI with question:', userMessage.text);
         onAnswer({ answer: userMessage.text as string, mode: 'qa' });
@@ -1921,11 +2165,11 @@ const ChatBotView: React.FC = () => {
       if (stored && ['apps', 'data', 'workflow', 'requirement', 'code'].includes(stored)) {
         setCanvasActiveTab(stored as 'apps' | 'data' | 'workflow' | 'requirement' | 'code');
       } else {
-        setCanvasActiveTab('apps');
+        setCanvasActiveTab('requirement');
       }
     } catch (error) {
       console.warn('[Canvas State] Failed to load canvas active tab:', error);
-      setCanvasActiveTab('apps');
+      setCanvasActiveTab('requirement');
     }
 
     isInitialLoadRef.current = true; // Reset initial load flag for new chat
@@ -2133,10 +2377,12 @@ const ChatBotView: React.FC = () => {
         onToggleChatHistory={() => setIsChatHistoryOpen(!isChatHistoryOpen)}
         onToggleEntities={onEntitiesDetails}
         onToggleEnvironments={() => setIsEnvironmentsOpen(!isEnvironmentsOpen)}
+        onToggleTasks={() => setIsTasksPanelOpen(!isTasksPanelOpen)}
         canvasVisible={canvasVisible}
         chatHistoryVisible={isChatHistoryOpen}
         entitiesVisible={isEntityDataOpen}
         environmentsVisible={isEnvironmentsOpen}
+        tasksVisible={isTasksPanelOpen}
         notifications={headerNotifications}
         onMarkNotificationAsRead={handleMarkNotificationAsRead}
         onMarkAllNotificationsAsRead={handleMarkAllNotificationsAsRead}
@@ -2252,7 +2498,11 @@ const ChatBotView: React.FC = () => {
             chatData={chatData}
             canvasVisible={canvasVisible}
             streamingState={streamingState}
-            onOpenTaskPanel={() => setIsEntityDataOpen(true)}
+            githubRepository={githubRepository}
+            onOpenTaskPanel={() => {
+              console.log('[ChatBotView] onOpenTaskPanel called, opening Tasks Panel');
+              setIsTasksPanelOpen(true);
+            }}
             onRetryStreaming={retryStreaming}
             isRetrying={isRetrying}
             onStopRequest={stopCurrentRequest}
@@ -2260,15 +2510,25 @@ const ChatBotView: React.FC = () => {
           />
         </div>
 
-        {/* Entity Data Panel - Resizable */}
-        <EntityDataPanel
-          isOpen={isEntityDataOpen}
-          onClose={() => setIsEntityDataOpen(false)}
-          chatData={chatData}
-          conversationId={technicalId}
-          width={entityDataResize.width}
-          onWidthChange={entityDataResize.setWidth}
-        />
+        {/* Tasks Panel - Resizable */}
+        {isTasksPanelOpen && (
+          <div
+            className={`resizable-panel ${entityDataResize.isResizing ? 'resizing' : ''}`}
+            style={{
+              width: `${entityDataResize.width}px`,
+              zIndex: entityDataResize.isResizing ? 30 : 10
+            }}
+          >
+            <TasksPanel
+              isOpen={isTasksPanelOpen}
+              onClose={() => setIsTasksPanelOpen(false)}
+              chatData={chatData}
+              conversationId={technicalId}
+              width={entityDataResize.width}
+              onWidthChange={entityDataResize.setWidth}
+            />
+          </div>
+        )}
       </div>
 
       {/* Stream Error Notification */}

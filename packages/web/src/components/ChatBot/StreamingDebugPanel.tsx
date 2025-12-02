@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, Clock, Zap, Wrench, ArrowRight, CheckCircle, XCircle } from 'lucide-react';
 
 interface SSEEvent {
-  id: string;
+  id?: string;
   type: string;
-  data: any;
+  data?: any;
   timestamp: string;
+  chunk_length?: number;
+  [key: string]: any;
 }
 
 interface StreamingDebugPanelProps {
@@ -99,22 +101,25 @@ const StreamingDebugPanel: React.FC<StreamingDebugPanelProps> = ({
       case 'start':
         return `Processing started`;
       case 'agent':
-        return `Agent: ${data.agent_name}`;
+        return `Agent: ${data?.agent_name || 'Unknown'}`;
       case 'tool_call':
-        return `Tool: ${data.tool_name} (${JSON.stringify(data.tool_args)})`;
+        return `Tool: ${data?.tool_name} (${JSON.stringify(data?.tool_args)})`;
       case 'tool_response':
-        return `Tool completed: ${data.tool_name}`;
+        const responsePreview = data?.tool_response?.substring(0, 60) || '';
+        return `Tool response: ${data?.tool_name} - ${responsePreview}${data?.tool_response?.length > 60 ? '...' : ''}`;
       case 'agent_transfer':
-        return `Transfer: ${data.from_agent} → ${data.to_agent}`;
+        return `Transfer: ${data?.from_agent} → ${data?.to_agent}`;
       case 'content':
-        const preview = data.chunk?.substring(0, 50) || '';
-        return `Content: ${preview}${data.chunk?.length > 50 ? '...' : ''} (${data.accumulated_length} chars)`;
+        // Handle both formats: data.chunk (SSE) and chunk_length (debug_history)
+        const chunkLength = event.chunk_length || data?.chunk?.length || 0;
+        return `Content received: ${chunkLength} characters`;
       case 'done':
-        return `Completed (${data.total_events} events)`;
+        const doneResponsePreview = data?.response?.substring(0, 80) || '';
+        return `Done: ${doneResponsePreview}${data?.response?.length > 80 ? '...' : ''}`;
       case 'error':
-        return `Error: ${data.error}`;
+        return `Error: ${data?.error}`;
       default:
-        return data.message || 'Event received';
+        return data?.message || 'Event received';
     }
   };
 
@@ -147,51 +152,57 @@ const StreamingDebugPanel: React.FC<StreamingDebugPanelProps> = ({
           </div>
 
           <div className="max-h-64 overflow-y-auto">
-            {events.map((event, index) => (
-              <div
-                key={`${event.id}-${index}`}
-                className="px-3 py-2 border-b border-slate-800/50 last:border-b-0 hover:bg-slate-800/30 transition-colors"
-              >
-                <div className="flex items-start space-x-2">
-                  {/* Event Icon */}
-                  <div className="flex-shrink-0 mt-0.5">
-                    {getEventIcon(event.type)}
+            {events.map((event, index) => {
+              const eventKey = event.id || `event-${index}`;
+              const eventData = event.data || {};
+              return (
+                <div
+                  key={eventKey}
+                  className="px-3 py-2 border-b border-slate-800/50 last:border-b-0 hover:bg-slate-800/30 transition-colors"
+                >
+                  <div className="flex items-start space-x-2">
+                    {/* Event Icon */}
+                    <div className="flex-shrink-0 mt-0.5">
+                      {getEventIcon(event.type)}
+                    </div>
+
+                    {/* Event Details */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2">
+                        <span className={`text-xs font-medium ${getEventColor(event.type)}`}>
+                          {event.type}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {formatTime(event.timestamp)}
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-400 mt-0.5 break-words">
+                        {formatEventData(event)}
+                      </div>
+                    </div>
+
+                    {/* Event ID - Only show if present */}
+                    {event.id && (
+                      <div className="flex-shrink-0">
+                        <span className="text-xs text-slate-600 font-mono">#{event.id}</span>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Event Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <span className={`text-xs font-medium ${getEventColor(event.type)}`}>
-                        {event.type}
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        {formatTime(event.timestamp)}
-                      </span>
-                    </div>
-                    <div className="text-xs text-slate-400 mt-0.5 break-words">
-                      {formatEventData(event)}
-                    </div>
-                  </div>
-
-                  {/* Event ID */}
-                  <div className="flex-shrink-0">
-                    <span className="text-xs text-slate-600 font-mono">#{event.id}</span>
-                  </div>
+                  {/* Full Event Data (Collapsible) */}
+                  {Object.keys(eventData).length > 0 && (
+                    <details className="mt-2">
+                      <summary className="text-xs text-slate-500 cursor-pointer hover:text-slate-400">
+                        View raw data
+                      </summary>
+                      <pre className="mt-1 text-xs text-slate-400 bg-slate-950/50 rounded p-2 overflow-x-auto">
+                        {JSON.stringify(eventData, null, 2)}
+                      </pre>
+                    </details>
+                  )}
                 </div>
-
-                {/* Full Event Data (Collapsible) */}
-                {event.data && Object.keys(event.data).length > 0 && (
-                  <details className="mt-2">
-                    <summary className="text-xs text-slate-500 cursor-pointer hover:text-slate-400">
-                      View raw data
-                    </summary>
-                    <pre className="mt-1 text-xs text-slate-400 bg-slate-950/50 rounded p-2 overflow-x-auto">
-                      {JSON.stringify(event.data, null, 2)}
-                    </pre>
-                  </details>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Summary Footer */}
@@ -259,10 +270,10 @@ const StreamingDebugPanel: React.FC<StreamingDebugPanelProps> = ({
                   const tools = new Set<string>();
 
                   events.forEach(event => {
-                    if (event.type === 'agent' && event.data.agent_name) {
+                    if (event.type === 'agent' && event.data?.agent_name) {
                       agents.add(event.data.agent_name);
                     }
-                    if (event.type === 'tool_call' && event.data.tool_name) {
+                    if (event.type === 'tool_call' && event.data?.tool_name) {
                       tools.add(event.data.tool_name);
                     }
                   });

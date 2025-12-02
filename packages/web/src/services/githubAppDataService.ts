@@ -20,23 +20,30 @@ interface EntityInfo {
   name: string;
   version: string | null;
   path: string;
-  content: {
+  content?: {
     className?: string;
     fields?: Array<{ name: string; type: string }>;
     [key: string]: any;
   };
+  // Direct fields (from EntityResponse)
+  className?: string;
+  fields?: Array<{ name: string; type: string }>;
+  hasWorkflow?: boolean;
 }
 
 interface WorkflowInfo {
   name: string;
   version: string | null;
   path: string;
-  content: any;
+  content?: any;
+  entityName?: string;
 }
 
 interface RequirementInfo {
-  name: string;
+  name?: string;
+  fileName?: string;
   path: string;
+  filePath?: string;
   content?: string;
 }
 
@@ -128,6 +135,13 @@ export async function convertGitHubToAppRoot(
 ): Promise<AppRoot> {
   const structure = await loadRepositoryStructure(repoInfo, conversationId);
 
+  console.log('📊 Repository structure loaded:', {
+    entities: structure.entities?.length || 0,
+    workflows: structure.workflows?.length || 0,
+    requirements: structure.requirements?.length || 0,
+    structure
+  });
+
   // Create app root
   const appRoot: AppRoot = {
     app: {
@@ -164,45 +178,31 @@ export async function convertGitHubToAppRoot(
     const versionStr = entity.version || 'version_1';
     const entityId = `entity-${entity.name.toLowerCase()}-${versionStr}`;
 
-    // Extract fields from entity content
-    const fields = entity.content.fields || [];
-    const className = entity.content.className || entity.name;
+    // Extract fields from entity
+    // Handle both formats:
+    // 1. New format: entity.content.fields (full JSON from /analyze)
+    // 2. Old format: entity.fields (direct fields from EntityResponse)
+    const entityContent = (entity as any).content;
+    const fields = entityContent?.fields || (entity as any).fields || [];
+    const className = entityContent?.className || (entity as any).className || entity.name;
+    const description = entityContent?.description || `Entity from ${entity.path}`;
 
-    // Find workflows for this entity
-    // Match workflows that:
-    // 1. Have exact name match (case-insensitive)
-    // 2. Start with entity name (e.g., "customerworkflow" for entity "customer")
-    // 3. Have path containing the entity name
-    const entityWorkflows = structure.workflows
-      .filter(w => {
-        const workflowNameLower = w.name.toLowerCase();
-        const entityNameLower = entity.name.toLowerCase();
-        const workflowPathLower = w.path.toLowerCase();
-
-        return workflowNameLower === entityNameLower ||
-               workflowNameLower.startsWith(entityNameLower) ||
-               workflowPathLower.includes(`/${entityNameLower}/`) ||
-               workflowPathLower.includes(`/${entityNameLower}workflow/`);
-      })
-      .map(w => ({
-        name: w.name,
-        description: w.content?.desc || w.content?.description || `Workflow for ${entity.name}`,
-        cyoda_url: '',
-        github_url: w.path,
-        config: w.content || {
-          states: {}
-        }
-      }));
+    console.log('📦 Converting entity:', {
+      name: entity.name,
+      hasContent: !!entityContent,
+      fieldsCount: fields.length,
+      fields: fields.map((f: any) => f.name)
+    });
 
     appRoot.app.entities.push({
       id: entityId,
       name: entity.name,
       version: versionStr,
-      description: `Entity from ${entity.path}`,
+      description: description,
       cyoda_url: '',
       github_url: entity.path,
-      model: entity.content,
-      workflows: entityWorkflows,
+      model: entityContent || entity,
+      workflows: [],
       fields: fields.map((f: any) => ({
         name: f.name,
         type: f.type,
@@ -211,28 +211,113 @@ export async function convertGitHubToAppRoot(
       metadata: {
         filePath: entity.path,
         className: className,
-        hasWorkflow: entityWorkflows.length > 0,
-        content: entity.content,
+        hasWorkflow: false,
+        content: entityContent || entity,
       },
     });
+  });
+
+  // Convert workflows and associate them with their entities
+  structure.workflows.forEach((workflow: any) => {
+    const workflowContent = workflow.content || {};
+    const workflowName = workflow.name || workflowContent.name || 'UnknownWorkflow';
+    const workflowId = `workflow-${workflowName.toLowerCase()}`;
+    const entityName = workflow.entityName || workflow.entity_name;
+
+    console.log('📋 Converting workflow:', {
+      name: workflowName,
+      entityName: entityName,
+      hasContent: !!workflowContent,
+      path: workflow.path || workflow.filePath
+    });
+
+    // Create workflow object - use content directly as config
+    const workflowObj = {
+      id: workflowId,
+      name: workflowName,
+      description: workflowContent.desc || workflowContent.description || `Workflow: ${workflowName}`,
+      cyoda_url: '',
+      github_url: workflow.filePath || workflow.path,
+      config: workflowContent,
+      content: workflowContent,
+      metadata: {
+        filePath: workflow.filePath || workflow.path,
+        entity_name: entityName
+      }
+    };
+
+    // Associate workflow with its entity
+    if (entityName) {
+      const entity = appRoot.app.entities.find(e =>
+        e.name.toLowerCase() === entityName.toLowerCase()
+      );
+
+      if (entity) {
+        console.log('✅ Associated workflow with entity:', {
+          workflowName,
+          entityName: entity.name
+        });
+        entity.workflows.push(workflowObj);
+      } else {
+        console.warn('⚠️ Entity not found for workflow:', {
+          workflowName,
+          entityName
+        });
+        // Store in metadata as fallback
+        if (!appRoot.app.metadata) {
+          appRoot.app.metadata = {};
+        }
+        if (!(appRoot.app.metadata as any).workflows) {
+          (appRoot.app.metadata as any).workflows = [];
+        }
+        (appRoot.app.metadata as any).workflows.push(workflowObj);
+      }
+    } else {
+      // No entity name, store in metadata
+      if (!appRoot.app.metadata) {
+        appRoot.app.metadata = {};
+      }
+      if (!(appRoot.app.metadata as any).workflows) {
+        (appRoot.app.metadata as any).workflows = [];
+      }
+      (appRoot.app.metadata as any).workflows.push(workflowObj);
+    }
   });
 
   // Convert requirements
   structure.requirements.forEach((req, index) => {
     const reqId = `req-${index + 1}`;
+    // Handle both formats: name or fileName
+    const reqName = (req as any).name || (req as any).fileName || `Requirement ${index + 1}`;
+    const reqContent = (req as any).content || '';
+    const reqPath = req.path || (req as any).filePath || '';
+
+    console.log('📋 Converting requirement:', {
+      name: reqName,
+      hasContent: !!reqContent,
+      contentLength: reqContent?.length || 0,
+      path: reqPath
+    });
 
     appRoot.app.requirements.push({
       id: reqId,
-      title: req.name,
-      description: `Requirement from ${req.path}`,
+      title: reqName,
+      description: `Requirement from ${reqPath}`,
       priority: 'medium',
       status: 'draft',
-      content: req.content, // Include content from analyze endpoint
+      content: reqContent, // Include content from analyze endpoint
       metadata: {
-        filePath: req.path,
-        fileName: `${req.name}.md`,
+        filePath: reqPath,
+        fileName: `${reqName}.md`,
       },
     });
+  });
+
+  console.log('✅ AppRoot conversion complete:', {
+    entities: appRoot.app.entities?.length || 0,
+    workflows: appRoot.app.entities?.reduce((sum: number, e: any) => sum + (e.workflows?.length || 0), 0) || 0,
+    requirements: appRoot.app.requirements?.length || 0,
+    appRoot
   });
 
   return appRoot;

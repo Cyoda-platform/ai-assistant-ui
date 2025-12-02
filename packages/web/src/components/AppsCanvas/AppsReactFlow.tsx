@@ -196,13 +196,36 @@ export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
 
   // Convert workflow data to React Flow nodes
   const initialNodes: Node[] = useMemo(() => {
+    console.log('🔄 Creating nodes from workflow data:', {
+      layoutStatesCount: workflowData.layout.states.length,
+      entityStates: workflowData.layout.states.filter(s => s.type === 'entityNode').map(s => ({
+        id: s.id,
+        type: s.type,
+        position: s.position,
+        entityName: s.data?.entityName
+      }))
+    });
+
     const nodes = workflowData.layout.states.map((state) => ({
       id: state.id,
       type: state.type || 'default',
       position: state.position,
-      data: state.data || { label: state.id },
+      data: {
+        label: state.type === 'entityNode' ? `Entity: ${state.data?.entityName || state.id}` : (state.data?.label || state.id),
+        ...state.data
+      },
       draggable: true,
     }));
+
+    console.log('✅ Final nodes created:', {
+      totalNodes: nodes.length,
+      entityNodes: nodes.filter(n => n.type === 'entityNode').map(n => ({
+        id: n.id,
+        type: n.type,
+        position: n.position,
+        entityName: n.data?.entityName
+      }))
+    });
 
     // Check for duplicate node IDs
     const nodeIds = nodes.map(n => n.id);
@@ -302,11 +325,11 @@ export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
     });
   }, [workflowData, edgeType, initialNodes, getBestAnchorPoints]);
 
-  // Generate a stable key for ReactFlow to force remount when workflow data changes
-  // This prevents infinite loop issues with useEffect trying to sync state
+  // Generate a stable key for ReactFlow - only change when workflow name changes
+  // Don't include node/edge counts to prevent remounting when adding entities
   const flowKey = useMemo(() => {
-    return `flow-${workflowData.configuration.name}-${initialNodes.length}-${initialEdges.length}`;
-  }, [workflowData.configuration.name, initialNodes.length, initialEdges.length]);
+    return `flow-${workflowData.configuration.name}`;
+  }, [workflowData.configuration.name]);
 
   // Use React Flow state hooks for drag-and-drop
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -515,13 +538,23 @@ export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
         onReconnect={onReconnect}
         connectionMode={ConnectionMode.Loose}
         colorMode="dark"
-        fitView
+        fitView={false}
         fitViewOptions={{
           padding: 0.2,
           includeHiddenNodes: false,
+          minZoom: 0.1,
+          maxZoom: 1.5
+        }}
+        onInit={(reactFlowInstance) => {
+          console.log('🔄 ReactFlow initialized, fitting view to nodes');
+          // Don't auto-fit view on init to prevent repositioning
+          // setTimeout(() => {
+          //   reactFlowInstance.fitView({ padding: 0.2 });
+          // }, 100);
         }}
         minZoom={0.05}
         maxZoom={4}
+
         defaultEdgeOptions={{
           type: edgeType,
           animated: true,

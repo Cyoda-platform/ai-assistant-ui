@@ -89,6 +89,7 @@ const EnvironmentsPanel: React.FC<EnvironmentsPanelProps> = ({
         <EnvironmentDetails
           environmentName={selectedEnvironment}
           onBack={() => setSelectedEnvironment(null)}
+          onClose={onClose}
         />
         <ResizeHandle
           onMouseDown={onResizeMouseDown}
@@ -105,7 +106,7 @@ const EnvironmentsPanel: React.FC<EnvironmentsPanelProps> = ({
       <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
         <div className="flex items-center space-x-2">
           <Server size={18} className="text-teal-400" />
-          <h3 className="font-semibold text-white translate-y-[20%]">Environments</h3>
+          <h3 className="font-semibold text-white translate-y-[20%]">Cloud</h3>
           {isFullscreen && (
             <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">Fullscreen</span>
           )}

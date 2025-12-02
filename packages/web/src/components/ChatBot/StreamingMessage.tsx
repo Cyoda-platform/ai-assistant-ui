@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Sparkles, RefreshCw, AlertTriangle } from 'lucide-react';
 import LogoSmall from '@/assets/images/logo-small.svg';
 import MarkdownRenderer from '../MarkdownRenderer/MarkdownRenderer';
@@ -43,6 +43,8 @@ const StreamingMessage: React.FC<StreamingMessageProps> = ({
   isRetrying = false
 }) => {
   const messageRef = useRef<HTMLDivElement>(null);
+  const [displayedContent, setDisplayedContent] = useState('');
+  const [displayIndex, setDisplayIndex] = useState(0);
 
   // Auto-scroll to bottom when content updates
   useEffect(() => {
@@ -50,6 +52,17 @@ const StreamingMessage: React.FC<StreamingMessageProps> = ({
       messageRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
   }, [content, isComplete]);
+
+  // Typing animation effect for loading state
+  useEffect(() => {
+    if (displayIndex < content.length) {
+      const timer = setTimeout(() => {
+        setDisplayedContent(content.substring(0, displayIndex + 1));
+        setDisplayIndex(displayIndex + 1);
+      }, 10); // 10ms per character for smooth typing
+      return () => clearTimeout(timer);
+    }
+  }, [displayIndex, content]);
 
   // Format agent name for display
   const displayAgentName = agentName
@@ -84,20 +97,27 @@ const StreamingMessage: React.FC<StreamingMessageProps> = ({
             <div className="prose prose-invert prose-sm max-w-none">
               {content ? (
                 <div className="relative">
-                  <MarkdownRenderer content={content} />
-                  {/* Blinking cursor while streaming */}
-                  {!isComplete && (
-                    <span className="inline-block w-2 h-4 bg-purple-400 ml-1 animate-pulse"></span>
+                  {/* Show typing animation while streaming, full content when complete */}
+                  {!isComplete ? (
+                    <div className="text-slate-300 font-mono leading-relaxed">
+                      {displayedContent}
+                      <span className="inline-block w-2 h-4 bg-purple-400 ml-1 animate-pulse"></span>
+                    </div>
+                  ) : (
+                    <MarkdownRenderer content={content} />
                   )}
                 </div>
               ) : (
-                <div className="flex items-center space-x-2 text-slate-400">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                <div className="space-y-3">
+                  {/* Loading indicator */}
+                  <div className="flex items-center space-x-2 text-slate-400">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                    <span className="text-sm">Waiting for response...</span>
                   </div>
-                  <span className="text-sm">Waiting for response...</span>
                 </div>
               )}
             </div>

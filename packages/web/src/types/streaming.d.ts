@@ -42,6 +42,31 @@ export interface SSEToolResponseEvent extends SSEBaseEvent {
   agent: string;
 }
 
+export interface SSEToolResponseStartEvent extends SSEBaseEvent {
+  type: 'tool_response_start';
+  tool_name: string;
+  tool_id: string;
+  message: string;
+  agent: string;
+}
+
+export interface SSEToolResponseContentEvent extends SSEBaseEvent {
+  type: 'tool_response_content';
+  tool_name: string;
+  chunk: string;
+  accumulated_length: number;
+  agent: string;
+}
+
+export interface SSEToolResponseEndEvent extends SSEBaseEvent {
+  type: 'tool_response_end';
+  tool_name: string;
+  tool_id: string;
+  message: string;
+  agent: string;
+  hook?: any;
+}
+
 export interface SSEAgentTransferEvent extends SSEBaseEvent {
   type: 'agent_transfer';
   from_agent: string;
@@ -75,6 +100,7 @@ export interface SSEDoneEvent extends SSEBaseEvent {
   type: 'done';
   message: string;
   response: string;
+  hook_message?: string; // Separated hook message from agent response
   adk_session_id?: string;
   ui_functions?: UIFunction[];
   total_events?: number;
@@ -121,6 +147,9 @@ export type SSEChatEvent =
   | SSEToolEvent
   | SSEToolCallEvent
   | SSEToolResponseEvent
+  | SSEToolResponseStartEvent
+  | SSEToolResponseContentEvent
+  | SSEToolResponseEndEvent
   | SSEAgentTransferEvent
   | SSECodeChangeEvent
   | SSEContentEvent
@@ -149,6 +178,7 @@ export interface StreamingState {
   currentAgent?: string;
   currentTool?: string;
   toolArgs?: Record<string, any>;
+  toolResponseContent?: string; // Accumulated tool response content for real-time display
   accumulatedContent: string;
   error?: string;
   errorDetails?: {

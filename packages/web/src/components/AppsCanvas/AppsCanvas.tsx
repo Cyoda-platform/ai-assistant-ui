@@ -344,6 +344,9 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
   // State for custom JSON editor
   const [showJsonEditor, setShowJsonEditor] = useState(true);
   const [currentAppData, setCurrentAppData] = useState<AppRoot | null>(appData || null);
+
+  // State for view toggle
+  const [isFinTechView, setIsFinTechView] = useState(false);
   const [jsonEditorNavigateToNode, setJsonEditorNavigateToNode] = useState<string | null>(null);
   const [nodesToDelete, setNodesToDelete] = useState<string[]>([]);
   const [isLoadingFromBackend, setIsLoadingFromBackend] = useState(false);
@@ -370,24 +373,61 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
     return `${githubRepository.owner}/${githubRepository.repositoryName}@${githubRepository.branch}`;
   }, [githubRepository?.owner, githubRepository?.repositoryName, githubRepository?.branch]);
 
-  // Subscribe to repository store changes to react to cache updates (e.g., after analyze)
+  // Subscribe to repository store cache changes to detect when data is loaded externally (e.g., from SSE hooks)
   const repositoryData = useRepositoryStore((state) =>
-    conversationId ? state.getRepositoryData(conversationId) : null
+    conversationId ? state.cache[conversationId]?.data : null
   );
 
-  // Update current app data when repository store data changes
-  // Note: Don't call onAppDataUpdate here - it would create a circular dependency
-  // because the parent (AppsTabsContainer) already listens to repository store changes
+  // Update currentAppData when repository store cache changes (e.g., from SSE hook refresh)
   useEffect(() => {
-    if (repositoryData && conversationId && githubRepository) {
-      console.log('📦 Repository store data updated, refreshing canvas:', {
-        entities: repositoryData.app.entities.length,
-        workflows: repositoryData.app.entities.reduce((sum, e) => sum + e.workflows.length, 0)
+    if (repositoryData && conversationId) {
+      console.log('📊 AppsCanvas: Repository store cache updated, syncing currentAppData:', {
+        conversationId,
+        entities: repositoryData.app?.entities?.length || 0,
+        entityNames: repositoryData.app?.entities?.map(e => e.name) || []
       });
       setCurrentAppData(repositoryData);
-      // Don't call onAppDataUpdate here - parent already subscribed to repository store
+      onAppDataUpdate?.(repositoryData);
     }
-  }, [repositoryData, conversationId, githubRepository]);
+  }, [repositoryData, conversationId, onAppDataUpdate]);
+
+  // Always reload fresh data from analyze endpoint when component mounts or data changes
+  useEffect(() => {
+    if (conversationId && githubRepository) {
+      console.log('🔄 AppsCanvas: Loading fresh repository data:', {
+        conversationId,
+        repositoryName: githubRepository.repositoryName,
+        currentAppDataEntities: currentAppData?.app?.entities?.length || 0
+      });
+
+      const loadFreshData = async () => {
+        try {
+          const freshData = await repositoryStore.loadRepository(conversationId, githubRepository);
+          if (freshData) {
+            console.log('✅ AppsCanvas: Fresh repository data loaded:', {
+              entities: freshData.app.entities.length,
+              workflows: freshData.app.entities.reduce((sum, e) => sum + e.workflows.length, 0),
+              entityNames: freshData.app.entities.map(e => e.name),
+              fullEntityData: freshData.app.entities.map(e => ({
+                id: e.id,
+                name: e.name,
+                version: e.version,
+                workflows: e.workflows?.length || 0
+              }))
+            });
+            setCurrentAppData(freshData);
+            onAppDataUpdate?.(freshData);
+          } else {
+            console.log('❌ AppsCanvas: No fresh data returned from loadRepository');
+          }
+        } catch (error) {
+          console.error('❌ AppsCanvas: Failed to load fresh repository data:', error);
+        }
+      };
+
+      loadFreshData();
+    }
+  }, [conversationId, githubRepository]);
 
   // Load from repository when GitHub repository info is provided
   useEffect(() => {
@@ -536,6 +576,26 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
       repositoryStore.updateLocalData(conversationId, updatedData);
       setLastSavedAt(new Date());
       console.log('✅ Local data updated after adding instance');
+
+      // DON'T reload fresh data after adding instance - it would overwrite local additions
+      // The /analyze endpoint only returns original repository data, not locally added entities
+      // if (githubRepository) {
+      //   console.log('🔄 Reloading fresh data after adding instance');
+      //   repositoryStore.loadRepository(conversationId, githubRepository)
+      //     .then((freshData) => {
+      //       if (freshData) {
+      //         console.log('✅ Fresh data reloaded:', {
+      //           entities: freshData.app.entities.length,
+      //           workflows: freshData.app.entities.reduce((sum, e) => sum + e.workflows.length, 0)
+      //         });
+      //         setCurrentAppData(freshData);
+      //       }
+      //     })
+      //     .catch((error) => {
+      //       console.error('❌ Failed to reload fresh data:', error);
+      //     });
+      // }
+      console.log('✅ Keeping local data after adding instance (not overwriting with API data)');
     }
 
     // Reset the flag after a short delay to allow the state update to complete
@@ -612,9 +672,17 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
 
   // Convert data to Workflow format for visualization
   const workflowData = useMemo(() => {
+    console.log('🔄 AppsCanvas: Converting to workflow data:', {
+      hasCurrentAppData: !!currentAppData,
+      simplified,
+      entities: currentAppData?.app?.entities?.length || 0,
+      entityNames: currentAppData?.app?.entities?.map(e => e.name) || []
+    });
+
     if (currentAppData) {
       // Use simplified view for new apps (only app name, environments group, entities group)
       if (simplified) {
+        console.log('📊 AppsCanvas: Using simplified workflow view');
         return convertAppRootToSimplifiedWorkflow(
           currentAppData,
           (...args) => handleAddNewInstanceRef.current(...args),
@@ -623,6 +691,7 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
         );
       }
       // Use full view for existing apps
+      console.log('📊 AppsCanvas: Using full workflow view');
       return convertAppRootToWorkflow(
         currentAppData,
         (...args) => handleAddNewInstanceRef.current(...args),
@@ -719,9 +788,24 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
     onSendToChat?.(appJson);
   }, [currentAppData, onSendToChat]);
 
-  // Handle node double-clicks - navigate to appropriate tab
+  // Handle node double-clicks - navigate to appropriate tab or GitHub
   const handleNodeDoubleClick = useCallback((nodeId: string, nodeType: string, nodeData?: any) => {
     console.log('🎯 Node double-clicked:', nodeId, nodeType, nodeData);
+
+    // Check if we should redirect to GitHub
+    if (githubRepository && nodeData?.github_url) {
+      console.log('🔗 Redirecting to GitHub:', nodeData.github_url);
+      window.open(nodeData.github_url, '_blank');
+      return;
+    }
+
+    // Check for file path in metadata (for requirements)
+    if (githubRepository && nodeData?.filePath) {
+      const githubUrl = `https://github.com/${githubRepository.owner}/${githubRepository.repositoryName}/blob/${githubRepository.branch}/${nodeData.filePath}`;
+      console.log('🔗 Redirecting to GitHub (from filePath):', githubUrl);
+      window.open(githubUrl, '_blank');
+      return;
+    }
 
     // Determine if we should navigate to another tab
     let shouldNavigate = false;
@@ -759,7 +843,7 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
       // Set the node to navigate to in JSON editor
       setJsonEditorNavigateToNode(nodeId);
     }
-  }, [showJsonEditor, onNavigate]);
+  }, [showJsonEditor, onNavigate, githubRepository]);
 
   // Handle export to file
   const handleExport = useCallback(() => {
@@ -916,73 +1000,60 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
     }
   }, [githubRepository]);
 
-  // Handle analyze app
+  // Handle analyze app - reload from repository to get latest structure
   const handleAnalyze = useCallback(async () => {
-    if (!currentAppData) {
-      console.warn('⚠️ No app data available for analysis');
-      // Show user-friendly message
-      setSaveError('No app data available for analysis. Please create some entities, workflows, or requirements first.');
+    if (!githubRepository || !conversationId) {
+      console.warn('⚠️ Cannot analyze: missing repository info or conversation ID');
+      setSaveError('Repository not configured. Please set up a repository first.');
       return;
     }
 
     setIsAnalyzing(true);
     setSaveError(null);
     try {
-      console.log('🔍 Analyzing app data:', currentAppData);
-
-      // Call the analyze endpoint
-      const response = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          appData: currentAppData,
-          conversationId: conversationId || undefined,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Analysis failed (${response.status}): ${errorText || response.statusText}`);
+      console.log('🔍 Analyzing repository...');
+      // Clear cache to force fresh analysis
+      repositoryStore.clearCache(conversationId);
+      // Reload from repository (calls /api/v1/repository/analyze endpoint)
+      const appRoot = await repositoryStore.loadRepository(conversationId, githubRepository);
+      if (appRoot) {
+        console.log('✅ Analysis complete - repository data refreshed');
+        setCurrentAppData(appRoot);
+        onAppDataUpdate?.(appRoot);
+        setSaveError(null);
+        setLastSavedAt(new Date()); // Show success indicator
       }
-
-      const result = await response.json();
-      console.log('✅ Analysis completed:', result);
-
-      // Show success message
-      const analysisMessage = result.message || result.analysis || 'Analysis completed successfully!';
-      console.log('📊 Analysis result:', analysisMessage);
-
-      // You could enhance this by showing the analysis in a modal or sending it to chat
-      // For now, we'll show a success message
-      setSaveError(null);
-      setLastSavedAt(new Date()); // Reuse this state to show success
-
     } catch (error) {
-      console.error('❌ Failed to analyze app:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to analyze app. Please try again.';
+      console.error('❌ Analysis failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to analyze repository. Please try again.';
       setSaveError(errorMessage);
     } finally {
       setIsAnalyzing(false);
     }
-  }, [currentAppData, conversationId]);
+  }, [githubRepository, conversationId, onAppDataUpdate]);
 
-  // Debug logging
+  // Debug logging for currentAppData changes
   React.useEffect(() => {
-    console.log('🔍 AppsCanvas Debug:', {
-      showJsonEditor,
+    console.log('🔍 AppsCanvas: currentAppData changed:', {
       hasCurrentAppData: !!currentAppData,
-      currentAppDataKeys: currentAppData ? Object.keys(currentAppData) : [],
+      entities: currentAppData?.app?.entities?.length || 0,
+      entityNames: currentAppData?.app?.entities?.map(e => e.name) || [],
+      workflows: currentAppData?.app?.entities?.reduce((sum, e) => sum + (e.workflows?.length || 0), 0) || 0,
+      showJsonEditor,
+      isLoadingFromGitHub,
+      isLoadingFromBackend,
+      isSaving,
+      isRefreshing,
+      isPulling
     });
-  }, [showJsonEditor, currentAppData]);
+  }, [currentAppData, showJsonEditor, isLoadingFromGitHub, isLoadingFromBackend, isSaving, isRefreshing, isPulling]);
 
   // Render custom React Flow with custom node types + JSON editor
   return (
     <ReactFlowProvider>
       <div className="relative w-full h-full overflow-hidden">
-        {/* Loading from GitHub Indicator */}
-        {isLoadingFromGitHub && (
+        {/* Loading from GitHub Indicator - Only show if actually loading and no data yet */}
+        {isLoadingFromGitHub && !currentAppData && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm">
             <div className="bg-slate-800 border border-slate-700 rounded-lg p-6 shadow-xl">
               <div className="flex items-center gap-3">
@@ -1012,7 +1083,7 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
           onPullChanges={conversationId ? handlePullChanges : undefined}
           isPulling={isPulling}
           onShowDiff={githubRepository ? handleShowDiff : undefined}
-          onAnalyze={currentAppData ? handleAnalyze : undefined}
+          onAnalyze={githubRepository && conversationId ? handleAnalyze : undefined}
           isAnalyzing={isAnalyzing}
         />
 

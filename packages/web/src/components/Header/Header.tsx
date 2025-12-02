@@ -39,10 +39,12 @@ interface HeaderProps {
   onToggleChatHistory?: () => void;
   onToggleEntities?: () => void;
   onToggleEnvironments?: () => void;
+  onToggleTasks?: () => void;
   canvasVisible?: boolean;
   chatHistoryVisible?: boolean;
   entitiesVisible?: boolean;
   environmentsVisible?: boolean;
+  tasksVisible?: boolean;
   showActions?: boolean;
   notifications?: Notification[];
   onMarkNotificationAsRead?: (id: number) => void;
@@ -62,10 +64,12 @@ const Header: React.FC<HeaderProps> = ({
   onToggleChatHistory,
   onToggleEntities,
   onToggleEnvironments,
+  onToggleTasks,
   canvasVisible = false,
   chatHistoryVisible = true,
   entitiesVisible = false,
   environmentsVisible = false,
+  tasksVisible = false,
   showActions = false,
   notifications: externalNotifications,
   onMarkNotificationAsRead: externalMarkAsRead,
@@ -159,7 +163,7 @@ const Header: React.FC<HeaderProps> = ({
               }}
             >
               <img src={Logo} alt="CYODA" className="h-6 sm:h-7 md:h-8" />
-              <span className="text-xs bg-slate-700 px-2 py-1 rounded-full text-slate-300 font-medium">ALPHA</span>
+              <span className="text-xs bg-slate-700 px-2 py-1 rounded-full text-slate-300 font-medium">BETA</span>
             </a>
 
             {/* Super User Mode Badge - Hidden on mobile */}
@@ -276,7 +280,7 @@ const Header: React.FC<HeaderProps> = ({
                   </div>
                 )}
 
-                {/* Environments Button - Only show for logged in users */}
+                {/* Cloud Button - Only show for logged in users */}
                 {onToggleEnvironments && isLoggedIn && (
                   <button
                     onClick={onToggleEnvironments}
@@ -285,26 +289,26 @@ const Header: React.FC<HeaderProps> = ({
                         ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
                         : 'text-slate-400 hover:text-white hover:bg-slate-700'
                     }`}
-                    title={`${environmentsVisible ? 'Hide' : 'Show'} Environments`}
+                    title={`${environmentsVisible ? 'Hide' : 'Show'} Cloud`}
                   >
                     <Server size={18} />
-                    <span className="text-sm font-medium hidden md:inline">Environments</span>
+                    <span className="text-sm font-medium hidden md:inline">Cloud</span>
                   </button>
                 )}
 
-                {/* Entities Button - Only show on chat details page */}
-                {onToggleEntities && (
+                {/* Tasks Button - Only show on chat details page */}
+                {onToggleTasks && (
                   <button
-                    onClick={onToggleEntities}
+                    onClick={onToggleTasks}
                     className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
-                      entitiesVisible
+                      tasksVisible
                         ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
                         : 'text-slate-400 hover:text-white hover:bg-slate-700'
                     }`}
-                    title={`${entitiesVisible ? 'Hide' : 'Show'} Entities`}
+                    title={`${tasksVisible ? 'Hide' : 'Show'} Tasks`}
                   >
                     <Database size={18} />
-                    <span className="text-sm font-medium hidden md:inline">Entities</span>
+                    <span className="text-sm font-medium hidden md:inline">Tasks</span>
                   </button>
                 )}
               </div>
@@ -347,6 +351,20 @@ const Header: React.FC<HeaderProps> = ({
             </div>
 
             <div className="hidden lg:block w-px h-6 bg-slate-600"></div>
+
+            {/* CYODA Website - Hidden on mobile */}
+            <a
+              href="https://cyoda.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden lg:flex items-center space-x-1.5 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-teal-600/20 hover:border-teal-500/50 border border-transparent transition-all duration-200"
+              title="Visit cyoda.com"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              <span className="text-xs font-medium">cyoda.com</span>
+            </a>
 
             {/* Discord - Hidden on mobile */}
             <a
@@ -561,24 +579,24 @@ const Header: React.FC<HeaderProps> = ({
                       }`}
                     >
                       <Server size={20} />
-                      <span className="text-sm font-medium">{environmentsVisible ? 'Hide' : 'Show'} Environments</span>
+                      <span className="text-sm font-medium">{environmentsVisible ? 'Hide' : 'Show'} Cloud</span>
                     </button>
                   )}
 
-                  {onToggleEntities && (
+                  {onToggleTasks && (
                     <button
                       onClick={() => {
-                        onToggleEntities();
+                        onToggleTasks();
                         setShowMobileMenu(false);
                       }}
                       className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
-                        entitiesVisible
+                        tasksVisible
                           ? 'bg-teal-500/20 text-teal-400'
                           : 'text-slate-400 hover:text-white hover:bg-slate-700'
                       }`}
                     >
                       <Database size={20} />
-                      <span className="text-sm font-medium">{entitiesVisible ? 'Hide' : 'Show'} Entities</span>
+                      <span className="text-sm font-medium">{tasksVisible ? 'Hide' : 'Show'} Tasks</span>
                     </button>
                   )}
                 </div>

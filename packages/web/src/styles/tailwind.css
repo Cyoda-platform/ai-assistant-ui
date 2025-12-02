@@ -72,6 +72,29 @@ html {
   .animate-shimmer {
     animation: shimmer 3s infinite;
   }
+
+  /* Logo circular border animation */
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Logo hover effects - keep everything exactly the same */
+
+  /* Hide specific night-themed elements on hover */
+  .logo-container:hover .night-border-glow {
+    opacity: 0 !important;
+  }
+
+  .logo-container:hover .night-inner-glow {
+    opacity: 0 !important;
+  }
+
+
 }
 
 /* Glassmorphism effects */

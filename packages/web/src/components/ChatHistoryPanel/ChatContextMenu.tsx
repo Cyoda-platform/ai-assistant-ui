@@ -135,25 +135,7 @@ const ChatContextMenu: React.FC<ChatContextMenuProps> = ({
 
   return (
     <div className="relative group">
-      <Dropdown
-        menu={{
-          items: menuItems,
-          className: 'chat-context-menu'
-        }}
-        trigger={['contextMenu']}
-        placement="bottomLeft"
-        overlayClassName="chat-context-menu-overlay"
-        overlayStyle={{
-          minWidth: '280px',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2)',
-          border: '1px solid rgb(71 85 105 / 0.5)',
-          borderRadius: '12px',
-          backgroundColor: 'rgb(30 41 59 / 0.95)',
-          backdropFilter: 'blur(12px)'
-        }}
-      >
-        {children}
-      </Dropdown>
+      {children}
       {showMenuButton && <MenuButton />}
     </div>
   );

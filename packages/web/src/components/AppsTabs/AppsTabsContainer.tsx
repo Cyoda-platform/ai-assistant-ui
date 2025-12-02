@@ -35,29 +35,29 @@ export const AppsTabsContainer: React.FC<AppsTabsContainerProps> = ({
 
   const activeTab = getActiveTab();
 
-  // Subscribe to repository store changes for reactive updates
-  const repositoryData = useRepositoryStore((state) =>
-    chatId ? state.getRepositoryData(chatId) : null
-  );
+  // DISABLED: Subscribe to repository store changes - let AppsCanvas handle fresh data loading
+  // const repositoryData = useRepositoryStore((state) =>
+  //   chatId ? state.getRepositoryData(chatId) : null
+  // );
 
   // Track app data for each tab
   const [tabAppData, setTabAppData] = useState<Record<string, AppRoot>>({});
 
-  // React to repository store changes (e.g., after analyze operation)
-  useEffect(() => {
-    if (repositoryData && activeTab && chatId) {
-      console.log('📦 Repository store updated, refreshing tab data:', {
-        tabId: activeTab.id,
-        entities: repositoryData.app.entities.length,
-        workflows: repositoryData.app.entities.reduce((sum, e) => sum + e.workflows.length, 0)
-      });
+  // DISABLED: React to repository store changes - AppsCanvas handles fresh data loading
+  // useEffect(() => {
+  //   if (repositoryData && activeTab && chatId) {
+  //     console.log('📦 Repository store updated, refreshing tab data:', {
+  //       tabId: activeTab.id,
+  //       entities: repositoryData.app.entities.length,
+  //       workflows: repositoryData.app.entities.reduce((sum, e) => sum + e.workflows.length, 0)
+  //     });
 
-      setTabAppData(prev => ({
-        ...prev,
-        [activeTab.id]: repositoryData
-      }));
-    }
-  }, [repositoryData, activeTab, chatId]);
+  //     setTabAppData(prev => ({
+  //       ...prev,
+  //       [activeTab.id]: repositoryData
+  //     }));
+  //   }
+  // }, [repositoryData, activeTab, chatId]);
 
   // Track if we just updated data programmatically (to avoid reloading and wiping it out)
   const [justUpdatedData, setJustUpdatedData] = useState(false);
@@ -85,18 +85,19 @@ export const AppsTabsContainer: React.FC<AppsTabsContainerProps> = ({
       return;
     }
 
-    // Get cached repository data (loaded by AppsCanvas)
-    const cachedData = getRepositoryData(chatId);
-    if (cachedData) {
-      console.log('📦 AppsTabsContainer: Using cached repository data');
-      setTabAppData(prev => ({
-        ...prev,
-        [activeTab.id]: cachedData
-      }));
-      hasLoadedFromBackendRef.current = true;
-    } else {
-      console.log('⏳ AppsTabsContainer: No cached data yet, waiting for AppsCanvas to load');
-    }
+    // DISABLED: Get cached repository data - always let AppsCanvas load fresh data
+    // const cachedData = getRepositoryData(chatId);
+    // if (cachedData) {
+    //   console.log('📦 AppsTabsContainer: Using cached repository data');
+    //   setTabAppData(prev => ({
+    //     ...prev,
+    //     [activeTab.id]: cachedData
+    //   }));
+    //   hasLoadedFromBackendRef.current = true;
+    // } else {
+    //   console.log('⏳ AppsTabsContainer: No cached data yet, waiting for AppsCanvas to load');
+    // }
+    console.log('🔄 AppsTabsContainer: Skipping cached data, letting AppsCanvas load fresh data');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatId, activeTab?.id]);
 
@@ -391,7 +392,7 @@ export const AppsTabsContainer: React.FC<AppsTabsContainerProps> = ({
 
     // For new apps, check if there's app data in localStorage with this technical ID
     if (activeTab.modelName.startsWith('new-app-')) {
-      // Try to load from localStorage first (created via "Add to Canvas")
+      // Try to load from localStorage first (created via "View in Canvas")
       const storedAppData = localStorage.getItem('appData');
       if (storedAppData) {
         try {
@@ -415,6 +416,21 @@ export const AppsTabsContainer: React.FC<AppsTabsContainerProps> = ({
           ...emptyAppTemplate.app,
           id: appId, // Use chat ID as app ID
           name: activeTab.displayName, // Use the tab's display name as the app name
+        }
+      };
+    }
+
+    // For chat-based tabs (modelName is chatId), check if we're loading repository data
+    if (chatId && githubRepository) {
+      // If we're loading repository data, return a placeholder with the chat ID
+      // This will be replaced once the repository data loads
+      const appId = chatId;
+
+      return {
+        app: {
+          ...emptyAppTemplate.app,
+          id: appId,
+          name: activeTab.displayName || 'Loading...',
         }
       };
     }
@@ -479,13 +495,24 @@ export const AppsTabsContainer: React.FC<AppsTabsContainerProps> = ({
   // Check if the current app should use simplified view
   // Use simplified view only if it's a new app AND has no environments/entities
   const isSimplified = useMemo(() => {
-    if (!activeTab || !activeTab.modelName.startsWith('new-app-')) {
+    if (!activeTab) {
+      return false;
+    }
+
+    // For chat-based tabs with GitHub repository, never use simplified view
+    // These tabs load repository data and should show the full view
+    if (chatId && githubRepository && activeTab.modelName === chatId) {
+      return false;
+    }
+
+    // Only use simplified view for explicitly new apps
+    if (!activeTab.modelName.startsWith('new-app-')) {
       return false;
     }
 
     // Show simplified view if no environments or entities have been added
     return (appData.app.environments?.length ?? 0) === 0 && (appData.app.entities?.length ?? 0) === 0;
-  }, [activeTab, appData]);
+  }, [activeTab, appData, tabAppData, chatId, githubRepository]);
 
   // Auto-create app tab for the current chat (one app per chat)
   useEffect(() => {

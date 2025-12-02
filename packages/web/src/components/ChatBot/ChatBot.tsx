@@ -13,7 +13,7 @@ import type { StreamingState } from '@/types/streaming';
 
 interface Message {
   id?: string;
-  type: 'question' | 'answer' | 'notification' | 'ui_function' | 'error';
+  type: 'ai' | 'user' | 'notification' | 'ui_function' | 'error';
   text: string;
   raw?: any;
   last_modified?: string;
@@ -22,6 +22,7 @@ interface Message {
   approve?: boolean;
   editable?: boolean;
   isCanvasQA?: boolean; // Mark Canvas QA messages for pink styling
+  hook_message?: string; // Separated hook message from agent response
 }
 
 interface CanvasOptions {
@@ -42,6 +43,7 @@ interface ChatBotProps {
   canvasVisible?: boolean;
   chatHistoryVisible?: boolean;
   streamingState?: StreamingState; // SSE streaming state
+  githubRepository?: any; // GitHub repository info for canvas refresh
   onAnswer: (data: { answer: string; files?: File[]; mode?: 'workflow' | 'qa'; canvasOptions?: CanvasOptions }) => void;
   onApproveQuestion: (data: any) => void;
   onUpdateNotification: (data: any) => void;
@@ -58,7 +60,7 @@ interface ChatBotProps {
   onOpenTaskPanel?: () => void; // Callback to open task panel
   onRetryStreaming?: () => void; // Callback to retry streaming
   isRetrying?: boolean; // Whether streaming retry is in progress
-  onSetTextareaContent?: (callback: (content: string) => void) => void; // Expose method to set textarea content
+  onSetTextareaContent?: (callback: (content: string, options?: { collapse?: boolean }) => void) => void; // Expose method to set textarea content
 }
 
 const ChatBot: React.FC<ChatBotProps> = ({
@@ -70,6 +72,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
   chatData,
   canvasVisible = false,
   streamingState,
+  githubRepository,
   onAnswer,
   onApproveQuestion,
   onUpdateNotification,
@@ -89,11 +92,19 @@ const ChatBot: React.FC<ChatBotProps> = ({
 }) => {
   const chatBotPlaceholderRef = useRef<HTMLDivElement>(null);
   const [chatBotPlaceholderHeight, setChatBotPlaceholderHeight] = useState(0);
+  const [textareaContentCallback, setTextareaContentCallback] = useState<((content: string, options?: { collapse?: boolean }) => void) | null>(null);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const isUserNearBottomRef = useRef(true);
   const previousMessageCountRef = useRef(0);
   const hasCalledScrollToBottomRef = useRef(false); // Track if we've already called the callback
+
+  // Handler to store the textarea content callback from ChatBotSubmitForm
+  const handleSetTextareaContent = (callback: (content: string, options?: { collapse?: boolean }) => void) => {
+    setTextareaContentCallback(() => callback);
+    // Also propagate to parent (ChatBotView) so canvas can use it
+    onSetTextareaContent?.(callback);
+  };
 
   const scrollDownMessages = (smooth = false) => {
     if (messagesContainerRef.current) {
@@ -198,7 +209,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
 
   const renderMessage = (message: Message, index: number) => {
     switch (message.type) {
-      case 'question':
+      case 'ai':
         return (
           <ChatBotMessageQuestion
             key={index}
@@ -211,6 +222,10 @@ const ChatBot: React.FC<ChatBotProps> = ({
             hasRollback={hasCanvasAIRollback}
             technicalId={technicalId}
             onOpenCanvas={onToggleCanvas}
+            hasRepository={!!githubRepository}
+            onAnswer={onAnswer}
+            onOpenTaskPanel={onOpenTaskPanel}
+            setTextareaContent={textareaContentCallback || undefined}
           />
         );
       case 'notification':
@@ -220,9 +235,12 @@ const ChatBot: React.FC<ChatBotProps> = ({
             message={message}
             onUpdateNotification={onUpdateNotification}
             onOpenTaskPanel={onOpenTaskPanel}
+            onOpenCanvas={onToggleCanvas}
+            technicalId={technicalId}
+            githubRepository={githubRepository}
           />
         );
-      case 'answer':
+      case 'user':
         return (
           <ChatBotMessageAnswer
             key={index}
@@ -334,7 +352,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
             activeCanvasTab={activeCanvasTab}
             isAIThinking={isLoading || streamingState?.isStreaming}
             onStopRequest={onStopRequest}
-            onSetTextareaContent={onSetTextareaContent}
+            onSetTextareaContent={handleSetTextareaContent}
           />
         </div>
       </div>

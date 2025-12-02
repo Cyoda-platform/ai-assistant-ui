@@ -67,17 +67,36 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
 
   // Expose method to set textarea content from parent
   // Use useEffect with empty dependency array to register callback only once
+  // The callback accepts content and optional options: { collapse?: boolean }
+  // - collapse: true (default for canvas) - show [...] placeholder, store full content
+  // - collapse: false (for options) - show full content directly
   useEffect(() => {
     if (onSetTextareaContent) {
-      onSetTextareaContent((content: string) => {
-        setCanvasContent(content); // Store canvas content separately
-        setAnswer('[...]'); // Show collapsed placeholder
-        setIsCollapsed(true); // Mark as collapsed
-        setUserPrefix(''); // Reset user text
-        setUserSuffix('');
-        setTextareaHeight(60); // Keep default height for collapsed view
-        // Focus the textarea at the end
+      onSetTextareaContent((content: string, options?: { collapse?: boolean }) => {
+        const shouldCollapse = options?.collapse ?? true; // Default to collapse for canvas
+
+        if (shouldCollapse) {
+          // Canvas mode: collapse content with [...] placeholder
+          setCanvasContent(content);
+          setAnswer('[...]');
+          setIsCollapsed(true);
+          setUserPrefix('');
+          setUserSuffix('');
+          setTextareaHeight(60); // Keep default height for collapsed view
+        } else {
+          // Options mode: show full content directly
+          setAnswer(content);
+          setCanvasContent('');
+          setIsCollapsed(false);
+          setUserPrefix('');
+          setUserSuffix('');
+        }
+
+        // Focus and adjust
         setTimeout(() => {
+          if (!shouldCollapse) {
+            adjustTextareaHeight();
+          }
           if (textareaRef.current) {
             textareaRef.current.focus();
             textareaRef.current.setSelectionRange(textareaRef.current.value.length, textareaRef.current.value.length);
@@ -264,17 +283,30 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
           adjustTextareaHeight();
         }, 0);
       } else {
-        // Enter: Submit message
+        // Enter: Submit message (only if not disabled)
         event.preventDefault();
-        if (answer.trim() || currentFiles.length > 0) {
+        if (!disabled && (answer.trim() || currentFiles.length > 0)) {
           onClickTextAnswer('workflow');
         }
       }
     } else if (event.key === 'Escape') {
       // Escape: Clear input or collapse canvas content
       if (canvasContent && !isCollapsed) {
+        // Collapsing - extract user text around canvas content and replace with [...]
+        const canvasIndex = answer.indexOf(canvasContent);
+        if (canvasIndex !== -1) {
+          const prefix = answer.substring(0, canvasIndex);
+          const suffix = answer.substring(canvasIndex + canvasContent.length);
+          setUserPrefix(prefix);
+          setUserSuffix(suffix);
+          setAnswer(prefix + '[...]' + suffix);
+        } else {
+          // Fallback if canvas content not found
+          setAnswer('[...]');
+          setUserPrefix('');
+          setUserSuffix('');
+        }
         setIsCollapsed(true);
-        setAnswer('[...]');
         setTextareaHeight(60);
       } else if (answer.trim()) {
         setAnswer('');
@@ -331,17 +363,42 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  setIsCollapsed(!isCollapsed);
                   if (isCollapsed) {
-                    // Expanding - replace [...] with full content
-                    setAnswer(canvasContent);
-                    // Auto-adjust height after expanding with enhanced resize
+                    // Expanding - extract user text around [...] and replace with canvas content
+                    const collapsedMarker = '[...]';
+                    const markerIndex = answer.indexOf(collapsedMarker);
+                    if (markerIndex !== -1) {
+                      const prefix = answer.substring(0, markerIndex);
+                      const suffix = answer.substring(markerIndex + collapsedMarker.length);
+                      setUserPrefix(prefix);
+                      setUserSuffix(suffix);
+                      setAnswer(prefix + canvasContent + suffix);
+                    } else {
+                      // Fallback if marker not found
+                      setAnswer(canvasContent);
+                    }
+                    setIsCollapsed(false);
+                    // Auto-adjust height after expanding
                     requestAnimationFrame(() => {
                       adjustTextareaHeight();
                     });
                   } else {
-                    // Collapsing - replace full content with [...]
-                    setAnswer('[...]');
+                    // Collapsing - extract user text around canvas content and replace with [...]
+                    const canvasIndex = answer.indexOf(canvasContent);
+                    if (canvasIndex !== -1) {
+                      const prefix = answer.substring(0, canvasIndex);
+                      const suffix = answer.substring(canvasIndex + canvasContent.length);
+                      setUserPrefix(prefix);
+                      setUserSuffix(suffix);
+                      setAnswer(prefix + '[...]' + suffix);
+                    } else {
+                      // Fallback if canvas content not found (user may have edited it)
+                      // In this case, just collapse without preserving user text
+                      setAnswer('[...]');
+                      setUserPrefix('');
+                      setUserSuffix('');
+                    }
+                    setIsCollapsed(true);
                     setTextareaHeight(48); // Use new minimum height
                   }
                 }}
@@ -374,7 +431,6 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
               onPaste={handlePaste}
               placeholder={placeholderText}
               onKeyDown={handleKeyDown}
-              disabled={disabled}
               rows={1}
               className="w-full bg-slate-800/80 backdrop-blur-sm border-2 border-slate-600 rounded-2xl px-6 pr-24 py-4 pb-12 text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300 resize-none text-lg"
               style={{
@@ -437,7 +493,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
                 >
                   <SendHorizontal
                     size={20}
-                    className="text-emerald-400 group-hover:scale-110 group-disabled:scale-100 transition-transform duration-200"
+                    className="text-white group-hover:scale-110 group-disabled:scale-100 transition-transform duration-200"
                     strokeWidth={2.5}
                   />
                 </button>

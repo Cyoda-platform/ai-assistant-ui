@@ -119,31 +119,24 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
   const [jsonText, setJsonText] = useState('');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [jsonWarnings, setJsonWarnings] = useState<string[]>([]);
+  const [parsedModel, setParsedModel] = useState<any>(null); // Parsed JSON for tree preview
 
   // Load entity from API or use provided data
   useEffect(() => {
-    const loadEntity = async () => {
+    // If entity data is provided, use it immediately
+    if (entityData) {
       try {
         setLoading(true);
         setError(null);
 
-        let data: Entity;
+        console.log('📦 Using provided entity data:', entityData);
+        console.log('📦 Entity model (content):', entityData.model);
 
-        // If entity data is provided directly (repository mode), use it
-        if (entityData) {
-          console.log('📦 Using provided entity data:', entityData);
-          console.log('📦 Entity model (content):', entityData.model);
-          data = entityData;
-        } else {
-          // For repository mode, we expect entityData to be provided
-          throw new Error('Entity data not provided. This editor is for repository mode only.');
-        }
-
-        setEntity(data);
+        setEntity(entityData);
 
         // Display entity as Python code if it's from repository analysis
         // Otherwise fall back to JSON display
-        const displayContent = data.model || {};
+        const displayContent = entityData.model || {};
         let textToDisplay = '';
 
         if (typeof displayContent === 'string') {
@@ -162,20 +155,35 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
       } finally {
         setLoading(false);
       }
-    };
+      return;
+    }
 
-    loadEntity();
+    // If entity data is not yet provided, wait briefly then show error
+    console.log('⏳ Waiting for entity data...');
+    setLoading(true);
+
+    const timeout = setTimeout(() => {
+      if (!entityData) {
+        console.error('❌ Entity data not available after timeout');
+        setError('Entity data not available. Please go back and try again.');
+        setLoading(false);
+      }
+    }, 3000); // Wait 3 seconds before showing error
+
+    return () => clearTimeout(timeout);
   }, [appId, entityId, entityData]);
 
   // JSON validation - only check if it's valid JSON, no schema validation
   const validateJson = (text: string) => {
     try {
-      JSON.parse(text);
+      const parsed = JSON.parse(text);
+      setParsedModel(parsed);
       setJsonWarnings([]);
       setJsonError(null);
     } catch (err: any) {
       setJsonError(err.message);
       setJsonWarnings([]);
+      // Don't clear parsedModel on error - keep showing last valid state
     }
   };
 
@@ -243,51 +251,6 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
 
   return (
     <div className="h-full flex flex-col bg-gray-900">
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700 bg-gray-800">
-        <div className="flex items-center space-x-3">
-          {/* Back Button */}
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-              title="Back to entities list"
-            >
-              <ArrowLeft size={20} className="text-gray-400" />
-            </button>
-          )}
-          <Database size={24} className="text-blue-400" />
-          <div>
-            <h2 className="text-xl font-bold text-white">
-              {currentEntity.name} <span className="text-gray-400">v{currentEntity.version}</span>
-            </h2>
-            <p className="text-sm text-gray-400">{currentEntity.description}</p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          {/* Send to Chat Button */}
-          {onSendToChat && (
-            <button
-              onClick={() => {
-                // Send only the entity content (model), not the entire entity object
-                const entityContent = currentEntity.model || currentEntity;
-                const entityJson = JSON.stringify(entityContent, null, 2);
-                onSendToChat(entityJson);
-              }}
-              className="px-4 py-2 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white rounded-lg flex items-center space-x-2 transition-all duration-200 shadow-lg hover:shadow-teal-500/25"
-              title="Send to chat"
-            >
-              <Send size={16} />
-              <span>Send to Chat</span>
-            </button>
-          )}
-
-
-
-
-        </div>
-      </div>
-
       {/* Content - Split View: JSON Editor + Tree Preview */}
       <div className="flex-1 overflow-auto">
           <div className="h-full flex flex-col">
@@ -322,10 +285,10 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
                 <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 h-full flex flex-col">
                   <h3 className="text-sm font-semibold text-gray-400 mb-3">Tree Preview</h3>
                   <div className="bg-gray-900 rounded-lg p-4 overflow-auto flex-1 mb-4">
-                    {!jsonError && entity && (
+                    {!jsonError && entity && parsedModel && (
                       <TreeNode
                         label={entity.name}
-                        value={entity.model || entity}
+                        value={parsedModel}
                       />
                     )}
                     {jsonError && (

@@ -154,6 +154,9 @@ interface WorkflowCanvasProps {
   technicalId?: string;
   modelName?: string;
   modelVersion?: number;
+  // Optional fullscreen control - if provided, uses local state instead of navigation
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
 const nodeTypes = {
@@ -280,7 +283,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   darkMode,
   technicalId,
   modelName,
-  modelVersion
+  modelVersion,
+  isFullscreen: externalIsFullscreen,
+  onToggleFullscreen: externalOnToggleFullscreen,
 }) => {
   const { screenToFlowPosition, fitView } = useReactFlow();
   const [showQuickHelp, setShowQuickHelp] = useState(false);
@@ -1950,9 +1955,17 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   const location = useLocation();
 
   // Check if we're currently in fullscreen mode (on /workflows page)
-  const isInFullscreenMode = location.pathname === '/workflows';
+  // Use external fullscreen state if provided, otherwise use navigation-based detection
+  const isInFullscreenMode = externalIsFullscreen !== undefined ? externalIsFullscreen : location.pathname === '/workflows';
 
   const handleToggleFullscreen = useCallback(() => {
+    // If external handler is provided, use it (local state-based fullscreen)
+    if (externalOnToggleFullscreen) {
+      externalOnToggleFullscreen();
+      return;
+    }
+
+    // Otherwise, use navigation-based fullscreen (legacy behavior)
     if (!modelName || !modelVersion) {
       showWarning(
         'Cannot Open Fullscreen',
@@ -1962,14 +1975,23 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     }
 
     if (isInFullscreenMode) {
-      // Exit fullscreen - go to home page with canvas=true parameter
-      // This signals HomeView to open the canvas panel
-      navigate('/?canvas=true');
+      // Exit fullscreen - check for returnUrl in query params first
+      const searchParams = new URLSearchParams(location.search);
+      const returnUrl = searchParams.get('returnUrl');
+      if (returnUrl) {
+        navigate(returnUrl);
+      } else if (window.history.length > 1) {
+        navigate(-1);
+      } else {
+        navigate('/?canvas=true');
+      }
     } else {
       // Enter fullscreen - navigate to workflows page with query parameters
-      navigate(`/workflows?model=${encodeURIComponent(modelName)}&version=${encodeURIComponent(modelVersion)}`);
+      // Include current URL as returnUrl so we can come back to the chat
+      const returnUrl = encodeURIComponent(location.pathname + location.search);
+      navigate(`/workflows?model=${encodeURIComponent(modelName)}&version=${encodeURIComponent(modelVersion)}&returnUrl=${returnUrl}`);
     }
-  }, [modelName, modelVersion, navigate, showWarning, isInFullscreenMode]);
+  }, [modelName, modelVersion, navigate, showWarning, isInFullscreenMode, location.pathname, location.search, externalOnToggleFullscreen]);
 
   // Handler to fit the entire workflow in view
   const handleFitView = useCallback(() => {
@@ -1986,7 +2008,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     if (!onSendToChat || !cleanedWorkflow) return;
 
     const workflowJson = JSON.stringify(cleanedWorkflow, null, 2);
-    const message = `Here is the complete workflow:\n\n\`\`\`json\n${workflowJson}\n\`\`\`\n\nPlease review this workflow and help me improve it.`;
+    const message = `Here is the workflow:\n\n\`\`\`json\n${workflowJson}\n\`\`\`\n\nPlease review this workflow and help me improve it.`;
     onSendToChat(message);
     console.log('📤 Sent entire workflow to chat');
   }, [onSendToChat, cleanedWorkflow]);

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowLeft, Server, Copy, CheckCircle2, AlertCircle, RefreshCw, User, UserCog, Activity, Play, Loader2, Download } from 'lucide-react';
+import { ArrowLeft, Server, Copy, CheckCircle2, AlertCircle, RefreshCw, User, UserCog, Activity, Play, Loader2, Download, X } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
 import axios from 'axios';
 import privateClient from '@/clients/private';
@@ -10,6 +10,7 @@ import FileSaver from 'file-saver';
 interface EnvironmentDetailsProps {
   environmentName: string;
   onBack: () => void;
+  onClose?: () => void;
 }
 
 interface UIFunctionParameter {
@@ -32,7 +33,7 @@ interface UIFunction {
   parameters?: UIFunctionParameter[];
 }
 
-const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName, onBack }) => {
+const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName, onBack, onClose }) => {
   const token = useAuthStore((state) => state.token);
   const [envStatus, setEnvStatus] = useState<'checking' | 'online' | 'offline'>('checking');
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -342,6 +343,15 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
           <Server size={18} className="text-teal-400" />
           <h3 className="font-semibold text-white">{environmentName} Environment</h3>
         </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded hover:bg-slate-700 transition-colors"
+            title="Close Cloud panel"
+          >
+            <X size={18} className="text-slate-400" />
+          </button>
+        )}
       </div>
 
       {/* Content */}

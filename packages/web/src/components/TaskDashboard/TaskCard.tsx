@@ -15,6 +15,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import type { BackgroundTask } from '@/services/taskService';
+import CLIOutputViewer from './CLIOutputViewer';
 
 interface TaskCardProps {
   task: BackgroundTask;
@@ -166,6 +167,18 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
             <div className="bg-red-500/10 border border-red-500/30 rounded p-2">
               <p className="text-red-400 text-xs font-medium mb-1">Error:</p>
               <p className="text-red-300 text-xs font-mono">{task.error}</p>
+            </div>
+          )}
+
+          {/* CLI Output */}
+          {task.metadata?.output && (
+            <div className="space-y-2">
+              <p className="text-slate-400 text-xs font-medium">CLI Output:</p>
+              <CLIOutputViewer
+                output={task.metadata.output}
+                isRunning={task.status === 'running'}
+                taskId={task.technical_id}
+              />
             </div>
           )}
 

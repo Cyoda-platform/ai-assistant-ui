@@ -63,7 +63,7 @@ const TaskDashboard: React.FC<TaskDashboardProps> = ({
     loadTasks();
   }, [loadTasks]);
 
-  // Poll for updates every 30 seconds
+  // Poll for updates every 3 seconds for real-time CLI output
   useEffect(() => {
     const cleanup = taskService.pollConversationTasks(
       conversationId,
@@ -74,7 +74,7 @@ const TaskDashboard: React.FC<TaskDashboardProps> = ({
       (err) => {
         console.error('Polling error:', err);
       },
-      30000 // Poll every 30 seconds
+      3000 // Poll every 3 seconds for real-time output
     );
 
     return cleanup;

@@ -6,6 +6,7 @@ import { isInIframe } from '@/helpers/HelperIframe';
 
 // Import views
 import HomeView from '@/views/HomeView';
+import FintechHomeView from '@/views/FintechHomeView';
 import NewChatView from '@/views/NewChatView';
 import DashboardView from '@/views/DashboardView';
 import ChatBotView from '@/views/ChatBotView';
@@ -61,6 +62,10 @@ const routes = [
     children: [
       {
         index: true,
+        element: <FintechHomeView />,
+      },
+      {
+        path: "home",
         element: <HomeView />,
       },
       {

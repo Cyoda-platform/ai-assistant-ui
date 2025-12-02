@@ -5,6 +5,7 @@ import { TransitionEditor } from '../WorkflowCanvas/Editors/TransitionEditor';
 import { historyService } from '../WorkflowCanvas/services/historyService';
 import { useKeyboardShortcuts } from '../WorkflowCanvas/hooks/useKeyboardShortcuts';
 import { useTheme } from '../WorkflowCanvas/hooks/useTheme';
+import { autoLayoutWorkflow } from '../WorkflowCanvas/utils/autoLayout';
 import type {
   UIWorkflowData,
   WorkflowConfiguration,
@@ -14,6 +15,7 @@ import type {
 } from '../WorkflowCanvas/types/workflow';
 import { parseTransitionId, getTransitionDefinition } from '../WorkflowCanvas/utils/transitionUtils';
 import { Spin } from 'antd';
+import { Activity, ArrowLeft, Send } from 'lucide-react';
 import HelperStorage from '@/helpers/HelperStorage';
 import apiService from '@/services/apiService';
 import { useAppsTabsStore } from '@/stores/appsTabs';
@@ -26,6 +28,7 @@ interface ChatBotEditorWorkflowNewProps {
   entityId?: string; // Entity ID from AppsCanvas navigation (e.g., "entity-pet-1")
   appId?: string; // App ID for API calls
   appData?: any; // AppRoot data from repository analysis
+  workflowData?: any; // Direct workflow data from /analyze
   onAnswer?: (data: { answer: string; file?: File }) => void;
   onUpdate?: (data: { canvasData: string; workflowMetaData: any }) => void;
   onBack?: () => void; // Callback to return to workflows list
@@ -46,6 +49,86 @@ function combineWorkflowData(
     layout: layout,
     createdAt: new Date().toISOString(),
     updatedAt: layout.updatedAt
+  };
+}
+
+// Helper to transform /analyze workflow format to WorkflowConfiguration format
+// /analyze returns: { states: [{name, type, description}], transitions: [{from, to, name, actions}] }
+// WorkflowConfiguration expects: { states: { [stateId]: { transitions: [{next, name}] } } }
+function transformAnalyzeWorkflowToConfig(analyzeContent: any): WorkflowConfiguration | null {
+  if (!analyzeContent) return null;
+
+  // Check if it's already in the correct format (has states as object with transitions)
+  if (analyzeContent.states && typeof analyzeContent.states === 'object' && !Array.isArray(analyzeContent.states)) {
+    // Already in correct format
+    return analyzeContent as WorkflowConfiguration;
+  }
+
+  // Transform from /analyze format
+  const statesArray = analyzeContent.states || [];
+  const transitionsArray = analyzeContent.transitions || [];
+
+  // Build states object
+  const states: Record<string, { name?: string; transitions: TransitionDefinition[] }> = {};
+
+  // First, create all states with empty transitions
+  statesArray.forEach((state: any) => {
+    const stateId = state.name?.toLowerCase() || state.id || `state_${Object.keys(states).length}`;
+    states[stateId] = {
+      name: state.name || state.description || stateId,
+      transitions: []
+    };
+  });
+
+  // Add a special "*" state for transitions from any state
+  if (!states['*']) {
+    states['*'] = { name: 'Any State', transitions: [] };
+  }
+
+  // Then, add transitions to their source states
+  transitionsArray.forEach((transition: any) => {
+    const fromState = transition.from?.toLowerCase() || '*';
+    const toState = transition.to?.toLowerCase() || transition.next?.toLowerCase();
+
+    if (!toState) return;
+
+    // Ensure the target state exists
+    if (!states[toState]) {
+      states[toState] = { name: toState, transitions: [] };
+    }
+
+    // Ensure the source state exists
+    if (!states[fromState]) {
+      states[fromState] = { name: fromState, transitions: [] };
+    }
+
+    // Add transition to source state
+    states[fromState].transitions.push({
+      name: transition.name,
+      next: toState,
+      processors: transition.actions?.map((action: any) => ({
+        name: action.type || 'processor',
+        config: action
+      })) || []
+    });
+  });
+
+  // Find initial state (first non-terminal state or first state)
+  let initialState = Object.keys(states).find(s => s !== '*') || 'initial';
+
+  // Try to find a state that is the target of a "*" transition
+  const starTransitions = states['*']?.transitions || [];
+  if (starTransitions.length > 0) {
+    initialState = starTransitions[0].next;
+  }
+
+  return {
+    version: String(analyzeContent.version || '1'),
+    name: analyzeContent.name || 'Workflow',
+    desc: analyzeContent.description,
+    initialState,
+    active: true,
+    states
   };
 }
 
@@ -104,6 +187,7 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
   entityId,
   appId,
   appData,
+  workflowData,
   onAnswer,
   onUpdate,
   onBack,
@@ -122,6 +206,9 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
   const [canRedo, setCanRedo] = useState(false);
   const [undoCount, setUndoCount] = useState(0);
   const [redoCount, setRedoCount] = useState(0);
+
+  // Local fullscreen state - preserves workflow state when toggling
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Transition editor state
   const [editingTransitionId, setEditingTransitionId] = useState<string | null>(null);
@@ -148,121 +235,108 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
     const loadWorkflow = async () => {
       setLoading(true);
       try {
-        // If workflowId, entityId, and appData are provided, load from AppRoot (single source of truth)
-        if (workflowId && entityId && appData) {
-          console.log('📖 Loading workflow from AppRoot:', { workflowId, entityId, appId });
+        // First, try to use workflowData passed directly
+        // Check for both 'config' (expected format) and 'content' (/analyze format)
+        const rawConfig = workflowData?.config || workflowData?.content;
+        if (rawConfig) {
+          console.log('✅ Using workflow data passed directly:', workflowData.name);
+          console.log('📦 Raw config structure:', {
+            hasStatesObject: rawConfig.states && typeof rawConfig.states === 'object' && !Array.isArray(rawConfig.states),
+            hasStatesArray: Array.isArray(rawConfig.states),
+            hasTransitionsArray: Array.isArray(rawConfig.transitions),
+            keys: Object.keys(rawConfig)
+          });
 
-          try {
-            if (appData) {
-              console.log('📊 AppRoot data:', {
-                entitiesCount: appData.app.entities.length,
-                entities: appData.app.entities.map(e => ({
-                  name: e.name,
-                  version: e.version,
-                  id: `${e.name}-${e.version}`,
-                  workflowsCount: e.workflows.length,
-                  workflows: e.workflows.map(w => w.name)
-                }))
-              });
+          // Transform /analyze format to WorkflowConfiguration format if needed
+          const config = transformAnalyzeWorkflowToConfig(rawConfig);
+          if (!config) {
+            console.error('❌ Failed to transform workflow config');
+            setLoading(false);
+            return;
+          }
 
-              // Find the entity
-              const entity = appData.app.entities.find(
-                e => `${e.name}-${e.version}` === entityId
+          console.log('✅ Transformed config:', {
+            stateIds: Object.keys(config.states || {}),
+            initialState: config.initialState
+          });
+
+          const stateIds = Object.keys(config.states || {});
+          const layout: CanvasLayout = {
+            states: stateIds.map((stateId, index) => ({
+              id: stateId,
+              position: { x: 100 + (index * 300), y: 200 }
+            })),
+            transitions: [],
+            updatedAt: new Date().toISOString()
+          };
+
+          const entityModel: EntityModelIdentifier = {
+            modelName: workflowData.entity_name || modelName,
+            modelVersion: workflowData.entity_version || modelVersion
+          };
+
+          const uiWorkflow = combineWorkflowData(
+            technicalId,
+            entityModel,
+            config,
+            layout
+          );
+
+          const formattedWorkflow = autoLayoutWorkflow(uiWorkflow, { direction: 'TB' });
+          setCurrentWorkflow(formattedWorkflow);
+          setLoading(false);
+          updateHistoryState();
+          return;
+        }
+
+        // Fallback: Try to load from AppRoot if all parameters are provided
+        if (workflowId && entityId && appData?.app?.entities) {
+          console.log('🔍 Searching for entity:', entityId);
+          const entity = appData.app.entities.find(
+            e => `${e.name}-${e.version}` === entityId
+          );
+
+          if (entity?.workflows?.length > 0) {
+            const searchName = workflowId.replace('workflow-', '').toLowerCase();
+            const workflow = entity.workflows.find(
+              w => w.name && w.name.toLowerCase() === searchName
+            );
+
+            if (workflow?.config) {
+              console.log('✅ Loaded workflow from AppRoot:', workflow.name);
+
+              const stateIds = Object.keys(workflow.config.states || {});
+              const layout: CanvasLayout = {
+                states: stateIds.map((stateId, index) => ({
+                  id: stateId,
+                  position: { x: 100 + (index * 300), y: 200 }
+                })),
+                transitions: [],
+                updatedAt: new Date().toISOString()
+              };
+
+              const entityModel: EntityModelIdentifier = {
+                modelName: entity.name,
+                modelVersion: entity.version
+              };
+
+              const uiWorkflow = combineWorkflowData(
+                technicalId,
+                entityModel,
+                workflow.config as WorkflowConfiguration,
+                layout
               );
 
-              console.log('🔍 Looking for entity:', entityId, 'Found:', entity ? `${entity.name}-${entity.version}` : 'NOT FOUND');
-
-              if (entity) {
-                console.log('📋 Entity workflows:', entity.workflows.map(w => ({
-                  name: w.name,
-                  id: `workflow-${w.name}`,
-                  hasConfig: !!w.config,
-                  configStates: w.config?.states ? Object.keys(w.config.states) : []
-                })));
-
-                // Find the workflow (case-insensitive matching)
-                const workflow = entity.workflows.find(
-                  w => `workflow-${w.name.toLowerCase()}` === workflowId.toLowerCase()
-                );
-
-                console.log('🔍 Looking for workflow:', workflowId, 'Found:', workflow ? workflow.name : 'NOT FOUND');
-
-                if (workflow && workflow.config) {
-                  console.log('✅ Workflow found in AppRoot:', workflow);
-
-                  // Convert AppRoot workflow to UIWorkflowData format
-                  const entityModel: EntityModelIdentifier = {
-                    modelName: entity.name,
-                    modelVersion: entity.version
-                  };
-
-                  // Extract layout from config if it exists, otherwise create auto-positioned layout
-                  const stateIds = Object.keys(workflow.config.states || {});
-                  const stateCount = stateIds.length;
-
-                  // Auto-positioning algorithm: arrange states in a grid or flow layout
-                  const layout: CanvasLayout = {
-                    states: stateIds.map((stateId, index) => {
-                      // For small number of states (1-4), arrange horizontally
-                      if (stateCount <= 4) {
-                        return {
-                          id: stateId,
-                          position: { x: 100 + (index * 300), y: 200 }
-                        };
-                      }
-                      // For medium number of states (5-9), arrange in 2 rows
-                      else if (stateCount <= 9) {
-                        const row = Math.floor(index / 3);
-                        const col = index % 3;
-                        return {
-                          id: stateId,
-                          position: { x: 100 + (col * 300), y: 150 + (row * 250) }
-                        };
-                      }
-                      // For larger number of states, arrange in a grid (3 columns)
-                      else {
-                        const row = Math.floor(index / 3);
-                        const col = index % 3;
-                        return {
-                          id: stateId,
-                          position: { x: 100 + (col * 280), y: 100 + (row * 220) }
-                        };
-                      }
-                    }),
-                    transitions: [], // Will be populated from workflow config states
-                    updatedAt: new Date().toISOString()
-                  };
-
-                  console.log('🎨 Auto-positioned states:', layout.states.map(s => ({ id: s.id, x: s.position.x, y: s.position.y })));
-                  console.log('📊 Workflow config states:', workflow.config.states);
-
-                  const uiWorkflow = combineWorkflowData(
-                    technicalId,
-                    entityModel,
-                    workflow.config as WorkflowConfiguration,
-                    layout
-                  );
-
-                  console.log('✅ Created UIWorkflow from AppRoot:', {
-                    id: uiWorkflow.id,
-                    statesCount: Object.keys(uiWorkflow.configuration.states).length,
-                    layoutStatesCount: uiWorkflow.layout.states.length,
-                    layoutStates: uiWorkflow.layout.states.map(s => ({ id: s.id, x: s.position.x, y: s.position.y }))
-                  });
-
-                  setCurrentWorkflow(uiWorkflow);
-                  setLoading(false);
-                  updateHistoryState();
-                  return;
-                }
-              }
+              const formattedWorkflow = autoLayoutWorkflow(uiWorkflow, { direction: 'TB' });
+              setCurrentWorkflow(formattedWorkflow);
+              setLoading(false);
+              updateHistoryState();
+              return;
             }
-
-            console.warn('⚠️ Workflow not found in AppRoot, falling back to localStorage');
-          } catch (error) {
-            console.error('❌ Error loading from AppRoot:', error);
           }
         }
+
+        console.log('⚠️ Could not load workflow, falling back to localStorage');
 
         // Fall back to localStorage (legacy behavior or fullscreen mode)
         console.log('📖 Loading workflow from localStorage');
@@ -288,7 +362,16 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
               parsed.layout
             );
 
-            setCurrentWorkflow(workflow);
+            // Apply auto-layout formatting when opening workflow from localStorage
+            console.log('🎨 Applying auto-layout formatting to workflow from localStorage...');
+            const formattedWorkflow = autoLayoutWorkflow(workflow, { direction: 'TB' });
+
+            console.log('✅ Auto-layout applied to localStorage workflow:', {
+              id: formattedWorkflow.id,
+              layoutStatesCount: formattedWorkflow.layout.states.length
+            });
+
+            setCurrentWorkflow(formattedWorkflow);
           }
         } else {
           // Create workflow with initial state
@@ -340,8 +423,7 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
 
     loadWorkflow();
     updateHistoryState();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [technicalId, workflowId, entityId, appId]);
+  }, [technicalId, workflowId, entityId, appId, workflowData]);
 
   // Get current app ID - use prop if provided, otherwise fallback to active app tab
   const getCurrentAppId = useCallback(() => {
@@ -534,37 +616,44 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
   }
 
   return (
-    <ReactFlowProvider>
-      <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-        <WorkflowCanvas
-          workflow={currentWorkflow}
-          onWorkflowUpdate={handleWorkflowUpdate}
-          onStateEdit={handleStateEdit}
-          onTransitionEdit={handleTransitionEdit}
-          onSendToChat={setTextareaContentCallback ? (data) => {
-            setTextareaContentCallback(data);
-          } : undefined}
-          onBack={onBack}
-          darkMode={true}
-          technicalId={technicalId}
-          modelName={modelName}
-          modelVersion={modelVersion}
-        />
+    <div className={`${isFullscreen ? 'fixed inset-0 z-50' : 'h-full'} flex flex-col bg-gray-900`}>
+      {/* Workflow Canvas */}
+      <div className="flex-1 relative overflow-hidden">
+        <ReactFlowProvider>
+          <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+            <WorkflowCanvas
+              key={currentWorkflow?.id}
+              workflow={currentWorkflow}
+              onWorkflowUpdate={handleWorkflowUpdate}
+              onStateEdit={handleStateEdit}
+              onTransitionEdit={handleTransitionEdit}
+              onSendToChat={setTextareaContentCallback ? (data) => {
+                setTextareaContentCallback(data);
+              } : undefined}
+              darkMode={true}
+              technicalId={technicalId}
+              modelName={modelName}
+              modelVersion={modelVersion}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
+            />
 
-        {/* Transition Editor Dialog */}
-        {transitionEditorOpen && editingTransitionId && editingTransitionDefinition && (
-          <TransitionEditor
-            isOpen={transitionEditorOpen}
-            onClose={() => setTransitionEditorOpen(false)}
-            transitionDefinition={editingTransitionDefinition}
-            transitionId={editingTransitionId}
-            onSave={handleTransitionSave}
-            workflowConfig={currentWorkflow?.configuration}
-            palette={palette}
-          />
-        )}
+            {/* Transition Editor Dialog */}
+            {transitionEditorOpen && editingTransitionId && editingTransitionDefinition && (
+              <TransitionEditor
+                isOpen={transitionEditorOpen}
+                onClose={() => setTransitionEditorOpen(false)}
+                transitionDefinition={editingTransitionDefinition}
+                transitionId={editingTransitionId}
+                onSave={handleTransitionSave}
+                workflowConfig={currentWorkflow?.configuration}
+                palette={palette}
+              />
+            )}
+          </div>
+        </ReactFlowProvider>
       </div>
-    </ReactFlowProvider>
+    </div>
   );
 };
 

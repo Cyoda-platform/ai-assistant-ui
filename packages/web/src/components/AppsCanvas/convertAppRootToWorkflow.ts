@@ -102,6 +102,8 @@ export function convertAppRootToSimplifiedWorkflow(
     id: `${appId}-to-${entitiesGroupId}`,
     source: appId,
     target: entitiesGroupId,
+    sourceHandle: 'bottom',
+    targetHandle: 'top-target',
     label: ''
   });
 
@@ -160,6 +162,8 @@ export function convertAppRootToSimplifiedWorkflow(
       id: `${entitiesGroupId}-to-${entityId}`,
       source: entitiesGroupId,
       target: entityId,
+      sourceHandle: 'bottom',
+      targetHandle: 'top-target',
       label: ''
     });
 
@@ -197,6 +201,8 @@ export function convertAppRootToSimplifiedWorkflow(
       id: `${entityId}-to-${workflowsGroupId}`,
       source: entityId,
       target: workflowsGroupId,
+      sourceHandle: 'right',
+      targetHandle: 'left-target',
       label: ''
     });
 
@@ -255,6 +261,8 @@ export function convertAppRootToSimplifiedWorkflow(
         id: `${workflowsGroupId}-to-${workflowId}`,
         source: workflowsGroupId,
         target: workflowId,
+        sourceHandle: 'bottom',
+        targetHandle: 'top-target',
         label: ''
       });
     });
@@ -295,6 +303,17 @@ export function convertAppRootToWorkflow(
   onNodeUpdate?: (nodeId: string, nodeType: string, updatedMetadata: any) => void,
   onSendToChat?: (nodeData: any, nodeType: string) => void
 ): UIWorkflowData {
+  console.log('🔄 convertAppRootToWorkflow: Starting conversion:', {
+    appName: appRoot.app.name,
+    entitiesCount: appRoot.app.entities?.length || 0,
+    entities: appRoot.app.entities?.map(e => ({
+      id: e.id,
+      name: e.name,
+      version: e.version,
+      workflows: e.workflows?.length || 0
+    })) || []
+  });
+
   const states: Record<string, any> = {};
   const layoutStates: any[] = [];
   const layoutTransitions: any[] = [];
@@ -376,18 +395,28 @@ export function convertAppRootToWorkflow(
     id: `${appId}-to-${entitiesGroupId}`,
     source: appId,
     target: entitiesGroupId,
+    sourceHandle: 'bottom',
+    targetHandle: 'top-target',
     label: ''
   });
 
   // ========================================
   // 3. ENTITY NODES (Under Group)
   // ========================================
-  const entityStartX = 600;
-  const entityStartY = 350;
-  const entitySpacingY = 500;
+  const entityStartX = 200; // Move much closer to the left for visibility
+  const entityStartY = 300; // Move up slightly
+  const entitySpacingY = 200; // Reduce spacing between entities
 
   appRoot.app.entities.forEach((entity, entityIndex) => {
     const entityId = `entity-${entity.name.toLowerCase().replace(/\s+/g, '-')}-${entity.version.toLowerCase().replace(/\s+/g, '-')}`;
+
+    console.log('🔧 convertAppRootToWorkflow: Processing entity:', {
+      entityIndex,
+      entityId,
+      entityName: entity.name,
+      entityVersion: entity.version,
+      workflowsCount: entity.workflows?.length || 0
+    });
 
     states[entityId] = {
       name: entity.name,
@@ -429,11 +458,21 @@ export function convertAppRootToWorkflow(
       }
     });
 
+    console.log('✅ convertAppRootToWorkflow: Created entity layout node:', {
+      entityId,
+      entityName: entity.name,
+      position: { x: entityStartX, y: entityStartY + entityIndex * entitySpacingY },
+      type: 'entityNode',
+      workflowCount: entity.workflows?.length || 0
+    });
+
     // Edge: Entities Group → Entity
     layoutTransitions.push({
       id: `${entitiesGroupId}-to-${entityId}`,
       source: entitiesGroupId,
       target: entityId,
+      sourceHandle: 'bottom',
+      targetHandle: 'top-target',
       label: ''
     });
 
@@ -450,7 +489,7 @@ export function convertAppRootToWorkflow(
     layoutStates.push({
       id: workflowsGroupId,
       type: 'groupNode',
-      position: { x: entityStartX + 300, y: entityStartY + entityIndex * entitySpacingY },
+      position: { x: entityStartX + 250, y: entityStartY + entityIndex * entitySpacingY },
       data: {
         label: 'Workflows',
         metadata: {
@@ -471,14 +510,16 @@ export function convertAppRootToWorkflow(
       id: `${entityId}-to-${workflowsGroupId}`,
       source: entityId,
       target: workflowsGroupId,
+      sourceHandle: 'right',
+      targetHandle: 'left-target',
       label: ''
     });
 
     // ========================================
     // 5. WORKFLOW NODES (Under Workflows Group)
     // ========================================
-    const workflowStartX = entityStartX + 300;
-    const workflowStartY = entityStartY + entityIndex * entitySpacingY + 150;
+    const workflowStartX = entityStartX + 250;
+    const workflowStartY = entityStartY + entityIndex * entitySpacingY + 100;
     const workflowSpacingY = 150;
 
     entity.workflows.forEach((workflow, workflowIndex) => {
@@ -548,6 +589,8 @@ export function convertAppRootToWorkflow(
         id: `${workflowsGroupId}-to-${workflowId}`,
         source: workflowsGroupId,
         target: workflowId,
+        sourceHandle: 'bottom',
+        targetHandle: 'top-target',
         label: ''
       });
     });
@@ -556,7 +599,7 @@ export function convertAppRootToWorkflow(
   // ========================================
   // 6. BUILD WORKFLOW DATA
   // ========================================
-  return {
+  const result = {
     configuration: {
       version: '1.0',
       name: appRoot.app.name,
@@ -570,6 +613,8 @@ export function convertAppRootToWorkflow(
       transitions: layoutTransitions
     }
   };
+
+  return result;
 }
 
 /**

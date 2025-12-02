@@ -81,7 +81,7 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
       confirmLoading={loading}
       okText="Rename"
       cancelText="Cancel"
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical">
         <Form.Item

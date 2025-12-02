@@ -55,15 +55,16 @@ export const useRepositoryStore = create<RepositoryStore>()(
       loadRepository: async (conversationId: string, repoInfo: GitHubRepositoryInfo) => {
         const state = get();
 
-        // Check cache first
-        const cached = state.cache[conversationId];
-        if (cached &&
-            cached.repositoryInfo.repositoryName === repoInfo.repositoryName &&
-            cached.repositoryInfo.branch === repoInfo.branch &&
-            cached.repositoryInfo.owner === repoInfo.owner) {
-          console.log('📦 Using cached repository data for conversation:', conversationId);
-          return cached.data;
-        }
+        // DISABLED: Check cache first - always fetch fresh data for canvas
+        // const cached = state.cache[conversationId];
+        // if (cached &&
+        //     cached.repositoryInfo.repositoryName === repoInfo.repositoryName &&
+        //     cached.repositoryInfo.branch === repoInfo.branch &&
+        //     cached.repositoryInfo.owner === repoInfo.owner) {
+        //   console.log('📦 Using cached repository data for conversation:', conversationId);
+        //   return cached.data;
+        // }
+        console.log('🔄 Skipping cache, always fetching fresh repository data for conversation:', conversationId);
 
         // Check if there's already a pending request for this conversation
         const pendingRequest = state.pendingRequests[conversationId];

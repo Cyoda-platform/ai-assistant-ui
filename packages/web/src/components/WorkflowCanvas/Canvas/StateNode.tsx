@@ -197,11 +197,17 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
 
         {/* Additional Information - Subtle white sublabels with emojis */}
         <div className={`flex items-center justify-between text-xs text-white/70 pt-2 border-t ${getBorderColor()}`}>
-          <div className="flex items-center space-x-2">
-            {/* State Type Label with emoji */}
-            <span className="font-normal">
-              {state.isInitial ? '🚀 Start' : state.isFinal ? '🏁 End' : '⚡ State'}
-            </span>
+          <div className="flex items-center space-x-2 flex-wrap gap-1">
+            {/* State Type Labels with emojis - Show both initial and active states */}
+            {state.isInitial && (
+              <span className="font-normal">🚀 Initial</span>
+            )}
+            {state.isFinal && (
+              <span className="font-normal">🏁 Final</span>
+            )}
+            {!state.isInitial && !state.isFinal && (
+              <span className="font-normal">⚡ Active</span>
+            )}
 
             {/* Always show transition count */}
             <span className="flex items-center space-x-1 font-normal">
