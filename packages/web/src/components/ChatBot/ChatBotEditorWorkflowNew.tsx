@@ -87,8 +87,15 @@ function transformAnalyzeWorkflowToConfig(analyzeContent: any): WorkflowConfigur
 
   // Then, add transitions to their source states
   transitionsArray.forEach((transition: any) => {
-    const fromState = transition.from?.toLowerCase() || '*';
-    const toState = transition.to?.toLowerCase() || transition.next?.toLowerCase();
+    // Handle transition.from as either string or array
+    const fromValues = Array.isArray(transition.from)
+      ? transition.from
+      : [transition.from || '*'];
+
+    const toValue = transition.to || transition.next;
+    const toState = typeof toValue === 'string'
+      ? toValue.toLowerCase()
+      : (Array.isArray(toValue) ? toValue[0]?.toLowerCase() : undefined);
 
     if (!toState) return;
 
@@ -97,19 +104,26 @@ function transformAnalyzeWorkflowToConfig(analyzeContent: any): WorkflowConfigur
       states[toState] = { name: toState, transitions: [] };
     }
 
-    // Ensure the source state exists
-    if (!states[fromState]) {
-      states[fromState] = { name: fromState, transitions: [] };
-    }
+    // Process each 'from' state
+    fromValues.forEach((from: any) => {
+      const fromState = typeof from === 'string'
+        ? from.toLowerCase()
+        : '*';
 
-    // Add transition to source state
-    states[fromState].transitions.push({
-      name: transition.name,
-      next: toState,
-      processors: transition.actions?.map((action: any) => ({
-        name: action.type || 'processor',
-        config: action
-      })) || []
+      // Ensure the source state exists
+      if (!states[fromState]) {
+        states[fromState] = { name: fromState, transitions: [] };
+      }
+
+      // Add transition to source state
+      states[fromState].transitions.push({
+        name: transition.name,
+        next: toState,
+        processors: transition.actions?.map((action: any) => ({
+          name: action.type || 'processor',
+          config: action
+        })) || []
+      });
     });
   });
 
