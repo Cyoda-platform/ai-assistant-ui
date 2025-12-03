@@ -90,7 +90,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
       description: 'Create a new technical user account',
       icon: UserCog,
       method: 'POST',
-      path: '/api/users',
+      path: '/api/clients',
       category: 'User Management',
       response_format: 'json'
     },
@@ -100,7 +100,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
       description: 'Retrieve list of all users',
       icon: User,
       method: 'GET',
-      path: '/api/users',
+      path: '/api/clients',
       category: 'User Management',
       response_format: 'json'
     },
@@ -110,20 +110,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
       description: 'Retrieve specific user details',
       icon: User,
       method: 'GET',
-      path: '/api/users/{userId}',
-      category: 'User Management',
-      response_format: 'json',
-      parameters: [
-        { name: 'userId', type: 'path', required: true, description: 'User ID' }
-      ]
-    },
-    {
-      id: 'update_user',
-      name: 'Update User',
-      description: 'Update user information',
-      icon: User,
-      method: 'PUT',
-      path: '/api/users/{userId}',
+      path: '/api/clients/{userId}',
       category: 'User Management',
       response_format: 'json',
       parameters: [
@@ -136,7 +123,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
       description: 'Delete a user account',
       icon: User,
       method: 'DELETE',
-      path: '/api/users/{userId}',
+      path: '/api/clients/{userId}',
       category: 'User Management',
       response_format: 'json',
       parameters: [
@@ -149,28 +136,8 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
       description: 'Retrieve list of machine users',
       icon: UserCog,
       method: 'GET',
-      path: '/api/machine-users',
+      path: '/api/clients',
       category: 'Machine User Management',
-      response_format: 'json'
-    },
-    {
-      id: 'create_machine_user',
-      name: 'Create Machine User',
-      description: 'Create a new machine user',
-      icon: UserCog,
-      method: 'POST',
-      path: '/api/machine-users',
-      category: 'Machine User Management',
-      response_format: 'json'
-    },
-    {
-      id: 'get_accounts',
-      name: 'Get Accounts',
-      description: 'Retrieve list of all accounts',
-      icon: User,
-      method: 'GET',
-      path: '/api/accounts',
-      category: 'Account Management',
       response_format: 'json'
     }
   ];

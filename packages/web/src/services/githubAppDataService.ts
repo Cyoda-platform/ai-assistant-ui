@@ -6,7 +6,7 @@
 
 import type { AppRoot } from '@/components/AppsCanvas/types/appSchema';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_APP_API_BASE?.replace('/api', '') || 'http://localhost:8000';
 
 export interface GitHubRepositoryInfo {
   repositoryName: string;
