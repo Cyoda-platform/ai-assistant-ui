@@ -14,6 +14,8 @@ import CanvasDemoView from '@/views/CanvasDemoView';
 import WorkflowTabsView from '@/views/WorkflowTabsView';
 import EnvironmentsPage from '@/pages/EnvironmentsPage';
 import TestContextMenu from '@/components/ChatHistoryPanel/TestContextMenu';
+import LogsView from '@/views/LogsView';
+import MonitoringView from '@/views/MonitoringView';
 
 // Import layouts
 import LayoutDefault from '@/layouts/LayoutDefault';
@@ -95,6 +97,14 @@ const routes = [
       {
         path: "test-context-menu",
         element: <TestContextMenu />,
+      },
+      {
+        path: "logs",
+        element: <LogsView />,
+      },
+      {
+        path: "monitoring",
+        element: <MonitoringView />,
       },
     ],
   },

@@ -8,6 +8,8 @@ interface MetricsViewerProps {
   grafanaToken: string;
   namespace: string;
   onBack: () => void;
+  type?: 'environment' | 'application';
+  deploymentId?: string;
 }
 
 interface MetricData {
@@ -24,7 +26,13 @@ interface PrometheusResponse {
   };
 }
 
-const MetricsViewer: React.FC<MetricsViewerProps> = ({ grafanaToken, namespace, onBack }) => {
+const MetricsViewer: React.FC<MetricsViewerProps> = ({
+  grafanaToken,
+  namespace,
+  onBack,
+  type = 'environment',
+  deploymentId
+}) => {
   const [loading, setLoading] = useState(false);
   const [cpuUsage, setCpuUsage] = useState<string>('--');
   const [memoryUsage, setMemoryUsage] = useState<string>('--');
@@ -66,7 +74,11 @@ const MetricsViewer: React.FC<MetricsViewerProps> = ({ grafanaToken, namespace, 
             const { data } = await privateClient({
               method: 'post',
               url: `${import.meta.env.VITE_APP_API_BASE}/v1/metrics/query`,
-              data: { query: q.query }
+              data: {
+                query: q.query,
+                type: type,
+                id: deploymentId || (type === 'environment' ? 'develop' : 'start')
+              }
             });
             return { name: q.name, data };
           } catch (error) {

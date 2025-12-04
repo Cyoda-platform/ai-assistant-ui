@@ -1,0 +1,30 @@
+.elk-log-viewer {
+  width: 100%;
+}
+
+.elk-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #d3dae6;
+  background: #f5f7fa;
+}
+
+.elk-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1c21;
+}
+
+.elk-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #69707d;
+}
+
+.elk-controls {
+  padding: 0 20px;
+}
+
+.elk-results-info {
+  padding: 0 20px;
+}

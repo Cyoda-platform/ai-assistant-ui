@@ -8,5 +8,13 @@
     "packages/desktop-workflow"
   ],
   "author": "Cyoda",
-  "packageManager": "yarn@4.9.4"
+  "packageManager": "yarn@4.9.4",
+  "dependencies": {
+    "@elastic/datemath": "^5.0.3",
+    "@elastic/eui": "^110.0.0",
+    "@elastic/eui-theme-borealis": "^5.1.0",
+    "@emotion/css": "^11.13.5",
+    "@emotion/react": "^11.14.0",
+    "moment": "^2.30.1"
+  }
 }

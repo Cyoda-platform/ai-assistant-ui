@@ -1,13 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowLeft, Server, Copy, CheckCircle2, AlertCircle, RefreshCw, User, UserCog, Activity, Play, Loader2, Download, X, Key, FileText, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Server, Copy, CheckCircle2, AlertCircle, RefreshCw, User, UserCog, Activity, Play, Loader2, Download, X, FileText, BarChart3 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
 import axios from 'axios';
 import privateClient from '@/clients/private';
 import { message, Modal } from 'antd';
 import dayjs from 'dayjs';
 import FileSaver from 'file-saver';
-import LogsViewer from './LogsViewer';
-import MetricsViewer from './MetricsViewer';
 
 interface EnvironmentDetailsProps {
   environmentName: string;
@@ -43,14 +41,6 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
   const [executingFunction, setExecutingFunction] = useState<string | null>(null);
   const [functionResponses, setFunctionResponses] = useState<Record<string, any>>({});
   const [parameterValues, setParameterValues] = useState<Record<string, Record<string, string>>>({});
-  const [logsApiKey, setLogsApiKey] = useState<string | null>(null);
-  const [showLogsViewer, setShowLogsViewer] = useState(false);
-  const [generatingApiKey, setGeneratingApiKey] = useState(false);
-  const [grafanaToken, setGrafanaToken] = useState<string | null>(null);
-  const [grafanaUrl, setGrafanaUrl] = useState<string | null>(null);
-  const [grafanaNamespace, setGrafanaNamespace] = useState<string | null>(null);
-  const [generatingGrafanaToken, setGeneratingGrafanaToken] = useState(false);
-  const [showMetricsViewer, setShowMetricsViewer] = useState(false);
 
   // Parse token to get org ID
   const orgId = useMemo(() => {
@@ -303,162 +293,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
     });
   };
 
-  // Generate logs API key
-  const generateLogsApiKey = async () => {
-    if (!token) {
-      message.error('Authentication required');
-      return;
-    }
-
-    setGeneratingApiKey(true);
-    try {
-      const { data } = await privateClient({
-        method: 'post',
-        url: `${import.meta.env.VITE_APP_API_BASE}/v1/logs/api-key`
-      });
-
-      setLogsApiKey(data.api_key);
-
-      // Show modal with API key (one-time view)
-      Modal.success({
-        title: 'Logs API Key Generated',
-        width: 600,
-        content: (
-          <div className="space-y-3 mt-4">
-            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
-              <div className="flex items-start space-x-2">
-                <AlertCircle size={16} className="text-yellow-400 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-yellow-300">
-                  <strong>Important:</strong> Save this API key securely. You won't be able to see it again!
-                  Generating a new key will invalidate this one.
-                </div>
-              </div>
-            </div>
-            <div>
-              <label className="text-xs text-slate-500 font-medium block mb-2">Your API Key:</label>
-              <div className="bg-slate-900 p-3 rounded border border-slate-600">
-                <code className="text-xs text-teal-400 break-all font-mono">
-                  {data.api_key}
-                </code>
-              </div>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(data.api_key);
-                  message.success('API key copied to clipboard');
-                }}
-                className="mt-2 w-full px-3 py-2 bg-teal-500/20 text-teal-400 rounded hover:bg-teal-500/30 transition-colors flex items-center justify-center space-x-2"
-              >
-                <Copy size={14} />
-                <span className="text-xs font-medium">Copy to Clipboard</span>
-              </button>
-            </div>
-          </div>
-        ),
-        okText: 'I have saved it',
-        centered: true,
-      });
-
-      message.success('API key generated successfully');
-    } catch (error: any) {
-      console.error('Failed to generate logs API key:', error);
-      const errorMsg = error?.response?.data?.error || error?.message || 'Failed to generate API key';
-      message.error(`Error: ${errorMsg}`);
-    } finally {
-      setGeneratingApiKey(false);
-    }
-  };
-
-  // Generate Grafana token
-  const generateGrafanaToken = async () => {
-    if (!token) {
-      message.error('Authentication required');
-      return;
-    }
-
-    setGeneratingGrafanaToken(true);
-    try {
-      const { data } = await privateClient({
-        method: 'post',
-        url: `${import.meta.env.VITE_APP_API_BASE}/v1/metrics/grafana-token`
-      });
-
-      setGrafanaToken(data.token);
-      setGrafanaUrl(data.grafana_url);
-      setGrafanaNamespace(data.namespace);
-
-      // Show modal with token (one-time view)
-      Modal.success({
-        title: 'Grafana Access Token Generated',
-        width: 600,
-        content: (
-          <div className="space-y-3 mt-4">
-            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
-              <div className="flex items-start space-x-2">
-                <AlertCircle size={16} className="text-yellow-400 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-yellow-300">
-                  <strong>Important:</strong> Save this token securely. You won't be able to see it again!
-                  Generating a new token will create a new service account.
-                </div>
-              </div>
-            </div>
-            <div>
-              <label className="text-xs text-slate-500 font-medium block mb-2">Your Grafana Token:</label>
-              <div className="bg-slate-900 p-3 rounded border border-slate-600">
-                <code className="text-xs text-teal-400 break-all font-mono">
-                  {data.token}
-                </code>
-              </div>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(data.token);
-                  message.success('Token copied to clipboard');
-                }}
-                className="mt-2 w-full px-3 py-2 bg-teal-500/20 text-teal-400 rounded hover:bg-teal-500/30 transition-colors flex items-center justify-center space-x-2"
-              >
-                <Copy size={14} />
-                <span className="text-xs font-medium">Copy to Clipboard</span>
-              </button>
-            </div>
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-              <div className="text-xs text-blue-300">
-                <strong>Grafana URL:</strong> <code className="ml-1">{data.grafana_url}</code>
-                <br />
-                <strong>Namespace:</strong> <code className="ml-1">{data.namespace}</code>
-              </div>
-            </div>
-          </div>
-        ),
-        okText: 'I have saved it',
-        centered: true,
-      });
-
-      message.success('Grafana token generated successfully');
-    } catch (error: any) {
-      console.error('Failed to generate Grafana token:', error);
-      const errorMsg = error?.response?.data?.error || error?.message || 'Failed to generate token';
-      message.error(`Error: ${errorMsg}`);
-    } finally {
-      setGeneratingGrafanaToken(false);
-    }
-  };
-
   const redeployMessage = `Please, deploy my cyoda environment: ${environmentUrl}`;
-
-  // If logs viewer is open, show it instead
-  if (showLogsViewer && logsApiKey) {
-    return <LogsViewer apiKey={logsApiKey} onClose={() => setShowLogsViewer(false)} />;
-  }
-
-  // If metrics viewer is open, show it instead
-  if (showMetricsViewer && grafanaToken && grafanaNamespace) {
-    return (
-      <MetricsViewer
-        grafanaToken={grafanaToken}
-        namespace={grafanaNamespace}
-        onBack={() => setShowMetricsViewer(false)}
-      />
-    );
-  }
 
   return (
     <div className="h-full flex flex-col bg-slate-800/95">
@@ -606,101 +441,115 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
 
         {/* Logs Access */}
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">Logs Access</h4>
+          <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">Environment Logs</h4>
 
-          <div className="bg-slate-700/50 rounded-lg p-4 space-y-3">
-            <p className="text-xs text-slate-400">
-              Generate an API key to access your environment logs. The key will be valid for 1 year.
-            </p>
+          <div
+            onClick={() => window.open('/logs', '_blank')}
+            className="relative bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-teal-500/10 border border-purple-500/30 rounded-xl p-6 cursor-pointer transition-all duration-300 hover:border-purple-400/50 hover:shadow-lg hover:shadow-purple-500/20 hover:-translate-y-1 group overflow-hidden"
+          >
+            {/* Animated Background Glow */}
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 via-blue-500/0 to-teal-500/0 group-hover:from-purple-500/10 group-hover:via-blue-500/10 group-hover:to-teal-500/10 transition-all duration-500"></div>
 
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={generateLogsApiKey}
-                disabled={generatingApiKey}
-                className="flex items-center space-x-2 px-4 py-2 rounded bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-colors disabled:opacity-50 flex-1"
-              >
-                {generatingApiKey ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  <Key size={16} />
-                )}
-                <span className="text-sm font-medium">
-                  {logsApiKey ? 'Generate New API Key' : 'Generate API Key'}
-                </span>
-              </button>
-
-              {logsApiKey && (
-                <button
-                  onClick={() => setShowLogsViewer(true)}
-                  className="flex items-center space-x-2 px-4 py-2 rounded bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 transition-colors"
-                >
-                  <FileText size={16} />
-                  <span className="text-sm font-medium">View Logs</span>
-                </button>
-              )}
-            </div>
-
-            {logsApiKey && (
-              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded p-3">
-                <div className="flex items-start space-x-2">
-                  <CheckCircle2 size={14} className="text-yellow-400 mt-0.5 flex-shrink-0" />
-                  <p className="text-xs text-yellow-300">
-                    API key is ready. Click "View Logs" to access your environment logs.
-                  </p>
+            <div className="relative space-y-4">
+              {/* Icon and Title */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-lg group-hover:scale-110 transition-transform">
+                    <FileText size={24} className="text-purple-400" />
+                  </div>
+                  <div>
+                    <h5 className="text-base font-semibold text-white">View System Logs</h5>
+                    <p className="text-xs text-slate-400">Real-time log analysis & monitoring</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-1 text-purple-400 group-hover:translate-x-1 transition-transform">
+                  <span className="text-xs font-medium">Open</span>
+                  <ArrowLeft size={14} className="transform rotate-180" />
                 </div>
               </div>
-            )}
+
+              {/* Features */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-teal-400"></div>
+                  <span className="text-xs text-slate-300">Advanced Search</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                  <span className="text-xs text-slate-300">Query DSL</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-purple-400"></div>
+                  <span className="text-xs text-slate-300">Level Filtering</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-pink-400"></div>
+                  <span className="text-xs text-slate-300">Export JSON</span>
+                </div>
+              </div>
+
+              {/* Description */}
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Access comprehensive logging with Elasticsearch integration. Search across all fields, use custom queries, and export data.
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Metrics Access (Grafana) */}
+        {/* Metrics & Monitoring */}
         <div className="space-y-3">
           <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">Metrics & Monitoring</h4>
 
-          <div className="bg-slate-700/50 rounded-lg p-4 space-y-3">
-            <p className="text-xs text-slate-400">
-              Generate a Grafana access token to view metrics and dashboards for your environment.
-              Metrics are automatically filtered to your Kubernetes namespace.
-            </p>
+          <div
+            onClick={() => window.open('/monitoring', '_blank')}
+            className="relative bg-gradient-to-br from-orange-500/10 via-amber-500/10 to-yellow-500/10 border border-orange-500/30 rounded-xl p-6 cursor-pointer transition-all duration-300 hover:border-orange-400/50 hover:shadow-lg hover:shadow-orange-500/20 hover:-translate-y-1 group overflow-hidden"
+          >
+            {/* Animated Background Glow */}
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/0 via-amber-500/0 to-yellow-500/0 group-hover:from-orange-500/10 group-hover:via-amber-500/10 group-hover:to-yellow-500/10 transition-all duration-500"></div>
 
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={generateGrafanaToken}
-                disabled={generatingGrafanaToken}
-                className="flex items-center space-x-2 px-4 py-2 rounded bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 transition-colors disabled:opacity-50 flex-1"
-              >
-                {generatingGrafanaToken ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  <BarChart3 size={16} />
-                )}
-                <span className="text-sm font-medium">
-                  {grafanaToken ? 'Generate New Token' : 'Generate Grafana Token'}
-                </span>
-              </button>
-
-              {grafanaToken && (
-                <button
-                  onClick={() => setShowMetricsViewer(true)}
-                  className="flex items-center space-x-2 px-4 py-2 rounded bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 transition-colors"
-                >
-                  <BarChart3 size={16} />
-                  <span className="text-sm font-medium">View Metrics</span>
-                </button>
-              )}
-            </div>
-
-            {grafanaToken && (
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded p-3">
-                <div className="flex items-start space-x-2">
-                  <CheckCircle2 size={14} className="text-blue-400 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-blue-300">
-                    <p>Token is ready. Click "View Metrics" to see your environment metrics.</p>
-                    <p className="mt-1">Metrics include CPU, Memory, Pod count, and Network traffic.</p>
+            <div className="relative space-y-4">
+              {/* Icon and Title */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-gradient-to-br from-orange-500/20 to-amber-500/20 rounded-lg group-hover:scale-110 transition-transform">
+                    <BarChart3 size={24} className="text-orange-400" />
+                  </div>
+                  <div>
+                    <h5 className="text-base font-semibold text-white">View Metrics & Dashboards</h5>
+                    <p className="text-xs text-slate-400">Real-time performance monitoring</p>
                   </div>
                 </div>
+                <div className="flex items-center space-x-1 text-orange-400 group-hover:translate-x-1 transition-transform">
+                  <span className="text-xs font-medium">Open</span>
+                  <ArrowLeft size={14} className="transform rotate-180" />
+                </div>
               </div>
-            )}
+
+              {/* Features - 2x2 grid */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-orange-400"></div>
+                  <span className="text-xs text-slate-300">CPU & Memory</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
+                  <span className="text-xs text-slate-300">Network Traffic</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div>
+                  <span className="text-xs text-slate-300">Pod Metrics</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-orange-300"></div>
+                  <span className="text-xs text-slate-300">Custom Dashboards</span>
+                </div>
+              </div>
+
+              {/* Description */}
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Access comprehensive performance metrics and Grafana dashboards with real-time monitoring of CPU, memory, network, and pod statistics. Metrics are automatically filtered to your Kubernetes namespace.
+              </p>
+            </div>
           </div>
         </div>
 
