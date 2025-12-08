@@ -871,7 +871,7 @@ const FintechHomeView: React.FC = () => {
               </div>
 
               {/* Chat Input */}
-              <div className="mb-4" style={{ marginTop: '-1vh' }}>
+              <div className="my-8" style={{ marginTop: '3vh', marginBottom: '3vh' }}>
                 <form onSubmit={handleChatSubmit}>
                   <div
                     className="relative"
@@ -919,7 +919,7 @@ const FintechHomeView: React.FC = () => {
                         WebkitBackdropFilter: 'blur(14px)',
                         border: '1px solid rgba(34,197,94,0.3)',
                         borderRadius: '24px',
-                        padding: '18px 120px 18px 24px',
+                        padding: '18px 24px 60px 24px',
                         boxShadow: '0 8px 32px rgba(0,0,0,0.2), 0 0 0 1px rgba(34,197,94,0.1)',
                         fontFamily: 'Montserrat, sans-serif'
                       }}
@@ -927,33 +927,36 @@ const FintechHomeView: React.FC = () => {
                     />
 
                     {/* Bottom Right Controls - Fintech Style */}
-                    <div className="absolute right-4 bottom-4 flex items-center z-10">
+                    <div className="absolute right-6 bottom-4 flex items-center gap-0 z-10">
                       {/* Attach File Button */}
                       <button
                         type="button"
                         onClick={handleFileAttach}
-                        className="rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200 flex items-center justify-center flex-shrink-0"
-                        style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px', maxWidth: '40px', maxHeight: '40px', transform: 'translateX(25%)' }}
+                        className="text-slate-400 hover:scale-110 transition-all duration-200 flex items-center justify-center flex-shrink-0"
+                        style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px' }}
                         title="Attach file"
                       >
-                        <Paperclip size={18} />
+                        <Paperclip size={20} />
                       </button>
 
                       {/* Send Button - Fintech themed */}
                       <button
                         type="submit"
                         disabled={!chatInput.trim() || isLoading}
-                        className="hover:scale-110 transition-all duration-200 flex items-center justify-center flex-shrink-0 p-3"
+                        className="hover:scale-110 transition-all duration-200 flex items-center justify-center flex-shrink-0"
                         style={{
-                          transform: 'translateY(5%)',
+                          width: '40px',
+                          height: '40px',
+                          minWidth: '40px',
+                          minHeight: '40px',
                           color: '#22c55e'
                         }}
                         title="Send Message (Enter)"
                       >
                         {isLoading ? (
-                          <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: '#22c55e33', borderTopColor: '#22c55e' }} />
+                          <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: '#22c55e33', borderTopColor: '#22c55e' }} />
                         ) : (
-                          <Send size={24} style={{ color: '#22c55e' }} />
+                          <Send size={20} style={{ color: '#22c55e' }} />
                         )}
                       </button>
                     </div>
