@@ -824,11 +824,11 @@ const FintechHomeView: React.FC = () => {
                                       <div
                                         className="relative p-4 transition-all duration-300"
                                         style={{
-                                          background: 'rgba(30, 41, 59, 0.6)',
-                                          border: '1px solid rgba(34,197,94,0.2)',
+                                          background: 'rgba(20, 184, 166, 0.08)',
+                                          border: '2px solid rgba(20,184,166,0.4)',
                                           backdropFilter: 'blur(10px)',
                                           WebkitBackdropFilter: 'blur(10px)',
-                                          borderRadius: '24px'
+                                          borderRadius: '6px 24px 24px 24px'
                                         }}
                                       >
                                         {/* Small - 12-14px */}
@@ -842,8 +842,13 @@ const FintechHomeView: React.FC = () => {
                                             navigator.clipboard.writeText(example.prompt);
                                             handlePromptClick(example.prompt);
                                           }}
-                                          className="absolute top-4 right-4 text-slate-400 hover:text-emerald-400 transition-all duration-200 hover:scale-110 flex items-center justify-center flex-shrink-0"
-                                          style={{ width: isChatHistoryOpen ? '32px' : '40px', height: isChatHistoryOpen ? '32px' : '40px', minWidth: isChatHistoryOpen ? '32px' : '40px', minHeight: isChatHistoryOpen ? '32px' : '40px' }}
+                                          className="absolute top-4 right-4 text-teal-400 hover:text-teal-300 transition-all duration-200 hover:scale-110 flex items-center justify-center flex-shrink-0"
+                                          style={{
+                                            width: isChatHistoryOpen ? '32px' : '40px',
+                                            height: isChatHistoryOpen ? '32px' : '40px',
+                                            minWidth: isChatHistoryOpen ? '32px' : '40px',
+                                            minHeight: isChatHistoryOpen ? '32px' : '40px'
+                                          }}
                                           title="Copy prompt and set in input"
                                         >
                                           <Copy size={isChatHistoryOpen ? 16 : 20} />

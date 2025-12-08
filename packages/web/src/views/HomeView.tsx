@@ -828,7 +828,8 @@ const HomeView: React.FC = () => {
                     <div
                       className="overflow-hidden rounded-3xl relative"
                       style={{
-                        boxShadow: '0 20px 60px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,185,200,0.1)'
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.3), 0 0 0 1px rgba(20,184,166,0.3)',
+                        border: '1px solid rgba(20, 184, 166, 0.3)'
                       }}
                     >
                       {/* Subtle gradient overlay */}
@@ -917,7 +918,16 @@ const HomeView: React.FC = () => {
                                       </p>
 
                                       {/* Prompt Text with Copy Button */}
-                                      <div className="relative bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                                      <div
+                                        className="relative p-4 transition-all duration-300"
+                                        style={{
+                                          background: 'rgba(30, 41, 59, 0.6)',
+                                          border: '1px solid rgba(20, 184, 166, 0.3)',
+                                          backdropFilter: 'blur(10px)',
+                                          WebkitBackdropFilter: 'blur(10px)',
+                                          borderRadius: '24px'
+                                        }}
+                                      >
                                         {/* Small - 12-14px */}
                                         <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors duration-300 font-mono pr-12" style={{ fontSize: 'clamp(12px, 1vw, 14px)' }}>
                                           {example.prompt}
@@ -929,10 +939,16 @@ const HomeView: React.FC = () => {
                                             navigator.clipboard.writeText(example.prompt);
                                             handlePromptClick(example.prompt);
                                           }}
-                                          className="absolute top-3 right-3 p-3 text-slate-400 hover:text-blue-400 transition-all duration-200 hover:scale-110 rounded-lg hover:bg-slate-700/50"
+                                          className="absolute top-4 right-4 text-teal-400 hover:text-teal-300 transition-all duration-200 hover:scale-110 flex items-center justify-center flex-shrink-0"
+                                          style={{
+                                            width: '40px',
+                                            height: '40px',
+                                            minWidth: '40px',
+                                            minHeight: '40px'
+                                          }}
                                           title="Copy prompt and set in input"
                                         >
-                                          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.820 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
                                           </svg>
                                         </button>
