@@ -832,7 +832,7 @@ const FintechHomeView: React.FC = () => {
                                         }}
                                       >
                                         {/* Small - 12-14px */}
-                                        <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors duration-300 font-mono pr-12" style={{ fontSize: isChatHistoryOpen ? 'clamp(11px, 0.8vw, 12px)' : 'clamp(12px, 1vw, 14px)' }}>
+                                        <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors duration-300 font-mono pr-10" style={{ fontSize: isChatHistoryOpen ? 'clamp(11px, 0.8vw, 12px)' : 'clamp(12px, 1vw, 14px)' }}>
                                           {example.prompt}
                                         </p>
                                         <button
@@ -842,16 +842,16 @@ const FintechHomeView: React.FC = () => {
                                             navigator.clipboard.writeText(example.prompt);
                                             handlePromptClick(example.prompt);
                                           }}
-                                          className="absolute top-4 right-4 text-teal-400 hover:text-teal-300 transition-all duration-200 hover:scale-110 flex items-center justify-center flex-shrink-0"
+                                          className="absolute top-3 right-3 text-teal-400 hover:text-teal-300 transition-all duration-200 hover:scale-110 flex items-center justify-center flex-shrink-0"
                                           style={{
-                                            width: isChatHistoryOpen ? '32px' : '40px',
-                                            height: isChatHistoryOpen ? '32px' : '40px',
-                                            minWidth: isChatHistoryOpen ? '32px' : '40px',
-                                            minHeight: isChatHistoryOpen ? '32px' : '40px'
+                                            width: '24px',
+                                            height: '24px',
+                                            minWidth: '24px',
+                                            minHeight: '24px'
                                           }}
                                           title="Copy prompt and set in input"
                                         >
-                                          <Copy size={isChatHistoryOpen ? 16 : 20} />
+                                          <Copy size={16} />
                                         </button>
                                       </div>
                                     </div>
@@ -938,10 +938,10 @@ const FintechHomeView: React.FC = () => {
                         background: 'rgba(30, 41, 59, 0.6)',
                         backdropFilter: 'blur(14px)',
                         WebkitBackdropFilter: 'blur(14px)',
-                        border: '1px solid rgba(34,197,94,0.3)',
+                        border: '2px solid rgba(34,197,94,0.3)',
                         borderRadius: '24px',
                         padding: '18px 24px 60px 24px',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.2), 0 0 0 1px rgba(34,197,94,0.1)',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
                         fontFamily: 'Montserrat, sans-serif'
                       }}
                       disabled={isLoading}
