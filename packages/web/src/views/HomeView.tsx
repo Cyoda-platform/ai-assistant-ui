@@ -1366,19 +1366,11 @@ const HomeView: React.FC = () => {
 
               {/* Beautiful Footer */}
               <footer
-                className="mt-auto relative overflow-hidden"
+                className="mt-auto"
                 style={{ fontFamily: 'Montserrat, sans-serif' }}
               >
-                {/* Gradient Background */}
-                <div
-                  className="absolute inset-0 opacity-50"
-                  style={{
-                    background: 'linear-gradient(180deg, transparent 0%, rgba(0,121,129,0.1) 100%)'
-                  }}
-                />
-
                 {/* Footer Content */}
-                <div className="relative max-w-6xl mx-auto px-6 pt-16 pb-8">
+                <div className="max-w-6xl mx-auto px-6 pt-16 pb-8">
 
                   {/* Fintech Navigation */}
                   <div className="flex justify-center mb-12">
@@ -1477,7 +1469,7 @@ const HomeView: React.FC = () => {
                   </div>
 
                   {/* Bottom Section - Copyright & Social */}
-                  <div className="flex flex-col md:flex-row items-center justify-between pt-8 border-t border-slate-700/50">
+                  <div className="flex flex-col md:flex-row items-center justify-between pt-8">
                     {/* Copyright */}
                     <p className="text-slate-400 text-sm mb-4 md:mb-0">
                       © 2025 <a href="https://cyoda.com/" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300 transition-colors font-medium">CYODA Ltd</a>. All rights reserved.

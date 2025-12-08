@@ -1184,19 +1184,11 @@ const FintechHomeView: React.FC = () => {
 
               {/* Beautiful Footer */}
               <footer
-                className="mt-auto relative overflow-hidden"
+                className="mt-auto"
                 style={{ fontFamily: 'Montserrat, sans-serif' }}
               >
-                {/* Gradient Background */}
-                <div
-                  className="absolute inset-0 opacity-50"
-                  style={{
-                    background: 'linear-gradient(180deg, transparent 0%, rgba(34,197,94,0.1) 100%)'
-                  }}
-                />
-
                 {/* Footer Content */}
-                <div className="relative max-w-6xl mx-auto px-6 pt-16 pb-8">
+                <div className="max-w-6xl mx-auto px-6 pt-16 pb-8">
 
                   {/* Divider */}
                   <div
@@ -1276,7 +1268,7 @@ const FintechHomeView: React.FC = () => {
                   </div>
 
                   {/* Bottom Section - Copyright, Terms & Social */}
-                  <div className="flex flex-col space-y-4 pt-8 border-t border-slate-700/50">
+                  <div className="flex flex-col space-y-4 pt-8">
                     {/* Terms & Privacy Notice */}
                     <p className="text-slate-400 text-xs leading-relaxed">
                       By using this service, you confirm that you have read and agree to our{' '}
