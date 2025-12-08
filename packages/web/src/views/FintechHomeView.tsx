@@ -25,7 +25,7 @@ import {
   Shield,
   CreditCard,
   BarChart3,
-  DollarSign
+  Copy
 } from 'lucide-react';
 import { useAssistantStore } from '@/stores/assistant';
 import { useAuthStore, useSuperUserMode } from '@/stores/auth';
@@ -453,7 +453,7 @@ const FintechHomeView: React.FC = () => {
     {
       title: "I want to launch a digital bank",
       prompt: "Build a complete digital banking platform with account management, card services, mobile payments, budgeting tools, and regulatory compliance",
-      icon: <DollarSign size={48} className="text-white" />,
+      icon: <CreditCard size={48} className="text-white" />,
       category: "Banking",
       gradient: "rgba(55, 65, 81, 0.8), rgba(31, 41, 55, 0.8)"
     },
@@ -821,7 +821,16 @@ const FintechHomeView: React.FC = () => {
                                       </p>
 
                                       {/* Prompt Text with Copy Button */}
-                                      <div className="relative">
+                                      <div
+                                        className="relative p-4 transition-all duration-300"
+                                        style={{
+                                          background: 'rgba(30, 41, 59, 0.6)',
+                                          border: '1px solid rgba(34,197,94,0.2)',
+                                          backdropFilter: 'blur(10px)',
+                                          WebkitBackdropFilter: 'blur(10px)',
+                                          borderRadius: '24px'
+                                        }}
+                                      >
                                         {/* Small - 12-14px */}
                                         <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors duration-300 font-mono pr-12" style={{ fontSize: 'clamp(12px, 1vw, 14px)' }}>
                                           {example.prompt}
@@ -833,10 +842,11 @@ const FintechHomeView: React.FC = () => {
                                             navigator.clipboard.writeText(example.prompt);
                                             handlePromptClick(example.prompt);
                                           }}
-                                          className="absolute top-3 right-3 p-3 text-slate-400 hover:text-emerald-400 transition-all duration-200 hover:scale-110 rounded-lg hover:bg-slate-700/50"
+                                          className="absolute top-4 right-4 text-slate-400 hover:text-emerald-400 transition-all duration-200 hover:scale-110 flex items-center justify-center flex-shrink-0"
+                                          style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px' }}
                                           title="Copy prompt and set in input"
                                         >
-                                          <DollarSign className="w-6 h-6" />
+                                          <Copy size={20} />
                                         </button>
                                       </div>
                                     </div>
