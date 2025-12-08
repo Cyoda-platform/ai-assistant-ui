@@ -633,7 +633,7 @@ const FintechHomeView: React.FC = () => {
                   className="absolute inset-0 pointer-events-none"
                   style={{
                     background: 'radial-gradient(circle at center top, rgba(34,197,94,0.12), transparent 60%)',
-                    top: '80px',
+                    top: '0',
                     height: '600px'
                   }}
                 />
