@@ -139,8 +139,8 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
           }}
           className={`flex items-center space-x-3 cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-200 group no-underline ${
             showHomeAsActive
-              ? 'text-white bg-slate-700/60 border border-slate-600/50 shadow-sm'
-              : 'text-slate-300 hover:text-white hover:bg-slate-700/40 border border-transparent'
+              ? 'text-white hover:text-teal-400 bg-slate-700/60 border border-slate-600/50 shadow-sm'
+              : 'text-slate-300 hover:text-teal-400 hover:bg-slate-700/40 border border-transparent'
           }`}
         >
           <Home size={19} className="group-hover:scale-110 transition-transform flex-shrink-0" />
@@ -150,10 +150,10 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
         {/* Current Chat / History Header */}
         <div className="flex-1 flex flex-col space-y-3 overflow-hidden">
           <div
-            className={`flex items-center space-x-3 cursor-pointer px-3 py-2.5 rounded-lg group ${
+            className={`flex items-center space-x-3 cursor-pointer px-3 py-2.5 rounded-lg group transition-all duration-200 ${
               !showHomeAsActive
-                ? 'text-white bg-slate-700/60 border border-slate-600/50 shadow-sm'
-                : 'text-slate-300 hover:text-white hover:bg-slate-700/40 transition-all duration-200 border border-transparent'
+                ? 'text-white hover:text-teal-400 bg-slate-700/60 border border-slate-600/50 shadow-sm'
+                : 'text-slate-300 hover:text-teal-400 hover:bg-slate-700/40 border border-transparent'
             }`}
           >
             <History size={19} className="group-hover:scale-110 transition-transform flex-shrink-0" />
