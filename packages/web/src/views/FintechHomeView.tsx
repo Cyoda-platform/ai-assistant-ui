@@ -748,7 +748,7 @@ const FintechHomeView: React.FC = () => {
                         {fintechPromptExamples.map((example, index) => (
                           <div
                             key={index}
-                            className="min-w-full p-1"
+                            className="min-w-full"
                           >
                             <div
                               onClick={(e) => {
@@ -756,17 +756,20 @@ const FintechHomeView: React.FC = () => {
                                 console.log('Fintech carousel item clicked, prompt:', example.prompt);
                                 handlePromptClick(example.prompt);
                               }}
-                              className="w-full text-left p-4 transition-all duration-500 group relative overflow-hidden cursor-pointer"
+                              className="w-full h-full text-left p-4 transition-all duration-500 group relative overflow-hidden cursor-pointer"
                               style={{
                                 background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)',
-                                backdropFilter: 'blur(20px)'
+                                backdropFilter: 'blur(20px)',
+                                borderRadius: '24px'
                               }}
                             >
-                              {/* Fintech hover gradient effect */}
+                              {/* Fintech hover gradient effect - full card border */}
                               <div
-                                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                                 style={{
-                                  background: 'radial-gradient(circle at top right, rgba(34,197,94,0.15), transparent 70%)'
+                                  background: 'radial-gradient(circle at top right, rgba(34,197,94,0.15), transparent 70%)',
+                                  borderRadius: '24px',
+                                  border: '1px solid rgba(34,197,94,0.3)'
                                 }}
                               />
 
@@ -813,7 +816,7 @@ const FintechHomeView: React.FC = () => {
                                       </p>
 
                                       {/* Prompt Text with Copy Button */}
-                                      <div className="relative bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                                      <div className="relative">
                                         <p className="text-slate-400 text-base leading-relaxed group-hover:text-slate-300 transition-colors duration-300 font-mono pr-12">
                                           {example.prompt}
                                         </p>
@@ -1027,9 +1030,11 @@ const FintechHomeView: React.FC = () => {
                     >
                       {/* Fintech hover gradient effect */}
                       <div
-                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                         style={{
-                          background: 'radial-gradient(circle at top right, rgba(34,197,94,0.15), transparent 70%)'
+                          background: 'radial-gradient(circle at top right, rgba(34,197,94,0.15), transparent 70%)',
+                          borderRadius: '12px',
+                          border: '1px solid rgba(34,197,94,0.3)'
                         }}
                       />
 
