@@ -720,15 +720,14 @@ const FintechHomeView: React.FC = () => {
 
               {/* Fintech Prompt Examples Carousel */}
               <div
-                className="mb-8 transition-all duration-500 ease-in-out"
+                className="mt-6 mb-8 transition-all duration-500 ease-in-out -mx-4 sm:-mx-6 md:-mx-8 lg:-mx-12 xl:-mx-16 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16"
                 style={{
                   fontFamily: 'Montserrat, sans-serif',
                   opacity: 1,
                   transform: 'translateY(0)'
                 }}
               >
-                <div className="w-full max-w-none px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
-                  <div className="relative">
+                <div className="relative">
                     {/* Carousel Container with professional shadow */}
                     <div
                       className="overflow-hidden rounded-3xl relative"
@@ -875,11 +874,10 @@ const FintechHomeView: React.FC = () => {
                       <ChevronRight className="text-white group-hover:translate-x-0.5 transition-transform" size={22} />
                     </button>
                   </div>
-                </div>
               </div>
 
               {/* Chat Input */}
-              <div className="my-8" style={{ marginTop: '3vh', marginBottom: '3vh' }}>
+              <div className="mt-6 mb-6">
                 <form onSubmit={handleChatSubmit}>
                   <div
                     className="relative"
@@ -1015,9 +1013,8 @@ const FintechHomeView: React.FC = () => {
 
               {/* Fintech Quick Actions */}
               <div
-                className="mb-8 transition-all duration-500 ease-in-out"
+                className="mt-6 mb-16 transition-all duration-500 ease-in-out"
                 style={{
-                  marginTop: '1vh',
                   fontFamily: 'Montserrat, sans-serif',
                   opacity: 1,
                   transform: 'translateY(0)'
