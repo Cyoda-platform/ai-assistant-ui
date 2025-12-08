@@ -624,7 +624,7 @@ const FintechHomeView: React.FC = () => {
         {/* Enhanced Main Content */}
         <div ref={mainContentRef} className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden scrollbar-thin bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
             <div className="p-3 sm:p-4 md:p-4 lg:p-5 xl:p-6 min-h-full flex flex-col min-w-0">
-            <div className="w-full flex-1 flex flex-col min-w-0 max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl mx-auto">
+            <div className={`w-full flex-1 flex flex-col min-w-0 max-w-full ${isChatHistoryOpen ? 'sm:max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl' : 'sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl'} mx-auto`}>
 
               {/* Fintech Hero Section */}
               <div className="mb-12 animate-fade-in-up" style={{ marginTop: '32px', fontFamily: 'Montserrat, sans-serif' }}>
@@ -657,7 +657,7 @@ const FintechHomeView: React.FC = () => {
                       style={{
                         fontFamily: 'Montserrat, sans-serif',
                         fontWeight: 800,
-                        fontSize: 'clamp(36px, 5vw, 52px)',
+                        fontSize: isChatHistoryOpen ? 'clamp(28px, 3.5vw, 40px)' : 'clamp(36px, 5vw, 52px)',
                         background: 'linear-gradient(135deg, #22c55e 0%, #10b981 50%, #059669 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
@@ -677,7 +677,7 @@ const FintechHomeView: React.FC = () => {
                       style={{
                         fontFamily: 'Montserrat, sans-serif',
                         fontWeight: 500,
-                        fontSize: 'clamp(16px, 1.5vw, 20px)',
+                        fontSize: isChatHistoryOpen ? 'clamp(14px, 1vw, 16px)' : 'clamp(16px, 1.5vw, 20px)',
                         color: 'rgba(255,255,255,0.8)',
                         lineHeight: 1.7,
                         animationDelay: '0.2s',
@@ -706,7 +706,7 @@ const FintechHomeView: React.FC = () => {
                           }}
                         >
                           {/* Small - 12-14px */}
-                          <span className="font-medium text-slate-200" style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>
+                          <span className="font-medium text-slate-200" style={{ fontSize: isChatHistoryOpen ? 'clamp(11px, 0.7vw, 12px)' : 'clamp(12px, 0.9vw, 14px)' }}>
                             <span className="mr-2">{feature.icon}</span>
                             {feature.label}
                           </span>
@@ -784,13 +784,13 @@ const FintechHomeView: React.FC = () => {
                                       style={{
                                         background: `linear-gradient(135deg, ${example.gradient})`,
                                         color: 'white',
-                                        fontSize: 'clamp(11px, 0.8vw, 13px)'
+                                        fontSize: isChatHistoryOpen ? 'clamp(10px, 0.6vw, 11px)' : 'clamp(11px, 0.8vw, 13px)'
                                       }}
                                     >
                                       {example.category}
                                     </span>
-                                    <div className="flex items-center space-x-1 text-slate-400" style={{ fontSize: 'clamp(11px, 0.8vw, 13px)' }}>
-                                      <Clock size={14} />
+                                    <div className="flex items-center space-x-1 text-slate-400" style={{ fontSize: isChatHistoryOpen ? 'clamp(10px, 0.6vw, 11px)' : 'clamp(11px, 0.8vw, 13px)' }}>
+                                      <Clock size={isChatHistoryOpen ? 12 : 14} />
                                       <span>15-45 min setup</span>
                                     </div>
                                   </div>
@@ -799,7 +799,7 @@ const FintechHomeView: React.FC = () => {
                                     {/* Icon Display */}
                                     <div className="flex-shrink-0" style={{ marginLeft: '3%' }}>
                                       <div
-                                        className="w-24 h-24 p-4 rounded-xl overflow-hidden flex items-center justify-center shadow-lg"
+                                        className={`p-4 rounded-xl overflow-hidden flex items-center justify-center shadow-lg ${isChatHistoryOpen ? 'w-16 h-16' : 'w-24 h-24'}`}
                                         style={{
                                           background: `linear-gradient(135deg, ${example.gradient})`
                                         }}
@@ -811,12 +811,12 @@ const FintechHomeView: React.FC = () => {
                                     {/* Text Content */}
                                     <div className="flex-1 space-y-3">
                                       {/* H3 - Heading 3 (28-36px) */}
-                                      <h3 className="font-bold text-white mb-3 group-hover:text-emerald-300 transition-colors duration-300" style={{ fontSize: 'clamp(24px, 3vw, 32px)' }}>
+                                      <h3 className="font-bold text-white mb-3 group-hover:text-emerald-300 transition-colors duration-300" style={{ fontSize: isChatHistoryOpen ? 'clamp(18px, 2vw, 24px)' : 'clamp(24px, 3vw, 32px)' }}>
                                         {example.title}
                                       </h3>
 
                                       {/* Body - 16-20px */}
-                                      <p className="text-slate-300 leading-relaxed mb-4 group-hover:text-slate-200 transition-colors duration-300" style={{ fontSize: 'clamp(16px, 1.5vw, 20px)' }}>
+                                      <p className="text-slate-300 leading-relaxed mb-4 group-hover:text-slate-200 transition-colors duration-300" style={{ fontSize: isChatHistoryOpen ? 'clamp(13px, 1vw, 15px)' : 'clamp(16px, 1.5vw, 20px)' }}>
                                         {example.prompt.substring(0, 120)}...
                                       </p>
 
@@ -832,7 +832,7 @@ const FintechHomeView: React.FC = () => {
                                         }}
                                       >
                                         {/* Small - 12-14px */}
-                                        <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors duration-300 font-mono pr-12" style={{ fontSize: 'clamp(12px, 1vw, 14px)' }}>
+                                        <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors duration-300 font-mono pr-12" style={{ fontSize: isChatHistoryOpen ? 'clamp(11px, 0.8vw, 12px)' : 'clamp(12px, 1vw, 14px)' }}>
                                           {example.prompt}
                                         </p>
                                         <button
@@ -843,10 +843,10 @@ const FintechHomeView: React.FC = () => {
                                             handlePromptClick(example.prompt);
                                           }}
                                           className="absolute top-4 right-4 text-slate-400 hover:text-emerald-400 transition-all duration-200 hover:scale-110 flex items-center justify-center flex-shrink-0"
-                                          style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px' }}
+                                          style={{ width: isChatHistoryOpen ? '32px' : '40px', height: isChatHistoryOpen ? '32px' : '40px', minWidth: isChatHistoryOpen ? '32px' : '40px', minHeight: isChatHistoryOpen ? '32px' : '40px' }}
                                           title="Copy prompt and set in input"
                                         >
-                                          <Copy size={20} />
+                                          <Copy size={isChatHistoryOpen ? 16 : 20} />
                                         </button>
                                       </div>
                                     </div>
@@ -1180,12 +1180,12 @@ const FintechHomeView: React.FC = () => {
                         }}
                       >
                         <div className="flex items-start space-x-3">
-                          <span className="text-2xl flex-shrink-0">{feature.icon}</span>
+                          <span className={`flex-shrink-0 ${isChatHistoryOpen ? 'text-lg' : 'text-2xl'}`}>{feature.icon}</span>
                           <div>
                             {/* H5 - Heading 5 (18-24px) */}
-                            <h4 className="font-bold text-white mb-1" style={{ fontSize: 'clamp(16px, 1.2vw, 20px)' }}>{feature.title}</h4>
+                            <h4 className="font-bold text-white mb-1" style={{ fontSize: isChatHistoryOpen ? 'clamp(14px, 1vw, 16px)' : 'clamp(16px, 1.2vw, 20px)' }}>{feature.title}</h4>
                             {/* Tiny - 12-14px */}
-                            <p className="text-slate-300" style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>{feature.description}</p>
+                            <p className="text-slate-300" style={{ fontSize: isChatHistoryOpen ? 'clamp(11px, 0.8vw, 12px)' : 'clamp(12px, 0.9vw, 14px)' }}>{feature.description}</p>
                           </div>
                         </div>
                       </div>
