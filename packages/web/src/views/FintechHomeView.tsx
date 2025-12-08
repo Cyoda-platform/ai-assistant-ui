@@ -831,8 +831,8 @@ const FintechHomeView: React.FC = () => {
                                           borderRadius: '6px 24px 24px 24px'
                                         }}
                                       >
-                                        {/* Small - 12-14px */}
-                                        <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors duration-300 font-mono pr-10" style={{ fontSize: isChatHistoryOpen ? 'clamp(11px, 0.8vw, 12px)' : 'clamp(12px, 1vw, 14px)' }}>
+                                        {/* Same size as input box */}
+                                        <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors duration-300 pr-10 text-base" style={{ fontFamily: 'Montserrat, sans-serif', lineHeight: '1.5' }}>
                                           {example.prompt}
                                         </p>
                                         <button
