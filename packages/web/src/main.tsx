@@ -49,7 +49,8 @@ Promise.all([loadLocaleMessages('en'), cleanupServiceWorkers()]).then(() => {
         authorizationParams={{
           redirect_uri: `${import.meta.env.VITE_APP_AUTH0_REDIRECT_URI}?auth0=true`,
           audience: import.meta.env.VITE_APP_AUTH0_AUDIENCE,
-          organization: import.meta.env.VITE_APP_AUTH0_ORGANIZATION
+          organization: import.meta.env.VITE_APP_AUTH0_ORGANIZATION,
+          scope: 'openid profile email picture'
         }}
         onRedirectCallback={(appState) => {
           // Navigate to the intended URL or default to root

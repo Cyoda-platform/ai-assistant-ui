@@ -15,6 +15,7 @@ const AuthStateAvatar: React.FC = () => {
   const navigate = useNavigate();
   const [visibleCard, setVisibleCard] = useState(false);
   const [settingsDialogVisible, setSettingsDialogVisible] = useState(false);
+  const [imageLoadError, setImageLoadError] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Debug logging
@@ -37,6 +38,12 @@ const AuthStateAvatar: React.FC = () => {
   }, [visibleCard]);
 
   const picture = authStore.picture;
+
+  useEffect(() => {
+    if (picture) {
+      console.log('📸 Avatar URL:', picture);
+    }
+  }, [picture]);
 
   const initials = useMemo(() => {
     const { family_name = 'C', given_name = 'U' } = authStore;
@@ -83,14 +90,21 @@ const AuthStateAvatar: React.FC = () => {
     authStore.toggleSuperUserMode();
   };
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.warn('❌ Failed to load user avatar image from:', picture);
+    console.warn('Error details:', e);
+    setImageLoadError(true);
+  };
+
   return (
     <div className="relative auth-dropdown">
-      {picture ? (
+      {picture && !imageLoadError ? (
         <img
           onClick={onToggleCard}
-          className="w-8 h-8 rounded-full cursor-pointer hover:ring-2 hover:ring-teal-400 transition-all"
+          className="w-8 h-8 rounded-full cursor-pointer hover:ring-2 hover:ring-teal-400 transition-all object-cover"
           src={picture}
           alt="User avatar"
+          onError={handleImageError}
         />
       ) : (
         <div
