@@ -862,7 +862,7 @@ const HomeView: React.FC = () => {
                             >
                               {/* Hover gradient effect */}
                               <div
-                                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                                 style={{
                                   background: 'radial-gradient(circle at top right, rgba(0,185,200,0.1), transparent 70%)'
                                 }}
@@ -1121,7 +1121,7 @@ const HomeView: React.FC = () => {
                     >
                       {/* Hover gradient effect */}
                       <div
-                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                         style={{
                           background: 'radial-gradient(circle at top right, rgba(0,185,200,0.1), transparent 70%)'
                         }}

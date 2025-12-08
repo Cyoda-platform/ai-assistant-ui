@@ -768,8 +768,7 @@ const FintechHomeView: React.FC = () => {
                                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                                 style={{
                                   background: 'radial-gradient(circle at top right, rgba(34,197,94,0.15), transparent 70%)',
-                                  borderRadius: '24px',
-                                  border: '1px solid rgba(34,197,94,0.3)'
+                                  borderRadius: '24px'
                                 }}
                               />
 
@@ -1033,8 +1032,7 @@ const FintechHomeView: React.FC = () => {
                         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                         style={{
                           background: 'radial-gradient(circle at top right, rgba(34,197,94,0.15), transparent 70%)',
-                          borderRadius: '12px',
-                          border: '1px solid rgba(34,197,94,0.3)'
+                          borderRadius: '12px'
                         }}
                       />
 
