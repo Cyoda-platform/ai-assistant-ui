@@ -398,37 +398,37 @@ const HomeView: React.FC = () => {
     {
       label: 'What is CYODA?',
       action: () => setChatInput('What is CYODA and how does it work?'),
-      icon: <Info size={20} className="text-slate-300" />,
+      icon: <Info size={28} className="text-slate-300" />,
       description: 'Learn about the CYODA platform'
     },
     {
       label: 'What is my CYODA env?',
       action: () => setChatInput('Show me my current CYODA environment status and configuration'),
-      icon: <Search size={20} className="text-slate-300" />,
+      icon: <Search size={28} className="text-slate-300" />,
       description: 'Check environment status'
     },
     {
       label: 'Deploy my environment',
       action: () => setChatInput('Deploy my environment to production with all configurations and dependencies'),
-      icon: <Zap size={20} className="text-slate-300" />,
+      icon: <Zap size={28} className="text-slate-300" />,
       description: 'Deploy to production environment'
     },
     {
       label: 'Help with workflows',
       action: () => setChatInput('Create a workflow for Order entity with create, update, and cancel transitions'),
-      icon: <GitBranch size={20} className="text-slate-300" />,
+      icon: <GitBranch size={28} className="text-slate-300" />,
       description: 'Design entity workflows'
     },
     {
       label: 'Build a REST API',
       action: () => setChatInput('Build a complete REST API with CRUD operations for customer management'),
-      icon: <Search size={20} className="text-slate-300" />,
+      icon: <Search size={28} className="text-slate-300" />,
       description: 'Create a full REST API application'
     },
     {
       label: 'Add new entity',
       action: () => setChatInput('Add a Customer entity with id, name, email, and phone fields'),
-      icon: <Database size={20} className="text-slate-300" />,
+      icon: <Database size={28} className="text-slate-300" />,
       description: 'Create data entities'
     }
   ];
@@ -767,7 +767,7 @@ const HomeView: React.FC = () => {
 
                   {/* Text Content */}
                   <div className="flex flex-col text-center md:text-left space-y-4">
-                    {/* CYODA Brand Name - Largest element (64-72px) */}
+                    {/* H1 - Display (48-72px) */}
                     <h2
                       className="animate-fade-in"
                       style={{
@@ -783,7 +783,7 @@ const HomeView: React.FC = () => {
                       Cyoda AI Studio
                     </h2>
 
-                    {/* Main Tagline - 46-52px, weight 600 */}
+                    {/* H2 - Heading 1 (36-52px) */}
                     <h1
                       className="animate-fade-in"
                       style={{
@@ -799,13 +799,13 @@ const HomeView: React.FC = () => {
                       <span style={{ color: '#10b981' }}>Solve. Build. Deploy.</span>
                     </h1>
 
-                    {/* Subtitle - 22-26px, better contrast and line-height */}
+                    {/* H4 - Heading 4 (20-28px) */}
                     <p
                       className="animate-fade-in"
                       style={{
                         fontFamily: 'Montserrat, sans-serif',
                         fontWeight: 400,
-                        fontSize: 'clamp(18px, 2.5vw, 26px)',
+                        fontSize: 'clamp(20px, 2.5vw, 28px)',
                         color: 'rgba(255,255,255,0.75)',
                         lineHeight: 1.5,
                         animationDelay: '0.3s'
@@ -872,18 +872,20 @@ const HomeView: React.FC = () => {
                                 <div className="space-y-4">
                                   {/* Header Content aligned with picture position */}
                                   <div className="flex items-center space-x-3 mb-3" style={{ marginLeft: '3%' }}>
+                                    {/* Tiny - 12-14px */}
                                     <span
-                                      className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider"
+                                      className="px-3 py-1 rounded-full font-semibold uppercase tracking-wider"
                                       style={{
                                         background: `linear-gradient(135deg, ${example.gradient})`,
-                                        color: 'white'
+                                        color: 'white',
+                                        fontSize: 'clamp(11px, 0.8vw, 13px)'
                                       }}
                                     >
                                       {example.category}
                                     </span>
-                                    <div className="flex items-center space-x-1 text-slate-400">
+                                    <div className="flex items-center space-x-1 text-slate-400" style={{ fontSize: 'clamp(11px, 0.8vw, 13px)' }}>
                                       <Clock size={14} />
-                                      <span className="text-xs">10-30 min setup</span>
+                                      <span>10-30 min setup</span>
                                     </div>
                                   </div>
 
@@ -904,17 +906,20 @@ const HomeView: React.FC = () => {
 
                                     {/* Text Content on the Right */}
                                     <div className="flex-1 space-y-3">
-                                      <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-teal-300 transition-colors duration-300">
+                                      {/* H3 - Heading 3 (28-36px) */}
+                                      <h3 className="font-bold text-white mb-3 group-hover:text-teal-300 transition-colors duration-300" style={{ fontSize: 'clamp(24px, 3vw, 32px)' }}>
                                         {example.title}
                                       </h3>
 
-                                      <p className="text-slate-300 text-lg leading-relaxed mb-4 group-hover:text-slate-200 transition-colors duration-300">
+                                      {/* Body - 16-20px */}
+                                      <p className="text-slate-300 leading-relaxed mb-4 group-hover:text-slate-200 transition-colors duration-300" style={{ fontSize: 'clamp(16px, 1.5vw, 20px)' }}>
                                         {example.description}
                                       </p>
 
                                       {/* Prompt Text with Copy Button */}
                                       <div className="relative bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                                        <p className="text-slate-400 text-base leading-relaxed group-hover:text-slate-300 transition-colors duration-300 font-mono pr-12">
+                                        {/* Small - 12-14px */}
+                                        <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors duration-300 font-mono pr-12" style={{ fontSize: 'clamp(12px, 1vw, 14px)' }}>
                                           {example.prompt}
                                         </p>
                                         <button
@@ -1131,21 +1136,25 @@ const HomeView: React.FC = () => {
                       />
 
                       <div className="relative z-10">
-                        <div className="flex items-start space-x-3">
+                        <div className="flex items-center space-x-3">
                           <div
-                            className="flex-shrink-0 mt-0.5 p-2 rounded-lg transition-all duration-300 group-hover:scale-105"
+                            className="flex-shrink-0 rounded-lg transition-all duration-300 group-hover:scale-105 flex items-center justify-center"
                             style={{
                               background: 'linear-gradient(135deg, rgba(0,185,200,0.2), rgba(0,121,129,0.2))',
-                              border: '1px solid rgba(0,185,200,0.3)'
+                              border: '1px solid rgba(0,185,200,0.3)',
+                              width: '48px',
+                              height: '48px'
                             }}
                           >
                             {action.icon}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm sm:text-base font-semibold text-white group-hover:text-teal-300 transition-colors duration-300 mb-1">
+                            {/* H5 - Heading 5 (18-24px) */}
+                            <div className="font-semibold text-white group-hover:text-teal-300 transition-colors duration-300 mb-1" style={{ fontSize: 'clamp(16px, 1.2vw, 20px)' }}>
                               {action.label}
                             </div>
-                            <div className="text-xs text-slate-300 group-hover:text-slate-200 transition-colors duration-300 line-clamp-2">
+                            {/* Tiny - 12-14px */}
+                            <div className="text-slate-300 group-hover:text-slate-200 transition-colors duration-300 line-clamp-2" style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>
                               {action.description}
                             </div>
                           </div>
@@ -1168,19 +1177,19 @@ const HomeView: React.FC = () => {
                     boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
                   }}
                 >
-                  {/* Heading */}
-                  <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center" style={{ color: '#00b9c8' }}>
+                  {/* H3 - Heading 3 (28-36px) */}
+                  <h2 className="font-bold mb-6 text-center" style={{ fontSize: 'clamp(28px, 3.5vw, 36px)', color: '#00b9c8' }}>
                     Who Are We?
                   </h2>
 
-                  {/* Description */}
-                  <p className="text-lg md:text-xl text-slate-300 text-center mb-10 leading-relaxed max-w-3xl mx-auto">
+                  {/* Body - 16-20px */}
+                  <p className="text-slate-300 text-center mb-10 leading-relaxed max-w-3xl mx-auto" style={{ fontSize: 'clamp(16px, 1.5vw, 20px)' }}>
                     We are a team of developers who know what it takes to ship projects to production.
                     We're happy to collaborate, build solutions, and solve problems together.
                   </p>
 
-                  {/* Call to Action */}
-                  <p className="text-xl md:text-2xl font-semibold text-center mb-8" style={{ color: '#ffffff' }}>
+                  {/* H4 - Heading 4 (20-28px) */}
+                  <p className="font-semibold text-center mb-8" style={{ fontSize: 'clamp(20px, 2.5vw, 28px)', color: '#ffffff' }}>
                     Let's shape the IT future together!
                   </p>
 
@@ -1209,13 +1218,13 @@ const HomeView: React.FC = () => {
 
               {/* Join Our Community Section */}
               <div className="max-w-5xl mx-auto px-6 mb-12 mt-8" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                {/* Heading */}
-                <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center" style={{ color: '#00b9c8' }}>
+                {/* H3 - Heading 3 (28-36px) */}
+                <h2 className="font-bold mb-6 text-center" style={{ fontSize: 'clamp(28px, 3.5vw, 36px)', color: '#00b9c8' }}>
                   Join Our Community
                 </h2>
 
-                {/* Description */}
-                <p className="text-lg md:text-xl text-slate-300 text-center mb-10 leading-relaxed max-w-3xl mx-auto">
+                {/* Body - 16-20px */}
+                <p className="text-slate-300 text-center mb-10 leading-relaxed max-w-3xl mx-auto" style={{ fontSize: 'clamp(16px, 1.5vw, 20px)' }}>
                   Connect with developers, designers, and problem solvers. Get help, share ideas, and build amazing apps together.
                 </p>
 
@@ -1225,13 +1234,14 @@ const HomeView: React.FC = () => {
                     href="https://discord.com/invite/95rdAyBZr2"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center space-x-3 px-10 py-4 font-bold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl group"
+                    className="inline-flex items-center space-x-3 px-10 py-4 font-bold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl group"
                     style={{
                       background: 'linear-gradient(135deg, #5865F2, #4752C4)',
                       borderRadius: '16px',
                       boxShadow: '0 10px 40px rgba(88,101,242,0.4)',
                       color: '#ffffff',
-                      border: '2px solid rgba(255,255,255,0.2)'
+                      border: '2px solid rgba(255,255,255,0.2)',
+                      fontSize: 'clamp(16px, 1.2vw, 18px)'
                     }}
                   >
                     <svg className="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" viewBox="0 0 24 24" fill="white">

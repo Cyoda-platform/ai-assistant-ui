@@ -399,37 +399,37 @@ const FintechHomeView: React.FC = () => {
     {
       label: 'What is CYODA?',
       action: () => setChatInput('What is CYODA and how does it work?'),
-      icon: <Info size={20} className="text-slate-300" />,
+      icon: <Info size={28} className="text-slate-300" />,
       description: 'Learn about the CYODA platform'
     },
     {
       label: 'What is my CYODA env?',
       action: () => setChatInput('Show me my current CYODA environment status and configuration'),
-      icon: <Search size={20} className="text-slate-300" />,
+      icon: <Search size={28} className="text-slate-300" />,
       description: 'Check environment status'
     },
     {
       label: 'Deploy my environment',
       action: () => setChatInput('Deploy my environment to production with all configurations and dependencies'),
-      icon: <Zap size={20} className="text-slate-300" />,
+      icon: <Zap size={28} className="text-slate-300" />,
       description: 'Deploy to production environment'
     },
     {
       label: 'Help with workflows',
       action: () => setChatInput('Create a workflow for Order entity with create, update, and cancel transitions'),
-      icon: <GitBranch size={20} className="text-slate-300" />,
+      icon: <GitBranch size={28} className="text-slate-300" />,
       description: 'Design entity workflows'
     },
     {
       label: 'Build a REST API',
       action: () => setChatInput('Build a complete REST API with CRUD operations for customer management'),
-      icon: <Search size={20} className="text-slate-300" />,
+      icon: <Search size={28} className="text-slate-300" />,
       description: 'Create a full REST API application'
     },
     {
       label: 'Add new entity',
       action: () => setChatInput('Add a Customer entity with id, name, email, and phone fields'),
-      icon: <Database size={20} className="text-slate-300" />,
+      icon: <Database size={28} className="text-slate-300" />,
       description: 'Create data entities'
     }
   ];
@@ -651,12 +651,13 @@ const FintechHomeView: React.FC = () => {
                       <span className="text-sm font-semibold text-emerald-300">Fintech Solutions</span>
                     </div>
 
+                    {/* H2 - Heading 1 (36-52px) */}
                     <h1
                       className="animate-fade-in"
                       style={{
                         fontFamily: 'Montserrat, sans-serif',
                         fontWeight: 800,
-                        fontSize: 'clamp(42px, 7vw, 64px)',
+                        fontSize: 'clamp(36px, 5vw, 52px)',
                         background: 'linear-gradient(135deg, #22c55e 0%, #10b981 50%, #059669 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
@@ -670,12 +671,13 @@ const FintechHomeView: React.FC = () => {
                       Enterprise Fintech Platform
                     </h1>
 
+                    {/* Body - 16-20px */}
                     <p
                       className="animate-fade-in"
                       style={{
                         fontFamily: 'Montserrat, sans-serif',
                         fontWeight: 500,
-                        fontSize: 'clamp(18px, 2.2vw, 22px)',
+                        fontSize: 'clamp(16px, 1.5vw, 20px)',
                         color: 'rgba(255,255,255,0.8)',
                         lineHeight: 1.7,
                         animationDelay: '0.2s',
@@ -703,7 +705,8 @@ const FintechHomeView: React.FC = () => {
                             backdropFilter: 'blur(10px)'
                           }}
                         >
-                          <span className="text-sm font-medium text-slate-200">
+                          {/* Small - 12-14px */}
+                          <span className="font-medium text-slate-200" style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>
                             <span className="mr-2">{feature.icon}</span>
                             {feature.label}
                           </span>
@@ -776,18 +779,20 @@ const FintechHomeView: React.FC = () => {
                                 <div className="space-y-4">
                                   {/* Header Content */}
                                   <div className="flex items-center space-x-3 mb-3" style={{ marginLeft: '3%' }}>
+                                    {/* Tiny - 12-14px */}
                                     <span
-                                      className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider"
+                                      className="px-3 py-1 rounded-full font-semibold uppercase tracking-wider"
                                       style={{
                                         background: `linear-gradient(135deg, ${example.gradient})`,
-                                        color: 'white'
+                                        color: 'white',
+                                        fontSize: 'clamp(11px, 0.8vw, 13px)'
                                       }}
                                     >
                                       {example.category}
                                     </span>
-                                    <div className="flex items-center space-x-1 text-slate-400">
+                                    <div className="flex items-center space-x-1 text-slate-400" style={{ fontSize: 'clamp(11px, 0.8vw, 13px)' }}>
                                       <Clock size={14} />
-                                      <span className="text-xs">15-45 min setup</span>
+                                      <span>15-45 min setup</span>
                                     </div>
                                   </div>
 
@@ -806,17 +811,20 @@ const FintechHomeView: React.FC = () => {
 
                                     {/* Text Content */}
                                     <div className="flex-1 space-y-3">
-                                      <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-emerald-300 transition-colors duration-300">
+                                      {/* H3 - Heading 3 (28-36px) */}
+                                      <h3 className="font-bold text-white mb-3 group-hover:text-emerald-300 transition-colors duration-300" style={{ fontSize: 'clamp(24px, 3vw, 32px)' }}>
                                         {example.title}
                                       </h3>
 
-                                      <p className="text-slate-300 text-lg leading-relaxed mb-4 group-hover:text-slate-200 transition-colors duration-300">
+                                      {/* Body - 16-20px */}
+                                      <p className="text-slate-300 leading-relaxed mb-4 group-hover:text-slate-200 transition-colors duration-300" style={{ fontSize: 'clamp(16px, 1.5vw, 20px)' }}>
                                         {example.prompt.substring(0, 120)}...
                                       </p>
 
                                       {/* Prompt Text with Copy Button */}
                                       <div className="relative">
-                                        <p className="text-slate-400 text-base leading-relaxed group-hover:text-slate-300 transition-colors duration-300 font-mono pr-12">
+                                        {/* Small - 12-14px */}
+                                        <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors duration-300 font-mono pr-12" style={{ fontSize: 'clamp(12px, 1vw, 14px)' }}>
                                           {example.prompt}
                                         </p>
                                         <button
@@ -1040,21 +1048,25 @@ const FintechHomeView: React.FC = () => {
                       />
 
                       <div className="relative z-10">
-                        <div className="flex items-start space-x-3">
+                        <div className="flex items-center space-x-3">
                           <div
-                            className="flex-shrink-0 mt-0.5 p-2 rounded-lg transition-all duration-300 group-hover:scale-105"
+                            className="flex-shrink-0 rounded-lg transition-all duration-300 group-hover:scale-105 flex items-center justify-center"
                             style={{
                               background: 'linear-gradient(135deg, rgba(34,197,94,0.3), rgba(16,185,129,0.3))',
-                              border: '1px solid rgba(34,197,94,0.4)'
+                              border: '1px solid rgba(34,197,94,0.4)',
+                              width: '48px',
+                              height: '48px'
                             }}
                           >
                             {action.icon}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm sm:text-base font-semibold text-white group-hover:text-emerald-300 transition-colors duration-300 mb-1">
+                            {/* H5 - Heading 5 (18-24px) */}
+                            <div className="font-semibold text-white group-hover:text-emerald-300 transition-colors duration-300 mb-1" style={{ fontSize: 'clamp(16px, 1.2vw, 20px)' }}>
                               {action.label}
                             </div>
-                            <div className="text-xs text-slate-300 group-hover:text-slate-200 transition-colors duration-300 line-clamp-2">
+                            {/* Tiny - 12-14px */}
+                            <div className="text-slate-300 group-hover:text-slate-200 transition-colors duration-300 line-clamp-2" style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>
                               {action.description}
                             </div>
                           </div>
@@ -1091,27 +1103,31 @@ const FintechHomeView: React.FC = () => {
                 <div className="relative z-10">
                   {/* Header */}
                   <div className="mb-8">
-                    <div className="flex items-center space-x-3 mb-4">
+                    <div className="flex items-start space-x-4 mb-4">
                       <div
-                        className="w-12 h-12 rounded-lg flex items-center justify-center"
+                        className="rounded-lg flex items-center justify-center flex-shrink-0"
                         style={{
                           background: 'linear-gradient(135deg, rgba(34,197,94,0.3), rgba(16,185,129,0.3))',
-                          border: '1px solid rgba(34,197,94,0.4)'
+                          border: '1px solid rgba(34,197,94,0.4)',
+                          width: '56px',
+                          height: '56px'
                         }}
                       >
-                        <Rocket className="w-6 h-6 text-emerald-400" />
+                        <Rocket className="w-8 h-8 text-emerald-400" />
                       </div>
                       <div>
-                        <h3 className="text-2xl md:text-3xl font-bold text-white">
+                        {/* H3 - Heading 3 (28-36px) */}
+                        <h3 className="font-bold text-white" style={{ fontSize: 'clamp(28px, 3.5vw, 36px)' }}>
                           Enterprise-Grade Fintech Solutions
                         </h3>
-                        <p className="text-sm text-emerald-300 font-semibold mt-1">Accelerate Your Path to Production</p>
+                        {/* Small - 12-14px */}
+                        <p className="text-emerald-300 font-semibold mt-1" style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>Accelerate Your Path to Production</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Main Description */}
-                  <p className="text-slate-200 text-base md:text-lg leading-relaxed mb-8">
+                  {/* Main Description - Body 16-20px */}
+                  <p className="text-slate-200 leading-relaxed mb-8" style={{ fontSize: 'clamp(16px, 1.5vw, 20px)' }}>
                     CYODA AI Studio empowers fintech teams to build, deploy, and scale secure, compliant applications faster than ever. From concept to production, we provide the infrastructure and tools you need for modern financial innovation.
                   </p>
 
@@ -1161,8 +1177,10 @@ const FintechHomeView: React.FC = () => {
                         <div className="flex items-start space-x-3">
                           <span className="text-2xl flex-shrink-0">{feature.icon}</span>
                           <div>
-                            <h4 className="font-bold text-white mb-1">{feature.title}</h4>
-                            <p className="text-sm text-slate-300">{feature.description}</p>
+                            {/* H5 - Heading 5 (18-24px) */}
+                            <h4 className="font-bold text-white mb-1" style={{ fontSize: 'clamp(16px, 1.2vw, 20px)' }}>{feature.title}</h4>
+                            {/* Tiny - 12-14px */}
+                            <p className="text-slate-300" style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>{feature.description}</p>
                           </div>
                         </div>
                       </div>
