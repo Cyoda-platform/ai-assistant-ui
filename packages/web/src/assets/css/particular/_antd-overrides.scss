@@ -13,7 +13,7 @@
   .ant-modal-header {
     background: transparent;
     border-bottom: none;
-    padding: 20px 20px 12px 20px;
+    padding: 16px 16px 8px 16px;
 
     .ant-modal-title {
       color: #ffffff;
@@ -27,7 +27,7 @@
     color: rgb(148, 163, 184);
     font-size: 14px;
     font-weight: 500;
-    padding: 0 20px 12px 20px;
+    padding: 0 16px 6px 16px;
   }
 
   .ant-modal-footer {
@@ -187,7 +187,7 @@
 
     .ant-modal-footer {
       border-top: none;
-      padding: 12px 20px 20px 20px;
+      padding: 6px 16px 16px 16px;
 
       .ant-btn {
         border-radius: 8px !important;
@@ -220,19 +220,22 @@
         }
 
         &.ant-btn-primary {
+          background: transparent !important;
           background-color: transparent !important;
-          color: rgb(148, 163, 184) !important;
+          color: rgb(20, 184, 166) !important;
           border: 1px solid rgba(71, 85, 105, 0.5) !important;
 
           &:hover {
+            background: rgba(71, 85, 105, 0.2) !important;
             background-color: rgba(71, 85, 105, 0.2) !important;
-            color: rgb(226, 232, 240) !important;
+            color: rgb(20, 184, 166) !important;
             border-color: rgba(71, 85, 105, 0.7) !important;
           }
 
           &:focus {
+            background: transparent !important;
             background-color: transparent !important;
-            color: rgb(148, 163, 184) !important;
+            color: rgb(20, 184, 166) !important;
             border-color: rgba(71, 85, 105, 0.5) !important;
           }
         }
