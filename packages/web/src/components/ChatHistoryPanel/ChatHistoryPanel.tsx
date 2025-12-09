@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, History, Clock, ChevronRight, X, AlertTriangle } from 'lucide-react';
+import { Home, History, Clock, ChevronRight, ChevronDown, X, AlertTriangle } from 'lucide-react';
 import { Modal } from 'antd';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
@@ -56,6 +56,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
   const [chatToDelete, setChatToDelete] = useState<{ id: string; name?: string } | null>(null);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [chatToRename, setChatToRename] = useState<{ id: string; name: string } | null>(null);
+  const [isHistoryCollapsed, setIsHistoryCollapsed] = useState(false);
 
   const handleDeleteClick = (e: React.MouseEvent, chatId: string, chatName?: string) => {
     e.preventDefault();
@@ -150,6 +151,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
         {/* Current Chat / History Header */}
         <div className="flex-1 flex flex-col space-y-3 overflow-hidden">
           <div
+            onClick={() => setIsHistoryCollapsed(!isHistoryCollapsed)}
             className={`flex items-center space-x-3 cursor-pointer px-3 py-2.5 rounded-lg group transition-all duration-200 ${
               !showHomeAsActive
                 ? 'text-white hover:text-teal-400 bg-slate-700/60 border border-slate-600/50 shadow-sm'
@@ -158,11 +160,32 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
           >
             <History size={19} className="group-hover:scale-110 transition-transform flex-shrink-0" />
             <span className="font-semibold text-sm">{!showHomeAsActive ? 'Current Chat' : 'History'}</span>
-            {showHomeAsActive && <ChevronRight size={16} className="ml-auto group-hover:translate-x-1 transition-transform" />}
+            {showHomeAsActive && (
+              <ChevronRight
+                size={16}
+                style={{
+                  marginLeft: 'auto',
+                  transform: isHistoryCollapsed ? 'rotate(0deg)' : 'rotate(90deg)',
+                  transition: 'transform 200ms ease-in-out'
+                }}
+                className="group-hover:translate-x-1"
+              />
+            )}
+            {!showHomeAsActive && (
+              <ChevronRight
+                size={16}
+                style={{
+                  marginLeft: 'auto',
+                  transform: isHistoryCollapsed ? 'rotate(0deg)' : 'rotate(90deg)',
+                  transition: 'transform 200ms ease-in-out'
+                }}
+              />
+            )}
           </div>
 
           {/* Chat History List */}
-          <div className="space-y-4 flex-1 overflow-y-auto chat-container pr-2">
+          {!isHistoryCollapsed && (
+            <div className="space-y-4 flex-1 overflow-y-auto chat-container pr-2">
             {isLoading ? (
               <div className="px-2 py-8 flex flex-col items-center justify-center space-y-4">
                 <LoadingSpinner size="lg" />
@@ -262,7 +285,8 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
                 </button>
               </div>
             )}
-          </div>
+            </div>
+          )}
         </div>
       </nav>
 
