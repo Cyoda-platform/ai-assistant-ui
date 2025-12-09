@@ -121,7 +121,7 @@ const ChatContextMenu: React.FC<ChatContextMenuProps> = ({
       }}
     >
       <button
-        className="menu-button absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-slate-600/80 transition-all duration-200 shadow-lg backdrop-blur-sm border border-slate-600/50 hover:border-slate-500/50"
+        className="menu-button absolute top-2 right-2 p-1.5 rounded-md bg-transparent hover:bg-transparent transition-all duration-200 backdrop-blur-sm border-0"
         title="Chat options"
         onClick={(e) => {
           e.preventDefault();

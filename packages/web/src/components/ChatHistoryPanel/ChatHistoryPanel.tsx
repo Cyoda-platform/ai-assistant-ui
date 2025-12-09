@@ -230,7 +230,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
                           className={`group block cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-200 text-sm no-underline relative chat-item-hover ${
                             chat.technical_id === currentChatId
                               ? 'bg-slate-700/70 border border-slate-600/60 text-slate-300 shadow-sm'
-                              : 'text-slate-400 hover:text-slate-300 hover:bg-slate-700/40 border border-transparent hover:border-slate-600/30'
+                              : 'text-slate-400 hover:text-slate-300 hover:bg-slate-700/40 border border-transparent'
                           }`}
                         >
                         <div className="flex items-start space-x-2.5">
