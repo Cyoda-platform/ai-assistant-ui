@@ -818,6 +818,7 @@ const FintechHomeView: React.FC = () => {
                                         className="relative p-4 transition-all duration-300"
                                         style={{
                                           background: 'rgba(20, 184, 166, 0.08)',
+                                          border: '2px solid rgba(20,184,166,0.4)',
                                           backdropFilter: 'blur(10px)',
                                           WebkitBackdropFilter: 'blur(10px)',
                                           borderRadius: '6px 24px 24px 24px'
@@ -859,26 +860,26 @@ const FintechHomeView: React.FC = () => {
                     {/* Navigation Buttons */}
                     <button
                       onClick={prevPrompt}
-                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
                       style={{
-                        background: 'linear-gradient(135deg, rgba(75,85,99,0.9), rgba(55,65,81,0.9))',
+                        background: 'rgba(75,85,99,0.3)',
                         backdropFilter: 'blur(10px)',
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(107,114,128,0.5)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
                       }}
                     >
-                      <ChevronRight className="text-white rotate-180 group-hover:-translate-x-0.5 transition-transform" size={22} />
+                      <ChevronRight className="text-white rotate-180 group-hover:-translate-x-0.5 transition-transform" size={18} />
                     </button>
 
                     <button
                       onClick={nextPrompt}
-                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
+                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
                       style={{
-                        background: 'linear-gradient(135deg, rgba(75,85,99,0.9), rgba(55,65,81,0.9))',
+                        background: 'rgba(75,85,99,0.3)',
                         backdropFilter: 'blur(10px)',
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(107,114,128,0.5)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
                       }}
                     >
-                      <ChevronRight className="text-white group-hover:translate-x-0.5 transition-transform" size={22} />
+                      <ChevronRight className="text-white group-hover:translate-x-0.5 transition-transform" size={18} />
                     </button>
                   </div>
               </div>
