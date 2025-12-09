@@ -446,7 +446,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
                 borderRadius: '24px',
                 padding: '18px 24px 60px 24px',
                 boxShadow: '0 8px 32px rgba(0,0,0,0.2), 0 0 0 1px rgba(20, 184, 166, 0.1)',
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: 'Roboto, sans-serif',
                 scrollbarWidth: 'thin',
                 scrollbarColor: 'rgb(148 163 184) transparent'
               }}

@@ -681,7 +681,7 @@ const HomeView: React.FC = () => {
             <div className="w-full flex-1 flex flex-col min-w-0 max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl mx-auto">
 
               {/* Hero Section */}
-              <div className="mb-12 animate-fade-in-up" style={{ marginTop: '48px', fontFamily: 'Montserrat, sans-serif' }}>
+              <div className="mb-12 animate-fade-in-up" style={{ marginTop: '48px', fontFamily: 'Roboto, sans-serif' }}>
                 {/* Background gradient for depth */}
                 <div
                   className="absolute inset-0 pointer-events-none"
@@ -771,7 +771,7 @@ const HomeView: React.FC = () => {
                     <h2
                       className="animate-fade-in"
                       style={{
-                        fontFamily: 'Montserrat, sans-serif',
+                        fontFamily: 'Roboto, sans-serif',
                         fontWeight: 700,
                         fontSize: 'clamp(48px, 6vw, 72px)',
                         color: '#007981',
@@ -787,7 +787,7 @@ const HomeView: React.FC = () => {
                     <h1
                       className="animate-fade-in"
                       style={{
-                        fontFamily: 'Montserrat, sans-serif',
+                        fontFamily: 'Roboto, sans-serif',
                         fontWeight: 600,
                         fontSize: 'clamp(36px, 4.5vw, 52px)',
                         color: '#007981',
@@ -803,7 +803,7 @@ const HomeView: React.FC = () => {
                     <p
                       className="animate-fade-in"
                       style={{
-                        fontFamily: 'Montserrat, sans-serif',
+                        fontFamily: 'Roboto, sans-serif',
                         fontWeight: 400,
                         fontSize: 'clamp(20px, 2.5vw, 28px)',
                         color: 'rgba(255,255,255,0.75)',
@@ -821,7 +821,7 @@ const HomeView: React.FC = () => {
               </div>
 
               {/* Prompt Examples Carousel */}
-              <div className="mb-8" style={{ fontFamily: 'Montserrat, sans-serif', marginTop: '-8vh' }}>
+              <div className="mb-8" style={{ fontFamily: 'Roboto, sans-serif', marginTop: '-8vh' }}>
                 <div className="w-full max-w-none px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
                   <div className="relative">
                     {/* Carousel Container with elegant shadow */}
@@ -1042,7 +1042,7 @@ const HomeView: React.FC = () => {
                         borderRadius: '24px',
                         padding: '18px 24px 60px 24px',
                         boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                        fontFamily: 'Montserrat, sans-serif'
+                        fontFamily: 'Roboto, sans-serif'
                       }}
                       disabled={isLoading}
                     />
@@ -1127,7 +1127,7 @@ const HomeView: React.FC = () => {
               </div>
 
               {/* Quick Actions */}
-              <div className="mb-8" style={{ marginTop: '1vh', fontFamily: 'Montserrat, sans-serif' }}>
+              <div className="mb-8" style={{ marginTop: '1vh', fontFamily: 'Roboto, sans-serif' }}>
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3 sm:gap-3 md:gap-4">
                   {quickActions.map((action, index) => (
                     <button
@@ -1183,7 +1183,7 @@ const HomeView: React.FC = () => {
               </div>
 
               {/* Who Are We Section */}
-              <div className="max-w-5xl mx-auto px-6 mb-20 mt-20" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+              <div className="max-w-5xl mx-auto px-6 mb-20 mt-20" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 <div
                   className="rounded-2xl p-10 md:p-12"
                   style={{
@@ -1233,7 +1233,7 @@ const HomeView: React.FC = () => {
               </div>
 
               {/* Join Our Community Section */}
-              <div className="max-w-5xl mx-auto px-6 mb-12 mt-8" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+              <div className="max-w-5xl mx-auto px-6 mb-12 mt-8" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 {/* H3 - Heading 3 (28-36px) */}
                 <h2 className="font-bold mb-6 text-center" style={{ fontSize: 'clamp(28px, 3.5vw, 36px)', color: '#00b9c8' }}>
                   Join Our Community
@@ -1313,7 +1313,7 @@ const HomeView: React.FC = () => {
               </div>
 
               {/* Collaborate with Us on Hackathons Section */}
-              <div className="max-w-5xl mx-auto px-6 mb-16 mt-12" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+              <div className="max-w-5xl mx-auto px-6 mb-16 mt-12" style={{ fontFamily: 'Roboto, sans-serif' }}>
                 <div
                   className="rounded-2xl p-8 md:p-12 transition-all duration-300 hover:scale-[1.01] relative overflow-hidden group"
                   style={{
@@ -1396,7 +1396,7 @@ const HomeView: React.FC = () => {
               {/* Beautiful Footer */}
               <footer
                 className="mt-auto"
-                style={{ fontFamily: 'Montserrat, sans-serif' }}
+                style={{ fontFamily: 'Roboto, sans-serif' }}
               >
                 {/* Footer Content */}
                 <div className="max-w-6xl mx-auto px-6 pt-16 pb-8">

@@ -627,7 +627,7 @@ const FintechHomeView: React.FC = () => {
             <div className={`w-full flex-1 flex flex-col min-w-0 max-w-full ${isChatHistoryOpen ? 'sm:max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl' : 'sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl'} mx-auto`}>
 
               {/* Fintech Hero Section */}
-              <div className="mb-12 animate-fade-in-up" style={{ marginTop: '32px', fontFamily: 'Montserrat, sans-serif' }}>
+              <div className="mb-12 animate-fade-in-up" style={{ marginTop: '32px', fontFamily: 'Roboto, sans-serif' }}>
                 {/* Background gradient for depth */}
                 <div
                   className="absolute inset-0 pointer-events-none"
@@ -648,22 +648,20 @@ const FintechHomeView: React.FC = () => {
                       border: '1px solid rgba(34,197,94,0.3)'
                     }}>
                       <div className="w-2 h-2 rounded-full" style={{ background: '#22c55e' }}></div>
-                      <span className="text-sm font-semibold text-emerald-300">Fintech Solutions</span>
+                      <span className="text-emerald-300" style={{ fontSize: isChatHistoryOpen ? 'clamp(10px, 0.6vw, 11px)' : 'clamp(11px, 0.8vw, 13px)' }}>Fintech Solutions</span>
                     </div>
 
                     {/* H2 - Heading 1 (36-52px) */}
                     <h1
-                      className="animate-fade-in"
+                      className="font-bold text-white animate-fade-in"
                       style={{
-                        fontFamily: 'Montserrat, sans-serif',
-                        fontWeight: 800,
-                        fontSize: isChatHistoryOpen ? 'clamp(28px, 3.5vw, 40px)' : 'clamp(36px, 5vw, 52px)',
+                        fontFamily: 'Roboto, sans-serif',
+                        fontWeight: 700,
+                        fontSize: isChatHistoryOpen ? 'clamp(18px, 2vw, 24px)' : 'clamp(24px, 3vw, 32px)',
                         background: 'linear-gradient(135deg, #22c55e 0%, #10b981 50%, #059669 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         backgroundClip: 'text',
-                        letterSpacing: '-1px',
-                        lineHeight: 1.1,
                         animationDelay: '0.1s',
                         marginBottom: '16px'
                       }}
@@ -673,13 +671,11 @@ const FintechHomeView: React.FC = () => {
 
                     {/* Body - 16-20px */}
                     <p
-                      className="animate-fade-in"
+                      className="text-slate-300 leading-relaxed animate-fade-in"
                       style={{
-                        fontFamily: 'Montserrat, sans-serif',
-                        fontWeight: 500,
-                        fontSize: isChatHistoryOpen ? 'clamp(14px, 1vw, 16px)' : 'clamp(16px, 1.5vw, 20px)',
-                        color: 'rgba(255,255,255,0.8)',
-                        lineHeight: 1.7,
+                        fontFamily: 'Roboto, sans-serif',
+                        fontWeight: 400,
+                        fontSize: isChatHistoryOpen ? 'clamp(13px, 1vw, 15px)' : 'clamp(16px, 1.5vw, 20px)',
                         animationDelay: '0.2s',
                         maxWidth: '800px',
                         marginBottom: '24px'
@@ -722,7 +718,7 @@ const FintechHomeView: React.FC = () => {
               <div
                 className="mt-6 mb-8 transition-all duration-500 ease-in-out -mx-4 sm:-mx-6 md:-mx-8 lg:-mx-12 xl:-mx-16 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16"
                 style={{
-                  fontFamily: 'Montserrat, sans-serif',
+                  fontFamily: 'Roboto, sans-serif',
                   opacity: 1,
                   transform: 'translateY(0)'
                 }}
@@ -832,7 +828,7 @@ const FintechHomeView: React.FC = () => {
                                         }}
                                       >
                                         {/* Same size as input box */}
-                                        <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors duration-300 pr-10 text-base" style={{ fontFamily: 'Montserrat, sans-serif', lineHeight: '1.5' }}>
+                                        <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors duration-300 pr-10 text-base" style={{ fontFamily: 'Roboto, sans-serif', lineHeight: '1.5' }}>
                                           {example.prompt}
                                         </p>
                                         <button
@@ -942,7 +938,7 @@ const FintechHomeView: React.FC = () => {
                         borderRadius: '24px',
                         padding: '18px 24px 60px 24px',
                         boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-                        fontFamily: 'Montserrat, sans-serif'
+                        fontFamily: 'Roboto, sans-serif'
                       }}
                       disabled={isLoading}
                     />
@@ -1030,7 +1026,7 @@ const FintechHomeView: React.FC = () => {
               <div
                 className="mt-6 mb-16 transition-all duration-500 ease-in-out"
                 style={{
-                  fontFamily: 'Montserrat, sans-serif',
+                  fontFamily: 'Roboto, sans-serif',
                   opacity: 1,
                   transform: 'translateY(0)'
                 }}
@@ -1093,7 +1089,7 @@ const FintechHomeView: React.FC = () => {
               <div
                 className="mb-12 p-8 md:p-10 rounded-2xl transition-all duration-500 ease-in-out group relative overflow-hidden"
                 style={{
-                  fontFamily: 'Montserrat, sans-serif',
+                  fontFamily: 'Roboto, sans-serif',
                   background: 'linear-gradient(135deg, rgba(34,197,94,0.08) 0%, rgba(16,185,129,0.05) 100%)',
                   border: '1px solid rgba(34,197,94,0.2)',
                   backdropFilter: 'blur(20px)',
@@ -1127,7 +1123,7 @@ const FintechHomeView: React.FC = () => {
                       </div>
                       <div>
                         {/* H3 - Heading 3 (28-36px) */}
-                        <h3 className="font-bold text-white" style={{ fontSize: 'clamp(28px, 3.5vw, 36px)' }}>
+                        <h3 className="font-bold text-white" style={{ fontSize: 'clamp(24px, 3vw, 32px)' }}>
                           Enterprise-Grade Fintech Solutions
                         </h3>
                         {/* Small - 12-14px */}
@@ -1216,7 +1212,7 @@ const FintechHomeView: React.FC = () => {
               {/* Beautiful Footer */}
               <footer
                 className="mt-auto"
-                style={{ fontFamily: 'Montserrat, sans-serif' }}
+                style={{ fontFamily: 'Roboto, sans-serif' }}
               >
                 {/* Footer Content */}
                 <div className="max-w-6xl mx-auto px-6 pt-16 pb-8">
