@@ -85,7 +85,7 @@ const EnvironmentsPanel: React.FC<EnvironmentsPanelProps> = ({
   // If an environment is selected, show details view
   if (selectedEnvironment) {
     return (
-      <div className="h-full bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel">
+      <div className="h-full bg-slate-800/95 backdrop-blur-sm flex flex-col relative resizable-panel">
         <EnvironmentDetails
           environmentName={selectedEnvironment}
           onBack={() => setSelectedEnvironment(null)}
@@ -101,7 +101,7 @@ const EnvironmentsPanel: React.FC<EnvironmentsPanelProps> = ({
   }
 
   return (
-    <div className={`h-full bg-slate-800/95 backdrop-blur-sm flex flex-col relative ${isFullscreen ? '' : 'border-r border-slate-600 resizable-panel'}`}>
+    <div className={`h-full bg-slate-800/95 backdrop-blur-sm flex flex-col relative ${isFullscreen ? '' : 'resizable-panel'}`}>
       {/* Header with Action Buttons */}
       <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
         <div className="flex items-center space-x-2">

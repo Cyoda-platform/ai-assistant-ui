@@ -103,7 +103,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
   const hasChats = chatGroups.length > 0;
 
   return (
-    <div className="h-full bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel">
+    <div className="h-full bg-slate-800/95 backdrop-blur-sm flex flex-col relative resizable-panel">
       {/* Header with Close Button */}
       {onClose && (
         <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
@@ -295,7 +295,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
       </nav>
 
       {/* Footer - Copyright */}
-      <div className="p-4 border-t border-slate-700/50">
+      <div className="p-4">
         <p className="text-xs text-slate-500 text-center">
           Copyright © 2025{' '}
           <a
