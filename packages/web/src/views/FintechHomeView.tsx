@@ -1038,7 +1038,6 @@ const FintechHomeView: React.FC = () => {
                         background: 'rgba(30, 41, 59, 0.6)',
                         backdropFilter: 'blur(14px)',
                         WebkitBackdropFilter: 'blur(14px)',
-                        border: '1px solid rgba(34,197,94,0.3)',
                         borderRadius: '12px',
                         boxShadow: '0 4px 16px rgba(0,0,0,0.1)'
                       }}
@@ -1057,7 +1056,7 @@ const FintechHomeView: React.FC = () => {
                           <div
                             className="flex-shrink-0 rounded-lg transition-all duration-300 group-hover:scale-105 flex items-center justify-center"
                             style={{
-                              background: 'linear-gradient(135deg, rgba(34,197,94,0.3), rgba(16,185,129,0.3))',
+                              background: 'linear-gradient(135deg, rgba(0,185,200,0.2), rgba(0,121,129,0.2))',
                               width: '48px',
                               height: '48px'
                             }}
@@ -1065,8 +1064,8 @@ const FintechHomeView: React.FC = () => {
                             {action.icon}
                           </div>
                           <div className="flex-1 min-w-0">
-                            {/* H5 - Heading 5 (18-24px) */}
-                            <div className="font-semibold text-white group-hover:text-emerald-300 transition-colors duration-300 mb-1" style={{ fontSize: 'clamp(16px, 1.2vw, 20px)' }}>
+                            {/* H5 - Heading 5 (14-18px) */}
+                            <div className="font-semibold text-white group-hover:text-emerald-300 transition-colors duration-300 mb-1" style={{ fontSize: 'clamp(14px, 1vw, 18px)' }}>
                               {action.label}
                             </div>
                             {/* Tiny - 12-14px */}
