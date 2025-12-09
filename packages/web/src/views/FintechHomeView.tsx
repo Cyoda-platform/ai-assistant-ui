@@ -439,35 +439,35 @@ const FintechHomeView: React.FC = () => {
     {
       title: "I need a trading platform for my startup",
       prompt: "Build a real-time trading platform with market data feeds, order management, portfolio tracking, risk controls, and regulatory compliance for equities and derivatives",
-      icon: <TrendingUp size={48} className="text-white" />,
+      icon: <TrendingUp size={32} className="text-white" />,
       category: "Trading",
       gradient: "rgba(55, 65, 81, 0.8), rgba(31, 41, 55, 0.8)"
     },
     {
       title: "My customers need secure payments",
       prompt: "Create a payment gateway with multi-currency support, fraud detection, PCI compliance, recurring billing, and real-time transaction monitoring",
-      icon: <CreditCard size={48} className="text-white" />,
+      icon: <CreditCard size={32} className="text-white" />,
       category: "Payments",
       gradient: "rgba(75, 85, 99, 0.8), rgba(55, 65, 81, 0.8)"
     },
     {
       title: "I want to launch a digital bank",
       prompt: "Build a complete digital banking platform with account management, card services, mobile payments, budgeting tools, and regulatory compliance",
-      icon: <CreditCard size={48} className="text-white" />,
+      icon: <CreditCard size={32} className="text-white" />,
       category: "Banking",
       gradient: "rgba(55, 65, 81, 0.8), rgba(31, 41, 55, 0.8)"
     },
     {
       title: "I need advanced risk management",
       prompt: "Implement a comprehensive risk management system with credit scoring, fraud detection, AML compliance, stress testing, and real-time monitoring",
-      icon: <Shield size={48} className="text-white" />,
+      icon: <Shield size={32} className="text-white" />,
       category: "Risk Management",
       gradient: "rgba(75, 85, 99, 0.8), rgba(55, 65, 81, 0.8)"
     },
     {
       title: "I want to build a crypto exchange",
       prompt: "Create a cryptocurrency exchange with order matching engine, multi-wallet support, security features, KYC/AML compliance, and liquidity management",
-      icon: <BarChart3 size={48} className="text-white" />,
+      icon: <BarChart3 size={32} className="text-white" />,
       category: "Crypto",
       gradient: "rgba(55, 65, 81, 0.8), rgba(31, 41, 55, 0.8)"
     }
@@ -773,7 +773,7 @@ const FintechHomeView: React.FC = () => {
                               <div className="relative z-10">
                                 <div className="space-y-4">
                                   {/* Header Content */}
-                                  <div className="flex items-center space-x-3 mb-3" style={{ marginLeft: '3%' }}>
+                                  <div className="flex items-center justify-end gap-3 mb-3" style={{ marginRight: '3%' }}>
                                     {/* Tiny - 12-14px */}
                                     <span
                                       className="px-3 py-1 rounded-full font-semibold uppercase tracking-wider"
@@ -791,13 +791,15 @@ const FintechHomeView: React.FC = () => {
                                     </div>
                                   </div>
 
-                                  <div className="flex items-start space-x-6">
+                                  <div className="flex items-start space-x-6" style={{ marginLeft: '3%', marginRight: '3%' }}>
                                     {/* Icon Display */}
-                                    <div className="flex-shrink-0" style={{ marginLeft: '3%' }}>
+                                    <div className="flex-shrink-0">
                                       <div
-                                        className={`p-4 rounded-xl overflow-hidden flex items-center justify-center shadow-lg ${isChatHistoryOpen ? 'w-16 h-16' : 'w-24 h-24'}`}
+                                        className="rounded-lg overflow-hidden flex items-center justify-center shadow-lg flex-shrink-0"
                                         style={{
-                                          background: `linear-gradient(135deg, ${example.gradient})`
+                                          background: `linear-gradient(135deg, ${example.gradient})`,
+                                          width: '56px',
+                                          height: '56px'
                                         }}
                                       >
                                         {example.icon}
@@ -810,11 +812,6 @@ const FintechHomeView: React.FC = () => {
                                       <h3 className="font-bold text-white mb-3 group-hover:text-emerald-300 transition-colors duration-300" style={{ fontSize: isChatHistoryOpen ? 'clamp(18px, 2vw, 24px)' : 'clamp(24px, 3vw, 32px)' }}>
                                         {example.title}
                                       </h3>
-
-                                      {/* Body - 16-20px */}
-                                      <p className="text-slate-300 leading-relaxed mb-4 group-hover:text-slate-200 transition-colors duration-300" style={{ fontSize: isChatHistoryOpen ? 'clamp(13px, 1vw, 15px)' : 'clamp(16px, 1.5vw, 20px)' }}>
-                                        {example.prompt.substring(0, 120)}...
-                                      </p>
 
                                       {/* Prompt Text with Copy Button */}
                                       <div
