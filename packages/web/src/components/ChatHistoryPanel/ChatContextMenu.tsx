@@ -1,7 +1,6 @@
 import React from 'react';
 import { Dropdown, MenuProps } from 'antd';
-import { Edit, Trash2, Info, Calendar, MessageSquare, MoreVertical } from 'lucide-react';
-import { formatRelativeTime } from '@/utils/dateUtils';
+import { Edit, Trash2, MoreVertical } from 'lucide-react';
 import './ChatContextMenu.css';
 
 interface ChatContextMenuProps {
@@ -27,7 +26,7 @@ const ChatContextMenu: React.FC<ChatContextMenuProps> = ({
   disabled = false,
   showMenuButton = true
 }) => {
-  const handleMenuClick = (e: React.MouseEvent, action: 'rename' | 'delete') => {
+  const handleMenuClick = React.useCallback((e: React.MouseEvent, action: 'rename' | 'delete') => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -36,42 +35,9 @@ const ChatContextMenu: React.FC<ChatContextMenuProps> = ({
     } else if (action === 'delete') {
       onDelete(chatId, chatName);
     }
-  };
+  }, [chatId, chatName, onRename, onDelete]);
 
-  // Create chat details header
-  const chatDetailsHeader = {
-    key: 'chat-details',
-    type: 'group' as const,
-    label: (
-      <div className="px-2 py-3 border-b border-slate-600/50">
-        <div className="flex items-start space-x-3">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500/20 to-blue-500/20 border border-teal-500/30">
-            <MessageSquare size={16} className="text-teal-400" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="font-medium text-slate-200 truncate text-sm" title={chatName}>
-              {chatName || 'Untitled Chat'}
-            </div>
-            {chatDescription && chatDescription !== chatName && (
-              <div className="text-xs text-slate-400 mt-1 line-clamp-2" title={chatDescription}>
-                {chatDescription}
-              </div>
-            )}
-            {chatDate && (
-              <div className="flex items-center space-x-1 mt-2 text-xs text-slate-500">
-                <Calendar size={12} />
-                <span>{formatRelativeTime(chatDate)}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    ),
-    children: []
-  };
-
-  const menuItems: MenuProps['items'] = [
-    chatDetailsHeader,
+  const menuItems: MenuProps['items'] = React.useMemo(() => [
     {
       key: 'rename',
       label: (
@@ -95,7 +61,7 @@ const ChatContextMenu: React.FC<ChatContextMenuProps> = ({
       danger: true,
       className: 'hover:bg-red-500/10'
     },
-  ];
+  ], [handleMenuClick]);
 
   if (disabled) {
     return <>{children}</>;
@@ -114,7 +80,6 @@ const ChatContextMenu: React.FC<ChatContextMenuProps> = ({
       overlayStyle={{
         minWidth: '280px',
         boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2)',
-        border: '1px solid rgb(71 85 105 / 0.5)',
         borderRadius: '12px',
         backgroundColor: 'rgb(30 41 59 / 0.95)',
         backdropFilter: 'blur(12px)'

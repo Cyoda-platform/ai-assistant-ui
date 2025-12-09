@@ -94,8 +94,7 @@
 /* Ensure menu button is visible on focus for accessibility */
 .menu-button:focus {
   opacity: 1 !important;
-  outline: 2px solid rgb(20, 184, 166);
-  outline-offset: 2px;
+  outline: none;
 }
 
 /* Show menu button on mobile/touch devices */

@@ -58,43 +58,47 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
   const [chatToRename, setChatToRename] = useState<{ id: string; name: string } | null>(null);
   const [isHistoryCollapsed, setIsHistoryCollapsed] = useState(false);
 
-  const handleDeleteClick = (e: React.MouseEvent, chatId: string, chatName?: string) => {
+  const handleDeleteClick = React.useCallback((e: React.MouseEvent, chatId: string, chatName?: string) => {
     e.preventDefault();
     e.stopPropagation();
     setChatToDelete({ id: chatId, name: chatName });
     setDeleteModalOpen(true);
-  };
+  }, []);
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = React.useCallback(() => {
     if (chatToDelete && onDeleteChat) {
       onDeleteChat(chatToDelete.id);
     }
     setDeleteModalOpen(false);
     setChatToDelete(null);
-  };
+  }, [chatToDelete, onDeleteChat]);
 
-  const handleRenameClick = (chatId: string, chatName: string) => {
+  const handleRenameClick = React.useCallback((chatId: string, chatName: string) => {
     setChatToRename({ id: chatId, name: chatName });
     setRenameDialogOpen(true);
-  };
+  }, []);
 
-  const handleRenameSuccess = (newName: string) => {
+  const handleRenameSuccess = React.useCallback((newName: string) => {
     if (chatToRename && onRenameChat) {
       onRenameChat(chatToRename.id, newName);
     }
     setRenameDialogOpen(false);
     setChatToRename(null);
-  };
+  }, [chatToRename, onRenameChat]);
 
-  const handleRenameCancel = () => {
+  const handleRenameCancel = React.useCallback(() => {
     setRenameDialogOpen(false);
     setChatToRename(null);
-  };
+  }, []);
 
-  const handleCancelDelete = () => {
+  const handleCancelDelete = React.useCallback(() => {
     setDeleteModalOpen(false);
     setChatToDelete(null);
-  };
+  }, []);
+
+  const handleDeleteChatFromMenu = React.useCallback((chatId: string, chatName: string) => {
+    handleDeleteClick({} as React.MouseEvent, chatId, chatName);
+  }, [handleDeleteClick]);
 
   const hasChats = chatGroups.length > 0;
 
@@ -206,7 +210,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
                         chatDescription={chat.description}
                         chatDate={chat.last_modified || chat.date}
                         onRename={handleRenameClick}
-                        onDelete={(chatId, chatName) => handleDeleteClick({} as React.MouseEvent, chatId, chatName)}
+                        onDelete={handleDeleteChatFromMenu}
                         showMenuButton={true}
                       >
                         <a
@@ -230,7 +234,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
                           className={`group block cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-200 text-sm no-underline relative chat-item-hover ${
                             chat.technical_id === currentChatId
                               ? 'bg-slate-700/70 border border-slate-600/60 text-slate-300 shadow-sm'
-                              : 'text-slate-400 hover:text-slate-300 hover:bg-slate-700/40 border border-transparent'
+                              : 'text-slate-400 hover:text-slate-300 hover:bg-slate-700/40'
                           }`}
                         >
                         <div className="flex items-start space-x-2.5">
