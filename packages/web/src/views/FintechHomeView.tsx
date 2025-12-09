@@ -728,7 +728,7 @@ const FintechHomeView: React.FC = () => {
                     <div
                       className="overflow-hidden rounded-3xl relative"
                       style={{
-                        boxShadow: '0 20px 60px rgba(0,0,0,0.3), 0 0 0 1px rgba(107,114,128,0.2)'
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
                       }}
                     >
                       {/* Professional gradient overlay */}
@@ -818,7 +818,6 @@ const FintechHomeView: React.FC = () => {
                                         className="relative p-4 transition-all duration-300"
                                         style={{
                                           background: 'rgba(20, 184, 166, 0.08)',
-                                          border: '2px solid rgba(20,184,166,0.4)',
                                           backdropFilter: 'blur(10px)',
                                           WebkitBackdropFilter: 'blur(10px)',
                                           borderRadius: '6px 24px 24px 24px'
