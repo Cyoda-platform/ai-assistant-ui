@@ -150,11 +150,11 @@ const EnvironmentsPanel: React.FC<EnvironmentsPanelProps> = ({
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col p-4 space-y-3 overflow-y-auto">
+      <div className="flex-1 flex flex-col p-4 overflow-y-auto gap-4">
         {/* Add Environment Button - Disabled (Coming Soon) */}
         <button
           disabled
-          className="w-full px-4 py-3 rounded-lg border-2 border-dashed border-slate-700 text-slate-600 cursor-not-allowed transition-all flex items-center justify-center space-x-2 opacity-50"
+          className="w-full px-4 py-2.5 rounded-lg border-2 border-dashed border-slate-700 text-slate-600 cursor-not-allowed transition-all flex items-center justify-center space-x-2 opacity-50"
           title="Adding custom environments is coming soon"
         >
           <Plus size={18} />
@@ -171,7 +171,7 @@ const EnvironmentsPanel: React.FC<EnvironmentsPanelProps> = ({
             </div>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3 pb-4">
             {environments.map((env) => (
               <div
                 key={env.name}
