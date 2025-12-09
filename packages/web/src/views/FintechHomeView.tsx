@@ -798,8 +798,8 @@ const FintechHomeView: React.FC = () => {
                                         className="rounded-lg overflow-hidden flex items-center justify-center shadow-lg flex-shrink-0"
                                         style={{
                                           background: `linear-gradient(135deg, ${example.gradient})`,
-                                          width: '56px',
-                                          height: '56px'
+                                          width: '48px',
+                                          height: '48px'
                                         }}
                                       >
                                         {example.icon}
@@ -808,8 +808,8 @@ const FintechHomeView: React.FC = () => {
 
                                     {/* Text Content */}
                                     <div className="flex-1 space-y-3">
-                                      {/* H3 - Heading 3 (28-36px) */}
-                                      <h3 className="font-bold text-white mb-3 group-hover:text-emerald-300 transition-colors duration-300" style={{ fontSize: isChatHistoryOpen ? 'clamp(18px, 2vw, 24px)' : 'clamp(24px, 3vw, 32px)' }}>
+                                      {/* H3 - Heading 3 (16-20px) */}
+                                      <h3 className="text-white mb-3 group-hover:text-emerald-300 transition-colors duration-300" style={{ fontSize: isChatHistoryOpen ? 'clamp(13px, 1vw, 15px)' : 'clamp(16px, 1.5vw, 20px)', fontWeight: 400 }}>
                                         {example.title}
                                       </h3>
 
