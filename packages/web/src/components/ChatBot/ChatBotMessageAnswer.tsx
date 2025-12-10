@@ -84,14 +84,14 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
         {/* Message Content Container */}
         <div className="flex flex-col items-end space-y-1.5 flex-1">
           {/* User Badge */}
-          <div className="flex items-center space-x-1.5">
+          <div className="flex items-center space-x-2 mb-2">
             {date && (
               <div className="flex items-center space-x-1 text-xs text-slate-500">
                 <Clock size={12} />
-                <span className="text-xs">{date}</span>
+                <span>{date}</span>
               </div>
             )}
-            <div className="flex items-center space-x-1 bg-slate-800/50 backdrop-blur-sm px-2 py-0.5 rounded-full border border-slate-600">
+            <div className="flex items-center space-x-1.5 bg-slate-800/50 backdrop-blur-sm px-3 py-1 rounded-full border border-slate-600">
               <span className="text-xs font-medium text-slate-300">{userName}</span>
               <User size={12} className="text-teal-400" />
             </div>

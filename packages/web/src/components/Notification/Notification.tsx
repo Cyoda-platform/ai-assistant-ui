@@ -107,8 +107,8 @@ const Notification: React.FC<NotificationProps> = ({
         <div className="flex-1 min-w-0">
           {/* Notification Badge */}
           <div className="flex items-center space-x-2 mb-2">
-            <span className="inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">
-              <Sparkles size={10} />
+            <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-700 text-slate-300">
+              <Sparkles size={12} />
               <span>CYODA {getBadgeText()}</span>
             </span>
             <span className="text-xs text-slate-500">
@@ -117,7 +117,7 @@ const Notification: React.FC<NotificationProps> = ({
           </div>
 
           {/* Notification Bubble */}
-          <div className={`${containerInfo.className} rounded-tl-md group`}>
+          <div className={`${containerInfo.className} rounded-tl-sm group`}>
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
                 <h4 className="text-base font-semibold text-white mb-2">{title}</h4>
