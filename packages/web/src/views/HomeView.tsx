@@ -1030,23 +1030,31 @@ const HomeView: React.FC = () => {
                       }}
                       placeholder="What would you like to build today?"
                       rows={1}
-                      className="w-full text-white placeholder-slate-400 focus:outline-none transition-all duration-200 text-lg resize-none"
+                      className="w-full text-white placeholder-slate-300 focus:outline-none transition-all duration-300 text-lg resize-none peer"
                       style={{
                         height: `${textareaHeight}px`,
                         minHeight: '64px',
                         maxHeight: '300px',
                         overflowY: textareaHeight >= 300 ? 'auto' : 'hidden',
                         lineHeight: '1.5',
-                        background: 'rgba(30, 41, 59, 0.6)',
+                        background: 'rgba(20,184,166,0.12)',
                         backdropFilter: 'blur(14px)',
                         WebkitBackdropFilter: 'blur(14px)',
-                        border: '1px solid rgba(255,255,255,0.12)',
+                        border: '2px solid rgba(20,184,166,0.8)',
                         borderRadius: '24px',
                         padding: '18px 24px 60px 24px',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                        boxShadow: '0 0 20px rgba(20,184,166,0.3), 0 8px 32px rgba(0,0,0,0.2)',
                         fontFamily: 'Roboto, sans-serif'
                       }}
                       disabled={isLoading}
+                      onFocus={(e) => {
+                        e.currentTarget.style.boxShadow = '0 0 30px rgba(20,184,166,0.6), 0 8px 32px rgba(0,0,0,0.3)';
+                        e.currentTarget.style.borderColor = 'rgba(20,184,166,1)';
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.boxShadow = '0 0 20px rgba(20,184,166,0.3), 0 8px 32px rgba(0,0,0,0.2)';
+                        e.currentTarget.style.borderColor = 'rgba(20,184,166,0.8)';
+                      }}
                     />
 
                     {/* Bottom Right Controls - Lovable Style */}

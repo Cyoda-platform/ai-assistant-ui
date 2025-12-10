@@ -628,16 +628,6 @@ const FintechHomeView: React.FC = () => {
 
               {/* Fintech Hero Section */}
               <div className="mb-12 animate-fade-in-up" style={{ marginTop: '32px', fontFamily: 'Roboto, sans-serif' }}>
-                {/* Background gradient for depth */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background: 'radial-gradient(circle at center top, rgba(34,197,94,0.12), transparent 60%)',
-                    top: '0',
-                    height: '600px'
-                  }}
-                />
-
                 {/* Hero Section - Professional Fintech */}
                 <div className="relative max-w-6xl mx-auto px-6">
                   {/* Main Hero */}
@@ -653,15 +643,12 @@ const FintechHomeView: React.FC = () => {
 
                     {/* H2 - Heading 1 (36-52px) */}
                     <h1
-                      className="font-bold text-white animate-fade-in"
+                      className="font-bold animate-fade-in"
                       style={{
                         fontFamily: 'Roboto, sans-serif',
                         fontWeight: 700,
                         fontSize: isChatHistoryOpen ? 'clamp(18px, 2vw, 24px)' : 'clamp(24px, 3vw, 32px)',
-                        background: 'linear-gradient(135deg, #22c55e 0%, #10b981 50%, #059669 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text',
+                        color: '#14b8a6',
                         animationDelay: '0.1s',
                         marginBottom: '16px'
                       }}
@@ -761,15 +748,6 @@ const FintechHomeView: React.FC = () => {
                                 borderRadius: '24px 2px 24px 24px'
                               }}
                             >
-                              {/* Fintech hover gradient effect - full card border */}
-                              <div
-                                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                                style={{
-                                  background: 'radial-gradient(circle at top right, rgba(34,197,94,0.15), transparent 70%)',
-                                  borderRadius: '24px 2px 24px 24px'
-                                }}
-                              />
-
                               <div className="relative z-10">
                                 <div className="space-y-4">
                                   {/* Header Content */}
@@ -921,23 +899,31 @@ const FintechHomeView: React.FC = () => {
                       }}
                       placeholder="What fintech solution would you like to build today?"
                       rows={1}
-                      className="w-full text-white placeholder-slate-400 focus:outline-none transition-all duration-200 text-lg resize-none"
+                      className="w-full text-white placeholder-slate-300 focus:outline-none transition-all duration-300 text-lg resize-none peer"
                       style={{
                         height: `${textareaHeight}px`,
                         minHeight: '64px',
                         maxHeight: '300px',
                         overflowY: textareaHeight >= 300 ? 'auto' : 'hidden',
                         lineHeight: '1.5',
-                        background: 'rgba(30, 41, 59, 0.6)',
+                        background: 'rgba(34,197,94,0.12)',
                         backdropFilter: 'blur(14px)',
                         WebkitBackdropFilter: 'blur(14px)',
-                        border: '2px solid rgba(34,197,94,0.3)',
+                        border: '2px solid rgba(34,197,94,0.8)',
                         borderRadius: '24px',
                         padding: '18px 24px 60px 24px',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                        boxShadow: '0 0 20px rgba(34,197,94,0.3), 0 8px 32px rgba(0,0,0,0.2)',
                         fontFamily: 'Roboto, sans-serif'
                       }}
                       disabled={isLoading}
+                      onFocus={(e) => {
+                        e.currentTarget.style.boxShadow = '0 0 30px rgba(34,197,94,0.6), 0 8px 32px rgba(0,0,0,0.3)';
+                        e.currentTarget.style.borderColor = 'rgba(34,197,94,1)';
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.boxShadow = '0 0 20px rgba(34,197,94,0.3), 0 8px 32px rgba(0,0,0,0.2)';
+                        e.currentTarget.style.borderColor = 'rgba(34,197,94,0.8)';
+                      }}
                     />
 
                     {/* Bottom Right Controls - Fintech Style */}
@@ -1042,15 +1028,6 @@ const FintechHomeView: React.FC = () => {
                         boxShadow: '0 4px 16px rgba(0,0,0,0.1)'
                       }}
                     >
-                      {/* Fintech hover gradient effect */}
-                      <div
-                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                        style={{
-                          background: 'radial-gradient(circle at top right, rgba(34,197,94,0.15), transparent 70%)',
-                          borderRadius: '12px'
-                        }}
-                      />
-
                       <div className="relative z-10">
                         <div className="flex items-center space-x-3">
                           <div
@@ -1094,15 +1071,6 @@ const FintechHomeView: React.FC = () => {
                   marginTop: '4vh'
                 }}
               >
-                {/* Animated background gradient */}
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{
-                    background: 'radial-gradient(circle at top right, rgba(34,197,94,0.15), transparent 70%)',
-                    pointerEvents: 'none'
-                  }}
-                />
-
                 <div className="relative z-10">
                   {/* Header */}
                   <div className="mb-8">
