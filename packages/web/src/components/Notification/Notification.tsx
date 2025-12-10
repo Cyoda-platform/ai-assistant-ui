@@ -117,7 +117,7 @@ const Notification: React.FC<NotificationProps> = ({
           </div>
 
           {/* Notification Bubble */}
-          <div className={`${containerInfo.className} rounded-tl-sm group`}>
+          <div className={`${containerInfo.className} rounded-sharp-tl group`}>
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
                 <h4 className="text-base font-semibold text-white mb-2">{title}</h4>

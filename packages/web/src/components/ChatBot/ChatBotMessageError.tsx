@@ -40,7 +40,7 @@ const ChatBotMessageError: React.FC<ChatBotMessageErrorProps> = ({ message }) =>
           </div>
 
           {/* Error Content */}
-          <div className={`${containerInfo.className} rounded-tl-sm`}>
+          <div className={`${containerInfo.className} rounded-sharp-tl`}>
             <div className="flex items-start">
               <div className="flex-1 min-w-0">
                 <p className="text-base text-red-100 leading-relaxed whitespace-pre-wrap break-words">
