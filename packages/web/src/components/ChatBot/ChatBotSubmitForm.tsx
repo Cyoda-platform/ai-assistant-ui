@@ -442,7 +442,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
                 background: 'rgba(30, 41, 59, 0.6)',
                 backdropFilter: 'blur(14px)',
                 WebkitBackdropFilter: 'blur(14px)',
-                border: '1px solid rgba(20, 184, 166, 0.3)',
+                border: '2px solid rgba(20, 184, 166, 0.3)',
                 borderRadius: '24px',
                 padding: '18px 24px 60px 24px',
                 boxShadow: '0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(20, 184, 166, 0.1)',
