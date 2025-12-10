@@ -332,7 +332,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}
-      className={`relative px-4 pb-4 ${isDragging ? 'bg-teal-500 bg-opacity-10 border-2 border-dashed border-teal-500' : ''}`}
+      className={`relative px-4 ${isDragging ? 'bg-teal-500 bg-opacity-10 border-2 border-dashed border-teal-500' : ''}`}
     >
       {isDragging && (
         <div className="absolute inset-0 flex items-center justify-center bg-slate-800 bg-opacity-90 backdrop-blur-sm rounded-xl z-10">
