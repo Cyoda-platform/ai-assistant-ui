@@ -638,7 +638,7 @@ const FintechHomeView: React.FC = () => {
                       border: '1px solid rgba(34,197,94,0.3)'
                     }}>
                       <div className="w-2 h-2 rounded-full" style={{ background: '#22c55e' }}></div>
-                      <span className="text-emerald-300" style={{ fontSize: isChatHistoryOpen ? 'clamp(10px, 0.6vw, 11px)' : 'clamp(11px, 0.8vw, 13px)' }}>Fintech Solutions</span>
+                      <span className="text-emerald-300 font-bold" style={{ fontSize: isChatHistoryOpen ? 'clamp(10px, 0.6vw, 11px)' : 'clamp(11px, 0.8vw, 13px)', fontWeight: 700 }}>Fintech Solutions</span>
                     </div>
 
                     {/* H2 - Heading 1 (36-52px) */}
@@ -683,7 +683,6 @@ const FintechHomeView: React.FC = () => {
                           key={idx}
                           className="px-4 py-2 rounded-lg transition-all duration-300 hover:scale-105"
                           style={{
-                            background: 'rgba(34,197,94,0.1)',
                             border: '1px solid rgba(34,197,94,0.2)',
                             backdropFilter: 'blur(10px)'
                           }}
@@ -796,7 +795,7 @@ const FintechHomeView: React.FC = () => {
                                         className="relative p-4 transition-all duration-300"
                                         style={{
                                           background: 'rgba(20, 184, 166, 0.08)',
-                                          border: '2px solid rgba(20,184,166,0.4)',
+                                          border: '1px solid rgba(20,184,166,0.4)',
                                           backdropFilter: 'blur(10px)',
                                           WebkitBackdropFilter: 'blur(10px)',
                                           borderRadius: '24px 6px 24px 24px'
