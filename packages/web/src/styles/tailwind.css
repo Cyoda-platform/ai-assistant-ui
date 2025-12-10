@@ -664,7 +664,8 @@ body.resizing-active * {
 /* Scrollbar Management - No outer scrollbar needed */
 html, body {
   overflow: hidden; /* Prevent any outer scrolling */
-  height: 100%;
+  height: 100vh;
+  width: 100vw;
   margin: 0;
   padding: 0;
 }
@@ -713,6 +714,8 @@ html, body {
   position: fixed; /* Prevent any body scrolling */
   top: 0;
   left: 0;
+  bottom: 0;
+  right: 0;
 }
 
 .main-content {

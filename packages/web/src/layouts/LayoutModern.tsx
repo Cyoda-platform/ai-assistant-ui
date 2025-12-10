@@ -271,7 +271,7 @@ const LayoutModern: React.FC<LayoutModernProps> = ({ children }) => {
         </div>
       </header>
 
-      <div className="flex h-[calc(100vh-73px)]">
+      <div className="flex h-[calc(100vh-61px)]">
         {/* Enhanced Left Sidebar */}
         <div className="w-64 bg-slate-800/90 backdrop-blur-sm border-r border-slate-700 flex flex-col">
           {/* Quick Actions */}
