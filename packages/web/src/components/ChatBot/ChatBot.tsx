@@ -343,8 +343,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
       </div>
 
       {/* Input Area at Bottom */}
-      <div className="border-t border-slate-700 glass p-4 flex-shrink-0">
-        <div className="max-w-[90%] mx-auto w-full">
+      <div className="flex-shrink-0 flex justify-center">
+        <div className="w-full max-w-7xl">
           <ChatBotSubmitForm
             disabled={disabled}
             onAnswer={onAnswer}
