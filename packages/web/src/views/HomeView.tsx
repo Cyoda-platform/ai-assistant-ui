@@ -858,14 +858,16 @@ const HomeView: React.FC = () => {
                               className="w-full text-left p-4 transition-all duration-500 group relative overflow-hidden cursor-pointer"
                               style={{
                                 background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)',
-                                backdropFilter: 'blur(20px)'
+                                backdropFilter: 'blur(20px)',
+                                borderRadius: '24px 2px 24px 24px'
                               }}
                             >
                               {/* Hover gradient effect */}
                               <div
                                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                                 style={{
-                                  background: 'radial-gradient(circle at top right, rgba(0,185,200,0.1), transparent 70%)'
+                                  background: 'radial-gradient(circle at top right, rgba(0,185,200,0.1), transparent 70%)',
+                                  borderRadius: '24px 2px 24px 24px'
                                 }}
                               />
 
@@ -925,7 +927,7 @@ const HomeView: React.FC = () => {
                                           border: '1px solid rgba(20, 184, 166, 0.3)',
                                           backdropFilter: 'blur(10px)',
                                           WebkitBackdropFilter: 'blur(10px)',
-                                          borderRadius: '24px'
+                                          borderRadius: '24px 6px 24px 24px'
                                         }}
                                       >
                                         {/* Small - 12-14px */}

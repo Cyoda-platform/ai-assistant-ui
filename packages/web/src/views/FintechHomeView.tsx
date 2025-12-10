@@ -758,7 +758,7 @@ const FintechHomeView: React.FC = () => {
                               style={{
                                 background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)',
                                 backdropFilter: 'blur(20px)',
-                                borderRadius: '24px'
+                                borderRadius: '24px 2px 24px 24px'
                               }}
                             >
                               {/* Fintech hover gradient effect - full card border */}
@@ -766,7 +766,7 @@ const FintechHomeView: React.FC = () => {
                                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                                 style={{
                                   background: 'radial-gradient(circle at top right, rgba(34,197,94,0.15), transparent 70%)',
-                                  borderRadius: '24px'
+                                  borderRadius: '24px 2px 24px 24px'
                                 }}
                               />
 
@@ -821,7 +821,7 @@ const FintechHomeView: React.FC = () => {
                                           border: '2px solid rgba(20,184,166,0.4)',
                                           backdropFilter: 'blur(10px)',
                                           WebkitBackdropFilter: 'blur(10px)',
-                                          borderRadius: '6px 24px 24px 24px'
+                                          borderRadius: '24px 6px 24px 24px'
                                         }}
                                       >
                                         {/* Same size as input box */}
