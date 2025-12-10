@@ -30,6 +30,7 @@ import {
 import { useAssistantStore } from '@/stores/assistant';
 import { useAuthStore, useSuperUserMode } from '@/stores/auth';
 import Header from '@/components/Header/Header';
+import { H1, H3, H4, Body, BodySmall, Caption, CaptionUppercase } from '@/components/Typography';
 
 import ChatHistoryPanel from '@/components/ChatHistoryPanel/ChatHistoryPanel';
 import EnvironmentsPanel from '@/components/EnvironmentsPanel/EnvironmentsPanel';
@@ -638,38 +639,33 @@ const FintechHomeView: React.FC = () => {
                       border: '1px solid rgba(34,197,94,0.3)'
                     }}>
                       <div className="w-2 h-2 rounded-full" style={{ background: '#22c55e' }}></div>
-                      <span className="text-emerald-300 font-bold" style={{ fontSize: isChatHistoryOpen ? 'clamp(10px, 0.6vw, 11px)' : 'clamp(11px, 0.8vw, 13px)', fontWeight: 700 }}>Fintech Solutions</span>
+                      <CaptionUppercase className="text-emerald-300">
+                        Fintech Solutions
+                      </CaptionUppercase>
                     </div>
 
-                    {/* H2 - Heading 1 (36-52px) */}
-                    <h1
-                      className="font-bold animate-fade-in"
+                    {/* H1 - Main Heading */}
+                    <H1
+                      className="text-teal-500 animate-fade-in"
                       style={{
-                        fontFamily: 'Roboto, sans-serif',
-                        fontWeight: 700,
-                        fontSize: isChatHistoryOpen ? 'clamp(18px, 2vw, 24px)' : 'clamp(24px, 3vw, 32px)',
-                        color: '#14b8a6',
                         animationDelay: '0.1s',
                         marginBottom: '16px'
                       }}
                     >
                       Enterprise Fintech Platform
-                    </h1>
+                    </H1>
 
-                    {/* Body - 16-20px */}
-                    <p
-                      className="text-slate-300 leading-relaxed animate-fade-in"
+                    {/* Body Large - Main Description */}
+                    <Body
+                      className="text-slate-300 animate-fade-in"
                       style={{
-                        fontFamily: 'Roboto, sans-serif',
-                        fontWeight: 400,
-                        fontSize: isChatHistoryOpen ? 'clamp(13px, 1vw, 15px)' : 'clamp(16px, 1.5vw, 20px)',
                         animationDelay: '0.2s',
                         maxWidth: '800px',
                         marginBottom: '24px'
                       }}
                     >
                       Build, deploy, and scale enterprise-grade fintech applications with AI-powered development. From trading platforms to payment systems, we provide the infrastructure for modern financial innovation.
-                    </p>
+                    </Body>
 
                     {/* Feature Pills */}
                     <div className="flex flex-wrap gap-3 animate-fade-in" style={{ animationDelay: '0.3s' }}>
@@ -687,11 +683,11 @@ const FintechHomeView: React.FC = () => {
                             backdropFilter: 'blur(10px)'
                           }}
                         >
-                          {/* Small - 12-14px */}
-                          <span className="font-medium text-slate-200" style={{ fontSize: isChatHistoryOpen ? 'clamp(11px, 0.7vw, 12px)' : 'clamp(12px, 0.9vw, 14px)' }}>
+                          {/* Body Small - Feature Pills */}
+                          <BodySmall className="text-slate-200">
                             <span className="mr-2">{feature.icon}</span>
                             {feature.label}
-                          </span>
+                          </BodySmall>
                         </div>
                       ))}
                     </div>
@@ -752,19 +748,20 @@ const FintechHomeView: React.FC = () => {
                                   {/* Header Content */}
                                   <div className="flex items-center justify-end gap-3 mb-3" style={{ marginRight: '3%' }}>
                                     {/* Tiny - 12-14px */}
-                                    <span
-                                      className="px-3 py-1 rounded-full font-semibold uppercase tracking-wider"
+                                    <CaptionUppercase
                                       style={{
                                         background: `linear-gradient(135deg, ${example.gradient})`,
                                         color: 'white',
-                                        fontSize: isChatHistoryOpen ? 'clamp(10px, 0.6vw, 11px)' : 'clamp(11px, 0.8vw, 13px)'
+                                        padding: '6px 12px',
+                                        borderRadius: '9999px',
+                                        display: 'inline-block'
                                       }}
                                     >
                                       {example.category}
-                                    </span>
-                                    <div className="flex items-center space-x-1 text-slate-400" style={{ fontSize: isChatHistoryOpen ? 'clamp(10px, 0.6vw, 11px)' : 'clamp(11px, 0.8vw, 13px)' }}>
-                                      <Clock size={isChatHistoryOpen ? 12 : 14} />
-                                      <span>15-45 min setup</span>
+                                    </CaptionUppercase>
+                                    <div className="flex items-center space-x-1 text-slate-400">
+                                      <Clock size={14} />
+                                      <Caption>15-45 min setup</Caption>
                                     </div>
                                   </div>
 
@@ -785,10 +782,10 @@ const FintechHomeView: React.FC = () => {
 
                                     {/* Text Content */}
                                     <div className="flex-1 space-y-3">
-                                      {/* H3 - Heading 3 (16-20px) */}
-                                      <h3 className="text-white mb-3 group-hover:text-emerald-300 transition-colors duration-300" style={{ fontSize: isChatHistoryOpen ? 'clamp(13px, 1vw, 15px)' : 'clamp(16px, 1.5vw, 20px)', fontWeight: 400 }}>
+                                      {/* H3 - Carousel Title */}
+                                      <H3 className="text-white mb-3 group-hover:text-emerald-300 transition-colors duration-300">
                                         {example.title}
-                                      </h3>
+                                      </H3>
 
                                       {/* Prompt Text with Copy Button */}
                                       <div
@@ -801,10 +798,10 @@ const FintechHomeView: React.FC = () => {
                                           borderRadius: '24px 6px 24px 24px'
                                         }}
                                       >
-                                        {/* Same size as input box */}
-                                        <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors duration-300 pr-10 text-base" style={{ fontFamily: 'Roboto, sans-serif', lineHeight: '1.5' }}>
+                                        {/* Body - Prompt Text */}
+                                        <Body className="text-slate-400 group-hover:text-slate-300 transition-colors duration-300 pr-10">
                                           {example.prompt}
-                                        </p>
+                                        </Body>
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation();
@@ -1040,14 +1037,14 @@ const FintechHomeView: React.FC = () => {
                             {action.icon}
                           </div>
                           <div className="flex-1 min-w-0">
-                            {/* H5 - Heading 5 (14-18px) */}
-                            <div className="font-semibold text-white group-hover:text-emerald-300 transition-colors duration-300 mb-1" style={{ fontSize: 'clamp(14px, 1vw, 18px)' }}>
+                            {/* H4 - Quick Action Label */}
+                            <H4 className="text-white group-hover:text-emerald-300 transition-colors duration-300 mb-1">
                               {action.label}
-                            </div>
-                            {/* Tiny - 12-14px */}
-                            <div className="text-slate-300 group-hover:text-slate-200 transition-colors duration-300 line-clamp-2" style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>
+                            </H4>
+                            {/* Body Small - Quick Action Description */}
+                            <BodySmall className="text-slate-300 group-hover:text-slate-200 transition-colors duration-300 line-clamp-2">
                               {action.description}
-                            </div>
+                            </BodySmall>
                           </div>
                           <ChevronRight size={14} className="text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0 mt-1" />
                         </div>
@@ -1085,20 +1082,22 @@ const FintechHomeView: React.FC = () => {
                         <Rocket className="w-8 h-8 text-emerald-400" />
                       </div>
                       <div>
-                        {/* H3 - Heading 3 (28-36px) */}
-                        <h3 className="font-bold text-white" style={{ fontSize: 'clamp(24px, 3vw, 32px)' }}>
+                        {/* H1 - Enterprise Title */}
+                        <H1 className="text-white">
                           Enterprise-Grade Fintech Solutions
-                        </h3>
-                        {/* Small - 12-14px */}
-                        <p className="text-emerald-300 font-semibold mt-1" style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>Accelerate Your Path to Production</p>
+                        </H1>
+                        {/* Caption Uppercase - Subtitle */}
+                        <CaptionUppercase className="text-emerald-300 mt-1">
+                          Accelerate Your Path to Production
+                        </CaptionUppercase>
                       </div>
                     </div>
                   </div>
 
-                  {/* Main Description - Body 16-20px */}
-                  <p className="text-slate-200 leading-relaxed mb-8" style={{ fontSize: 'clamp(16px, 1.5vw, 20px)' }}>
+                  {/* Body Large - Main Description */}
+                  <BodyLarge className="text-slate-200 mb-8">
                     CYODA AI Studio empowers fintech teams to build, deploy, and scale secure, compliant applications faster than ever. From concept to production, we provide the infrastructure and tools you need for modern financial innovation.
-                  </p>
+                  </BodyLarge>
 
                   {/* Features Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1146,10 +1145,14 @@ const FintechHomeView: React.FC = () => {
                         <div className="flex items-start space-x-3">
                           <span className={`flex-shrink-0 ${isChatHistoryOpen ? 'text-lg' : 'text-2xl'}`}>{feature.icon}</span>
                           <div>
-                            {/* H5 - Heading 5 (18-24px) */}
-                            <h4 className="font-bold text-white mb-1" style={{ fontSize: isChatHistoryOpen ? 'clamp(14px, 1vw, 16px)' : 'clamp(16px, 1.2vw, 20px)' }}>{feature.title}</h4>
-                            {/* Tiny - 12-14px */}
-                            <p className="text-slate-300" style={{ fontSize: isChatHistoryOpen ? 'clamp(11px, 0.8vw, 12px)' : 'clamp(12px, 0.9vw, 14px)' }}>{feature.description}</p>
+                            {/* H4 - Feature Card Title */}
+                            <H4 className="text-white mb-1">
+                              {feature.title}
+                            </H4>
+                            {/* Body Small - Feature Card Description */}
+                            <BodySmall className="text-slate-300">
+                              {feature.description}
+                            </BodySmall>
                           </div>
                         </div>
                       </div>

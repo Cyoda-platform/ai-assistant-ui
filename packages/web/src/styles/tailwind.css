@@ -1,6 +1,50 @@
 @import "tailwindcss";
 @import "highlight.js/styles/github-dark.css";
 
+/* ============================================
+   TYPOGRAPHY SYSTEM - Global Standards
+   ============================================ */
+
+:root {
+  /* Font Families */
+  --font-primary: 'Roboto', Arial, sans-serif;
+
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Font Sizes with clamp() for responsive scaling */
+  --font-size-display: clamp(32px, 4vw, 48px);
+  --font-size-h1: clamp(24px, 3vw, 32px);
+  --font-size-h2: clamp(20px, 2.5vw, 28px);
+  --font-size-h3: clamp(16px, 1.5vw, 20px);
+  --font-size-h4: clamp(14px, 1.2vw, 18px);
+  --font-size-body-lg: clamp(16px, 1.5vw, 20px);
+  --font-size-body: clamp(14px, 1.2vw, 16px);
+  --font-size-body-sm: clamp(12px, 0.9vw, 14px);
+  --font-size-caption: clamp(11px, 0.8vw, 13px);
+  --font-size-tiny: clamp(10px, 0.7vw, 12px);
+
+  /* Line Heights */
+  --line-height-heading: 1.2;
+  --line-height-body: 1.5;
+  --line-height-caption: 1.4;
+
+  /* Letter Spacing */
+  --letter-spacing-normal: 0;
+  --letter-spacing-uppercase: 0.05em;
+  --letter-spacing-wide: 0.1em;
+
+  /* Text Colors */
+  --text-primary: #ffffff;
+  --text-secondary: #e2e8f0;
+  --text-tertiary: #94a3b8;
+  --text-disabled: #64748b;
+  --text-accent-green: #4ade80;
+  --text-accent-teal: #14b8a6;
+}
+
 /* Force dark mode globally - light mode not supported */
 :root {
   color-scheme: dark;
@@ -55,6 +99,100 @@ html {
 
   .scrollbar-track-slate-800::-webkit-scrollbar-track {
     background: rgb(30 41 59);
+  }
+
+  /* ============================================
+     TYPOGRAPHY UTILITY CLASSES
+     ============================================ */
+
+  /* Display (H0) - clamp(32px, 4vw, 48px) | Bold */
+  .typo-display {
+    font-size: var(--font-size-display);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-heading);
+    font-family: var(--font-primary);
+  }
+
+  /* Heading 1 - clamp(24px, 3vw, 32px) | Bold */
+  .typo-h1 {
+    font-size: var(--font-size-h1);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-heading);
+    font-family: var(--font-primary);
+  }
+
+  /* Heading 2 - clamp(20px, 2.5vw, 28px) | Semibold */
+  .typo-h2 {
+    font-size: var(--font-size-h2);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-heading);
+    font-family: var(--font-primary);
+  }
+
+  /* Heading 3 - clamp(16px, 1.5vw, 20px) | Semibold */
+  .typo-h3 {
+    font-size: var(--font-size-h3);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-heading);
+    font-family: var(--font-primary);
+  }
+
+  /* Heading 4 - clamp(14px, 1.2vw, 18px) | Semibold */
+  .typo-h4 {
+    font-size: var(--font-size-h4);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-heading);
+    font-family: var(--font-primary);
+  }
+
+  /* Body Large - clamp(16px, 1.5vw, 20px) | Regular */
+  .typo-body-lg {
+    font-size: var(--font-size-body-lg);
+    font-weight: var(--font-weight-regular);
+    line-height: var(--line-height-body);
+    font-family: var(--font-primary);
+  }
+
+  /* Body - clamp(14px, 1.2vw, 16px) | Regular */
+  .typo-body {
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-regular);
+    line-height: var(--line-height-body);
+    font-family: var(--font-primary);
+  }
+
+  /* Body Small - clamp(12px, 0.9vw, 14px) | Regular */
+  .typo-body-sm {
+    font-size: var(--font-size-body-sm);
+    font-weight: var(--font-weight-regular);
+    line-height: var(--line-height-body);
+    font-family: var(--font-primary);
+  }
+
+  /* Caption - clamp(11px, 0.8vw, 13px) | Regular */
+  .typo-caption {
+    font-size: var(--font-size-caption);
+    font-weight: var(--font-weight-regular);
+    line-height: var(--line-height-caption);
+    font-family: var(--font-primary);
+  }
+
+  /* Tiny - clamp(10px, 0.7vw, 12px) | Regular */
+  .typo-tiny {
+    font-size: var(--font-size-tiny);
+    font-weight: var(--font-weight-regular);
+    line-height: var(--line-height-caption);
+    font-family: var(--font-primary);
+  }
+
+  /* Caption Uppercase - for labels and badges */
+  .typo-caption-uppercase {
+    font-size: var(--font-size-caption);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-caption);
+    font-family: var(--font-primary);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-uppercase);
   }
 
   /* Canvas QA message styles - Pink/Purple theme */
