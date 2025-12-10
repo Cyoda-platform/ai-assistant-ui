@@ -131,7 +131,9 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
           </div>
 
           {/* Message Bubble */}
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-3xl rounded-sharp-tl px-6 py-4 shadow-lg hover:shadow-xl hover:border-slate-600 transition-all duration-200">
+          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-3xl rounded-sharp-tl shadow-lg hover:shadow-xl hover:border-slate-600 transition-all duration-200" style={{
+            padding: 'clamp(0.375rem, 1vw + 0.2rem, 0.75rem) clamp(0.5rem, 1.5vw + 0.375rem, 1rem)'
+          }}>
             <div className="space-y-4">
               {/* Display the actual message content */}
               <MarkdownRenderer>
