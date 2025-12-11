@@ -400,37 +400,37 @@ const FintechHomeView: React.FC = () => {
     {
       label: 'What is CYODA?',
       action: () => setChatInput('What is CYODA and how does it work?'),
-      icon: <Info size={28} className="text-slate-300" />,
+      icon: <Info size={20} className="text-slate-300" />,
       description: 'Learn about the CYODA platform'
     },
     {
       label: 'What is my CYODA env?',
       action: () => setChatInput('Show me my current CYODA environment status and configuration'),
-      icon: <Search size={28} className="text-slate-300" />,
+      icon: <Search size={20} className="text-slate-300" />,
       description: 'Check environment status'
     },
     {
       label: 'Deploy my environment',
       action: () => setChatInput('Deploy my environment to production with all configurations and dependencies'),
-      icon: <Zap size={28} className="text-slate-300" />,
+      icon: <Zap size={20} className="text-slate-300" />,
       description: 'Deploy to production environment'
     },
     {
       label: 'Help with workflows',
       action: () => setChatInput('Create a workflow for Order entity with create, update, and cancel transitions'),
-      icon: <GitBranch size={28} className="text-slate-300" />,
+      icon: <GitBranch size={20} className="text-slate-300" />,
       description: 'Design entity workflows'
     },
     {
       label: 'Build a REST API',
       action: () => setChatInput('Build a complete REST API with CRUD operations for customer management'),
-      icon: <Search size={28} className="text-slate-300" />,
+      icon: <Search size={20} className="text-slate-300" />,
       description: 'Create a full REST API application'
     },
     {
       label: 'Add new entity',
       action: () => setChatInput('Add a Customer entity with id, name, email, and phone fields'),
-      icon: <Database size={28} className="text-slate-300" />,
+      icon: <Database size={20} className="text-slate-300" />,
       description: 'Create data entities'
     }
   ];
@@ -1018,7 +1018,7 @@ const FintechHomeView: React.FC = () => {
                     <button
                       key={index}
                       onClick={action.action}
-                      className="text-left p-3 sm:p-4 md:p-4 lg:p-4 transition-all duration-300 group relative overflow-hidden"
+                      className="text-left p-2.5 sm:p-3 md:p-3 lg:p-3 transition-all duration-300 group relative overflow-hidden"
                       style={{
                         background: 'rgba(30, 41, 59, 0.6)',
                         backdropFilter: 'blur(14px)',
@@ -1041,7 +1041,7 @@ const FintechHomeView: React.FC = () => {
                           </div>
                           <div className="flex-1 min-w-0">
                             {/* H4 - Quick Action Label */}
-                            <H3 className="text-white group-hover:text-emerald-300 transition-colors duration-300 mb-1">
+                            <H3 className="text-white group-hover:text-emerald-300 transition-colors duration-300 mb-1" style={{ fontWeight: '500' }}>
                               {action.label}
                             </H3>
                             {/* Body Small - Quick Action Description */}
