@@ -625,7 +625,11 @@ const FintechHomeView: React.FC = () => {
         {/* Enhanced Main Content */}
         <div ref={mainContentRef} className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden scrollbar-thin bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
             <div className="p-3 sm:p-4 md:p-4 lg:p-5 xl:p-6 min-h-full flex flex-col min-w-0">
-            <div className={`w-full flex-1 flex flex-col min-w-0 max-w-full ${isChatHistoryOpen ? 'sm:max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl' : 'sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl'} mx-auto`}>
+            <div className={`w-full flex-1 flex flex-col min-w-0 max-w-full ${isChatHistoryOpen ? 'sm:max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl' : 'sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl'} mx-auto`} style={{
+              transform: isChatHistoryOpen ? 'scale(0.9)' : 'scale(1)',
+              transformOrigin: 'top center',
+              transition: 'transform 0.3s ease'
+            }}>
 
               {/* Fintech Hero Section */}
               <div className="mb-8 animate-fade-in-up" style={{ marginTop: '24px', fontFamily: 'Roboto, sans-serif' }}>
