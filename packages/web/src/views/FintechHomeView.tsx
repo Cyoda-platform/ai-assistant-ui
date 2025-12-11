@@ -677,14 +677,17 @@ const FintechHomeView: React.FC = () => {
                       ].map((feature, idx) => (
                         <div
                           key={idx}
-                          className="px-4 py-2 rounded-lg transition-all duration-300 hover:scale-105"
+                          className="rounded-lg transition-all duration-300 hover:scale-105 flex items-center justify-center"
                           style={{
+                            width: '200px',
+                            height: '48px',
+                            padding: '0.5rem 0.875rem',
                             border: '1px solid rgba(34,197,94,0.2)',
                             backdropFilter: 'blur(10px)'
                           }}
                         >
                           {/* Body Small - Feature Pills */}
-                          <BodySmall className="text-slate-200">
+                          <BodySmall className="text-slate-200 text-center">
                             <span className="mr-2">{feature.icon}</span>
                             {feature.label}
                           </BodySmall>
