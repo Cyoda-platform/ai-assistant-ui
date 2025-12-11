@@ -1018,7 +1018,7 @@ const FintechHomeView: React.FC = () => {
                     <button
                       key={index}
                       onClick={action.action}
-                      className="text-left p-2.5 sm:p-3 md:p-3 lg:p-3 transition-all duration-300 group relative overflow-hidden"
+                      className="text-left p-2 sm:p-2.5 md:p-2.5 lg:p-2.5 transition-all duration-300 group relative overflow-hidden"
                       style={{
                         background: 'rgba(30, 41, 59, 0.6)',
                         backdropFilter: 'blur(14px)',
@@ -1041,13 +1041,13 @@ const FintechHomeView: React.FC = () => {
                           </div>
                           <div className="flex-1 min-w-0">
                             {/* H4 - Quick Action Label */}
-                            <H3 className="text-white group-hover:text-emerald-300 transition-colors duration-300 mb-1" style={{ fontWeight: '500' }}>
+                            <H3 className="text-white group-hover:text-emerald-300 transition-colors duration-300 mb-0" style={{ fontWeight: '500' }}>
                               {action.label}
                             </H3>
                             {/* Body Small - Quick Action Description */}
-                            <BodySmall className="text-slate-300 group-hover:text-slate-200 transition-colors duration-300 line-clamp-2">
+                            <span className="typo-body-sm text-slate-300 group-hover:text-slate-200 transition-colors duration-300 line-clamp-2 text-xs">
                               {action.description}
-                            </BodySmall>
+                            </span>
                           </div>
                           <ChevronRight size={14} className="text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0 mt-1" />
                         </div>
