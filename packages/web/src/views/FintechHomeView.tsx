@@ -628,13 +628,13 @@ const FintechHomeView: React.FC = () => {
             <div className={`w-full flex-1 flex flex-col min-w-0 max-w-full ${isChatHistoryOpen ? 'sm:max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl' : 'sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl'} mx-auto`}>
 
               {/* Fintech Hero Section */}
-              <div className="mb-12 animate-fade-in-up" style={{ marginTop: '32px', fontFamily: 'Roboto, sans-serif' }}>
+              <div className="mb-8 animate-fade-in-up" style={{ marginTop: '24px', fontFamily: 'Roboto, sans-serif' }}>
                 {/* Hero Section - Professional Fintech */}
                 <div className="relative max-w-6xl mx-auto px-6">
                   {/* Main Hero */}
-                  <div className="mb-10">
+                  <div className="mb-6">
                     {/* Badge */}
-                    <div className="mb-6 inline-flex items-center space-x-2 px-4 py-2 rounded-full" style={{
+                    <div className="mb-3 inline-flex items-center space-x-2 px-4 py-2 rounded-full" style={{
                       background: 'rgba(34,197,94,0.15)',
                       border: '1px solid rgba(34,197,94,0.3)'
                     }}>
@@ -649,7 +649,7 @@ const FintechHomeView: React.FC = () => {
                       className="text-teal-500 animate-fade-in"
                       style={{
                         animationDelay: '0.1s',
-                        marginBottom: '16px'
+                        marginBottom: '12px'
                       }}
                     >
                       Enterprise Fintech Platform
@@ -661,7 +661,7 @@ const FintechHomeView: React.FC = () => {
                       style={{
                         animationDelay: '0.2s',
                         maxWidth: '800px',
-                        marginBottom: '24px'
+                        marginBottom: '16px'
                       }}
                     >
                       Build, deploy, and scale enterprise-grade fintech applications with AI-powered development. From trading platforms to payment systems, we provide the infrastructure for modern financial innovation.
