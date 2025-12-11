@@ -1028,7 +1028,7 @@ const FintechHomeView: React.FC = () => {
                       }}
                     >
                       <div className="relative z-10">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-3">
                           <div
                             className="flex-shrink-0 rounded-lg transition-all duration-300 group-hover:scale-105 flex items-center justify-center"
                             style={{
