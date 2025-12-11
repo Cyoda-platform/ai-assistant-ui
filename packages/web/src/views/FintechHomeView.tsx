@@ -400,37 +400,37 @@ const FintechHomeView: React.FC = () => {
     {
       label: 'What is CYODA?',
       action: () => setChatInput('What is CYODA and how does it work?'),
-      icon: <Info size={20} className="text-slate-300" />,
+      icon: <Info size={20} className="text-slate-400" />,
       description: 'Learn about the CYODA platform'
     },
     {
       label: 'What is my CYODA env?',
       action: () => setChatInput('Show me my current CYODA environment status and configuration'),
-      icon: <Search size={20} className="text-slate-300" />,
+      icon: <Search size={20} className="text-slate-400" />,
       description: 'Check environment status'
     },
     {
       label: 'Deploy my environment',
       action: () => setChatInput('Deploy my environment to production with all configurations and dependencies'),
-      icon: <Zap size={20} className="text-slate-300" />,
+      icon: <Zap size={20} className="text-slate-400" />,
       description: 'Deploy to production environment'
     },
     {
       label: 'Help with workflows',
       action: () => setChatInput('Create a workflow for Order entity with create, update, and cancel transitions'),
-      icon: <GitBranch size={20} className="text-slate-300" />,
+      icon: <GitBranch size={20} className="text-slate-400" />,
       description: 'Design entity workflows'
     },
     {
       label: 'Build a REST API',
       action: () => setChatInput('Build a complete REST API with CRUD operations for customer management'),
-      icon: <Search size={20} className="text-slate-300" />,
+      icon: <Search size={20} className="text-slate-400" />,
       description: 'Create a full REST API application'
     },
     {
       label: 'Add new entity',
       action: () => setChatInput('Add a Customer entity with id, name, email, and phone fields'),
-      icon: <Database size={20} className="text-slate-300" />,
+      icon: <Database size={20} className="text-slate-400" />,
       description: 'Create data entities'
     }
   ];
@@ -650,7 +650,7 @@ const FintechHomeView: React.FC = () => {
 
                     {/* H1 - Main Heading */}
                     <H1
-                      className="text-teal-500 animate-fade-in"
+                      className="text-white animate-fade-in"
                       style={{
                         animationDelay: '0.1s',
                         marginBottom: '12px'
@@ -661,7 +661,7 @@ const FintechHomeView: React.FC = () => {
 
                     {/* Body Large - Main Description */}
                     <Body
-                      className="text-slate-300 animate-fade-in"
+                      className="text-slate-200 animate-fade-in"
                       style={{
                         animationDelay: '0.2s',
                         maxWidth: '800px',
@@ -716,8 +716,8 @@ const FintechHomeView: React.FC = () => {
                     {isDragging && (
                       <div className="absolute inset-0 flex items-center justify-center bg-slate-800 bg-opacity-90 backdrop-blur-sm rounded-3xl z-10 border-2 border-dashed border-emerald-500">
                         <div className="text-center">
-                          <Paperclip size={48} className="text-emerald-400 mx-auto mb-2" />
-                          <span className="text-emerald-400 font-medium text-lg">Drop files here</span>
+                          <Paperclip size={48} className="text-emerald-300 mx-auto mb-2" />
+                          <span className="text-emerald-300 font-medium text-lg">Drop files here</span>
                         </div>
                       </div>
                     )}
@@ -808,7 +808,7 @@ const FintechHomeView: React.FC = () => {
                 {attachedFiles.length > 0 && (
                   <div className="mt-2 sm:mt-3 md:mt-4 p-2 sm:p-3 md:p-4 bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-lg sm:rounded-xl md:rounded-2xl">
                     <div className="flex items-center justify-between mb-2 sm:mb-2.5 md:mb-3">
-                      <span className="text-xs sm:text-sm font-medium text-slate-300">Attached Files ({attachedFiles.length})</span>
+                      <span className="text-xs sm:text-sm font-medium text-slate-200">Attached Files ({attachedFiles.length})</span>
                       <button
                         type="button"
                         onClick={() => setAttachedFiles([])}
@@ -819,8 +819,8 @@ const FintechHomeView: React.FC = () => {
                     </div>
                     <div className="flex flex-wrap gap-1.5 sm:gap-2">
                       {attachedFiles.map((file, index) => (
-                        <div key={index} className="bg-slate-700/50 text-slate-300 px-2 sm:px-2.5 md:px-3 py-1.5 sm:py-1.5 md:py-2 rounded-md sm:rounded-lg text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 border border-slate-600">
-                          <Paperclip size={12} className="sm:w-[13px] sm:h-[13px] md:w-[14px] md:h-[14px] text-emerald-400 flex-shrink-0" />
+                        <div key={index} className="bg-slate-700/50 text-slate-200 px-2 sm:px-2.5 md:px-3 py-1.5 sm:py-1.5 md:py-2 rounded-md sm:rounded-lg text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 border border-slate-600">
+                          <Paperclip size={12} className="sm:w-[13px] sm:h-[13px] md:w-[14px] md:h-[14px] text-emerald-300 flex-shrink-0" />
                           <span className="max-w-[100px] sm:max-w-[150px] md:max-w-[200px] truncate">{file.name}</span>
                           <button
                             type="button"
@@ -949,7 +949,7 @@ const FintechHomeView: React.FC = () => {
                                         }}
                                       >
                                         {/* Body - Prompt Text */}
-                                        <span className="typo-body text-slate-400 group-hover:text-slate-300 transition-colors duration-300 pr-10 block">
+                                        <span className="typo-body text-slate-400 group-hover:text-slate-200 transition-colors duration-300 pr-10 block">
                                           {example.prompt}
                                         </span>
                                         <button
@@ -959,7 +959,7 @@ const FintechHomeView: React.FC = () => {
                                             navigator.clipboard.writeText(example.prompt);
                                             handlePromptClick(example.prompt);
                                           }}
-                                          className="absolute top-3 right-3 text-teal-400 hover:text-teal-300 transition-all duration-200 hover:scale-110 flex items-center justify-center flex-shrink-0"
+                                          className="absolute top-3 right-3 text-teal-400 hover:text-teal-400 transition-all duration-200 hover:scale-110 flex items-center justify-center flex-shrink-0"
                                           style={{
                                             width: '24px',
                                             height: '24px',
@@ -1049,11 +1049,11 @@ const FintechHomeView: React.FC = () => {
                               {action.label}
                             </H3>
                             {/* Body Small - Quick Action Description */}
-                            <span className="typo-body-sm text-slate-300 group-hover:text-slate-200 transition-colors duration-300 line-clamp-2 text-xs">
+                            <span className="typo-body-sm text-slate-200 group-hover:text-slate-200 transition-colors duration-300 line-clamp-2 text-xs">
                               {action.description}
                             </span>
                           </div>
-                          <ChevronRight size={14} className="text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0 mt-1" />
+                          <ChevronRight size={14} className="text-slate-400 group-hover:text-emerald-300 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0 mt-1" />
                         </div>
                       </div>
                     </button>
@@ -1086,7 +1086,7 @@ const FintechHomeView: React.FC = () => {
                           height: '56px'
                         }}
                       >
-                        <Rocket className="w-8 h-8 text-emerald-400" />
+                        <Rocket className="w-8 h-8 text-emerald-300" />
                       </div>
                       <div>
                         {/* H1 - Enterprise Title */}
@@ -1157,7 +1157,7 @@ const FintechHomeView: React.FC = () => {
                               {feature.title}
                             </H3>
                             {/* Body Small - Feature Card Description */}
-                            <BodySmall className="text-slate-300">
+                            <BodySmall className="text-slate-200">
                               {feature.description}
                             </BodySmall>
                           </div>
@@ -1168,10 +1168,10 @@ const FintechHomeView: React.FC = () => {
 
                   {/* CTA */}
                   <div className="mt-8 pt-8 border-t border-slate-700/50">
-                    <p className="text-slate-300 text-sm mb-4">
+                    <p className="text-slate-200 text-sm mb-4">
                       Ready to build your next fintech solution? Start with a simple prompt and let our AI guide you through the entire development process.
                     </p>
-                    <div className="flex items-center space-x-2 text-emerald-400 font-semibold">
+                    <div className="flex items-center space-x-2 text-emerald-300 font-semibold">
                       <span>Try it now in the chat above</span>
                       <ChevronRight size={18} />
                     </div>
@@ -1205,17 +1205,17 @@ const FintechHomeView: React.FC = () => {
                       <h4 className="font-bold text-white mb-4 text-sm uppercase tracking-wider">Company</h4>
                       <ul className="space-y-2">
                         <li>
-                          <a href="https://cyoda.com" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors text-sm">
+                          <a href="https://cyoda.com" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-300 transition-colors text-sm">
                             About CYODA
                           </a>
                         </li>
                         <li>
-                          <a href="https://github.com/Cyoda-platform" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors text-sm">
+                          <a href="https://github.com/Cyoda-platform" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-300 transition-colors text-sm">
                             Open Source
                           </a>
                         </li>
                         <li>
-                          <a href="https://devpost.com/Ksenniya?ref_content=user-portfolio&ref_feature=portfolio&ref_medium=global-nav" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors text-sm">
+                          <a href="https://devpost.com/Ksenniya?ref_content=user-portfolio&ref_feature=portfolio&ref_medium=global-nav" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-300 transition-colors text-sm">
                             Hackathons
                           </a>
                         </li>
@@ -1227,17 +1227,17 @@ const FintechHomeView: React.FC = () => {
                       <h4 className="font-bold text-white mb-4 text-sm uppercase tracking-wider">Community</h4>
                       <ul className="space-y-2">
                         <li>
-                          <a href="https://discord.com/invite/95rdAyBZr2" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors text-sm">
+                          <a href="https://discord.com/invite/95rdAyBZr2" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-300 transition-colors text-sm">
                             Discord Server
                           </a>
                         </li>
                         <li>
-                          <a href="https://github.com/Cyoda-platform" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors text-sm">
+                          <a href="https://github.com/Cyoda-platform" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-300 transition-colors text-sm">
                             GitHub
                           </a>
                         </li>
                         <li>
-                          <a href="https://linkedin.com/company/cyoda" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors text-sm">
+                          <a href="https://linkedin.com/company/cyoda" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-300 transition-colors text-sm">
                             LinkedIn
                           </a>
                         </li>
@@ -1249,12 +1249,12 @@ const FintechHomeView: React.FC = () => {
                       <h4 className="font-bold text-white mb-4 text-sm uppercase tracking-wider">Resources</h4>
                       <ul className="space-y-2">
                         <li>
-                          <a href="https://docs.cyoda.net/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors text-sm">
+                          <a href="https://docs.cyoda.net/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-300 transition-colors text-sm">
                             Getting Started
                           </a>
                         </li>
                         <li>
-                          <a href="https://docs.cyoda.net/api-reference/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors text-sm">
+                          <a href="https://docs.cyoda.net/api-reference/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-300 transition-colors text-sm">
                             API Reference
                           </a>
                         </li>
@@ -1272,11 +1272,11 @@ const FintechHomeView: React.FC = () => {
                     {/* Terms & Privacy Notice */}
                     <p className="text-slate-400 text-xs leading-relaxed">
                       By using this service, you confirm that you have read and agree to our{' '}
-                      <a href="https://cyoda.com/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium underline">
+                      <a href="https://cyoda.com/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-emerald-300 hover:text-emerald-300 transition-colors font-medium underline">
                         Terms & Conditions
                       </a>
                       {' '}and{' '}
-                      <a href="https://cyoda.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium underline">
+                      <a href="https://cyoda.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-emerald-300 hover:text-emerald-300 transition-colors font-medium underline">
                         Privacy Policy
                       </a>
                     </p>
@@ -1285,7 +1285,7 @@ const FintechHomeView: React.FC = () => {
                     <div className="flex flex-col md:flex-row items-center justify-between">
                       {/* Copyright */}
                       <p className="text-slate-400 text-sm mb-4 md:mb-0">
-                        © 2025 <a href="https://cyoda.com/" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium">CYODA Ltd</a>. All rights reserved.
+                        © 2025 <a href="https://cyoda.com/" target="_blank" rel="noopener noreferrer" className="text-emerald-300 hover:text-emerald-300 transition-colors font-medium">CYODA Ltd</a>. All rights reserved.
                       </p>
 
                       {/* Social Links */}
@@ -1301,7 +1301,7 @@ const FintechHomeView: React.FC = () => {
                           border: '1px solid rgba(255,255,255,0.1)'
                         }}
                       >
-                        <svg className="w-5 h-5 text-slate-400 hover:text-emerald-400 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-slate-400 hover:text-emerald-300 transition-colors" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                         </svg>
                       </a>
@@ -1316,7 +1316,7 @@ const FintechHomeView: React.FC = () => {
                           border: '1px solid rgba(255,255,255,0.1)'
                         }}
                       >
-                        <svg className="w-5 h-5 text-slate-400 hover:text-emerald-400 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-slate-400 hover:text-emerald-300 transition-colors" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                         </svg>
                       </a>

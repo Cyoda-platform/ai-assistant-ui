@@ -10,7 +10,7 @@ export default {
         // Display - Landing page hero
         'display': ['clamp(32px, 4vw, 48px)', { lineHeight: '1.2', fontWeight: '700' }],
         // Heading 1 - Main headings
-        'h1': ['clamp(24px, 3vw, 32px)', { lineHeight: '1.2', fontWeight: '700' }],
+        'h1': ['clamp(24px, 3vw, 32px)', { lineHeight: '1.3', fontWeight: '700' }],
         // Heading 2 - Section headings
         'h2': ['clamp(18px, 2vw, 24px)', { lineHeight: '1.3', fontWeight: '600' }],
         // Heading 3 - Subsection headings
