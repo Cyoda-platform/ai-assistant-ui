@@ -703,6 +703,149 @@ const FintechHomeView: React.FC = () => {
 
               </div>
 
+              {/* Chat Input */}
+              <div className="mt-8 mb-0 max-w-2xl mx-auto w-full">
+                <form onSubmit={handleChatSubmit}>
+                  <div
+                    className="relative"
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onDragOver={(e) => e.preventDefault()}
+                  >
+                    {isDragging && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-slate-800 bg-opacity-90 backdrop-blur-sm rounded-3xl z-10 border-2 border-dashed border-emerald-500">
+                        <div className="text-center">
+                          <Paperclip size={48} className="text-emerald-400 mx-auto mb-2" />
+                          <span className="text-emerald-400 font-medium text-lg">Drop files here</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <textarea
+                      ref={chatInputRef}
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onPaste={() => {
+                        // Allow the paste to happen first, then adjust height
+                        setTimeout(() => {
+                          adjustTextareaHeight();
+                        }, 0);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleChatSubmit(e);
+                        }
+                      }}
+                      placeholder="What fintech solution would you like to build today?"
+                      rows={1}
+                      className="w-full text-white placeholder-slate-300 focus:outline-none transition-all duration-300 text-lg resize-none peer"
+                      style={{
+                        height: `${textareaHeight}px`,
+                        minHeight: '64px',
+                        maxHeight: '300px',
+                        overflowY: textareaHeight >= 300 ? 'auto' : 'hidden',
+                        lineHeight: '1.5',
+                        background: 'rgba(34,197,94,0.12)',
+                        backdropFilter: 'blur(14px)',
+                        WebkitBackdropFilter: 'blur(14px)',
+                        border: '2px solid rgba(34,197,94,0.8)',
+                        borderRadius: '24px',
+                        padding: '18px 24px 60px 24px',
+                        boxShadow: '0 0 20px rgba(34,197,94,0.3), 0 8px 32px rgba(0,0,0,0.2)',
+                        fontFamily: 'Roboto, sans-serif'
+                      }}
+                      disabled={isLoading}
+                      onFocus={(e) => {
+                        e.currentTarget.style.boxShadow = '0 0 30px rgba(34,197,94,0.6), 0 8px 32px rgba(0,0,0,0.3)';
+                        e.currentTarget.style.borderColor = 'rgba(34,197,94,1)';
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.boxShadow = '0 0 20px rgba(34,197,94,0.3), 0 8px 32px rgba(0,0,0,0.2)';
+                        e.currentTarget.style.borderColor = 'rgba(34,197,94,0.8)';
+                      }}
+                    />
+
+                    {/* Bottom Right Controls - Fintech Style */}
+                    <div className="absolute right-6 bottom-4 flex items-center gap-0 z-10">
+                      {/* Attach File Button */}
+                      <button
+                        type="button"
+                        onClick={handleFileAttach}
+                        className="text-slate-400 hover:scale-110 transition-all duration-200 flex items-center justify-center flex-shrink-0"
+                        style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px' }}
+                        title="Attach file"
+                      >
+                        <Paperclip size={20} />
+                      </button>
+
+                      {/* Send Button - Fintech themed */}
+                      <button
+                        type="submit"
+                        disabled={!chatInput.trim() || isLoading}
+                        className="hover:scale-110 transition-all duration-200 flex items-center justify-center flex-shrink-0"
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          minWidth: '40px',
+                          minHeight: '40px',
+                          color: '#22c55e'
+                        }}
+                        title="Send Message (Enter)"
+                      >
+                        {isLoading ? (
+                          <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: '#22c55e33', borderTopColor: '#22c55e' }} />
+                        ) : (
+                          <Send size={20} style={{ color: '#22c55e' }} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </form>
+
+                {/* File attachments display - Below input */}
+                {attachedFiles.length > 0 && (
+                  <div className="mt-2 sm:mt-3 md:mt-4 p-2 sm:p-3 md:p-4 bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-lg sm:rounded-xl md:rounded-2xl">
+                    <div className="flex items-center justify-between mb-2 sm:mb-2.5 md:mb-3">
+                      <span className="text-xs sm:text-sm font-medium text-slate-300">Attached Files ({attachedFiles.length})</span>
+                      <button
+                        type="button"
+                        onClick={() => setAttachedFiles([])}
+                        className="text-xs text-slate-400 hover:text-white transition-colors"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                      {attachedFiles.map((file, index) => (
+                        <div key={index} className="bg-slate-700/50 text-slate-300 px-2 sm:px-2.5 md:px-3 py-1.5 sm:py-1.5 md:py-2 rounded-md sm:rounded-lg text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 border border-slate-600">
+                          <Paperclip size={12} className="sm:w-[13px] sm:h-[13px] md:w-[14px] md:h-[14px] text-emerald-400 flex-shrink-0" />
+                          <span className="max-w-[100px] sm:max-w-[150px] md:max-w-[200px] truncate">{file.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFile(index)}
+                            className="hover:text-red-400 transition-colors ml-1 flex-shrink-0"
+                          >
+                            <X size={12} className="sm:w-[13px] sm:h-[13px] md:w-[14px] md:h-[14px]" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Hidden File Input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  onChange={handleFileChange}
+                  style={{ display: 'none' }}
+                  accept=".pdf,.docx,.xlsx,.pptx,.xml,.json,text/*,image/*"
+                />
+              </div>
+
               {/* Fintech Prompt Examples Carousel */}
               <div
                 className="mt-6 mb-8 transition-all duration-500 ease-in-out -mx-4 sm:-mx-6 md:-mx-8 lg:-mx-12 xl:-mx-16 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16"
@@ -865,152 +1008,9 @@ const FintechHomeView: React.FC = () => {
                   </div>
               </div>
 
-              {/* Chat Input */}
-              <div className="mt-0 mb-0">
-                <form onSubmit={handleChatSubmit}>
-                  <div
-                    className="relative"
-                    onDragEnter={handleDragEnter}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    onDragOver={(e) => e.preventDefault()}
-                  >
-                    {isDragging && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-slate-800 bg-opacity-90 backdrop-blur-sm rounded-3xl z-10 border-2 border-dashed border-emerald-500">
-                        <div className="text-center">
-                          <Paperclip size={48} className="text-emerald-400 mx-auto mb-2" />
-                          <span className="text-emerald-400 font-medium text-lg">Drop files here</span>
-                        </div>
-                      </div>
-                    )}
-
-                    <textarea
-                      ref={chatInputRef}
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      onPaste={() => {
-                        // Allow the paste to happen first, then adjust height
-                        setTimeout(() => {
-                          adjustTextareaHeight();
-                        }, 0);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleChatSubmit(e);
-                        }
-                      }}
-                      placeholder="What fintech solution would you like to build today?"
-                      rows={1}
-                      className="w-full text-white placeholder-slate-300 focus:outline-none transition-all duration-300 text-lg resize-none peer"
-                      style={{
-                        height: `${textareaHeight}px`,
-                        minHeight: '64px',
-                        maxHeight: '300px',
-                        overflowY: textareaHeight >= 300 ? 'auto' : 'hidden',
-                        lineHeight: '1.5',
-                        background: 'rgba(34,197,94,0.12)',
-                        backdropFilter: 'blur(14px)',
-                        WebkitBackdropFilter: 'blur(14px)',
-                        border: '2px solid rgba(34,197,94,0.8)',
-                        borderRadius: '24px',
-                        padding: '18px 24px 60px 24px',
-                        boxShadow: '0 0 20px rgba(34,197,94,0.3), 0 8px 32px rgba(0,0,0,0.2)',
-                        fontFamily: 'Roboto, sans-serif'
-                      }}
-                      disabled={isLoading}
-                      onFocus={(e) => {
-                        e.currentTarget.style.boxShadow = '0 0 30px rgba(34,197,94,0.6), 0 8px 32px rgba(0,0,0,0.3)';
-                        e.currentTarget.style.borderColor = 'rgba(34,197,94,1)';
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.boxShadow = '0 0 20px rgba(34,197,94,0.3), 0 8px 32px rgba(0,0,0,0.2)';
-                        e.currentTarget.style.borderColor = 'rgba(34,197,94,0.8)';
-                      }}
-                    />
-
-                    {/* Bottom Right Controls - Fintech Style */}
-                    <div className="absolute right-6 bottom-4 flex items-center gap-0 z-10">
-                      {/* Attach File Button */}
-                      <button
-                        type="button"
-                        onClick={handleFileAttach}
-                        className="text-slate-400 hover:scale-110 transition-all duration-200 flex items-center justify-center flex-shrink-0"
-                        style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px' }}
-                        title="Attach file"
-                      >
-                        <Paperclip size={20} />
-                      </button>
-
-                      {/* Send Button - Fintech themed */}
-                      <button
-                        type="submit"
-                        disabled={!chatInput.trim() || isLoading}
-                        className="hover:scale-110 transition-all duration-200 flex items-center justify-center flex-shrink-0"
-                        style={{
-                          width: '40px',
-                          height: '40px',
-                          minWidth: '40px',
-                          minHeight: '40px',
-                          color: '#22c55e'
-                        }}
-                        title="Send Message (Enter)"
-                      >
-                        {isLoading ? (
-                          <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: '#22c55e33', borderTopColor: '#22c55e' }} />
-                        ) : (
-                          <Send size={20} style={{ color: '#22c55e' }} />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </form>
-
-                {/* File attachments display - Below input */}
-                {attachedFiles.length > 0 && (
-                  <div className="mt-2 sm:mt-3 md:mt-4 p-2 sm:p-3 md:p-4 bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-lg sm:rounded-xl md:rounded-2xl">
-                    <div className="flex items-center justify-between mb-2 sm:mb-2.5 md:mb-3">
-                      <span className="text-xs sm:text-sm font-medium text-slate-300">Attached Files ({attachedFiles.length})</span>
-                      <button
-                        type="button"
-                        onClick={() => setAttachedFiles([])}
-                        className="text-xs text-slate-400 hover:text-white transition-colors"
-                      >
-                        Clear All
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                      {attachedFiles.map((file, index) => (
-                        <div key={index} className="bg-slate-700/50 text-slate-300 px-2 sm:px-2.5 md:px-3 py-1.5 sm:py-1.5 md:py-2 rounded-md sm:rounded-lg text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 border border-slate-600">
-                          <Paperclip size={12} className="sm:w-[13px] sm:h-[13px] md:w-[14px] md:h-[14px] text-emerald-400 flex-shrink-0" />
-                          <span className="max-w-[100px] sm:max-w-[150px] md:max-w-[200px] truncate">{file.name}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveFile(index)}
-                            className="hover:text-red-400 transition-colors ml-1 flex-shrink-0"
-                          >
-                            <X size={12} className="sm:w-[13px] sm:h-[13px] md:w-[14px] md:h-[14px]" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Hidden File Input */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  onChange={handleFileChange}
-                  style={{ display: 'none' }}
-                  accept=".pdf,.docx,.xlsx,.pptx,.xml,.json,text/*,image/*"
-                />
-              </div>
-
               {/* Fintech Quick Actions */}
               <div
-                className="mt-6 mb-16 transition-all duration-500 ease-in-out"
+                className="-mt-2 mb-16 transition-all duration-500 ease-in-out"
                 style={{
                   fontFamily: 'Roboto, sans-serif',
                   opacity: 1,
