@@ -650,7 +650,7 @@ const FintechHomeView: React.FC = () => {
 
                     {/* H1 - Main Heading */}
                     <H1
-                      className="text-white animate-fade-in"
+                      className="text-teal-400 animate-fade-in"
                       style={{
                         animationDelay: '0.1s',
                         marginBottom: '12px'
