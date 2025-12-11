@@ -26,6 +26,7 @@ import {
 import { useAssistantStore } from '@/stores/assistant';
 import { useAuthStore, useSuperUserMode } from '@/stores/auth';
 import Header from '@/components/Header/Header';
+import { H1, H2, H3, Body, BodySmall, Caption, CaptionUppercase } from '@/components/Typography';
 
 import ChatHistoryPanel from '@/components/ChatHistoryPanel/ChatHistoryPanel';
 import EnvironmentsPanel from '@/components/EnvironmentsPanel/EnvironmentsPanel';
@@ -767,52 +768,37 @@ const HomeView: React.FC = () => {
 
                   {/* Text Content */}
                   <div className="flex flex-col text-center md:text-left space-y-4">
-                    {/* H1 - Display (48-72px) */}
-                    <h2
-                      className="animate-fade-in"
+                    {/* Display - Main Title */}
+                    <H1
+                      className="animate-fade-in text-teal-600"
                       style={{
-                        fontFamily: 'Roboto, sans-serif',
-                        fontWeight: 700,
-                        fontSize: 'clamp(48px, 6vw, 72px)',
-                        color: '#007981',
                         letterSpacing: '2px',
-                        lineHeight: 1.1,
                         animationDelay: '0.1s'
                       }}
                     >
                       Cyoda AI Studio
-                    </h2>
+                    </H1>
 
-                    {/* H2 - Heading 1 (36-52px) */}
-                    <h1
+                    {/* H1 - Tagline */}
+                    <H1
                       className="animate-fade-in"
                       style={{
-                        fontFamily: 'Roboto, sans-serif',
-                        fontWeight: 600,
-                        fontSize: 'clamp(36px, 4.5vw, 52px)',
-                        color: '#007981',
-                        letterSpacing: 'normal',
-                        lineHeight: 1.1,
                         animationDelay: '0.2s'
                       }}
                     >
                       <span style={{ color: '#10b981' }}>Solve. Build. Deploy.</span>
-                    </h1>
+                    </H1>
 
-                    {/* H4 - Heading 4 (20-28px) */}
-                    <p
+                    {/* Body - Description */}
+                    <Body
                       className="animate-fade-in"
                       style={{
-                        fontFamily: 'Roboto, sans-serif',
-                        fontWeight: 400,
-                        fontSize: 'clamp(20px, 2.5vw, 28px)',
                         color: 'rgba(255,255,255,0.75)',
-                        lineHeight: 1.5,
                         animationDelay: '0.3s'
                       }}
                     >
                       For <span style={{ color: '#be123c' }}>anyone</span> who has a problem to solve
-                    </p>
+                    </Body>
 
 
                   </div>
@@ -875,20 +861,21 @@ const HomeView: React.FC = () => {
                                 <div className="space-y-4">
                                   {/* Header Content aligned with picture position */}
                                   <div className="flex items-center space-x-3 mb-3" style={{ marginLeft: '3%' }}>
-                                    {/* Tiny - 12-14px */}
-                                    <span
-                                      className="px-3 py-1 rounded-full font-semibold uppercase tracking-wider"
+                                    {/* Caption Uppercase - Category */}
+                                    <CaptionUppercase
                                       style={{
                                         background: `linear-gradient(135deg, ${example.gradient})`,
                                         color: 'white',
-                                        fontSize: 'clamp(11px, 0.8vw, 13px)'
+                                        padding: '6px 12px',
+                                        borderRadius: '9999px',
+                                        display: 'inline-block'
                                       }}
                                     >
                                       {example.category}
-                                    </span>
-                                    <div className="flex items-center space-x-1 text-slate-400" style={{ fontSize: 'clamp(11px, 0.8vw, 13px)' }}>
+                                    </CaptionUppercase>
+                                    <div className="flex items-center space-x-1 text-slate-400">
                                       <Clock size={14} />
-                                      <span>10-30 min setup</span>
+                                      <Caption>10-30 min setup</Caption>
                                     </div>
                                   </div>
 
@@ -909,15 +896,15 @@ const HomeView: React.FC = () => {
 
                                     {/* Text Content on the Right */}
                                     <div className="flex-1 space-y-3">
-                                      {/* H3 - Heading 3 (28-36px) */}
-                                      <h3 className="font-bold text-white mb-3 group-hover:text-teal-300 transition-colors duration-300" style={{ fontSize: 'clamp(24px, 3vw, 32px)' }}>
+                                      {/* H1 - Carousel Title */}
+                                      <H1 className="text-white mb-3 group-hover:text-teal-300 transition-colors duration-300">
                                         {example.title}
-                                      </h3>
+                                      </H1>
 
-                                      {/* Body - 16-20px */}
-                                      <p className="text-slate-300 leading-relaxed mb-4 group-hover:text-slate-200 transition-colors duration-300" style={{ fontSize: 'clamp(16px, 1.5vw, 20px)' }}>
+                                      {/* Body - Description */}
+                                      <Body className="text-slate-300 mb-4 group-hover:text-slate-200 transition-colors duration-300">
                                         {example.description}
-                                      </p>
+                                      </Body>
 
                                       {/* Prompt Text with Copy Button */}
                                       <div
@@ -930,10 +917,10 @@ const HomeView: React.FC = () => {
                                           borderRadius: '24px 6px 24px 24px'
                                         }}
                                       >
-                                        {/* Small - 12-14px */}
-                                        <p className="text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors duration-300 font-mono pr-12" style={{ fontSize: 'clamp(12px, 1vw, 14px)' }}>
+                                        {/* Body Small - Prompt Text */}
+                                        <BodySmall className="text-slate-400 group-hover:text-slate-300 transition-colors duration-300 font-mono pr-12">
                                           {example.prompt}
-                                        </p>
+                                        </BodySmall>
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation();
@@ -1175,14 +1162,14 @@ const HomeView: React.FC = () => {
                             {action.icon}
                           </div>
                           <div className="flex-1 min-w-0">
-                            {/* H5 - Heading 5 (18-24px) */}
-                            <div className="font-semibold text-white group-hover:text-teal-300 transition-colors duration-300 mb-1" style={{ fontSize: 'clamp(16px, 1.2vw, 20px)' }}>
+                            {/* H4 - Quick Action Label */}
+                            <H3 className="text-white group-hover:text-teal-300 transition-colors duration-300 mb-1">
                               {action.label}
-                            </div>
-                            {/* Tiny - 12-14px */}
-                            <div className="text-slate-300 group-hover:text-slate-200 transition-colors duration-300 line-clamp-2" style={{ fontSize: 'clamp(12px, 0.9vw, 14px)' }}>
+                            </H3>
+                            {/* Body Small - Quick Action Description */}
+                            <BodySmall className="text-slate-300 group-hover:text-slate-200 transition-colors duration-300 line-clamp-2">
                               {action.description}
-                            </div>
+                            </BodySmall>
                           </div>
                           <ChevronRight size={14} className="text-slate-500 group-hover:text-teal-400 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0 mt-1" />
                         </div>
@@ -1203,21 +1190,21 @@ const HomeView: React.FC = () => {
                     boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
                   }}
                 >
-                  {/* H3 - Heading 3 (28-36px) */}
-                  <h2 className="font-bold mb-6 text-center" style={{ fontSize: 'clamp(28px, 3.5vw, 36px)', color: '#00b9c8' }}>
+                  {/* H2 - Section Title */}
+                  <H2 className="mb-6 text-center text-teal-400">
                     Who Are We?
-                  </h2>
+                  </H2>
 
-                  {/* Body - 16-20px */}
-                  <p className="text-slate-300 text-center mb-10 leading-relaxed max-w-3xl mx-auto" style={{ fontSize: 'clamp(16px, 1.5vw, 20px)' }}>
+                  {/* Body - Description */}
+                  <Body className="text-slate-300 text-center mb-10 max-w-3xl mx-auto">
                     We are a team of developers who know what it takes to ship projects to production.
                     We're happy to collaborate, build solutions, and solve problems together.
-                  </p>
+                  </Body>
 
-                  {/* H4 - Heading 4 (20-28px) */}
-                  <p className="font-semibold text-center mb-8" style={{ fontSize: 'clamp(20px, 2.5vw, 28px)', color: '#ffffff' }}>
+                  {/* H3 - Tagline */}
+                  <H3 className="text-center mb-8 text-white">
                     Let's shape the IT future together!
-                  </p>
+                  </H3>
 
                   {/* Social Links */}
                   <div className="flex flex-wrap items-center justify-center gap-4">
@@ -1244,15 +1231,15 @@ const HomeView: React.FC = () => {
 
               {/* Join Our Community Section */}
               <div className="max-w-5xl mx-auto px-6 mb-12 mt-8" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                {/* H3 - Heading 3 (28-36px) */}
-                <h2 className="font-bold mb-6 text-center" style={{ fontSize: 'clamp(28px, 3.5vw, 36px)', color: '#00b9c8' }}>
+                {/* H2 - Section Title */}
+                <H2 className="mb-6 text-center text-teal-400">
                   Join Our Community
-                </h2>
+                </H2>
 
-                {/* Body - 16-20px */}
-                <p className="text-slate-300 text-center mb-10 leading-relaxed max-w-3xl mx-auto" style={{ fontSize: 'clamp(16px, 1.5vw, 20px)' }}>
+                {/* Body - Description */}
+                <Body className="text-slate-300 text-center mb-10 max-w-3xl mx-auto">
                   Connect with developers, designers, and problem solvers. Get help, share ideas, and build amazing apps together.
-                </p>
+                </Body>
 
                 {/* Discord Button */}
                 <div className="text-center">
@@ -1352,15 +1339,15 @@ const HomeView: React.FC = () => {
                       >
                         <Zap className="text-white w-6 h-6" />
                       </div>
-                      <h3 className="text-2xl md:text-3xl font-bold" style={{ color: '#00b9c8' }}>
+                      <H2 style={{ color: '#00b9c8' }}>
                         Collaborate with Us on Hackathons
-                      </h3>
+                      </H2>
                     </div>
 
-                    <p className="text-slate-300 text-lg mb-6 max-w-3xl mx-auto leading-relaxed">
+                    <Body className="text-slate-300 mb-6 max-w-3xl mx-auto">
                       Join forces with our team to tackle exciting challenges and build innovative solutions.
                       Let's participate together and solve problems efficiently!
-                    </p>
+                    </Body>
 
                     <a
                       href="https://devpost.com/Ksenniya?ref_content=user-portfolio&ref_feature=portfolio&ref_medium=global-nav"
@@ -1382,18 +1369,18 @@ const HomeView: React.FC = () => {
                       </svg>
                     </a>
 
-                    <div className="mt-6 flex items-center justify-center space-x-6 text-sm text-slate-400">
+                    <div className="mt-6 flex items-center justify-center space-x-6">
                       <div className="flex items-center space-x-2">
                         <CheckCircle2 className="w-4 h-4 text-teal-400" />
-                        <span>Team Collaboration</span>
+                        <Caption className="text-slate-400">Team Collaboration</Caption>
                       </div>
                       <div className="flex items-center space-x-2">
                         <CheckCircle2 className="w-4 h-4 text-teal-400" />
-                        <span>Innovative Solutions</span>
+                        <Caption className="text-slate-400">Innovative Solutions</Caption>
                       </div>
                       <div className="flex items-center space-x-2">
                         <CheckCircle2 className="w-4 h-4 text-teal-400" />
-                        <span>Real-World Impact</span>
+                        <Caption className="text-slate-400">Real-World Impact</Caption>
                       </div>
                     </div>
                   </div>
@@ -1442,21 +1429,21 @@ const HomeView: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
                     {/* Column 1 - Company */}
                     <div>
-                      <h4 className="font-bold text-white mb-4 text-sm uppercase tracking-wider">Company</h4>
+                      <CaptionUppercase className="text-white mb-4">Company</CaptionUppercase>
                       <ul className="space-y-2">
                         <li>
-                          <a href="https://cyoda.com" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors text-sm">
-                            About CYODA
+                          <a href="https://cyoda.com" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors">
+                            <Caption>About CYODA</Caption>
                           </a>
                         </li>
                         <li>
-                          <a href="https://github.com/Cyoda-platform" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors text-sm">
-                            Open Source
+                          <a href="https://github.com/Cyoda-platform" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors">
+                            <Caption>Open Source</Caption>
                           </a>
                         </li>
                         <li>
-                          <a href="https://devpost.com/Ksenniya?ref_content=user-portfolio&ref_feature=portfolio&ref_medium=global-nav" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors text-sm">
-                            Hackathons
+                          <a href="https://devpost.com/Ksenniya?ref_content=user-portfolio&ref_feature=portfolio&ref_medium=global-nav" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors">
+                            <Caption>Hackathons</Caption>
                           </a>
                         </li>
                       </ul>
@@ -1464,21 +1451,21 @@ const HomeView: React.FC = () => {
 
                     {/* Column 2 - Community */}
                     <div>
-                      <h4 className="font-bold text-white mb-4 text-sm uppercase tracking-wider">Community</h4>
+                      <CaptionUppercase className="text-white mb-4">Community</CaptionUppercase>
                       <ul className="space-y-2">
                         <li>
-                          <a href="https://discord.com/invite/95rdAyBZr2" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors text-sm">
-                            Discord Server
+                          <a href="https://discord.com/invite/95rdAyBZr2" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors">
+                            <Caption>Discord Server</Caption>
                           </a>
                         </li>
                         <li>
-                          <a href="https://github.com/Cyoda-platform" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors text-sm">
-                            GitHub
+                          <a href="https://github.com/Cyoda-platform" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors">
+                            <Caption>GitHub</Caption>
                           </a>
                         </li>
                         <li>
-                          <a href="https://linkedin.com/company/cyoda" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors text-sm">
-                            LinkedIn
+                          <a href="https://linkedin.com/company/cyoda" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors">
+                            <Caption>LinkedIn</Caption>
                           </a>
                         </li>
                       </ul>
@@ -1486,22 +1473,22 @@ const HomeView: React.FC = () => {
 
                     {/* Column 3 - Resources */}
                     <div>
-                      <h4 className="font-bold text-white mb-4 text-sm uppercase tracking-wider">Resources</h4>
+                      <CaptionUppercase className="text-white mb-4">Resources</CaptionUppercase>
                       <ul className="space-y-2">
                         <li>
-                          <a href="https://docs.cyoda.net/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors text-sm">
-                            Getting Started
+                          <a href="https://docs.cyoda.net/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors">
+                            <Caption>Getting Started</Caption>
                           </a>
                         </li>
                         <li>
-                          <a href="https://docs.cyoda.net/api-reference/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors text-sm">
-                            API Reference
+                          <a href="https://docs.cyoda.net/api-reference/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-teal-400 transition-colors">
+                            <Caption>API Reference</Caption>
                           </a>
                         </li>
                         <li>
-                          <span className="text-slate-400 text-sm cursor-default">
+                          <Caption className="text-slate-400 cursor-default">
                             Examples
-                          </span>
+                          </Caption>
                         </li>
                       </ul>
                     </div>
@@ -1510,9 +1497,9 @@ const HomeView: React.FC = () => {
                   {/* Bottom Section - Copyright & Social */}
                   <div className="flex flex-col md:flex-row items-center justify-between pt-8">
                     {/* Copyright */}
-                    <p className="text-slate-400 text-sm mb-4 md:mb-0">
+                    <Caption className="text-slate-400 mb-4 md:mb-0">
                       © 2025 <a href="https://cyoda.com/" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300 transition-colors font-medium">CYODA Ltd</a>. All rights reserved.
-                    </p>
+                    </Caption>
 
                     {/* Social Links */}
                     <div className="flex items-center space-x-4">

@@ -27,7 +27,7 @@ export const H1: React.FC<TypographyProps> = ({ children, className = '', style 
 );
 
 /**
- * Heading 2 - clamp(20px, 2.5vw, 28px) | Semibold
+ * Heading 2 - clamp(18px, 2vw, 24px) | Semibold
  * Section headings
  */
 export const H2: React.FC<TypographyProps> = ({ children, className = '', style }) => (
@@ -37,8 +37,8 @@ export const H2: React.FC<TypographyProps> = ({ children, className = '', style 
 );
 
 /**
- * Heading 3 - clamp(16px, 1.5vw, 20px) | Semibold
- * Subsection headings
+ * Heading 3 - clamp(14px, 1.2vw, 18px) | Semibold
+ * Subsection headings, card titles
  */
 export const H3: React.FC<TypographyProps> = ({ children, className = '', style }) => (
   <h3 className={`typo-h3 ${className}`} style={style}>
@@ -47,28 +47,8 @@ export const H3: React.FC<TypographyProps> = ({ children, className = '', style 
 );
 
 /**
- * Heading 4 - clamp(14px, 1.2vw, 18px) | Semibold
- * Card titles, labels
- */
-export const H4: React.FC<TypographyProps> = ({ children, className = '', style }) => (
-  <h4 className={`typo-h4 ${className}`} style={style}>
-    {children}
-  </h4>
-);
-
-/**
- * Body Large - clamp(16px, 1.5vw, 20px) | Regular
- * Main body text, descriptions
- */
-export const BodyLarge: React.FC<TypographyProps> = ({ children, className = '', style }) => (
-  <p className={`typo-body-lg ${className}`} style={style}>
-    {children}
-  </p>
-);
-
-/**
  * Body - clamp(14px, 1.2vw, 16px) | Regular
- * Standard body text
+ * Main body text, descriptions
  */
 export const Body: React.FC<TypographyProps> = ({ children, className = '', style }) => (
   <p className={`typo-body ${className}`} style={style}>
@@ -78,7 +58,7 @@ export const Body: React.FC<TypographyProps> = ({ children, className = '', styl
 
 /**
  * Body Small - clamp(12px, 0.9vw, 14px) | Regular
- * Secondary text, descriptions
+ * Secondary text, helper text
  */
 export const BodySmall: React.FC<TypographyProps> = ({ children, className = '', style }) => (
   <p className={`typo-body-sm ${className}`} style={style}>
@@ -88,20 +68,10 @@ export const BodySmall: React.FC<TypographyProps> = ({ children, className = '',
 
 /**
  * Caption - clamp(11px, 0.8vw, 13px) | Regular
- * Small text, captions, helper text
+ * Small text, captions, labels
  */
 export const Caption: React.FC<TypographyProps> = ({ children, className = '', style }) => (
   <span className={`typo-caption ${className}`} style={style}>
-    {children}
-  </span>
-);
-
-/**
- * Tiny - clamp(10px, 0.7vw, 12px) | Regular
- * Very small text, timestamps
- */
-export const Tiny: React.FC<TypographyProps> = ({ children, className = '', style }) => (
-  <span className={`typo-tiny ${className}`} style={style}>
     {children}
   </span>
 );

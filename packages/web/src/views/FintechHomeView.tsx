@@ -30,7 +30,7 @@ import {
 import { useAssistantStore } from '@/stores/assistant';
 import { useAuthStore, useSuperUserMode } from '@/stores/auth';
 import Header from '@/components/Header/Header';
-import { H1, H3, H4, Body, BodySmall, Caption, CaptionUppercase } from '@/components/Typography';
+import { H1, H2, H3, Body, BodySmall, Caption, CaptionUppercase } from '@/components/Typography';
 
 import ChatHistoryPanel from '@/components/ChatHistoryPanel/ChatHistoryPanel';
 import EnvironmentsPanel from '@/components/EnvironmentsPanel/EnvironmentsPanel';
@@ -1038,9 +1038,9 @@ const FintechHomeView: React.FC = () => {
                           </div>
                           <div className="flex-1 min-w-0">
                             {/* H4 - Quick Action Label */}
-                            <H4 className="text-white group-hover:text-emerald-300 transition-colors duration-300 mb-1">
+                            <H3 className="text-white group-hover:text-emerald-300 transition-colors duration-300 mb-1">
                               {action.label}
-                            </H4>
+                            </H3>
                             {/* Body Small - Quick Action Description */}
                             <BodySmall className="text-slate-300 group-hover:text-slate-200 transition-colors duration-300 line-clamp-2">
                               {action.description}
@@ -1094,10 +1094,10 @@ const FintechHomeView: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Body Large - Main Description */}
-                  <BodyLarge className="text-slate-200 mb-8">
+                  {/* Body - Main Description */}
+                  <Body className="text-slate-200 mb-8">
                     CYODA AI Studio empowers fintech teams to build, deploy, and scale secure, compliant applications faster than ever. From concept to production, we provide the infrastructure and tools you need for modern financial innovation.
-                  </BodyLarge>
+                  </Body>
 
                   {/* Features Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1146,9 +1146,9 @@ const FintechHomeView: React.FC = () => {
                           <span className={`flex-shrink-0 ${isChatHistoryOpen ? 'text-lg' : 'text-2xl'}`}>{feature.icon}</span>
                           <div>
                             {/* H4 - Feature Card Title */}
-                            <H4 className="text-white mb-1">
+                            <H3 className="text-white mb-1">
                               {feature.title}
-                            </H4>
+                            </H3>
                             {/* Body Small - Feature Card Description */}
                             <BodySmall className="text-slate-300">
                               {feature.description}

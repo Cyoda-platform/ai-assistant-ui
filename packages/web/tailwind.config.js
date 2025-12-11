@@ -7,26 +7,20 @@ export default {
   theme: {
     extend: {
       fontSize: {
-        // Display (H0)
+        // Display - Landing page hero
         'display': ['clamp(32px, 4vw, 48px)', { lineHeight: '1.2', fontWeight: '700' }],
-        // Heading 1
+        // Heading 1 - Main headings
         'h1': ['clamp(24px, 3vw, 32px)', { lineHeight: '1.2', fontWeight: '700' }],
-        // Heading 2
-        'h2': ['clamp(20px, 2.5vw, 28px)', { lineHeight: '1.2', fontWeight: '600' }],
-        // Heading 3
-        'h3': ['clamp(16px, 1.5vw, 20px)', { lineHeight: '1.2', fontWeight: '600' }],
-        // Heading 4
-        'h4': ['clamp(14px, 1.2vw, 18px)', { lineHeight: '1.2', fontWeight: '600' }],
-        // Body Large
-        'body-lg': ['clamp(16px, 1.5vw, 20px)', { lineHeight: '1.5', fontWeight: '400' }],
-        // Body
+        // Heading 2 - Section headings
+        'h2': ['clamp(18px, 2vw, 24px)', { lineHeight: '1.3', fontWeight: '600' }],
+        // Heading 3 - Subsection headings
+        'h3': ['clamp(14px, 1.2vw, 18px)', { lineHeight: '1.3', fontWeight: '600' }],
+        // Body - Main body text
         'body': ['clamp(14px, 1.2vw, 16px)', { lineHeight: '1.5', fontWeight: '400' }],
-        // Body Small
+        // Body Small - Secondary text
         'body-sm': ['clamp(12px, 0.9vw, 14px)', { lineHeight: '1.5', fontWeight: '400' }],
-        // Caption
+        // Caption - Labels and small text
         'caption': ['clamp(11px, 0.8vw, 13px)', { lineHeight: '1.4', fontWeight: '400' }],
-        // Tiny
-        'tiny': ['clamp(10px, 0.7vw, 12px)', { lineHeight: '1.4', fontWeight: '400' }],
       },
       fontWeight: {
         'regular': '400',
