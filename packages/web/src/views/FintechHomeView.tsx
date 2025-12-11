@@ -802,9 +802,9 @@ const FintechHomeView: React.FC = () => {
                                         }}
                                       >
                                         {/* Body - Prompt Text */}
-                                        <Body className="text-slate-400 group-hover:text-slate-300 transition-colors duration-300 pr-10">
+                                        <span className="typo-body text-slate-400 group-hover:text-slate-300 transition-colors duration-300 pr-10 block">
                                           {example.prompt}
-                                        </Body>
+                                        </span>
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation();
@@ -862,7 +862,7 @@ const FintechHomeView: React.FC = () => {
               </div>
 
               {/* Chat Input */}
-              <div className="mt-6 mb-6">
+              <div className="mt-0 mb-0">
                 <form onSubmit={handleChatSubmit}>
                   <div
                     className="relative"
