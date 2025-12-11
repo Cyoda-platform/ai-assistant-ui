@@ -1028,13 +1028,13 @@ const FintechHomeView: React.FC = () => {
                       }}
                     >
                       <div className="relative z-10">
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-2">
                           <div
                             className="flex-shrink-0 rounded-lg transition-all duration-300 group-hover:scale-105 flex items-center justify-center"
                             style={{
                               background: 'linear-gradient(135deg, rgba(0,185,200,0.2), rgba(0,121,129,0.2))',
-                              width: '48px',
-                              height: '48px'
+                              width: '36px',
+                              height: '36px'
                             }}
                           >
                             {action.icon}
