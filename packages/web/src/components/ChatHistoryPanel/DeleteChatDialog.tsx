@@ -89,14 +89,13 @@ const DeleteChatDialog: React.FC<DeleteChatDialogProps> = ({
       destroyOnHidden
       centered
     >
-      <div className="space-y-4">
-        <p className="text-slate-300">
+      <div className="space-y-6">
+        <p className="text-slate-300 text-base">
           Are you sure you want to delete this chat?
         </p>
         {chatName && (
-          <div className="p-3 bg-slate-900/50 rounded-lg border border-slate-700">
-            <p className="text-sm text-slate-400 mb-1">Chat name:</p>
-            <p className="text-white font-medium truncate">{chatName}</p>
+          <div className="pl-4 border-l-2 border-slate-600">
+            <p className="text-slate-400 truncate">{chatName}</p>
           </div>
         )}
       </div>
