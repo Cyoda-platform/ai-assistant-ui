@@ -357,7 +357,7 @@ const Header: React.FC<HeaderProps> = ({
               className="hidden lg:flex items-center p-2 rounded-lg text-slate-400 hover:text-teal-400 hover:bg-teal-600/20 hover:border-teal-500/50 border border-transparent transition-all duration-200"
               title="Visit cyoda.com"
             >
-              <img src={LogoSmall} alt="CYODA" className="w-5 h-5" />
+              <img src={LogoSmall} alt="CYODA" className="w-4 h-4" />
             </a>
 
             {/* Discord - Hidden on mobile */}
@@ -365,16 +365,15 @@ const Header: React.FC<HeaderProps> = ({
               href="https://discord.com/invite/95rdAyBZr2"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden lg:block relative p-2 rounded-lg text-slate-400 hover:text-white hover:bg-indigo-600 transition-all duration-200 group"
+              className="hidden lg:flex items-center p-2 rounded-lg text-slate-400 hover:text-white hover:bg-indigo-600 hover:border-indigo-500/50 border border-transparent transition-all duration-200"
               title="Join our Discord Community"
             >
               <svg
-                width="20"
-                height="20"
+                width="18"
+                height="18"
                 viewBox="0 0 71 55"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-                className="group-hover:scale-110 transition-transform"
               >
                 <g clipPath="url(#clip0)">
                   <path
