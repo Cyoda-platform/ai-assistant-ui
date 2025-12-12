@@ -177,8 +177,6 @@ const Header: React.FC<HeaderProps> = ({
 
           {/* Right Section - Desktop */}
           <div className="hidden md:flex items-center space-x-3">
-            <div className="w-px h-6 bg-slate-600 mx-2"></div>
-
             {/* Action Buttons - Only show on chat page */}
             {showActions && (
               <div className="flex items-center gap-2">
@@ -349,8 +347,6 @@ const Header: React.FC<HeaderProps> = ({
                 <Linkedin size={18} />
               </a>
             </div>
-
-            <div className="hidden lg:block w-px h-6 bg-slate-600"></div>
 
             {/* CYODA Website - Hidden on mobile */}
             <a
