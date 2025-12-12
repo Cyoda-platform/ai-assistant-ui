@@ -150,7 +150,9 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
         set({ chatList: null, nextCursor: null, hasMoreChats: false });
       }
 
+      console.log('📋 Fetching chats from server...');
       const response = await privateClient.get<ChatResponse>(`/v1/chats`, { params });
+      console.log('📋 Received chats from server:', response.data.chats);
 
       // Update state with pagination info
       set({
@@ -159,6 +161,7 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
         nextCursor: response.data.next_cursor || null,
         hasMoreChats: response.data.has_more || false
       });
+      console.log('✅ Updated chatList in store, new state:', get().chatList);
 
       return response;
     } catch (error: any) {
@@ -244,8 +247,25 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
     return privateClient.delete(`/v1/chats/${technical_id}`);
   },
 
-  renameChatById(technical_id: string, data: any) {
-    return privateClient.put(`/v1/chats/${technical_id}`, data);
+  async renameChatById(technical_id: string, data: any) {
+    console.log('🔄 renameChatById - Sending to server:', { technical_id, data });
+    const response = await privateClient.put(`/v1/chats/${technical_id}`, data);
+    console.log('🔄 renameChatById - Server response:', response);
+    console.log('🔄 renameChatById - response.data:', response.data);
+
+    // Update the chat list with the new name
+    const state = get();
+    if (state.chatList) {
+      const updatedChatList = state.chatList.map(chat =>
+        chat.technical_id === technical_id
+          ? { ...chat, name: data.name }
+          : chat
+      );
+      set({ chatList: updatedChatList });
+      console.log('✅ Updated local chatList after rename');
+    }
+
+    return response;
   },
 
   postRollback(technical_id: string) {

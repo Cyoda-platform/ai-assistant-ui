@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Input, Form, message } from 'antd';
+import { Modal, Input, Form, App } from 'antd';
 import { useAssistantStore } from '@/stores/assistant';
 import eventBus from '@/plugins/eventBus';
 import { UPDATE_CHAT_LIST } from '@/helpers/HelperConstants';
+import './ChatBotRenameDialog.css';
+
+const { TextArea } = Input;
 
 interface ChatBotRenameDialogProps {
   visible: boolean;
@@ -22,6 +25,7 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const assistantStore = useAssistantStore();
+  const { message } = App.useApp();
 
   // Reset form when dialog opens with new data
   useEffect(() => {
@@ -36,8 +40,10 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
     try {
       const values = await form.validateFields();
       const newName = values.name.trim();
+      console.log('📝 Rename dialog - newName:', newName, 'currentName:', currentName);
 
       if (newName === currentName) {
+        console.log('⚠️ Name is the same, closing dialog');
         onClose();
         return;
       }
@@ -45,7 +51,14 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
       setLoading(true);
 
       // Call the API to rename the chat
+      console.log('🔄 Calling renameChatById with:', { chatId, name: newName });
       await assistantStore.renameChatById(chatId, { name: newName });
+      console.log('✅ renameChatById completed');
+
+      // Refresh the chat list to get the updated name from server
+      console.log('🔄 Calling getChats()');
+      await assistantStore.getChats();
+      console.log('✅ getChats() completed');
 
       // Notify success
       message.success('Chat renamed successfully');
@@ -100,11 +113,13 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
             }
           ]}
         >
-          <Input
+          <TextArea
             placeholder="Enter new chat name"
             maxLength={100}
             showCount
             autoFocus
+            autoSize={{ minRows: 1, maxRows: 6 }}
+            style={{ resize: 'none' }}
           />
         </Form.Item>
       </Form>
