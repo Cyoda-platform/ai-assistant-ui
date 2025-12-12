@@ -243,8 +243,25 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
     return privateClient.get(`/v1/chats/${technical_id}`, config);
   },
 
-  deleteChatById(technical_id: string) {
-    return privateClient.delete(`/v1/chats/${technical_id}`);
+  async deleteChatById(technical_id: string) {
+    console.log('🔄 deleteChatById - Deleting chat:', { technical_id });
+    try {
+      const response = await privateClient.delete(`/v1/chats/${technical_id}`);
+      console.log('✅ deleteChatById - Server response:', response);
+
+      // Update the chat list by removing the deleted chat
+      const state = get();
+      if (state.chatList) {
+        const updatedChatList = state.chatList.filter(chat => chat.technical_id !== technical_id);
+        set({ chatList: updatedChatList });
+        console.log('✅ Updated local chatList after delete');
+      }
+
+      return response;
+    } catch (error) {
+      console.error('❌ deleteChatById - Error:', error);
+      throw error;
+    }
   },
 
   async renameChatById(technical_id: string, data: any) {

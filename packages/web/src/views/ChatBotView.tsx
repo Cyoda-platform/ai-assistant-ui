@@ -2060,17 +2060,22 @@ const ChatBotView: React.FC = () => {
   // Handle delete chat
   const handleDeleteChat = async (chatId: string) => {
     try {
+      console.log('🗑️ handleDeleteChat - Deleting chat:', { chatId });
       await assistantStore.deleteChatById(chatId);
+      console.log('✅ handleDeleteChat - Chat deleted successfully');
 
       // Refresh the chat list
+      console.log('🔄 handleDeleteChat - Refreshing chat list');
       await assistantStore.getChats();
+      console.log('✅ handleDeleteChat - Chat list refreshed');
 
       // If we're currently viewing the deleted chat, redirect to home
       if (chatId === technicalId) {
+        console.log('🏠 handleDeleteChat - Redirecting to home');
         navigate('/');
       }
     } catch (error) {
-      console.error('Error deleting chat:', error);
+      console.error('❌ Error deleting chat:', error);
     }
   };
 

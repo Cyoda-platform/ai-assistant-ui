@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, History, Clock, ChevronRight, ChevronDown, X, AlertTriangle } from 'lucide-react';
+import { Home, History, Clock, ChevronRight, ChevronDown, X } from 'lucide-react';
 import { Modal } from 'antd';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
 import { formatRelativeTime } from '@/utils/dateUtils';
 import ChatContextMenu from './ChatContextMenu';
 import ChatBotRenameDialog from '@/components/ChatBot/ChatBotRenameDialog';
+import DeleteChatDialog from './DeleteChatDialog';
 import './ChatContextMenu.css';
 
 interface Chat {
@@ -58,16 +59,24 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
   const [chatToRename, setChatToRename] = useState<{ id: string; name: string } | null>(null);
   const [isHistoryCollapsed, setIsHistoryCollapsed] = useState(false);
 
-  const handleDeleteClick = React.useCallback((e: React.MouseEvent, chatId: string, chatName?: string) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDeleteClick = React.useCallback((e: React.MouseEvent | null, chatId: string, chatName?: string) => {
+    console.log('🗑️ handleDeleteClick - Delete button clicked:', { chatId, chatName });
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setChatToDelete({ id: chatId, name: chatName });
     setDeleteModalOpen(true);
+    console.log('🗑️ handleDeleteClick - Modal should open now');
   }, []);
 
   const handleConfirmDelete = React.useCallback(() => {
+    console.log('🗑️ handleConfirmDelete - Confirming delete:', { chatToDelete });
     if (chatToDelete && onDeleteChat) {
+      console.log('🗑️ handleConfirmDelete - Calling onDeleteChat');
       onDeleteChat(chatToDelete.id);
+    } else {
+      console.warn('⚠️ handleConfirmDelete - Missing chatToDelete or onDeleteChat');
     }
     setDeleteModalOpen(false);
     setChatToDelete(null);
@@ -97,7 +106,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
   }, []);
 
   const handleDeleteChatFromMenu = React.useCallback((chatId: string, chatName: string) => {
-    handleDeleteClick({} as React.MouseEvent, chatId, chatName);
+    handleDeleteClick(null, chatId, chatName);
   }, [handleDeleteClick]);
 
   const hasChats = chatGroups.length > 0;
@@ -312,52 +321,14 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
       {/* Resize Handle */}
       <ResizeHandle onMouseDown={onResizeMouseDown} isResizing={isResizing} position="right" />
 
-      {/* Delete Confirmation Modal */}
-      {deleteModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-800 rounded-xl shadow-2xl border border-slate-700 max-w-md w-full mx-4 overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center space-x-3 p-6 border-b border-slate-700">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-500/20">
-                <AlertTriangle size={24} className="text-red-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-white">Delete Chat</h3>
-                <p className="text-sm text-slate-400">This action cannot be undone</p>
-              </div>
-            </div>
-
-            {/* Body */}
-            <div className="p-6">
-              <p className="text-slate-300 mb-2">
-                Are you sure you want to delete this chat?
-              </p>
-              {chatToDelete?.name && (
-                <div className="mt-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700">
-                  <p className="text-sm text-slate-400 mb-1">Chat name:</p>
-                  <p className="text-white font-medium truncate">{chatToDelete.name}</p>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="flex items-center justify-end space-x-3 p-6 border-t border-slate-700 bg-slate-900/30">
-              <button
-                onClick={handleCancelDelete}
-                className="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                className="px-4 py-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-red-500/25"
-              >
-                Delete Chat
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Delete Chat Dialog */}
+      <DeleteChatDialog
+        visible={deleteModalOpen}
+        chatId={chatToDelete?.id || null}
+        chatName={chatToDelete?.name || ''}
+        onClose={handleCancelDelete}
+        onSuccess={handleConfirmDelete}
+      />
 
       {/* Rename Dialog */}
       <ChatBotRenameDialog

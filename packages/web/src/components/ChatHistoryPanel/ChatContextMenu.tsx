@@ -26,9 +26,11 @@ const ChatContextMenu: React.FC<ChatContextMenuProps> = ({
   disabled = false,
   showMenuButton = true
 }) => {
-  const handleMenuClick = React.useCallback((e: React.MouseEvent, action: 'rename' | 'delete') => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleMenuClick = React.useCallback((e: React.MouseEvent | undefined, action: 'rename' | 'delete') => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
 
     if (action === 'rename') {
       onRename(chatId, chatName);
