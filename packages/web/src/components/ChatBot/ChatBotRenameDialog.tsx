@@ -87,6 +87,7 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
 
   return (
     <Modal
+      wrapClassName="rename-chat-modal"
       title="Rename Chat"
       open={visible}
       onOk={handleOk}
@@ -95,6 +96,7 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
       okText="Rename"
       cancelText="Cancel"
       destroyOnHidden
+      centered
     >
       <Form form={form} layout="vertical">
         <Form.Item
