@@ -95,7 +95,7 @@ const DeleteChatDialog: React.FC<DeleteChatDialogProps> = ({
         </p>
         {chatName && (
           <div className="pl-4 border-l-2 border-slate-600">
-            <p className="text-slate-400 truncate">{chatName}</p>
+            <p className="text-slate-200 truncate">{chatName}</p>
           </div>
         )}
       </div>
