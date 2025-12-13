@@ -2007,8 +2007,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   const handleSendWorkflowToChat = useCallback(() => {
     if (!onSendToChat || !cleanedWorkflow) return;
 
-    const workflowJson = JSON.stringify(cleanedWorkflow, null, 2);
-    const message = `Here is the workflow:\n\n\`\`\`json\n${workflowJson}\n\`\`\`\n\nPlease review this workflow and help me improve it.`;
+    // Send only the configuration node wrapped in markdown code block
+    const workflowJson = JSON.stringify(cleanedWorkflow.configuration, null, 2);
+    const message = `\`\`\`json\n${workflowJson}\n\`\`\``;
     onSendToChat(message);
     console.log('📤 Sent entire workflow to chat');
   }, [onSendToChat, cleanedWorkflow]);

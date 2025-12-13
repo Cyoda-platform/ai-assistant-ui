@@ -93,6 +93,19 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     return null;
   }, [message.raw]);
 
+  // Helper function to extract hooks from combined hook
+  const extractHooksFromCombined = (hook: any) => {
+    if (hook?.type === 'combined' && Array.isArray(hook.hooks)) {
+      return hook.hooks;
+    }
+    return [hook];
+  };
+
+  // Extract individual hooks from combined hook if present
+  const allHooks = useMemo(() => {
+    return extractHooksFromCombined(message.raw?.hook);
+  }, [message.raw?.hook]);
+
   // Detect if message contains repository config selection hook
   const repoConfigHook = useMemo(() => {
     if (message.raw?.hook?.type === 'repository_config_selection') {
@@ -120,13 +133,19 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     return null;
   }, [message.raw]);
 
-  // Detect if message contains option selection hook
+  // Detect if message contains option selection hook (from combined or top-level)
   const optionSelectionHook = useMemo(() => {
+    // First check if it's a top-level option_selection hook
     if (message.raw?.hook?.type === 'option_selection') {
       return message.raw.hook;
     }
-    return null;
-  }, [message.raw]);
+    // Otherwise, extract from allHooks (for combined hooks)
+    const hook = allHooks.find((h: any) => h?.type === 'option_selection');
+    if (hook) {
+      console.log('[ChatBotMessageQuestion] Option selection hook detected:', hook);
+    }
+    return hook || null;
+  }, [message.raw, allHooks]);
 
   // Detect if message contains deployment options hook
   const deploymentOptionsHook = useMemo(() => {
@@ -155,19 +174,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     }
     return null;
   }, [message.raw]);
-
-  // Helper function to extract hooks from combined hook
-  const extractHooksFromCombined = (hook: any) => {
-    if (hook?.type === 'combined' && Array.isArray(hook.hooks)) {
-      return hook.hooks;
-    }
-    return [hook];
-  };
-
-  // Extract individual hooks from combined hook if present
-  const allHooks = useMemo(() => {
-    return extractHooksFromCombined(message.raw?.hook);
-  }, [message.raw?.hook]);
 
   // Find specific hook types from all hooks
   const backgroundTaskHook = useMemo(() => {

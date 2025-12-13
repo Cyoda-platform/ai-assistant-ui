@@ -34,16 +34,20 @@ const refreshToken = (instance: AxiosInstance): void => {
                 // @ts-ignore
                 !originalConfig?.__isRetryRequest
             ) {
+                console.log('[RefreshToken] 401 error detected, attempting token refresh');
+                console.log('[RefreshToken] Current tokenType:', authStore.tokenType);
 
                 try {
                     // Only attempt refresh for private (Auth0) tokens, not guest tokens
                     if (authStore.tokenType !== 'private') {
+                        console.log('[RefreshToken] Token is not private type, rejecting');
                         return Promise.reject(error);
                     }
 
+                    console.log('[RefreshToken] Starting token refresh with cache bypass...');
                     if (!refreshAccessTokenPromise) {
+                        // Call refreshAccessToken which will use getToken with cache bypass
                         refreshAccessTokenPromise = authStore.refreshAccessToken();
-                    } else {
                     }
 
                     autoLogoutTimeout = setTimeout(() => {
@@ -53,6 +57,7 @@ const refreshToken = (instance: AxiosInstance): void => {
 
                     await refreshAccessTokenPromise;
                     refreshAccessTokenPromise = null;
+                    console.log('[RefreshToken] Token refresh completed successfully');
 
                     // @ts-ignore
                     originalConfig.__isRetryRequest = true;
@@ -60,11 +65,14 @@ const refreshToken = (instance: AxiosInstance): void => {
                     // Always use the stored token (refreshAccessToken updates the stored token)
                     const token = helperStorage.get<Auth>("auth")?.token;
                     if (token) {
+                        console.log('[RefreshToken] Updating request with new token');
                         // @ts-ignore
                         originalConfig.headers = {
                             ...originalConfig?.headers,
                             Authorization: `Bearer ${token}`,
                         };
+                    } else {
+                        console.error('[RefreshToken] No token found after refresh');
                     }
                     // @ts-ignore
                     return instance.request(originalConfig);
@@ -76,10 +84,19 @@ const refreshToken = (instance: AxiosInstance): void => {
                     autoLogoutTimeout = null;
                 }
             } else if (response?.status === 401 && originalConfig?.__isRetryRequest) {
+                // For logs API, let the error propagate so the component can handle it
+                // (it may need to regenerate the ELK API key)
+                const url = originalConfig?.url || '';
+                if (url.includes('/logs/')) {
+                    console.log('[RefreshToken] 401 on logs API after retry, letting component handle it');
+                    return Promise.reject(error);
+                }
+
                 console.error('❌ 401 after retry, logging out');
                 handleLogoutAndRedirect();
             }
 
+            // Don't reject immediately - let the error propagate for handling
             return Promise.reject(error);
         }
     );

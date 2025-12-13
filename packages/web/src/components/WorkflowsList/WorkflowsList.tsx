@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { Plus, Activity, ExternalLink, Database } from 'lucide-react';
+import { Plus, Activity, ExternalLink, Database, Github } from 'lucide-react';
 import { message } from 'antd';
 import type { Entity, Workflow, AppRoot } from '@/components/AppsCanvas/types/appSchema';
 
@@ -151,11 +151,22 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
     }, 0);
   };
 
+  const getGitHubUrl = (workflow: WorkflowWithEntity) => {
+    if (!workflow.github_url) return null;
+
+    const owner = appData.app.metadata?.owner || 'Cyoda-platform';
+    const repo = appData.app.metadata?.repository || 'mcp-cyoda-quart-app';
+    const branch = appData.app.metadata?.branch || 'main';
+    const filePath = workflow.github_url.replace(/^\.\//, '');
+
+    return `https://github.com/${owner}/${repo}/blob/${branch}/${filePath}`;
+  };
+
   return (
     <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-slate-700/50 bg-slate-900/50 backdrop-blur-sm">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-6">
           <div className="p-2 bg-purple-500/10 rounded-lg">
             <Activity size={20} className="text-purple-400" />
           </div>
@@ -165,15 +176,14 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
               {workflows.length === 0 ? 'No workflows yet' : `${workflows.length} ${workflows.length === 1 ? 'workflow' : 'workflows'}`}
             </p>
           </div>
+          <button
+            onClick={handleCreateWorkflow}
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-500 hover:bg-purple-600 text-white transition-all duration-200 shadow-lg hover:shadow-purple-500/25"
+            title="Create new workflow and open editor"
+          >
+            <Plus size={18} />
+          </button>
         </div>
-        <button
-          onClick={handleCreateWorkflow}
-          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white rounded-lg transition-all duration-200 text-sm font-medium shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:scale-105 group"
-          title="Create new workflow and open editor"
-        >
-          <Plus size={16} />
-          <span>Add Workflow</span>
-        </button>
       </div>
 
       {/* Workflows Grid */}
@@ -198,58 +208,52 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
               </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="flex flex-wrap gap-4 h-full">
             {workflows.map((workflow: any, index: number) => {
               return (
                 <div
                   key={`${workflow.name}-${index}`}
                   onClick={() => onWorkflowClick(`workflow-${workflow.name.toLowerCase()}`, workflow)}
-                  className="bg-gradient-to-br from-slate-800 to-slate-800/50 border border-slate-700/50 rounded-xl p-5 hover:border-purple-500/50 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 cursor-pointer group hover:scale-105 hover:-translate-y-1"
-                  style={{
-                    animationDelay: `${index * 50}ms`,
-                    animation: 'fadeInUp 0.5s ease-out forwards',
-                  }}
+                  className="bg-gradient-to-br from-slate-800 to-slate-800/50 border border-slate-700/50 rounded-xl pt-4 px-2 pb-2 hover:border-purple-500/50 cursor-pointer group h-48 flex flex-col flex-shrink-0"
+                  style={{ width: '220px' }}
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition-colors">
-                        <Activity size={18} className="text-purple-400 group-hover:text-purple-300 transition-colors" />
+                  <div className="flex items-start justify-between mb-2 flex-shrink-0">
+                    <div className="flex items-center space-x-2 min-w-0 flex-1">
+                      <div className="p-1 bg-purple-500/10 rounded group-hover:bg-purple-500/20 transition-colors flex-shrink-0">
+                        <Activity size={14} className="text-purple-400 group-hover:text-purple-300 transition-colors" />
                       </div>
-                      <h4 className="font-semibold text-white group-hover:text-purple-300 transition-colors text-lg">
+                      <h4 className="font-semibold text-white group-hover:text-purple-300 transition-colors text-sm truncate">
                         {workflow.name}
                       </h4>
                     </div>
+                    <div className="w-2 h-2 rounded-full flex-shrink-0 ml-1 bg-purple-400" />
                   </div>
 
-                  <p className="text-sm text-gray-400 mb-4 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-gray-400 mb-2 line-clamp-2 leading-tight flex-shrink-0">
                     {workflow.description || 'No description provided'}
                   </p>
 
-                  <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-slate-700/50">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-center space-x-1">
-                        <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                        <span>{getStateCount(workflow)} states</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <div className="w-2 h-2 bg-teal-400 rounded-full"></div>
-                        <span>{getTransitionCount(workflow)} trans</span>
-                      </div>
+                  <div className="flex-1 min-h-0" />
+
+                  <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-slate-700/50 flex-shrink-0 gap-1">
+                    <div className="flex items-center space-x-1 min-w-0 text-xs">
+                      <Activity size={10} className="text-gray-500 flex-shrink-0" />
+                      <span className="truncate">{getStateCount(workflow)}s</span>
                     </div>
-                    {(workflow.cyoda_url || workflow.github_url) && (
-                      <div className="flex items-center space-x-2">
-                        {workflow.cyoda_url && (
-                          <div className="p-1 bg-purple-500/10 rounded" title="Cyoda URL">
-                            <ExternalLink size={12} className="text-purple-400" />
-                          </div>
-                        )}
-                        {workflow.github_url && (
-                          <div className="p-1 bg-teal-500/10 rounded" title="GitHub URL">
-                            <ExternalLink size={12} className="text-teal-400" />
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <div className="flex items-center space-x-1 flex-shrink-0">
+                      {getGitHubUrl(workflow) && (
+                        <a
+                          href={getGitHubUrl(workflow)!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1 bg-green-500/20 hover:bg-green-500/30 rounded transition-colors"
+                          title="View on GitHub"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Github size={14} className="text-green-400 hover:text-green-300" />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

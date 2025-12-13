@@ -111,9 +111,14 @@ const ChatBotCanvas: React.FC<ChatBotCanvasProps> = ({
       const { clearCache, loadRepository } = useRepositoryStore.getState();
       // Clear cache to force fresh analysis
       clearCache(technicalId);
+      console.log('🗑️ Cache cleared for conversation:', technicalId);
       // Reload from repository (calls /analyze endpoint)
-      await loadRepository(technicalId, githubRepository);
-      console.log('✅ Analysis complete');
+      const freshData = await loadRepository(technicalId, githubRepository);
+      console.log('✅ Analysis complete, fresh data loaded:', {
+        entities: freshData?.app?.entities?.length || 0,
+        workflows: freshData?.app?.entities?.reduce((sum: number, e: any) => sum + (e.workflows?.length || 0), 0) || 0,
+        requirements: freshData?.app?.requirements?.length || 0
+      });
       // Trigger reload of app data
       setShouldReloadAppData(true);
     } catch (error) {
@@ -272,6 +277,98 @@ const ChatBotCanvas: React.FC<ChatBotCanvasProps> = ({
       setShouldReloadAppData(true);
     }
   }, [triggerCanvasReload]);
+
+  // Watch for external activeTab changes (e.g., from canvas_tab hook) and clear navigation context
+  useEffect(() => {
+    if (externalActiveTab !== undefined) {
+      console.log('🔄 External activeTab changed to:', externalActiveTab);
+      // Clear navigation context to show the list view instead of detail view
+      setNavigationContext(null);
+    }
+  }, [externalActiveTab]);
+
+  // Handle shouldReloadAppData - reload from repository store when analyze/pull completes
+  useEffect(() => {
+    if (!shouldReloadAppData || !technicalId) return;
+
+    console.log('🔄 Reloading app data after analyze/pull...');
+    const { getRepositoryData } = useRepositoryStore.getState();
+    const freshData = getRepositoryData(technicalId);
+
+    if (!freshData) {
+      console.warn('⏳ Fresh data not yet available, retrying in 500ms...');
+      const timeout = setTimeout(() => {
+        setShouldReloadAppData(true); // Retry
+      }, 500);
+      return () => clearTimeout(timeout);
+    }
+
+    console.log('✅ Refreshed app data:', {
+      entities: freshData.app?.entities?.length || 0,
+      workflows: freshData.app?.entities?.reduce((sum: number, e: any) => sum + (e.workflows?.length || 0), 0) || 0,
+      requirements: freshData.app?.requirements?.length || 0
+    });
+    setCurrentAppData(freshData);
+
+    // If viewing an entity detail, update the navigation context with fresh data
+    if (navigationContext?.targetType === 'data' && navigationContext?.targetId) {
+      const foundEntity = freshData.app?.entities?.find((e: any) => {
+        const entityId = `entity-${e.name.toLowerCase()}-${e.version}`;
+        return entityId === navigationContext.targetId;
+      });
+      if (foundEntity) {
+        console.log('✅ Updated entity in navigation context:', foundEntity.name);
+        console.log('✅ Updated entity model:', foundEntity.model);
+        setNavigationContext({
+          ...navigationContext,
+          data: foundEntity
+        });
+      } else {
+        console.warn('⚠️ Entity not found in fresh data:', navigationContext.targetId);
+      }
+    }
+
+    // If viewing a workflow, clear navigation context to force reload
+    // This is similar to closing/opening the canvas - it forces the workflow editor to remount
+    if (navigationContext?.targetType === 'workflow' && navigationContext?.targetId) {
+      console.log('🔄 Clearing navigation context to force workflow reload after analyze/pull');
+
+      // Capture the current workflow ID before clearing
+      const currentWorkflowId = navigationContext.targetId;
+      const searchWorkflowName = currentWorkflowId.replace('workflow-', '').toLowerCase();
+
+      // Clear navigation context to unmount the component
+      setNavigationContext(null);
+
+      // Re-open the workflow after a brief delay to allow the component to unmount
+      setTimeout(() => {
+        let foundWorkflow = null;
+
+        // Search for the workflow in all entities
+        for (const entity of freshData.app?.entities || []) {
+          const workflow = entity.workflows?.find((w: any) => w.name && w.name.toLowerCase() === searchWorkflowName);
+          if (workflow) {
+            foundWorkflow = workflow;
+            break;
+          }
+        }
+
+        if (foundWorkflow) {
+          console.log('✅ Re-opening workflow with fresh data:', foundWorkflow.name);
+          setNavigationContext({
+            targetId: currentWorkflowId,
+            targetType: 'workflow',
+            data: foundWorkflow
+          });
+        } else {
+          console.warn('⚠️ Workflow not found in fresh data:', currentWorkflowId);
+        }
+      }, 100);
+    }
+
+    setShouldReloadAppData(false);
+  }, [shouldReloadAppData, technicalId]);
+
   const [markdownContent, setMarkdownContent] = useState(`# Welcome to Canvas Markdown Editor
 
 This editor supports **GitHub Flavored Markdown** with real-time preview and Mermaid diagrams!
@@ -446,7 +543,7 @@ gantt
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-800/95 backdrop-blur-sm">
+    <div className="flex flex-col h-full bg-slate-800/95 backdrop-blur-sm overflow-hidden">
       {/* Canvas Header */}
       <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
         <div className="flex items-center space-x-2">
@@ -490,37 +587,7 @@ gantt
       {/* Canvas Tabs - Single tier (no Application wrapper) */}
       <div className="border-b border-slate-700 bg-slate-800/30">
         {/* Resource Tabs - Reordered: App, Requirements, Entities, Workflows, Code */}
-        <div className="px-4 py-3 flex items-center gap-2">
-          {/* Back button - shown when viewing a detail (entity/workflow/requirement) */}
-          {navigationContext && (
-            <button
-              onClick={() => setNavigationContext(null)}
-              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 text-slate-300 hover:text-white"
-              title="Back to list"
-            >
-              <ArrowLeft size={12} />
-              <span>Back</span>
-            </button>
-          )}
-
-          {/* Send to Chat button - shown when viewing a detail */}
-          {navigationContext && setTextareaContentCallback && (
-            <button
-              onClick={() => {
-                if (navigationContext.data) {
-                  const content = navigationContext.data.model || navigationContext.data.content || navigationContext.data;
-                  const jsonContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
-                  setTextareaContentCallback(jsonContent);
-                }
-              }}
-              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-teal-600/80 hover:bg-teal-500/80 border border-teal-500 text-white"
-              title="Send to chat"
-            >
-              <Send size={12} />
-              <span>Send to Chat</span>
-            </button>
-          )}
-
+        <div className="px-4 py-3 flex items-center gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
           {/* Spacer to push action buttons to the right */}
           <div className="flex-1" />
 
@@ -610,8 +677,9 @@ gantt
       </div>
 
       {/* Canvas Content */}
-      <div className="flex-1 relative overflow-hidden flex flex-col">
-        {activeTab === 'data' ? (
+      <div className="flex-1 relative overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+        <div className="flex flex-col h-full w-full" style={{ minWidth: '800px' }}>
+          {activeTab === 'data' ? (
           navigationContext?.targetId ? (
             // Show entity editor when an entity is selected
             <EntityEditor
@@ -633,6 +701,7 @@ gantt
                 console.log('📦 All entities:', currentAppData?.app?.entities);
                 return foundEntity;
               })()}
+              appData={currentAppData}
               onSendToChat={(message) => {
                 // Copy entity content to chat textarea
                 if (setTextareaContentCallback) {
@@ -717,6 +786,7 @@ gantt
           // Show workflow editor when a workflow is selected, otherwise show list
           navigationContext?.targetId && navigationContext?.targetType === 'workflow' ? (
             <ChatBotEditorWorkflowNew
+              key={`${navigationContext.targetId}-${JSON.stringify(navigationContext.data)}`}
               technicalId={`workflow_${navigationContext.targetId}`}
               modelName={navigationContext.data?.name || navigationContext.targetId.replace('workflow-', '')}
               modelVersion={navigationContext.data?.version || 1}
@@ -850,6 +920,7 @@ gantt
               appId={getCurrentAppId()}
               requirementId={navigationContext.targetId}
               requirementData={currentAppData?.app.requirements?.find(r => r.id === navigationContext.targetId)}
+              appData={currentAppData}
               onSendToChat={(message) => {
                 // Copy requirement content to chat textarea
                 if (setTextareaContentCallback) {
@@ -1102,6 +1173,7 @@ graph TD
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* Settings Dialog */}

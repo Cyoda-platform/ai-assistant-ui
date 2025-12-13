@@ -1,17 +1,25 @@
 .monitoring-view {
-  min-height: 100vh;
+  height: 100vh;
   background: #0d1117;
   color: #e8e8e8;
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .monitoring-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
+  padding: 20px;
   border-bottom: 1px solid #434343;
+  flex-shrink: 0;
+}
+
+.monitoring-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
 }
 
 .monitoring-header-left h1 {
@@ -334,4 +342,104 @@
 
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+/* Modal Styles for Expanded Graph */
+.graph-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.graph-modal-content {
+  background: #1f1f1f;
+  border: 1px solid #434343;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  margin: auto;
+  min-height: 0;
+}
+
+.graph-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #434343;
+}
+
+.graph-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #e8e8e8;
+}
+
+.graph-modal-close {
+  background: none;
+  border: none;
+  color: #a8a8a8;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.graph-modal-close:hover {
+  background: #434343;
+  color: #e8e8e8;
+}
+
+.graph-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.metric-card.expandable {
+  cursor: pointer;
+  position: relative;
+}
+
+.metric-card.expandable::after {
+  content: '⛶';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 16px;
+  color: #0d8484;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.metric-card.expandable:hover::after {
+  opacity: 1;
 }

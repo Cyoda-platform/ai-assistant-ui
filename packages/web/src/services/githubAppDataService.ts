@@ -180,7 +180,7 @@ export async function convertGitHubToAppRoot(
 
     // Extract fields from entity
     // Handle both formats:
-    // 1. New format: entity.content.fields (full JSON from /analyze)
+    // 1. New format: entity.content (full JSON from /analyze)
     // 2. Old format: entity.fields (direct fields from EntityResponse)
     const entityContent = (entity as any).content;
     const fields = entityContent?.fields || (entity as any).fields || [];
@@ -190,8 +190,10 @@ export async function convertGitHubToAppRoot(
     console.log('📦 Converting entity:', {
       name: entity.name,
       hasContent: !!entityContent,
+      contentKeys: entityContent ? Object.keys(entityContent) : [],
       fieldsCount: fields.length,
-      fields: fields.map((f: any) => f.name)
+      fields: fields.map((f: any) => f.name),
+      entityContent: entityContent
     });
 
     appRoot.app.entities.push({
@@ -290,10 +292,13 @@ export async function convertGitHubToAppRoot(
     // Handle both formats: name or fileName
     const reqName = (req as any).name || (req as any).fileName || `Requirement ${index + 1}`;
     const reqContent = (req as any).content || '';
-    const reqPath = req.path || (req as any).filePath || '';
+    // Handle both formats: filePath (from /analyze) or path (from legacy)
+    const reqPath = (req as any).filePath || req.path || '';
+    const reqFileName = (req as any).fileName || reqName;
 
     console.log('📋 Converting requirement:', {
       name: reqName,
+      fileName: reqFileName,
       hasContent: !!reqContent,
       contentLength: reqContent?.length || 0,
       path: reqPath
@@ -308,7 +313,7 @@ export async function convertGitHubToAppRoot(
       content: reqContent, // Include content from analyze endpoint
       metadata: {
         filePath: reqPath,
-        fileName: `${reqName}.md`,
+        fileName: reqFileName,
       },
     });
   });

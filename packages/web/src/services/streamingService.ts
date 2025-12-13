@@ -87,6 +87,7 @@ class StreamingService {
   /**
    * Stream chat message with real-time updates
    * Uses fetch with ReadableStream to support POST requests
+   * Supports optional file attachments via multipart/form-data
    */
   async streamChatMessage(
     conversationId: string,
@@ -94,7 +95,8 @@ class StreamingService {
     token: string,
     onEvent: (event: SSEChatEvent) => void,
     onError?: (error: Error) => void,
-    onComplete?: () => void
+    onComplete?: () => void,
+    files?: File[]
   ): Promise<AbortController> {
     // Check if there's already an active stream for this conversation
     const existingStream = this.activeStreams.get(conversationId);
@@ -137,7 +139,7 @@ class StreamingService {
       onError?.(error);
     };
 
-    return this.streamChatMessageWithRetry(conversationId, message, token, onEvent, wrappedOnError, wrappedOnComplete);
+    return this.streamChatMessageWithRetry(conversationId, message, token, onEvent, wrappedOnError, wrappedOnComplete, 1, files);
   }
 
   /**
@@ -213,6 +215,7 @@ class StreamingService {
 
   /**
    * Stream chat message with retry logic and persistence
+   * Supports optional file attachments
    */
   private async streamChatMessageWithRetry(
     conversationId: string,
@@ -221,7 +224,8 @@ class StreamingService {
     onEvent: (event: SSEChatEvent) => void,
     onError?: (error: Error) => void,
     onComplete?: () => void,
-    attemptNumber: number = 1
+    attemptNumber: number = 1,
+    files?: File[]
   ): Promise<AbortController> {
     const url = `${import.meta.env.VITE_APP_API_BASE}/v1/chats/${conversationId}/stream`;
     const abortController = new AbortController();
@@ -257,7 +261,6 @@ class StreamingService {
 
     try {
       const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
         'Accept': 'text/event-stream',
         'Cache-Control': 'no-cache',
@@ -268,10 +271,25 @@ class StreamingService {
         headers['Last-Event-ID'] = lastEventId;
       }
 
+      // Prepare request body - use FormData if files present, JSON otherwise
+      let body: FormData | string;
+      if (files && files.length > 0) {
+        const formData = new FormData();
+        formData.append('message', message);
+        files.forEach((file) => {
+          formData.append('files', file);
+        });
+        body = formData;
+        // Don't set Content-Type header - browser will set it with boundary
+      } else {
+        headers['Content-Type'] = 'application/json';
+        body = JSON.stringify({ message });
+      }
+
       const response = await fetch(url, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ message }),
+        body,
         signal: abortController.signal,
       });
 

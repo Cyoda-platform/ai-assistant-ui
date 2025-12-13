@@ -58,12 +58,8 @@ const TaskDashboard: React.FC<TaskDashboardProps> = ({
     }
   }, [conversationId]);
 
-  // Initial load
-  useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
-
-  // Poll for updates every 3 seconds for real-time CLI output
+  // Poll for updates every 10 seconds for real-time CLI output
+  // This also does an initial load, so no need for a separate initial load
   useEffect(() => {
     const cleanup = taskService.pollConversationTasks(
       conversationId,
@@ -74,7 +70,7 @@ const TaskDashboard: React.FC<TaskDashboardProps> = ({
       (err) => {
         console.error('Polling error:', err);
       },
-      3000 // Poll every 3 seconds for real-time output
+      10000 // Poll every 10 seconds
     );
 
     return cleanup;
@@ -97,7 +93,7 @@ const TaskDashboard: React.FC<TaskDashboardProps> = ({
 
   if (isLoading && tasks.length === 0) {
     return (
-      <div className="flex items-center justify-center p-8">
+      <div className="flex items-center justify-center h-full w-full">
         <div className="text-center">
           <RefreshCw size={32} className="text-slate-600 mx-auto mb-3 animate-spin" />
           <p className="text-slate-400 text-sm">Loading tasks...</p>
@@ -108,7 +104,7 @@ const TaskDashboard: React.FC<TaskDashboardProps> = ({
 
   if (error && tasks.length === 0) {
     return (
-      <div className="flex items-center justify-center p-8">
+      <div className="flex items-center justify-center h-full w-full">
         <div className="text-center space-y-4">
           <Activity size={48} className="text-slate-600 mx-auto" />
           <div>
@@ -128,7 +124,7 @@ const TaskDashboard: React.FC<TaskDashboardProps> = ({
 
   if (tasks.length === 0) {
     return (
-      <div className="flex items-center justify-center p-8">
+      <div className="flex items-center justify-center h-full w-full">
         <div className="text-center">
           <Activity size={48} className="text-teal-400/30 mx-auto mb-4" />
           <p className="text-slate-400">No background tasks</p>
@@ -141,7 +137,7 @@ const TaskDashboard: React.FC<TaskDashboardProps> = ({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       {/* Header with filters */}
       <div className="px-4 py-3 border-b border-slate-700/50">
         <div className="flex items-center justify-between">
@@ -185,7 +181,7 @@ const TaskDashboard: React.FC<TaskDashboardProps> = ({
       </div>
 
       {/* Task list */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin">
         {filteredTasks.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-slate-400 text-sm">No tasks match the current filter</p>

@@ -57,9 +57,11 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [chatToRename, setChatToRename] = useState<{ id: string; name: string } | null>(null);
 
-  const handleDeleteClick = (e: React.MouseEvent, chatId: string, chatName?: string) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDeleteClick = (e: React.MouseEvent | null, chatId: string, chatName?: string) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setChatToDelete({ id: chatId, name: chatName });
     setDeleteModalOpen(true);
   };
@@ -183,7 +185,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
                         chatDescription={chat.description}
                         chatDate={chat.last_modified || chat.date}
                         onRename={handleRenameClick}
-                        onDelete={(chatId, chatName) => handleDeleteClick({} as React.MouseEvent, chatId, chatName)}
+                        onDelete={(chatId, chatName) => handleDeleteClick(null, chatId, chatName)}
                         showMenuButton={true}
                       >
                         <a

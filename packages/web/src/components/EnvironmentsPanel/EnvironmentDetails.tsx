@@ -1,11 +1,13 @@
-import React, { useState, useMemo } from 'react';
-import { ArrowLeft, Server, Copy, CheckCircle2, AlertCircle, RefreshCw, User, UserCog, Activity, Play, Loader2, Download, X, FileText, BarChart3 } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Server, Copy, CheckCircle2, AlertCircle, RefreshCw, User, UserCog, Activity, Play, Loader2, Download, X, FileText, BarChart3, Package, ChevronUp, ChevronDown, Sparkles } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import privateClient from '@/clients/private';
 import { message, Modal } from 'antd';
 import dayjs from 'dayjs';
 import FileSaver from 'file-saver';
+import PromptCarousel from './PromptCarousel';
 
 interface EnvironmentDetailsProps {
   environmentName: string;
@@ -15,7 +17,7 @@ interface EnvironmentDetailsProps {
 
 interface UIFunctionParameter {
   name: string;
-  type: 'path' | 'query' | 'body';
+  type: 'path' | 'query' | 'body' | 'form' | 'header';
   required: boolean;
   description?: string;
   default?: string;
@@ -33,14 +35,34 @@ interface UIFunction {
   parameters?: UIFunctionParameter[];
 }
 
+interface UserApp {
+  app_name: string;
+  namespace: string;
+  status: string;
+  created_at?: string;
+}
+
+interface EnvironmentInfo {
+  name: string;
+  namespace: string;
+  status: string;
+  created_at?: string;
+}
+
 const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName, onBack, onClose }) => {
+  const navigate = useNavigate();
   const token = useAuthStore((state) => state.token);
-  const [envStatus, setEnvStatus] = useState<'checking' | 'online' | 'offline'>('checking');
   const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [executingFunction, setExecutingFunction] = useState<string | null>(null);
   const [functionResponses, setFunctionResponses] = useState<Record<string, any>>({});
   const [parameterValues, setParameterValues] = useState<Record<string, Record<string, string>>>({});
+  const [userApps, setUserApps] = useState<UserApp[]>([]);
+  const [isLoadingApps, setIsLoadingApps] = useState(false);
+  const [environmentInfo, setEnvironmentInfo] = useState<EnvironmentInfo | null>(null);
+  const [isLoadingEnvInfo, setIsLoadingEnvInfo] = useState(false);
+  const [isApiFunctionsExpanded, setIsApiFunctionsExpanded] = useState(false);
+  const [refreshingAppStatus, setRefreshingAppStatus] = useState<string | null>(null);
+  const [refreshingEnvStatus, setRefreshingEnvStatus] = useState(false);
 
   // Parse token to get org ID
   const orgId = useMemo(() => {
@@ -61,16 +83,124 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
     }
   }, [token]);
 
-  // Build environment URL
+  // Build environment URL from namespace
   const environmentUrl = useMemo(() => {
-    if (!orgId) return '';
-    const envPrefix = import.meta.env.VITE_APP_CYODA_CLIENT_ENV_PREFIX || '';
-    const host = import.meta.env.VITE_APP_CYODA_CLIENT_HOST || '';
-    const cleanPrefix = envPrefix.endsWith('-') ? envPrefix.slice(0, -1) : envPrefix;
-    return `https://${cleanPrefix}-${orgId}.${host}`;
-  }, [orgId]);
+    if (!environmentInfo?.namespace) return '';
+    const host = import.meta.env.VITE_APP_CYODA_CLIENT_HOST || 'cyoda.cloud';
+    return `https://${environmentInfo.namespace}.${host}`;
+  }, [environmentInfo?.namespace]);
 
-  const apiBaseUrl = `${environmentUrl}/api`;
+  const apiBaseUrl = useMemo(() => {
+    return environmentUrl ? `${environmentUrl}/api` : '';
+  }, [environmentUrl]);
+
+  // Fetch environment details
+  const fetchEnvironmentInfo = async () => {
+    if (!token || !environmentName) return;
+
+    try {
+      setIsLoadingEnvInfo(true);
+      const response = await privateClient({
+        method: 'post',
+        url: '/agent/environment/list_environments',
+        data: {}
+      });
+
+      if (response.data && response.data.environments) {
+        const envs = response.data.environments as EnvironmentInfo[];
+        const env = envs.find(e => e.name === environmentName);
+        if (env) {
+          setEnvironmentInfo(env);
+        }
+      }
+    } catch (error: any) {
+      console.error('Failed to fetch environment info:', error);
+    } finally {
+      setIsLoadingEnvInfo(false);
+    }
+  };
+
+  // Refresh environment status
+  const refreshEnvironmentStatus = async () => {
+    if (!token || !environmentName) return;
+
+    try {
+      setRefreshingEnvStatus(true);
+      const response = await privateClient({
+        method: 'post',
+        url: '/agent/environment/list_environments',
+        data: {}
+      });
+
+      if (response.data && response.data.environments) {
+        const envs = response.data.environments as EnvironmentInfo[];
+        const env = envs.find(e => e.name === environmentName);
+        if (env) {
+          setEnvironmentInfo(env);
+        }
+      }
+    } catch (error: any) {
+      console.error('Failed to refresh environment status:', error);
+      message.error('Failed to refresh environment status');
+    } finally {
+      setRefreshingEnvStatus(false);
+    }
+  };
+
+  // Fetch user applications for this environment
+  const fetchUserApps = async () => {
+    if (!token || !environmentName) return;
+
+    try {
+      setIsLoadingApps(true);
+      const response = await privateClient({
+        method: 'post',
+        url: '/agent/environment/list_user_apps',
+        data: { env_name: environmentName }
+      });
+
+      if (response.data && response.data.user_applications) {
+        setUserApps(response.data.user_applications);
+      } else {
+        setUserApps([]);
+      }
+    } catch (error: any) {
+      console.error('Failed to fetch user applications:', error);
+      setUserApps([]);
+    } finally {
+      setIsLoadingApps(false);
+    }
+  };
+
+  // Refresh status for a single app
+  const refreshAppStatus = async (appName: string) => {
+    if (!token || !environmentName) return;
+
+    try {
+      setRefreshingAppStatus(appName);
+      const response = await privateClient({
+        method: 'post',
+        url: '/agent/environment/list_user_apps',
+        data: { env_name: environmentName }
+      });
+
+      if (response.data && response.data.user_applications) {
+        const updatedApps = response.data.user_applications;
+        setUserApps(updatedApps);
+      }
+    } catch (error: any) {
+      console.error('Failed to refresh app status:', error);
+      message.error('Failed to refresh app status');
+    } finally {
+      setRefreshingAppStatus(null);
+    }
+  };
+
+  // Fetch environment info and user apps on mount
+  useEffect(() => {
+    fetchEnvironmentInfo();
+    fetchUserApps();
+  }, [environmentName, token]);
 
   // UI Functions based on Cyoda API documentation
   const uiFunctions: UIFunction[] = [
@@ -95,19 +225,6 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
       response_format: 'json'
     },
     {
-      id: 'get_user_by_id',
-      name: 'Get User by ID',
-      description: 'Retrieve specific user details',
-      icon: User,
-      method: 'GET',
-      path: '/api/clients/{userId}',
-      category: 'User Management',
-      response_format: 'json',
-      parameters: [
-        { name: 'userId', type: 'path', required: true, description: 'User ID' }
-      ]
-    },
-    {
       id: 'delete_user',
       name: 'Delete User',
       description: 'Delete a user account',
@@ -129,44 +246,54 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
       path: '/api/clients',
       category: 'Machine User Management',
       response_format: 'json'
+    },
+    {
+      id: 'oauth_token',
+      name: 'Obtain Access Token',
+      description: 'Authenticates M2M client using client credentials and returns JWT access token',
+      icon: Activity,
+      method: 'POST',
+      path: '/api/oauth/token',
+      category: 'OAuth',
+      response_format: 'json',
+      parameters: [
+        {
+          name: 'client_id',
+          type: 'header',
+          required: true,
+          description: 'M2M client ID (e.g., abc523BCD)',
+          default: ''
+        },
+        {
+          name: 'client_secret',
+          type: 'header',
+          required: true,
+          description: 'M2M client secret',
+          default: ''
+        },
+        {
+          name: 'grant_type',
+          type: 'form',
+          required: true,
+          description: 'OAuth 2.0 grant type for M2M authentication',
+          default: 'client_credentials'
+        }
+      ]
+    },
+    {
+      id: 'reset_client_secret',
+      name: 'Reset Client Secret',
+      description: 'Generate a new client secret for an existing M2M client',
+      icon: UserCog,
+      method: 'PUT',
+      path: '/api/clients/{clientId}/secret',
+      category: 'Client Management',
+      response_format: 'json',
+      parameters: [
+        { name: 'clientId', type: 'path', required: true, description: 'Client ID to reset (e.g., abc523BCD)' }
+      ]
     }
   ];
-
-  // Check environment status
-  const checkEnvironmentStatus = async () => {
-    if (!token || !apiBaseUrl) return;
-
-    setIsCheckingStatus(true);
-    try {
-      // Use privateClient to benefit from refresh token interceptor
-      const response = await privateClient({
-        method: 'get',
-        url: `${apiBaseUrl}/`,
-        timeout: 10000
-      });
-
-      if (response.status === 200) {
-        setEnvStatus('online');
-        message.success('Environment is online and accessible');
-      }
-    } catch (error: any) {
-      console.error('Environment status check failed:', error);
-      setEnvStatus('offline');
-
-      // Handle different error scenarios
-      if (error?.response?.status === 401) {
-        message.error('Authentication failed. Please check your credentials.');
-      } else if (error?.response?.status) {
-        message.error(`Environment returned status ${error.response.status}`);
-      } else if (error?.code === 'ECONNABORTED') {
-        message.error('Request timeout. Environment may be slow to respond.');
-      } else {
-        message.error('Environment is offline or unreachable');
-      }
-    } finally {
-      setIsCheckingStatus(false);
-    }
-  };
 
   // Copy to clipboard
   const copyToClipboard = (text: string, fieldName: string) => {
@@ -186,10 +313,10 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
     // Get parameter values for this function
     const funcParams = parameterValues[func.id] || {};
 
-    // Check required parameters
+    // Check required parameters (use default if available)
     if (func.parameters) {
       const missingParams = func.parameters
-        .filter(p => p.required && !funcParams[p.name])
+        .filter(p => p.required && !funcParams[p.name] && !p.default)
         .map(p => p.name);
 
       if (missingParams.length > 0) {
@@ -202,10 +329,16 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
     let fullPath = func.path;
     const queryParams: Record<string, string> = {};
     let bodyData: any = null;
+    let contentType = 'application/json';
+    const formParams: Record<string, string> = {};
+    const headerParams: Record<string, string> = {};
+    let clientId = '';
+    let clientSecret = '';
 
     if (func.parameters) {
       func.parameters.forEach(param => {
-        const value = funcParams[param.name];
+        // Use provided value or fall back to default
+        const value = funcParams[param.name] || param.default;
         if (!value) return;
 
         if (param.type === 'path') {
@@ -222,8 +355,26 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
             message.error(`Invalid JSON in ${param.name}`);
             return;
           }
+        } else if (param.type === 'form') {
+          // Add form parameters
+          formParams[param.name] = value;
+          contentType = 'application/x-www-form-urlencoded';
+        } else if (param.type === 'header') {
+          // Collect header parameters for Basic Auth
+          if (param.name === 'client_id') {
+            clientId = value;
+          } else if (param.name === 'client_secret') {
+            clientSecret = value;
+          } else {
+            headerParams[param.name] = value;
+          }
         }
       });
+    }
+
+    // If we have form parameters, build form data
+    if (Object.keys(formParams).length > 0) {
+      bodyData = new URLSearchParams(formParams).toString();
     }
 
     // Build query string
@@ -238,13 +389,63 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
     try {
       const method = func.method.toLowerCase() as 'get' | 'post' | 'put' | 'delete' | 'patch';
 
-      // Use privateClient to benefit from refresh token interceptor
-      const { data } = await privateClient({
+      // Build headers
+      const headers: Record<string, string> = {
+        'Content-Type': contentType,
+        'Authorization': `Bearer ${token}`,
+        ...headerParams
+      };
+
+      // If we have client credentials, add HTTP Basic Authentication
+      if (clientId && clientSecret) {
+        const basicAuth = btoa(`${clientId}:${clientSecret}`);
+        headers['Authorization'] = `Basic ${basicAuth}`;
+      }
+
+      // Create a direct axios client for the client environment
+      // This bypasses the backend and calls the environment directly
+      const environmentClient = axios.create({
+        timeout: 30000,
+        headers
+      });
+
+      // Add response interceptor to handle 401 and refresh token against Auth0
+      environmentClient.interceptors.response.use(
+        response => response,
+        async (error: AxiosError) => {
+          if (error.response?.status === 401 && error.config) {
+            // Token has expired, try to refresh it against Auth0
+            try {
+              console.log('Token expired (401), attempting to refresh against Auth0...');
+              const authStore = useAuthStore.getState();
+
+              // Call the auth store's refreshAccessToken method which handles Auth0 refresh
+              await authStore.refreshAccessToken();
+
+              // Get the new token from the store
+              const newToken = useAuthStore.getState().token;
+              if (newToken) {
+                console.log('Token refreshed successfully, retrying request...');
+                // Update the authorization header with the new token
+                error.config.headers['Authorization'] = `Bearer ${newToken}`;
+                // Retry the original request with the new token
+                return environmentClient.request(error.config);
+              } else {
+                throw new Error('No token available after refresh');
+              }
+            } catch (refreshError) {
+              console.error('Token refresh failed:', refreshError);
+              message.error('Session expired. Please log in again.');
+              return Promise.reject(refreshError);
+            }
+          }
+          return Promise.reject(error);
+        }
+      );
+
+      const { data } = await environmentClient({
         method,
         url: fullUrl,
-        headers: {
-          'Content-Type': 'application/json',
-        },
         ...(bodyData && { data: bodyData })
       });
 
@@ -265,9 +466,19 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
       }
     } catch (error: any) {
       console.error('Failed to execute UI function:', error);
-      const errorMsg = error?.response?.data?.message || error?.message || 'Failed to execute request';
-      setFunctionResponses(prev => ({ ...prev, [func.id]: { error: errorMsg } }));
-      message.error(`Failed: ${errorMsg}`);
+
+      // Handle different error scenarios
+      if (error?.response?.status === 401) {
+        message.error('Authentication failed. Your session has expired. Please log in again.');
+      } else if (error?.response?.status === 403) {
+        message.error('Access denied. You do not have permission to perform this action.');
+      } else if (error?.code === 'ECONNABORTED') {
+        message.error('Request timeout. The environment is not responding.');
+      } else {
+        const errorMsg = error?.response?.data?.message || error?.message || 'Failed to execute request';
+        setFunctionResponses(prev => ({ ...prev, [func.id]: { error: errorMsg } }));
+        message.error(`Failed: ${errorMsg}`);
+      }
     } finally {
       setExecutingFunction(null);
     }
@@ -293,7 +504,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
     });
   };
 
-  const redeployMessage = `Please, deploy my cyoda environment: ${environmentUrl}`;
+  const redeployMessage = `Please, redeploy my cyoda environment: ${environmentUrl}`;
 
   return (
     <div className="h-full flex flex-col bg-slate-800/95">
@@ -310,109 +521,243 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
           <Server size={18} className="text-teal-400" />
           <h3 className="font-semibold text-white">{environmentName} Environment</h3>
         </div>
-        {onClose && (
+        <div className="flex items-center space-x-2">
           <button
-            onClick={onClose}
-            className="p-1.5 rounded hover:bg-slate-700 transition-colors"
-            title="Close Cloud panel"
+            onClick={() => window.open(`/logs?env_name=${encodeURIComponent(environmentName)}&app_name=cyoda`, '_blank')}
+            className="flex items-center space-x-1 px-3 py-1.5 rounded text-sm bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 transition-colors"
+            title="View logs for this environment"
           >
-            <X size={18} className="text-slate-400" />
+            <Activity size={16} />
+            <span>View Logs</span>
           </button>
-        )}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded hover:bg-slate-700 transition-colors"
+              title="Close Cloud panel"
+            >
+              <X size={18} className="text-slate-400" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
-        {/* Environment URL */}
+        {/* Environment Details */}
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">Environment Details</h4>
-
-          <div className="bg-slate-700/50 rounded-lg p-4 space-y-3">
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">Client Environment URL</label>
-              <div className="flex items-center space-x-2">
-                <code className="flex-1 text-sm text-teal-400 bg-slate-900/50 px-3 py-2 rounded border border-slate-600">
-                  {environmentUrl || 'Not available'}
-                </code>
-                <button
-                  onClick={() => copyToClipboard(environmentUrl, 'Environment URL')}
-                  className="p-2 rounded hover:bg-slate-600 transition-colors"
-                  title="Copy URL"
-                >
-                  {copiedField === 'Environment URL' ? (
-                    <CheckCircle2 size={16} className="text-green-400" />
-                  ) : (
-                    <Copy size={16} className="text-slate-400" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">API Base URL</label>
-              <div className="flex items-center space-x-2">
-                <code className="flex-1 text-sm text-teal-400 bg-slate-900/50 px-3 py-2 rounded border border-slate-600">
-                  {apiBaseUrl || 'Not available'}
-                </code>
-                <button
-                  onClick={() => copyToClipboard(apiBaseUrl, 'API Base URL')}
-                  className="p-2 rounded hover:bg-slate-600 transition-colors"
-                  title="Copy API URL"
-                >
-                  {copiedField === 'API Base URL' ? (
-                    <CheckCircle2 size={16} className="text-green-400" />
-                  ) : (
-                    <Copy size={16} className="text-slate-400" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">Organization ID</label>
-              <div className="flex items-center space-x-2">
-                <code className="flex-1 text-sm text-teal-400 bg-slate-900/50 px-3 py-2 rounded border border-slate-600">
-                  {orgId || 'Not available'}
-                </code>
-                <button
-                  onClick={() => copyToClipboard(orgId, 'Organization ID')}
-                  className="p-2 rounded hover:bg-slate-600 transition-colors"
-                  title="Copy Org ID"
-                >
-                  {copiedField === 'Organization ID' ? (
-                    <CheckCircle2 size={16} className="text-green-400" />
-                  ) : (
-                    <Copy size={16} className="text-slate-400" />
-                  )}
-                </button>
-              </div>
-            </div>
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">Environment Details</h4>
+            <button
+              onClick={fetchEnvironmentInfo}
+              disabled={isLoadingEnvInfo}
+              className="flex items-center space-x-1 px-2 py-1 rounded text-xs bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 transition-colors disabled:opacity-50"
+              title="Refresh environment info"
+            >
+              <RefreshCw size={12} className={isLoadingEnvInfo ? 'animate-spin' : ''} />
+              <span>Refresh</span>
+            </button>
           </div>
+
+          {isLoadingEnvInfo ? (
+            <div className="bg-slate-700/50 rounded-lg p-4 flex items-center justify-center">
+              <Loader2 size={16} className="animate-spin text-teal-400 mr-2" />
+              <span className="text-sm text-slate-400">Loading environment details...</span>
+            </div>
+          ) : environmentInfo ? (
+            <div className="bg-slate-700/50 rounded-lg p-4 space-y-3">
+              <div>
+                <label className="text-xs text-slate-400 mb-1 block">Namespace</label>
+                <div className="flex items-center space-x-2 min-w-0">
+                  <code className="flex-1 text-sm text-teal-400 bg-slate-900/50 px-3 py-2 rounded border border-slate-600 truncate min-w-0">
+                    {environmentInfo.namespace}
+                  </code>
+                  <button
+                    onClick={() => copyToClipboard(environmentInfo.namespace, 'Namespace')}
+                    className="p-2 rounded hover:bg-slate-600 transition-colors"
+                    title="Copy namespace"
+                  >
+                    {copiedField === 'Namespace' ? (
+                      <CheckCircle2 size={16} className="text-green-400" />
+                    ) : (
+                      <Copy size={16} className="text-slate-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-slate-400 mb-1 block">Status</label>
+                <div className="flex items-center space-x-2">
+                  <span className={`text-xs px-3 py-2 rounded border ${
+                    environmentInfo.status === 'Active' || environmentInfo.status === 'active'
+                      ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                      : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                  }`}>
+                    {environmentInfo.status}
+                  </span>
+                  <button
+                    onClick={refreshEnvironmentStatus}
+                    disabled={refreshingEnvStatus}
+                    className="p-1.5 rounded hover:bg-slate-600 transition-colors disabled:opacity-50"
+                    title="Refresh status"
+                  >
+                    <RefreshCw
+                      size={14}
+                      className={refreshingEnvStatus ? 'animate-spin text-teal-400' : 'text-slate-400'}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {environmentInfo.created_at && (
+                <div>
+                  <label className="text-xs text-slate-400 mb-1 block">Created</label>
+                  <p className="text-sm text-slate-300">
+                    {new Date(environmentInfo.created_at).toLocaleDateString()} {new Date(environmentInfo.created_at).toLocaleTimeString()}
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <label className="text-xs text-slate-400 mb-1 block">Client Environment URL</label>
+                <div className="flex items-center space-x-2 min-w-0">
+                  <code className="flex-1 text-sm text-teal-400 bg-slate-900/50 px-3 py-2 rounded border border-slate-600 truncate min-w-0">
+                    {environmentUrl || 'Not available'}
+                  </code>
+                  <button
+                    onClick={() => copyToClipboard(environmentUrl, 'Environment URL')}
+                    className="p-2 rounded hover:bg-slate-600 transition-colors"
+                    title="Copy URL"
+                  >
+                    {copiedField === 'Environment URL' ? (
+                      <CheckCircle2 size={16} className="text-green-400" />
+                    ) : (
+                      <Copy size={16} className="text-slate-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+
+
+              <div>
+                <label className="text-xs text-slate-400 mb-1 block">Organization ID</label>
+                <div className="flex items-center space-x-2 min-w-0">
+                  <code className="flex-1 text-sm text-teal-400 bg-slate-900/50 px-3 py-2 rounded border border-slate-600 truncate min-w-0">
+                    {orgId || 'Not available'}
+                  </code>
+                  <button
+                    onClick={() => copyToClipboard(orgId, 'Organization ID')}
+                    className="p-2 rounded hover:bg-slate-600 transition-colors"
+                    title="Copy Org ID"
+                  >
+                    {copiedField === 'Organization ID' ? (
+                      <CheckCircle2 size={16} className="text-green-400" />
+                    ) : (
+                      <Copy size={16} className="text-slate-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-slate-700/50 rounded-lg p-4">
+              <p className="text-sm text-slate-400">Unable to load environment details</p>
+            </div>
+          )}
         </div>
 
-        {/* Environment Status */}
+        {/* User Applications */}
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">Status</h4>
-
-          <div className="bg-slate-700/50 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Activity size={18} className={envStatus === 'online' ? 'text-green-400' : envStatus === 'offline' ? 'text-red-400' : 'text-yellow-400'} />
-                <span className="text-sm text-white">
-                  {envStatus === 'checking' ? 'Status Unknown' : envStatus === 'online' ? 'Online' : 'Offline'}
-                </span>
-              </div>
-              <button
-                onClick={checkEnvironmentStatus}
-                disabled={isCheckingStatus}
-                className="flex items-center space-x-2 px-3 py-1.5 rounded bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 transition-colors disabled:opacity-50"
-              >
-                <RefreshCw size={14} className={isCheckingStatus ? 'animate-spin' : ''} />
-                <span className="text-xs font-medium">Check Status</span>
-              </button>
-            </div>
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">User Applications</h4>
+            <button
+              onClick={fetchUserApps}
+              disabled={isLoadingApps}
+              className="flex items-center space-x-1 px-2 py-1 rounded text-xs bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 transition-colors disabled:opacity-50"
+              title="Refresh applications"
+            >
+              <RefreshCw size={12} className={isLoadingApps ? 'animate-spin' : ''} />
+              <span>Refresh</span>
+            </button>
           </div>
+
+          {isLoadingApps ? (
+            <div className="bg-slate-700/50 rounded-lg p-4 flex items-center justify-center">
+              <Loader2 size={16} className="animate-spin text-teal-400 mr-2" />
+              <span className="text-sm text-slate-400">Loading applications...</span>
+            </div>
+          ) : userApps.length === 0 ? (
+            <div className="bg-slate-700/50 rounded-lg p-4">
+              <p className="text-sm text-slate-400">No user applications deployed in this environment</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {userApps.map((app) => {
+                const appUrl = `https://${app.namespace}.${import.meta.env.VITE_APP_CYODA_CLIENT_HOST || 'cyoda.cloud'}`;
+                return (
+                  <div key={app.app_name} className="bg-slate-700/50 rounded-lg p-3 hover:bg-slate-700/70 transition-colors">
+                    <div className="flex items-start space-x-3">
+                      <Package size={16} className="text-blue-400 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <h5 className="text-sm font-medium text-white mb-0.5">{app.app_name}</h5>
+                        <p className="text-xs text-slate-400 truncate mb-2">{app.namespace}</p>
+
+                        {/* App URL with Copy Button */}
+                        <div className="flex items-center space-x-2 mb-2 min-w-0">
+                          <code className="flex-1 text-xs text-teal-400 bg-slate-900/50 px-2 py-1 rounded border border-slate-600 truncate min-w-0">
+                            {appUrl}
+                          </code>
+                          <button
+                            onClick={() => copyToClipboard(appUrl, `${app.app_name} URL`)}
+                            className="p-1.5 rounded hover:bg-slate-600 transition-colors flex-shrink-0"
+                            title="Copy URL"
+                          >
+                            {copiedField === `${app.app_name} URL` ? (
+                              <CheckCircle2 size={14} className="text-green-400" />
+                            ) : (
+                              <Copy size={14} className="text-slate-400" />
+                            )}
+                          </button>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <span className={`text-xs px-2 py-0.5 rounded border ${
+                            app.status === 'Active' || app.status === 'active'
+                              ? 'bg-green-500/20 text-green-400 border-green-500/30'
+                              : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                          }`}>
+                            {app.status}
+                          </span>
+                          <button
+                            onClick={() => refreshAppStatus(app.app_name)}
+                            disabled={refreshingAppStatus === app.app_name}
+                            className="p-1 rounded hover:bg-slate-600 transition-colors disabled:opacity-50"
+                            title="Refresh status"
+                          >
+                            <RefreshCw
+                              size={12}
+                              className={refreshingAppStatus === app.app_name ? 'animate-spin text-teal-400' : 'text-slate-400'}
+                            />
+                          </button>
+                          {app.created_at && (
+                            <span className="text-xs text-slate-500">
+                              Created: {new Date(app.created_at).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
+
+        {/* Quick Prompts Carousel */}
+        <PromptCarousel environmentName={environmentName} />
 
         {/* Redeploy Environment */}
         <div className="space-y-3">
@@ -420,8 +765,8 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
 
           <div className="bg-slate-700/50 rounded-lg p-4">
             <p className="text-xs text-slate-400 mb-3">Copy this message to request environment redeployment:</p>
-            <div className="flex items-start space-x-2">
-              <code className="flex-1 text-sm text-slate-300 bg-slate-900/50 px-3 py-2 rounded border border-slate-600 whitespace-pre-wrap">
+            <div className="flex items-start space-x-2 min-w-0">
+              <code className="flex-1 text-sm text-slate-300 bg-slate-900/50 px-3 py-2 rounded border border-slate-600 whitespace-pre-wrap break-words min-w-0">
                 {redeployMessage}
               </code>
               <button
@@ -444,7 +789,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
           <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">Environment Logs</h4>
 
           <div
-            onClick={() => window.open('/logs', '_blank')}
+            onClick={() => window.open(`/logs?env_name=${encodeURIComponent(environmentName)}&app_name=cyoda`, '_blank')}
             className="relative bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-teal-500/10 border border-purple-500/30 rounded-xl p-6 cursor-pointer transition-all duration-300 hover:border-purple-400/50 hover:shadow-lg hover:shadow-purple-500/20 hover:-translate-y-1 group overflow-hidden"
           >
             {/* Animated Background Glow */}
@@ -498,10 +843,10 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
 
         {/* Metrics & Monitoring */}
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">Metrics & Monitoring</h4>
+          <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">Metrics & Dashboards</h4>
 
           <div
-            onClick={() => window.open('/monitoring', '_blank')}
+            onClick={() => window.open(`/monitoring?env_name=${encodeURIComponent(environmentName)}&app_name=cyoda`, '_blank')}
             className="relative bg-gradient-to-br from-orange-500/10 via-amber-500/10 to-yellow-500/10 border border-orange-500/30 rounded-xl p-6 cursor-pointer transition-all duration-300 hover:border-orange-400/50 hover:shadow-lg hover:shadow-orange-500/20 hover:-translate-y-1 group overflow-hidden"
           >
             {/* Animated Background Glow */}
@@ -555,10 +900,31 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
 
         {/* UI Functions */}
         <div className="space-y-3">
-          <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">API Functions</h4>
+          <div className="flex items-center gap-2">
+            <Sparkles size={16} className="text-amber-400" />
+            <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide">API Functions</h4>
+            <button
+              onClick={() => setIsApiFunctionsExpanded(!isApiFunctionsExpanded)}
+              className="px-4 py-2 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 text-teal-400 hover:text-teal-300 transition-all font-medium flex items-center gap-2"
+              title={isApiFunctionsExpanded ? 'Collapse API functions' : 'Expand API functions'}
+            >
+              {isApiFunctionsExpanded ? (
+                <>
+                  <ChevronUp size={20} />
+                  <span className="text-sm">Collapse</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown size={20} />
+                  <span className="text-sm">Expand</span>
+                </>
+              )}
+            </button>
+          </div>
 
-          <div className="space-y-2">
-            {uiFunctions.map((func) => {
+          {isApiFunctionsExpanded && (
+            <div className="space-y-2">
+              {uiFunctions.map((func) => {
               const Icon = func.icon;
               const isExecuting = executingFunction === func.id;
               const hasResponse = !!functionResponses[func.id];
@@ -598,7 +964,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
                                 </label>
                                 {param.type === 'body' ? (
                                   <textarea
-                                    value={parameterValues[func.id]?.[param.name] || ''}
+                                    value={parameterValues[func.id]?.[param.name] || param.default || ''}
                                     onChange={(e) => setParameterValues(prev => ({
                                       ...prev,
                                       [func.id]: {
@@ -606,14 +972,14 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
                                         [param.name]: e.target.value
                                       }
                                     }))}
-                                    placeholder={param.type === 'body' ? '{"key": "value"}' : `Enter ${param.name}`}
+                                    placeholder={param.default || '{"key": "value"}'}
                                     className="w-full px-2 py-1.5 text-xs bg-slate-900/50 border border-slate-600 rounded text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 font-mono"
-                                    rows={3}
+                                    rows={4}
                                   />
                                 ) : (
                                   <input
                                     type="text"
-                                    value={parameterValues[func.id]?.[param.name] || ''}
+                                    value={parameterValues[func.id]?.[param.name] || param.default || ''}
                                     onChange={(e) => setParameterValues(prev => ({
                                       ...prev,
                                       [func.id]: {
@@ -621,7 +987,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
                                         [param.name]: e.target.value
                                       }
                                     }))}
-                                    placeholder={`Enter ${param.name}`}
+                                    placeholder={param.default || `Enter ${param.name}`}
                                     className="w-full px-2 py-1.5 text-xs bg-slate-900/50 border border-slate-600 rounded text-white placeholder-slate-500 focus:outline-none focus:border-teal-500"
                                   />
                                 )}
@@ -663,7 +1029,8 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
                 </div>
               );
             })}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

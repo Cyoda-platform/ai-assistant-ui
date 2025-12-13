@@ -15,7 +15,7 @@ import type {
 } from '../WorkflowCanvas/types/workflow';
 import { parseTransitionId, getTransitionDefinition } from '../WorkflowCanvas/utils/transitionUtils';
 import { Spin } from 'antd';
-import { Activity, ArrowLeft, Send } from 'lucide-react';
+import { Activity, ArrowLeft, Send, Github } from 'lucide-react';
 import HelperStorage from '@/helpers/HelperStorage';
 import apiService from '@/services/apiService';
 import { useAppsTabsStore } from '@/stores/appsTabs';
@@ -60,8 +60,15 @@ function transformAnalyzeWorkflowToConfig(analyzeContent: any): WorkflowConfigur
 
   // Check if it's already in the correct format (has states as object with transitions)
   if (analyzeContent.states && typeof analyzeContent.states === 'object' && !Array.isArray(analyzeContent.states)) {
-    // Already in correct format
-    return analyzeContent as WorkflowConfiguration;
+    // Already in correct format - ensure all required fields are present
+    return {
+      version: analyzeContent.version || '1',
+      name: analyzeContent.name || 'Workflow',
+      description: analyzeContent.description || analyzeContent.desc,
+      initialState: analyzeContent.initialState || analyzeContent.initial_state || '',
+      active: analyzeContent.active !== false,
+      states: analyzeContent.states
+    } as WorkflowConfiguration;
   }
 
   // Transform from /analyze format
@@ -139,9 +146,9 @@ function transformAnalyzeWorkflowToConfig(analyzeContent: any): WorkflowConfigur
   return {
     version: String(analyzeContent.version || '1'),
     name: analyzeContent.name || 'Workflow',
-    desc: analyzeContent.description,
+    desc: analyzeContent.description || analyzeContent.desc,
     initialState,
-    active: true,
+    active: analyzeContent.active !== false,
     states
   };
 }
@@ -615,6 +622,17 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
     }
   }, [currentWorkflow, handleWorkflowUpdate]);
 
+  const getGitHubUrl = () => {
+    if (!workflowData?.github_url || !appData) return null;
+
+    const owner = appData.app?.metadata?.owner || 'Cyoda-platform';
+    const repo = appData.app?.metadata?.repository || 'mcp-cyoda-quart-app';
+    const branch = appData.app?.metadata?.branch || 'main';
+    const filePath = workflowData.github_url.replace(/^\.\//, '');
+
+    return `https://github.com/${owner}/${repo}/blob/${branch}/${filePath}`;
+  };
+
   if (loading) {
     return (
       <div style={{
@@ -631,6 +649,25 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
 
   return (
     <div className={`${isFullscreen ? 'fixed inset-0 z-50' : 'h-full'} flex flex-col bg-gray-900`}>
+      {/* Header with GitHub Link */}
+      {getGitHubUrl() && (
+        <div className="border-b border-gray-700 bg-gray-800/50 px-6 py-3 flex items-center justify-between">
+          <div className="text-sm text-gray-400">
+            GitHub Path
+          </div>
+          <a
+            href={getGitHubUrl()!}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-mono break-all"
+            title="View on GitHub"
+          >
+            <Github size={14} />
+            {workflowData?.github_url}
+          </a>
+        </div>
+      )}
+
       {/* Workflow Canvas */}
       <div className="flex-1 relative overflow-hidden">
         <ReactFlowProvider>
@@ -666,6 +703,37 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
             )}
           </div>
         </ReactFlowProvider>
+      </div>
+
+      {/* Footer with Send Button - Fixed at bottom */}
+      <div className="border-t border-gray-700 bg-gray-800/50 p-4 flex items-center justify-between flex-shrink-0">
+        <div className="flex items-center space-x-2">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 whitespace-nowrap"
+              title="Go back to workflows list"
+            >
+              <ArrowLeft size={12} />
+              <span>Back</span>
+            </button>
+          )}
+        </div>
+        {setTextareaContentCallback && currentWorkflow && (
+          <button
+            onClick={() => {
+              // Send only the configuration node wrapped in markdown code block
+              const workflowJson = JSON.stringify(currentWorkflow.configuration, null, 2);
+              const message = `\`\`\`json\n${workflowJson}\n\`\`\``;
+              setTextareaContentCallback(message);
+            }}
+            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-purple-600/80 hover:bg-purple-500/80 border border-purple-500 text-white whitespace-nowrap"
+            title="Send edited workflow to chat"
+          >
+            <Send size={12} />
+            <span>Send to Chat</span>
+          </button>
+        )}
       </div>
     </div>
   );

@@ -46,6 +46,9 @@ const errorInterceptor = (instance: AxiosInstance): void => {
                                            response?.config?.method?.toLowerCase() === 'get' &&
                                            response?.status === 404;
 
+      // For logs endpoints, don't show error modal - let the component handle it
+      const isLogsEndpoint = url.includes('/v1/logs');
+
       // Special handling for /v1/chats/transfer - always show error modal
       if(url.includes('/v1/chats/transfer') && [403].includes(response?.status)) {
         HelperErrors.handler(error);
@@ -68,8 +71,8 @@ const errorInterceptor = (instance: AxiosInstance): void => {
         return Promise.reject(error);
       }
 
-      // Only show error modal if it's not a chat, task, or app-config GET by-conversation endpoint
-      if (!isChatEndpoint && !isTaskEndpoint && !isAppConfigGetByConversation) {
+      // Only show error modal if it's not a chat, task, app-config GET by-conversation, or logs endpoint
+      if (!isChatEndpoint && !isTaskEndpoint && !isAppConfigGetByConversation && !isLogsEndpoint) {
         HelperErrors.handler(error);
       }
 

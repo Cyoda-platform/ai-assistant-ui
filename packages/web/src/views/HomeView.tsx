@@ -403,13 +403,13 @@ const HomeView: React.FC = () => {
     },
     {
       label: 'What is my CYODA env?',
-      action: () => setChatInput('Show me my current CYODA environment status and configuration'),
+      action: () => setChatInput('Please, list my Cyoda environments'),
       icon: <Search size={20} className="text-slate-300" />,
       description: 'Check environment status'
     },
     {
       label: 'Deploy my environment',
-      action: () => setChatInput('Deploy my environment to production with all configurations and dependencies'),
+      action: () => setChatInput('Deploy dev environment, please'),
       icon: <Zap size={20} className="text-slate-300" />,
       description: 'Deploy to production environment'
     },

@@ -16,7 +16,6 @@ import {
   X,
   Maximize2,
   Minimize2,
-  Paperclip,
   Rocket,
   Search,
   Database,
@@ -50,13 +49,11 @@ const FintechHomeView: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(false);
   const [isEnvironmentsOpen, setIsEnvironmentsOpen] = useState(false);
-  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-  const [pendingMessage, setPendingMessage] = useState<{ input: string; files: File[] } | null>(null);
+  const [pendingMessage, setPendingMessage] = useState<{ input: string } | null>(null);
   const [isResizing, setIsResizing] = useState(false);
   const [textareaHeight, setTextareaHeight] = useState(60);
   const [currentPromptIndex, setCurrentPromptIndex] = useState(0);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initialWidthRef = useRef<number>(0);
@@ -248,7 +245,7 @@ const FintechHomeView: React.FC = () => {
   }, [authStore.token]);
 
   // Function to actually submit the chat
-  const submitChat = async (input: string, files: File[]) => {
+  const submitChat = async (input: string) => {
     setIsLoading(true);
 
     // Store the full message to be sent after chat creation
@@ -262,30 +259,14 @@ const FintechHomeView: React.FC = () => {
     navigate(`/chat/${tempId}?openCanvas=true&creating=true`);
 
     try {
-      let response;
-
       // Create chat with proper name (first 50 chars of message)
       const chatName = input.substring(0, 50) + (input.length > 50 ? '...' : '');
 
-      // If files are attached, use FormData
-      if (files.length > 0) {
-        const formData = new FormData();
-        formData.append('name', chatName);
-        formData.append('description', '');
-
-        // Append all files
-        files.forEach(file => {
-          formData.append('files', file);
-        });
-
-        response = await assistantStore.postChats(formData);
-      } else {
-        // No files, use regular JSON
-        response = await assistantStore.postChats({
-          name: chatName,
-          description: ''
-        });
-      }
+      // Create chat without files (file attachment is only available in chat detail page)
+      const response = await assistantStore.postChats({
+        name: chatName,
+        description: ''
+      });
 
       if (response?.data?.technical_id) {
         const realId = response.data.technical_id;
@@ -310,7 +291,6 @@ const FintechHomeView: React.FC = () => {
       navigate('/fintech', { replace: true });
     } finally {
       setIsLoading(false);
-      setAttachedFiles([]);
       setChatInput('');
       setTextareaHeight(60); // Reset to default height
       setPendingMessage(null);
@@ -344,54 +324,25 @@ const FintechHomeView: React.FC = () => {
 
     // Check if user is a guest
     if (isGuestUser) {
-      // Capture the current input and files in local variables
+      // Capture the current input in local variable
       const currentInput = chatInput.trim();
-      const currentFiles = [...attachedFiles];
 
       // Store the pending message
-      setPendingMessage({ input: currentInput, files: currentFiles });
+      setPendingMessage({ input: currentInput });
 
       // Show login popup with guest user message
       eventBus.$emit(SHOW_LOGIN_POPUP, {
         isGuestUser: true,
         onProceedWithoutLogin: () => {
-          // User chose to proceed without login - use the captured values
-          submitChat(currentInput, currentFiles);
+          // User chose to proceed without login - use the captured value
+          submitChat(currentInput);
         }
       });
       return;
     }
 
     // Not a guest user, submit directly
-    await submitChat(chatInput.trim(), attachedFiles);
-  };
-
-  const handleFileAttach = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const newFiles = Array.from(files);
-      // Validate each file
-      const validFiles: File[] = [];
-      newFiles.forEach(file => {
-        // Basic validation - you can add more checks here
-        if (file.size > 10 * 1024 * 1024) { // 10MB limit
-          console.warn(`File ${file.name} is too large`);
-        } else {
-          validFiles.push(file);
-        }
-      });
-      setAttachedFiles(prev => [...prev, ...validFiles]);
-    }
-    // Reset input value to allow selecting the same file again
-    e.target.value = '';
-  };
-
-  const handleRemoveFile = (index: number) => {
-    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+    await submitChat(chatInput.trim());
   };
 
   // Fintech-specific quick actions
@@ -404,13 +355,13 @@ const FintechHomeView: React.FC = () => {
     },
     {
       label: 'What is my CYODA env?',
-      action: () => setChatInput('Show me my current CYODA environment status and configuration'),
+      action: () => setChatInput('Please, list my Cyoda environments'),
       icon: <Search size={20} className="text-slate-300" />,
       description: 'Check environment status'
     },
     {
       label: 'Deploy my environment',
-      action: () => setChatInput('Deploy my environment to production with all configurations and dependencies'),
+      action: () => setChatInput('Deploy dev environment, please'),
       icon: <Zap size={20} className="text-slate-300" />,
       description: 'Deploy to production environment'
     },
@@ -496,33 +447,7 @@ const FintechHomeView: React.FC = () => {
     setCurrentPromptIndex((prev) => (prev - 1 + fintechPromptExamples.length) % fintechPromptExamples.length);
   };
 
-  // Drag and drop handlers
-  const [isDragging, setIsDragging] = useState(false);
-  let dragCounter = 0;
 
-  const handleDragEnter = (e: React.DragEvent) => {
-    e.preventDefault();
-    dragCounter++;
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    dragCounter--;
-    if (dragCounter === 0) setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    dragCounter = 0;
-    setIsDragging(false);
-
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      const newFiles = Array.from(files);
-      setAttachedFiles(prev => [...prev, ...newFiles]);
-    }
-  };
 
   // Dummy handlers for canvas (since we're on home page without active chat)
   const handleAnswer = (data: { answer: string; files?: File[] }) => {
@@ -871,22 +796,7 @@ const FintechHomeView: React.FC = () => {
               {/* Chat Input */}
               <div className="mb-4" style={{ marginTop: '-1vh' }}>
                 <form onSubmit={handleChatSubmit}>
-                  <div
-                    className="relative"
-                    onDragEnter={handleDragEnter}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    onDragOver={(e) => e.preventDefault()}
-                  >
-                    {isDragging && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-slate-800 bg-opacity-90 backdrop-blur-sm rounded-3xl z-10 border-2 border-dashed border-emerald-500">
-                        <div className="text-center">
-                          <Paperclip size={48} className="text-emerald-400 mx-auto mb-2" />
-                          <span className="text-emerald-400 font-medium text-lg">Drop files here</span>
-                        </div>
-                      </div>
-                    )}
-
+                  <div className="relative">
                     <textarea
                       ref={chatInputRef}
                       value={chatInput}
@@ -927,16 +837,6 @@ const FintechHomeView: React.FC = () => {
                     {/* Bottom Right Controls - Fintech Style */}
                     <div className="absolute right-4 bottom-4 flex items-center z-10">
                       {/* Attach File Button */}
-                      <button
-                        type="button"
-                        onClick={handleFileAttach}
-                        className="rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200 flex items-center justify-center flex-shrink-0"
-                        style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px', maxWidth: '40px', maxHeight: '40px', transform: 'translateX(25%)' }}
-                        title="Attach file"
-                      >
-                        <Paperclip size={18} />
-                      </button>
-
                       {/* Send Button - Fintech themed */}
                       <button
                         type="submit"
@@ -957,47 +857,6 @@ const FintechHomeView: React.FC = () => {
                     </div>
                   </div>
                 </form>
-
-                {/* File attachments display - Below input */}
-                {attachedFiles.length > 0 && (
-                  <div className="mt-2 sm:mt-3 md:mt-4 p-2 sm:p-3 md:p-4 bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-lg sm:rounded-xl md:rounded-2xl">
-                    <div className="flex items-center justify-between mb-2 sm:mb-2.5 md:mb-3">
-                      <span className="text-xs sm:text-sm font-medium text-slate-300">Attached Files ({attachedFiles.length})</span>
-                      <button
-                        type="button"
-                        onClick={() => setAttachedFiles([])}
-                        className="text-xs text-slate-400 hover:text-white transition-colors"
-                      >
-                        Clear All
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                      {attachedFiles.map((file, index) => (
-                        <div key={index} className="bg-slate-700/50 text-slate-300 px-2 sm:px-2.5 md:px-3 py-1.5 sm:py-1.5 md:py-2 rounded-md sm:rounded-lg text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 border border-slate-600">
-                          <Paperclip size={12} className="sm:w-[13px] sm:h-[13px] md:w-[14px] md:h-[14px] text-emerald-400 flex-shrink-0" />
-                          <span className="max-w-[100px] sm:max-w-[150px] md:max-w-[200px] truncate">{file.name}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveFile(index)}
-                            className="hover:text-red-400 transition-colors ml-1 flex-shrink-0"
-                          >
-                            <X size={12} className="sm:w-[13px] sm:h-[13px] md:w-[14px] md:h-[14px]" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Hidden File Input */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  onChange={handleFileChange}
-                  style={{ display: 'none' }}
-                  accept=".pdf,.docx,.xlsx,.pptx,.xml,.json,text/*,image/*"
-                />
               </div>
 
               {/* Fintech Quick Actions */}

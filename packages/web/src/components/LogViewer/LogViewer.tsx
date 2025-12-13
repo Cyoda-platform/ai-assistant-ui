@@ -1,5 +1,7 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import JsonEditor from './JsonEditor';
+import QueryTemplatesPanel from './QueryTemplatesPanel';
 import './LogViewer.css';
 
 export interface ElkLog {
@@ -46,8 +48,36 @@ const LogViewer: React.FC<LogViewerProps> = ({ data, onRefresh, onAdvancedQuery,
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [advancedQuery, setAdvancedQuery] = useState('');
   const [selectedLog, setSelectedLog] = useState<ElkLog | null>(null);
+  const [queryError, setQueryError] = useState<string | null>(null);
 
   const parentRef = React.useRef<HTMLDivElement>(null);
+
+  // Validate JSON query - pure function without side effects
+  const validateQuery = useCallback((query: string): { isValid: boolean; error: string | null } => {
+    if (!query.trim()) {
+      return { isValid: false, error: null };
+    }
+    try {
+      JSON.parse(query);
+      return { isValid: true, error: null };
+    } catch (e) {
+      return { isValid: false, error: e instanceof Error ? e.message : 'Invalid JSON' };
+    }
+  }, []);
+
+  // Handle query change
+  const handleQueryChange = (value: string) => {
+    setAdvancedQuery(value);
+    const { error } = validateQuery(value);
+    setQueryError(error);
+  };
+
+  // Handle template selection
+  const handleSelectTemplate = (query: Record<string, any>) => {
+    const queryStr = JSON.stringify(query, null, 2);
+    setAdvancedQuery(queryStr);
+    setQueryError(null);
+  };
 
   // Filter logs based on search and level
   const filteredLogs = useMemo(() => {
@@ -245,28 +275,22 @@ const LogViewer: React.FC<LogViewerProps> = ({ data, onRefresh, onAdvancedQuery,
 
         {showAdvanced && (
           <div className="advanced-query-panel">
-            <textarea
-              placeholder='Enter Elasticsearch query DSL (JSON)&#10;Example: {"query": {"match": {"message": "error"}}, "size": 100}'
-              className="advanced-query-input"
-              rows={5}
+            <QueryTemplatesPanel onSelectTemplate={handleSelectTemplate} />
+
+            <JsonEditor
               value={advancedQuery}
-              onChange={(e) => setAdvancedQuery(e.target.value)}
+              onChange={handleQueryChange}
+              onApply={handleApplyAdvancedQuery}
+              isValid={validateQuery(advancedQuery).isValid}
+              error={queryError}
             />
-            <div className="advanced-query-actions">
-              <button
-                className="query-apply-button"
-                onClick={handleApplyAdvancedQuery}
-                disabled={!advancedQuery.trim()}
-              >
-                Apply Query
-              </button>
-              <button
-                className="query-close-button"
-                onClick={() => setShowAdvanced(false)}
-              >
-                Close
-              </button>
-            </div>
+
+            <button
+              className="query-close-button"
+              onClick={() => setShowAdvanced(false)}
+            >
+              Close Advanced Search
+            </button>
           </div>
         )}
       </div>

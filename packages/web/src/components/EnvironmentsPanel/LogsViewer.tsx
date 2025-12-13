@@ -105,12 +105,7 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
   }, [searchQuery, quickFilter, timeRange, pageSize, showAdvanced, advancedQuery]);
 
   // Fetch logs from backend
-  const fetchLogs = async () => {
-    if (!apiKey) {
-      message.error('API key required to view logs');
-      return;
-    }
-
+  const fetchLogs = async (retryCount = 0) => {
     setLoading(true);
     try {
       const query = buildQuery();
@@ -119,7 +114,7 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
         method: 'post',
         url: `${import.meta.env.VITE_APP_API_BASE}/v1/logs/search`,
         headers: {
-          'X-API-Key': apiKey
+          'X-API-Key': apiKey || ''
         },
         data: query
       });
@@ -132,6 +127,42 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
       message.success(`Found ${total} log entries`);
     } catch (error: any) {
       console.error('Failed to fetch logs:', error);
+
+      // Check if we got a 400 error with "X-API-Key header required" message
+      const is400Error = error?.response?.status === 400;
+      const isApiKeyMissing = error?.response?.data?.error?.includes('X-API-Key header required');
+
+      // Check if we got a 500 error with "API key invalid or expired" message
+      const is500Error = error?.response?.status === 500;
+      const isApiKeyExpired = error?.response?.data?.error?.includes('API key invalid or expired');
+
+      if ((is400Error && isApiKeyMissing || is500Error && isApiKeyExpired) && retryCount === 0) {
+        const isExpired = is500Error && isApiKeyExpired;
+        console.log(isExpired ? 'API key expired detected, regenerating...' : 'API key missing, generating...');
+        message.info(isExpired ? 'Regenerating API key...' : 'Generating API key...');
+
+        try {
+          // Generate or regenerate the ELK API key
+          const response = await privateClient({
+            method: 'post',
+            url: '/v1/logs/api-key',
+          });
+
+          const newKey = response.data?.api_key || response.data?.apiKey || response.data?.key;
+          setApiKey(newKey);
+          localStorage.setItem('logs-api-key', newKey);
+          console.log('ELK API key generated/regenerated');
+          message.success('API key generated, retrying...');
+
+          // Retry the fetch with the new API key
+          await fetchLogs(1);
+          return;
+        } catch (regenerateErr) {
+          console.error('Failed to generate API key:', regenerateErr);
+          message.error('Failed to generate API key');
+        }
+      }
+
       const errorMsg = error?.response?.data?.error || error?.message || 'Failed to fetch logs';
       message.error(`Error: ${errorMsg}`);
       setLogs([]);

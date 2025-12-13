@@ -40,8 +40,13 @@ const App: React.FC = () => {
 
   // Set up token getter for API calls
   useEffect(() => {
-    setTokenGetter(async () => {
+    setTokenGetter(async (options?: { cacheMode?: 'off' | 'on' }) => {
       try {
+        // If cacheMode is 'off', bypass the cache to force a fresh token from Auth0
+        if (options?.cacheMode === 'off') {
+          console.log('[TokenGetter] Requesting fresh token from Auth0 (cache bypass)');
+          return await getAccessTokenSilently({ cacheMode: 'off' });
+        }
         return await getAccessTokenSilently();
       } catch (error) {
         console.error('Error getting access token:', error);

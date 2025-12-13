@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Database, Edit2, Save, X, ChevronRight, ChevronDown, Loader2, Send, ArrowLeft } from 'lucide-react';
+import { Database, Edit2, Save, X, ChevronRight, ChevronDown, Loader2, Send, ArrowLeft, Github } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import apiService from '@/services/apiService';
 
@@ -17,6 +17,7 @@ interface EntityEditorProps {
   appId: string;
   entityId: string;
   entityData?: Entity; // Optional: provide entity data directly (for repository mode)
+  appData?: any; // AppRoot data for GitHub URL construction
   onSendToChat?: (entityJson: string) => void;
   onBack?: () => void;
 }
@@ -112,7 +113,7 @@ const TreeNode: React.FC<{
   );
 };
 
-export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, entityData, onSendToChat, onBack }) => {
+export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, entityData, appData, onSendToChat, onBack }) => {
   const [entity, setEntity] = useState<Entity | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -120,6 +121,17 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [jsonWarnings, setJsonWarnings] = useState<string[]>([]);
   const [parsedModel, setParsedModel] = useState<any>(null); // Parsed JSON for tree preview
+
+  const getGitHubUrl = (ent: Entity) => {
+    if (!ent.github_url || !appData) return null;
+
+    const owner = appData.app?.metadata?.owner || 'Cyoda-platform';
+    const repo = appData.app?.metadata?.repository || 'mcp-cyoda-quart-app';
+    const branch = appData.app?.metadata?.branch || 'main';
+    const filePath = ent.github_url.replace(/^\.\//, '');
+
+    return `https://github.com/${owner}/${repo}/blob/${branch}/${filePath}`;
+  };
 
   // Load entity from API or use provided data
   useEffect(() => {
@@ -131,6 +143,7 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
 
         console.log('📦 Using provided entity data:', entityData);
         console.log('📦 Entity model (content):', entityData.model);
+        console.log('📦 Entity name:', entityData.name);
 
         setEntity(entityData);
 
@@ -147,6 +160,7 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
           textToDisplay = JSON.stringify(displayContent, null, 2);
         }
 
+        console.log('📝 Setting jsonText to:', textToDisplay.substring(0, 100) + '...');
         setJsonText(textToDisplay);
         validateJson(textToDisplay);
       } catch (err: any) {
@@ -171,7 +185,7 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
     }, 3000); // Wait 3 seconds before showing error
 
     return () => clearTimeout(timeout);
-  }, [appId, entityId, entityData]);
+  }, [entityData]);
 
   // JSON validation - only check if it's valid JSON, no schema validation
   const validateJson = (text: string) => {
@@ -250,103 +264,133 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
   const currentEntity = entity!;
 
   return (
-    <div className="h-full flex flex-col bg-gray-900">
+    <div className="h-full w-full flex flex-col bg-gray-900">
       {/* Content - Split View: JSON Editor + Tree Preview */}
-      <div className="flex-1 overflow-auto">
-          <div className="h-full flex flex-col">
-            <div className="flex-1 flex">
-              {/* JSON Editor */}
-              <div className="w-1/2 border-r border-gray-700 p-4">
-                <div className="h-full rounded-lg overflow-hidden border-2 border-gray-700">
-                  <Editor
-                    height="100%"
-                    defaultLanguage="python"
-                    value={jsonText}
-                    onChange={handleJsonChange}
-                    theme="vs-dark"
-                    options={{
-                      readOnly: false,
-                      minimap: { enabled: false },
-                      fontSize: 14,
-                      lineNumbers: 'on',
-                      scrollBeyondLastLine: false,
-                      automaticLayout: true,
-                      tabSize: 2,
-                      wordWrap: 'on',
-                      formatOnPaste: true,
-                      formatOnType: true,
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Tree View */}
-              <div className="w-1/2 p-4 overflow-auto">
-                <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 h-full flex flex-col">
-                  <h3 className="text-sm font-semibold text-gray-400 mb-3">Tree Preview</h3>
-                  <div className="bg-gray-900 rounded-lg p-4 overflow-auto flex-1 mb-4">
-                    {!jsonError && entity && parsedModel && (
-                      <TreeNode
-                        label={entity.name}
-                        value={parsedModel}
-                      />
-                    )}
-                    {jsonError && (
-                      <div className="text-red-400 text-sm">
-                        Fix JSON errors to see tree preview
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Entity Metadata */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-gray-900 rounded-lg p-3">
-                      <div className="text-xs text-gray-400 mb-1">Entity Name</div>
-                      <div className="text-white font-mono text-xs">{currentEntity.name}</div>
-                    </div>
-                    <div className="bg-gray-900 rounded-lg p-3">
-                      <div className="text-xs text-gray-400 mb-1">Version</div>
-                      <div className="text-white font-mono text-xs">{currentEntity.version}</div>
-                    </div>
-                    {currentEntity.github_url && (
-                      <div className="bg-gray-900 rounded-lg p-3 col-span-2">
-                        <div className="text-xs text-gray-400 mb-1">GitHub Path</div>
-                        <a
-                          href={currentEntity.github_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-400 hover:text-blue-300 underline text-xs break-all font-mono"
-                        >
-                          {currentEntity.github_url}
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
+      <div className="flex-1 overflow-auto w-full">
+        <div className="h-full w-full flex flex-col">
+          <div className="flex-1 flex w-full">
+            {/* JSON Editor */}
+            <div className="flex-1 border-r border-gray-700 p-4 min-w-0">
+              <div className="h-full rounded-lg overflow-hidden border-2 border-gray-700">
+                <Editor
+                  height="100%"
+                  defaultLanguage="python"
+                  value={jsonText}
+                  onChange={handleJsonChange}
+                  theme="vs-dark"
+                  options={{
+                    readOnly: false,
+                    minimap: { enabled: false },
+                    fontSize: 14,
+                    lineNumbers: 'on',
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    tabSize: 2,
+                    wordWrap: 'on',
+                    formatOnPaste: true,
+                    formatOnType: true,
+                  }}
+                />
               </div>
             </div>
 
-            {/* Lint Messages */}
-            {(jsonError || jsonWarnings.length > 0) && (
-              <div className="border-t border-gray-700 p-4 bg-gray-800">
-                {jsonError && (
-                  <div className="p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200 mb-2">
-                    <strong>❌ Error:</strong> {jsonError}
+            {/* Tree View */}
+            <div className="flex-1 p-4 overflow-auto min-w-0">
+              <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 h-full flex flex-col">
+                <h3 className="text-sm font-semibold text-gray-400 mb-3">Tree Preview</h3>
+                <div className="bg-gray-900 rounded-lg p-4 overflow-auto flex-1 mb-4">
+                  {!jsonError && entity && parsedModel && (
+                    <TreeNode
+                      label={entity.name}
+                      value={parsedModel}
+                    />
+                  )}
+                  {jsonError && (
+                    <div className="text-red-400 text-sm">
+                      Fix JSON errors to see tree preview
+                    </div>
+                  )}
+                </div>
+
+                {/* Entity Metadata */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gray-900 rounded-lg p-3">
+                    <div className="text-xs text-gray-400 mb-1">Entity Name</div>
+                    <div className="text-white font-mono text-xs">{currentEntity.name}</div>
                   </div>
-                )}
-                {!jsonError && jsonWarnings.length > 0 && (
-                  <div className="p-3 bg-yellow-900/50 border border-yellow-700 rounded-lg text-yellow-200">
-                    <strong>⚠️ Warnings:</strong>
-                    <ul className="mt-2 ml-4 list-disc text-sm">
-                      {jsonWarnings.map((warning, idx) => (
-                        <li key={idx}>{warning}</li>
-                      ))}
-                    </ul>
+                  <div className="bg-gray-900 rounded-lg p-3">
+                    <div className="text-xs text-gray-400 mb-1">Version</div>
+                    <div className="text-white font-mono text-xs">{currentEntity.version}</div>
                   </div>
-                )}
+                  {currentEntity.github_url && getGitHubUrl(currentEntity) && (
+                    <div className="bg-gray-900 rounded-lg p-3 col-span-2">
+                      <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+                        <Github size={12} />
+                        GitHub Path
+                      </div>
+                      <a
+                        href={getGitHubUrl(currentEntity)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 underline text-xs break-all font-mono flex items-center gap-1"
+                        title="View on GitHub"
+                      >
+                        {currentEntity.github_url}
+                      </a>
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
+            </div>
           </div>
+
+          {/* Lint Messages */}
+          {(jsonError || jsonWarnings.length > 0) && (
+            <div className="border-t border-gray-700 p-4 bg-gray-800">
+              {jsonError && (
+                <div className="p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200 mb-2">
+                  <strong>❌ Error:</strong> {jsonError}
+                </div>
+              )}
+              {!jsonError && jsonWarnings.length > 0 && (
+                <div className="p-3 bg-yellow-900/50 border border-yellow-700 rounded-lg text-yellow-200">
+                  <strong>⚠️ Warnings:</strong>
+                  <ul className="mt-2 ml-4 list-disc text-sm">
+                    {jsonWarnings.map((warning, idx) => (
+                      <li key={idx}>{warning}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Footer with Send Button - Fixed at bottom */}
+      <div className="border-t border-gray-700 bg-gray-800/50 p-4 flex items-center justify-between flex-shrink-0">
+        <div className="flex items-center space-x-2">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 whitespace-nowrap"
+              title="Go back to entities list"
+            >
+              <ArrowLeft size={12} />
+              <span>Back</span>
+            </button>
+          )}
+        </div>
+        {onSendToChat && !jsonError && (
+          <button
+            onClick={() => onSendToChat(jsonText)}
+            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-teal-600/80 hover:bg-teal-500/80 border border-teal-500 text-white whitespace-nowrap"
+            title="Send edited entity to chat"
+          >
+            <Send size={12} />
+            <span>Send to Chat</span>
+          </button>
+        )}
       </div>
     </div>
   );

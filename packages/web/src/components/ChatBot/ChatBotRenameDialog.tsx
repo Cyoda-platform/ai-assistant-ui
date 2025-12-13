@@ -45,7 +45,7 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
       setLoading(true);
 
       // Call the API to rename the chat
-      await assistantStore.renameChatById(chatId, { name: newName });
+      await assistantStore.renameChatById(chatId, { chat_name: newName });
 
       // Notify success
       message.success('Chat renamed successfully');

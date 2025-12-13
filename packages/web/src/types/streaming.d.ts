@@ -94,6 +94,7 @@ export interface UIFunction {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   path: string;
   response_format: 'file' | 'json';
+  env_url?: string; // Environment URL for targeted API calls (e.g., "client-user123-dev.cyoda.cloud")
 }
 
 export interface SSEDoneEvent extends SSEBaseEvent {
@@ -108,6 +109,11 @@ export interface SSEDoneEvent extends SSEBaseEvent {
     background_task_ids?: string[];
     [key: string]: any;
   };
+  hooks?: Array<{
+    type: string;
+    [key: string]: any;
+  }>; // Array of all hooks from the stream
+  repository_info?: any; // Repository information from the response
   // Enhanced error information
   error?: string;
   error_type?: string;

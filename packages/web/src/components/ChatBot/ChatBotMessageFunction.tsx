@@ -41,6 +41,7 @@ interface UIFunctionData {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   path: string;
   response_format: 'file' | 'json';
+  env_url?: string; // Environment URL for targeted API calls (e.g., "client-user123-dev.cyoda.cloud")
 }
 
 const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
@@ -60,13 +61,18 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
   // Parse the UI function data
   const functionData = useMemo<UIFunctionData | null>(() => {
     try {
-      // If message.text is already an object, use it directly
-      if (typeof message.text === 'object' && message.text !== null) {
-        return message.text as UIFunctionData;
-      }
+      let parsedData: any = null;
 
+      // First, check if data is in message.raw.ui_function (from loaded chat history)
+      if (message.raw?.ui_function) {
+        parsedData = message.raw.ui_function;
+      }
+      // If message.text is already an object, use it directly
+      else if (typeof message.text === 'object' && message.text !== null) {
+        parsedData = message.text;
+      }
       // If it's a string, try to parse it as JSON
-      if (typeof message.text === 'string') {
+      else if (typeof message.text === 'string') {
         // Handle empty strings
         if (!message.text.trim()) {
           console.error('UI function data is empty string');
@@ -75,16 +81,23 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
 
         // Replace single quotes with double quotes for valid JSON
         const jsonText = message.text.replace(/'/g, '"');
-        return JSON.parse(jsonText);
+        parsedData = JSON.parse(jsonText);
+      } else {
+        console.error('UI function data is neither object nor string:', typeof message.text);
+        return null;
       }
 
-      console.error('UI function data is neither object nor string:', typeof message.text);
-      return null;
+      // Flatten the structure: if env_url is in data.env_url, move it to top level
+      if (parsedData?.data?.env_url && !parsedData.env_url) {
+        parsedData.env_url = parsedData.data.env_url;
+      }
+
+      return parsedData as UIFunctionData;
     } catch (error) {
       console.error('Failed to parse UI function data:', error, 'Raw data:', message.text);
       return null;
     }
-  }, [message.text]);
+  }, [message.text, message.raw?.ui_function]);
 
   const date = useMemo(() => {
     if (!message.last_modified) return '';
@@ -93,7 +106,15 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
 
   // Build the endpoint URL
   const endpointUrl = useMemo(() => {
-    if (!functionData || !parsedToken) return '';
+    if (!functionData) return '';
+
+    // If env_url is provided, use it directly (for multi-environment support)
+    if (functionData.env_url) {
+      return `https://${functionData.env_url}${functionData.path}`;
+    }
+
+    // Fallback to legacy behavior using JWT token
+    if (!parsedToken) return '';
     const envPrefix = import.meta.env.VITE_APP_CYODA_CLIENT_ENV_PREFIX || '';
     const orgId = (parsedToken.caas_org_id || '').toLowerCase();
     const host = import.meta.env.VITE_APP_CYODA_CLIENT_HOST || '';

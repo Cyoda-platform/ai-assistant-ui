@@ -72,7 +72,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   async refreshAccessToken() {
     try {
-      const token = await getToken();
+      console.log('[AuthStore] Refreshing access token with cache bypass...');
+
+      // Force a fresh token from Auth0 by bypassing the cache
+      // This ensures we get a new token even if the old one is still in cache
+      const token = await getToken({ cacheMode: 'off' });
+      console.log('[AuthStore] New token received, length:', token?.length);
 
       // Parse JWT token to maintain caas_cyoda_employee status
       let isCyodaEmployee = false;
@@ -80,12 +85,14 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         const parsed = parseJwt(token);
         if (parsed) {
           isCyodaEmployee = parsed.caas_cyoda_employee === true;
+          console.log('[AuthStore] Token parsed successfully, isCyodaEmployee:', isCyodaEmployee);
         }
       } catch (e) {
         console.error('❌ Error parsing JWT token during refresh:', e);
       }
 
       get().saveData({ token, isCyodaEmployee });
+      console.log('[AuthStore] Token refresh completed and saved');
     } catch (error) {
       console.error('❌ Failed to refresh token:', error);
       throw error;

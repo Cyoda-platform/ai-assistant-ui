@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Form, Input, message } from 'antd';
-import { SendHorizontal, Paperclip, X } from 'lucide-react';
+import { SendHorizontal, Paperclip, X, Github } from 'lucide-react';
 import FileSubmitPreview from '@/components/FileSubmitPreview/FileSubmitPreview';
 import HelperUpload from '@/helpers/HelperUpload';
 
@@ -15,6 +15,8 @@ interface ChatBotSubmitFormProps {
   isAIThinking?: boolean; // Whether AI is currently thinking/processing
   onStopRequest?: () => void; // Callback to stop current request
   onSetTextareaContent?: (callback: (content: string) => void) => void; // Expose method to set textarea content
+  hasRepository?: boolean; // Whether repository is configured
+  onShowRepositoryConfigModal?: () => void; // Callback to show repository configuration modal
 }
 
 const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
@@ -25,7 +27,9 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
   activeCanvasTab,
   isAIThinking = false,
   onStopRequest,
-  onSetTextareaContent
+  onSetTextareaContent,
+  hasRepository = false,
+  onShowRepositoryConfigModal
 }) => {
   const [form] = Form.useForm();
   const [answer, setAnswer] = useState('');
@@ -108,7 +112,14 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
   }, []); // Empty dependency array - only register once on mount
 
   const onClickTextAnswer = async (mode: 'workflow' | 'qa' = 'workflow') => {
-    if (!answer.trim() && currentFiles.length === 0) return;
+    // Validation: require message text
+    if (!answer.trim()) {
+      if (currentFiles.length > 0) {
+        // Files attached but no message
+        message.error('Please add a message along with your file(s)');
+      }
+      return;
+    }
 
     // Build final answer with formatted canvas content
     let finalAnswer = answer;
@@ -141,7 +152,12 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
     form.resetFields();
   };
 
-  const onClickAttachFile = () => {
+  const handleFileAttach = () => {
+    // Check if repository is configured
+    if (!hasRepository) {
+      onShowRepositoryConfigModal?.();
+      return;
+    }
     fileInputRef.current?.click();
   };
 
@@ -449,7 +465,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
               {/* Attach File Button */}
               <button
                 type="button"
-                onClick={onClickAttachFile}
+                onClick={handleFileAttach}
                 disabled={disabled}
                 className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ transform: 'translateY(25%)' }}
@@ -513,6 +529,8 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
 
         </div>
       </Form>
+
+
     </div>
   );
 };

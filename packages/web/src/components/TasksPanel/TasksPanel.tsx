@@ -71,7 +71,7 @@ const TasksPanel: React.FC<TasksPanelProps> = ({
 
   return (
     <div
-      className={`bg-slate-800/95 backdrop-blur-sm border-l border-slate-600 flex flex-col relative resizable-panel ${isResizing ? 'resizing' : ''}`}
+      className={`bg-slate-800/95 backdrop-blur-sm border-l border-slate-600 flex flex-col relative resizable-panel h-full ${isResizing ? 'resizing' : ''}`}
       style={{ width: `${panelWidth}px` }}
     >
       {/* Resize Handle */}
@@ -110,7 +110,7 @@ const TasksPanel: React.FC<TasksPanelProps> = ({
           backgroundTaskIds={chatData?.chat_body?.background_task_ids}
         />
       ) : (
-        <div className="flex-1 flex items-center justify-center p-8">
+        <div className="flex-1 flex items-center justify-center h-full w-full">
           <div className="text-center">
             <div className="w-12 h-12 rounded-lg bg-slate-700/50 flex items-center justify-center mx-auto mb-4">
               <div className="w-6 h-6 rounded-full border-2 border-emerald-500/30 border-t-emerald-500 animate-spin" />

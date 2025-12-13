@@ -1,14 +1,16 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Server, X, Plus, Maximize2, Minimize2 } from 'lucide-react';
+import { Server, X, Plus, Maximize2, Minimize2, Loader2, RefreshCw } from 'lucide-react';
 import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
 import EnvironmentDetails from './EnvironmentDetails';
 import { useAuthStore } from '@/stores/auth';
+import privateClient from '@/clients/private';
+import { message } from 'antd';
 
 interface Environment {
   name: string;
-  url: string;
+  namespace: string;
   status: string;
-  description?: string;
+  created_at?: string;
 }
 
 interface EnvironmentsPanelProps {
@@ -53,21 +55,43 @@ const EnvironmentsPanel: React.FC<EnvironmentsPanelProps> = ({
     return `https://${cleanPrefix}-${orgId}.${host}`;
   }, [orgId]);
 
-  const [environments, setEnvironments] = useState<Environment[]>([
-    { name: 'Development', url: devEnvUrl, status: 'active', description: 'Development environment (currently supported)' },
-    { name: 'Staging', url: 'https://api.staging.example.com', status: 'inactive', description: 'Staging environment (coming soon)' },
-    { name: 'Production', url: 'https://api.prod.example.com', status: 'inactive', description: 'Production environment (coming soon)' }
-  ]);
+  const [environments, setEnvironments] = useState<Environment[]>([]);
   const [selectedEnvironment, setSelectedEnvironment] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Update Development environment URL when it changes
+  // Fetch environments from the backend
+  const fetchEnvironments = async () => {
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await privateClient({
+        method: 'post',
+        url: '/agent/environment/list_environments',
+        data: {}
+      });
+
+      if (response.data && response.data.environments) {
+        setEnvironments(response.data.environments);
+      } else {
+        setEnvironments([]);
+      }
+    } catch (error: any) {
+      console.error('Failed to fetch environments:', error);
+      message.error('Failed to load environments');
+      setEnvironments([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch environments on mount and when token changes
   useEffect(() => {
-    setEnvironments(prev => prev.map(env =>
-      env.name === 'Development'
-        ? { ...env, url: devEnvUrl }
-        : env
-    ));
-  }, [devEnvUrl]);
+    fetchEnvironments();
+  }, [token]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -112,6 +136,18 @@ const EnvironmentsPanel: React.FC<EnvironmentsPanelProps> = ({
           )}
         </div>
         <div className="flex items-center space-x-2">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              fetchEnvironments();
+            }}
+            disabled={isLoading}
+            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Refresh environments"
+          >
+            <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
+          </button>
           {!isFullscreen && onToggleFullscreen && (
             <button
               onClick={(e) => {
@@ -151,23 +187,20 @@ const EnvironmentsPanel: React.FC<EnvironmentsPanelProps> = ({
 
       {/* Content */}
       <div className="flex-1 flex flex-col p-4 space-y-3 overflow-y-auto">
-        {/* Add Environment Button - Disabled (Coming Soon) */}
-        <button
-          disabled
-          className="w-full px-4 py-3 rounded-lg border-2 border-dashed border-slate-700 text-slate-600 cursor-not-allowed transition-all flex items-center justify-center space-x-2 opacity-50"
-          title="Adding custom environments is coming soon"
-        >
-          <Plus size={18} />
-          <span className="text-sm font-medium">Add Environment (Coming Soon)</span>
-        </button>
-
-        {/* Environments List */}
-        {environments.length === 0 ? (
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center text-slate-400">
+              <Loader2 size={48} className="mx-auto mb-3 animate-spin text-teal-400" />
+              <p className="text-sm">Loading environments...</p>
+            </div>
+          </div>
+        ) : environments.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center text-slate-400">
               <Server size={48} className="mx-auto mb-3 opacity-30" />
-              <p className="text-sm">No environments yet</p>
-              <p className="text-xs mt-1">Click "Add Environment" to create one</p>
+              <p className="text-sm">No environments found</p>
+              <p className="text-xs mt-1">Please, ask in the chat to deploy Cyoda environment</p>
             </div>
           </div>
         ) : (
@@ -175,28 +208,24 @@ const EnvironmentsPanel: React.FC<EnvironmentsPanelProps> = ({
             {environments.map((env) => (
               <div
                 key={env.name}
-                onClick={() => env.status === 'active' && setSelectedEnvironment(env.name)}
-                className={`group relative p-4 rounded-lg bg-gradient-to-br from-slate-700/50 to-slate-800/50 border transition-all ${
-                  env.status === 'active'
-                    ? 'border-teal-500/50 hover:border-teal-500 cursor-pointer'
-                    : 'border-slate-600 opacity-60 cursor-not-allowed'
-                }`}
-                title={env.status === 'active' ? 'Click to view details' : 'Coming soon'}
+                onClick={() => setSelectedEnvironment(env.name)}
+                className="group relative p-4 rounded-lg bg-gradient-to-br from-slate-700/50 to-slate-800/50 border border-teal-500/50 hover:border-teal-500 cursor-pointer transition-all"
+                title="Click to view details"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-2">
-                      <Server size={16} className={env.status === 'active' ? 'text-teal-400' : 'text-slate-500'} />
-                      <h4 className={`font-semibold truncate ${env.status === 'active' ? 'text-white' : 'text-slate-400'}`}>
+                      <Server size={16} className="text-teal-400" />
+                      <h4 className="font-semibold truncate text-white">
                         {env.name}
                       </h4>
                       <span className={`px-2 py-0.5 rounded-full text-xs border ${getStatusColor(env.status)}`}>
                         {env.status}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 truncate mb-1">{env.url}</p>
-                    {env.description && (
-                      <p className="text-xs text-slate-500 line-clamp-2">{env.description}</p>
+                    <p className="text-xs text-slate-400 truncate mb-1">{env.namespace}</p>
+                    {env.created_at && (
+                      <p className="text-xs text-slate-500">Created: {new Date(env.created_at).toLocaleDateString()}</p>
                     )}
                   </div>
                 </div>

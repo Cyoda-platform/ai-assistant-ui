@@ -12,7 +12,11 @@ import {
   ChevronUp,
   GitBranch,
   Code,
-  ExternalLink
+  ExternalLink,
+  FileText,
+  Plus,
+  Minus,
+  Edit
 } from 'lucide-react';
 import type { BackgroundTask } from '@/services/taskService';
 import CLIOutputViewer from './CLIOutputViewer';
@@ -23,6 +27,17 @@ interface TaskCardProps {
 
 const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [expandedMessages, setExpandedMessages] = useState<Set<number>>(new Set());
+
+  const toggleMessageExpanded = (idx: number) => {
+    const newSet = new Set(expandedMessages);
+    if (newSet.has(idx)) {
+      newSet.delete(idx);
+    } else {
+      newSet.add(idx);
+    }
+    setExpandedMessages(newSet);
+  };
 
   // Status icon and color
   const getStatusIcon = () => {
@@ -75,11 +90,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
   };
 
   return (
-    <div className={`border rounded-lg p-4 transition-all ${getStatusColor()}`}>
+    <div className={`border rounded-lg p-4 ${getStatusColor()} overflow-hidden`}>
       {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-start space-x-3 flex-1">
-          <div className="mt-0.5">{getStatusIcon()}</div>
+      <div className="flex items-start justify-between mb-3 min-w-0">
+        <div className="flex items-start space-x-3 flex-1 min-w-0">
+          <div className="mt-0.5 flex-shrink-0">{getStatusIcon()}</div>
           <div className="flex-1 min-w-0">
             <h4 className="text-white font-medium text-sm truncate">{task.name}</h4>
             <p className="text-slate-400 text-xs mt-1 line-clamp-2">{task.description}</p>
@@ -127,18 +142,19 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
 
       {/* Expanded Details */}
       {isExpanded && (
-        <div className="mt-4 pt-4 border-t border-slate-600/30 space-y-3">
+        <div className="mt-4 pt-4 border-t border-slate-600/30 space-y-3 min-w-0">
           {/* Branch Info */}
           {task.branch_name && (
-            <div className="flex items-center space-x-2 text-xs">
-              <GitBranch size={14} className="text-teal-400/70" />
-              <span className="text-slate-300">{task.branch_name}</span>
-              {task.repository_path && (
+            <div className="flex items-center space-x-2 text-xs min-w-0">
+              <GitBranch size={14} className="text-teal-400/70 flex-shrink-0" />
+              <span className="text-slate-300 truncate">{task.branch_name}</span>
+              {task.repository_url && task.repository_url.startsWith('http') && (
                 <a
-                  href={task.repository_path}
+                  href={task.repository_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-teal-400 hover:text-teal-300 flex items-center space-x-1"
+                  title="Open on GitHub"
                 >
                   <ExternalLink size={12} />
                 </a>
@@ -186,13 +202,82 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
           {task.progress_messages.length > 0 && (
             <div className="space-y-2">
               <p className="text-slate-400 text-xs font-medium">Progress Log:</p>
-              <div className="bg-slate-800/50 rounded p-2 max-h-40 overflow-y-auto space-y-1">
-                {task.progress_messages.slice().reverse().map((msg, idx) => (
-                  <div key={idx} className="text-xs">
-                    <span className="text-slate-500">{msg.timestamp}</span>
-                    <span className="text-slate-300 ml-2">{msg.message}</span>
-                  </div>
-                ))}
+              <div className="bg-slate-800/50 rounded p-2 max-h-96 overflow-y-auto space-y-2">
+                {task.progress_messages.slice().reverse().map((msg, idx) => {
+                  const reversedIdx = task.progress_messages.length - 1 - idx;
+                  const isExpanded = expandedMessages.has(reversedIdx);
+                  const hasDiff = msg.metadata?.diff && (msg.metadata.diff.added?.length > 0 || msg.metadata.diff.modified?.length > 0 || msg.metadata.diff.deleted?.length > 0);
+
+                  return (
+                    <div key={idx} className="text-xs border-b border-slate-700/30 pb-2 last:border-b-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <span className="text-slate-500">{msg.timestamp}</span>
+                          <span className="text-slate-300 ml-2">{msg.message}</span>
+                        </div>
+                        {hasDiff && (
+                          <button
+                            onClick={() => toggleMessageExpanded(reversedIdx)}
+                            className="text-slate-400 hover:text-teal-300 transition-colors flex-shrink-0 mt-0.5"
+                          >
+                            {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Show per-message diff summary */}
+                      {msg.metadata?.diff && (
+                        <div className="mt-1 ml-2 text-slate-400 space-y-0.5">
+                          {msg.metadata.diff?.added && msg.metadata.diff.added.length > 0 && (
+                            <div><span className="text-green-400">+ {msg.metadata.diff.added.length} added</span></div>
+                          )}
+                          {msg.metadata.diff?.modified && msg.metadata.diff.modified.length > 0 && (
+                            <div><span className="text-blue-400">~ {msg.metadata.diff.modified.length} modified</span></div>
+                          )}
+                          {msg.metadata.diff?.deleted && msg.metadata.diff.deleted.length > 0 && (
+                            <div><span className="text-red-400">- {msg.metadata.diff.deleted.length} deleted</span></div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Expanded file list */}
+                      {isExpanded && hasDiff && (
+                        <div className="mt-2 ml-2 bg-slate-900/50 rounded p-2 space-y-1 max-h-48 overflow-y-auto">
+                          {msg.metadata.diff?.added && msg.metadata.diff.added.length > 0 && (
+                            <div>
+                              <p className="text-green-400 text-xs font-medium mb-1">Added:</p>
+                              <div className="space-y-0.5 ml-2">
+                                {msg.metadata.diff.added.map((file: string, fileIdx: number) => (
+                                  <div key={fileIdx} className="text-slate-300 font-mono text-xs truncate">+ {file}</div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {msg.metadata.diff?.modified && msg.metadata.diff.modified.length > 0 && (
+                            <div>
+                              <p className="text-blue-400 text-xs font-medium mb-1">Modified:</p>
+                              <div className="space-y-0.5 ml-2">
+                                {msg.metadata.diff.modified.map((file: string, fileIdx: number) => (
+                                  <div key={fileIdx} className="text-slate-300 font-mono text-xs truncate">~ {file}</div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {msg.metadata.diff?.deleted && msg.metadata.diff.deleted.length > 0 && (
+                            <div>
+                              <p className="text-red-400 text-xs font-medium mb-1">Deleted:</p>
+                              <div className="space-y-0.5 ml-2">
+                                {msg.metadata.diff.deleted.map((file: string, fileIdx: number) => (
+                                  <div key={fileIdx} className="text-slate-300 font-mono text-xs truncate">- {file}</div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

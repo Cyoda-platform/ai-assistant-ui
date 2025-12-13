@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Row, Col } from 'antd';
+import { Github, X } from 'lucide-react';
 import ChatBotSubmitForm from './ChatBotSubmitForm';
 import ChatLoader from './ChatLoader';
 import ChatBotMessageQuestion from './ChatBotMessageQuestion';
@@ -93,6 +94,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const chatBotPlaceholderRef = useRef<HTMLDivElement>(null);
   const [chatBotPlaceholderHeight, setChatBotPlaceholderHeight] = useState(0);
   const [textareaContentCallback, setTextareaContentCallback] = useState<((content: string, options?: { collapse?: boolean }) => void) | null>(null);
+  const [showRepositoryConfigModal, setShowRepositoryConfigModal] = useState(false);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const isUserNearBottomRef = useRef(true);
@@ -353,9 +355,74 @@ const ChatBot: React.FC<ChatBotProps> = ({
             isAIThinking={isLoading || streamingState?.isStreaming}
             onStopRequest={onStopRequest}
             onSetTextareaContent={handleSetTextareaContent}
+            hasRepository={!!githubRepository}
+            onShowRepositoryConfigModal={() => setShowRepositoryConfigModal(true)}
           />
         </div>
       </div>
+
+      {/* Repository Configuration Modal - Centered on page */}
+      {showRepositoryConfigModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm">
+          <div className="w-80 bg-gradient-to-br from-slate-800 to-slate-900 border border-teal-500/30 rounded-xl shadow-2xl overflow-hidden backdrop-blur-sm">
+            {/* Glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-transparent pointer-events-none"></div>
+
+            {/* Close button */}
+            <button
+              onClick={() => setShowRepositoryConfigModal(false)}
+              className="absolute top-3 right-3 w-6 h-6 rounded-full bg-slate-700/50 hover:bg-slate-600 flex items-center justify-center transition-colors z-10"
+              title="Close"
+            >
+              <X size={14} className="text-slate-300" />
+            </button>
+
+            <div className="relative p-4">
+              {/* Icon and Title */}
+              <div className="flex items-start space-x-3 mb-3">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center">
+                  <Github size={20} className="text-teal-400" />
+                </div>
+                <div className="flex-1 pr-6">
+                  <h3 className="text-sm font-semibold text-slate-100 mb-1">
+                    Repository Not Configured
+                  </h3>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    File attachment requires a GitHub repository branch to be configured for this conversation.
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4 mt-3">
+                <button
+                  onClick={() => {
+                    setShowRepositoryConfigModal(false);
+                    onAnswer({ answer: 'please configure a github repository branch for me' });
+                  }}
+                  className="px-3 py-1 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white text-xs font-medium rounded-md transition-all duration-200 shadow-md shadow-teal-500/20 hover:shadow-teal-500/30 flex items-center space-x-1.5"
+                >
+                  <Github size={12} />
+                  <span>New Branch</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowRepositoryConfigModal(false);
+                    onAnswer({ answer: 'Please, clone my existing github repository branch...' });
+                  }}
+                  className="px-3 py-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-xs font-medium rounded-md transition-all duration-200 shadow-md shadow-blue-600/20 hover:shadow-blue-600/30 flex items-center space-x-1.5"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2v0a2 2 0 01-2-2v-2a2 2 0 00-2-2H8z" />
+                  </svg>
+                  <span>Existing Branch</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

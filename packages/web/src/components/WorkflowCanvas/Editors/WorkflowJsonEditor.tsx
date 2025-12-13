@@ -579,7 +579,8 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
   const handleSendToChat = useCallback(() => {
     if (!onSendToChat) return;
 
-    const message = `Here is the workflow configuration:\n\n\`\`\`json\n${jsonText}\n\`\`\`\n\nPlease review this workflow and help me improve it.`;
+    // Send only the configuration node wrapped in markdown code block
+    const message = `\`\`\`json\n${jsonText}\n\`\`\``;
     onSendToChat(message);
   }, [onSendToChat, jsonText]);
 

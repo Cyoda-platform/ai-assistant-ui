@@ -1,24 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Eye, Code2, Send, Loader2, ArrowLeft } from 'lucide-react';
+import { FileText, Eye, Code2, Send, Loader2, ArrowLeft, Github } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Requirement } from '@/components/AppsCanvas/types/appSchema';
 import Editor from '@monaco-editor/react';
-
-interface Requirement {
-  id?: string;
-  app_id?: string;
-  content: string;
-  format?: 'markdown';
-  created_at?: string;
-  updated_at?: string;
-}
 
 interface RequirementEditorProps {
   appId: string;
   requirementId?: string; // ID of the specific requirement to edit
   requirementData?: Requirement; // Single requirement data
   requirements?: Array<{ content?: string; title?: string; filePath?: string }>; // Legacy: Requirements from GitHub
+  appData?: any; // AppRoot data for GitHub URL construction
   onSendToChat?: (message: string) => void;
   onBack?: () => void; // Callback to go back to requirements list
 }
@@ -28,6 +20,7 @@ export const RequirementEditor: React.FC<RequirementEditorProps> = ({
   requirementId,
   requirementData,
   requirements,
+  appData,
   onSendToChat,
   onBack
 }) => {
@@ -37,6 +30,17 @@ export const RequirementEditor: React.FC<RequirementEditorProps> = ({
 
   const [viewMode, setViewMode] = useState<'preview' | 'split' | 'markdown'>('split');
   const [markdownText, setMarkdownText] = useState('');
+
+  const getGitHubUrl = (req: Requirement) => {
+    if (!req.metadata?.filePath || !appData) return null;
+
+    const owner = appData.app?.metadata?.owner || 'Cyoda-platform';
+    const repo = appData.app?.metadata?.repository || 'mcp-cyoda-quart-app';
+    const branch = appData.app?.metadata?.branch || 'main';
+    const filePath = req.metadata.filePath.replace(/^\.\//, '');
+
+    return `https://github.com/${owner}/${repo}/blob/${branch}/${filePath}`;
+  };
 
   // Default template for new requirements
   const getDefaultTemplate = (appName: string = 'Application') => `# ${appName} Requirements
@@ -115,14 +119,21 @@ Additional notes and considerations...
 
       // Priority 1: Use specific requirement data if provided (from RequirementsList)
       if (requirementData) {
-        const reqData = {
+        const reqData: Requirement = {
           id: requirementData.id,
+          title: requirementData.title,
           content: requirementData.content || getDefaultTemplate(requirementData.title),
-          app_id: appId,
+          metadata: requirementData.metadata, // Preserve metadata with filePath and fileName
+          priority: requirementData.priority,
+          status: requirementData.status,
         };
         setRequirement(reqData);
         setMarkdownText(reqData.content);
-        console.log('✅ Loaded specific requirement:', requirementData.title);
+        console.log('✅ Loaded specific requirement:', {
+          title: requirementData.title,
+          hasMetadata: !!requirementData.metadata,
+          filePath: requirementData.metadata?.filePath
+        });
       }
       // Priority 2: Use requirements from props if available (from GitHub analyze endpoint)
       else if (requirements && requirements.length > 0) {
@@ -170,6 +181,32 @@ Additional notes and considerations...
 
   return (
     <div className="h-full flex flex-col bg-gray-900">
+      {/* Header with GitHub Link */}
+      {requirement && (requirement.metadata?.filePath || getGitHubUrl(requirement)) && (
+        <div className="border-b border-gray-700 bg-gray-800/50 px-6 py-3 flex items-center justify-between">
+          <div className="text-sm text-gray-400">
+            GitHub Path
+          </div>
+          {getGitHubUrl(requirement) ? (
+            <a
+              href={getGitHubUrl(requirement)!}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-mono break-all"
+              title="View on GitHub"
+            >
+              <Github size={14} />
+              {requirement.metadata?.filePath}
+            </a>
+          ) : (
+            <div className="flex items-center gap-2 text-gray-400 text-sm font-mono break-all">
+              <Github size={14} />
+              {requirement.metadata?.filePath || 'No GitHub path available'}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Error Display */}
       {error && (
         <div className="mx-6 mt-4 p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-200">
@@ -243,6 +280,32 @@ Additional notes and considerations...
               </ReactMarkdown>
             </div>
           </div>
+        )}
+      </div>
+
+      {/* Footer with Send Button - Fixed at bottom */}
+      <div className="border-t border-gray-700 bg-gray-800/50 p-4 flex items-center justify-between flex-shrink-0">
+        <div className="flex items-center space-x-2">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 whitespace-nowrap"
+              title="Go back to requirements list"
+            >
+              <ArrowLeft size={12} />
+              <span>Back</span>
+            </button>
+          )}
+        </div>
+        {onSendToChat && (
+          <button
+            onClick={() => onSendToChat(markdownText)}
+            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-orange-600/80 hover:bg-orange-500/80 border border-orange-500 text-white whitespace-nowrap"
+            title="Send edited requirement to chat"
+          >
+            <Send size={12} />
+            <span>Send to Chat</span>
+          </button>
         )}
       </div>
     </div>
