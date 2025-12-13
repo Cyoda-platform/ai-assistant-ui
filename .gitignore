@@ -29,3 +29,6 @@ coverage
 
 *.tsbuildinfo
 .DS_Store
+
+# Yarn install state
+install-state.gz

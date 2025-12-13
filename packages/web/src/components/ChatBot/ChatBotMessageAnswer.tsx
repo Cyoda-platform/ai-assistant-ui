@@ -84,16 +84,16 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
         {/* Message Content Container */}
         <div className="flex flex-col items-end space-y-1.5 flex-1">
           {/* User Badge */}
-          <div className="flex items-center space-x-1.5">
+          <div className="flex items-center space-x-2 mb-2">
             {date && (
               <div className="flex items-center space-x-1 text-xs text-slate-500">
-                <Clock size={10} />
-                <span className="text-[10px]">{date}</span>
+                <Clock size={12} />
+                <span>{date}</span>
               </div>
             )}
-            <div className="flex items-center space-x-1 bg-slate-800/50 backdrop-blur-sm px-2 py-0.5 rounded-full border border-slate-600">
-              <span className="text-[10px] font-medium text-slate-300">{userName}</span>
-              <User size={10} className="text-teal-400" />
+            <div className="flex items-center space-x-1.5 bg-slate-800/50 backdrop-blur-sm px-3 py-1 rounded-full border border-slate-600">
+              <span className="text-xs font-medium text-slate-300">{userName}</span>
+              <User size={12} className="text-teal-400" />
             </div>
           </div>
 
@@ -119,7 +119,7 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
             {/* Copy Button - Inside message container, top right */}
             <button
               onClick={handleCopy}
-              className="absolute top-1.5 right-1.5 w-6 h-6 rounded bg-teal-600/30 hover:bg-teal-600/50 text-slate-300 hover:text-white transition-all duration-200 flex items-center justify-center border border-teal-500/30"
+              className="absolute top-1.5 right-1.5 w-6 h-6 text-teal-400 hover:text-teal-300 transition-all duration-200 flex items-center justify-center"
               title="Copy message"
             >
               {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}

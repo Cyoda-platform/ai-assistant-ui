@@ -91,8 +91,6 @@ const ChatBot: React.FC<ChatBotProps> = ({
   onStopRequest,
   onSetTextareaContent
 }) => {
-  const chatBotPlaceholderRef = useRef<HTMLDivElement>(null);
-  const [chatBotPlaceholderHeight, setChatBotPlaceholderHeight] = useState(0);
   const [textareaContentCallback, setTextareaContentCallback] = useState<((content: string, options?: { collapse?: boolean }) => void) | null>(null);
   const [showRepositoryConfigModal, setShowRepositoryConfigModal] = useState(false);
 
@@ -284,7 +282,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
             </div>
           </div>
         ) : (
-          <div className="max-w-[90%] mx-auto p-6 w-full">
+          <div className="max-w-[90%] mx-auto p-6 pb-0 w-full">
             <div className="space-y-3">
               {messages.map((message, index) => (
                 <div
@@ -335,18 +333,14 @@ const ChatBot: React.FC<ChatBotProps> = ({
                   />
                 </div>
               )}
-              <div
-                ref={chatBotPlaceholderRef}
-                className="h-4"
-              />
             </div>
           </div>
         )}
       </div>
 
       {/* Input Area at Bottom */}
-      <div className="border-t border-slate-700 glass p-4 flex-shrink-0">
-        <div className="max-w-[90%] mx-auto w-full">
+      <div className="flex-shrink-0 flex justify-center">
+        <div className="w-full max-w-7xl">
           <ChatBotSubmitForm
             disabled={disabled}
             onAnswer={onAnswer}

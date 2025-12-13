@@ -71,7 +71,7 @@ const TasksPanel: React.FC<TasksPanelProps> = ({
 
   return (
     <div
-      className={`bg-slate-800/95 backdrop-blur-sm border-l border-slate-600 flex flex-col relative resizable-panel h-full ${isResizing ? 'resizing' : ''}`}
+      className={`h-full bg-slate-800/95 backdrop-blur-sm flex flex-col relative resizable-panel ${isResizing ? 'resizing' : ''}`}
       style={{ width: `${panelWidth}px` }}
     >
       {/* Resize Handle */}
@@ -86,7 +86,7 @@ const TasksPanel: React.FC<TasksPanelProps> = ({
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
-            <h3 className="font-semibold text-white">
+            <h3 className="font-semibold text-white translate-y-[20%]">
               Background Tasks
             </h3>
             <span className="bg-emerald-500/20 text-emerald-300 text-xs px-2 py-1 rounded-full font-medium">

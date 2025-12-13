@@ -3,34 +3,53 @@
 // Modal overrides (replacing el-dialog)
 .ant-modal {
   .ant-modal-content {
-    border: 1px solid var(--accent-border);
-    border-radius: 8px;
-    background-color: var(--bg-dialog-color);
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    border-radius: 12px;
+    background-color: rgba(30, 41, 59, 0.95);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
   }
 
   .ant-modal-header {
-    background-color: var(--bg-dialog-color);
-    border-bottom: 1px solid var(--accent-border);
-    
+    background: transparent;
+    border-bottom: none;
+    padding: 16px 16px 8px 16px;
+
     .ant-modal-title {
-      color: var(--color-dialog-title);
+      color: #ffffff;
       font-weight: 600;
-      font-size: 20px;
+      font-size: 16px;
     }
   }
 
   .ant-modal-body {
-    background-color: var(--bg-dialog-color);
-    color: var(--text-color-regular);
+    background-color: transparent;
+    color: rgb(148, 163, 184);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 0 16px 6px 16px;
   }
 
   .ant-modal-footer {
-    background-color: var(--bg-dialog-color);
-    border-top: 1px solid var(--accent-border);
+    background-color: transparent;
+    border-top: none;
   }
 
   .ant-modal-close {
     top: 20px;
+    right: 20px;
+    width: auto;
+    height: auto;
+    padding: 8px;
+    border-radius: 8px;
+    background: transparent;
+    color: rgb(148, 163, 184);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: rgba(55, 65, 81, 0.5);
+      color: #ffffff;
+    }
 
     .ant-modal-close-x {
       width: auto;
@@ -38,12 +57,18 @@
       padding: 0;
       background: transparent;
       border-radius: 0;
-      color: #FFFFFF;
+      color: inherit;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: none;
       box-shadow: none;
+      font-size: 14px;
+      line-height: 1;
+
+      svg {
+        width: 14px;
+        height: 14px;
+      }
 
       &:hover {
         background: transparent;
@@ -105,26 +130,26 @@
 // Notification overrides (replacing el-notification)
 .ant-notification {
   .ant-notification-notice {
-    background-color: var(--bg-dialog-color);
-    border: 1px solid var(--accent-border);
+    background-color: rgba(30, 41, 59, 0.95);
+    border: 1px solid rgba(71, 85, 105, 0.5);
     border-radius: 8px;
 
     .ant-notification-notice-content {
-      color: var(--text-color-regular);
+      color: #ffffff;
     }
 
     .ant-notification-notice-message {
-      color: var(--text-color-regular);
+      color: #ffffff;
       font-weight: 600;
     }
 
     .ant-notification-notice-description {
-      color: var(--text-color-regular);
+      color: #ffffff;
     }
 
     &.ant-notification-notice-success {
       .ant-notification-notice-icon {
-        color: var(--text-color-regular);
+        color: #4ade80;
       }
     }
   }
@@ -133,42 +158,86 @@
 // Message overrides
 .ant-message {
   .ant-message-notice-content {
-    background-color: var(--bg-dialog-color);
-    border: 1px solid var(--accent-border);
+    background-color: rgba(30, 41, 59, 0.95);
+    border: 1px solid rgba(71, 85, 105, 0.5);
     border-radius: 8px;
-    color: var(--text-color-regular);
+    color: #ffffff;
   }
 }
 
 // Modal overrides for error/warning/info/success modals
 .ant-modal {
   .ant-modal-content {
-    background-color: var(--bg-dialog-color);
-    border: 1px solid var(--accent-border);
+    background-color: rgba(30, 41, 59, 0.95);
+    border: 1px solid rgba(71, 85, 105, 0.5);
+    backdrop-filter: blur(12px);
 
     .ant-modal-header {
-      background-color: var(--bg-dialog-color);
-      border-bottom-color: var(--accent-border);
+      background: transparent;
+      border-bottom: none;
 
       .ant-modal-title {
-        color: var(--text-color-regular);
+        color: #ffffff;
       }
     }
 
     .ant-modal-body {
-      color: var(--text-color-regular);
+      color: rgb(148, 163, 184);
     }
 
     .ant-modal-footer {
-      border-top-color: var(--accent-border);
+      border-top: none;
+      padding: 6px 16px 16px 16px;
 
       .ant-btn {
-        color: var(--text-color-regular);
-        border-color: var(--accent-border);
+        border-radius: 8px !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif !important;
+        padding: 8px 16px !important;
+        transition: all 0.2s ease !important;
+        height: auto !important;
+        min-height: auto !important;
+        letter-spacing: 0 !important;
+        box-shadow: none !important;
 
-        &:hover {
-          color: var(--color-primary);
-          border-color: var(--color-primary);
+        &.ant-btn-default {
+          background-color: transparent !important;
+          color: rgb(148, 163, 184) !important;
+          border: 1px solid rgba(71, 85, 105, 0.5) !important;
+
+          &:hover {
+            background-color: rgba(71, 85, 105, 0.2) !important;
+            color: rgb(226, 232, 240) !important;
+            border-color: rgba(71, 85, 105, 0.7) !important;
+          }
+
+          &:focus {
+            background-color: transparent !important;
+            color: rgb(148, 163, 184) !important;
+            border-color: rgba(71, 85, 105, 0.5) !important;
+          }
+        }
+
+        &.ant-btn-primary {
+          background: transparent !important;
+          background-color: transparent !important;
+          color: rgb(20, 184, 166) !important;
+          border: 1px solid rgba(71, 85, 105, 0.5) !important;
+
+          &:hover {
+            background: rgba(71, 85, 105, 0.2) !important;
+            background-color: rgba(71, 85, 105, 0.2) !important;
+            color: rgb(20, 184, 166) !important;
+            border-color: rgba(71, 85, 105, 0.7) !important;
+          }
+
+          &:focus {
+            background: transparent !important;
+            background-color: transparent !important;
+            color: rgb(20, 184, 166) !important;
+            border-color: rgba(71, 85, 105, 0.5) !important;
+          }
         }
       }
     }
@@ -196,33 +265,35 @@
 
 // Input overrides
 .ant-input {
-  background-color: var(--input);
-  border-color: var(--input-border-color);
-  color: var(--text-color-regular);
+  background-color: rgba(55, 65, 81, 0.4);
+  border-color: rgba(71, 85, 105, 0.5);
+  color: rgb(148, 163, 184);
 
   &:focus,
   &:hover {
-    border-color: var(--color-primary);
+    border-color: rgba(71, 85, 105, 0.7);
+    background-color: rgba(55, 65, 81, 0.6);
   }
 
   &:disabled {
-    background-color: var(--input-disabled);
+    background-color: rgba(55, 65, 81, 0.2);
   }
 }
 
 .ant-input-affix-wrapper {
-  background-color: var(--input);
-  border-color: var(--input-border-color);
+  background-color: rgba(55, 65, 81, 0.4);
+  border-color: rgba(71, 85, 105, 0.5);
 
   &:focus,
   &:hover {
-    border-color: var(--color-primary);
+    border-color: rgba(71, 85, 105, 0.7);
+    background-color: rgba(55, 65, 81, 0.6);
   }
 
   .ant-input {
     background-color: transparent;
     border: none;
-    color: var(--text-color-regular);
+    color: rgb(148, 163, 184);
   }
 }
 
@@ -344,4 +415,30 @@
     border-color: var(--btn-bordered-border-color-hover);
     color: var(--btn-bordered-text-color);
   }
+}
+
+
+// Form overrides
+.ant-form-item-label > label {
+  color: rgb(148, 163, 184);
+  font-size: 14px;
+  font-weight: 500;
+
+  .ant-form-item-required::before {
+    color: rgb(248, 113, 113);
+  }
+}
+
+.ant-form-item-label > label.ant-form-item-required::before {
+  display: inline-block;
+  margin-right: 4px;
+  color: rgb(248, 113, 113);
+  font-weight: bold;
+  content: "*";
+}
+
+// Input count overrides
+.ant-input-textarea-show-count::after {
+  color: rgb(100, 116, 139);
+  font-size: 12px;
 }

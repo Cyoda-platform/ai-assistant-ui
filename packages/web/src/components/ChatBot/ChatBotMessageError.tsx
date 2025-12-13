@@ -16,7 +16,7 @@ interface ChatBotMessageErrorProps {
 
 const ChatBotMessageError: React.FC<ChatBotMessageErrorProps> = ({ message }) => {
   const containerInfo = useTextResponsiveContainer(message.text);
-  const date = message.last_modified 
+  const date = message.last_modified
     ? dayjs(message.last_modified).format('DD/MM/YYYY HH:mm:ss')
     : dayjs().format('DD/MM/YYYY HH:mm:ss');
 
@@ -25,8 +25,8 @@ const ChatBotMessageError: React.FC<ChatBotMessageErrorProps> = ({ message }) =>
       <div className="max-w-[85%]">
         {/* Error Badge */}
         <div className="flex items-center space-x-2 mb-2 ml-12">
-          <span className="inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
-            <AlertCircle size={10} />
+          <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
+            <AlertCircle size={12} />
             <span>ERROR</span>
           </span>
           <span className="text-xs text-slate-500">{date}</span>
@@ -40,7 +40,7 @@ const ChatBotMessageError: React.FC<ChatBotMessageErrorProps> = ({ message }) =>
           </div>
 
           {/* Error Content */}
-          <div className={`${containerInfo.className} rounded-tl-md`}>
+          <div className={`${containerInfo.className} rounded-sharp-tl`}>
             <div className="flex items-start">
               <div className="flex-1 min-w-0">
                 <p className="text-base text-red-100 leading-relaxed whitespace-pre-wrap break-words">

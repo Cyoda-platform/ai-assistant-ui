@@ -3,6 +3,9 @@ import { Modal, Input, Form, message } from 'antd';
 import { useAssistantStore } from '@/stores/assistant';
 import eventBus from '@/plugins/eventBus';
 import { UPDATE_CHAT_LIST } from '@/helpers/HelperConstants';
+import './ChatBotRenameDialog.css';
+
+const { TextArea } = Input;
 
 interface ChatBotRenameDialogProps {
   visible: boolean;
@@ -22,6 +25,7 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const assistantStore = useAssistantStore();
+  const { message } = App.useApp();
 
   // Reset form when dialog opens with new data
   useEffect(() => {
@@ -45,7 +49,7 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
       setLoading(true);
 
       // Call the API to rename the chat
-      await assistantStore.renameChatById(chatId, { chat_name: newName });
+      await assistantStore.renameChatById(chatId, { name: newName });
 
       // Notify success
       message.success('Chat renamed successfully');
@@ -74,6 +78,7 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
 
   return (
     <Modal
+      wrapClassName="rename-chat-modal"
       title="Rename Chat"
       open={visible}
       onOk={handleOk}
@@ -82,6 +87,7 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
       okText="Rename"
       cancelText="Cancel"
       destroyOnHidden
+      centered
     >
       <Form form={form} layout="vertical">
         <Form.Item
@@ -100,11 +106,13 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
             }
           ]}
         >
-          <Input
+          <TextArea
             placeholder="Enter new chat name"
             maxLength={100}
             showCount
             autoFocus
+            autoSize={{ minRows: 1, maxRows: 6 }}
+            style={{ resize: 'none' }}
           />
         </Form.Item>
       </Form>

@@ -15,6 +15,7 @@ const AuthStateAvatar: React.FC = () => {
   const navigate = useNavigate();
   const [visibleCard, setVisibleCard] = useState(false);
   const [settingsDialogVisible, setSettingsDialogVisible] = useState(false);
+  const [imageLoadError, setImageLoadError] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Debug logging
@@ -37,6 +38,12 @@ const AuthStateAvatar: React.FC = () => {
   }, [visibleCard]);
 
   const picture = authStore.picture;
+
+  useEffect(() => {
+    if (picture) {
+      console.log('📸 Avatar URL:', picture);
+    }
+  }, [picture]);
 
   const initials = useMemo(() => {
     const { family_name = 'C', given_name = 'U' } = authStore;
@@ -83,14 +90,21 @@ const AuthStateAvatar: React.FC = () => {
     authStore.toggleSuperUserMode();
   };
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.warn('❌ Failed to load user avatar image from:', picture);
+    console.warn('Error details:', e);
+    setImageLoadError(true);
+  };
+
   return (
     <div className="relative auth-dropdown">
-      {picture ? (
+      {picture && !imageLoadError ? (
         <img
           onClick={onToggleCard}
-          className="w-8 h-8 rounded-full cursor-pointer hover:ring-2 hover:ring-teal-400 transition-all"
+          className="w-8 h-8 rounded-full cursor-pointer hover:ring-2 hover:ring-teal-400 transition-all object-cover"
           src={picture}
           alt="User avatar"
+          onError={handleImageError}
         />
       ) : (
         <div
@@ -143,11 +157,18 @@ const AuthStateAvatar: React.FC = () => {
           {/* Footer Actions */}
           <div className="border-t border-slate-600 bg-slate-700/30">
             <button
+              onClick={onClickSettings}
+              className="w-full flex items-center space-x-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors text-sm border-b border-slate-600"
+            >
+              <Settings className="w-4 h-4" />
+              <span>Settings</span>
+            </button>
+            <button
               onClick={onClickLogout}
               className="w-full flex items-center space-x-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors text-sm"
             >
               <LogOut className="w-4 h-4" />
-              <span>logout</span>
+              <span>Log out</span>
             </button>
           </div>
         </div>
