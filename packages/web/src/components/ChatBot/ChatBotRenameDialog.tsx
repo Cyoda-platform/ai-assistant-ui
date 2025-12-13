@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Input, Form, message } from 'antd';
+import { Modal, Input, Form, message, App } from 'antd';
 import { useAssistantStore } from '@/stores/assistant';
 import eventBus from '@/plugins/eventBus';
 import { UPDATE_CHAT_LIST } from '@/helpers/HelperConstants';

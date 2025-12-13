@@ -24,7 +24,8 @@ import {
   Shield,
   CreditCard,
   BarChart3,
-  Copy
+  Copy,
+  Paperclip
 } from 'lucide-react';
 import { useAssistantStore } from '@/stores/assistant';
 import { useAuthStore, useSuperUserMode } from '@/stores/auth';
@@ -50,15 +51,19 @@ const FintechHomeView: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(false);
   const [isEnvironmentsOpen, setIsEnvironmentsOpen] = useState(false);
-  const [pendingMessage, setPendingMessage] = useState<{ input: string } | null>(null);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [pendingMessage, setPendingMessage] = useState<{ input: string; files: File[] } | null>(null);
   const [isResizing, setIsResizing] = useState(false);
   const [textareaHeight, setTextareaHeight] = useState(60);
   const [currentPromptIndex, setCurrentPromptIndex] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initialWidthRef = useRef<number>(0);
   const mainContentRef = useRef<HTMLDivElement>(null);
+  let dragCounter = 0;
 
   // Set page title for fintech
   useEffect(() => {
@@ -246,7 +251,7 @@ const FintechHomeView: React.FC = () => {
   }, [authStore.token]);
 
   // Function to actually submit the chat
-  const submitChat = async (input: string) => {
+  const submitChat = async (input: string, files: File[] = []) => {
     setIsLoading(true);
 
     // Store the full message to be sent after chat creation
@@ -292,6 +297,7 @@ const FintechHomeView: React.FC = () => {
       navigate('/fintech', { replace: true });
     } finally {
       setIsLoading(false);
+      setAttachedFiles([]);
       setChatInput('');
       setTextareaHeight(60); // Reset to default height
       setPendingMessage(null);
@@ -325,25 +331,26 @@ const FintechHomeView: React.FC = () => {
 
     // Check if user is a guest
     if (isGuestUser) {
-      // Capture the current input in local variable
+      // Capture the current input and files in local variables
       const currentInput = chatInput.trim();
+      const currentFiles = [...attachedFiles];
 
       // Store the pending message
-      setPendingMessage({ input: currentInput });
+      setPendingMessage({ input: currentInput, files: currentFiles });
 
       // Show login popup with guest user message
       eventBus.$emit(SHOW_LOGIN_POPUP, {
         isGuestUser: true,
         onProceedWithoutLogin: () => {
           // User chose to proceed without login - use the captured value
-          submitChat(currentInput);
+          submitChat(currentInput, currentFiles);
         }
       });
       return;
     }
 
     // Not a guest user, submit directly
-    await submitChat(chatInput.trim());
+    await submitChat(chatInput.trim(), attachedFiles);
   };
 
   // Fintech-specific quick actions
@@ -448,7 +455,57 @@ const FintechHomeView: React.FC = () => {
     setCurrentPromptIndex((prev) => (prev - 1 + fintechPromptExamples.length) % fintechPromptExamples.length);
   };
 
+  // Drag and drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter++;
+    setIsDragging(true);
+  };
 
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter--;
+    if (dragCounter === 0) setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounter = 0;
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const newFiles = Array.from(files);
+      setAttachedFiles(prev => [...prev, ...newFiles]);
+    }
+  };
+
+  const handleFileAttach = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const newFiles = Array.from(files);
+      // Validate each file
+      const validFiles: File[] = [];
+      newFiles.forEach(file => {
+        if (file.size <= 10 * 1024 * 1024) { // 10MB limit
+          validFiles.push(file);
+        } else {
+          console.warn(`File ${file.name} is too large`);
+        }
+      });
+      setAttachedFiles(prev => [...prev, ...validFiles]);
+    }
+    // Reset input value to allow selecting the same file again
+    e.target.value = '';
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
 
   // Dummy handlers for canvas (since we're on home page without active chat)
   const handleAnswer = (data: { answer: string; files?: File[] }) => {
