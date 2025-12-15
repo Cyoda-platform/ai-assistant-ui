@@ -94,7 +94,21 @@ const ChatBotView: React.FC = () => {
   const [triggerCanvasReload, setTriggerCanvasReload] = useState(false);
   const [isEntityDataOpen, setIsEntityDataOpen] = useState(false);
   const [isTasksPanelOpen, setIsTasksPanelOpen] = useState(false);
-  const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(false);
+  const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(() => {
+    // Load chat history panel visibility from localStorage
+    try {
+      const stored = localStorage.getItem('chat-history-open');
+      if (stored !== null) {
+        const isOpen = stored === 'true';
+        console.log('[Chat History State] Initializing isChatHistoryOpen from localStorage:', isOpen);
+        return isOpen;
+      }
+    } catch (error) {
+      console.warn('[Chat History State] Failed to load chat history visibility from localStorage:', error);
+    }
+    console.log('[Chat History State] Initializing isChatHistoryOpen to false');
+    return false;
+  });
   const [isEnvironmentsOpen, setIsEnvironmentsOpen] = useState(false);
   const [setTextareaContentCallback, setSetTextareaContentCallback] = useState<((content: string, options?: { collapse?: boolean }) => void) | null>(null);
   const [lastCanvasAIChange, setLastCanvasAIChange] = useState<{
@@ -323,6 +337,16 @@ const ChatBotView: React.FC = () => {
       }
     }
   }, [canvasActiveTab, technicalId]);
+
+  // Save chat history panel visibility to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('chat-history-open', isChatHistoryOpen.toString());
+      console.log('[Chat History State] Saved isChatHistoryOpen to localStorage:', isChatHistoryOpen);
+    } catch (error) {
+      console.warn('[Chat History State] Failed to save chat history visibility to localStorage:', error);
+    }
+  }, [isChatHistoryOpen]);
 
   // Trigger analyze when page loads with canvas already open (e.g., after refresh)
   // Only if there's no cached data
