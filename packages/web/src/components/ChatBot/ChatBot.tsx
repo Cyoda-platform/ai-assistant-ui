@@ -337,7 +337,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
       </div>
 
       {/* Input Area at Bottom */}
-      <div className="flex-shrink-0 flex justify-center">
+      <div className="flex-shrink-0 flex justify-center pb-4">
         <div className="w-full max-w-7xl">
           <ChatBotSubmitForm
             disabled={disabled}
