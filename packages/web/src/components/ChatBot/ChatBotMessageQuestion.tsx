@@ -543,6 +543,12 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                     label={optionSelectionHook.data?.question || 'Options'}
                   />
                   <div className="space-y-6 p-6 bg-slate-800/30 rounded-2xl border border-slate-700/50">
+                    {/* Question/Instructions from AI */}
+                    {optionSelectionHook.data?.question && (
+                      <div className="text-sm text-slate-300 font-medium">
+                        {optionSelectionHook.data.question}
+                      </div>
+                    )}
                     {/* Context/Additional Info */}
                     {optionSelectionHook.data?.context && (
                       <div className="text-sm text-slate-400">
