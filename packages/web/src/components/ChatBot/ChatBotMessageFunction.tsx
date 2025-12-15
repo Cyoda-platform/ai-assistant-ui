@@ -212,7 +212,7 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
 
           {/* Action Block */}
           <div className={`bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-3xl rounded-sharp-tl shadow-lg relative group ${message.approve ? 'pb-12' : ''}`} style={{
-            padding: 'clamp(0.375rem, 1vw + 0.2rem, 0.75rem) clamp(0.5rem, 1.5vw + 0.375rem, 1rem)'
+            padding: 'clamp(0.75rem, 1.5vw + 0.5rem, 1.25rem) clamp(1rem, 2vw + 0.75rem, 1.5rem)'
           }}>
             {/* Method and Path */}
             <div className="flex items-center space-x-3 mb-3">

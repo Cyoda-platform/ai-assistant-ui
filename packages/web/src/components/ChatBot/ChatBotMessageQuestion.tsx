@@ -799,7 +799,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                   hookType="background_task"
                   label={backgroundTaskHook.data?.task_name || 'Background Task'}
                 />
-                <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
+                <div className="space-y-6 p-6 bg-slate-800/30 rounded-2xl border border-slate-700/50">
                   <div className="space-y-3">
                     <div>
                       <div className="text-sm font-medium text-slate-300">

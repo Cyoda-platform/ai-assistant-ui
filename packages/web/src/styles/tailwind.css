@@ -375,7 +375,7 @@ html {
     border-bottom-left-radius: 1rem;
     border-bottom-right-radius: 1rem;
     overflow: visible; /* Prevent scroll bars in message containers */
-    max-width: 85%;
+    max-width: 100%;
   }
 
   .btn-glass {
