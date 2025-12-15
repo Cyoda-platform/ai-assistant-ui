@@ -54,14 +54,16 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
   const [isLoadingApprove, setIsLoadingApprove] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [branchChoice, setBranchChoice] = useState<string>('new_branch');
-  const [repositoryType, setRepositoryType] = useState<string>('private');
+  const [repositoryType, setRepositoryType] = useState<string>('public');
   const [language, setLanguage] = useState<string>('python');
   const [isSubmittingConfig, setIsSubmittingConfig] = useState(false);
 
   const assistantStore = useAssistantStore();
 
-  // Generic option selection state
-  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  // Generic option selection state - for option_selection hook
+  const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
+  const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
   const [isSubmittingOptions, setIsSubmittingOptions] = useState(false);
 
   const messageText = useMemo(() => {
@@ -103,11 +105,16 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
 
   // Extract individual hooks from combined hook if present
   const allHooks = useMemo(() => {
-    return extractHooksFromCombined(message.raw?.hook);
+    const hooks = extractHooksFromCombined(message.raw?.hook);
+    if (message.raw?.hook) {
+      console.log('🎣 All hooks detected:', hooks);
+    }
+    return hooks;
   }, [message.raw?.hook]);
 
   // Detect if message contains repository config selection hook
   const repoConfigHook = useMemo(() => {
+    // Check top-level hook first
     if (message.raw?.hook?.type === 'repository_config_selection') {
       const hook = message.raw.hook;
 
@@ -130,19 +137,30 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
       console.log('🎣 Repository config hook (normalized):', normalizedHook);
       return normalizedHook;
     }
+
+    // Check in allHooks (for combined hooks)
+    const hook = allHooks.find((h: any) => h?.type === 'repository_config_selection');
+    if (hook) {
+      console.log('🎣 Repository config hook found in allHooks:', hook);
+      return hook;
+    }
+
     return null;
-  }, [message.raw]);
+  }, [message.raw, allHooks]);
 
   // Detect if message contains option selection hook (from combined or top-level)
   const optionSelectionHook = useMemo(() => {
     // First check if it's a top-level option_selection hook
     if (message.raw?.hook?.type === 'option_selection') {
+      console.log('[ChatBotMessageQuestion] Option selection hook detected (top-level):', message.raw.hook);
+      console.log('[ChatBotMessageQuestion] Options structure:', message.raw.hook.data?.options);
       return message.raw.hook;
     }
     // Otherwise, extract from allHooks (for combined hooks)
     const hook = allHooks.find((h: any) => h?.type === 'option_selection');
     if (hook) {
-      console.log('[ChatBotMessageQuestion] Option selection hook detected:', hook);
+      console.log('[ChatBotMessageQuestion] Option selection hook detected (from allHooks):', hook);
+      console.log('[ChatBotMessageQuestion] Options structure:', hook.data?.options);
     }
     return hook || null;
   }, [message.raw, allHooks]);
@@ -191,14 +209,49 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
   // Initialize selected options when hook is detected
   useEffect(() => {
     if (optionSelectionHook) {
-      // For single selection, initialize with first option or empty
-      if (optionSelectionHook.data?.selection_type === 'single') {
-        const firstOption = optionSelectionHook.data?.options?.[0]?.value;
-        setSelectedOptions(firstOption ? [firstOption] : []);
+      const options = optionSelectionHook.data?.options || [];
+      console.log('[ChatBotMessageQuestion] All options:', options);
+
+      // Group options by position (assuming 6 options: 2 branch, 2 repo, 2 language)
+      // Or by group property if available
+      let branchOptions, repoOptions, langOptions;
+
+      if (options.length > 0 && options[0].group) {
+        // Group by 'group' property
+        branchOptions = options.filter((opt: any) => opt.group === 'branch');
+        repoOptions = options.filter((opt: any) => opt.group === 'repository');
+        langOptions = options.filter((opt: any) => opt.group === 'language');
       } else {
-        // For multiple selection, start with empty
-        setSelectedOptions([]);
+        // Group by position (first 2, middle 2, last 2)
+        branchOptions = options.slice(0, 2);
+        repoOptions = options.slice(2, 4);
+        langOptions = options.slice(4, 6);
       }
+
+      console.log('[ChatBotMessageQuestion] Grouped options:', { branchOptions, repoOptions, langOptions });
+
+      // Set defaults: look for specific values or use first option
+      const defaultBranch = branchOptions.find((opt: any) =>
+        opt.value === 'new_branch' || opt.label?.toLowerCase().includes('new branch')
+      ) || branchOptions[0];
+
+      const defaultRepo = repoOptions.find((opt: any) =>
+        opt.value === 'public' || opt.label?.toLowerCase().includes('public')
+      ) || repoOptions[0];
+
+      const defaultLang = langOptions.find((opt: any) =>
+        opt.value === 'python' || opt.label?.toLowerCase().includes('python')
+      ) || langOptions[0];
+
+      setSelectedBranch(defaultBranch?.value || null);
+      setSelectedRepo(defaultRepo?.value || null);
+      setSelectedLanguage(defaultLang?.value || null);
+
+      console.log('[ChatBotMessageQuestion] Initialized option selection with defaults:', {
+        branch: defaultBranch?.value,
+        repo: defaultRepo?.value,
+        language: defaultLang?.value
+      });
     }
   }, [optionSelectionHook]);
 
@@ -333,41 +386,58 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     }
   };
 
-  const handleToggleOption = (value: string) => {
-    if (!optionSelectionHook) return;
-
-    const selectionType = optionSelectionHook.data?.selection_type || 'single';
-
-    if (selectionType === 'single') {
-      // For single selection, replace the selection
-      setSelectedOptions([value]);
-    } else {
-      // For multiple selection, toggle the option
-      setSelectedOptions(prev =>
-        prev.includes(value)
-          ? prev.filter(v => v !== value)
-          : [...prev, value]
-      );
+  const handleSelectOption = (value: string, group: string) => {
+    // Radio button logic: select one option per group
+    if (group === 'branch') {
+      setSelectedBranch(value);
+    } else if (group === 'repository') {
+      setSelectedRepo(value);
+    } else if (group === 'language') {
+      setSelectedLanguage(value);
     }
   };
 
+  // Helper to get grouped options
+  const getGroupedOptions = () => {
+    const options = optionSelectionHook?.data?.options || [];
+
+    if (options.length === 0) {
+      return { branch: [], repository: [], language: [] };
+    }
+
+    // Check if options have 'group' property
+    if (options[0].group) {
+      return {
+        branch: options.filter((opt: any) => opt.group === 'branch'),
+        repository: options.filter((opt: any) => opt.group === 'repository'),
+        language: options.filter((opt: any) => opt.group === 'language')
+      };
+    }
+
+    // Otherwise group by position (assuming 6 options: 2+2+2)
+    return {
+      branch: options.slice(0, 2),
+      repository: options.slice(2, 4),
+      language: options.slice(4, 6)
+    };
+  };
+
   const handleSubmitOptions = async () => {
-    if (!optionSelectionHook || selectedOptions.length === 0) return;
+    if (!optionSelectionHook || !selectedBranch || !selectedRepo || !selectedLanguage) return;
 
     // Find the selected option labels
     const options = optionSelectionHook.data?.options || [];
-    const selectedLabels = selectedOptions.map(value => {
-      const option = options.find((opt: any) => opt.value === value);
-      return option?.label || value;
-    });
+    const branchLabel = options.find((opt: any) => opt.value === selectedBranch)?.label || selectedBranch;
+    const repoLabel = options.find((opt: any) => opt.value === selectedRepo)?.label || selectedRepo;
+    const langLabel = options.find((opt: any) => opt.value === selectedLanguage)?.label || selectedLanguage;
 
     // Build the selection message
-    const selectionMessage = selectedLabels.join(', ');
+    const selectionMessage = `Branch: ${branchLabel}, Repository: ${repoLabel}, Language: ${langLabel}`;
 
     // Put the message in the textarea instead of sending directly
     if (setTextareaContent) {
       setTextareaContent(selectionMessage, { collapse: false });
-      console.log('✅ Options placed in textarea:', { selectedOptions, selectedLabels, selectionMessage });
+      console.log('✅ Options placed in textarea:', { selectedBranch, selectedRepo, selectedLanguage, selectionMessage });
     } else {
       // Fallback: send directly if setTextareaContent is not available
       console.warn('⚠️ setTextareaContent not available, sending directly');
@@ -375,7 +445,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
         try {
           setIsSubmittingOptions(true);
           await onAnswer({ answer: selectionMessage });
-          console.log('✅ Options submitted:', { selectedOptions, selectedLabels });
+          console.log('✅ Options submitted:', { selectedBranch, selectedRepo, selectedLanguage });
         } catch (error) {
           console.error('Failed to submit options:', error);
         } finally {
@@ -464,69 +534,165 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
             </MarkdownRenderer>
 
             {/* Generic Option Selection UI */}
-            {optionSelectionHook && (
-              <>
-                <ResponseSeparator
-                  hookType="option_selection"
-                  label={optionSelectionHook.data?.question || 'Options'}
-                />
-                <div className="space-y-4 p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
-                {/* Context/Additional Info */}
-                {optionSelectionHook.data?.context && (
-                  <div className="text-sm text-slate-400 mb-3">
-                    {optionSelectionHook.data.context}
-                  </div>
-                )}
+            {optionSelectionHook && (() => {
+              const grouped = getGroupedOptions();
+              return (
+                <>
+                  <ResponseSeparator
+                    hookType="option_selection"
+                    label={optionSelectionHook.data?.question || 'Options'}
+                  />
+                  <div className="space-y-6 p-6 bg-slate-800/30 rounded-2xl border border-slate-700/50">
+                    {/* Context/Additional Info */}
+                    {optionSelectionHook.data?.context && (
+                      <div className="text-sm text-slate-400">
+                        {optionSelectionHook.data.context}
+                      </div>
+                    )}
 
-                {/* Options */}
-                <div className="space-y-2">
-                  <div className="grid gap-3">
-                    {optionSelectionHook.data?.options?.map((option: any) => (
-                      <button
-                        key={option.value}
-                        onClick={() => handleToggleOption(option.value)}
-                        className={`px-4 py-3 rounded-xl border-2 transition-all duration-200 text-left ${
-                          selectedOptions.includes(option.value)
-                            ? 'border-teal-500 bg-teal-500/20 text-teal-300'
-                            : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500'
-                        }`}
-                      >
-                        <div className="flex items-start space-x-3">
-                          {/* Checkbox/Radio indicator */}
-                          <div className={`mt-0.5 w-5 h-5 rounded-${optionSelectionHook.data?.selection_type === 'single' ? 'full' : 'md'} border-2 flex items-center justify-center ${
-                            selectedOptions.includes(option.value)
-                              ? 'border-teal-500 bg-teal-500'
-                              : 'border-slate-500'
-                          }`}>
-                            {selectedOptions.includes(option.value) && (
-                              <div className="w-2 h-2 bg-white rounded-full"></div>
-                            )}
-                          </div>
-
-                          <div className="flex-1">
-                            <div className="text-sm font-medium">{option.label}</div>
-                            {option.description && (
-                              <div className="text-xs opacity-75 mt-1">{option.description}</div>
-                            )}
-                          </div>
+                    {/* Section 1: Branch Strategy */}
+                    {grouped.branch.length > 0 && (
+                      <div className="space-y-3">
+                        <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
+                          Branch Strategy
+                        </h3>
+                        <div className="grid grid-cols-2 gap-3">
+                          {grouped.branch.map((option: any) => (
+                            <button
+                              key={option.value}
+                              onClick={() => handleSelectOption(option.value, 'branch')}
+                              className={`relative px-4 py-3 rounded-xl border-2 transition-all duration-200 text-left group ${
+                                selectedBranch === option.value
+                                  ? 'border-teal-500 bg-teal-500/20 text-teal-300 shadow-lg shadow-teal-500/20'
+                                  : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500 hover:bg-slate-800/70'
+                              }`}
+                            >
+                              <div className="flex items-start space-x-2">
+                                <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                                  selectedBranch === option.value
+                                    ? 'border-teal-500 bg-teal-500'
+                                    : 'border-slate-500 group-hover:border-slate-400'
+                                }`}>
+                                  {selectedBranch === option.value && (
+                                    <Check size={14} className="text-white" />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-medium">{option.label}</div>
+                                  {option.description && (
+                                    <div className="text-xs opacity-75 mt-1">{option.description}</div>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          ))}
                         </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                      </div>
+                    )}
 
-                {/* Select Button - places message in textarea for user to review and send */}
-                <button
-                  onClick={handleSubmitOptions}
-                  disabled={isSubmittingOptions || selectedOptions.length === 0}
-                  className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                >
-                  <Send size={18} />
-                  <span>Select</span>
-                </button>
-              </div>
-              </>
-            )}
+                    {/* Divider */}
+                    {grouped.branch.length > 0 && grouped.repository.length > 0 && (
+                      <div className="h-px bg-gradient-to-r from-slate-700 via-slate-600 to-slate-700"></div>
+                    )}
+
+                    {/* Section 2: Repository Type */}
+                    {grouped.repository.length > 0 && (
+                      <div className="space-y-3">
+                        <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
+                          Repository Type
+                        </h3>
+                        <div className="grid grid-cols-2 gap-3">
+                          {grouped.repository.map((option: any) => (
+                            <button
+                              key={option.value}
+                              onClick={() => handleSelectOption(option.value, 'repository')}
+                              className={`relative px-4 py-3 rounded-xl border-2 transition-all duration-200 text-left group ${
+                                selectedRepo === option.value
+                                  ? 'border-teal-500 bg-teal-500/20 text-teal-300 shadow-lg shadow-teal-500/20'
+                                  : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500 hover:bg-slate-800/70'
+                              }`}
+                            >
+                              <div className="flex items-start space-x-2">
+                                <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                                  selectedRepo === option.value
+                                    ? 'border-teal-500 bg-teal-500'
+                                    : 'border-slate-500 group-hover:border-slate-400'
+                                }`}>
+                                  {selectedRepo === option.value && (
+                                    <Check size={14} className="text-white" />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-medium">{option.label}</div>
+                                  {option.description && (
+                                    <div className="text-xs opacity-75 mt-1">{option.description}</div>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Divider */}
+                    {grouped.repository.length > 0 && grouped.language.length > 0 && (
+                      <div className="h-px bg-gradient-to-r from-slate-700 via-slate-600 to-slate-700"></div>
+                    )}
+
+                    {/* Section 3: Programming Language */}
+                    {grouped.language.length > 0 && (
+                      <div className="space-y-3">
+                        <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
+                          Programming Language
+                        </h3>
+                        <div className="grid grid-cols-2 gap-3">
+                          {grouped.language.map((option: any) => (
+                            <button
+                              key={option.value}
+                              onClick={() => handleSelectOption(option.value, 'language')}
+                              className={`relative px-4 py-3 rounded-xl border-2 transition-all duration-200 text-left group ${
+                                selectedLanguage === option.value
+                                  ? 'border-teal-500 bg-teal-500/20 text-teal-300 shadow-lg shadow-teal-500/20'
+                                  : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500 hover:bg-slate-800/70'
+                              }`}
+                            >
+                              <div className="flex items-start space-x-2">
+                                <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                                  selectedLanguage === option.value
+                                    ? 'border-teal-500 bg-teal-500'
+                                    : 'border-slate-500 group-hover:border-slate-400'
+                                }`}>
+                                  {selectedLanguage === option.value && (
+                                    <Check size={14} className="text-white" />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-medium">{option.label}</div>
+                                  {option.description && (
+                                    <div className="text-xs opacity-75 mt-1">{option.description}</div>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Select Button */}
+                    <button
+                      onClick={handleSubmitOptions}
+                      disabled={isSubmittingOptions || !selectedBranch || !selectedRepo || !selectedLanguage}
+                      className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 mt-2"
+                    >
+                      <Send size={18} />
+                      <span>Select</span>
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
 
             {/* Deployment Options UI */}
             {deploymentHook && (
@@ -642,74 +808,128 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                   hookType="repository_config_selection"
                   label={repoConfigHook.data?.question || 'Repository Configuration'}
                 />
-                <div className="space-y-4 p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
+                <div className="space-y-6 p-6 bg-slate-800/30 rounded-2xl border border-slate-700/50">
 
-                {/* Branch Choice Selection */}
+                {/* Section 1: Branch Strategy */}
                 {repoConfigHook.data?.options?.branch_choice && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">
-                      {repoConfigHook.data?.options?.branch_choice?.label || 'Branch'}
-                    </label>
-                    <div className="flex gap-3">
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
+                        Branch Strategy
+                      </h3>
+                      <div className="flex-1 h-px bg-gradient-to-r from-slate-600 to-transparent"></div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
                       {repoConfigHook.data?.options?.branch_choice?.choices?.map((choice: any) => (
                         <button
                           key={choice.value}
                           onClick={() => setBranchChoice(choice.value)}
-                          className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all duration-200 ${
+                          className={`relative px-4 py-3 rounded-xl border-2 transition-all duration-200 text-left group ${
                             branchChoice === choice.value
-                              ? 'border-teal-500 bg-teal-500/20 text-teal-300'
-                              : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500'
+                              ? 'border-teal-500 bg-teal-500/20 text-teal-300 shadow-lg shadow-teal-500/20'
+                              : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500 hover:bg-slate-800/70'
                           }`}
                         >
-                          <div className="text-sm font-medium">{choice.label}</div>
-                          <div className="text-xs opacity-75 mt-1">{choice.description}</div>
+                          <div className="flex items-start space-x-2">
+                            <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                              branchChoice === choice.value
+                                ? 'border-teal-500 bg-teal-500'
+                                : 'border-slate-500 group-hover:border-slate-400'
+                            }`}>
+                              {branchChoice === choice.value && (
+                                <Check size={14} className="text-white" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium">{choice.label}</div>
+                              <div className="text-xs opacity-75 mt-1">{choice.description}</div>
+                            </div>
+                          </div>
                         </button>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* Repository Type Selection */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300">
-                    {repoConfigHook.data?.options?.repository_type?.label || 'Repository Type'}
-                  </label>
-                  <div className="flex gap-3">
+                {/* Divider */}
+                <div className="h-px bg-gradient-to-r from-slate-700 via-slate-600 to-slate-700"></div>
+
+                {/* Section 2: Repository Type */}
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
+                      Repository Type
+                    </h3>
+                    <div className="flex-1 h-px bg-gradient-to-r from-slate-600 to-transparent"></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
                     {repoConfigHook.data?.options?.repository_type?.choices?.map((choice: any) => (
                       <button
                         key={choice.value}
                         onClick={() => setRepositoryType(choice.value)}
-                        className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all duration-200 ${
+                        className={`relative px-4 py-3 rounded-xl border-2 transition-all duration-200 text-left group ${
                           repositoryType === choice.value
-                            ? 'border-teal-500 bg-teal-500/20 text-teal-300'
-                            : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500'
+                            ? 'border-teal-500 bg-teal-500/20 text-teal-300 shadow-lg shadow-teal-500/20'
+                            : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500 hover:bg-slate-800/70'
                         }`}
                       >
-                        <div className="text-sm font-medium">{choice.label}</div>
-                        <div className="text-xs opacity-75 mt-1">{choice.description}</div>
+                        <div className="flex items-start space-x-2">
+                          <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                            repositoryType === choice.value
+                              ? 'border-teal-500 bg-teal-500'
+                              : 'border-slate-500 group-hover:border-slate-400'
+                          }`}>
+                            {repositoryType === choice.value && (
+                              <Check size={14} className="text-white" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium">{choice.label}</div>
+                            <div className="text-xs opacity-75 mt-1">{choice.description}</div>
+                          </div>
+                        </div>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Programming Language Selection */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300">
-                    {repoConfigHook.data?.options?.language?.label || 'Programming Language'}
-                  </label>
-                  <div className="flex gap-3">
+                {/* Divider */}
+                <div className="h-px bg-gradient-to-r from-slate-700 via-slate-600 to-slate-700"></div>
+
+                {/* Section 3: Programming Language */}
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
+                      Programming Language
+                    </h3>
+                    <div className="flex-1 h-px bg-gradient-to-r from-slate-600 to-transparent"></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
                     {repoConfigHook.data?.options?.language?.choices?.map((choice: any) => (
                       <button
                         key={choice.value}
                         onClick={() => setLanguage(choice.value)}
-                        className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all duration-200 ${
+                        className={`relative px-4 py-3 rounded-xl border-2 transition-all duration-200 text-left group ${
                           language === choice.value
-                            ? 'border-teal-500 bg-teal-500/20 text-teal-300'
-                            : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500'
+                            ? 'border-teal-500 bg-teal-500/20 text-teal-300 shadow-lg shadow-teal-500/20'
+                            : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500 hover:bg-slate-800/70'
                         }`}
                       >
-                        <div className="text-sm font-medium">{choice.label}</div>
-                        <div className="text-xs opacity-75 mt-1">{choice.description}</div>
+                        <div className="flex items-start space-x-2">
+                          <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                            language === choice.value
+                              ? 'border-teal-500 bg-teal-500'
+                              : 'border-slate-500 group-hover:border-slate-400'
+                          }`}>
+                            {language === choice.value && (
+                              <Check size={14} className="text-white" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium">{choice.label}</div>
+                            <div className="text-xs opacity-75 mt-1">{choice.description}</div>
+                          </div>
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -719,7 +939,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                 <button
                   onClick={handleSubmitRepoConfig}
                   disabled={isSubmittingConfig}
-                  className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 mt-2"
                 >
                   <Send size={18} />
                   <span>Select</span>
