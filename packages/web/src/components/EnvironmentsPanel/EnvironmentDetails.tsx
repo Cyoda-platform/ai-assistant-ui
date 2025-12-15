@@ -473,7 +473,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
             <ArrowLeft size={18} className="text-slate-400" />
           </button>
           <Server size={18} className="text-teal-400" />
-          <h3 className="font-semibold text-white">{environmentName} Environment</h3>
+          <h3 className="font-semibold text-white leading-none">{environmentName} Environment</h3>
         </div>
         {onClose && (
           <button
@@ -496,12 +496,12 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
             <div>
               <label className="text-xs text-slate-400 mb-1 block">Client Environment URL</label>
               <div className="flex items-center space-x-2">
-                <code className="flex-1 text-sm text-teal-400 bg-slate-900/50 px-3 py-2 rounded border border-slate-600">
+                <code className="flex-1 text-sm text-teal-400 bg-slate-900/50 px-3 py-2 rounded border border-slate-600 overflow-x-auto whitespace-nowrap">
                   {environmentUrl || 'Not available'}
                 </code>
                 <button
                   onClick={() => copyToClipboard(environmentUrl, 'Environment URL')}
-                  className="p-2 rounded hover:bg-slate-600 transition-colors"
+                  className="p-2 rounded hover:bg-slate-600 transition-colors flex-shrink-0"
                   title="Copy URL"
                 >
                   {copiedField === 'Environment URL' ? (
@@ -516,12 +516,12 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
             <div>
               <label className="text-xs text-slate-400 mb-1 block">API Base URL</label>
               <div className="flex items-center space-x-2">
-                <code className="flex-1 text-sm text-teal-400 bg-slate-900/50 px-3 py-2 rounded border border-slate-600">
+                <code className="flex-1 text-sm text-teal-400 bg-slate-900/50 px-3 py-2 rounded border border-slate-600 overflow-x-auto whitespace-nowrap">
                   {apiBaseUrl || 'Not available'}
                 </code>
                 <button
                   onClick={() => copyToClipboard(apiBaseUrl, 'API Base URL')}
-                  className="p-2 rounded hover:bg-slate-600 transition-colors"
+                  className="p-2 rounded hover:bg-slate-600 transition-colors flex-shrink-0"
                   title="Copy API URL"
                 >
                   {copiedField === 'API Base URL' ? (
@@ -536,12 +536,12 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
             <div>
               <label className="text-xs text-slate-400 mb-1 block">Organization ID</label>
               <div className="flex items-center space-x-2">
-                <code className="flex-1 text-sm text-teal-400 bg-slate-900/50 px-3 py-2 rounded border border-slate-600">
+                <code className="flex-1 text-sm text-teal-400 bg-slate-900/50 px-3 py-2 rounded border border-slate-600 overflow-x-auto whitespace-nowrap">
                   {orgId || 'Not available'}
                 </code>
                 <button
                   onClick={() => copyToClipboard(orgId, 'Organization ID')}
-                  className="p-2 rounded hover:bg-slate-600 transition-colors"
+                  className="p-2 rounded hover:bg-slate-600 transition-colors flex-shrink-0"
                   title="Copy Org ID"
                 >
                   {copiedField === 'Organization ID' ? (
@@ -585,13 +585,13 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
 
           <div className="bg-slate-700/50 rounded-lg p-4">
             <p className="text-xs text-slate-400 mb-3">Copy this message to request environment redeployment:</p>
-            <div className="flex items-start space-x-2">
-              <code className="flex-1 text-sm text-slate-300 bg-slate-900/50 px-3 py-2 rounded border border-slate-600 whitespace-pre-wrap">
+            <div className="flex gap-2">
+              <code className="flex-1 text-sm text-slate-300 bg-slate-900/50 px-3 py-2 rounded border border-slate-600 break-words whitespace-pre-wrap">
                 {redeployMessage}
               </code>
               <button
                 onClick={() => copyToClipboard(redeployMessage, 'Redeploy Message')}
-                className="p-2 rounded hover:bg-slate-600 transition-colors flex-shrink-0"
+                className="p-2 rounded hover:bg-slate-600 transition-colors flex-shrink-0 h-fit"
                 title="Copy message"
               >
                 {copiedField === 'Redeploy Message' ? (
