@@ -213,53 +213,78 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
       const options = optionSelectionHook.data?.options || [];
       console.log('[ChatBotMessageQuestion] All options:', options);
 
-      // If only one option, treat it as ungrouped
-      if (options.length === 1) {
-        setSelectedUngrouped(options[0].value);
-        console.log('[ChatBotMessageQuestion] Initialized ungrouped option:', options[0].value);
+      // Check if options have 'group' property
+      const hasGroupProperty = options.length > 0 && options[0].group;
+
+      // If options have 'group' property, group by that
+      if (hasGroupProperty) {
+        const branchOptions = options.filter((opt: any) => opt.group === 'branch');
+        const repoOptions = options.filter((opt: any) => opt.group === 'repository');
+        const langOptions = options.filter((opt: any) => opt.group === 'language');
+
+        console.log('[ChatBotMessageQuestion] Grouped options by property:', { branchOptions, repoOptions, langOptions });
+
+        const defaultBranch = branchOptions.find((opt: any) =>
+          opt.value === 'new_branch' || opt.label?.toLowerCase().includes('new branch')
+        ) || branchOptions[0];
+
+        const defaultRepo = repoOptions.find((opt: any) =>
+          opt.value === 'public' || opt.label?.toLowerCase().includes('public')
+        ) || repoOptions[0];
+
+        const defaultLang = langOptions.find((opt: any) =>
+          opt.value === 'python' || opt.label?.toLowerCase().includes('python')
+        ) || langOptions[0];
+
+        setSelectedBranch(defaultBranch?.value || null);
+        setSelectedRepo(defaultRepo?.value || null);
+        setSelectedLanguage(defaultLang?.value || null);
+
+        console.log('[ChatBotMessageQuestion] Initialized grouped options with defaults:', {
+          branch: defaultBranch?.value,
+          repo: defaultRepo?.value,
+          language: defaultLang?.value
+        });
         return;
       }
 
-      // Group options by position (assuming 6 options: 2 branch, 2 repo, 2 language)
-      // Or by group property if available
-      let branchOptions, repoOptions, langOptions;
+      // If exactly 6 options without 'group' property, group by position
+      if (options.length === 6) {
+        const branchOptions = options.slice(0, 2);
+        const repoOptions = options.slice(2, 4);
+        const langOptions = options.slice(4, 6);
 
-      if (options.length > 0 && options[0].group) {
-        // Group by 'group' property
-        branchOptions = options.filter((opt: any) => opt.group === 'branch');
-        repoOptions = options.filter((opt: any) => opt.group === 'repository');
-        langOptions = options.filter((opt: any) => opt.group === 'language');
-      } else {
-        // Group by position (first 2, middle 2, last 2)
-        branchOptions = options.slice(0, 2);
-        repoOptions = options.slice(2, 4);
-        langOptions = options.slice(4, 6);
+        console.log('[ChatBotMessageQuestion] Grouped options by position:', { branchOptions, repoOptions, langOptions });
+
+        const defaultBranch = branchOptions.find((opt: any) =>
+          opt.value === 'new_branch' || opt.label?.toLowerCase().includes('new branch')
+        ) || branchOptions[0];
+
+        const defaultRepo = repoOptions.find((opt: any) =>
+          opt.value === 'public' || opt.label?.toLowerCase().includes('public')
+        ) || repoOptions[0];
+
+        const defaultLang = langOptions.find((opt: any) =>
+          opt.value === 'python' || opt.label?.toLowerCase().includes('python')
+        ) || langOptions[0];
+
+        setSelectedBranch(defaultBranch?.value || null);
+        setSelectedRepo(defaultRepo?.value || null);
+        setSelectedLanguage(defaultLang?.value || null);
+
+        console.log('[ChatBotMessageQuestion] Initialized 6 options with defaults:', {
+          branch: defaultBranch?.value,
+          repo: defaultRepo?.value,
+          language: defaultLang?.value
+        });
+        return;
       }
 
-      console.log('[ChatBotMessageQuestion] Grouped options:', { branchOptions, repoOptions, langOptions });
-
-      // Set defaults: look for specific values or use first option
-      const defaultBranch = branchOptions.find((opt: any) =>
-        opt.value === 'new_branch' || opt.label?.toLowerCase().includes('new branch')
-      ) || branchOptions[0];
-
-      const defaultRepo = repoOptions.find((opt: any) =>
-        opt.value === 'public' || opt.label?.toLowerCase().includes('public')
-      ) || repoOptions[0];
-
-      const defaultLang = langOptions.find((opt: any) =>
-        opt.value === 'python' || opt.label?.toLowerCase().includes('python')
-      ) || langOptions[0];
-
-      setSelectedBranch(defaultBranch?.value || null);
-      setSelectedRepo(defaultRepo?.value || null);
-      setSelectedLanguage(defaultLang?.value || null);
-
-      console.log('[ChatBotMessageQuestion] Initialized option selection with defaults:', {
-        branch: defaultBranch?.value,
-        repo: defaultRepo?.value,
-        language: defaultLang?.value
-      });
+      // Otherwise treat as ungrouped - select first option by default
+      if (options.length > 0) {
+        setSelectedUngrouped(options[0].value);
+        console.log('[ChatBotMessageQuestion] Initialized ungrouped options with first option:', options[0].value);
+      }
     }
   }, [optionSelectionHook]);
 
@@ -415,13 +440,8 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
       return { branch: [], repository: [], language: [], ungrouped: [] };
     }
 
-    // If only one option, treat it as ungrouped
-    if (options.length === 1) {
-      return { branch: [], repository: [], language: [], ungrouped: options };
-    }
-
     // Check if options have 'group' property
-    if (options[0].group) {
+    if (options.length > 0 && options[0].group) {
       return {
         branch: options.filter((opt: any) => opt.group === 'branch'),
         repository: options.filter((opt: any) => opt.group === 'repository'),
@@ -430,13 +450,18 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
       };
     }
 
-    // Otherwise group by position (assuming 6 options: 2+2+2)
-    return {
-      branch: options.slice(0, 2),
-      repository: options.slice(2, 4),
-      language: options.slice(4, 6),
-      ungrouped: []
-    };
+    // If options don't have 'group' property and there are exactly 6 options, group by position
+    if (options.length === 6) {
+      return {
+        branch: options.slice(0, 2),
+        repository: options.slice(2, 4),
+        language: options.slice(4, 6),
+        ungrouped: []
+      };
+    }
+
+    // Otherwise treat all options as ungrouped
+    return { branch: [], repository: [], language: [], ungrouped: options };
   };
 
   const handleSubmitOptions = async () => {
@@ -726,9 +751,9 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                       </div>
                     )}
 
-                    {/* Ungrouped Single Option */}
+                    {/* Ungrouped Options */}
                     {grouped.ungrouped.length > 0 && (
-                      <div className="space-y-3">
+                      <div className="flex flex-col gap-4">
                         {grouped.ungrouped.map((option: any) => (
                           <button
                             key={option.value}
