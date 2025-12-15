@@ -64,6 +64,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
   const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
+  const [selectedUngrouped, setSelectedUngrouped] = useState<string | null>(null);
   const [isSubmittingOptions, setIsSubmittingOptions] = useState(false);
 
   const messageText = useMemo(() => {
@@ -211,6 +212,13 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     if (optionSelectionHook) {
       const options = optionSelectionHook.data?.options || [];
       console.log('[ChatBotMessageQuestion] All options:', options);
+
+      // If only one option, treat it as ungrouped
+      if (options.length === 1) {
+        setSelectedUngrouped(options[0].value);
+        console.log('[ChatBotMessageQuestion] Initialized ungrouped option:', options[0].value);
+        return;
+      }
 
       // Group options by position (assuming 6 options: 2 branch, 2 repo, 2 language)
       // Or by group property if available
@@ -394,6 +402,8 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
       setSelectedRepo(value);
     } else if (group === 'language') {
       setSelectedLanguage(value);
+    } else if (group === 'ungrouped') {
+      setSelectedUngrouped(value);
     }
   };
 
@@ -402,7 +412,12 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     const options = optionSelectionHook?.data?.options || [];
 
     if (options.length === 0) {
-      return { branch: [], repository: [], language: [] };
+      return { branch: [], repository: [], language: [], ungrouped: [] };
+    }
+
+    // If only one option, treat it as ungrouped
+    if (options.length === 1) {
+      return { branch: [], repository: [], language: [], ungrouped: options };
     }
 
     // Check if options have 'group' property
@@ -410,7 +425,8 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
       return {
         branch: options.filter((opt: any) => opt.group === 'branch'),
         repository: options.filter((opt: any) => opt.group === 'repository'),
-        language: options.filter((opt: any) => opt.group === 'language')
+        language: options.filter((opt: any) => opt.group === 'language'),
+        ungrouped: []
       };
     }
 
@@ -418,15 +434,45 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     return {
       branch: options.slice(0, 2),
       repository: options.slice(2, 4),
-      language: options.slice(4, 6)
+      language: options.slice(4, 6),
+      ungrouped: []
     };
   };
 
   const handleSubmitOptions = async () => {
-    if (!optionSelectionHook || !selectedBranch || !selectedRepo || !selectedLanguage) return;
+    if (!optionSelectionHook) return;
+
+    const options = optionSelectionHook.data?.options || [];
+
+    // Handle ungrouped single option
+    if (options.length === 1 && selectedUngrouped) {
+      const optionLabel = options.find((opt: any) => opt.value === selectedUngrouped)?.label || selectedUngrouped;
+      const selectionMessage = optionLabel;
+
+      if (setTextareaContent) {
+        setTextareaContent(selectionMessage, { collapse: false });
+        console.log('✅ Ungrouped option placed in textarea:', { selectedUngrouped, selectionMessage });
+      } else {
+        console.warn('⚠️ setTextareaContent not available, sending directly');
+        if (onAnswer) {
+          try {
+            setIsSubmittingOptions(true);
+            await onAnswer({ answer: selectionMessage });
+            console.log('✅ Ungrouped option submitted:', { selectedUngrouped });
+          } catch (error) {
+            console.error('Failed to submit option:', error);
+          } finally {
+            setIsSubmittingOptions(false);
+          }
+        }
+      }
+      return;
+    }
+
+    // Handle grouped options (branch, repo, language)
+    if (!selectedBranch || !selectedRepo || !selectedLanguage) return;
 
     // Find the selected option labels
-    const options = optionSelectionHook.data?.options || [];
     const branchLabel = options.find((opt: any) => opt.value === selectedBranch)?.label || selectedBranch;
     const repoLabel = options.find((opt: any) => opt.value === selectedRepo)?.label || selectedRepo;
     const langLabel = options.find((opt: any) => opt.value === selectedLanguage)?.label || selectedLanguage;
@@ -680,10 +726,45 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                       </div>
                     )}
 
+                    {/* Ungrouped Single Option */}
+                    {grouped.ungrouped.length > 0 && (
+                      <div className="space-y-3">
+                        {grouped.ungrouped.map((option: any) => (
+                          <button
+                            key={option.value}
+                            onClick={() => handleSelectOption(option.value, 'ungrouped')}
+                            className={`w-full relative px-4 py-3 rounded-xl border-2 transition-all duration-200 text-left group ${
+                              selectedUngrouped === option.value
+                                ? 'border-teal-500 bg-teal-500/20 text-teal-300 shadow-lg shadow-teal-500/20'
+                                : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500 hover:bg-slate-800/70'
+                            }`}
+                          >
+                            <div className="flex items-start space-x-2">
+                              <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                                selectedUngrouped === option.value
+                                  ? 'border-teal-500 bg-teal-500'
+                                  : 'border-slate-500 group-hover:border-slate-400'
+                              }`}>
+                                {selectedUngrouped === option.value && (
+                                  <Check size={14} className="text-white" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium">{option.label}</div>
+                                {option.description && (
+                                  <div className="text-xs opacity-75 mt-1">{option.description}</div>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
                     {/* Select Button */}
                     <button
                       onClick={handleSubmitOptions}
-                      disabled={isSubmittingOptions || !selectedBranch || !selectedRepo || !selectedLanguage}
+                      disabled={isSubmittingOptions || (grouped.ungrouped.length > 0 ? !selectedUngrouped : (!selectedBranch || !selectedRepo || !selectedLanguage))}
                       className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 mt-2"
                     >
                       <Send size={18} />
@@ -702,6 +783,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                   label={deploymentHook.data?.question || 'Deployment Options'}
                 />
                 <DeploymentOptionsUI
+                  key={`deployment-${message.id || 'default'}`}
                   hook={deploymentHook}
                   onSelectOption={handleSelectDeploymentOption}
                   isSubmitting={isSubmittingOptions}

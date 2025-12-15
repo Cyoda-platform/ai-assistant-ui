@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Cloud, AlertCircle, Send } from 'lucide-react';
 
 interface DeploymentOption {
   value: string;
   label: string;
   description: string;
+  default?: boolean; // Optional default flag
 }
 
 interface DeploymentOptionsUIProps {
@@ -18,11 +19,29 @@ const DeploymentOptionsUI: React.FC<DeploymentOptionsUIProps> = ({
   onSelectOption,
   isSubmitting = false
 }) => {
-  const [selectedOption, setSelectedOption] = useState<string>('');
-
   const options: DeploymentOption[] = hook?.data?.options || [];
   const warning = hook?.data?.warning;
   const question = hook?.data?.question || 'What would you like to do?';
+
+  // Initialize with default option or first option
+  const getDefaultOption = () => {
+    // Look for option marked as default
+    const defaultOption = options.find(opt => opt.default);
+    if (defaultOption) return defaultOption.value;
+
+    // Otherwise use first option
+    return options.length > 0 ? options[0].value : '';
+  };
+
+  const [selectedOption, setSelectedOption] = useState<string>('');
+
+  // Initialize selected option when options are available
+  useEffect(() => {
+    if (options.length > 0 && !selectedOption) {
+      const defaultValue = getDefaultOption();
+      setSelectedOption(defaultValue);
+    }
+  }, [options, selectedOption]);
 
   const handleSelectOption = (value: string) => {
     setSelectedOption(value);
@@ -71,11 +90,13 @@ const DeploymentOptionsUI: React.FC<DeploymentOptionsUIProps> = ({
       )}
 
       {/* Deployment Options */}
-      <div className="space-y-2">
+      <div className={`${options.length === 1 ? 'w-full' : 'space-y-2'}`}>
         {options.map((option) => (
           <label
             key={option.value}
-            className="flex items-start space-x-3 p-3 rounded-lg border border-slate-600/50 hover:border-slate-500 cursor-pointer transition-colors"
+            className={`flex items-start space-x-3 p-3 rounded-lg border border-slate-600/50 hover:border-slate-500 cursor-pointer transition-colors ${
+              options.length === 1 ? 'w-full' : ''
+            }`}
             style={{
               backgroundColor: selectedOption === option.value ? 'rgba(20, 184, 166, 0.1)' : 'rgba(15, 23, 42, 0.5)'
             }}
