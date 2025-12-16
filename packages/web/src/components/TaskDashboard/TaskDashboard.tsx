@@ -3,7 +3,7 @@
  * Displays and polls background tasks for a conversation
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { Activity, RefreshCw, Filter } from 'lucide-react';
 import TaskCard from './TaskCard';
 import taskService, { type BackgroundTask } from '@/services/taskService';
@@ -13,10 +13,14 @@ interface TaskDashboardProps {
   backgroundTaskIds?: string[];
 }
 
-const TaskDashboard: React.FC<TaskDashboardProps> = ({
+export interface TaskDashboardHandle {
+  refreshTasks: () => Promise<void>;
+}
+
+const TaskDashboard = forwardRef<TaskDashboardHandle, TaskDashboardProps>(({
   conversationId,
   backgroundTaskIds = []
-}) => {
+}, ref) => {
   const [tasks, setTasks] = useState<BackgroundTask[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +61,14 @@ const TaskDashboard: React.FC<TaskDashboardProps> = ({
       setIsLoading(false);
     }
   }, [conversationId]);
+
+  // Expose refreshTasks method via ref
+  useImperativeHandle(ref, () => ({
+    refreshTasks: async () => {
+      console.log('[TaskDashboard] Manual refresh triggered');
+      await loadTasks(true);
+    }
+  }), [loadTasks]);
 
   // Poll for updates every 10 seconds for real-time CLI output
   // This also does an initial load, so no need for a separate initial load
@@ -210,7 +222,9 @@ const TaskDashboard: React.FC<TaskDashboardProps> = ({
       )}
     </div>
   );
-};
+});
+
+TaskDashboard.displayName = 'TaskDashboard';
 
 export default TaskDashboard;
 

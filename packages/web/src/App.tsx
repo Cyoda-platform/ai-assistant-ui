@@ -35,16 +35,7 @@ const App: React.FC = () => {
 
   // Debug Auth0 state changes
   useEffect(() => {
-    if (user) {
-      console.log('👤 Auth0 User data:', {
-        name: user.name,
-        email: user.email,
-        picture: user.picture,
-        given_name: user.given_name,
-        family_name: user.family_name,
-        sub: user.sub
-      });
-    }
+
   }, [isAuthenticated, auth0Loading, user, auth0Error]);
 
   // Set up token getter for API calls

@@ -16,7 +16,10 @@ import {
   FileText,
   Plus,
   Minus,
-  Edit
+  Edit,
+  Server,
+  Link as LinkIcon,
+  Copy
 } from 'lucide-react';
 import type { BackgroundTask } from '@/services/taskService';
 import CLIOutputViewer from './CLIOutputViewer';
@@ -28,6 +31,7 @@ interface TaskCardProps {
 const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [expandedMessages, setExpandedMessages] = useState<Set<number>>(new Set());
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const toggleMessageExpanded = (idx: number) => {
     const newSet = new Set(expandedMessages);
@@ -37,6 +41,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
       newSet.add(idx);
     }
     setExpandedMessages(newSet);
+  };
+
+  const copyToClipboard = (text: string, fieldName: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(fieldName);
+    setTimeout(() => setCopiedField(null), 2000);
   };
 
   // Status icon and color
@@ -178,6 +188,73 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
             </div>
           )}
 
+          {/* Deployment Information */}
+          {(task.build_id || task.namespace || task.env_url) && (
+            <div className="bg-slate-700/30 border border-slate-600/30 rounded p-3 space-y-2">
+              <p className="text-slate-400 text-xs font-medium flex items-center space-x-1">
+                <Server size={12} />
+                <span>Deployment Info</span>
+              </p>
+
+              {task.build_id && (
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <span className="text-slate-500 text-xs">Build ID:</span>
+                    <div className="text-slate-300 font-mono text-xs truncate">{task.build_id}</div>
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(task.build_id!, 'build_id')}
+                    className="text-slate-400 hover:text-teal-300 transition-colors flex-shrink-0"
+                    title="Copy Build ID"
+                  >
+                    <Copy size={12} />
+                  </button>
+                </div>
+              )}
+
+              {task.namespace && (
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <span className="text-slate-500 text-xs">Namespace:</span>
+                    <div className="text-slate-300 font-mono text-xs truncate">{task.namespace}</div>
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(task.namespace!, 'namespace')}
+                    className="text-slate-400 hover:text-teal-300 transition-colors flex-shrink-0"
+                    title="Copy Namespace"
+                  >
+                    <Copy size={12} />
+                  </button>
+                </div>
+              )}
+
+              {task.env_url && (
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <span className="text-slate-500 text-xs">Environment URL:</span>
+                    <a
+                      href={task.env_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-teal-400 hover:text-teal-300 font-mono text-xs truncate flex items-center space-x-1"
+                      title="Open environment"
+                    >
+                      <LinkIcon size={12} />
+                      <span className="truncate">{task.env_url}</span>
+                    </a>
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(task.env_url!, 'env_url')}
+                    className="text-slate-400 hover:text-teal-300 transition-colors flex-shrink-0"
+                    title="Copy URL"
+                  >
+                    <Copy size={12} />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Error Message */}
           {task.error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded p-2">
@@ -242,13 +319,13 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
 
                       {/* Expanded file list */}
                       {isExpanded && hasDiff && (
-                        <div className="mt-2 ml-2 bg-slate-900/50 rounded p-2 space-y-1 max-h-48 overflow-y-auto">
+                        <div className="mt-2 ml-2 bg-slate-900/50 rounded p-2 space-y-1 max-h-48 overflow-y-auto overflow-x-auto">
                           {msg.metadata.diff?.added && msg.metadata.diff.added.length > 0 && (
                             <div>
                               <p className="text-green-400 text-xs font-medium mb-1">Added:</p>
                               <div className="space-y-0.5 ml-2">
                                 {msg.metadata.diff.added.map((file: string, fileIdx: number) => (
-                                  <div key={fileIdx} className="text-slate-300 font-mono text-xs truncate">+ {file}</div>
+                                  <div key={fileIdx} className="text-slate-300 font-mono text-xs whitespace-nowrap">+ {file}</div>
                                 ))}
                               </div>
                             </div>
@@ -258,7 +335,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
                               <p className="text-blue-400 text-xs font-medium mb-1">Modified:</p>
                               <div className="space-y-0.5 ml-2">
                                 {msg.metadata.diff.modified.map((file: string, fileIdx: number) => (
-                                  <div key={fileIdx} className="text-slate-300 font-mono text-xs truncate">~ {file}</div>
+                                  <div key={fileIdx} className="text-slate-300 font-mono text-xs whitespace-nowrap">~ {file}</div>
                                 ))}
                               </div>
                             </div>
@@ -268,7 +345,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
                               <p className="text-red-400 text-xs font-medium mb-1">Deleted:</p>
                               <div className="space-y-0.5 ml-2">
                                 {msg.metadata.diff.deleted.map((file: string, fileIdx: number) => (
-                                  <div key={fileIdx} className="text-slate-300 font-mono text-xs truncate">- {file}</div>
+                                  <div key={fileIdx} className="text-slate-300 font-mono text-xs whitespace-nowrap">- {file}</div>
                                 ))}
                               </div>
                             </div>

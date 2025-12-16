@@ -66,8 +66,7 @@
 
 .chat-item-hover:hover {
   transform: translateY(-1px);
-  background-color: rgba(55, 65, 81, 0.4) !important;
-  border-color: transparent !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Menu button styles */
@@ -94,7 +93,8 @@
 /* Ensure menu button is visible on focus for accessibility */
 .menu-button:focus {
   opacity: 1 !important;
-  outline: none;
+  outline: 2px solid rgb(20, 184, 166);
+  outline-offset: 2px;
 }
 
 /* Show menu button on mobile/touch devices */

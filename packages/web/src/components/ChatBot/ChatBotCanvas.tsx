@@ -79,7 +79,6 @@ const ChatBotCanvas: React.FC<ChatBotCanvasProps> = ({
   setTextareaContentCallback
 }) => {
   const [internalActiveTab, setInternalActiveTab] = useState<'data' | 'workflow' | 'requirement' | 'code'>('requirement');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isPulling, setIsPulling] = useState(false);
   const [isLoadingAppData, setIsLoadingAppData] = useState(false);
 
@@ -96,37 +95,6 @@ const ChatBotCanvas: React.FC<ChatBotCanvasProps> = ({
       setInternalActiveTab(tab);
     }
   }, [onActiveTabChange]);
-
-  // Handle Analyze button click
-  const handleAnalyze = useCallback(async () => {
-    if (!githubRepository || !technicalId) {
-      console.warn('⚠️ Cannot analyze: missing repository info or conversation ID');
-      return;
-    }
-
-    setIsAnalyzing(true);
-    try {
-      console.log('🔍 Analyzing repository...');
-      // Get repository store methods
-      const { clearCache, loadRepository } = useRepositoryStore.getState();
-      // Clear cache to force fresh analysis
-      clearCache(technicalId);
-      console.log('🗑️ Cache cleared for conversation:', technicalId);
-      // Reload from repository (calls /analyze endpoint)
-      const freshData = await loadRepository(technicalId, githubRepository);
-      console.log('✅ Analysis complete, fresh data loaded:', {
-        entities: freshData?.app?.entities?.length || 0,
-        workflows: freshData?.app?.entities?.reduce((sum: number, e: any) => sum + (e.workflows?.length || 0), 0) || 0,
-        requirements: freshData?.app?.requirements?.length || 0
-      });
-      // Trigger reload of app data
-      setShouldReloadAppData(true);
-    } catch (error) {
-      console.error('❌ Analysis failed:', error);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  }, [githubRepository, technicalId]);
 
   // Handle Pull button click
   const handlePull = useCallback(async () => {
@@ -591,26 +559,7 @@ gantt
           {/* Spacer to push action buttons to the right */}
           <div className="flex-1" />
 
-          {/* Analyze and Pull buttons - always visible when canvas is open */}
-          <button
-            onClick={handleAnalyze}
-            disabled={isAnalyzing || !githubRepository}
-            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 text-slate-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-            title={!githubRepository ? "Repository not configured" : "Analyze repository structure"}
-          >
-            {isAnalyzing ? (
-              <>
-                <RefreshCw size={12} className="animate-spin" />
-                <span>Analyzing...</span>
-              </>
-            ) : (
-              <>
-                <RefreshCw size={12} />
-                <span>Analyze</span>
-              </>
-            )}
-          </button>
-
+          {/* Pull button - always visible when canvas is open */}
           <button
             onClick={handlePull}
             disabled={isPulling || !technicalId}

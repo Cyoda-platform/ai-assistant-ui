@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Form, Input, message } from 'antd';
-import { SendHorizontal, Send, Paperclip, X, Github } from 'lucide-react';
+import { SendHorizontal, Paperclip, X, Github } from 'lucide-react';
 import FileSubmitPreview from '@/components/FileSubmitPreview/FileSubmitPreview';
 import HelperUpload from '@/helpers/HelperUpload';
 
@@ -27,7 +27,9 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
   activeCanvasTab,
   isAIThinking = false,
   onStopRequest,
-  onSetTextareaContent
+  onSetTextareaContent,
+  hasRepository = false,
+  onShowRepositoryConfigModal
 }) => {
   const [form] = Form.useForm();
   const [answer, setAnswer] = useState('');
@@ -346,7 +348,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}
-      className={`relative px-4 ${isDragging ? 'bg-teal-500 bg-opacity-10 border-2 border-dashed border-teal-500' : ''}`}
+      className={`relative ${isDragging ? 'bg-teal-500 bg-opacity-10 border-2 border-dashed border-teal-500' : ''}`}
     >
       {isDragging && (
         <div className="absolute inset-0 flex items-center justify-center bg-slate-800 bg-opacity-90 backdrop-blur-sm rounded-xl z-10">
@@ -446,38 +448,30 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
               placeholder={placeholderText}
               onKeyDown={handleKeyDown}
               rows={1}
-              className="w-full text-white placeholder-slate-400 focus:outline-none transition-all duration-200 text-lg resize-none"
+              className="w-full bg-slate-800/80 backdrop-blur-sm border-2 border-slate-600 rounded-2xl px-6 pr-24 py-4 pb-12 text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300 resize-none text-lg"
               style={{
                 height: `${textareaHeight}px`,
-                minHeight: '64px',
+                minHeight: '48px',
                 maxHeight: '320px',
                 overflowY: textareaHeight >= 320 ? 'auto' : 'hidden',
                 lineHeight: '1.5',
-                background: 'rgba(30, 41, 59, 0.6)',
-                backdropFilter: 'blur(14px)',
-                WebkitBackdropFilter: 'blur(14px)',
-                border: '2px solid rgba(20, 184, 166, 0.3)',
-                borderRadius: '24px',
-                padding: '18px 24px 60px 24px',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(20, 184, 166, 0.1)',
-                fontFamily: 'Roboto, sans-serif',
                 scrollbarWidth: 'thin',
                 scrollbarColor: 'rgb(148 163 184) transparent'
               }}
             />
 
             {/* Bottom Right Controls - Lovable Style */}
-            <div className="absolute right-6 bottom-4 flex items-center gap-0 z-10">
+            <div className="absolute right-5 bottom-6 flex items-center" style={{ gap: '0.2rem' }}>
               {/* Attach File Button */}
               <button
                 type="button"
                 onClick={handleFileAttach}
                 disabled={disabled}
-                className="text-slate-400 hover:scale-110 transition-all duration-200 flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px' }}
+                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ transform: 'translateY(25%)' }}
                 title="Attach file"
               >
-                <Paperclip size={20} />
+                <Paperclip size={18} />
               </button>
 
               {/* Conditional Button - Send or Stop based on AI thinking state */}
@@ -486,34 +480,38 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
                 <button
                   type="button"
                   onClick={onStopRequest}
-                  disabled={disabled}
-                  className="text-slate-400 hover:scale-110 transition-all duration-200 flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px' }}
+                  className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 shadow-lg hover:shadow-xl hover:shadow-slate-500/25 transition-all duration-300 flex items-center justify-center group active:scale-95 border border-slate-500/30"
+                  style={{
+                    transform: 'translateY(20%)',
+                    backdropFilter: 'blur(10px)',
+                    boxShadow: '0 8px 32px rgba(100, 116, 139, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                  }}
                   title="Stop AI request"
                 >
                   {/* Circular preloader */}
-                  <div className="w-5 h-5 border-2 border-teal-400/30 border-t-teal-400 rounded-full animate-spin"></div>
+                  <div className="w-6 h-6 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin"></div>
                 </button>
               ) : (
                 /* Send Button when not thinking - Beautiful square design */
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={() => onClickTextAnswer('workflow')}
                   disabled={disabled || (!answer.trim() && currentFiles.length === 0)}
-                  className="hover:scale-110 transition-all duration-200 flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:from-slate-600 disabled:to-slate-700 disabled:opacity-50 shadow-lg hover:shadow-xl hover:shadow-teal-500/25 disabled:shadow-none transition-all duration-300 flex items-center justify-center group active:scale-95 disabled:cursor-not-allowed border border-teal-400/30 disabled:border-slate-500/30"
                   style={{
-                    width: '40px',
-                    height: '40px',
-                    minWidth: '40px',
-                    minHeight: '40px',
-                    color: '#22c55e'
+                    transform: 'translateY(5%)',
+                    backdropFilter: 'blur(10px)',
+                    boxShadow: disabled
+                      ? '0 4px 16px rgba(0, 0, 0, 0.1)'
+                      : '0 8px 32px rgba(20, 184, 166, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                   }}
                   title="Send message (Enter)"
                 >
-                  {isAIThinking ? (
-                    <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: '#22c55e33', borderTopColor: '#22c55e' }} />
-                  ) : (
-                    <Send size={20} style={{ color: '#22c55e' }} />
-                  )}
+                  <SendHorizontal
+                    size={20}
+                    className="text-white group-hover:scale-110 group-disabled:scale-100 transition-transform duration-200"
+                    strokeWidth={2.5}
+                  />
                 </button>
               )}
             </div>
@@ -531,6 +529,8 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
 
         </div>
       </Form>
+
+
     </div>
   );
 };

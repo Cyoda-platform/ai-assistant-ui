@@ -1,9 +1,0 @@
-/* Rename Chat Modal Styles */
-.rename-chat-modal .ant-input-textarea {
-  resize: vertical;
-}
-
-.rename-chat-modal .ant-input-textarea-show-count::after {
-  word-break: break-word;
-}
-

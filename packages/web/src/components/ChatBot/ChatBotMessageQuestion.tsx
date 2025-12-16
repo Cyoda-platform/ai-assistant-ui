@@ -456,7 +456,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
           </div>
 
           {/* Message Bubble - Left aligned bot message */}
-          <div className={`${containerInfo.className} relative group ${message.approve || canvasData || canvasAnalysisHook || canvasOpenHook || repoConfigHook || optionSelectionHook || deploymentHook || backgroundTaskHook || canvasTabHook || codeChangesHook ? 'pb-12' : ''} ${
+          <div className={`${containerInfo.className} relative group ${message.approve || canvasData || canvasAnalysisHook || canvasOpenHook || repoConfigHook || optionSelectionHook || deploymentHook || backgroundTaskHook || canvasTabHook || codeChangesHook ? 'pb-12' : ''} !rounded-3xl ${
             message.isCanvasQA ? 'canvas-qa-question' : ''
           }`}>
             <MarkdownRenderer>

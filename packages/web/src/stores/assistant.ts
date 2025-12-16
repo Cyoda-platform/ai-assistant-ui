@@ -151,9 +151,7 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
         set({ chatList: null, nextCursor: null, hasMoreChats: false });
       }
 
-      console.log('📋 Fetching chats from server...');
       const response = await privateClient.get<ChatResponse>(`/v1/chats`, { params });
-      console.log('📋 Received chats from server:', response.data.chats);
 
       // Update state with pagination info
       set({
@@ -162,7 +160,6 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
         nextCursor: response.data.next_cursor || null,
         hasMoreChats: response.data.has_more || false
       });
-      console.log('✅ Updated chatList in store, new state:', get().chatList);
 
       return response;
     } catch (error: any) {
@@ -244,46 +241,12 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
     return privateClient.get(`/v1/chats/${technical_id}`, config);
   },
 
-  async deleteChatById(technical_id: string) {
-    console.log('🔄 deleteChatById - Deleting chat:', { technical_id });
-    try {
-      const response = await privateClient.delete(`/v1/chats/${technical_id}`);
-      console.log('✅ deleteChatById - Server response:', response);
-
-      // Update the chat list by removing the deleted chat
-      const state = get();
-      if (state.chatList) {
-        const updatedChatList = state.chatList.filter(chat => chat.technical_id !== technical_id);
-        set({ chatList: updatedChatList });
-        console.log('✅ Updated local chatList after delete');
-      }
-
-      return response;
-    } catch (error) {
-      console.error('❌ deleteChatById - Error:', error);
-      throw error;
-    }
+  deleteChatById(technical_id: string) {
+    return privateClient.delete(`/v1/chats/${technical_id}`);
   },
 
-  async renameChatById(technical_id: string, data: any) {
-    console.log('🔄 renameChatById - Sending to server:', { technical_id, data });
-    const response = await privateClient.put(`/v1/chats/${technical_id}`, data);
-    console.log('🔄 renameChatById - Server response:', response);
-    console.log('🔄 renameChatById - response.data:', response.data);
-
-    // Update the chat list with the new name
-    const state = get();
-    if (state.chatList) {
-      const updatedChatList = state.chatList.map(chat =>
-        chat.technical_id === technical_id
-          ? { ...chat, name: data.name }
-          : chat
-      );
-      set({ chatList: updatedChatList });
-      console.log('✅ Updated local chatList after rename');
-    }
-
-    return response;
+  renameChatById(technical_id: string, data: any) {
+    return privateClient.put(`/v1/chats/${technical_id}`, data);
   },
 
   postRollback(technical_id: string) {

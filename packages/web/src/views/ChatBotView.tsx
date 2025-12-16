@@ -11,7 +11,7 @@ import { useRepositoryStore } from '@/stores/repository';
 import EntityDataPanel from '@/components/EntityDataPanel/EntityDataPanel';
 import ChatHistoryPanel from '@/components/ChatHistoryPanel/ChatHistoryPanel';
 import EnvironmentsPanel from '@/components/EnvironmentsPanel/EnvironmentsPanel';
-import TasksPanel from '@/components/TasksPanel/TasksPanel';
+import TasksPanel, { TasksPanelHandle } from '@/components/TasksPanel/TasksPanel';
 import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
 import { useResizablePanel } from '@/hooks/useResizablePanel';
 import Tinycon from 'tinycon';
@@ -115,6 +115,7 @@ const ChatBotView: React.FC = () => {
   const [isLoadingRollback, setIsLoadingRollback] = useState(false);
   const [showRepositoryConfigPrompt, setShowRepositoryConfigPrompt] = useState(false);
   const [isLoadingCanvasToggle, setIsLoadingCanvasToggle] = useState(false);
+  const tasksPanelRef = useRef<TasksPanelHandle>(null);
 
   // Resizable panels - start at max width
   const chatHistoryResize = useResizablePanel({
@@ -597,7 +598,11 @@ const ChatBotView: React.FC = () => {
           const backgroundTaskIds = el.hook?.background_task_ids || extractBackgroundTaskIds(messageText);
           const uiFunctionsFromField = el.ui_functions || [];
           const uiFunctionsFromText = extractUIFunctions(messageText) || [];
-          const allUIFunctions = [...uiFunctionsFromField, ...uiFunctionsFromText];
+
+          // Extract ui_function hook from metadata if it exists
+          const uiFunctionFromMetadata = el.metadata?.hook?.type === 'ui_function' ? [el.metadata.hook] : [];
+
+          const allUIFunctions = [...uiFunctionsFromField, ...uiFunctionFromMetadata, ...uiFunctionsFromText];
 
           // Check if message already exists by technical_id OR by adk_session_id
           // This handles the case where SSE stream adds a message with adk_session_id
@@ -943,24 +948,37 @@ const ChatBotView: React.FC = () => {
         const hook = event.hook;
         const backgroundTaskIds = hook?.background_task_ids || extractBackgroundTaskIds(event.response);
 
+        // Check if there's a combined hook in the hooks array (for deployment scenarios)
+        let combinedHook = hook?.type === 'combined' ? hook : null;
+        if (!combinedHook && event.hooks && Array.isArray(event.hooks)) {
+          combinedHook = event.hooks.find((h: any) => h?.type === 'combined');
+        }
+
         // Handle combined hooks - check what type of hooks are inside
-        if (hook?.type === 'combined') {
-          console.log('[SSE] Combined hook detected:', hook);
+        if (combinedHook) {
+          console.log('[SSE] Combined hook detected:', combinedHook);
 
           // Check if this is a build hook (has background_task + option_selection)
-          const hasBackgroundTask = hook.hooks?.some((h: any) => h?.type === 'background_task');
-          const hasOptionSelection = hook.hooks?.some((h: any) => h?.type === 'option_selection');
+          const hasBackgroundTask = combinedHook.hooks?.some((h: any) => h?.type === 'background_task');
+          const hasOptionSelection = combinedHook.hooks?.some((h: any) => h?.type === 'option_selection');
+          const hasTasksPanel = combinedHook.hooks?.some((h: any) => h?.type === 'tasks_panel');
 
-          if (hasBackgroundTask && hasOptionSelection) {
-            // This is a build hook - don't open canvas, let the message component handle it
-            console.log('[SSE] Build hook detected (background_task + option_selection), skipping canvas open');
+          if (hasBackgroundTask && (hasOptionSelection || hasTasksPanel)) {
+            // This is a build/deployment hook - don't open canvas, let the message component handle it
+            console.log('[SSE] Build/deployment hook detected (background_task + option_selection/tasks_panel), skipping canvas open');
+
+            // Open tasks panel if it's in the combined hook
+            if (hasTasksPanel) {
+              console.log('[SSE] Tasks panel hook detected in combined hook');
+              setIsTasksPanelOpen(true);
+            }
           } else {
             // This is a code changes combined hook - open canvas
             console.log('[SSE] Code changes combined hook detected, opening canvas');
 
             // Determine which tab to open based on resource_type from hook
             let tabToOpen: 'apps' | 'data' | 'workflow' | 'requirement' | 'code' | 'environments' = 'data';
-            const resourceType = hook?.data?.resource_type;
+            const resourceType = combinedHook?.data?.resource_type;
 
             if (resourceType === 'entity') {
               tabToOpen = 'data';
@@ -973,7 +991,7 @@ const ChatBotView: React.FC = () => {
               console.log('[SSE] Requirement resource type, opening requirement tab');
             } else {
               // Fallback: detect from resources if resource_type not provided
-              const resources = hook?.data?.resources || {};
+              const resources = combinedHook?.data?.resources || {};
               if (resources.entities && resources.entities.length > 0) {
                 tabToOpen = 'data';
                 console.log('[SSE] Entities detected in resources, opening data tab');
@@ -993,11 +1011,11 @@ const ChatBotView: React.FC = () => {
             // Auto-refresh canvas - use hook data if githubRepository not available
             if (technicalId) {
               // Try to get repository info from hook data first, then fall back to githubRepository
-              const hookRepoInfo = hook?.data?.repository_owner && hook?.data?.repository_name && hook?.data?.branch_name
+              const hookRepoInfo = combinedHook?.data?.repository_owner && combinedHook?.data?.repository_name && combinedHook?.data?.branch_name
                 ? {
-                    repositoryName: hook.data.repository_name,
-                    owner: hook.data.repository_owner,
-                    branch: hook.data.branch_name,
+                    repositoryName: combinedHook.data.repository_name,
+                    owner: combinedHook.data.repository_owner,
+                    branch: combinedHook.data.branch_name,
                   }
                 : null;
 
@@ -1107,15 +1125,45 @@ const ChatBotView: React.FC = () => {
           // Open canvas and switch to the specified tab
           setCanvasVisible(true);
           setCanvasActiveTab(canvasTab);
+
+          // Call analyze endpoint to refresh repository data
+          if (githubRepository && technicalId) {
+            console.log('[SSE] Calling analyze endpoint to refresh repository data...');
+            (async () => {
+              try {
+                const { clearCache, loadRepository } = useRepositoryStore.getState();
+                // Clear cache to force fresh analysis
+                clearCache(technicalId);
+                // Reload from repository (calls /analyze endpoint)
+                await loadRepository(technicalId, githubRepository);
+                console.log('[SSE] ✅ Repository data refreshed from analyze endpoint');
+              } catch (error) {
+                console.error('[SSE] ❌ Failed to call analyze endpoint:', error);
+              }
+            })();
+          }
         }
 
-        // Handle combined hooks that may contain cloud_window
-        if (hook?.type === 'combined' && hook?.hooks) {
-          const hasCloudWindowHook = hook.hooks.some((subHook: any) => subHook.type === 'cloud_window');
-          if (hasCloudWindowHook) {
-            console.log('[SSE] Cloud window hook detected in combined hooks');
+        // Handle hooks from the hooks array (for deployment scenarios with combined hooks)
+        if (event.hooks && Array.isArray(event.hooks)) {
+          const cloudWindowHooks = event.hooks.filter((h: any) => h?.type === 'cloud_window');
+          const tasksPanelHooks = event.hooks.filter((h: any) => h?.type === 'tasks_panel');
+
+          if (cloudWindowHooks.length > 0) {
+            console.log('[SSE] Cloud window hook(s) detected in hooks array:', cloudWindowHooks);
             setIsEnvironmentsOpen(true);
           }
+
+          if (tasksPanelHooks.length > 0) {
+            console.log('[SSE] Tasks panel hook(s) detected in hooks array:', tasksPanelHooks);
+            setIsTasksPanelOpen(true);
+          }
+        }
+
+        // Handle tasks_panel hook directly (if not in combined hook)
+        if (hook?.type === 'tasks_panel') {
+          console.log('[SSE] Tasks panel hook detected:', hook);
+          setIsTasksPanelOpen(true);
         }
 
         // If background task detected, show notification with actual message
@@ -1165,12 +1213,18 @@ const ChatBotView: React.FC = () => {
           break;
         }
 
-        // Check for UI functions - first in the ui_functions field, then in the response text
+        // Check for UI functions - first in the ui_functions field, then in hooks array, then in the response text
         const uiFunctionsFromField = event.ui_functions || [];
+
+        // Extract ui_function hooks from the hooks array
+        const uiFunctionsFromHooksArray = (event.hooks || [])
+          .filter((h: any) => h?.type === 'ui_function')
+          .map((h: any) => h);
+
         // Use agent_message if available (separated from hook message), otherwise use response
         const responseToCheck = event.response || '';
         const uiFunctionsFromText = extractUIFunctions(responseToCheck) || [];
-        const allUIFunctions = [...uiFunctionsFromField, ...uiFunctionsFromText];
+        const allUIFunctions = [...uiFunctionsFromField, ...uiFunctionsFromHooksArray, ...uiFunctionsFromText];
 
         // Determine the message text (remove JSON code block if UI functions were extracted from text)
         const messageText = uiFunctionsFromText.length > 0
@@ -1392,15 +1446,48 @@ const ChatBotView: React.FC = () => {
           return;
         }
       }
-      // Workflow mode - existing behavior
+      // Message with files - use SSE streaming with file attachments
       else if (data.files && data.files.length > 0) {
-        const formData = new FormData();
-        data.files.forEach(file => {
-          formData.append('files', file);
-        });
-        formData.append('answer', data.answer);
-        const result = await assistantStore.postAnswers(technicalId, formData);
-        response = result.data;
+        console.log('[SSE] Starting streaming for message with files:', data.answer, data.files.length);
+
+        try {
+          // Store the message for retry functionality
+          setLastUserMessage(data.answer);
+
+          // Abort any existing stream
+          if (streamAbortControllerRef.current) {
+            streamAbortControllerRef.current.abort();
+          }
+
+          // Start streaming with files
+          const abortController = await assistantStore.streamChatMessage(
+            technicalId,
+            data.answer,
+            handleStreamEvent,
+            (error) => {
+              console.error('[SSE] Stream error:', error);
+              setStreamingState(prev => ({
+                ...prev,
+                isStreaming: false,
+                error: error.message
+              }));
+              setShowStreamErrorNotification(true);
+              setIsLoading(false);
+              setDisabled(false);
+              isRequestInProgressRef.current = false;
+            },
+            () => {
+              console.log('[SSE] Stream completed successfully');
+            },
+            data.files
+          );
+
+          streamAbortControllerRef.current = abortController;
+          return;
+        } catch (error) {
+          console.error('[SSE] Failed to start stream with files:', error);
+          setUseStreaming(false);
+        }
       }
       // Text-only message - use SSE streaming if enabled
       else if (useStreaming) {
@@ -1664,7 +1751,7 @@ const ChatBotView: React.FC = () => {
   // Handle use existing repository click
   const handleUseExistingRepository = () => {
     setShowRepositoryConfigPrompt(false);
-    onAnswer({ answer: 'Please, clone my github repository branch...' });
+    onAnswer({ answer: 'Please, clone my existing github repository branch...' });
   };
 
   // Handle close repository config prompt
@@ -2394,7 +2481,7 @@ const ChatBotView: React.FC = () => {
         onCloseRepositoryConfigPrompt={handleCloseRepositoryConfigPrompt}
         isLoadingCanvasToggle={isLoadingCanvasToggle}
       />
-      <div className="flex h-[calc(100vh-61px)] overflow-hidden">
+      <div className="flex h-[calc(100vh-73px)] overflow-hidden">
         {/* Enhanced Left Sidebar - Resizable Chat History Panel */}
         {isChatHistoryOpen && (
           <div
@@ -2502,6 +2589,12 @@ const ChatBotView: React.FC = () => {
             onOpenTaskPanel={() => {
               console.log('[ChatBotView] onOpenTaskPanel called, opening Tasks Panel');
               setIsTasksPanelOpen(true);
+              // Trigger refresh of tasks when button is clicked
+              setTimeout(() => {
+                tasksPanelRef.current?.refreshTasks().catch(err => {
+                  console.error('[ChatBotView] Failed to refresh tasks:', err);
+                });
+              }, 100);
             }}
             onRetryStreaming={retryStreaming}
             isRetrying={isRetrying}
@@ -2520,6 +2613,7 @@ const ChatBotView: React.FC = () => {
             }}
           >
             <TasksPanel
+              ref={tasksPanelRef}
               isOpen={isTasksPanelOpen}
               onClose={() => setIsTasksPanelOpen(false)}
               chatData={chatData}
