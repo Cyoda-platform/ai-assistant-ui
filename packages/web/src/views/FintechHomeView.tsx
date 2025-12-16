@@ -686,7 +686,7 @@ const FintechHomeView: React.FC = () => {
               </div>
 
               {/* Chat Input */}
-              <div className="mt-8 mb-0 max-w-2xl mx-auto w-full">
+              <div className="mt-8 mb-0 max-w-4xl mx-auto w-full">
                 <form onSubmit={handleChatSubmit}>
                   <div
                     className="relative"
