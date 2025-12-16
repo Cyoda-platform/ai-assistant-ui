@@ -27,7 +27,9 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
   activeCanvasTab,
   isAIThinking = false,
   onStopRequest,
-  onSetTextareaContent
+  onSetTextareaContent,
+  hasRepository = false,
+  onShowRepositoryConfigModal
 }) => {
   const [form] = Form.useForm();
   const [answer, setAnswer] = useState('');
