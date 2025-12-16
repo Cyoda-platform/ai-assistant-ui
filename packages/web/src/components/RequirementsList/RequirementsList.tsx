@@ -144,15 +144,15 @@ Add any additional context, constraints, or considerations here.`,
       <div className="flex-1 overflow-x-auto overflow-y-hidden p-6 pt-12 w-full">
         {requirements.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="p-4 bg-orange-500/10 rounded-full mb-6">
-              <FileText size={48} className="text-orange-400" />
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-3">No Requirements Yet</h3>
-            <p className="text-gray-400 mb-6 max-w-md leading-relaxed">
+            <FileText size={64} className="text-orange-400 mb-4" />
+            <h3 className="text-xl font-semibold text-slate-300 mb-2">
+              Define Your Requirements
+            </h3>
+            <p className="text-sm text-slate-400 max-w-md leading-relaxed">
               Start by defining your application requirements.
-              Create functional requirements, user stories, and acceptance criteria to guide development.
+              Create <span className="text-orange-400 font-medium">Functional Requirements</span>, <span className="text-orange-400 font-medium">User Stories</span>, and <span className="text-orange-400 font-medium">Acceptance Criteria</span> to guide development.
             </p>
-            <p className="text-gray-600 text-xs mt-4">
+            <p className="text-xs text-slate-500 mt-4">
               💡 Tip: Use the "Add Requirement" button above to create your first requirement
             </p>
           </div>

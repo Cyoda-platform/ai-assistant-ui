@@ -773,11 +773,13 @@ gantt
             ) : (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
-                  <div className="text-gray-400 mb-2">No entities found</div>
-                  <div className="text-xs text-gray-500">Create an entity to get started</div>
-                  <div className="text-xs text-gray-600 mt-2">
-                    Debug: entities={currentAppData?.app?.entities?.length || 0}
-                  </div>
+                  <Database size={64} className="mx-auto mb-4 text-cyan-400" />
+                  <h2 className="text-xl font-semibold text-slate-300 mb-2">
+                    No entities found
+                  </h2>
+                  <p className="text-sm text-slate-400">
+                    Create an entity to get started
+                  </p>
                 </div>
               </div>
             )
@@ -903,12 +905,13 @@ gantt
             ) : (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
-                  <div className="text-gray-400 mb-2">No workflows found</div>
-                  <div className="text-xs text-gray-500">Create a workflow to get started</div>
-                  <div className="text-xs text-gray-600 mt-2">
-                    Debug: entities={currentAppData?.app?.entities?.length || 0},
-                    workflows={currentAppData?.app?.entities?.reduce((sum: number, e: any) => sum + (e.workflows?.length || 0), 0) || 0}
-                  </div>
+                  <Network size={64} className="mx-auto mb-4 text-blue-400" />
+                  <h2 className="text-xl font-semibold text-slate-300 mb-2">
+                    No workflows found
+                  </h2>
+                  <p className="text-sm text-slate-400">
+                    Create a workflow to get started
+                  </p>
                 </div>
               </div>
             )
@@ -985,8 +988,13 @@ gantt
             ) : (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
-                  <div className="text-gray-400 mb-2">No requirements found</div>
-                  <div className="text-xs text-gray-500">Create a requirement to get started</div>
+                  <FileText size={64} className="mx-auto mb-4 text-teal-400" />
+                  <h2 className="text-xl font-semibold text-slate-300 mb-2">
+                    No requirements found
+                  </h2>
+                  <p className="text-sm text-slate-400">
+                    Create a requirement to get started
+                  </p>
                 </div>
               </div>
             )
@@ -994,14 +1002,13 @@ gantt
         ) : activeTab === 'code' ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <Code size={64} className="mx-auto mb-4 text-gray-600" />
-              <h2 className="text-xl font-semibold text-gray-300 mb-2">
+              <Code size={64} className="mx-auto mb-4 text-gray-400" />
+              <h2 className="text-xl font-semibold text-slate-300 mb-2">
                 Code Editor
               </h2>
-              <p className="text-gray-500 mb-6">
-                View and edit code files
+              <p className="text-sm text-slate-400">
+                Coming soon...
               </p>
-              <p className="text-gray-400 text-sm">Coming soon...</p>
             </div>
           </div>
         ) : (

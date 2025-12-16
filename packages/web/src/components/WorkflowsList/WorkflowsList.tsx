@@ -189,23 +189,18 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
       {/* Workflows Grid */}
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {workflows.length === 0 ? (
-          <div className="w-full max-w-2xl mx-auto text-center pt-8">
-              <div className="relative mb-6">
-                <div className="absolute inset-0 blur-3xl bg-purple-400/10 animate-pulse"></div>
-                <Activity size={80} className="mx-auto text-purple-400/80 relative" />
-              </div>
-              <h2 className="text-2xl font-bold text-white mb-3">
-                Define Your Business Logic
-              </h2>
-              <p className="text-gray-400 mb-2 leading-relaxed">
-                Workflows orchestrate how your entities move through different states.
-              </p>
-              <p className="text-gray-500 text-sm mb-8">
-                Create workflows like <span className="text-purple-400 font-medium">Order Processing</span>, <span className="text-purple-400 font-medium">User Onboarding</span>, or <span className="text-purple-400 font-medium">Approval Flow</span>.
-              </p>
-              <p className="text-gray-600 text-xs mt-4">
-                💡 Tip: Use the "Add Workflow" button above to create your first workflow
-              </p>
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <Activity size={64} className="text-purple-400 mb-4" />
+            <h3 className="text-xl font-semibold text-slate-300 mb-2">
+              Define Your Business Logic
+            </h3>
+            <p className="text-sm text-slate-400 max-w-md leading-relaxed">
+              Workflows orchestrate how your entities move through different states.
+              Create workflows like <span className="text-purple-400 font-medium">Order Processing</span>, <span className="text-purple-400 font-medium">User Onboarding</span>, or <span className="text-purple-400 font-medium">Approval Flow</span>.
+            </p>
+            <p className="text-xs text-slate-500 mt-4">
+              💡 Tip: Use the "Add Workflow" button above to create your first workflow
+            </p>
           </div>
         ) : (
           <div className="flex flex-wrap gap-4 h-full">
