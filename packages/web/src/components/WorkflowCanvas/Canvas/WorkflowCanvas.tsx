@@ -1640,11 +1640,35 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
       try {
         const text = await file.text();
-        const config = JSON.parse(text) as WorkflowConfiguration;
+        const parsed = JSON.parse(text);
 
-        // Validate required fields
-        if (!config.version || !config.name || !config.initialState || !config.states) {
-          alert('Invalid workflow JSON: missing required fields (version, name, initialState, states)');
+        let config: WorkflowConfiguration;
+
+        // Check if this is a wrapper format (has workflows array)
+        if (parsed.workflows && Array.isArray(parsed.workflows)) {
+          // Extract the first workflow from the array
+          if (parsed.workflows.length === 0) {
+            alert('Invalid workflow JSON: workflows array is empty');
+            return;
+          }
+
+          config = parsed.workflows[0] as WorkflowConfiguration;
+
+          // Show notification if there are multiple workflows
+          if (parsed.workflows.length > 1) {
+            showWarning(
+              'Multiple Workflows Found',
+              `This file contains ${parsed.workflows.length} workflows. Only the first workflow will be displayed in the canvas.`
+            );
+          }
+        } else {
+          // Individual workflow format
+          config = parsed as WorkflowConfiguration;
+        }
+
+        // Validate required fields (version is optional)
+        if (!config.name || typeof config.name !== 'string' || config.name.trim() === '' || !config.initialState || typeof config.initialState !== 'string' || config.initialState.trim() === '' || !config.states) {
+          alert('Invalid workflow JSON: missing required fields (name, initialState, states)');
           return;
         }
 
@@ -1688,7 +1712,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       }
     };
     input.click();
-  }, [cleanedWorkflow, onWorkflowUpdate]);
+  }, [cleanedWorkflow, onWorkflowUpdate, showWarning]);
 
   // Export workflow to environment (POST to import endpoint)
   const handleExportToEnvironment = useCallback(async () => {
@@ -1794,11 +1818,11 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           // Use the first workflow
           const config = workflows[0] as WorkflowConfiguration;
 
-          // Validate required fields
-          if (!config.version || !config.name || !config.initialState || !config.states) {
+          // Validate required fields (version is optional)
+          if (!config.name || !config.initialState || !config.states) {
             showError(
               'Invalid Workflow Data',
-              'The workflow data from environment is missing required fields'
+              'The workflow data from environment is missing required fields (name, initialState, states)'
             );
             return;
           }

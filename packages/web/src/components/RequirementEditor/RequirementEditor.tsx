@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { FileText, Eye, Code2, Send, Loader2, ArrowLeft, Github } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { FileText, Eye, Code2, Send, Loader2, ArrowLeft, Github, Copy, Check, Maximize2, Settings } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Requirement } from '@/components/AppsCanvas/types/appSchema';
-import Editor from '@monaco-editor/react';
+import Editor, { useMonaco } from '@monaco-editor/react';
+import { message, Dropdown, Slider } from 'antd';
+import './RequirementEditor.css';
 
 interface RequirementEditorProps {
   appId: string;
@@ -30,6 +32,19 @@ export const RequirementEditor: React.FC<RequirementEditorProps> = ({
 
   const [viewMode, setViewMode] = useState<'preview' | 'split' | 'markdown'>('split');
   const [markdownText, setMarkdownText] = useState('');
+  const [isCopied, setIsCopied] = useState(false);
+  const [wordCount, setWordCount] = useState(0);
+
+  // Editor settings
+  const [fontSize, setFontSize] = useState(13);
+  const [lineHeight, setLineHeight] = useState(1.5);
+  const [fontFamily, setFontFamily] = useState('Consolas');
+  const [showSettings, setShowSettings] = useState(false);
+
+  // Editor refs
+  const editorRef = useRef<any>(null);
+  const splitEditorRef = useRef<any>(null);
+  const monaco = useMonaco();
 
   const getGitHubUrl = (req: Requirement) => {
     if (!req.metadata?.filePath || !appData) return null;
@@ -111,6 +126,24 @@ Application description
 Additional notes and considerations...
 `;
 
+  // Update editor settings when they change
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.updateOptions({
+        fontSize: fontSize,
+        lineHeight: Math.round(lineHeight * 20),
+        fontFamily: fontFamily,
+      });
+    }
+    if (splitEditorRef.current) {
+      splitEditorRef.current.updateOptions({
+        fontSize: fontSize,
+        lineHeight: Math.round(lineHeight * 20),
+        fontFamily: fontFamily,
+      });
+    }
+  }, [fontSize, lineHeight, fontFamily]);
+
   // Load requirement data from props
   useEffect(() => {
     try {
@@ -162,7 +195,97 @@ Additional notes and considerations...
 
 
   const handleTextChange = (value: string | undefined) => {
-    setMarkdownText(value || '');
+    const text = value || '';
+    setMarkdownText(text);
+    // Calculate word count
+    const words = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+    setWordCount(words);
+  };
+
+  const handleCopyToClipboard = () => {
+    navigator.clipboard.writeText(markdownText);
+    setIsCopied(true);
+    message.success('Copied to clipboard');
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  const fontFamilies = [
+    { label: 'Consolas', value: 'Consolas' },
+    { label: 'Courier New', value: 'Courier New' },
+    { label: 'Menlo', value: 'Menlo' },
+    { label: 'Monaco', value: 'Monaco' },
+    { label: 'Fira Code', value: 'Fira Code' },
+    { label: 'JetBrains Mono', value: 'JetBrains Mono' },
+  ];
+
+  const handleFontChange = (font: string) => {
+    setFontFamily(font);
+    message.success(`Font changed to ${font}`);
+  };
+
+  const settingsMenu = {
+    items: [
+      {
+        key: 'font-family-group',
+        label: 'Font Family',
+        type: 'group',
+        children: fontFamilies.map(font => ({
+          key: `font-${font.value}`,
+          label: (
+            <div className="flex items-center justify-between w-full">
+              <span>{font.label}</span>
+              {fontFamily === font.value && <span className="text-blue-400 ml-2">✓</span>}
+            </div>
+          ),
+          onClick: () => handleFontChange(font.value),
+        })),
+      },
+      { type: 'divider' },
+      {
+        key: 'font-size-label',
+        label: `Font Size: ${fontSize}px`,
+        disabled: true,
+      },
+      {
+        key: 'font-size-slider',
+        label: (
+          <div className="px-2 py-2 w-48" onClick={(e) => e.stopPropagation()}>
+            <Slider
+              min={10}
+              max={20}
+              value={fontSize}
+              onChange={(value) => setFontSize(value as number)}
+              marks={{ 10: '10', 15: '15', 20: '20' }}
+              tooltip={{ formatter: (value) => `${value}px` }}
+            />
+          </div>
+        ),
+        disabled: true,
+      },
+      { type: 'divider' },
+      {
+        key: 'line-height-label',
+        label: `Line Height: ${lineHeight.toFixed(1)}`,
+        disabled: true,
+      },
+      {
+        key: 'line-height-slider',
+        label: (
+          <div className="px-2 py-2 w-48" onClick={(e) => e.stopPropagation()}>
+            <Slider
+              min={1}
+              max={2.5}
+              step={0.1}
+              value={lineHeight}
+              onChange={(value) => setLineHeight(value as number)}
+              marks={{ 1: '1', 1.5: '1.5', 2: '2', 2.5: '2.5' }}
+              tooltip={{ formatter: (value) => value.toFixed(1) }}
+            />
+          </div>
+        ),
+        disabled: true,
+      },
+    ],
   };
 
   // Loading state
@@ -180,32 +303,88 @@ Additional notes and considerations...
   }
 
   return (
-    <div className="h-full flex flex-col bg-gray-900">
-      {/* Header with GitHub Link */}
-      {requirement && (requirement.metadata?.filePath || getGitHubUrl(requirement)) && (
-        <div className="border-b border-gray-700 bg-gray-800/50 px-6 py-3 flex items-center justify-between">
-          <div className="text-sm text-gray-400">
-            GitHub Path
-          </div>
-          {getGitHubUrl(requirement) ? (
-            <a
-              href={getGitHubUrl(requirement)!}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-mono break-all"
-              title="View on GitHub"
-            >
-              <Github size={14} />
-              {requirement.metadata?.filePath}
-            </a>
-          ) : (
-            <div className="flex items-center gap-2 text-gray-400 text-sm font-mono break-all">
-              <Github size={14} />
-              {requirement.metadata?.filePath || 'No GitHub path available'}
+    <div className="h-full flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Compact Header */}
+      <div className="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur-sm px-4 py-2.5 flex items-center justify-between gap-4">
+        {/* Left: Title and Path */}
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <h3 className="text-sm font-semibold text-white truncate">{requirement?.title || 'Requirement'}</h3>
+
+          {requirement && (requirement.metadata?.filePath || getGitHubUrl(requirement)) && (
+            <div className="flex items-center gap-1.5 text-xs text-gray-400 min-w-0">
+              {getGitHubUrl(requirement) ? (
+                <a
+                  href={getGitHubUrl(requirement)!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-blue-400 hover:text-blue-300 font-mono truncate transition-colors"
+                  title="View on GitHub"
+                >
+                  <Github size={12} className="flex-shrink-0" />
+                  <span className="truncate">{requirement.metadata?.filePath}</span>
+                </a>
+              ) : (
+                <div className="flex items-center gap-1 text-gray-500 font-mono truncate">
+                  <Github size={12} className="flex-shrink-0" />
+                  <span className="truncate">Not saved</span>
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
+
+        {/* Right: Controls */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <button
+            onClick={() => setViewMode(viewMode === 'markdown' ? 'split' : 'markdown')}
+            className={`p-1.5 rounded transition-all ${
+              viewMode === 'markdown'
+                ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                : 'bg-slate-700/50 text-gray-400 hover:text-gray-300 border border-slate-600/50'
+            }`}
+            title={viewMode === 'markdown' ? 'Switch to split view' : 'Switch to edit mode'}
+          >
+            {viewMode === 'markdown' ? <Code2 size={16} /> : <Eye size={16} />}
+          </button>
+
+          <Dropdown menu={settingsMenu} trigger={['click']}>
+            <button
+              className="p-1.5 rounded bg-slate-700/50 text-gray-400 hover:text-gray-300 border border-slate-600/50 transition-all"
+              title="Editor settings"
+            >
+              <Settings size={16} />
+            </button>
+          </Dropdown>
+
+          <button
+            onClick={handleCopyToClipboard}
+            className="p-1.5 rounded bg-slate-700/50 text-gray-400 hover:text-gray-300 border border-slate-600/50 transition-all"
+            title="Copy to clipboard"
+          >
+            {isCopied ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
+          </button>
+
+          {onSendToChat && (
+            <button
+              onClick={() => onSendToChat(markdownText)}
+              className="p-1.5 rounded bg-orange-600/20 text-orange-400 hover:text-orange-300 border border-orange-500/30 transition-all"
+              title="Send to chat"
+            >
+              <Send size={16} />
+            </button>
+          )}
+
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-1.5 rounded bg-slate-700/50 text-gray-400 hover:text-gray-300 border border-slate-600/50 transition-all"
+              title="Go back"
+            >
+              <ArrowLeft size={16} />
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Error Display */}
       {error && (
@@ -225,10 +404,15 @@ Additional notes and considerations...
               value={markdownText}
               onChange={handleTextChange}
               theme="vs-dark"
+              onMount={(editor) => {
+                editorRef.current = editor;
+              }}
               options={{
                 readOnly: false,
                 minimap: { enabled: false },
-                fontSize: 14,
+                fontSize: fontSize,
+                fontFamily: fontFamily,
+                lineHeight: Math.round(lineHeight * 20),
                 lineNumbers: 'on',
                 scrollBeyondLastLine: false,
                 automaticLayout: true,
@@ -236,23 +420,50 @@ Additional notes and considerations...
                 wordWrap: 'on',
                 formatOnPaste: true,
                 formatOnType: true,
+                bracketPairColorization: { enabled: true },
+                'bracketPairColorization.independentColorPoolPerBracketType': true,
+                cursorBlinking: 'blink',
+                cursorSmoothCaretAnimation: 'on',
+                smoothScrolling: true,
+                renderWhitespace: 'selection',
+                renderControlCharacters: true,
+                guides: {
+                  indentation: true,
+                  bracketPairs: true,
+                },
+                fontLigatures: true,
+                links: true,
+                quickSuggestions: {
+                  other: true,
+                  comments: false,
+                  strings: false,
+                },
+                suggest: {
+                  showSnippets: true,
+                  showKeywords: true,
+                },
               }}
             />
           </div>
-        ) : viewMode === 'split' ? (
+        ) : (
           // Split View - Editor on left, preview on right
           <div className="h-full flex">
-            <div className="w-1/2 border-r border-gray-700">
+            <div className="w-1/2 border-r border-slate-700/50 requirement-editor-split">
               <Editor
                 height="100%"
                 defaultLanguage="markdown"
                 value={markdownText}
                 onChange={handleTextChange}
                 theme="vs-dark"
+                onMount={(editor) => {
+                  splitEditorRef.current = editor;
+                }}
                 options={{
                   readOnly: false,
                   minimap: { enabled: false },
-                  fontSize: 14,
+                  fontSize: fontSize,
+                  fontFamily: fontFamily,
+                  lineHeight: Math.round(lineHeight * 20),
                   lineNumbers: 'on',
                   scrollBeyondLastLine: false,
                   automaticLayout: true,
@@ -260,10 +471,32 @@ Additional notes and considerations...
                   wordWrap: 'on',
                   formatOnPaste: true,
                   formatOnType: true,
+                  bracketPairColorization: { enabled: true },
+                  'bracketPairColorization.independentColorPoolPerBracketType': true,
+                  cursorBlinking: 'blink',
+                  cursorSmoothCaretAnimation: 'on',
+                  smoothScrolling: true,
+                  renderWhitespace: 'selection',
+                  renderControlCharacters: true,
+                  guides: {
+                    indentation: true,
+                    bracketPairs: true,
+                  },
+                  fontLigatures: true,
+                  links: true,
+                  quickSuggestions: {
+                    other: true,
+                    comments: false,
+                    strings: false,
+                  },
+                  suggest: {
+                    showSnippets: true,
+                    showKeywords: true,
+                  },
                 }}
               />
             </div>
-            <div className="w-1/2 overflow-auto bg-gray-900 p-6">
+            <div className="w-1/2 overflow-auto bg-slate-900/30 p-6 requirement-preview-split">
               <div className="prose prose-invert prose-slate max-w-none">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {markdownText}
@@ -271,43 +504,10 @@ Additional notes and considerations...
               </div>
             </div>
           </div>
-        ) : (
-          // Preview Only
-          <div className="h-full overflow-auto bg-gray-900 p-6">
-            <div className="max-w-4xl mx-auto prose prose-invert prose-slate prose-lg">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {markdownText}
-              </ReactMarkdown>
-            </div>
-          </div>
         )}
       </div>
 
-      {/* Footer with Send Button - Fixed at bottom */}
-      <div className="border-t border-gray-700 bg-gray-800/50 p-4 flex items-center justify-between flex-shrink-0">
-        <div className="flex items-center space-x-2">
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 whitespace-nowrap"
-              title="Go back to requirements list"
-            >
-              <ArrowLeft size={12} />
-              <span>Back</span>
-            </button>
-          )}
-        </div>
-        {onSendToChat && (
-          <button
-            onClick={() => onSendToChat(markdownText)}
-            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-orange-600/80 hover:bg-orange-500/80 border border-orange-500 text-white whitespace-nowrap"
-            title="Send edited requirement to chat"
-          >
-            <Send size={12} />
-            <span>Send to Chat</span>
-          </button>
-        )}
-      </div>
+
     </div>
   );
 };

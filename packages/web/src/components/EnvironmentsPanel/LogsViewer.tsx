@@ -132,34 +132,69 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
       const is400Error = error?.response?.status === 400;
       const isApiKeyMissing = error?.response?.data?.error?.includes('X-API-Key header required');
 
-      // Check if we got a 500 error with "API key invalid or expired" message
+      // Check if we got a 500 error with "ELK_API_KEY_EXPIRED" error code (NEW)
       const is500Error = error?.response?.status === 500;
-      const isApiKeyExpired = error?.response?.data?.error?.includes('API key invalid or expired');
+      const errorCode = error?.response?.data?.details?.error_code;
+      const isApiKeyExpired = errorCode === 'ELK_API_KEY_EXPIRED' ||
+                             error?.response?.data?.error?.includes('API key invalid or expired') ||
+                             error?.response?.data?.error?.includes('API key has expired');
 
       if ((is400Error && isApiKeyMissing || is500Error && isApiKeyExpired) && retryCount === 0) {
         const isExpired = is500Error && isApiKeyExpired;
         console.log(isExpired ? 'API key expired detected, regenerating...' : 'API key missing, generating...');
-        message.info(isExpired ? 'Regenerating API key...' : 'Generating API key...');
+        message.info(isExpired ? 'ELK API key expired. Regenerating...' : 'Generating API key...');
 
         try {
+          // Get the regenerate endpoint from error details or use default
+          const regenerateEndpoint = error?.response?.data?.details?.regenerate_endpoint || '/v1/logs/elk-token';
+
           // Generate or regenerate the ELK API key
           const response = await privateClient({
             method: 'post',
-            url: '/v1/logs/api-key',
+            url: regenerateEndpoint,
+            data: {
+              env_name: 'dev',
+              app_name: 'cyoda'
+            }
           });
 
           const newKey = response.data?.api_key || response.data?.apiKey || response.data?.key;
-          setApiKey(newKey);
-          localStorage.setItem('logs-api-key', newKey);
-          console.log('ELK API key generated/regenerated');
-          message.success('API key generated, retrying...');
 
-          // Retry the fetch with the new API key
-          await fetchLogs(1);
+          if (!newKey) {
+            throw new Error('No API key returned from server');
+          }
+
+          // Update the API key
+          if (typeof setApiKey === 'function') {
+            setApiKey(newKey);
+          }
+          localStorage.setItem('elk-api-key', newKey);
+          console.log('✅ ELK API key regenerated successfully');
+          message.success('API key regenerated! Retrying search...');
+
+          // Retry the fetch with the new API key - pass newKey directly
+          setLoading(true);
+          const query = buildQuery();
+          const { data } = await privateClient({
+            method: 'post',
+            url: `${import.meta.env.VITE_APP_API_BASE}/v1/logs/search`,
+            headers: {
+              'X-API-Key': newKey
+            },
+            data: query
+          });
+
+          const hits = data?.hits?.hits || [];
+          const total = data?.hits?.total?.value || 0;
+
+          setLogs(hits);
+          setTotalHits(total);
+          message.success(`Found ${total} log entries`);
           return;
-        } catch (regenerateErr) {
+        } catch (regenerateErr: any) {
           console.error('Failed to generate API key:', regenerateErr);
-          message.error('Failed to generate API key');
+          const regenerateError = regenerateErr?.response?.data?.error || regenerateErr?.message || 'Unknown error';
+          message.error(`Failed to regenerate API key: ${regenerateError}`);
         }
       }
 

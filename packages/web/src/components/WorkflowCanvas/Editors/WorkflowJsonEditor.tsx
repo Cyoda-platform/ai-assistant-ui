@@ -29,9 +29,11 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
 }) => {
   const [jsonText, setJsonText] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{ message: string; type: 'info' | 'warning' } | null>(null);
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const notificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 
   // Resizing state
@@ -43,11 +45,11 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
   // Workflow schema for validation
   const workflowSchema = {
     type: 'object',
-    required: ['version', 'name', 'initialState', 'states'],
+    required: ['name', 'initialState', 'states'],
     properties: {
       version: {
         type: 'string',
-        description: 'Workflow version'
+        description: 'Workflow version (optional)'
       },
       name: {
         type: 'string',
@@ -422,42 +424,74 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
     }
 
     try {
-      const parsed = JSON.parse(value) as WorkflowConfiguration;
+      const parsed = JSON.parse(value);
+
+      let configToValidate: WorkflowConfiguration;
+      let isWrapperFormat = false;
+
+      // Check if this is a wrapper format (has workflows array)
+      if (parsed.workflows && Array.isArray(parsed.workflows)) {
+        isWrapperFormat = true;
+        // Wrapper format - validate the first workflow
+        if (parsed.workflows.length === 0) {
+          setError('Workflows array cannot be empty - at least one workflow is required');
+          return;
+        }
+        configToValidate = parsed.workflows[0] as WorkflowConfiguration;
+
+        // Show notification for wrapper format
+        if (notificationTimeoutRef.current) {
+          clearTimeout(notificationTimeoutRef.current);
+        }
+        setNotification({
+          message: `Wrapper format detected. Displaying first workflow (${parsed.workflows.length} total).`,
+          type: 'info'
+        });
+        // Auto-dismiss notification after 5 seconds
+        notificationTimeoutRef.current = setTimeout(() => {
+          setNotification(null);
+        }, 5000);
+      } else {
+        // Individual workflow format
+        configToValidate = parsed as WorkflowConfiguration;
+        setNotification(null);
+      }
 
       // Validate required fields with specific error messages
-      if (!parsed.version || typeof parsed.version !== 'string' || parsed.version.trim() === '') {
-        setError('Field "version" is required and must be a non-empty string');
+      // version is optional - if provided, it must be a non-empty string
+      if (configToValidate.version !== undefined && (typeof configToValidate.version !== 'string' || configToValidate.version.trim() === '')) {
+        setError('Field "version" must be a non-empty string if provided');
         return;
       }
 
-      if (!parsed.name || typeof parsed.name !== 'string' || parsed.name.trim() === '') {
+      if (!configToValidate.name || typeof configToValidate.name !== 'string' || configToValidate.name.trim() === '') {
         setError('Field "name" is required and must be a non-empty string');
         return;
       }
 
-      if (!parsed.initialState || typeof parsed.initialState !== 'string' || parsed.initialState.trim() === '') {
+      if (!configToValidate.initialState || typeof configToValidate.initialState !== 'string' || configToValidate.initialState.trim() === '') {
         setError('Field "initialState" is required and must be a non-empty string');
         return;
       }
 
-      if (!parsed.states || typeof parsed.states !== 'object') {
+      if (!configToValidate.states || typeof configToValidate.states !== 'object') {
         setError('Field "states" is required and must be an object');
         return;
       }
 
-      if (Object.keys(parsed.states).length === 0) {
+      if (Object.keys(configToValidate.states).length === 0) {
         setError('States object cannot be empty - at least one state is required');
         return;
       }
 
       // Validate that initialState exists in states
-      if (!parsed.states[parsed.initialState]) {
-        setError(`Initial state "${parsed.initialState}" does not exist in states object`);
+      if (!configToValidate.states[configToValidate.initialState]) {
+        setError(`Initial state "${configToValidate.initialState}" does not exist in states object`);
         return;
       }
 
       // Validate each state has transitions array
-      for (const [stateCode, state] of Object.entries(parsed.states)) {
+      for (const [stateCode, state] of Object.entries(configToValidate.states)) {
         if (!state.transitions || !Array.isArray(state.transitions)) {
           setError(`State "${stateCode}" must have a "transitions" array`);
           return;
@@ -487,7 +521,7 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
       saveTimeoutRef.current = setTimeout(() => {
         if (onUpdate) {
           console.log('💾 Auto-saving workflow configuration from JSON editor');
-          onUpdate(parsed);
+          onUpdate(configToValidate);
         }
       }, 1000);
     } catch (err) {
@@ -554,9 +588,9 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
         const text = await file.text();
         const config = JSON.parse(text) as WorkflowConfiguration;
 
-        // Validate required fields
-        if (!config.version || !config.name || !config.initialState || !config.states) {
-          alert('Invalid workflow JSON: missing required fields (version, name, initialState, states)');
+        // Validate required fields (version is optional)
+        if (!config.name || !config.initialState || !config.states) {
+          alert('Invalid workflow JSON: missing required fields (name, initialState, states)');
           return;
         }
 
@@ -761,6 +795,23 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
           >
             <p className="text-xs font-medium" style={{ color: '#fca5a5' }}>
               ⚠️ {error}
+            </p>
+          </div>
+        )}
+
+        {/* Notification Message */}
+        {notification && (
+          <div
+            className="mx-4 mt-3 p-2.5 border rounded-lg flex-shrink-0 animate-pulse"
+            style={{
+              backgroundColor: notification.type === 'warning'
+                ? hexToRgba('#f59e0b', 0.1)
+                : hexToRgba('#3b82f6', 0.1),
+              borderColor: notification.type === 'warning' ? '#f59e0b' : '#3b82f6'
+            }}
+          >
+            <p className="text-xs font-medium" style={{ color: notification.type === 'warning' ? '#fcd34d' : '#93c5fd' }}>
+              ℹ️ {notification.message}
             </p>
           </div>
         )}

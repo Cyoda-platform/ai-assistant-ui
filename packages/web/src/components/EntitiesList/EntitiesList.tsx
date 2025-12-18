@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Plus, Database, ExternalLink, Github } from 'lucide-react';
+import { Plus, Database, ExternalLink, Github, Trash2 } from 'lucide-react';
 import { message } from 'antd';
 import type { Entity, AppRoot } from '@/components/AppsCanvas/types/appSchema';
 
@@ -100,6 +100,21 @@ export const EntitiesList: React.FC<EntitiesListProps> = ({
     return `https://github.com/${owner}/${repo}/blob/${branch}/${filePath}`;
   };
 
+  const handleDeleteEntity = (entityName: string, entityVersion: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updatedAppData: AppRoot = {
+      ...appData,
+      app: {
+        ...appData.app,
+        entities: entities.filter(ent => !(ent.name === entityName && ent.version === entityVersion))
+      }
+    };
+    if (onAppDataUpdate) {
+      onAppDataUpdate(updatedAppData);
+    }
+    message.success('Entity deleted');
+  };
+
   return (
     <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
@@ -125,7 +140,7 @@ export const EntitiesList: React.FC<EntitiesListProps> = ({
       </div>
 
       {/* Entities Grid */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden px-6 py-4 pt-12 w-full">
+      <div className="flex-1 overflow-auto px-6 py-4 pt-12 w-full">
         {entities.length === 0 ? (
           <div className="w-full max-w-2xl mx-auto text-center pt-8">
               <div className="relative mb-6">
@@ -155,46 +170,47 @@ export const EntitiesList: React.FC<EntitiesListProps> = ({
                 <div
                   key={`${entity.name}-${entity.version}`}
                   onClick={() => onEntityClick(entityId)}
-                  className="bg-gradient-to-br from-slate-800 to-slate-800/50 border border-slate-700/50 rounded-xl pt-4 px-2 pb-2 hover:border-teal-500/50 cursor-pointer group h-48 flex flex-col flex-shrink-0"
+                  className="bg-gradient-to-br from-slate-800 to-slate-800/50 border border-slate-700/50 rounded-xl p-3 hover:border-teal-500/50 cursor-pointer group h-48 flex flex-col flex-shrink-0"
                   style={{ width: '220px' }}
                 >
-                  <div className="flex items-start justify-between mb-2 flex-shrink-0">
-                    <div className="flex items-center space-x-2 min-w-0 flex-1">
-                      <div className="p-1 bg-teal-500/10 rounded group-hover:bg-teal-500/20 transition-colors flex-shrink-0">
+                  <div className="flex items-start justify-between gap-2 mb-2 min-w-0">
+                    <div className="flex items-start space-x-2 min-w-0 flex-1">
+                      <div className="p-1 bg-teal-500/10 rounded group-hover:bg-teal-500/20 transition-colors flex-shrink-0 mt-0.5">
                         <Database size={14} className="text-teal-400 group-hover:text-teal-300 transition-colors" />
                       </div>
-                      <h4 className="font-semibold text-white group-hover:text-teal-300 transition-colors text-sm truncate">
+                      <h4 className="font-semibold text-white group-hover:text-teal-300 transition-colors text-sm break-words leading-tight min-w-0 overflow-hidden">
                         {entity.name}
                       </h4>
                     </div>
-                    <div className="w-2 h-2 rounded-full flex-shrink-0 ml-1 bg-teal-400" />
+                    <div className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5 bg-teal-400" />
                   </div>
 
-                  <p className="text-xs text-gray-400 mb-2 line-clamp-2 leading-tight flex-shrink-0">
+                  <p className="text-xs text-gray-400 leading-tight flex-1 overflow-hidden break-words">
                     {entity.description || 'No description provided'}
                   </p>
 
-                  <div className="flex-1 min-h-0" />
-
-                  <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-slate-700/50 flex-shrink-0 gap-1">
-                    <div className="flex items-center space-x-1 min-w-0 text-xs">
-                      <Database size={10} className="text-gray-500 flex-shrink-0" />
-                      <span className="truncate">{entity.workflows?.length || 0}w</span>
-                    </div>
-                    <div className="flex items-center space-x-1 flex-shrink-0">
-                      {getGitHubUrl(entity) && (
-                        <a
-                          href={getGitHubUrl(entity)!}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-1 bg-green-500/20 hover:bg-green-500/30 rounded transition-colors"
-                          title="View on GitHub"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Github size={14} className="text-green-400 hover:text-green-300" />
-                        </a>
-                      )}
-                    </div>
+                  <div className="flex items-center justify-end text-xs text-gray-500 gap-1 mt-2">
+                    {!getGitHubUrl(entity) && (
+                      <button
+                        onClick={(e) => handleDeleteEntity(entity.name, entity.version, e)}
+                        className="p-1 bg-blue-500/20 hover:bg-blue-500/30 rounded transition-colors"
+                        title="Delete entity"
+                      >
+                        <Trash2 size={14} className="text-blue-400 hover:text-blue-300" />
+                      </button>
+                    )}
+                    {getGitHubUrl(entity) && (
+                      <a
+                        href={getGitHubUrl(entity)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 bg-green-500/20 hover:bg-green-500/30 rounded transition-colors"
+                        title="View on GitHub"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Github size={14} className="text-green-400 hover:text-green-300" />
+                      </a>
+                    )}
                   </div>
                 </div>
               );
