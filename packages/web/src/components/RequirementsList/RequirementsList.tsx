@@ -2,6 +2,7 @@ import React from 'react';
 import { Plus, FileText, Github, Trash2 } from 'lucide-react';
 import { message } from 'antd';
 import type { Requirement, AppRoot } from '@/components/AppsCanvas/types/appSchema';
+import CanvasEmptyState from '@/components/ChatBot/CanvasEmptyState';
 
 interface RequirementsListProps {
   appId: string;
@@ -140,18 +141,8 @@ Add any additional context, constraints, or considerations here.`,
       {/* Content */}
       <div className="flex-1 overflow-auto p-6 pt-12 w-full">
         {requirements.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="p-4 bg-orange-500/10 rounded-full mb-6">
-              <FileText size={48} className="text-orange-400" />
-            </div>
-            <h3 className="text-xl font-semibold text-white mb-3">No Requirements Yet</h3>
-            <p className="text-gray-400 mb-6 max-w-md leading-relaxed">
-              Start by defining your application requirements.
-              Create functional requirements, user stories, and acceptance criteria to guide development.
-            </p>
-            <p className="text-gray-600 text-xs mt-4">
-              💡 Tip: Use the "Add Requirement" button above to create your first requirement
-            </p>
+          <div className="flex items-center justify-center h-full">
+            <CanvasEmptyState type="requirements" />
           </div>
         ) : (
           <div className="flex flex-wrap gap-4 h-full">

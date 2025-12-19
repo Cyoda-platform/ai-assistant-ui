@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Plus, Database, ExternalLink, Github, Trash2 } from 'lucide-react';
 import { message } from 'antd';
 import type { Entity, AppRoot } from '@/components/AppsCanvas/types/appSchema';
+import CanvasEmptyState from '@/components/ChatBot/CanvasEmptyState';
 
 interface EntitiesListProps {
   appId: string;
@@ -142,24 +143,9 @@ export const EntitiesList: React.FC<EntitiesListProps> = ({
       {/* Entities Grid */}
       <div className="flex-1 overflow-auto px-6 py-4 pt-12 w-full">
         {entities.length === 0 ? (
-          <div className="w-full max-w-2xl mx-auto text-center pt-8">
-              <div className="relative mb-6">
-                <div className="absolute inset-0 blur-3xl bg-teal-400/10 animate-pulse"></div>
-                <Database size={80} className="mx-auto text-teal-400/80 relative" />
-              </div>
-              <h2 className="text-2xl font-bold text-white mb-3">
-                Start Building Your Data Model
-              </h2>
-              <p className="text-gray-400 mb-2 leading-relaxed">
-                Entities are the core data structures of your application.
-              </p>
-              <p className="text-gray-500 text-sm mb-8">
-                Define entities like <span className="text-teal-400 font-medium">Customer</span>, <span className="text-teal-400 font-medium">Order</span>, or <span className="text-teal-400 font-medium">Product</span> to get started.
-              </p>
-              <p className="text-gray-600 text-xs mt-4">
-                💡 Tip: Use the "Add Entity" button above to create your first entity
-              </p>
-            </div>
+          <div className="flex items-center justify-center h-full">
+            <CanvasEmptyState type="entities" />
+          </div>
         ) : (
           <div className="flex flex-wrap gap-4 h-full">
             {entities.map((entity, index) => {

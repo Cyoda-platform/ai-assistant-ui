@@ -44,6 +44,7 @@ import { RequirementsList } from '@/components/RequirementsList';
 import { EntitiesList } from '@/components/EntitiesList';
 import { WorkflowsList } from '@/components/WorkflowsList';
 import { useRepositoryStore } from '@/stores/repository';
+import CanvasEmptyState from '@/components/ChatBot/CanvasEmptyState';
 import type { AppRoot } from '@/components/AppsCanvas/types/appSchema';
 import type { GitHubRepositoryInfo } from '@/services/githubAppDataService';
 
@@ -942,16 +943,7 @@ gantt
           )
         ) : activeTab === 'code' ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <Code size={64} className="mx-auto mb-4 text-gray-600" />
-              <h2 className="text-xl font-semibold text-gray-300 mb-2">
-                Code Editor
-              </h2>
-              <p className="text-gray-500 mb-6">
-                View and edit code files
-              </p>
-              <p className="text-gray-400 text-sm">Coming soon...</p>
-            </div>
+            <CanvasEmptyState type="code" />
           </div>
         ) : (
           <div className="absolute inset-0 bg-slate-900/50 p-4">
