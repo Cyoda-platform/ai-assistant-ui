@@ -14,6 +14,10 @@ export interface ChatResponse {
   next_cursor?: string | null;
   has_more?: boolean;
   cached?: boolean;
+  window_start?: string | null;
+  window_end?: string | null;
+  next_window_start?: string | null;
+  next_window_end?: string | null;
 }
 
 export interface ChatData {

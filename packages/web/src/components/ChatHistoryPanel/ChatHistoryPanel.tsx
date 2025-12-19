@@ -35,6 +35,8 @@ interface ChatHistoryPanelProps {
   hasMoreChats?: boolean; // Whether there are more chats to load
   isLoadingMore?: boolean; // Whether more chats are being loaded
   onLoadMore?: () => void; // Callback to load more chats
+  windowStart?: string | null; // Start of current 1-day window
+  windowEnd?: string | null; // End of current 1-day window
 }
 
 const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
@@ -49,7 +51,9 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
   onRenameChat,
   hasMoreChats = false,
   isLoadingMore = false,
-  onLoadMore
+  onLoadMore,
+  windowStart = null,
+  windowEnd = null
 }) => {
   const navigate = useNavigate();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -165,12 +169,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
 
           {/* Chat History List */}
           <div className="space-y-4 flex-1 overflow-y-auto chat-container pr-2">
-            {isLoading ? (
-              <div className="px-2 py-8 flex flex-col items-center justify-center space-y-4">
-                <LoadingSpinner size="lg" />
-                <p className="text-sm text-slate-400">Loading chat history...</p>
-              </div>
-            ) : hasChats ? (
+            {hasChats ? (
               chatGroups.map((group) => (
                 <div key={group.title} className="space-y-2">
                   <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-2 py-1">
@@ -245,23 +244,31 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
               </div>
             )}
 
-            {/* Load More Button */}
-            {hasMoreChats && !isLoading && (
+            {/* Date Range Info */}
+            {windowStart && windowEnd && (
+              <div className="px-2 py-2 text-center">
+                <div className="text-xs text-slate-400 whitespace-normal break-words">
+                  Showing chats from {new Date(windowEnd).toLocaleDateString()}
+                </div>
+              </div>
+            )}
+
+            {/* Load More Button - Always show */}
+            {onLoadMore && (
               <div className="px-2 pb-4">
-                <button
-                  onClick={onLoadMore}
-                  disabled={isLoadingMore}
-                  className="w-full px-4 py-2.5 rounded-lg bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 hover:border-slate-500 text-slate-300 hover:text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                >
-                  {isLoadingMore ? (
-                    <>
-                      <LoadingSpinner size="sm" />
-                      <span className="text-sm">Loading...</span>
-                    </>
-                  ) : (
-                    <span className="text-sm font-medium">Load More Chats</span>
-                  )}
-                </button>
+                {isLoadingMore ? (
+                  <div className="w-full px-4 py-2.5 rounded-lg bg-slate-700/50 border border-slate-600/50 text-slate-300 flex items-center justify-center space-x-2">
+                    <LoadingSpinner size="sm" />
+                    <span className="text-sm">Loading...</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={onLoadMore}
+                    className="w-full px-4 py-2.5 rounded-lg bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 hover:border-slate-500 text-slate-300 hover:text-white transition-all duration-200 text-sm font-medium"
+                  >
+                    Load More Chats
+                  </button>
+                )}
               </div>
             )}
           </div>

@@ -1295,6 +1295,8 @@ const ChatBotView: React.FC = () => {
                 repository_name: repoInfo.repository_name,
                 repository_owner: repoInfo.repository_owner,
                 repository_branch: repoInfo.repository_branch,
+                repository_url: repoInfo.repository_url,
+                installation_id: repoInfo.installation_id,
               }
             };
           });
@@ -2231,20 +2233,10 @@ const ChatBotView: React.FC = () => {
     setMessages([]);
     setChatData(null);
 
-    // Load canvas visibility from chat-specific localStorage
-    try {
-      const stored = localStorage.getItem(`canvas-visible-${technicalId}`);
-      if (stored !== null) {
-        const isVisible = stored === 'true';
-        console.log('[Canvas State] Loading canvasVisible for chat:', technicalId, isVisible);
-        setCanvasVisible(isVisible);
-      } else {
-        setCanvasVisible(false);
-      }
-    } catch (error) {
-      console.warn('[Canvas State] Failed to load canvas visibility:', error);
-      setCanvasVisible(false);
-    }
+    // Close canvas and background tasks panels when switching chats
+    console.log('[Chat Switch] Closing canvas and background tasks panels');
+    setCanvasVisible(false);
+    setIsTasksPanelOpen(false);
 
     // Load canvas active tab from chat-specific localStorage
     try {
@@ -2504,6 +2496,8 @@ const ChatBotView: React.FC = () => {
               hasMoreChats={assistantStore.hasMoreChats}
               isLoadingMore={assistantStore.isLoadingMoreChats}
               onLoadMore={() => assistantStore.loadMoreChats()}
+              windowStart={assistantStore.windowStart}
+              windowEnd={assistantStore.windowEnd}
             />
           </div>
         )}
