@@ -56,8 +56,6 @@ interface AppsReactFlowProps {
   onPullChanges?: () => void;
   isPulling?: boolean;
   onShowDiff?: () => void;
-  onAnalyze?: () => void;
-  isAnalyzing?: boolean;
 }
 
 export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
@@ -76,8 +74,6 @@ export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
   onPullChanges,
   isPulling = false,
   onShowDiff,
-  onAnalyze,
-  isAnalyzing = false,
 }) => {
   const { fitView } = useReactFlow();
   const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
@@ -681,34 +677,6 @@ export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
 
           {/* Separator */}
           <div className="w-px h-6 bg-slate-600 mx-1" />
-
-          {/* Analyze Button */}
-          {onAnalyze && (
-            <ControlButton
-              onClick={onAnalyze}
-              title="Analyze Application - Get insights about your app structure and potential improvements"
-              disabled={isAnalyzing}
-              className={`canvas-action-button analyze ${isAnalyzing ? 'active cursor-not-allowed' : ''}`}
-            >
-              {isAnalyzing ? (
-                <div className="flex items-center space-x-2 px-2">
-                  <div className="canvas-button-spinner" />
-                  <span className="canvas-button-text">Analyzing...</span>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2 px-2">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 3v5h5" />
-                    <path d="M3 21v-5h5" />
-                    <path d="M21 3v5h-5" />
-                    <path d="M21 21v-5h-5" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                  <span className="canvas-button-text">Analyze</span>
-                </div>
-              )}
-            </ControlButton>
-          )}
 
           {/* Pull Changes Button */}
           {onPullChanges && (

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { Plus, Activity, ExternalLink, Database, Github } from 'lucide-react';
+import { Plus, Activity, ExternalLink, Database, Github, Trash2 } from 'lucide-react';
 import { message } from 'antd';
 import type { Entity, Workflow, AppRoot } from '@/components/AppsCanvas/types/appSchema';
 
@@ -162,6 +162,34 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
     return `https://github.com/${owner}/${repo}/blob/${branch}/${filePath}`;
   };
 
+  const getWorkflowPath = (workflow: WorkflowWithEntity) => {
+    if (!workflow.github_url) return null;
+    return workflow.github_url.replace(/^\.\//, '');
+  };
+
+  const handleDeleteWorkflow = (workflowName: string, entityName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updatedAppData: AppRoot = {
+      ...appData,
+      app: {
+        ...appData.app,
+        entities: appData.app.entities?.map(entity => {
+          if (entity.name === entityName) {
+            return {
+              ...entity,
+              workflows: entity.workflows?.filter(wf => wf.name !== workflowName) || []
+            };
+          }
+          return entity;
+        }) || []
+      }
+    };
+    if (onAppDataUpdate) {
+      onAppDataUpdate(updatedAppData);
+    }
+    message.success('Workflow deleted');
+  };
+
   return (
     <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
@@ -209,46 +237,49 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
                 <div
                   key={`${workflow.name}-${index}`}
                   onClick={() => onWorkflowClick(`workflow-${workflow.name.toLowerCase()}`, workflow)}
-                  className="bg-gradient-to-br from-slate-800 to-slate-800/50 border border-slate-700/50 rounded-xl pt-4 px-2 pb-2 hover:border-purple-500/50 cursor-pointer group h-48 flex flex-col flex-shrink-0"
+                  className="bg-gradient-to-br from-slate-800 to-slate-800/50 border border-slate-700/50 rounded-xl p-3 hover:border-purple-500/50 cursor-pointer group h-48 flex flex-col flex-shrink-0"
                   style={{ width: '220px' }}
                 >
-                  <div className="flex items-start justify-between mb-2 flex-shrink-0">
-                    <div className="flex items-center space-x-2 min-w-0 flex-1">
-                      <div className="p-1 bg-purple-500/10 rounded group-hover:bg-purple-500/20 transition-colors flex-shrink-0">
+                  <div className="flex items-start justify-between gap-2 mb-2 min-w-0">
+                    <div className="flex items-start space-x-2 min-w-0 flex-1">
+                      <div className="p-1 bg-purple-500/10 rounded group-hover:bg-purple-500/20 transition-colors flex-shrink-0 mt-0.5">
                         <Activity size={14} className="text-purple-400 group-hover:text-purple-300 transition-colors" />
                       </div>
-                      <h4 className="font-semibold text-white group-hover:text-purple-300 transition-colors text-sm truncate">
+                      <h4 className="font-semibold text-white group-hover:text-purple-300 transition-colors text-sm break-words leading-tight min-w-0 overflow-hidden">
                         {workflow.name}
                       </h4>
                     </div>
-                    <div className="w-2 h-2 rounded-full flex-shrink-0 ml-1 bg-purple-400" />
+                    <div className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5 bg-purple-400" />
                   </div>
 
-                  <p className="text-xs text-gray-400 mb-2 line-clamp-2 leading-tight flex-shrink-0">
-                    {workflow.description || 'No description provided'}
-                  </p>
+                  {getWorkflowPath(workflow) && (
+                    <p className="text-xs text-gray-400 leading-tight flex-1 overflow-hidden break-words">
+                      Workflow from {getWorkflowPath(workflow)}
+                    </p>
+                  )}
 
-                  <div className="flex-1 min-h-0" />
-
-                  <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-slate-700/50 flex-shrink-0 gap-1">
-                    <div className="flex items-center space-x-1 min-w-0 text-xs">
-                      <Activity size={10} className="text-gray-500 flex-shrink-0" />
-                      <span className="truncate">{getStateCount(workflow)}s</span>
-                    </div>
-                    <div className="flex items-center space-x-1 flex-shrink-0">
-                      {getGitHubUrl(workflow) && (
-                        <a
-                          href={getGitHubUrl(workflow)!}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-1 bg-green-500/20 hover:bg-green-500/30 rounded transition-colors"
-                          title="View on GitHub"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Github size={14} className="text-green-400 hover:text-green-300" />
-                        </a>
-                      )}
-                    </div>
+                  <div className="flex items-center justify-end text-xs text-gray-500 gap-1">
+                    {!getWorkflowPath(workflow) && (
+                      <button
+                        onClick={(e) => handleDeleteWorkflow(workflow.name, workflow.entity_name, e)}
+                        className="p-1 bg-blue-500/20 hover:bg-blue-500/30 rounded transition-colors"
+                        title="Delete workflow"
+                      >
+                        <Trash2 size={14} className="text-blue-400 hover:text-blue-300" />
+                      </button>
+                    )}
+                    {getGitHubUrl(workflow) && (
+                      <a
+                        href={getGitHubUrl(workflow)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 bg-green-500/20 hover:bg-green-500/30 rounded transition-colors"
+                        title="View on GitHub"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Github size={14} className="text-green-400 hover:text-green-300" />
+                      </a>
+                    )}
                   </div>
                 </div>
               );

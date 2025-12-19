@@ -359,7 +359,6 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
   const [showDiffModal, setShowDiffModal] = useState(false);
   const [diffData, setDiffData] = useState<RepositoryDiff | null>(null);
   const [diffError, setDiffError] = useState<string | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Ref to track if we're currently loading (prevents duplicate loads in StrictMode)
   const isLoadingRef = React.useRef(false);
@@ -1000,38 +999,6 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
     }
   }, [githubRepository]);
 
-  // Handle analyze app - reload from repository to get latest structure
-  const handleAnalyze = useCallback(async () => {
-    if (!githubRepository || !conversationId) {
-      console.warn('⚠️ Cannot analyze: missing repository info or conversation ID');
-      setSaveError('Repository not configured. Please set up a repository first.');
-      return;
-    }
-
-    setIsAnalyzing(true);
-    setSaveError(null);
-    try {
-      console.log('🔍 Analyzing repository...');
-      // Clear cache to force fresh analysis
-      repositoryStore.clearCache(conversationId);
-      // Reload from repository (calls /api/v1/repository/analyze endpoint)
-      const appRoot = await repositoryStore.loadRepository(conversationId, githubRepository);
-      if (appRoot) {
-        console.log('✅ Analysis complete - repository data refreshed');
-        setCurrentAppData(appRoot);
-        onAppDataUpdate?.(appRoot);
-        setSaveError(null);
-        setLastSavedAt(new Date()); // Show success indicator
-      }
-    } catch (error) {
-      console.error('❌ Analysis failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to analyze repository. Please try again.';
-      setSaveError(errorMessage);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  }, [githubRepository, conversationId, onAppDataUpdate]);
-
   // Debug logging for currentAppData changes
   React.useEffect(() => {
     console.log('🔍 AppsCanvas: currentAppData changed:', {
@@ -1083,8 +1050,6 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
           onPullChanges={conversationId ? handlePullChanges : undefined}
           isPulling={isPulling}
           onShowDiff={githubRepository ? handleShowDiff : undefined}
-          onAnalyze={githubRepository && conversationId ? handleAnalyze : undefined}
-          isAnalyzing={isAnalyzing}
         />
 
         {/* Custom JSON Editor for App Config - positioned absolutely to overlay */}

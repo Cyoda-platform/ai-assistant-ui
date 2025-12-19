@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, FileText, ExternalLink, AlertCircle, CheckCircle2, Clock, Zap, Github } from 'lucide-react';
+import { Plus, FileText, Github, Trash2 } from 'lucide-react';
 import { message } from 'antd';
 import type { Requirement, AppRoot } from '@/components/AppsCanvas/types/appSchema';
 
@@ -23,25 +23,7 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
   // Get requirements directly from AppRoot (single source of truth)
   const requirements = appData.app.requirements || [];
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'verified': return <CheckCircle2 size={12} className="text-green-400" />;
-      case 'implemented': return <CheckCircle2 size={12} className="text-blue-400" />;
-      case 'approved': return <Clock size={12} className="text-yellow-400" />;
-      case 'draft': return <AlertCircle size={12} className="text-gray-400" />;
-      default: return <AlertCircle size={12} className="text-gray-400" />;
-    }
-  };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'verified': return 'from-green-600 to-green-700';
-      case 'implemented': return 'from-blue-600 to-blue-700';
-      case 'approved': return 'from-yellow-600 to-yellow-700';
-      case 'draft': return 'from-gray-600 to-gray-700';
-      default: return 'from-gray-600 to-gray-700';
-    }
-  };
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
@@ -116,6 +98,21 @@ Add any additional context, constraints, or considerations here.`,
     }
   };
 
+  const handleDeleteRequirement = (requirementId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updatedAppData: AppRoot = {
+      ...appData,
+      app: {
+        ...appData.app,
+        requirements: requirements.filter(req => req.id !== requirementId)
+      }
+    };
+    if (onAppDataUpdate) {
+      onAppDataUpdate(updatedAppData);
+    }
+    message.success('Requirement deleted');
+  };
+
   return (
     <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
@@ -141,7 +138,7 @@ Add any additional context, constraints, or considerations here.`,
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden p-6 pt-12 w-full">
+      <div className="flex-1 overflow-auto p-6 pt-12 w-full">
         {requirements.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <FileText size={64} className="text-orange-400 mb-4" />
@@ -163,46 +160,47 @@ Add any additional context, constraints, or considerations here.`,
                 <div
                   key={requirement.id}
                   onClick={() => onRequirementClick(requirement.id)}
-                  className="bg-gradient-to-br from-slate-800 to-slate-800/50 border border-slate-700/50 rounded-xl pt-4 px-2 pb-2 hover:border-orange-500/50 cursor-pointer group h-48 flex flex-col flex-shrink-0"
+                  className="bg-gradient-to-br from-slate-800 to-slate-800/50 border border-slate-700/50 rounded-xl p-3 hover:border-orange-500/50 cursor-pointer group h-48 flex flex-col flex-shrink-0"
                   style={{ width: '220px' }}
                 >
-                  <div className="flex items-start justify-between mb-2 flex-shrink-0">
-                    <div className="flex items-center space-x-2 min-w-0 flex-1">
-                      <div className="p-1 bg-orange-500/10 rounded group-hover:bg-orange-500/20 transition-colors flex-shrink-0">
+                  <div className="flex items-start justify-between gap-2 mb-2 min-w-0">
+                    <div className="flex items-start space-x-2 min-w-0 flex-1">
+                      <div className="p-1 bg-orange-500/10 rounded group-hover:bg-orange-500/20 transition-colors flex-shrink-0 mt-0.5">
                         <FileText size={14} className="text-orange-400 group-hover:text-orange-300 transition-colors" />
                       </div>
-                      <h4 className="font-semibold text-white group-hover:text-orange-300 transition-colors text-sm truncate">
+                      <h4 className="font-semibold text-white group-hover:text-orange-300 transition-colors text-sm break-words leading-tight min-w-0 overflow-hidden">
                         {requirement.title}
                       </h4>
                     </div>
-                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ml-1 ${getPriorityBadge(requirement.priority)}`} />
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-0.5 ${getPriorityBadge(requirement.priority)}`} />
                   </div>
 
-                  <p className="text-xs text-gray-400 mb-2 line-clamp-2 leading-tight flex-shrink-0">
+                  <p className="text-xs text-gray-400 leading-tight flex-1 overflow-hidden break-words">
                     {requirement.description || 'No description provided'}
                   </p>
 
-                  <div className="flex-1 min-h-0" />
-
-                  <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-slate-700/50 flex-shrink-0 gap-1">
-                    <div className="flex items-center space-x-1 min-w-0 text-xs">
-                      {getStatusIcon(requirement.status)}
-                      <span className="capitalize truncate">{requirement.status}</span>
-                    </div>
-                    <div className="flex items-center space-x-1 flex-shrink-0">
-                      {getGitHubUrl(requirement) && (
-                        <a
-                          href={getGitHubUrl(requirement)!}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-1 bg-green-500/20 hover:bg-green-500/30 rounded transition-colors"
-                          title="View on GitHub"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Github size={14} className="text-green-400 hover:text-green-300" />
-                        </a>
-                      )}
-                    </div>
+                  <div className="flex items-center justify-end text-xs text-gray-500 gap-1 mt-2">
+                    {!getGitHubUrl(requirement) && (
+                      <button
+                        onClick={(e) => handleDeleteRequirement(requirement.id, e)}
+                        className="p-1 bg-blue-500/20 hover:bg-blue-500/30 rounded transition-colors"
+                        title="Delete requirement"
+                      >
+                        <Trash2 size={14} className="text-blue-400 hover:text-blue-300" />
+                      </button>
+                    )}
+                    {getGitHubUrl(requirement) && (
+                      <a
+                        href={getGitHubUrl(requirement)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 bg-green-500/20 hover:bg-green-500/30 rounded transition-colors"
+                        title="View on GitHub"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Github size={14} className="text-green-400 hover:text-green-300" />
+                      </a>
+                    )}
                   </div>
                 </div>
               );

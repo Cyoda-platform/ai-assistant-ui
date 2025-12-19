@@ -648,6 +648,8 @@ const HomeView: React.FC = () => {
               hasMoreChats={assistantStore.hasMoreChats}
               isLoadingMore={assistantStore.isLoadingMoreChats}
               onLoadMore={() => assistantStore.loadMoreChats()}
+              windowStart={assistantStore.windowStart}
+              windowEnd={assistantStore.windowEnd}
             />
           </div>
         )}

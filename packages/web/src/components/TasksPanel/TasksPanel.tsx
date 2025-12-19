@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useRef, useImperativeHandle, forwardRef } from 'react';
 import { X } from 'lucide-react';
 import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
 import { useResizablePanel } from '@/hooks/useResizablePanel';
-import TaskDashboard from '@/components/TaskDashboard/TaskDashboard';
+import TaskDashboard, { TaskDashboardHandle } from '@/components/TaskDashboard/TaskDashboard';
 
 interface TasksPanelProps {
   isOpen: boolean;
@@ -13,15 +13,28 @@ interface TasksPanelProps {
   onWidthChange?: (width: number) => void;
 }
 
-const TasksPanel: React.FC<TasksPanelProps> = ({
+export interface TasksPanelHandle {
+  refreshTasks: () => Promise<void>;
+}
+
+const TasksPanel = forwardRef<TasksPanelHandle, TasksPanelProps>(({
   isOpen,
   onClose,
   conversationId,
   chatData,
   width: externalWidth,
   onWidthChange
-}) => {
+}, ref) => {
   const [isExternalResizing, setIsExternalResizing] = React.useState(false);
+  const taskDashboardRef = useRef<TaskDashboardHandle>(null);
+
+  // Expose refreshTasks method via ref
+  useImperativeHandle(ref, () => ({
+    refreshTasks: async () => {
+      console.log('[TasksPanel] Refresh triggered from parent');
+      await taskDashboardRef.current?.refreshTasks();
+    }
+  }), []);
 
   // Use external width if provided, otherwise use internal resize hook
   const internalResize = useResizablePanel({
@@ -71,7 +84,7 @@ const TasksPanel: React.FC<TasksPanelProps> = ({
 
   return (
     <div
-      className={`h-full bg-slate-800/95 backdrop-blur-sm flex flex-col relative resizable-panel ${isResizing ? 'resizing' : ''}`}
+      className={`bg-slate-800/95 backdrop-blur-sm border-l border-slate-600 flex flex-col relative resizable-panel h-full ${isResizing ? 'resizing' : ''}`}
       style={{ width: `${panelWidth}px` }}
     >
       {/* Resize Handle */}
@@ -86,7 +99,7 @@ const TasksPanel: React.FC<TasksPanelProps> = ({
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
-            <h3 className="font-semibold text-white translate-y-[20%]">
+            <h3 className="font-semibold text-white">
               Background Tasks
             </h3>
             <span className="bg-emerald-500/20 text-emerald-300 text-xs px-2 py-1 rounded-full font-medium">
@@ -106,6 +119,7 @@ const TasksPanel: React.FC<TasksPanelProps> = ({
       {/* Content Area - Task Dashboard */}
       {conversationId ? (
         <TaskDashboard
+          ref={taskDashboardRef}
           conversationId={conversationId}
           backgroundTaskIds={chatData?.chat_body?.background_task_ids}
         />
@@ -121,7 +135,9 @@ const TasksPanel: React.FC<TasksPanelProps> = ({
       )}
     </div>
   );
-};
+});
+
+TasksPanel.displayName = 'TasksPanel';
 
 export default TasksPanel;
 

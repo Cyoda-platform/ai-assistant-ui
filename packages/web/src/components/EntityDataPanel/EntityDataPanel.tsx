@@ -73,7 +73,7 @@ const EntityDataPanel: React.FC<EntityDataPanelProps> = ({
 
   return (
     <div
-      className={`bg-slate-800/95 backdrop-blur-sm flex flex-col relative resizable-panel ${isResizing ? 'resizing' : ''}`}
+      className={`bg-slate-800/95 backdrop-blur-sm border-l border-slate-600 flex flex-col relative resizable-panel ${isResizing ? 'resizing' : ''}`}
       style={{ width: `${panelWidth}px` }}
     >
       {/* Resize Handle */}

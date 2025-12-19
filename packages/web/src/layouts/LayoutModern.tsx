@@ -271,7 +271,7 @@ const LayoutModern: React.FC<LayoutModernProps> = ({ children }) => {
         </div>
       </header>
 
-      <div className="flex h-[calc(100vh-61px)]">
+      <div className="flex h-[calc(100vh-73px)]">
         {/* Enhanced Left Sidebar */}
         <div className="w-64 bg-slate-800/90 backdrop-blur-sm border-r border-slate-700 flex flex-col">
           {/* Quick Actions */}
@@ -333,7 +333,7 @@ const LayoutModern: React.FC<LayoutModernProps> = ({ children }) => {
         {/* Enhanced Draggable Canvas Sidebar */}
         {isCanvasOpen && (
           <div
-            className={`relative bg-slate-800/95 backdrop-blur-sm flex flex-col transition-all duration-300 ${
+            className={`relative bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col transition-all duration-300 ${
               isCanvasCollapsed ? 'w-12' : ''
             }`}
             style={{ width: isCanvasCollapsed ? 48 : canvasWidth }}

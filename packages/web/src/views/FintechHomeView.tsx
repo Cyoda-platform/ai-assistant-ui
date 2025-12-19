@@ -24,13 +24,11 @@ import {
   Shield,
   CreditCard,
   BarChart3,
-  Copy,
-  Paperclip
+  DollarSign
 } from 'lucide-react';
 import { useAssistantStore } from '@/stores/assistant';
 import { useAuthStore, useSuperUserMode } from '@/stores/auth';
 import Header from '@/components/Header/Header';
-import { H1, H2, H3, Body, BodySmall, Caption, CaptionUppercase } from '@/components/Typography';
 
 import ChatHistoryPanel from '@/components/ChatHistoryPanel/ChatHistoryPanel';
 import EnvironmentsPanel from '@/components/EnvironmentsPanel/EnvironmentsPanel';
@@ -51,19 +49,15 @@ const FintechHomeView: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(false);
   const [isEnvironmentsOpen, setIsEnvironmentsOpen] = useState(false);
-  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-  const [pendingMessage, setPendingMessage] = useState<{ input: string; files: File[] } | null>(null);
+  const [pendingMessage, setPendingMessage] = useState<{ input: string } | null>(null);
   const [isResizing, setIsResizing] = useState(false);
   const [textareaHeight, setTextareaHeight] = useState(60);
   const [currentPromptIndex, setCurrentPromptIndex] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initialWidthRef = useRef<number>(0);
   const mainContentRef = useRef<HTMLDivElement>(null);
-  let dragCounter = 0;
 
   // Set page title for fintech
   useEffect(() => {
@@ -251,7 +245,7 @@ const FintechHomeView: React.FC = () => {
   }, [authStore.token]);
 
   // Function to actually submit the chat
-  const submitChat = async (input: string, files: File[] = []) => {
+  const submitChat = async (input: string) => {
     setIsLoading(true);
 
     // Store the full message to be sent after chat creation
@@ -297,7 +291,6 @@ const FintechHomeView: React.FC = () => {
       navigate('/fintech', { replace: true });
     } finally {
       setIsLoading(false);
-      setAttachedFiles([]);
       setChatInput('');
       setTextareaHeight(60); // Reset to default height
       setPendingMessage(null);
@@ -331,26 +324,25 @@ const FintechHomeView: React.FC = () => {
 
     // Check if user is a guest
     if (isGuestUser) {
-      // Capture the current input and files in local variables
+      // Capture the current input in local variable
       const currentInput = chatInput.trim();
-      const currentFiles = [...attachedFiles];
 
       // Store the pending message
-      setPendingMessage({ input: currentInput, files: currentFiles });
+      setPendingMessage({ input: currentInput });
 
       // Show login popup with guest user message
       eventBus.$emit(SHOW_LOGIN_POPUP, {
         isGuestUser: true,
         onProceedWithoutLogin: () => {
           // User chose to proceed without login - use the captured value
-          submitChat(currentInput, currentFiles);
+          submitChat(currentInput);
         }
       });
       return;
     }
 
     // Not a guest user, submit directly
-    await submitChat(chatInput.trim(), attachedFiles);
+    await submitChat(chatInput.trim());
   };
 
   // Fintech-specific quick actions
@@ -358,37 +350,37 @@ const FintechHomeView: React.FC = () => {
     {
       label: 'What is CYODA?',
       action: () => setChatInput('What is CYODA and how does it work?'),
-      icon: <Info size={20} className="text-slate-400" />,
+      icon: <Info size={20} className="text-slate-300" />,
       description: 'Learn about the CYODA platform'
     },
     {
       label: 'What is my CYODA env?',
       action: () => setChatInput('Please, list my Cyoda environments'),
-      icon: <Search size={20} className="text-slate-400" />,
+      icon: <Search size={20} className="text-slate-300" />,
       description: 'Check environment status'
     },
     {
       label: 'Deploy my environment',
       action: () => setChatInput('Deploy dev environment, please'),
-      icon: <Zap size={20} className="text-slate-400" />,
+      icon: <Zap size={20} className="text-slate-300" />,
       description: 'Deploy to production environment'
     },
     {
       label: 'Help with workflows',
       action: () => setChatInput('Create a workflow for Order entity with create, update, and cancel transitions'),
-      icon: <GitBranch size={20} className="text-slate-400" />,
+      icon: <GitBranch size={20} className="text-slate-300" />,
       description: 'Design entity workflows'
     },
     {
       label: 'Build a REST API',
       action: () => setChatInput('Build a complete REST API with CRUD operations for customer management'),
-      icon: <Search size={20} className="text-slate-400" />,
+      icon: <Search size={20} className="text-slate-300" />,
       description: 'Create a full REST API application'
     },
     {
       label: 'Add new entity',
       action: () => setChatInput('Add a Customer entity with id, name, email, and phone fields'),
-      icon: <Database size={20} className="text-slate-400" />,
+      icon: <Database size={20} className="text-slate-300" />,
       description: 'Create data entities'
     }
   ];
@@ -398,35 +390,35 @@ const FintechHomeView: React.FC = () => {
     {
       title: "I need a trading platform for my startup",
       prompt: "Build a real-time trading platform with market data feeds, order management, portfolio tracking, risk controls, and regulatory compliance for equities and derivatives",
-      icon: <TrendingUp size={32} className="text-white" />,
+      icon: <TrendingUp size={48} className="text-white" />,
       category: "Trading",
       gradient: "rgba(55, 65, 81, 0.8), rgba(31, 41, 55, 0.8)"
     },
     {
       title: "My customers need secure payments",
       prompt: "Create a payment gateway with multi-currency support, fraud detection, PCI compliance, recurring billing, and real-time transaction monitoring",
-      icon: <CreditCard size={32} className="text-white" />,
+      icon: <CreditCard size={48} className="text-white" />,
       category: "Payments",
       gradient: "rgba(75, 85, 99, 0.8), rgba(55, 65, 81, 0.8)"
     },
     {
       title: "I want to launch a digital bank",
       prompt: "Build a complete digital banking platform with account management, card services, mobile payments, budgeting tools, and regulatory compliance",
-      icon: <CreditCard size={32} className="text-white" />,
+      icon: <DollarSign size={48} className="text-white" />,
       category: "Banking",
       gradient: "rgba(55, 65, 81, 0.8), rgba(31, 41, 55, 0.8)"
     },
     {
       title: "I need advanced risk management",
       prompt: "Implement a comprehensive risk management system with credit scoring, fraud detection, AML compliance, stress testing, and real-time monitoring",
-      icon: <Shield size={32} className="text-white" />,
+      icon: <Shield size={48} className="text-white" />,
       category: "Risk Management",
       gradient: "rgba(75, 85, 99, 0.8), rgba(55, 65, 81, 0.8)"
     },
     {
       title: "I want to build a crypto exchange",
       prompt: "Create a cryptocurrency exchange with order matching engine, multi-wallet support, security features, KYC/AML compliance, and liquidity management",
-      icon: <BarChart3 size={32} className="text-white" />,
+      icon: <BarChart3 size={48} className="text-white" />,
       category: "Crypto",
       gradient: "rgba(55, 65, 81, 0.8), rgba(31, 41, 55, 0.8)"
     }
@@ -455,57 +447,7 @@ const FintechHomeView: React.FC = () => {
     setCurrentPromptIndex((prev) => (prev - 1 + fintechPromptExamples.length) % fintechPromptExamples.length);
   };
 
-  // Drag and drop handlers
-  const handleDragEnter = (e: React.DragEvent) => {
-    e.preventDefault();
-    dragCounter++;
-    setIsDragging(true);
-  };
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    dragCounter--;
-    if (dragCounter === 0) setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    dragCounter = 0;
-    setIsDragging(false);
-
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      const newFiles = Array.from(files);
-      setAttachedFiles(prev => [...prev, ...newFiles]);
-    }
-  };
-
-  const handleFileAttach = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const newFiles = Array.from(files);
-      // Validate each file
-      const validFiles: File[] = [];
-      newFiles.forEach(file => {
-        if (file.size <= 10 * 1024 * 1024) { // 10MB limit
-          validFiles.push(file);
-        } else {
-          console.warn(`File ${file.name} is too large`);
-        }
-      });
-      setAttachedFiles(prev => [...prev, ...validFiles]);
-    }
-    // Reset input value to allow selecting the same file again
-    e.target.value = '';
-  };
-
-  const handleRemoveFile = (index: number) => {
-    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
-  };
 
   // Dummy handlers for canvas (since we're on home page without active chat)
   const handleAnswer = (data: { answer: string; files?: File[] }) => {
@@ -556,7 +498,7 @@ const FintechHomeView: React.FC = () => {
         environmentsVisible={isEnvironmentsOpen}
         showCanvasButton={false}
       />
-      <div className="flex h-[calc(100vh-61px)] overflow-hidden">
+      <div className="flex h-[calc(100vh-73px)] overflow-hidden">
         {/* Enhanced Left Sidebar - Resizable Chat History Panel */}
         {isChatHistoryOpen && (
           <div
@@ -577,6 +519,8 @@ const FintechHomeView: React.FC = () => {
               hasMoreChats={assistantStore.hasMoreChats}
               isLoadingMore={assistantStore.isLoadingMoreChats}
               onLoadMore={() => assistantStore.loadMoreChats()}
+              windowStart={assistantStore.windowStart}
+              windowEnd={assistantStore.windowEnd}
             />
           </div>
         )}
@@ -607,51 +551,67 @@ const FintechHomeView: React.FC = () => {
         {/* Enhanced Main Content */}
         <div ref={mainContentRef} className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden scrollbar-thin bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
             <div className="p-3 sm:p-4 md:p-4 lg:p-5 xl:p-6 min-h-full flex flex-col min-w-0">
-            <div className={`w-full flex-1 flex flex-col min-w-0 max-w-full ${isChatHistoryOpen ? 'sm:max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl' : 'sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl'} mx-auto`} style={{
-              transform: isChatHistoryOpen ? 'scale(0.9)' : 'scale(1)',
-              transformOrigin: 'top center',
-              transition: 'transform 0.3s ease'
-            }}>
+            <div className="w-full flex-1 flex flex-col min-w-0 max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl mx-auto">
 
               {/* Fintech Hero Section */}
-              <div className="mb-8 animate-fade-in-up" style={{ marginTop: '24px', fontFamily: 'Roboto, sans-serif' }}>
+              <div className="mb-12 animate-fade-in-up" style={{ marginTop: '32px', fontFamily: 'Montserrat, sans-serif' }}>
+                {/* Background gradient for depth */}
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: 'radial-gradient(circle at center top, rgba(34,197,94,0.12), transparent 60%)',
+                    top: '80px',
+                    height: '600px'
+                  }}
+                />
+
                 {/* Hero Section - Professional Fintech */}
                 <div className="relative max-w-6xl mx-auto px-6">
                   {/* Main Hero */}
-                  <div className="mb-6">
+                  <div className="mb-10">
                     {/* Badge */}
-                    <div className="mb-3 inline-flex items-center space-x-2 px-4 py-2 rounded-full" style={{
+                    <div className="mb-6 inline-flex items-center space-x-2 px-4 py-2 rounded-full" style={{
                       background: 'rgba(34,197,94,0.15)',
                       border: '1px solid rgba(34,197,94,0.3)'
                     }}>
                       <div className="w-2 h-2 rounded-full" style={{ background: '#22c55e' }}></div>
-                      <CaptionUppercase className="text-emerald-300">
-                        Fintech Solutions
-                      </CaptionUppercase>
+                      <span className="text-sm font-semibold text-emerald-300">Fintech Solutions</span>
                     </div>
 
-                    {/* H1 - Main Heading */}
-                    <H1
-                      className="text-teal-400 animate-fade-in"
+                    <h1
+                      className="animate-fade-in"
                       style={{
+                        fontFamily: 'Montserrat, sans-serif',
+                        fontWeight: 800,
+                        fontSize: 'clamp(42px, 7vw, 64px)',
+                        background: 'linear-gradient(135deg, #22c55e 0%, #10b981 50%, #059669 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text',
+                        letterSpacing: '-1px',
+                        lineHeight: 1.1,
                         animationDelay: '0.1s',
-                        marginBottom: '12px'
-                      }}
-                    >
-                      Enterprise Fintech Platform
-                    </H1>
-
-                    {/* Body Large - Main Description */}
-                    <Body
-                      className="text-slate-200 animate-fade-in"
-                      style={{
-                        animationDelay: '0.2s',
-                        maxWidth: '800px',
                         marginBottom: '16px'
                       }}
                     >
+                      Enterprise Fintech Platform
+                    </h1>
+
+                    <p
+                      className="animate-fade-in"
+                      style={{
+                        fontFamily: 'Montserrat, sans-serif',
+                        fontWeight: 500,
+                        fontSize: 'clamp(18px, 2.2vw, 22px)',
+                        color: 'rgba(255,255,255,0.8)',
+                        lineHeight: 1.7,
+                        animationDelay: '0.2s',
+                        maxWidth: '800px',
+                        marginBottom: '24px'
+                      }}
+                    >
                       Build, deploy, and scale enterprise-grade fintech applications with AI-powered development. From trading platforms to payment systems, we provide the infrastructure for modern financial innovation.
-                    </Body>
+                    </p>
 
                     {/* Feature Pills */}
                     <div className="flex flex-wrap gap-3 animate-fade-in" style={{ animationDelay: '0.3s' }}>
@@ -663,18 +623,15 @@ const FintechHomeView: React.FC = () => {
                       ].map((feature, idx) => (
                         <div
                           key={idx}
-                          className="rounded-lg transition-all duration-300 hover:scale-105 flex items-center justify-center"
+                          className="px-4 py-2 rounded-lg transition-all duration-300 hover:scale-105"
                           style={{
-                            width: '200px',
-                            height: '36px',
-                            padding: '0',
+                            background: 'rgba(34,197,94,0.1)',
                             border: '1px solid rgba(34,197,94,0.2)',
                             backdropFilter: 'blur(10px)'
                           }}
                         >
-                          {/* Body Small - Feature Pills */}
-                          <span className="typo-body-sm text-slate-200 text-center leading-none flex items-center gap-2">
-                            <span>{feature.icon}</span>
+                          <span className="text-sm font-medium text-slate-200">
+                            <span className="mr-2">{feature.icon}</span>
                             {feature.label}
                           </span>
                         </div>
@@ -685,25 +642,163 @@ const FintechHomeView: React.FC = () => {
 
               </div>
 
-              {/* Chat Input */}
-              <div className="mt-8 mb-0 max-w-4xl mx-auto w-full">
-                <form onSubmit={handleChatSubmit}>
-                  <div
-                    className="relative"
-                    onDragEnter={handleDragEnter}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    onDragOver={(e) => e.preventDefault()}
-                  >
-                    {isDragging && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-slate-800 bg-opacity-90 backdrop-blur-sm rounded-3xl z-10 border-2 border-dashed border-emerald-500">
-                        <div className="text-center">
-                          <Paperclip size={48} className="text-emerald-300 mx-auto mb-2" />
-                          <span className="text-emerald-300 font-medium text-lg">Drop files here</span>
-                        </div>
-                      </div>
-                    )}
+              {/* Fintech Prompt Examples Carousel */}
+              <div
+                className="mb-8 transition-all duration-500 ease-in-out"
+                style={{
+                  fontFamily: 'Montserrat, sans-serif',
+                  opacity: 1,
+                  transform: 'translateY(0)'
+                }}
+              >
+                <div className="w-full max-w-none px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
+                  <div className="relative">
+                    {/* Carousel Container with professional shadow */}
+                    <div
+                      className="overflow-hidden rounded-3xl relative"
+                      style={{
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.3), 0 0 0 1px rgba(107,114,128,0.2)'
+                      }}
+                    >
+                      {/* Professional gradient overlay */}
+                      <div
+                        className="absolute inset-0 pointer-events-none z-10"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(107,114,128,0.05) 0%, transparent 50%, rgba(75,85,99,0.05) 100%)'
+                        }}
+                      />
 
+                      <div
+                        className="flex transition-all duration-700 ease-out"
+                        style={{ transform: `translateX(-${currentPromptIndex * 100}%)` }}
+                      >
+                        {fintechPromptExamples.map((example, index) => (
+                          <div
+                            key={index}
+                            className="min-w-full p-1"
+                          >
+                            <div
+                              onClick={(e) => {
+                                e.preventDefault();
+                                console.log('Fintech carousel item clicked, prompt:', example.prompt);
+                                handlePromptClick(example.prompt);
+                              }}
+                              className="w-full text-left p-4 transition-all duration-500 group relative overflow-hidden cursor-pointer"
+                              style={{
+                                background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)',
+                                backdropFilter: 'blur(20px)'
+                              }}
+                            >
+                              {/* Fintech hover gradient effect */}
+                              <div
+                                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                style={{
+                                  background: 'radial-gradient(circle at top right, rgba(34,197,94,0.15), transparent 70%)'
+                                }}
+                              />
+
+                              <div className="relative z-10">
+                                <div className="space-y-4">
+                                  {/* Header Content */}
+                                  <div className="flex items-center space-x-3 mb-3" style={{ marginLeft: '3%' }}>
+                                    <span
+                                      className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider"
+                                      style={{
+                                        background: `linear-gradient(135deg, ${example.gradient})`,
+                                        color: 'white'
+                                      }}
+                                    >
+                                      {example.category}
+                                    </span>
+                                    <div className="flex items-center space-x-1 text-slate-400">
+                                      <Clock size={14} />
+                                      <span className="text-xs">15-45 min setup</span>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-start space-x-6">
+                                    {/* Icon Display */}
+                                    <div className="flex-shrink-0" style={{ marginLeft: '3%' }}>
+                                      <div
+                                        className="w-24 h-24 p-4 rounded-xl overflow-hidden flex items-center justify-center shadow-lg"
+                                        style={{
+                                          background: `linear-gradient(135deg, ${example.gradient})`
+                                        }}
+                                      >
+                                        {example.icon}
+                                      </div>
+                                    </div>
+
+                                    {/* Text Content */}
+                                    <div className="flex-1 space-y-3">
+                                      <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-emerald-300 transition-colors duration-300">
+                                        {example.title}
+                                      </h3>
+
+                                      <p className="text-slate-300 text-lg leading-relaxed mb-4 group-hover:text-slate-200 transition-colors duration-300">
+                                        {example.prompt.substring(0, 120)}...
+                                      </p>
+
+                                      {/* Prompt Text with Copy Button */}
+                                      <div className="relative bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                                        <p className="text-slate-400 text-base leading-relaxed group-hover:text-slate-300 transition-colors duration-300 font-mono pr-12">
+                                          {example.prompt}
+                                        </p>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            console.log('Copy button clicked, setting prompt:', example.prompt);
+                                            navigator.clipboard.writeText(example.prompt);
+                                            handlePromptClick(example.prompt);
+                                          }}
+                                          className="absolute top-3 right-3 p-3 text-slate-400 hover:text-emerald-400 transition-all duration-200 hover:scale-110 rounded-lg hover:bg-slate-700/50"
+                                          title="Copy prompt and set in input"
+                                        >
+                                          <DollarSign className="w-6 h-6" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Navigation Buttons */}
+                    <button
+                      onClick={prevPrompt}
+                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(75,85,99,0.9), rgba(55,65,81,0.9))',
+                        backdropFilter: 'blur(10px)',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(107,114,128,0.5)',
+                      }}
+                    >
+                      <ChevronRight className="text-white rotate-180 group-hover:-translate-x-0.5 transition-transform" size={22} />
+                    </button>
+
+                    <button
+                      onClick={nextPrompt}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(75,85,99,0.9), rgba(55,65,81,0.9))',
+                        backdropFilter: 'blur(10px)',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(107,114,128,0.5)',
+                      }}
+                    >
+                      <ChevronRight className="text-white group-hover:translate-x-0.5 transition-transform" size={22} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Chat Input */}
+              <div className="mb-4" style={{ marginTop: '-1vh' }}>
+                <form onSubmit={handleChatSubmit}>
+                  <div className="relative">
                     <textarea
                       ref={chatInputRef}
                       value={chatInput}
@@ -722,279 +817,56 @@ const FintechHomeView: React.FC = () => {
                       }}
                       placeholder="What fintech solution would you like to build today?"
                       rows={1}
-                      className="w-full text-white placeholder-slate-300 focus:outline-none transition-all duration-300 text-lg resize-none peer"
+                      className="w-full text-white placeholder-slate-400 focus:outline-none transition-all duration-200 text-lg resize-none"
                       style={{
                         height: `${textareaHeight}px`,
                         minHeight: '64px',
                         maxHeight: '300px',
                         overflowY: textareaHeight >= 300 ? 'auto' : 'hidden',
                         lineHeight: '1.5',
-                        background: 'rgba(34,197,94,0.12)',
+                        background: 'rgba(30, 41, 59, 0.6)',
                         backdropFilter: 'blur(14px)',
                         WebkitBackdropFilter: 'blur(14px)',
-                        border: '2px solid rgba(34,197,94,0.8)',
+                        border: '1px solid rgba(34,197,94,0.3)',
                         borderRadius: '24px',
-                        padding: '18px 24px 60px 24px',
-                        boxShadow: '0 0 20px rgba(34,197,94,0.3), 0 8px 32px rgba(0,0,0,0.2)',
-                        fontFamily: 'Roboto, sans-serif'
+                        padding: '18px 120px 18px 24px',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.2), 0 0 0 1px rgba(34,197,94,0.1)',
+                        fontFamily: 'Montserrat, sans-serif'
                       }}
                       disabled={isLoading}
-                      onFocus={(e) => {
-                        e.currentTarget.style.boxShadow = '0 0 30px rgba(34,197,94,0.6), 0 8px 32px rgba(0,0,0,0.3)';
-                        e.currentTarget.style.borderColor = 'rgba(34,197,94,1)';
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.boxShadow = '0 0 20px rgba(34,197,94,0.3), 0 8px 32px rgba(0,0,0,0.2)';
-                        e.currentTarget.style.borderColor = 'rgba(34,197,94,0.8)';
-                      }}
                     />
 
                     {/* Bottom Right Controls - Fintech Style */}
-                    <div className="absolute right-6 bottom-4 flex items-center gap-0 z-10">
+                    <div className="absolute right-4 bottom-4 flex items-center z-10">
                       {/* Attach File Button */}
-                      <button
-                        type="button"
-                        onClick={handleFileAttach}
-                        className="text-slate-400 hover:scale-110 transition-all duration-200 flex items-center justify-center flex-shrink-0"
-                        style={{ width: '40px', height: '40px', minWidth: '40px', minHeight: '40px' }}
-                        title="Attach file"
-                      >
-                        <Paperclip size={20} />
-                      </button>
-
                       {/* Send Button - Fintech themed */}
                       <button
                         type="submit"
                         disabled={!chatInput.trim() || isLoading}
-                        className="hover:scale-110 transition-all duration-200 flex items-center justify-center flex-shrink-0"
+                        className="hover:scale-110 transition-all duration-200 flex items-center justify-center flex-shrink-0 p-3"
                         style={{
-                          width: '40px',
-                          height: '40px',
-                          minWidth: '40px',
-                          minHeight: '40px',
+                          transform: 'translateY(5%)',
                           color: '#22c55e'
                         }}
                         title="Send Message (Enter)"
                       >
                         {isLoading ? (
-                          <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: '#22c55e33', borderTopColor: '#22c55e' }} />
+                          <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: '#22c55e33', borderTopColor: '#22c55e' }} />
                         ) : (
-                          <Send size={20} style={{ color: '#22c55e' }} />
+                          <Send size={24} style={{ color: '#22c55e' }} />
                         )}
                       </button>
                     </div>
                   </div>
                 </form>
-
-                {/* File attachments display - Below input */}
-                {attachedFiles.length > 0 && (
-                  <div className="mt-2 sm:mt-3 md:mt-4 p-2 sm:p-3 md:p-4 bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-lg sm:rounded-xl md:rounded-2xl">
-                    <div className="flex items-center justify-between mb-2 sm:mb-2.5 md:mb-3">
-                      <span className="text-xs sm:text-sm font-medium text-slate-200">Attached Files ({attachedFiles.length})</span>
-                      <button
-                        type="button"
-                        onClick={() => setAttachedFiles([])}
-                        className="text-xs text-slate-400 hover:text-white transition-colors"
-                      >
-                        Clear All
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                      {attachedFiles.map((file, index) => (
-                        <div key={index} className="bg-slate-700/50 text-slate-200 px-2 sm:px-2.5 md:px-3 py-1.5 sm:py-1.5 md:py-2 rounded-md sm:rounded-lg text-xs sm:text-sm flex items-center space-x-1.5 sm:space-x-2 border border-slate-600">
-                          <Paperclip size={12} className="sm:w-[13px] sm:h-[13px] md:w-[14px] md:h-[14px] text-emerald-300 flex-shrink-0" />
-                          <span className="max-w-[100px] sm:max-w-[150px] md:max-w-[200px] truncate">{file.name}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveFile(index)}
-                            className="hover:text-red-400 transition-colors ml-1 flex-shrink-0"
-                          >
-                            <X size={12} className="sm:w-[13px] sm:h-[13px] md:w-[14px] md:h-[14px]" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Hidden File Input */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  onChange={handleFileChange}
-                  style={{ display: 'none' }}
-                  accept=".pdf,.docx,.xlsx,.pptx,.xml,.json,text/*,image/*"
-                />
-              </div>
-
-              {/* Fintech Prompt Examples Carousel */}
-              <div
-                className="mt-6 mb-8 transition-all duration-500 ease-in-out -mx-4 sm:-mx-6 md:-mx-8 lg:-mx-12 xl:-mx-16 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16"
-                style={{
-                  fontFamily: 'Roboto, sans-serif',
-                  opacity: 1,
-                  transform: 'translateY(0)'
-                }}
-              >
-                <div className="relative">
-                    {/* Carousel Container with professional shadow */}
-                    <div
-                      className="overflow-hidden rounded-3xl relative"
-                      style={{
-                        boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
-                      }}
-                    >
-                      {/* Professional gradient overlay */}
-                      <div
-                        className="absolute inset-0 pointer-events-none z-10"
-                        style={{
-                          background: 'linear-gradient(135deg, rgba(107,114,128,0.05) 0%, transparent 50%, rgba(75,85,99,0.05) 100%)'
-                        }}
-                      />
-
-                      <div
-                        className="flex transition-all duration-700 ease-out"
-                        style={{ transform: `translateX(-${currentPromptIndex * 100}%)` }}
-                      >
-                        {fintechPromptExamples.map((example, index) => (
-                          <div
-                            key={index}
-                            className="min-w-full"
-                          >
-                            <div
-                              onClick={(e) => {
-                                e.preventDefault();
-                                console.log('Fintech carousel item clicked, prompt:', example.prompt);
-                                handlePromptClick(example.prompt);
-                              }}
-                              className="w-full h-full text-left p-4 transition-all duration-500 group relative overflow-hidden cursor-pointer"
-                              style={{
-                                background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)',
-                                backdropFilter: 'blur(20px)',
-                                borderRadius: '24px 2px 24px 24px'
-                              }}
-                            >
-                              <div className="relative z-10">
-                                <div className="space-y-4">
-                                  {/* Header Content */}
-                                  <div className="flex items-center justify-end gap-3 mb-3" style={{ marginRight: '3%' }}>
-                                    {/* Tiny - 12-14px */}
-                                    <CaptionUppercase
-                                      style={{
-                                        background: `linear-gradient(135deg, ${example.gradient})`,
-                                        color: 'white',
-                                        padding: '6px 12px',
-                                        borderRadius: '9999px',
-                                        display: 'inline-block'
-                                      }}
-                                    >
-                                      {example.category}
-                                    </CaptionUppercase>
-                                    <div className="flex items-center space-x-1 text-slate-400">
-                                      <Clock size={14} />
-                                      <Caption>15-45 min setup</Caption>
-                                    </div>
-                                  </div>
-
-                                  <div className="flex items-start space-x-6" style={{ marginLeft: '3%', marginRight: '3%' }}>
-                                    {/* Icon Display */}
-                                    <div className="flex-shrink-0">
-                                      <div
-                                        className="rounded-lg overflow-hidden flex items-center justify-center shadow-lg flex-shrink-0"
-                                        style={{
-                                          background: `linear-gradient(135deg, ${example.gradient})`,
-                                          width: '48px',
-                                          height: '48px'
-                                        }}
-                                      >
-                                        {example.icon}
-                                      </div>
-                                    </div>
-
-                                    {/* Text Content */}
-                                    <div className="flex-1 space-y-3">
-                                      {/* H3 - Carousel Title */}
-                                      <H3 className="text-white mb-3 group-hover:text-emerald-300 transition-colors duration-300">
-                                        {example.title}
-                                      </H3>
-
-                                      {/* Prompt Text with Copy Button */}
-                                      <div
-                                        className="relative p-4 transition-all duration-300"
-                                        style={{
-                                          background: 'rgba(20, 184, 166, 0.08)',
-                                          border: '1px solid rgba(20,184,166,0.4)',
-                                          backdropFilter: 'blur(10px)',
-                                          WebkitBackdropFilter: 'blur(10px)',
-                                          borderRadius: '24px 6px 24px 24px'
-                                        }}
-                                      >
-                                        {/* Body - Prompt Text */}
-                                        <span className="typo-body text-slate-400 group-hover:text-slate-200 transition-colors duration-300 pr-10 block">
-                                          {example.prompt}
-                                        </span>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            console.log('Copy button clicked, setting prompt:', example.prompt);
-                                            navigator.clipboard.writeText(example.prompt);
-                                            handlePromptClick(example.prompt);
-                                          }}
-                                          className="absolute top-3 right-3 text-teal-400 hover:text-teal-400 transition-all duration-200 hover:scale-110 flex items-center justify-center flex-shrink-0"
-                                          style={{
-                                            width: '24px',
-                                            height: '24px',
-                                            minWidth: '24px',
-                                            minHeight: '24px'
-                                          }}
-                                          title="Copy prompt and set in input"
-                                        >
-                                          <Copy size={16} />
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Navigation Buttons */}
-                    <button
-                      onClick={prevPrompt}
-                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
-                      style={{
-                        background: 'rgba(75,85,99,0.3)',
-                        backdropFilter: 'blur(10px)',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-                      }}
-                    >
-                      <ChevronRight className="text-white rotate-180 group-hover:-translate-x-0.5 transition-transform" size={18} />
-                    </button>
-
-                    <button
-                      onClick={nextPrompt}
-                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
-                      style={{
-                        background: 'rgba(75,85,99,0.3)',
-                        backdropFilter: 'blur(10px)',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-                      }}
-                    >
-                      <ChevronRight className="text-white group-hover:translate-x-0.5 transition-transform" size={18} />
-                    </button>
-                  </div>
               </div>
 
               {/* Fintech Quick Actions */}
               <div
-                className="-mt-2 mb-16 transition-all duration-500 ease-in-out"
+                className="mb-8 transition-all duration-500 ease-in-out"
                 style={{
-                  fontFamily: 'Roboto, sans-serif',
+                  marginTop: '1vh',
+                  fontFamily: 'Montserrat, sans-serif',
                   opacity: 1,
                   transform: 'translateY(0)'
                 }}
@@ -1004,38 +876,44 @@ const FintechHomeView: React.FC = () => {
                     <button
                       key={index}
                       onClick={action.action}
-                      className="text-left p-2 sm:p-2.5 md:p-2.5 lg:p-2.5 transition-all duration-300 group relative overflow-hidden"
+                      className="text-left p-3 sm:p-4 md:p-4 lg:p-4 transition-all duration-300 group relative overflow-hidden"
                       style={{
                         background: 'rgba(30, 41, 59, 0.6)',
                         backdropFilter: 'blur(14px)',
                         WebkitBackdropFilter: 'blur(14px)',
+                        border: '1px solid rgba(34,197,94,0.3)',
                         borderRadius: '12px',
                         boxShadow: '0 4px 16px rgba(0,0,0,0.1)'
                       }}
                     >
+                      {/* Fintech hover gradient effect */}
+                      <div
+                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        style={{
+                          background: 'radial-gradient(circle at top right, rgba(34,197,94,0.15), transparent 70%)'
+                        }}
+                      />
+
                       <div className="relative z-10">
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-start space-x-3">
                           <div
-                            className="flex-shrink-0 rounded-lg transition-all duration-300 group-hover:scale-105 flex items-center justify-center"
+                            className="flex-shrink-0 mt-0.5 p-2 rounded-lg transition-all duration-300 group-hover:scale-105"
                             style={{
-                              background: 'linear-gradient(135deg, rgba(0,185,200,0.2), rgba(0,121,129,0.2))',
-                              width: '36px',
-                              height: '36px'
+                              background: 'linear-gradient(135deg, rgba(34,197,94,0.3), rgba(16,185,129,0.3))',
+                              border: '1px solid rgba(34,197,94,0.4)'
                             }}
                           >
                             {action.icon}
                           </div>
                           <div className="flex-1 min-w-0">
-                            {/* H4 - Quick Action Label */}
-                            <H3 className="text-white group-hover:text-emerald-300 transition-colors duration-300 mb-0" style={{ fontWeight: '500' }}>
+                            <div className="text-sm sm:text-base font-semibold text-white group-hover:text-emerald-300 transition-colors duration-300 mb-1">
                               {action.label}
-                            </H3>
-                            {/* Body Small - Quick Action Description */}
-                            <span className="typo-body-sm text-slate-200 group-hover:text-slate-200 transition-colors duration-300 line-clamp-2 text-xs">
+                            </div>
+                            <div className="text-xs text-slate-300 group-hover:text-slate-200 transition-colors duration-300 line-clamp-2">
                               {action.description}
-                            </span>
+                            </div>
                           </div>
-                          <ChevronRight size={14} className="text-slate-400 group-hover:text-emerald-300 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0 mt-1" />
+                          <ChevronRight size={14} className="text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0 mt-1" />
                         </div>
                       </div>
                     </button>
@@ -1047,46 +925,50 @@ const FintechHomeView: React.FC = () => {
               <div
                 className="mb-12 p-8 md:p-10 rounded-2xl transition-all duration-500 ease-in-out group relative overflow-hidden"
                 style={{
-                  fontFamily: 'Roboto, sans-serif',
+                  fontFamily: 'Montserrat, sans-serif',
                   background: 'linear-gradient(135deg, rgba(34,197,94,0.08) 0%, rgba(16,185,129,0.05) 100%)',
                   border: '1px solid rgba(34,197,94,0.2)',
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
-                  boxShadow: '0 8px 32px rgba(34,197,94,0.1)',
+                  boxShadow: '0 8px 32px rgba(34,197,94,0.1), inset 0 1px 0 rgba(255,255,255,0.1)',
                   marginTop: '4vh'
                 }}
               >
+                {/* Animated background gradient */}
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{
+                    background: 'radial-gradient(circle at top right, rgba(34,197,94,0.15), transparent 70%)',
+                    pointerEvents: 'none'
+                  }}
+                />
+
                 <div className="relative z-10">
                   {/* Header */}
                   <div className="mb-8">
-                    <div className="flex items-start space-x-4 mb-4">
+                    <div className="flex items-center space-x-3 mb-4">
                       <div
-                        className="rounded-lg flex items-center justify-center flex-shrink-0"
+                        className="w-12 h-12 rounded-lg flex items-center justify-center"
                         style={{
                           background: 'linear-gradient(135deg, rgba(34,197,94,0.3), rgba(16,185,129,0.3))',
-                          width: '56px',
-                          height: '56px'
+                          border: '1px solid rgba(34,197,94,0.4)'
                         }}
                       >
-                        <Rocket className="w-8 h-8 text-emerald-300" />
+                        <Rocket className="w-6 h-6 text-emerald-400" />
                       </div>
                       <div>
-                        {/* H1 - Enterprise Title */}
-                        <H1 className="text-white">
+                        <h3 className="text-2xl md:text-3xl font-bold text-white">
                           Enterprise-Grade Fintech Solutions
-                        </H1>
-                        {/* Caption Uppercase - Subtitle */}
-                        <CaptionUppercase className="text-emerald-300 mt-1">
-                          Accelerate Your Path to Production
-                        </CaptionUppercase>
+                        </h3>
+                        <p className="text-sm text-emerald-300 font-semibold mt-1">Accelerate Your Path to Production</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Body - Main Description */}
-                  <Body className="text-slate-200 mb-8">
+                  {/* Main Description */}
+                  <p className="text-slate-200 text-base md:text-lg leading-relaxed mb-8">
                     CYODA AI Studio empowers fintech teams to build, deploy, and scale secure, compliant applications faster than ever. From concept to production, we provide the infrastructure and tools you need for modern financial innovation.
-                  </Body>
+                  </p>
 
                   {/* Features Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1132,16 +1014,10 @@ const FintechHomeView: React.FC = () => {
                         }}
                       >
                         <div className="flex items-start space-x-3">
-                          <span className={`flex-shrink-0 ${isChatHistoryOpen ? 'text-lg' : 'text-2xl'}`}>{feature.icon}</span>
+                          <span className="text-2xl flex-shrink-0">{feature.icon}</span>
                           <div>
-                            {/* H4 - Feature Card Title */}
-                            <H3 className="text-white mb-1">
-                              {feature.title}
-                            </H3>
-                            {/* Body Small - Feature Card Description */}
-                            <BodySmall className="text-slate-200">
-                              {feature.description}
-                            </BodySmall>
+                            <h4 className="font-bold text-white mb-1">{feature.title}</h4>
+                            <p className="text-sm text-slate-300">{feature.description}</p>
                           </div>
                         </div>
                       </div>
@@ -1150,10 +1026,10 @@ const FintechHomeView: React.FC = () => {
 
                   {/* CTA */}
                   <div className="mt-8 pt-8 border-t border-slate-700/50">
-                    <p className="text-slate-200 text-sm mb-4">
+                    <p className="text-slate-300 text-sm mb-4">
                       Ready to build your next fintech solution? Start with a simple prompt and let our AI guide you through the entire development process.
                     </p>
-                    <div className="flex items-center space-x-2 text-emerald-300 font-semibold">
+                    <div className="flex items-center space-x-2 text-emerald-400 font-semibold">
                       <span>Try it now in the chat above</span>
                       <ChevronRight size={18} />
                     </div>
@@ -1166,11 +1042,19 @@ const FintechHomeView: React.FC = () => {
 
               {/* Beautiful Footer */}
               <footer
-                className="mt-auto"
-                style={{ fontFamily: 'Roboto, sans-serif' }}
+                className="mt-auto relative overflow-hidden"
+                style={{ fontFamily: 'Montserrat, sans-serif' }}
               >
+                {/* Gradient Background */}
+                <div
+                  className="absolute inset-0 opacity-50"
+                  style={{
+                    background: 'linear-gradient(180deg, transparent 0%, rgba(34,197,94,0.1) 100%)'
+                  }}
+                />
+
                 {/* Footer Content */}
-                <div className="max-w-6xl mx-auto px-6 pt-16 pb-8">
+                <div className="relative max-w-6xl mx-auto px-6 pt-16 pb-8">
 
                   {/* Divider */}
                   <div
@@ -1187,17 +1071,17 @@ const FintechHomeView: React.FC = () => {
                       <h4 className="font-bold text-white mb-4 text-sm uppercase tracking-wider">Company</h4>
                       <ul className="space-y-2">
                         <li>
-                          <a href="https://cyoda.com" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-300 transition-colors text-sm">
+                          <a href="https://cyoda.com" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors text-sm">
                             About CYODA
                           </a>
                         </li>
                         <li>
-                          <a href="https://github.com/Cyoda-platform" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-300 transition-colors text-sm">
+                          <a href="https://github.com/Cyoda-platform" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors text-sm">
                             Open Source
                           </a>
                         </li>
                         <li>
-                          <a href="https://devpost.com/Ksenniya?ref_content=user-portfolio&ref_feature=portfolio&ref_medium=global-nav" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-300 transition-colors text-sm">
+                          <a href="https://devpost.com/Ksenniya?ref_content=user-portfolio&ref_feature=portfolio&ref_medium=global-nav" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors text-sm">
                             Hackathons
                           </a>
                         </li>
@@ -1209,17 +1093,17 @@ const FintechHomeView: React.FC = () => {
                       <h4 className="font-bold text-white mb-4 text-sm uppercase tracking-wider">Community</h4>
                       <ul className="space-y-2">
                         <li>
-                          <a href="https://discord.com/invite/95rdAyBZr2" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-300 transition-colors text-sm">
+                          <a href="https://discord.com/invite/95rdAyBZr2" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors text-sm">
                             Discord Server
                           </a>
                         </li>
                         <li>
-                          <a href="https://github.com/Cyoda-platform" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-300 transition-colors text-sm">
+                          <a href="https://github.com/Cyoda-platform" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors text-sm">
                             GitHub
                           </a>
                         </li>
                         <li>
-                          <a href="https://linkedin.com/company/cyoda" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-300 transition-colors text-sm">
+                          <a href="https://linkedin.com/company/cyoda" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors text-sm">
                             LinkedIn
                           </a>
                         </li>
@@ -1231,12 +1115,12 @@ const FintechHomeView: React.FC = () => {
                       <h4 className="font-bold text-white mb-4 text-sm uppercase tracking-wider">Resources</h4>
                       <ul className="space-y-2">
                         <li>
-                          <a href="https://docs.cyoda.net/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-300 transition-colors text-sm">
+                          <a href="https://docs.cyoda.net/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors text-sm">
                             Getting Started
                           </a>
                         </li>
                         <li>
-                          <a href="https://docs.cyoda.net/api-reference/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-300 transition-colors text-sm">
+                          <a href="https://docs.cyoda.net/api-reference/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-emerald-400 transition-colors text-sm">
                             API Reference
                           </a>
                         </li>
@@ -1250,15 +1134,15 @@ const FintechHomeView: React.FC = () => {
                   </div>
 
                   {/* Bottom Section - Copyright, Terms & Social */}
-                  <div className="flex flex-col space-y-4 pt-8">
+                  <div className="flex flex-col space-y-4 pt-8 border-t border-slate-700/50">
                     {/* Terms & Privacy Notice */}
                     <p className="text-slate-400 text-xs leading-relaxed">
                       By using this service, you confirm that you have read and agree to our{' '}
-                      <a href="https://cyoda.com/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-emerald-300 hover:text-emerald-300 transition-colors font-medium underline">
+                      <a href="https://cyoda.com/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium underline">
                         Terms & Conditions
                       </a>
                       {' '}and{' '}
-                      <a href="https://cyoda.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-emerald-300 hover:text-emerald-300 transition-colors font-medium underline">
+                      <a href="https://cyoda.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium underline">
                         Privacy Policy
                       </a>
                     </p>
@@ -1267,7 +1151,7 @@ const FintechHomeView: React.FC = () => {
                     <div className="flex flex-col md:flex-row items-center justify-between">
                       {/* Copyright */}
                       <p className="text-slate-400 text-sm mb-4 md:mb-0">
-                        © 2025 <a href="https://cyoda.com/" target="_blank" rel="noopener noreferrer" className="text-emerald-300 hover:text-emerald-300 transition-colors font-medium">CYODA Ltd</a>. All rights reserved.
+                        © 2025 <a href="https://cyoda.com/" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium">CYODA Ltd</a>. All rights reserved.
                       </p>
 
                       {/* Social Links */}
@@ -1283,7 +1167,7 @@ const FintechHomeView: React.FC = () => {
                           border: '1px solid rgba(255,255,255,0.1)'
                         }}
                       >
-                        <svg className="w-5 h-5 text-slate-400 hover:text-emerald-300 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-slate-400 hover:text-emerald-400 transition-colors" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                         </svg>
                       </a>
@@ -1298,7 +1182,7 @@ const FintechHomeView: React.FC = () => {
                           border: '1px solid rgba(255,255,255,0.1)'
                         }}
                       >
-                        <svg className="w-5 h-5 text-slate-400 hover:text-emerald-300 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-slate-400 hover:text-emerald-400 transition-colors" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                         </svg>
                       </a>

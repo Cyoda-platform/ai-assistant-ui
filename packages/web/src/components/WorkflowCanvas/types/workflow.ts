@@ -50,7 +50,7 @@ export interface StateDefinition {
 
 // Workflow configuration (from WorkflowConfiguration.json)
 export interface WorkflowConfiguration {
-  version: string;
+  version?: string; // Optional - can be any string value if provided
   name: string;
   desc?: string;
   initialState: string;

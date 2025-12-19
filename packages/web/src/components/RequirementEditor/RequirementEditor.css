@@ -1,0 +1,67 @@
+/* Import monospace fonts */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* Font family definitions */
+@font-face {
+  font-family: 'Fira Code';
+  src: local('Fira Code'), local('FiraCode-Regular'),
+       url('https://cdn.jsdelivr.net/npm/fira-code@6/distr/fira_code.woff2') format('woff2');
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Monaco';
+  src: local('Monaco'), local('Menlo'), local('Courier New'), monospace;
+}
+
+/* Beautiful scrollbars for split view */
+.requirement-editor-split ::-webkit-scrollbar,
+.requirement-preview-split ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.requirement-editor-split ::-webkit-scrollbar-track,
+.requirement-preview-split ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.requirement-editor-split ::-webkit-scrollbar-thumb,
+.requirement-preview-split ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #3b82f6 0%, #1e40af 100%);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.requirement-editor-split ::-webkit-scrollbar-thumb:hover,
+.requirement-preview-split ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%);
+}
+
+/* Firefox scrollbar */
+.requirement-editor-split,
+.requirement-preview-split {
+  scrollbar-color: #3b82f6 transparent;
+  scrollbar-width: thin;
+}
+
+/* Monaco editor scrollbar customization */
+.requirement-editor-split .monaco-scrollable-element > .scrollbar {
+  opacity: 0.7;
+}
+
+.requirement-editor-split .monaco-scrollable-element > .scrollbar:hover {
+  opacity: 1;
+}
+
+/* Smooth transitions */
+.requirement-editor-split,
+.requirement-preview-split {
+  scroll-behavior: smooth;
+}
+
+/* Monaco editor font override */
+.monaco-editor {
+  font-family: 'Fira Code', 'Monaco', 'Menlo', 'Consolas', 'Courier New', 'JetBrains Mono', monospace !important;
+}
+
