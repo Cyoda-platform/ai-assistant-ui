@@ -556,7 +556,55 @@ gantt
       {/* Canvas Tabs - Single tier (no Application wrapper) */}
       <div className="border-b border-slate-700 bg-slate-800/30">
         {/* Resource Tabs - Reordered: App, Requirements, Entities, Workflows, Code */}
-        <div className="px-4 py-3 flex items-center gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+        <div className="px-4 py-3 flex items-center gap-4 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+          {/* Tabs Container - Left aligned */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleTabChange('requirement')}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 ${
+                activeTab === 'requirement'
+                  ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-700'
+              }`}
+            >
+              <FileText size={13} />
+              <span>Requirements</span>
+            </button>
+            <button
+              onClick={() => handleTabChange('data')}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 ${
+                activeTab === 'data'
+                  ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-700'
+              }`}
+            >
+              <Database size={13} />
+              <span>Entities</span>
+            </button>
+            <button
+              onClick={() => handleTabChange('workflow')}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 ${
+                activeTab === 'workflow'
+                  ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-700'
+              }`}
+            >
+              <Activity size={13} />
+              <span>Workflows</span>
+            </button>
+            <button
+              onClick={() => handleTabChange('code')}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 ${
+                activeTab === 'code'
+                  ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-700'
+              }`}
+            >
+              <Code size={13} />
+              <span>Code</span>
+            </button>
+          </div>
+
           {/* Spacer to push action buttons to the right */}
           <div className="flex-1" />
 
@@ -564,7 +612,7 @@ gantt
           <button
             onClick={handlePull}
             disabled={isPulling || !technicalId}
-            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 text-slate-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
             title={!technicalId ? "Conversation not available" : "Pull latest changes from repository"}
           >
             {isPulling ? (
@@ -578,50 +626,6 @@ gantt
                 <span>Pull</span>
               </>
             )}
-          </button>
-          <button
-            onClick={() => handleTabChange('requirement')}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 flex items-center space-x-1.5 ${
-              activeTab === 'requirement'
-                ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40'
-                : 'text-slate-400 hover:text-white hover:bg-slate-700/50 border border-transparent'
-            }`}
-          >
-            <FileText size={13} />
-            <span>Requirements</span>
-          </button>
-          <button
-            onClick={() => handleTabChange('data')}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 flex items-center space-x-1.5 ${
-              activeTab === 'data'
-                ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40'
-                : 'text-slate-400 hover:text-white hover:bg-slate-700/50 border border-transparent'
-            }`}
-          >
-            <Database size={13} />
-            <span>Entities</span>
-          </button>
-          <button
-            onClick={() => handleTabChange('workflow')}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 flex items-center space-x-1.5 ${
-              activeTab === 'workflow'
-                ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40'
-                : 'text-slate-400 hover:text-white hover:bg-slate-700/50 border border-transparent'
-            }`}
-          >
-            <Activity size={13} />
-            <span>Workflows</span>
-          </button>
-          <button
-            onClick={() => handleTabChange('code')}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 flex items-center space-x-1.5 ${
-              activeTab === 'code'
-                ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40'
-                : 'text-slate-400 hover:text-white hover:bg-slate-700/50 border border-transparent'
-            }`}
-          >
-            <Code size={13} />
-            <span>Code</span>
           </button>
         </div>
       </div>
