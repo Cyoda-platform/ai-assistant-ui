@@ -141,7 +141,7 @@ export const EntitiesList: React.FC<EntitiesListProps> = ({
       </div>
 
       {/* Entities Grid */}
-      <div className="flex-1 overflow-auto px-6 py-4 pt-12 w-full">
+      <div className="flex-1 overflow-auto px-6 py-4 pt-4 w-full">
         {entities.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <CanvasEmptyState type="entities" />

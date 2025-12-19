@@ -216,7 +216,7 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
       </div>
 
       {/* Workflows Grid */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 pt-12">
+      <div className="flex-1 overflow-y-auto px-6 py-4 pt-4">
         {workflows.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <CanvasEmptyState type="workflows" />

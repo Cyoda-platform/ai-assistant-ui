@@ -139,7 +139,7 @@ Add any additional context, constraints, or considerations here.`,
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto p-6 pt-12 w-full">
+      <div className="flex-1 overflow-auto p-6 pt-4 w-full">
         {requirements.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <CanvasEmptyState type="requirements" />
