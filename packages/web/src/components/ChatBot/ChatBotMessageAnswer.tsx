@@ -91,9 +91,9 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
                 <span className="text-xs">{date}</span>
               </div>
             )}
-            <div className="flex items-center space-x-1 bg-slate-800/50 backdrop-blur-sm px-2 py-0.5 rounded-full border border-slate-600">
-              <span className="text-xs font-medium text-slate-300">{userName}</span>
-              <User size={10} className="text-teal-400" />
+            <div className="flex items-center space-x-1 bg-slate-800/50 backdrop-blur-sm px-2 py-0.5 rounded-full border border-slate-600 shrink-0">
+              <span className="text-xs font-medium text-slate-300 whitespace-nowrap max-w-[150px] truncate">{userName}</span>
+              <User size={10} className="text-teal-400 flex-shrink-0" />
             </div>
           </div>
 

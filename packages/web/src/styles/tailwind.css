@@ -1510,3 +1510,28 @@ header .ant-card .ant-card-actions a:hover {
   border-color: rgba(20, 184, 166, 0.5);
   box-shadow: 0 8px 32px rgba(20, 184, 166, 0.1);
 }
+
+/* Markdown content - ensure long strings break properly */
+.markdown-content {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.markdown-content p {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Code blocks - preserve formatting and allow horizontal scroll */
+.markdown-content pre {
+  width: 100%;
+  overflow-x: auto;
+  white-space: pre;
+  word-break: normal;
+  word-wrap: normal;
+}
+
+.markdown-content code {
+  word-break: normal;
+  word-wrap: normal;
+}
