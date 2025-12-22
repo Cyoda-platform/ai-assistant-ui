@@ -506,7 +506,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                           <div className="flex-1">
                             <div className="text-sm font-medium">{option.label}</div>
                             {option.description && (
-                              <div className="text-xs opacity-75 mt-1">{option.description}</div>
+                              <div className="text-xs opacity-75 mt-1 break-all">{option.description}</div>
                             )}
                           </div>
                         </div>
