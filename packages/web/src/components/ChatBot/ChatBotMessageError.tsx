@@ -15,8 +15,10 @@ interface ChatBotMessageErrorProps {
 }
 
 const ChatBotMessageError: React.FC<ChatBotMessageErrorProps> = ({ message }) => {
-  const containerInfo = useTextResponsiveContainer(message.text);
-  const date = message.last_modified 
+  const containerInfo = useTextResponsiveContainer(message.text, {
+    baseClass: 'text-responsive-container bot-message'
+  });
+  const date = message.last_modified
     ? dayjs(message.last_modified).format('DD/MM/YYYY HH:mm:ss')
     : dayjs().format('DD/MM/YYYY HH:mm:ss');
 
