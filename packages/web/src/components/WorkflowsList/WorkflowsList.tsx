@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { Plus, Activity, ExternalLink, Database, Github, Trash2 } from 'lucide-react';
 import { message } from 'antd';
 import type { Entity, Workflow, AppRoot } from '@/components/AppsCanvas/types/appSchema';
+import CanvasEmptyState from '@/components/ChatBot/CanvasEmptyState';
 
 interface WorkflowWithEntity extends Workflow {
   entity_name: string;
@@ -215,25 +216,10 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
       </div>
 
       {/* Workflows Grid */}
-      <div className="flex-1 overflow-y-auto px-6 py-4">
+      <div className="flex-1 overflow-y-auto px-6 py-4 pt-4">
         {workflows.length === 0 ? (
-          <div className="w-full max-w-2xl mx-auto text-center pt-8">
-              <div className="relative mb-6">
-                <div className="absolute inset-0 blur-3xl bg-purple-400/10 animate-pulse"></div>
-                <Activity size={80} className="mx-auto text-purple-400/80 relative" />
-              </div>
-              <h2 className="text-2xl font-bold text-white mb-3">
-                Define Your Business Logic
-              </h2>
-              <p className="text-gray-400 mb-2 leading-relaxed">
-                Workflows orchestrate how your entities move through different states.
-              </p>
-              <p className="text-gray-500 text-sm mb-8">
-                Create workflows like <span className="text-purple-400 font-medium">Order Processing</span>, <span className="text-purple-400 font-medium">User Onboarding</span>, or <span className="text-purple-400 font-medium">Approval Flow</span>.
-              </p>
-              <p className="text-gray-600 text-xs mt-4">
-                💡 Tip: Use the "Add Workflow" button above to create your first workflow
-              </p>
+          <div className="flex items-center justify-center h-full">
+            <CanvasEmptyState type="workflows" />
           </div>
         ) : (
           <div className="flex flex-wrap gap-4 h-full">

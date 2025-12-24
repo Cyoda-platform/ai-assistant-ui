@@ -37,7 +37,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
             {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
           </button>
         </div>
-        <pre className="bg-slate-900/50 border border-slate-600 rounded-b-md p-3 overflow-x-auto mt-0">
+        <pre className="bg-slate-900/50 border border-slate-600 rounded-b-md p-3 overflow-x-auto mt-0 w-full whitespace-pre break-normal">
           <code className={codeClassName}>
             {codeChildren}
           </code>
@@ -82,7 +82,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
 
             // Inline code
             return (
-              <code className="bg-slate-800/60 px-1.5 py-0.5 rounded text-sm text-teal-300 font-mono" {...props}>
+              <code className="bg-slate-800/60 px-1.5 py-0.5 rounded text-sm text-teal-300 font-mono break-words" {...props}>
                 {children}
               </code>
             );

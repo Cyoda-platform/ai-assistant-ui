@@ -99,7 +99,7 @@ const TasksPanel = forwardRef<TasksPanelHandle, TasksPanelProps>(({
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
-            <h3 className="font-semibold text-white">
+            <h3 className="font-semibold text-white !mb-0 leading-none">
               Background Tasks
             </h3>
             <span className="bg-emerald-500/20 text-emerald-300 text-xs px-2 py-1 rounded-full font-medium">

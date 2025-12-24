@@ -506,7 +506,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                           <div className="flex-1">
                             <div className="text-sm font-medium">{option.label}</div>
                             {option.description && (
-                              <div className="text-xs opacity-75 mt-1">{option.description}</div>
+                              <div className="text-xs opacity-75 mt-1 break-all">{option.description}</div>
                             )}
                           </div>
                         </div>
@@ -611,14 +611,14 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                   label="Code Changes"
                 />
                 <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="text-2xl">📝</div>
-                      <div>
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center space-x-3 flex-1 min-w-[200px]">
+                      <div className="text-2xl flex-shrink-0">📝</div>
+                      <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-slate-300">
                           Changes Committed
                         </div>
-                        <div className="text-xs text-slate-400 mt-1">
+                        <div className="text-xs text-slate-400 mt-1 break-words">
                           {codeChangesHook.data?.commit_message || 'View changes in Canvas'}
                         </div>
                       </div>
@@ -626,7 +626,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                     <button
                       onClick={onOpenCanvas}
                       type="button"
-                      className="px-4 py-2 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/50 text-teal-300 text-sm font-medium transition-all duration-200 whitespace-nowrap ml-4"
+                      className="px-4 py-2 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/50 text-teal-300 text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0"
                     >
                       🎨 Open Canvas
                     </button>
