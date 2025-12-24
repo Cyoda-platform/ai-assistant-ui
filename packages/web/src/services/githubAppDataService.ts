@@ -5,6 +5,7 @@
  */
 
 import type { AppRoot } from '@/components/AppsCanvas/types/appSchema';
+import privateClient from '@/clients/private';
 
 const API_BASE_URL = import.meta.env.VITE_APP_API_BASE?.replace('/api', '') || 'http://localhost:8000';
 
@@ -83,19 +84,8 @@ export async function loadRepositoryStructure(
     requestBody.installation_id = repoInfo.installationId;
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/repository/analyze`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(requestBody),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to load repository: ${response.statusText}`);
-  }
-
-  return await response.json();
+  const { data } = await privateClient.post('/v1/repository/analyze', requestBody);
+  return data;
 }
 
 /**
@@ -105,24 +95,13 @@ export async function loadFileContent(
   repoInfo: GitHubRepositoryInfo,
   filePath: string
 ): Promise<string> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/repository/file-content`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      repository_name: repoInfo.repositoryName,
-      file_path: filePath,
-      branch: repoInfo.branch,
-      owner: repoInfo.owner,
-    }),
+  const { data } = await privateClient.post('/v1/repository/file-content', {
+    repository_name: repoInfo.repositoryName,
+    file_path: filePath,
+    branch: repoInfo.branch,
+    owner: repoInfo.owner,
   });
 
-  if (!response.ok) {
-    throw new Error(`Failed to load file: ${response.statusText}`);
-  }
-
-  const data = await response.json();
   return data.content;
 }
 
@@ -345,24 +324,13 @@ export async function loadWorkflowFromGitHub(
 export async function getRepositoryDiff(
   repoInfo: GitHubRepositoryInfo
 ): Promise<RepositoryDiff> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/repository/diff`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      repository_name: repoInfo.repositoryName,
-      owner: repoInfo.owner,
-      branch: repoInfo.branch,
-    }),
+  const { data } = await privateClient.post('/v1/repository/diff', {
+    repository_name: repoInfo.repositoryName,
+    owner: repoInfo.owner,
+    branch: repoInfo.branch,
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to fetch repository diff');
-  }
-
-  return await response.json();
+  return data;
 }
 
 /**
@@ -371,22 +339,11 @@ export async function getRepositoryDiff(
 export async function pullRepositoryChanges(
   conversationId: string
 ): Promise<{ success: boolean; message: string; branch: string }> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/repository/pull`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      conversation_id: conversationId,
-    }),
+  const { data } = await privateClient.post('/v1/repository/pull', {
+    conversation_id: conversationId,
   });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to pull repository changes');
-  }
-
-  return await response.json();
+  return data;
 }
 
 const githubAppDataService = {
@@ -395,6 +352,7 @@ const githubAppDataService = {
   convertGitHubToAppRoot,
   loadWorkflowFromGitHub,
   getRepositoryDiff,
+  pullRepositoryChanges,
 };
 
 export default githubAppDataService;

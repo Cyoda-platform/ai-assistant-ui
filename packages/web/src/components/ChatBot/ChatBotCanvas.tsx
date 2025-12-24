@@ -46,6 +46,7 @@ import { WorkflowsList } from '@/components/WorkflowsList';
 import { useRepositoryStore } from '@/stores/repository';
 import type { AppRoot } from '@/components/AppsCanvas/types/appSchema';
 import type { GitHubRepositoryInfo } from '@/services/githubAppDataService';
+import githubAppDataService from '@/services/githubAppDataService';
 
 interface ChatBotCanvasProps {
   messages: any[];
@@ -107,23 +108,8 @@ const ChatBotCanvas: React.FC<ChatBotCanvasProps> = ({
     try {
       console.log('🔄 Pulling changes from repository...');
 
-      // Call the /pull endpoint
-      const response = await fetch('/api/v1/repository/pull', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          conversation_id: technicalId,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to pull repository');
-      }
-
-      const result = await response.json();
+      // Call the /pull endpoint using the service (which includes auth headers)
+      const result = await githubAppDataService.pullRepositoryChanges(technicalId);
       console.log('✅ Pull complete:', result.message);
 
       // Clear cache and reload repository data after successful pull

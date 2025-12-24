@@ -18,6 +18,7 @@ const defaultState: Auth = {
   email: "",
   isCyodaEmployee: false,
   superUserMode: false,
+  selectedUserId: "",
 };
 
 interface AuthStore extends Auth {
@@ -29,6 +30,7 @@ interface AuthStore extends Auth {
   getGuestToken: () => Promise<string>;
   postTransferChats: (guestToken: string, transferAll?: boolean) => Promise<any>;
   toggleSuperUserMode: () => void;
+  setSelectedUserId: (userId: string) => void;
 }
 
 // Load stored auth data and merge with defaults to ensure new fields exist
@@ -123,6 +125,14 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       return { superUserMode: newValue };
     });
   },
+
+  setSelectedUserId(userId: string) {
+    set((state) => {
+      const newState = { ...state, selectedUserId: userId };
+      helperStorage.set("auth", newState);
+      return { selectedUserId: userId };
+    });
+  },
 }));
 
 function parseJwt(token: string): Record<string, any> | null {
@@ -147,5 +157,6 @@ export const useHasToken = () => useAuthStore((state) => !!state.token);
 export const useParsedToken = () => useAuthStore((state) => state.token ? parseJwt(state.token) : null);
 export const useIsCyodaEmployee = () => useAuthStore((state) => state.isCyodaEmployee);
 export const useSuperUserMode = () => useAuthStore((state) => state.superUserMode);
+export const useSelectedUserId = () => useAuthStore((state) => state.selectedUserId);
 
 export default useAuthStore;

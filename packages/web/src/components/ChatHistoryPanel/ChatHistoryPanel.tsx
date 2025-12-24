@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, History, Clock, ChevronRight, X, AlertTriangle } from 'lucide-react';
+import { Home, History, Clock, ChevronRight, X, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Modal } from 'antd';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
@@ -35,8 +35,7 @@ interface ChatHistoryPanelProps {
   hasMoreChats?: boolean; // Whether there are more chats to load
   isLoadingMore?: boolean; // Whether more chats are being loaded
   onLoadMore?: () => void; // Callback to load more chats
-  windowStart?: string | null; // Start of current 1-day window
-  windowEnd?: string | null; // End of current 1-day window
+  onRefresh?: () => void; // Optional refresh callback
 }
 
 const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
@@ -52,14 +51,14 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
   hasMoreChats = false,
   isLoadingMore = false,
   onLoadMore,
-  windowStart = null,
-  windowEnd = null
+  onRefresh
 }) => {
   const navigate = useNavigate();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [chatToDelete, setChatToDelete] = useState<{ id: string; name?: string } | null>(null);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [chatToRename, setChatToRename] = useState<{ id: string; name: string } | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleDeleteClick = (e: React.MouseEvent | null, chatId: string, chatName?: string) => {
     if (e) {
@@ -101,24 +100,46 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
     setChatToDelete(null);
   };
 
+  const handleRefresh = async () => {
+    if (!onRefresh) return;
+    setIsRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const hasChats = chatGroups.length > 0;
 
   return (
     <div className="h-full bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel">
-      {/* Header with Close Button */}
+      {/* Header with Refresh and Close Buttons */}
       {onClose && (
         <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
           <div className="flex items-center space-x-2">
             <History size={18} className="text-teal-400" />
             <h3 className="font-semibold text-white translate-y-[20%]">Chat History</h3>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
-            title="Close Panel"
-          >
-            <X size={16} />
-          </button>
+          <div className="flex items-center space-x-2">
+            {onRefresh && (
+              <button
+                onClick={handleRefresh}
+                disabled={isRefreshing || isLoading}
+                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Refresh chat history"
+              >
+                <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+              title="Close Panel"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
       )}
 
@@ -244,14 +265,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
               </div>
             )}
 
-            {/* Date Range Info */}
-            {windowStart && windowEnd && (
-              <div className="px-2 py-2 text-center">
-                <div className="text-xs text-slate-400 whitespace-normal break-words">
-                  Showing chats from {new Date(windowEnd).toLocaleDateString()}
-                </div>
-              </div>
-            )}
+
 
             {/* Load More Button - Always show */}
             {onLoadMore && (

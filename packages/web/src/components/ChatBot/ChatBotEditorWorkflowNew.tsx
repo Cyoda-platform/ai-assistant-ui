@@ -231,6 +231,9 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
   // Local fullscreen state - preserves workflow state when toggling
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  // Wrapper format notification state
+  const [wrapperFormatNotification, setWrapperFormatNotification] = useState<{ message: string; count: number } | null>(null);
+
   // Transition editor state
   const [editingTransitionId, setEditingTransitionId] = useState<string | null>(null);
   const [editingTransitionDefinition, setEditingTransitionDefinition] = useState<TransitionDefinition | null>(null);
@@ -258,15 +261,35 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
       try {
         // First, try to use workflowData passed directly
         // Check for both 'config' (expected format) and 'content' (/analyze format)
-        const rawConfig = workflowData?.config || workflowData?.content;
+        let rawConfig = workflowData?.config || workflowData?.content;
+        let isWrapperFormat = false;
+        let workflowCount = 1;
+
         if (rawConfig) {
           console.log('✅ Using workflow data passed directly:', workflowData.name);
           console.log('📦 Raw config structure:', {
             hasStatesObject: rawConfig.states && typeof rawConfig.states === 'object' && !Array.isArray(rawConfig.states),
             hasStatesArray: Array.isArray(rawConfig.states),
             hasTransitionsArray: Array.isArray(rawConfig.transitions),
+            hasWorkflowsArray: Array.isArray(rawConfig.workflows),
             keys: Object.keys(rawConfig)
           });
+
+          // Check if this is a wrapper format (has workflows array)
+          if (rawConfig.workflows && Array.isArray(rawConfig.workflows)) {
+            isWrapperFormat = true;
+            workflowCount = rawConfig.workflows.length;
+
+            if (rawConfig.workflows.length === 0) {
+              console.error('❌ Workflows array is empty');
+              setLoading(false);
+              return;
+            }
+
+            // Extract the first workflow from the array
+            rawConfig = rawConfig.workflows[0];
+            console.log('📋 Wrapper format detected. Extracting first workflow from array of', workflowCount);
+          }
 
           // Transform /analyze format to WorkflowConfiguration format if needed
           const config = transformAnalyzeWorkflowToConfig(rawConfig);
@@ -305,6 +328,20 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
 
           const formattedWorkflow = autoLayoutWorkflow(uiWorkflow, { direction: 'TB' });
           setCurrentWorkflow(formattedWorkflow);
+
+          // Show wrapper format notification if detected
+          if (isWrapperFormat) {
+            console.log(`ℹ️ Wrapper format detected. Displaying first workflow (${workflowCount} total).`);
+            setWrapperFormatNotification({
+              message: `Wrapper format detected. Displaying first workflow (${workflowCount} total).`,
+              count: workflowCount
+            });
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+              setWrapperFormatNotification(null);
+            }, 5000);
+          }
+
           setLoading(false);
           updateHistoryState();
           return;
@@ -665,6 +702,15 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
             <Github size={14} />
             {workflowData?.github_url}
           </a>
+        </div>
+      )}
+
+      {/* Wrapper Format Notification */}
+      {wrapperFormatNotification && (
+        <div className="bg-blue-900/30 border-b border-blue-700/50 px-6 py-3 flex items-center gap-3 animate-pulse">
+          <div className="text-blue-400 text-sm font-medium">
+            ℹ️ {wrapperFormatNotification.message}
+          </div>
         </div>
       )}
 

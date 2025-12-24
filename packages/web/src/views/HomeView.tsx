@@ -648,8 +648,7 @@ const HomeView: React.FC = () => {
               hasMoreChats={assistantStore.hasMoreChats}
               isLoadingMore={assistantStore.isLoadingMoreChats}
               onLoadMore={() => assistantStore.loadMoreChats()}
-              windowStart={assistantStore.windowStart}
-              windowEnd={assistantStore.windowEnd}
+              onRefresh={() => assistantStore.getChats(true)}
             />
           </div>
         )}
@@ -1383,23 +1382,6 @@ const HomeView: React.FC = () => {
                 <div className="relative max-w-6xl mx-auto px-6 pt-16 pb-8">
 
                   {/* Fintech Navigation */}
-                  <div className="flex justify-center mb-12">
-                    <button
-                      onClick={() => navigate('/fintech')}
-                      className="inline-flex items-center space-x-3 px-8 py-4 font-bold text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl group"
-                      style={{
-                        background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-                        borderRadius: '16px',
-                        boxShadow: '0 10px 40px rgba(34,197,94,0.4)',
-                        color: '#ffffff',
-                        border: '2px solid rgba(255,255,255,0.2)'
-                      }}
-                    >
-                      <DollarSign className="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" />
-                      <span style={{ textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>Explore Fintech Solutions</span>
-                      <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                    </button>
-                  </div>
 
                   {/* Divider */}
                   <div

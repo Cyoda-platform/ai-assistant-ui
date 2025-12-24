@@ -112,7 +112,7 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
 
       const { data } = await privateClient({
         method: 'post',
-        url: `${import.meta.env.VITE_APP_API_BASE}/v1/logs/search`,
+        url: 'v1/logs/search',
         headers: {
           'X-API-Key': apiKey || ''
         },
@@ -145,13 +145,10 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
         message.info(isExpired ? 'ELK API key expired. Regenerating...' : 'Generating API key...');
 
         try {
-          // Get the regenerate endpoint from error details or use default
-          const regenerateEndpoint = error?.response?.data?.details?.regenerate_endpoint || '/v1/logs/elk-token';
-
           // Generate or regenerate the ELK API key
           const response = await privateClient({
             method: 'post',
-            url: regenerateEndpoint,
+            url: 'v1/logs/api-key',
             data: {
               env_name: 'dev',
               app_name: 'cyoda'
@@ -177,7 +174,7 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
           const query = buildQuery();
           const { data } = await privateClient({
             method: 'post',
-            url: `${import.meta.env.VITE_APP_API_BASE}/v1/logs/search`,
+            url: 'v1/logs/search',
             headers: {
               'X-API-Key': newKey
             },

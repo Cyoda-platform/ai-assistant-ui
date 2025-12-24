@@ -48,7 +48,7 @@ const LogsView: React.FC = () => {
     try {
       const response = await privateClient({
         method: 'post',
-        url: '/v1/logs/api-key',
+        url: 'v1/logs/api-key',
       });
 
       const newKey = response.data?.api_key || response.data?.apiKey || response.data?.key;
@@ -155,7 +155,7 @@ const LogsView: React.FC = () => {
       // Use the backend API endpoint with Elasticsearch query format
       const response = await privateClient({
         method: 'post',
-        url: '/v1/logs/search',
+        url: 'v1/logs/search',
         headers: {
           'X-API-Key': key,
         },
@@ -185,9 +185,11 @@ const LogsView: React.FC = () => {
       const is400Error = err?.response?.status === 400;
       const isApiKeyMissing = err?.response?.data?.error?.includes('X-API-Key header required');
 
-      // Check if we got a 500 error with "API key invalid or expired" message
+      // Check if we got a 500 error with "ELK_API_KEY_EXPIRED" error code
       const is500Error = err?.response?.status === 500;
-      const isApiKeyExpired = err?.response?.data?.error?.includes('API key invalid or expired');
+      const errorCode = err?.response?.data?.details?.error_code;
+      const isApiKeyExpired = errorCode === 'ELK_API_KEY_EXPIRED' ||
+                             err?.response?.data?.error?.includes('API key invalid or expired');
 
       if ((is400Error && isApiKeyMissing || is500Error && isApiKeyExpired) && retryCount === 0) {
         const isExpired = is500Error && isApiKeyExpired;
@@ -198,7 +200,7 @@ const LogsView: React.FC = () => {
           // Generate or regenerate the ELK API key
           const response = await privateClient({
             method: 'post',
-            url: '/v1/logs/api-key',
+            url: 'v1/logs/api-key',
           });
 
           const newKey = response.data?.api_key || response.data?.apiKey || response.data?.key;

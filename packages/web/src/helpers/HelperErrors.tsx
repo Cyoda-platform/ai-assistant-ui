@@ -2,6 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { AxiosError } from "axios";
 import ErrorModal from '@/components/ErrorModal/ErrorModal';
+import GuestLimitModal from '@/components/GuestLimitModal/GuestLimitModal.tsx';
+import eventBus from '@/plugins/eventBus';
+import { SHOW_LOGIN_POPUP } from '@/helpers/HelperConstants';
 
 interface ErrorResponse {
     response?: {
@@ -88,6 +91,18 @@ export default class HelperErrors {
 
         if (data?.message === 'canceled') return;
 
+        // Extract error data
+        let errorData: any = data;
+        if (data?.response?.data) {
+            errorData = data.response.data;
+        }
+
+        // Check if error has a custom modal configuration
+        if (errorData?.modal) {
+            this.showCustomModal(errorData.modal);
+            return;
+        }
+
         // Handle server errors without message
         if (
             data?.response?.status &&
@@ -110,12 +125,6 @@ export default class HelperErrors {
                 'network'
             );
             return;
-        }
-
-        // Extract error data
-        let errorData: any = data;
-        if (data?.response?.data) {
-            errorData = data.response.data;
         }
 
         let message = '';
@@ -142,5 +151,53 @@ export default class HelperErrors {
         }
 
         this.showModal(message, type);
+    }
+
+    private static showCustomModal(modalConfig: any): void {
+        // Check if modal is already open
+        const warningMessage = document.querySelector('.helper-errors');
+        if (warningMessage) return;
+
+        // Create container
+        this.modalContainer = document.createElement('div');
+        document.body.appendChild(this.modalContainer);
+
+        // Create root and render modal
+        this.modalRoot = ReactDOM.createRoot(this.modalContainer);
+
+        const handleClose = () => {
+            if (this.modalRoot && this.modalContainer) {
+                try {
+                    this.modalRoot.unmount();
+                    if (this.modalContainer.parentNode) {
+                        this.modalContainer.parentNode.removeChild(this.modalContainer);
+                    }
+                } catch (e) {
+                    console.error('Error closing modal:', e);
+                }
+                this.modalContainer = null;
+                this.modalRoot = null;
+            }
+        };
+
+        const handleAction = () => {
+            if (modalConfig.action === 'login') {
+                // Emit login event
+                eventBus.$emit(SHOW_LOGIN_POPUP);
+            }
+            handleClose();
+        };
+
+        this.modalRoot.render(
+            <GuestLimitModal
+                visible={true}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                description={modalConfig.description}
+                actionLabel={modalConfig.action_label}
+                onAction={handleAction}
+                onClose={handleClose}
+            />
+        );
     }
 }

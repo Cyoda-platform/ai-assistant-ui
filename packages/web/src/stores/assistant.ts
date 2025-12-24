@@ -15,12 +15,10 @@ interface AssistantStore {
   guestChatsExist: boolean;
   isLoadingChats: boolean;
   isTransferringChats: boolean;
-  nextCursor: string | null;
+  pointInTime: string | null;
+  nextPointInTime: string | null;
   hasMoreChats: boolean;
   isLoadingMoreChats: boolean;
-  windowStart: string | null;
-  windowEnd: string | null;
-  nextWindowStart: string | null;
 
   // Getters
   isExistChats: boolean;
@@ -81,13 +79,10 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
   guestChatsExist: helperStorage.get('assistant:guestChatsExist', false),
   isLoadingChats: false,
   isTransferringChats: isInLoginFlow(), // Start as true if we're in login flow
-  nextCursor: null,
+  pointInTime: null,
+  nextPointInTime: null,
   hasMoreChats: false,
   isLoadingMoreChats: false,
-  windowStart: null,
-  windowEnd: null,
-  nextWindowStart: null,
-  nextWindowEnd: null,
 
   // Getters
   get isExistChats() {
@@ -129,7 +124,7 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
     return privateClient.post(`/v1/chats/canvas-questions`, data);
   },
 
-  async getChats(reset = false, windowStart?: string, windowEnd?: string) {
+  async getChats(reset = false, pointInTime?: string) {
     // Prevent concurrent calls
     const state = get();
     if (state.isLoadingChats) {
@@ -149,53 +144,37 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
 
       // Reset pagination if requested
       if (reset) {
-        set({ chatList: null, windowStart: null, windowEnd: null, nextWindowStart: null, nextWindowEnd: null, hasMoreChats: false });
+        set({ chatList: null, pointInTime: null, nextPointInTime: null, hasMoreChats: false });
       }
 
       // Build query params
       const params: any = {};
       if (isSuperMode) {
         params.super = 'true';
+        // Add selectedUserId if available
+        if (authState.selectedUserId) {
+          params.target_user_id = authState.selectedUserId;
+        }
       }
 
-      // Use provided windowStart or default to tomorrow at midnight UTC (end of today)
-      if (!windowStart) {
-        const tomorrow = new Date();
-        tomorrow.setUTCHours(0, 0, 0, 0);
-        tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
-        const year = tomorrow.getUTCFullYear();
-        const month = String(tomorrow.getUTCMonth() + 1).padStart(2, '0');
-        const day = String(tomorrow.getUTCDate()).padStart(2, '0');
-        windowStart = `${year}-${month}-${day}T00:00:00+00:00`;
+      // Use provided point_in_time for pagination (Cyoda's point-in-time snapshot)
+      if (pointInTime) {
+        params.point_in_time = pointInTime;
       }
 
-      // Use provided windowEnd or calculate as windowStart - 1 day
-      if (!windowEnd) {
-        const endDate = new Date(windowStart);
-        endDate.setUTCDate(endDate.getUTCDate() - 1);
-        const year = endDate.getUTCFullYear();
-        const month = String(endDate.getUTCMonth() + 1).padStart(2, '0');
-        const day = String(endDate.getUTCDate()).padStart(2, '0');
-        windowEnd = `${year}-${month}-${day}T00:00:00+00:00`;
-      }
-
-      params.window_start = windowStart;
-      params.window_end = windowEnd;
-
-      console.log('📋 Loading chats for range:', windowEnd, '<', 'date', '<=', windowStart);
+      console.log('📋 Loading chats with point_in_time:', pointInTime || 'none (first page)');
       const response = await privateClient.get<ChatResponse>(`/v1/chats`, { params });
 
       // Update state with pagination info
       set({
         chatList: response.data.chats,
         chatListReady: true,
-        windowStart: response.data.window_start || null,
-        windowEnd: response.data.window_end || null,
-        nextWindowStart: response.data.next_window_start || null,
-        nextWindowEnd: response.data.next_window_end || null
+        pointInTime: response.data.point_in_time || null,
+        nextPointInTime: response.data.next_point_in_time || null,
+        hasMoreChats: response.data.has_more || false
       });
 
-      console.log('📋 Loaded chats. Next window:', response.data.next_window_end, '<', 'date', '<=', response.data.next_window_start);
+      console.log('📋 Loaded chats. Next point_in_time:', response.data.next_point_in_time, 'Has more:', response.data.has_more);
       return response;
     } catch (error: any) {
       console.error('❌ Failed to fetch chats:', error.message || error);
@@ -209,18 +188,18 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
   async loadMoreChats() {
     const state = get();
 
-    // Check if we have a next window to load
-    if (!state.nextWindowStart || !state.nextWindowEnd) {
-      console.log('📋 No next window available');
+    // Check if we have a next point_in_time to load
+    if (!state.nextPointInTime) {
+      console.log('📋 No next point_in_time available');
       return;
     }
 
     set({ isLoadingMoreChats: true });
     try {
-      console.log('📋 Loading more chats for window:', state.nextWindowEnd, '<', 'date', '<=', state.nextWindowStart);
+      console.log('📋 Loading more chats with point_in_time:', state.nextPointInTime);
 
-      // Use same getChats function with nextWindowStart and nextWindowEnd
-      const response = await this.getChats(false, state.nextWindowStart, state.nextWindowEnd);
+      // Use same getChats function with nextPointInTime
+      const response = await this.getChats(false, state.nextPointInTime);
 
       // Append new chats to existing list instead of replacing
       const currentChats = state.chatList || [];
@@ -254,6 +233,10 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
         ...(config.params || {}),
         super: 'true'
       };
+      // Add selectedUserId if available
+      if (authState.selectedUserId) {
+        config.params.target_user_id = authState.selectedUserId;
+      }
     }
 
     return privateClient.get(`/v1/chats/${technical_id}`, config);

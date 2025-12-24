@@ -11,13 +11,10 @@ export interface CreateChatResponse {
 export interface ChatResponse {
   chats: ChatData[];
   limit?: number;
-  next_cursor?: string | null;
+  point_in_time?: string | null;
+  next_point_in_time?: string | null;
   has_more?: boolean;
   cached?: boolean;
-  window_start?: string | null;
-  window_end?: string | null;
-  next_window_start?: string | null;
-  next_window_end?: string | null;
 }
 
 export interface ChatData {
