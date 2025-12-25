@@ -2437,7 +2437,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             data-testid="quick-help-panel"
           >
             <div
-              className="p-3 overflow-y-auto max-h-[50vh] text-xs text-gray-300 space-y-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border"
+              className="p-4 overflow-y-auto max-h-[50vh] text-xs text-gray-300 space-y-6 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border"
               style={{
                 ['--scrollbar-track' as any]: palette.ui.panelBorder + '30',
                 ['--scrollbar-thumb' as any]: palette.ui.accentColor,
@@ -2445,7 +2445,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
               }}
             >
               <div
-                className="font-semibold text-transparent bg-clip-text mb-2 text-xs"
+                className="text-base font-bold text-transparent bg-clip-text mb-4"
                 style={{
                   backgroundImage: `linear-gradient(to right, ${palette.ui.panelTitleFrom}, ${palette.ui.panelTitleTo})`
                 }}
@@ -2454,117 +2454,117 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
               </div>
 
               {/* Canvas Interactions */}
-              <div className="space-y-1">
-                <div className="font-semibold text-gray-200 text-[10px]">Canvas Interactions</div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">•</span>
-                  <span>Double-click canvas to add new state</span>
+              <div className="space-y-3">
+                <div className="text-xs font-semibold uppercase text-gray-400 opacity-60 tracking-wide">Canvas Interactions</div>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Double-click canvas</span> Add new state</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-pink-500 mt-0.5">•</span>
-                  <span>Drag states to rearrange layout</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Drag states</span> Rearrange layout</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">•</span>
-                  <span>Drag from state handles (dots) to connect</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Drag from handles</span> Connect states</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-pink-500 mt-0.5">•</span>
-                  <span>Click state/transition → jump to JSON</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Click state/transition</span> Jump to JSON</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">•</span>
-                  <span>Double-click transition → open editor</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Double-click transition</span> Open editor</span>
                 </div>
               </div>
 
               {/* Toolbar Buttons */}
-              <div className="space-y-1 pt-2 border-t border-pink-200 dark:border-pink-800">
-                <div className="font-semibold text-gray-800 dark:text-gray-200 text-[10px]">Toolbar Buttons</div>
+              <div className="space-y-3 pt-4 border-t border-pink-200 dark:border-pink-800">
+                <div className="text-xs font-semibold uppercase text-gray-400 opacity-60 tracking-wide">Toolbar Buttons</div>
 
-                <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-0.5">⊡</span>
-                  <span><strong>Fit View</strong> - Center and fit entire workflow in view</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-blue-500 mt-0.5 flex-shrink-0">⊡</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Fit View</span> Center and fit entire workflow in view</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-yellow-500 mt-0.5">⚡</span>
-                  <span><strong>Auto-arrange</strong> - Automatically layout states hierarchically</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-yellow-500 mt-0.5 flex-shrink-0">⚡</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Auto-arrange</span> Automatically layout states hierarchically</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-0.5">ℹ️</span>
-                  <span><strong>Info</strong> - Toggle workflow information panel</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-blue-500 mt-0.5 flex-shrink-0">ℹ️</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Info</span> Toggle workflow information panel</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">{'{}'}</span>
-                  <span><strong>JSON Editor</strong> - Edit workflow configuration as JSON</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">{'{}'}</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">JSON Editor</span> Edit workflow configuration as JSON</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-pink-500 mt-0.5">↓</span>
-                  <span><strong>Download</strong> - Export workflow to JSON file</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-pink-500 mt-0.5 flex-shrink-0">↓</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Download</span> Export workflow to JSON file</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">↑</span>
-                  <span><strong>Upload</strong> - Import workflow from JSON file</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">↑</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Upload</span> Import workflow from JSON file</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-0.5">☁↑</span>
-                  <span><strong>Cloud Export</strong> - Export to environment API</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-blue-500 mt-0.5 flex-shrink-0">☁↑</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Cloud Export</span> Export to environment API</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-0.5">☁↓</span>
-                  <span><strong>Cloud Import</strong> - Import from environment API</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-blue-500 mt-0.5 flex-shrink-0">☁↓</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Cloud Import</span> Import from environment API</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-purple-500 mt-0.5">⚙️</span>
-                  <span><strong>Settings</strong> - Canvas settings and preferences</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-purple-500 mt-0.5 flex-shrink-0">⚙️</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Settings</span> Canvas settings and preferences</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-yellow-500 mt-0.5">💡</span>
-                  <span><strong>Quick Help</strong> - Toggle this help panel</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-yellow-500 mt-0.5 flex-shrink-0">💡</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Quick Help</span> Toggle this help panel</span>
                 </div>
                 {modelName && modelVersion && (
-                  <div className="flex items-start space-x-2">
-                    <span className="text-purple-500 mt-0.5">{isInFullscreenMode ? '⤓' : '⤢'}</span>
-                    <span><strong>Fullscreen</strong> - {isInFullscreenMode ? 'Exit fullscreen mode' : 'Open in fullscreen mode'}</span>
+                  <div className="flex items-start space-x-3 py-0.5">
+                    <span className="text-purple-500 mt-0.5 flex-shrink-0">{isInFullscreenMode ? '⤓' : '⤢'}</span>
+                    <span className="text-gray-300"><span className="text-white font-bold">Fullscreen</span> {isInFullscreenMode ? 'Exit fullscreen mode' : 'Open in fullscreen mode'}</span>
                   </div>
                 )}
               </div>
 
               {/* Keyboard Shortcuts */}
-              <div className="space-y-2 pt-2 border-t border-pink-200 dark:border-pink-800">
-                <div className="font-semibold text-gray-800 dark:text-gray-200 text-xs">Keyboard Shortcuts</div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">•</span>
-                  <span><strong>Delete/Backspace</strong> - Delete selected state/transition</span>
+              <div className="space-y-3 pt-4 border-t border-pink-200 dark:border-pink-800">
+                <div className="text-xs font-semibold uppercase text-gray-400 opacity-60 tracking-wide">Keyboard Shortcuts</div>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Delete/Backspace</span> Delete selected state/transition</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-pink-500 mt-0.5">•</span>
-                  <span><strong>Ctrl/Cmd + Z</strong> - Undo (via JSON editor)</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Ctrl/Cmd + Z</span> Undo (via JSON editor)</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">•</span>
-                  <span><strong>Mouse Wheel</strong> - Zoom in/out</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Mouse Wheel</span> Zoom in/out</span>
                 </div>
               </div>
 
               {/* Tips */}
-              <div className="space-y-2 pt-2 border-t border-pink-200 dark:border-pink-800">
-                <div className="font-semibold text-gray-800 dark:text-gray-200 text-xs">💡 Tips</div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">•</span>
-                  <span>Use JSON editor for bulk changes</span>
+              <div className="space-y-3 pt-4 border-t border-pink-200 dark:border-pink-800">
+                <div className="text-xs font-semibold uppercase text-gray-400 opacity-60 tracking-wide">Tips</div>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300">Use JSON editor for bulk changes</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-pink-500 mt-0.5">•</span>
-                  <span>Auto-arrange after pasting JSON</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300">Auto-arrange after pasting JSON</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">•</span>
-                  <span>Right-click tabs to edit name/version</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300">Right-click tabs to edit name/version</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-pink-500 mt-0.5">•</span>
-                  <span>All 8 handles on states are usable</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300">All 8 handles on states are usable</span>
                 </div>
               </div>
             </div>
