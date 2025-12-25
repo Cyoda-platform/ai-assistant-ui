@@ -47,6 +47,7 @@ html {
   .scrollbar-track-slate-800::-webkit-scrollbar-track {
     background: rgb(30 41 59);
   }
+}
 
   /* Canvas QA message styles - Pink/Purple theme */
   .canvas-qa-question {
@@ -93,9 +94,6 @@ html {
   .logo-container:hover .night-inner-glow {
     opacity: 0 !important;
   }
-
-
-}
 
 /* Glassmorphism effects */
 @layer components {

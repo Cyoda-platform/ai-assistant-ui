@@ -2429,7 +2429,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         {showQuickHelp && (
           <Panel
             position="top-right"
-            className="rounded-2xl shadow-2xl border-2 backdrop-blur-md w-72 max-h-[50vh]"
+            className="rounded-2xl shadow-2xl border-2 backdrop-blur-md w-72 max-h-[50vh] overflow-hidden"
             style={{
               background: `linear-gradient(to bottom right, ${palette.ui.panelGradientFrom}, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
               borderColor: palette.ui.panelBorder
@@ -2437,13 +2437,27 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             data-testid="quick-help-panel"
           >
             <div
-              className="p-4 overflow-y-auto max-h-[50vh] text-xs text-gray-300 space-y-6 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border"
+              className="p-4 pr-3 overflow-y-auto max-h-[50vh] text-xs text-gray-300 space-y-6"
               style={{
-                ['--scrollbar-track' as any]: palette.ui.panelBorder + '30',
-                ['--scrollbar-thumb' as any]: palette.ui.accentColor,
-                ['--scrollbar-border' as any]: palette.ui.panelBorder
-              }}
+                scrollbarWidth: 'thin',
+                scrollbarColor: `${palette.ui.accentColor} transparent`,
+              } as React.CSSProperties}
             >
+              <style>{`
+                [data-testid="quick-help-panel"] > div::-webkit-scrollbar {
+                  width: 6px;
+                }
+                [data-testid="quick-help-panel"] > div::-webkit-scrollbar-track {
+                  background: transparent;
+                }
+                [data-testid="quick-help-panel"] > div::-webkit-scrollbar-thumb {
+                  background: ${palette.ui.accentColor}60 !important;
+                  border-radius: 3px;
+                }
+                [data-testid="quick-help-panel"] > div::-webkit-scrollbar-thumb:hover {
+                  background: ${palette.ui.accentColor}cc !important;
+                }
+              `}</style>
               <div
                 className="text-base font-bold text-transparent bg-clip-text mb-4"
                 style={{
