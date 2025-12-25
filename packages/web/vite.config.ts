@@ -1,4 +1,5 @@
 import { fileURLToPath, URL } from 'node:url'
+import path from 'node:path'
 
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -15,7 +16,9 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      'react': path.resolve('../../node_modules/react'),
+      'react-dom': path.resolve('../../node_modules/react-dom'),
     },
   },
   define: {
