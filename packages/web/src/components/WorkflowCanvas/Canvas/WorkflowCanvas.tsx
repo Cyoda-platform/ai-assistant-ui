@@ -19,7 +19,7 @@ import {
 } from '@xyflow/react';
 import type { Node, Edge, Connection, OnConnect, OnReconnect } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Network, Download, Upload, FileJson, Info, X, Cloud, CloudDownload, CloudUpload, Maximize2, Minimize2, Settings, Send, ArrowLeft } from 'lucide-react';
+import { Network, Download, Upload, FileJson, Info, X, Cloud, CloudDownload, CloudUpload, Maximize2, Minimize2, Settings, ArrowLeft, Lightbulb } from 'lucide-react';
 import axios from 'axios';
 import privateClient from '@/clients/private';
 import { useAuthStore } from '@/stores/auth';
@@ -2017,27 +2017,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     }
   }, [modelName, modelVersion, navigate, showWarning, isInFullscreenMode, location.pathname, location.search, externalOnToggleFullscreen]);
 
-  // Handler to fit the entire workflow in view
-  const handleFitView = useCallback(() => {
-    fitView({
-      padding: 0.2, // 20% padding around the workflow
-      duration: 300, // Smooth animation
-      minZoom: 0.05, // Allow zooming out to 5% for very large workflows
-      maxZoom: 1.5, // Don't zoom in too much for small workflows
-    });
-  }, [fitView]);
-
-  // Handler to send entire workflow to chat
-  const handleSendWorkflowToChat = useCallback(() => {
-    if (!onSendToChat || !cleanedWorkflow) return;
-
-    // Send only the configuration node wrapped in markdown code block
-    const workflowJson = JSON.stringify(cleanedWorkflow.configuration, null, 2);
-    const message = `\`\`\`json\n${workflowJson}\n\`\`\``;
-    onSendToChat(message);
-    console.log('📤 Sent entire workflow to chat');
-  }, [onSendToChat, cleanedWorkflow]);
-
   if (!cleanedWorkflow) {
     return (
       <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
@@ -2104,7 +2083,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         }}
       >
         <Background />
-        <Controls>
+        <Controls showZoom={false} showInteractive={false}>
           {onBack && (
             <ControlButton
               onClick={onBack}
@@ -2118,19 +2097,16 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
               <ArrowLeft size={16} className="text-white" />
             </ControlButton>
           )}
-          {onSendToChat && (
-            <ControlButton
-              onClick={handleSendWorkflowToChat}
-              title="Send entire workflow to chat"
-              className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 border-2"
-              style={{
-                borderColor: '#14b8a6'
-              }}
-              data-testid="send-to-chat-button"
-            >
-              <Send size={16} className="text-white" />
-            </ControlButton>
-          )}
+
+          <ControlButton
+            onClick={handleAutoLayout}
+            disabled={!canAutoLayout(cleanedWorkflow)}
+            title="Auto-arrange states using hierarchical layout"
+            data-testid="auto-layout-button"
+          >
+            <Network size={16} />
+          </ControlButton>
+
           <ControlButton
             onClick={handleToggleWorkflowInfo}
             title="Toggle workflow info"
@@ -2185,22 +2161,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           >
             <CloudDownload size={16} className="text-blue-600 dark:text-blue-400" />
           </ControlButton>
-          <ControlButton
-            onClick={handleAutoLayout}
-            disabled={!canAutoLayout(cleanedWorkflow)}
-            title="Auto-arrange states using hierarchical layout"
-            data-testid="auto-layout-button"
-          >
-            <Network size={16} />
-          </ControlButton>
-          <ControlButton
-            onClick={handleFitView}
-            title="Fit entire workflow in view (works for very large workflows)"
-            data-testid="fit-view-button"
-            className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30"
-          >
-            <Maximize2 size={16} className="text-green-600 dark:text-green-400" />
-          </ControlButton>
+
           <ControlButton
             onClick={handleToggleSettings}
             title="Canvas Settings"
@@ -2216,10 +2177,14 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           <ControlButton
             onClick={handleToggleQuickHelp}
             title="Toggle Quick Help"
-            className={showQuickHelp ? 'bg-gradient-to-br from-pink-100 to-fuchsia-100 dark:from-pink-900 dark:to-fuchsia-900 border-2 border-pink-400' : ''}
+            className={showQuickHelp ? 'border-2' : ''}
+            style={showQuickHelp ? {
+              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
+              borderColor: palette.ui.accentColor
+            } : {}}
             data-testid="quick-help-button"
           >
-            <span className="text-sm font-bold">?</span>
+            <Lightbulb size={16} />
           </ControlButton>
           {/* Only show fullscreen button if model name and version are available */}
           {modelName && modelVersion && (
@@ -2516,12 +2481,15 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
               {/* Toolbar Buttons */}
               <div className="space-y-1 pt-2 border-t border-pink-200 dark:border-pink-800">
                 <div className="font-semibold text-gray-800 dark:text-gray-200 text-[10px]">Toolbar Buttons</div>
-                {onSendToChat && (
-                  <div className="flex items-start space-x-2">
-                    <span className="text-teal-500 mt-0.5">📤</span>
-                    <span><strong>Send to Chat</strong> - Send entire workflow to AI assistant</span>
-                  </div>
-                )}
+
+                <div className="flex items-start space-x-2">
+                  <span className="text-blue-500 mt-0.5">⊡</span>
+                  <span><strong>Fit View</strong> - Center and fit entire workflow in view</span>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="text-yellow-500 mt-0.5">⚡</span>
+                  <span><strong>Auto-arrange</strong> - Automatically layout states hierarchically</span>
+                </div>
                 <div className="flex items-start space-x-2">
                   <span className="text-blue-500 mt-0.5">ℹ️</span>
                   <span><strong>Info</strong> - Toggle workflow information panel</span>
@@ -2547,11 +2515,11 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                   <span><strong>Cloud Import</strong> - Import from environment API</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-pink-500 mt-0.5">⚡</span>
-                  <span><strong>Auto-arrange</strong> - Automatically layout states hierarchically</span>
+                  <span className="text-purple-500 mt-0.5">⚙️</span>
+                  <span><strong>Settings</strong> - Canvas settings and preferences</span>
                 </div>
                 <div className="flex items-start space-x-2">
-                  <span className="text-fuchsia-500 mt-0.5">?</span>
+                  <span className="text-yellow-500 mt-0.5">💡</span>
                   <span><strong>Quick Help</strong> - Toggle this help panel</span>
                 </div>
                 {modelName && modelVersion && (
