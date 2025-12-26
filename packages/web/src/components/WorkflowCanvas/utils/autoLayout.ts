@@ -171,13 +171,25 @@ export function calculateAutoLayout(
   // Track transitions between each pair of states
   const transitionsByPair = new Map<string, Array<{ sourceStateId: string; index: number }>>();
 
+  // Detect bidirectional pairs (A->B and B->A)
+  const bidirectionalPairs = new Set<string>();
+
   Object.entries(workflow.configuration.states).forEach(([sourceStateId, stateDefinition]) => {
     stateDefinition.transitions.forEach((transition, index) => {
       const key = `${sourceStateId}-${transition.next}`;
+      const reverseKey = `${transition.next}-${sourceStateId}`;
+
       if (!transitionsByPair.has(key)) {
         transitionsByPair.set(key, []);
       }
       transitionsByPair.get(key)!.push({ sourceStateId, index });
+
+      // Check if reverse transition exists
+      const reverseStateDefinition = workflow.configuration.states[transition.next];
+      if (reverseStateDefinition?.transitions.some(t => t.next === sourceStateId)) {
+        const canonicalKey = [sourceStateId, transition.next].sort().join('-');
+        bidirectionalPairs.add(canonicalKey);
+      }
     });
   });
 
@@ -251,6 +263,27 @@ export function calculateAutoLayout(
             }
           }
 
+          // Handle bidirectional transitions - offset them perpendicular to the line
+          // This is applied AFTER all other positioning to avoid being overwritten
+          const canonicalKey = [sourceStateId, transition.next].sort().join('-');
+          if (bidirectionalPairs.has(canonicalKey)) {
+            const dx = targetPos.x - sourcePos.x;
+            const dy = targetPos.y - sourcePos.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance > 0) {
+              // Perpendicular vector (rotated 90 degrees counterclockwise)
+              const perpX = -dy / distance;
+              const perpY = dx / distance;
+
+              // Offset magnitude for bidirectional separation
+              const offsetMagnitude = 60;
+
+              midX += perpX * offsetMagnitude;
+              midY += perpY * offsetMagnitude;
+            }
+          }
+
           transitions.push({
             id: transitionId,
             position: {
@@ -292,16 +325,28 @@ export function applyLayoutToWorkflow(
   });
 
   // Update positions for each transition
-  const updatedTransitions = updatedLayout.transitions.map(layoutTransition => {
-    const newPosition = layoutResult.transitions?.find(t => t.id === layoutTransition.id);
-    if (newPosition) {
-      return {
-        ...layoutTransition,
-        position: newPosition.position,
-      };
-    }
-    return layoutTransition;
-  });
+  // If there are no transitions in the layout yet, create them from the layout result
+  let updatedTransitions: typeof updatedLayout.transitions;
+
+  if (updatedLayout.transitions.length === 0 && layoutResult.transitions.length > 0) {
+    // Create new transitions from layout result
+    updatedTransitions = layoutResult.transitions.map(t => ({
+      id: t.id,
+      position: t.position,
+    }));
+  } else {
+    // Update existing transitions
+    updatedTransitions = updatedLayout.transitions.map(layoutTransition => {
+      const newPosition = layoutResult.transitions?.find(t => t.id === layoutTransition.id);
+      if (newPosition) {
+        return {
+          ...layoutTransition,
+          position: newPosition.position,
+        };
+      }
+      return layoutTransition;
+    });
+  }
 
   const now = new Date().toISOString();
 
