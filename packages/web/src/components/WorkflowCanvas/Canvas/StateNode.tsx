@@ -1,7 +1,7 @@
 import React from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import { Edit, Play, Square, ArrowRight } from 'lucide-react';
+import { Edit2, Play, Square, ArrowRight } from 'lucide-react';
 import type { UIStateData } from '../types/workflow';
 import { InlineNameEditor } from '../Editors/InlineNameEditor';
 import type { ColorPalette } from '../themes/colorPalettes';
@@ -161,7 +161,7 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
       {/* Node Content */}
       <div className="flex flex-col space-y-2">
         {/* Header with icon and name */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 group pr-1">
           {/* State Type Icon */}
           <div className={`flex-shrink-0 ${getIconColor()}`}>
             {state.isInitial ? (
@@ -180,6 +180,7 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
               onSave={handleNameChange}
               className="min-w-0"
               inputClassName="text-sm font-semibold text-white"
+              showIconOnHover={true}
             />
           </div>
 

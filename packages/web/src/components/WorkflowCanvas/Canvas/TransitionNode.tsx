@@ -1,7 +1,7 @@
 import React from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import { Edit, Filter, Zap, ArrowRight, RotateCcw } from 'lucide-react';
+import { Edit2, Filter, Zap, ArrowRight } from 'lucide-react';
 import type { UITransitionData } from '../types/workflow';
 import type { ColorPalette } from '../themes/colorPalettes';
 
@@ -156,16 +156,7 @@ export const TransitionNode: React.FC<NodeProps> = ({ data, selected }) => {
       {(Object.keys(ANCHOR_POINTS) as AnchorPoint[]).map(renderAnchorPoint)}
 
       {/* Node Content */}
-      <div className="flex items-center space-x-2">
-        {/* Transition Type Icon */}
-        <div className={`flex-shrink-0 ${getIconColor()}`}>
-          {isLoopback ? (
-            <RotateCcw size={14} />
-          ) : (
-            <ArrowRight size={14} />
-          )}
-        </div>
-
+      <div className="flex items-center space-x-1 group pr-1">
         {/* Transition Name */}
         <div className="flex-1 min-w-0">
           <div className="text-xs font-medium text-white truncate">
@@ -189,27 +180,27 @@ export const TransitionNode: React.FC<NodeProps> = ({ data, selected }) => {
           )}
         </div>
 
+        {/* Edit Button */}
+        <button
+          onClick={handleEditClick}
+          onMouseDown={(e) => e.stopPropagation()}
+          className="flex-shrink-0 p-0.5 text-gray-400 hover:text-gray-300 transition-colors opacity-0 group-hover:opacity-100"
+          title="Click to edit transition"
+        >
+          <Edit2 size={11} />
+        </button>
+
         {/* Send to Chat Button */}
         {onSendToChat && (
           <button
             onClick={handleSendToChat}
             onMouseDown={(e) => e.stopPropagation()}
-            className="flex-shrink-0 p-0.5 text-white/80 hover:text-white transition-colors"
+            className="flex-shrink-0 p-1 text-white hover:bg-white/20 rounded transition-colors"
             title="Send transition to chat"
           >
-            <ArrowRight size={10} />
+            <ArrowRight size={14} />
           </button>
         )}
-
-        {/* Edit Button */}
-        <button
-          onClick={handleEditClick}
-          onMouseDown={(e) => e.stopPropagation()}
-          className="flex-shrink-0 p-0.5 text-gray-400 hover:text-gray-300 transition-colors"
-          title="Click to edit transition"
-        >
-          <Edit size={10} />
-        </button>
       </div>
     </div>
   );

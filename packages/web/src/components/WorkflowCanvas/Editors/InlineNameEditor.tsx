@@ -11,6 +11,7 @@ interface InlineNameEditorProps {
   className?: string;
   inputClassName?: string;
   disabled?: boolean;
+  showIconOnHover?: boolean;
 }
 
 export const InlineNameEditor: React.FC<InlineNameEditorProps> = ({
@@ -19,7 +20,8 @@ export const InlineNameEditor: React.FC<InlineNameEditorProps> = ({
   onSave,
   className = "",
   inputClassName = "",
-  disabled = false
+  disabled = false,
+  showIconOnHover = false
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);
@@ -116,10 +118,12 @@ export const InlineNameEditor: React.FC<InlineNameEditorProps> = ({
         <button
           type="button"
           onClick={handleStartEdit}
-          className="p-1 text-gray-500 hover:text-gray-300 transition-all duration-200"
+          className={`p-0.5 text-gray-500 hover:text-gray-300 transition-all duration-200 ${
+            showIconOnHover ? 'opacity-0 group-hover:opacity-100' : ''
+          }`}
           title="Edit name"
         >
-          <Edit2 size={16} />
+          <Edit2 size={11} />
         </button>
       )}
     </div>

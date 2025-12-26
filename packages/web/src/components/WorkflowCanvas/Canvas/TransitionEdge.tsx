@@ -5,7 +5,7 @@ import {
   BaseEdge,
 } from '@xyflow/react';
 import type { EdgeProps } from '@xyflow/react';
-import { Edit, Filter, Zap } from 'lucide-react';
+import { Pencil, Filter, Zap } from 'lucide-react';
 import type { UITransitionData } from '../types/workflow';
 import type { ColorPalette } from '../themes/colorPalettes';
 
@@ -147,7 +147,7 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
                 className="flex-shrink-0 p-0.5 text-gray-400 hover:text-gray-300 transition-colors"
                 title="Click to edit transition"
               >
-                <Edit size={10} />
+                <Pencil size={10} />
               </button>
             </div>
 
