@@ -17,10 +17,11 @@ interface StateNodeData {
   palette: ColorPalette;
 }
 
-// Define anchor point identifiers for the 8-point system
+// Define anchor point identifiers for the 10-point system
 type AnchorPoint =
   | 'top-left' | 'top-center' | 'top-right'
-  | 'left-center' | 'right-center'
+  | 'left-top' | 'left-bottom'
+  | 'right-top' | 'right-bottom'
   | 'bottom-left' | 'bottom-center' | 'bottom-right';
 
 // Anchor point configuration with positions and CSS styles
@@ -44,14 +45,24 @@ const ANCHOR_POINTS: Record<AnchorPoint, {
     style: { left: '75%', top: '-6px' },
     className: 'transform -translate-x-1/2'
   },
-  'left-center': {
+  'left-top': {
     position: Position.Left,
-    style: { left: '-6px', top: '50%' },
+    style: { left: '-6px', top: '33%' },
     className: 'transform -translate-y-1/2'
   },
-  'right-center': {
+  'left-bottom': {
+    position: Position.Left,
+    style: { left: '-6px', top: '67%' },
+    className: 'transform -translate-y-1/2'
+  },
+  'right-top': {
     position: Position.Right,
-    style: { right: '-6px', top: '50%' },
+    style: { right: '-6px', top: '33%' },
+    className: 'transform -translate-y-1/2'
+  },
+  'right-bottom': {
+    position: Position.Right,
+    style: { right: '-6px', top: '67%' },
     className: 'transform -translate-y-1/2'
   },
   'bottom-left': {

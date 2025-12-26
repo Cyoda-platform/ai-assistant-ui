@@ -17,8 +17,8 @@ interface TransitionNodeData {
   palette: ColorPalette;
 }
 
-// Define all 8 anchor points with their positions and styles
-type AnchorPoint = 'top-left' | 'top-center' | 'top-right' | 'left-center' | 'right-center' | 'bottom-left' | 'bottom-center' | 'bottom-right';
+// Define all 10 anchor points with their positions and styles
+type AnchorPoint = 'top-left' | 'top-center' | 'top-right' | 'left-top' | 'left-bottom' | 'right-top' | 'right-bottom' | 'bottom-left' | 'bottom-center' | 'bottom-right';
 
 const ANCHOR_POINTS: Record<AnchorPoint, { position: Position; style: React.CSSProperties; className: string }> = {
   'top-left': {
@@ -36,14 +36,24 @@ const ANCHOR_POINTS: Record<AnchorPoint, { position: Position; style: React.CSSP
     style: { left: '75%', top: '-6px' },
     className: 'transform -translate-x-1/2'
   },
-  'left-center': {
+  'left-top': {
     position: Position.Left,
-    style: { left: '-6px', top: '50%' },
+    style: { left: '-6px', top: '33%' },
     className: 'transform -translate-y-1/2'
   },
-  'right-center': {
+  'left-bottom': {
+    position: Position.Left,
+    style: { left: '-6px', top: '67%' },
+    className: 'transform -translate-y-1/2'
+  },
+  'right-top': {
     position: Position.Right,
-    style: { right: '-6px', top: '50%' },
+    style: { right: '-6px', top: '33%' },
+    className: 'transform -translate-y-1/2'
+  },
+  'right-bottom': {
+    position: Position.Right,
+    style: { right: '-6px', top: '67%' },
     className: 'transform -translate-y-1/2'
   },
   'bottom-left': {

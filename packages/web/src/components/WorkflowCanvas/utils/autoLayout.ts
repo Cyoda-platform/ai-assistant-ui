@@ -1,8 +1,58 @@
-// ABOUTME: This file provides automatic layout functionality using Dagre algorithm
+// ABOUTME: This file provides automatic layout functionality using a custom hierarchical layout algorithm
 // to arrange workflow states in a hierarchical, visually organized manner.
 
 import dagre from '@dagrejs/dagre';
 import type { UIWorkflowData, UIStateData, UITransitionData } from '../types/workflow';
+
+/**
+ * Assigns rank (level) to each state based on topological distance from initial state.
+ * Handles cycles by allowing back-edges.
+ */
+function assignRanks(workflow: UIWorkflowData): Map<string, number> {
+  const ranks = new Map<string, number>();
+  const stateIds = Object.keys(workflow.configuration.states);
+  const initialState = workflow.configuration.initialState;
+
+  // Initialize all ranks to -1 (unvisited)
+  stateIds.forEach(id => ranks.set(id, -1));
+
+  // BFS from initial state
+  const queue: string[] = [initialState];
+  ranks.set(initialState, 0);
+
+  while (queue.length > 0) {
+    const currentStateId = queue.shift()!;
+    const currentRank = ranks.get(currentStateId)!;
+    const stateDefinition = workflow.configuration.states[currentStateId];
+
+    if (stateDefinition) {
+      stateDefinition.transitions.forEach(transition => {
+        const nextStateId = transition.next;
+        const nextRank = ranks.get(nextStateId) ?? -1;
+
+        // Only update if we haven't visited this state yet, or if we found a shorter path
+        if (nextRank === -1) {
+          ranks.set(nextStateId, currentRank + 1);
+          queue.push(nextStateId);
+        } else if (nextRank <= currentRank) {
+          // This is a back-edge or self-loop, keep the existing rank
+          // (don't increase rank for cycles)
+        }
+      });
+    }
+  }
+
+  // Handle any unvisited states (disconnected components)
+  let maxRank = Math.max(...Array.from(ranks.values()), 0);
+  stateIds.forEach(stateId => {
+    if (ranks.get(stateId) === -1) {
+      ranks.set(stateId, maxRank + 1);
+      maxRank++;
+    }
+  });
+
+  return ranks;
+}
 
 export interface LayoutOptions {
   nodeWidth?: number;
@@ -10,6 +60,8 @@ export interface LayoutOptions {
   rankSeparation?: number;
   nodeSeparation?: number;
   edgeSeparation?: number;
+  minTransitionLength?: number; // Minimum vertical distance for transition nodes
+  minTransitionWidth?: number; // Minimum horizontal distance for transition nodes
   direction?: 'TB' | 'BT' | 'LR' | 'RL';
 }
 
@@ -27,14 +79,17 @@ export interface LayoutResult {
 const DEFAULT_OPTIONS: Required<LayoutOptions> = {
   nodeWidth: 200,      // State node width (actual visual width ~180px)
   nodeHeight: 100,     // State node height (actual visual height ~80px)
-  rankSeparation: 280, // Vertical spacing to account for transition nodes between states
-  nodeSeparation: 210, // Horizontal spacing to prevent overlap
-  edgeSeparation: 80,  // Larger spacing between parallel edges (was 60)
+  rankSeparation: 380, // Vertical spacing between ranks (increased from 280 for better separation of transition nodes)
+  nodeSeparation: 600, // Horizontal spacing between nodes in same rank (increased from 550 for better separation)
+  edgeSeparation: 100, // Spacing between parallel edges
+  minTransitionLength: 150, // Minimum vertical distance for transition nodes
+  minTransitionWidth: 100, // Minimum horizontal distance for transition nodes
   direction: 'TB', // Top to Bottom
 };
 
 /**
- * Calculates optimal positions for workflow states using Dagre hierarchical layout algorithm.
+ * Calculates optimal positions for workflow states using hierarchical layout.
+ * States are arranged in ranks (levels) based on topological distance from initial state.
  *
  * @param workflow - The workflow data containing states and transitions
  * @param options - Layout configuration options
@@ -45,132 +100,162 @@ export function calculateAutoLayout(
   options: LayoutOptions = {}
 ): LayoutResult {
   const opts = { ...DEFAULT_OPTIONS, ...options };
-
-  // Create a new directed graph
-  const graph = new dagre.graphlib.Graph();
-
-  // Set graph properties
-  graph.setGraph({
-    rankdir: opts.direction,
-    ranksep: opts.rankSeparation,
-    nodesep: opts.nodeSeparation,
-    edgesep: opts.edgeSeparation,
-  });
-
-  // Set default edge label
-  graph.setDefaultEdgeLabel(() => ({}));
-
-  // Add nodes (states) to the graph
   const stateIds = Object.keys(workflow.configuration.states);
+
+  // Assign ranks to each state
+  const ranks = assignRanks(workflow);
+
+  // Group states by rank
+  const statesByRank = new Map<number, string[]>();
   stateIds.forEach(stateId => {
-    graph.setNode(stateId, {
-      width: opts.nodeWidth,
-      height: opts.nodeHeight,
-    });
+    const rank = ranks.get(stateId) || 0;
+    if (!statesByRank.has(rank)) {
+      statesByRank.set(rank, []);
+    }
+    statesByRank.get(rank)!.push(stateId);
   });
 
-  // Add phantom nodes for loopback transitions so Dagre accounts for them
-  const loopbackTransitions: Array<{ stateId: string; transitionId: string; index: number }> = [];
-  Object.entries(workflow.configuration.states).forEach(([stateId, stateDefinition]) => {
-    stateDefinition.transitions.forEach((transition, index) => {
-      const isLoopback = stateId === transition.next;
-      if (isLoopback) {
-        const phantomId = `phantom-loopback-${stateId}-${index}`;
-        loopbackTransitions.push({ stateId, transitionId: phantomId, index });
+  // Calculate positions based on ranks
+  const states: Array<{ id: string; position: { x: number; y: number } }> = [];
+  const statePositions = new Map<string, { x: number; y: number }>();
 
-        // Add phantom node for the loopback transition
-        // Position it to the right and up from the state
-        graph.setNode(phantomId, {
-          width: 80,  // Smaller width for transition node
-          height: 40, // Smaller height for transition node
+  // Sort ranks
+  const sortedRanks = Array.from(statesByRank.keys()).sort((a, b) => a - b);
+
+  sortedRanks.forEach(rank => {
+    const statesInRank = statesByRank.get(rank) || [];
+
+    let x: number;
+    let y: number;
+
+    if (opts.direction === 'TB' || opts.direction === 'BT') {
+      // Top-to-Bottom or Bottom-to-Top: ranks go vertically
+      const rankY = 100 + rank * opts.rankSeparation;
+      const totalWidth = statesInRank.length * opts.nodeSeparation;
+      const startX = 400 - totalWidth / 2; // Center around x=400
+
+      statesInRank.forEach((stateId, index) => {
+        x = startX + index * opts.nodeSeparation;
+        y = rankY;
+
+        statePositions.set(stateId, { x, y });
+        states.push({
+          id: stateId,
+          position: { x, y },
         });
+      });
+    } else {
+      // Left-to-Right or Right-to-Left: ranks go horizontally
+      const rankX = 100 + rank * opts.rankSeparation;
+      const totalHeight = statesInRank.length * opts.nodeSeparation;
+      const startY = 300 - totalHeight / 2; // Center around y=300
 
-        // Add edges to create the loop through the phantom node
-        graph.setEdge(stateId, phantomId);
-        graph.setEdge(phantomId, stateId);
-      }
-    });
-  });
+      statesInRank.forEach((stateId, index) => {
+        x = rankX;
+        y = startY + index * opts.nodeSeparation;
 
-  // Add edges (transitions) to the graph
-  // Transitions are stored within each state's definition, not as a separate array
-  Object.entries(workflow.configuration.states).forEach(([stateId, stateDefinition]) => {
-    stateDefinition.transitions.forEach(transition => {
-      const isLoopback = stateId === transition.next;
-      // Skip loopback transitions as they're handled by phantom nodes
-      if (!isLoopback) {
-        // Ensure both source and target states exist
-        if (workflow.configuration.states[stateId] &&
-            workflow.configuration.states[transition.next]) {
-          graph.setEdge(stateId, transition.next);
-        }
-      }
-    });
-  });
-
-  // Run the layout algorithm
-  dagre.layout(graph);
-
-  // Extract the calculated positions
-  const states = stateIds.map(stateId => {
-    const node = graph.node(stateId);
-    return {
-      id: stateId,
-      position: {
-        // Dagre returns center positions, but React Flow expects top-left positions
-        x: node.x - opts.nodeWidth / 2,
-        y: node.y - opts.nodeHeight / 2,
-      },
-    };
+        statePositions.set(stateId, { x, y });
+        states.push({
+          id: stateId,
+          position: { x, y },
+        });
+      });
+    }
   });
 
   // Calculate transition node positions
   const transitions: Array<{ id: string; position: { x: number; y: number } }> = [];
+  const transitionWidth = 80;
+  const transitionHeight = 40;
+
+  // Track transitions between each pair of states
+  const transitionsByPair = new Map<string, Array<{ sourceStateId: string; index: number }>>();
 
   Object.entries(workflow.configuration.states).forEach(([sourceStateId, stateDefinition]) => {
     stateDefinition.transitions.forEach((transition, index) => {
-      const sourceNode = graph.node(sourceStateId);
-      const targetNode = graph.node(transition.next);
+      const key = `${sourceStateId}-${transition.next}`;
+      if (!transitionsByPair.has(key)) {
+        transitionsByPair.set(key, []);
+      }
+      transitionsByPair.get(key)!.push({ sourceStateId, index });
+    });
+  });
 
-      if (sourceNode && targetNode) {
+  // Position transition nodes
+  Object.entries(workflow.configuration.states).forEach(([sourceStateId, stateDefinition]) => {
+    stateDefinition.transitions.forEach((transition, index) => {
+      const sourcePos = statePositions.get(sourceStateId);
+      const targetPos = statePositions.get(transition.next);
+
+      if (sourcePos && targetPos) {
         const isLoopback = sourceStateId === transition.next;
         const transitionId = `${sourceStateId}-${index}`;
 
         if (isLoopback) {
-          // For loopback, use the phantom node position calculated by Dagre
-          const phantomId = `phantom-loopback-${sourceStateId}-${index}`;
-          const phantomNode = graph.node(phantomId);
-
-          if (phantomNode) {
-            // Use Dagre's calculated position for the phantom node
-            transitions.push({
-              id: transitionId,
-              position: {
-                x: phantomNode.x - 40, // Center the transition node (width 80 / 2)
-                y: phantomNode.y - 20, // Center the transition node (height 40 / 2)
-              },
-            });
-          } else {
-            // Fallback if phantom node not found
-            transitions.push({
-              id: transitionId,
-              position: {
-                x: sourceNode.x + 150,
-                y: sourceNode.y - 80,
-              },
-            });
-          }
+          // Position loopback transition to the right and above the state
+          transitions.push({
+            id: transitionId,
+            position: {
+              x: sourcePos.x + 150,
+              y: sourcePos.y - 100,
+            },
+          });
         } else {
-          // For regular transitions, position midway between source and target
-          // Transition nodes are smaller (80x40), so center them properly
-          const transitionWidth = 80;
-          const transitionHeight = 40;
+          // Get all transitions between these two states
+          const key = `${sourceStateId}-${transition.next}`;
+          const transitionsForPair = transitionsByPair.get(key) || [];
+          const transitionIndex = transitionsForPair.findIndex(t => t.index === index);
+          const totalTransitions = transitionsForPair.length;
+
+          const verticalDistance = Math.abs(targetPos.y - sourcePos.y);
+          const horizontalDistance = Math.abs(targetPos.x - sourcePos.x);
+
+          // Calculate offsets for parallel transitions based on direction
+          // Larger offset to prevent overlapping (100px per transition)
+          const parallelOffset = (transitionIndex - (totalTransitions - 1) / 2) * 100;
+          // Vertical spacing between parallel transitions (80px per transition)
+          const verticalSpacing = (transitionIndex - (totalTransitions - 1) / 2) * 80;
+
+          let midX = (sourcePos.x + targetPos.x) / 2;
+          let midY = (sourcePos.y + targetPos.y) / 2;
+
+          if (opts.direction === 'TB' || opts.direction === 'BT') {
+            // Top-to-Bottom or Bottom-to-Top: offset horizontally for parallel edges
+            midX += parallelOffset;
+            midY += verticalSpacing;
+
+            // Ensure minimum vertical distance
+            if (verticalDistance < opts.minTransitionLength) {
+              midY = sourcePos.y - opts.minTransitionLength + (transitionIndex - (totalTransitions - 1) / 2) * opts.edgeSeparation;
+            }
+
+            // Ensure minimum horizontal distance
+            if (horizontalDistance < opts.minTransitionWidth) {
+              const direction = targetPos.x > sourcePos.x ? 1 : -1;
+              midX = sourcePos.x + (direction * opts.minTransitionWidth) + parallelOffset;
+            }
+          } else {
+            // Left-to-Right or Right-to-Left: offset vertically for parallel edges
+            midY += parallelOffset;
+            midX += verticalSpacing;
+
+            // Ensure minimum horizontal distance
+            if (horizontalDistance < opts.minTransitionLength) {
+              midX = sourcePos.x - opts.minTransitionLength + (transitionIndex - (totalTransitions - 1) / 2) * opts.edgeSeparation;
+            }
+
+            // Ensure minimum vertical distance
+            if (verticalDistance < opts.minTransitionWidth) {
+              const direction = targetPos.y > sourcePos.y ? 1 : -1;
+              midY = sourcePos.y + (direction * opts.minTransitionWidth) + parallelOffset;
+            }
+          }
 
           transitions.push({
             id: transitionId,
             position: {
-              x: (sourceNode.x + targetNode.x) / 2 - transitionWidth / 2,
-              y: (sourceNode.y + targetNode.y) / 2 - transitionHeight / 2,
+              x: midX - transitionWidth / 2,
+              y: midY - transitionHeight / 2,
             },
           });
         }

@@ -72,26 +72,26 @@ function calculateOptimalHandles(
         // Target is to the right
         if (isReturnPath) {
           return {
-            sourceHandle: 'right-center-source',
-            targetHandle: 'left-center-target'
+            sourceHandle: 'right-bottom-source',
+            targetHandle: 'left-bottom-target'
           };
         } else {
           return {
-            sourceHandle: 'right-center-source',
-            targetHandle: 'left-center-target'
+            sourceHandle: 'right-top-source',
+            targetHandle: 'left-top-target'
           };
         }
       } else {
         // Target is to the left
         if (isReturnPath) {
           return {
-            sourceHandle: 'right-center-source',
-            targetHandle: 'left-center-target'
+            sourceHandle: 'left-bottom-source',
+            targetHandle: 'right-bottom-target'
           };
         } else {
           return {
-            sourceHandle: 'right-center-source',
-            targetHandle: 'left-center-target'
+            sourceHandle: 'left-top-source',
+            targetHandle: 'right-top-target'
           };
         }
       }
@@ -119,14 +119,14 @@ function calculateOptimalHandles(
     if (deltaX > 0) {
       // Target is to the right
       return {
-        sourceHandle: 'right-center-source',
-        targetHandle: 'left-center-target'
+        sourceHandle: 'right-top-source',
+        targetHandle: 'left-top-target'
       };
     } else {
       // Target is to the left
       return {
-        sourceHandle: 'left-center-source',
-        targetHandle: 'right-center-target'
+        sourceHandle: 'left-top-source',
+        targetHandle: 'right-top-target'
       };
     }
   }
@@ -757,8 +757,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
     if (angle >= -22.5 && angle < 22.5) {
       // Right
-      sourceHandle = 'right-center-source';
-      targetHandle = 'left-center-target';
+      sourceHandle = 'right-top-source';
+      targetHandle = 'left-top-target';
     } else if (angle >= 22.5 && angle < 67.5) {
       // Bottom-right
       sourceHandle = 'bottom-right-source';
@@ -773,8 +773,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       targetHandle = 'top-right-target';
     } else if (angle >= 157.5 || angle < -157.5) {
       // Left
-      sourceHandle = 'left-center-source';
-      targetHandle = 'right-center-target';
+      sourceHandle = 'left-top-source';
+      targetHandle = 'right-top-target';
     } else if (angle >= -157.5 && angle < -112.5) {
       // Top-left
       sourceHandle = 'top-left-source';
@@ -855,9 +855,62 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         };
       });
 
+      // Helper function to get handle for parallel transitions
+      const getParallelTransitionHandles = (
+        sourceStateId: string,
+        targetStateId: string,
+        transitionIndex: number,
+        totalTransitions: number
+      ) => {
+        // For parallel transitions, use different handles to avoid overlapping
+        // Map of opposite handles
+        const oppositeHandles: Record<string, string> = {
+          'top-left': 'bottom-right',
+          'top-center': 'bottom-center',
+          'top-right': 'bottom-left',
+          'left-top': 'right-bottom',
+          'left-bottom': 'right-top',
+          'right-top': 'left-bottom',
+          'right-bottom': 'left-top',
+          'bottom-left': 'top-right',
+          'bottom-center': 'top-center',
+          'bottom-right': 'top-left'
+        };
+
+        const handleOptions = [
+          'top-left', 'top-center', 'top-right',
+          'left-top', 'left-bottom',
+          'right-top', 'right-bottom',
+          'bottom-left', 'bottom-center', 'bottom-right'
+        ];
+
+        if (totalTransitions === 1) {
+          // Single transition - use center handles
+          return { source: 'top-center', target: 'bottom-center' };
+        }
+
+        // Multiple transitions - distribute across handles
+        const index = transitionIndex % handleOptions.length;
+        const sourceHandle = handleOptions[index];
+        const targetHandle = oppositeHandles[sourceHandle] || 'bottom-center';
+
+        return { source: sourceHandle, target: targetHandle };
+      };
+
       // Create simple edges: state -> transition -> state
       const newEdges: any[] = [];
-      currentUiTransitions.forEach((transition) => {
+
+      // Group transitions by source-target pair to count parallel transitions
+      const transitionsByPair = new Map<string, Array<{ transition: UITransitionData; index: number }>>();
+      currentUiTransitions.forEach((transition, index) => {
+        const key = `${transition.sourceStateId}-${transition.targetStateId}`;
+        if (!transitionsByPair.has(key)) {
+          transitionsByPair.set(key, []);
+        }
+        transitionsByPair.get(key)!.push({ transition, index });
+      });
+
+      currentUiTransitions.forEach((transition, globalIndex) => {
         const transitionNodeId = `transition-${transition.id}`;
         const isLoopback = transition.sourceStateId === transition.targetStateId;
 
@@ -870,6 +923,12 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
         // Get layout for this transition (may have manual anchor point selections)
         const layout = transitionLayoutMap.get(transition.id);
+
+        // Get parallel transition info
+        const pairKey = `${transition.sourceStateId}-${transition.targetStateId}`;
+        const transitionsInPair = transitionsByPair.get(pairKey) || [];
+        const transitionIndexInPair = transitionsInPair.findIndex(t => t.transition.id === transition.id);
+        const totalTransitionsInPair = transitionsInPair.length;
 
         // Determine if transition is manual or automated for styling
         const isManual = transition.definition.manual === true;
@@ -885,7 +944,17 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           if (isLoopback) {
             // For loopback: use top-right handle on state to go out to transition
             stateToTransitionSourceHandle = 'top-right-source';
-            stateToTransitionTargetHandle = 'left-center-target';
+            stateToTransitionTargetHandle = 'left-top-target';
+          } else if (totalTransitionsInPair > 1) {
+            // For parallel transitions: use different handles to avoid overlapping
+            const parallelHandles = getParallelTransitionHandles(
+              transition.sourceStateId,
+              transition.targetStateId,
+              transitionIndexInPair,
+              totalTransitionsInPair
+            );
+            stateToTransitionSourceHandle = `${parallelHandles.source}-source`;
+            stateToTransitionTargetHandle = `${parallelHandles.target}-target`;
           } else {
             const anchors = calculateOptimalAnchorPoints(
               sourceState.position,
@@ -904,8 +973,18 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
         if (isLoopback) {
           // For loopback: use right handle on transition to come back to bottom-right of state
-          transitionToStateSourceHandle = 'right-center-source';
+          transitionToStateSourceHandle = 'right-bottom-source';
           transitionToStateTargetHandle = transitionToStateTargetHandle || 'bottom-right-target';
+        } else if (totalTransitionsInPair > 1) {
+          // For parallel transitions: use different handles to avoid overlapping
+          const parallelHandles = getParallelTransitionHandles(
+            transition.sourceStateId,
+            transition.targetStateId,
+            transitionIndexInPair,
+            totalTransitionsInPair
+          );
+          transitionToStateSourceHandle = `${parallelHandles.target}-source`; // Opposite of incoming
+          transitionToStateTargetHandle = `${parallelHandles.source}-target`; // Opposite of outgoing
         } else {
           // Always calculate optimal source handle based on node positions
           const anchors = calculateOptimalAnchorPoints(
@@ -1103,9 +1182,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           // User tried to drag from a target handle, silently ignore
           return;
         }
-        // Check that source handle is from a valid position (any of the 8 positions)
+        // Check that source handle is from a valid position (any of the 10 positions)
         const sourcePosition = params.sourceHandle.replace('-source', '');
-        const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
+        const validPositions = ['top-left', 'top-center', 'top-right', 'left-top', 'left-bottom', 'right-top', 'right-bottom', 'bottom-left', 'bottom-center', 'bottom-right'];
         if (!validPositions.includes(sourcePosition)) {
           // Invalid position, silently ignore
           return;
@@ -1118,9 +1197,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           // Invalid target handle, silently ignore
           return;
         }
-        // Check that target handle is from a valid position (any of the 8 positions)
+        // Check that target handle is from a valid position (any of the 10 positions)
         const targetPosition = params.targetHandle.replace('-target', '');
-        const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
+        const validPositions = ['top-left', 'top-center', 'top-right', 'left-top', 'left-bottom', 'right-top', 'right-bottom', 'bottom-left', 'bottom-center', 'bottom-right'];
         if (!validPositions.includes(targetPosition)) {
           // Invalid position, silently ignore
           return;
@@ -1177,7 +1256,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         position: transitionNodePosition,
         // Keep legacy fields for backward compatibility
         sourceHandle: params.sourceHandle || (isLoopback ? 'top-right' : null),
-        targetHandle: params.targetHandle || (isLoopback ? 'right-center' : null),
+        targetHandle: params.targetHandle || (isLoopback ? 'right-bottom' : null),
         labelPosition: isLoopback ? { x: 80, y: -80 } : { x: 0, y: 0 }
       };
 
@@ -1238,9 +1317,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           // User is trying to drag from a target handle, silently reject
           return false;
         }
-        // Allow all 8 positions for source handles
+        // Allow all 10 positions for source handles
         const sourcePosition = connection.sourceHandle.replace('-source', '');
-        const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
+        const validPositions = ['top-left', 'top-center', 'top-right', 'left-top', 'left-bottom', 'right-top', 'right-bottom', 'bottom-left', 'bottom-center', 'bottom-right'];
         if (!validPositions.includes(sourcePosition)) {
           return false;
         }
@@ -1252,9 +1331,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           // Invalid target handle, silently reject
           return false;
         }
-        // Allow all 8 positions for target handles
+        // Allow all 10 positions for target handles
         const targetPosition = connection.targetHandle.replace('-target', '');
-        const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
+        const validPositions = ['top-left', 'top-center', 'top-right', 'left-top', 'left-bottom', 'right-top', 'right-bottom', 'bottom-left', 'bottom-center', 'bottom-right'];
         if (!validPositions.includes(targetPosition)) {
           return false;
         }
