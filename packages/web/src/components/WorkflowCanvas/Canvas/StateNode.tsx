@@ -106,7 +106,7 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
           position={config.position}
           id={`${anchorId}-source`}
           style={{ ...config.style, backgroundColor: handleColor }}
-          className={`w-2.5 h-2.5 !border-0 opacity-60 hover:opacity-100 hover:scale-125 transition-all duration-200 ${config.className}`}
+          className={`w-2.5 h-2.5 !border-0 opacity-0 group-hover:opacity-100 hover:scale-125 transition-all duration-200 ${config.className}`}
         />
 
         {/* Render target handle (incoming connections) - matches state color */}
@@ -115,7 +115,7 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
           position={config.position}
           id={`${anchorId}-target`}
           style={{ ...config.style, backgroundColor: handleColor }}
-          className={`w-2.5 h-2.5 !border-0 opacity-60 hover:opacity-100 hover:scale-125 transition-all duration-200 ${config.className}`}
+          className={`w-2.5 h-2.5 !border-0 opacity-0 group-hover:opacity-100 hover:scale-125 transition-all duration-200 ${config.className}`}
           isConnectableStart={false}
         />
       </React.Fragment>
@@ -154,7 +154,7 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
   const transitionCount = getTransitionCount();
 
   return (
-    <div className={getNodeStyle()} style={{ backgroundColor: getNodeBackgroundColor() }}>
+    <div className={`${getNodeStyle()} group`} style={{ backgroundColor: getNodeBackgroundColor() }}>
       {/* Render all 8 anchor points */}
       {(Object.keys(ANCHOR_POINTS) as AnchorPoint[]).map(renderAnchorPoint)}
 
