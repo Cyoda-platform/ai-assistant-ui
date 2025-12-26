@@ -525,15 +525,15 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       let position;
 
       if (stateCount <= 4) {
-        position = { x: 100 + (index * 300), y: 200 };
+        position = { x: 100 + (index * 220), y: 200 };
       } else if (stateCount <= 9) {
         const row = Math.floor(index / 3);
         const col = index % 3;
-        position = { x: 100 + (col * 300), y: 150 + (row * 250) };
+        position = { x: 100 + (col * 220), y: 150 + (row * 170) };
       } else {
         const row = Math.floor(index / 3);
         const col = index % 3;
-        position = { x: 100 + (col * 280), y: 100 + (row * 220) };
+        position = { x: 100 + (col * 210), y: 100 + (row * 160) };
       }
 
       return {
@@ -1700,8 +1700,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         const layoutStates = stateIds.map((stateId, index) => ({
           id: stateId,
           position: {
-            x: 100 + (index % 3) * 250,
-            y: 100 + Math.floor(index / 3) * 150
+            x: 100 + (index % 3) * 210,
+            y: 100 + Math.floor(index / 3) * 160
           },
           properties: {}
         }));
@@ -1850,8 +1850,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           const layoutStates = stateIds.map((stateId, index) => ({
             id: stateId,
             position: {
-              x: 100 + (index % 3) * 250,
-              y: 100 + Math.floor(index / 3) * 150
+              x: 100 + (index % 3) * 210,
+              y: 100 + Math.floor(index / 3) * 160
             },
             properties: {}
           }));

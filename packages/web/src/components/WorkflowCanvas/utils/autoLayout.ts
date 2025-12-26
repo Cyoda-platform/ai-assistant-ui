@@ -27,8 +27,8 @@ export interface LayoutResult {
 const DEFAULT_OPTIONS: Required<LayoutOptions> = {
   nodeWidth: 200,      // State node width (actual visual width ~180px)
   nodeHeight: 100,     // State node height (actual visual height ~80px)
-  rankSeparation: 400, // MUCH larger vertical spacing to account for transition nodes between states (was 250)
-  nodeSeparation: 300, // MUCH larger horizontal spacing to prevent overlap (was 200)
+  rankSeparation: 280, // Vertical spacing to account for transition nodes between states
+  nodeSeparation: 210, // Horizontal spacing to prevent overlap
   edgeSeparation: 80,  // Larger spacing between parallel edges (was 60)
   direction: 'TB', // Top to Bottom
 };
