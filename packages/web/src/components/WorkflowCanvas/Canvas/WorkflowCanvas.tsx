@@ -1043,6 +1043,24 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     }
   }, [cleanedWorkflow?.layout?.updatedAt, nodes.length, fitView]);
 
+  // Fit view on initial load
+  const initialLoadRef = useRef(false);
+  React.useEffect(() => {
+    if (!initialLoadRef.current && isInitialized && nodes.length > 0) {
+      initialLoadRef.current = true;
+      // Use a small delay to ensure nodes are rendered before fitting view
+      const timer = setTimeout(() => {
+        fitView({
+          padding: 0.2, // 20% padding around the workflow
+          duration: 300, // Smooth animation
+          minZoom: 0.05, // Allow zooming out to 5% for very large workflows
+          maxZoom: 1.5, // Don't zoom in too much for small workflows
+        });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isInitialized, nodes.length, fitView]);
+
   const onConnect = useCallback(
     (params: Connection) => {
       if (!cleanedWorkflow || !params.source || !params.target) return;
