@@ -2304,9 +2304,11 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             <div className="p-4 space-y-4">
               <div className="flex items-center justify-between mb-3">
                 <h3
-                  className="font-semibold text-transparent bg-clip-text text-sm"
                   style={{
-                    backgroundImage: `linear-gradient(to right, ${palette.ui.panelTitleFrom}, ${palette.ui.panelTitleTo})`
+                    margin: 0,
+                    color: '#A78BFA',
+                    fontSize: '16px',
+                    fontWeight: 500
                   }}
                 >
                   ⚙️ Canvas Settings
@@ -2459,9 +2461,11 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                 }
               `}</style>
               <div
-                className="text-base font-bold text-transparent bg-clip-text mb-4"
                 style={{
-                  backgroundImage: `linear-gradient(to right, ${palette.ui.panelTitleFrom}, ${palette.ui.panelTitleTo})`
+                  color: '#A78BFA',
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  marginBottom: '16px'
                 }}
               >
                 ✨ Quick Help

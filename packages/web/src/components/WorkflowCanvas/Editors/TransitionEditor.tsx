@@ -415,7 +415,7 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
         borderColor: palette.ui.panelBorder
       }}
     >
-      {/* Header with Inline Name Editor - Draggable */}
+      {/* Header - Title only, draggable */}
       <div
         className="flex items-center justify-between p-4 border-b-2 flex-shrink-0 cursor-grab active:cursor-grabbing"
         style={{
@@ -424,43 +424,37 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
         }}
         onMouseDown={handleDragStart}
       >
-          <div className="flex items-center space-x-3 flex-1">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center shadow-lg flex-shrink-0"
-              style={{
-                background: `linear-gradient(to bottom right, ${palette.ui.accentColor}, ${palette.ui.accentHover})`
-              }}
-            >
-              <Edit size={16} className="text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs text-gray-400">Edit Transition</div>
-              <InlineNameEditor
-                value={transitionName}
-                placeholder="Enter transition name"
-                onSave={setTransitionName}
-                className="text-sm font-medium"
-              />
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg transition-colors group flex-shrink-0"
-            style={{
-              backgroundColor: 'transparent'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${palette.ui.accentHover}30`}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-            title="Close (Esc)"
-          >
-            <X
-              size={18}
-              className="text-gray-400 transition-colors"
-              onMouseEnter={(e) => (e.currentTarget as SVGElement).style.color = palette.ui.accentColor}
-              onMouseLeave={(e) => (e.currentTarget as SVGElement).style.color = ''}
-            />
-          </button>
-        </div>
+        <h2 style={{ margin: 0, color: '#A78BFA', fontSize: '16px', fontWeight: 500 }}>
+          Edit Transition
+        </h2>
+        <button
+          onClick={onClose}
+          className="p-2 rounded-lg transition-colors group flex-shrink-0"
+          style={{
+            backgroundColor: 'transparent'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${palette.ui.accentHover}30`}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          title="Close (Esc)"
+        >
+          <X
+            size={18}
+            className="text-gray-400 transition-colors"
+            onMouseEnter={(e) => (e.currentTarget as SVGElement).style.color = palette.ui.accentColor}
+            onMouseLeave={(e) => (e.currentTarget as SVGElement).style.color = ''}
+          />
+        </button>
+      </div>
+
+      {/* Transition Name Editor - Editable */}
+      <div className="px-4 py-3 border-b-2 flex-shrink-0" style={{ borderColor: palette.ui.panelBorder }}>
+        <InlineNameEditor
+          value={transitionName}
+          placeholder="Enter transition name"
+          onSave={setTransitionName}
+          className="text-lg font-medium"
+        />
+      </div>
 
         {/* JSON Editor */}
         <div className="flex-1 p-4 overflow-hidden">

@@ -754,9 +754,11 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
             )}
             <div>
               <h3
-                className="text-lg font-bold text-transparent bg-clip-text"
                 style={{
-                  backgroundImage: `linear-gradient(to right, ${palette.ui.panelTitleFrom}, ${palette.ui.panelTitleTo})`
+                  margin: 0,
+                  color: '#A78BFA',
+                  fontSize: '16px',
+                  fontWeight: 500
                 }}
               >
                 Workflow JSON Editor
