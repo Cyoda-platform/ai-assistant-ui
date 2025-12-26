@@ -400,7 +400,7 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
   return (
     <div
       ref={panelRef}
-      className="fixed rounded-lg shadow-2xl flex flex-col border-2 z-50"
+      className="fixed rounded-2xl shadow-2xl flex flex-col border-2 z-50"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
@@ -412,12 +412,13 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
         maxHeight: '95vh',
         cursor: isDragging ? 'grabbing' : 'default',
         background: `linear-gradient(to bottom right, ${palette.ui.panelGradientFrom}, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
-        borderColor: palette.ui.panelBorder
+        borderColor: palette.ui.panelBorder,
+        overflow: 'hidden'
       }}
     >
       {/* Header - Title only, draggable */}
       <div
-        className="flex items-center justify-between p-4 border-b-2 flex-shrink-0 cursor-grab active:cursor-grabbing"
+        className="flex items-center justify-between p-4 border-b-2 flex-shrink-0 cursor-grab active:cursor-grabbing rounded-t-2xl"
         style={{
           borderColor: palette.ui.panelBorder,
           background: `linear-gradient(to right, ${palette.ui.panelGradientFrom}80, ${palette.ui.panelGradientVia}80)`
@@ -452,7 +453,8 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
           value={transitionName}
           placeholder="Enter transition name"
           onSave={setTransitionName}
-          className="text-lg font-medium"
+          className="text-sm font-medium"
+          inputClassName="text-sm"
         />
       </div>
 
