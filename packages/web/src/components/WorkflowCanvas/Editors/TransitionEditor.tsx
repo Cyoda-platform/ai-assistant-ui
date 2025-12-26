@@ -452,7 +452,18 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
         <InlineNameEditor
           value={transitionName}
           placeholder="Enter transition name"
-          onSave={setTransitionName}
+          onSave={(newName) => {
+            setTransitionName(newName);
+            // Update the JSON with the new name
+            try {
+              const parsed = JSON.parse(jsonText);
+              parsed.name = newName;
+              setJsonText(JSON.stringify(parsed, null, 2));
+            } catch (err) {
+              // If JSON is invalid, just update the name state
+              setTransitionName(newName);
+            }
+          }}
           className="text-sm font-medium"
           inputClassName="text-sm"
         />
