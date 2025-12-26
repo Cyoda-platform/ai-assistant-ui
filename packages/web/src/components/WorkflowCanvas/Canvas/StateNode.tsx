@@ -197,7 +197,7 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
         </div>
 
         {/* Additional Information - Subtle white sublabels with emojis */}
-        <div className={`flex items-center justify-between text-xs text-white/70 pt-2 border-t ${getBorderColor()}`}>
+        <div className={`flex items-center justify-center text-xs text-white/70 pt-2 border-t ${getBorderColor()}`}>
           <div className="flex items-center space-x-2 flex-wrap gap-1">
             {/* State Type Labels with emojis - Show both initial and active states */}
             {state.isInitial && (
