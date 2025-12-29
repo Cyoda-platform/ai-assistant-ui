@@ -231,56 +231,78 @@ export function calculateAutoLayout(
           let midX = (sourcePos.x + targetPos.x) / 2;
           let midY = (sourcePos.y + targetPos.y) / 2;
 
-          if (opts.direction === 'TB' || opts.direction === 'BT') {
-            // Top-to-Bottom or Bottom-to-Top: offset horizontally for parallel edges
-            midX += parallelOffset;
-            midY += verticalSpacing;
-
-            // Ensure minimum vertical distance
-            if (verticalDistance < opts.minTransitionLength) {
-              midY = sourcePos.y - opts.minTransitionLength + (transitionIndex - (totalTransitions - 1) / 2) * opts.edgeSeparation;
-            }
-
-            // Ensure minimum horizontal distance
-            if (horizontalDistance < opts.minTransitionWidth) {
-              const direction = targetPos.x > sourcePos.x ? 1 : -1;
-              midX = sourcePos.x + (direction * opts.minTransitionWidth) + parallelOffset;
-            }
-          } else {
-            // Left-to-Right or Right-to-Left: offset vertically for parallel edges
-            midY += parallelOffset;
-            midX += verticalSpacing;
-
-            // Ensure minimum horizontal distance
-            if (horizontalDistance < opts.minTransitionLength) {
-              midX = sourcePos.x - opts.minTransitionLength + (transitionIndex - (totalTransitions - 1) / 2) * opts.edgeSeparation;
-            }
-
-            // Ensure minimum vertical distance
-            if (verticalDistance < opts.minTransitionWidth) {
-              const direction = targetPos.y > sourcePos.y ? 1 : -1;
-              midY = sourcePos.y + (direction * opts.minTransitionWidth) + parallelOffset;
-            }
-          }
-
-          // Handle bidirectional transitions - offset them perpendicular to the line
-          // This is applied AFTER all other positioning to avoid being overwritten
+          // Check if this is a bidirectional transition
           const canonicalKey = [sourceStateId, transition.next].sort().join('-');
-          if (bidirectionalPairs.has(canonicalKey)) {
+          const isBidirectional = bidirectionalPairs.has(canonicalKey);
+
+          if (isBidirectional) {
+            // For bidirectional transitions, use simple offset from the midpoint
             const dx = targetPos.x - sourcePos.x;
             const dy = targetPos.y - sourcePos.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance > 0) {
-              // Perpendicular vector (rotated 90 degrees counterclockwise)
-              const perpX = -dy / distance;
-              const perpY = dx / distance;
+              // Determine if the line is more horizontal or vertical
+              const isHorizontal = Math.abs(dx) > Math.abs(dy);
 
               // Offset magnitude for bidirectional separation
               const offsetMagnitude = 60;
 
-              midX += perpX * offsetMagnitude;
-              midY += perpY * offsetMagnitude;
+              // Determine direction: which transition comes first alphabetically?
+              // This ensures consistent positioning for each pair
+              const isFirstInPair = sourceStateId < transition.next;
+              const offsetDirection = isFirstInPair ? -1 : 1;
+
+              console.log(`🔄 Bidirectional transition ${sourceStateId} -> ${transition.next}:`, {
+                isHorizontal,
+                isFirstInPair,
+                offsetDirection,
+                midX,
+                midY,
+              });
+
+              if (isHorizontal) {
+                // For horizontal lines, offset vertically (up/down)
+                midY += offsetDirection * offsetMagnitude;
+              } else {
+                // For vertical lines, offset horizontally (left/right)
+                midX += offsetDirection * offsetMagnitude;
+              }
+
+              console.log(`  After offset: midX=${midX}, midY=${midY}`);
+            }
+          } else {
+            // For non-bidirectional transitions, apply the standard positioning logic
+            if (opts.direction === 'TB' || opts.direction === 'BT') {
+              // Top-to-Bottom or Bottom-to-Top: offset horizontally for parallel edges
+              midX += parallelOffset;
+              midY += verticalSpacing;
+
+              // Ensure minimum vertical distance
+              if (verticalDistance < opts.minTransitionLength) {
+                midY = sourcePos.y - opts.minTransitionLength + (transitionIndex - (totalTransitions - 1) / 2) * opts.edgeSeparation;
+              }
+
+              // Ensure minimum horizontal distance
+              if (horizontalDistance < opts.minTransitionWidth) {
+                const direction = targetPos.x > sourcePos.x ? 1 : -1;
+                midX = sourcePos.x + (direction * opts.minTransitionWidth) + parallelOffset;
+              }
+            } else {
+              // Left-to-Right or Right-to-Left: offset vertically for parallel edges
+              midY += parallelOffset;
+              midX += verticalSpacing;
+
+              // Ensure minimum horizontal distance
+              if (horizontalDistance < opts.minTransitionLength) {
+                midX = sourcePos.x - opts.minTransitionLength + (transitionIndex - (totalTransitions - 1) / 2) * opts.edgeSeparation;
+              }
+
+              // Ensure minimum vertical distance
+              if (verticalDistance < opts.minTransitionWidth) {
+                const direction = targetPos.y > sourcePos.y ? 1 : -1;
+                midY = sourcePos.y + (direction * opts.minTransitionWidth) + parallelOffset;
+              }
             }
           }
 
