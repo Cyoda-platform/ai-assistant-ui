@@ -159,6 +159,8 @@ export function calculateAutoLayout(
         x = rankX;
         y = startY + index * opts.nodeSeparation;
 
+        console.log(`  📌 State ${stateId} (rank ${rank}): x=${x}, y=${y}`);
+
         statePositions.set(stateId, { x, y });
         states.push({
           id: stateId,
@@ -170,8 +172,8 @@ export function calculateAutoLayout(
 
   // Calculate transition node positions
   const transitions: Array<{ id: string; position: { x: number; y: number } }> = [];
-  const transitionWidth = 80;
-  const transitionHeight = 40;
+  const transitionWidth = 45; // Average actual width of transition nodes (~40-48px)
+  const transitionHeight = 14; // Actual height (~13.66px)
 
   // Track transitions between each pair of states
   const transitionsByPair = new Map<string, Array<{ sourceStateId: string; index: number }>>();
@@ -224,8 +226,14 @@ export function calculateAutoLayout(
           const transitionIndex = transitionsForPair.findIndex(t => t.index === index);
           const totalTransitions = transitionsForPair.length;
 
-          const verticalDistance = Math.abs(targetPos.y - sourcePos.y);
-          const horizontalDistance = Math.abs(targetPos.x - sourcePos.x);
+          // Convert positions to centers (position is top-left corner of node)
+          const sourceCenterX = sourcePos.x + opts.nodeWidth / 2;
+          const sourceCenterY = sourcePos.y + opts.nodeHeight / 2;
+          const targetCenterX = targetPos.x + opts.nodeWidth / 2;
+          const targetCenterY = targetPos.y + opts.nodeHeight / 2;
+
+          const verticalDistance = Math.abs(targetCenterY - sourceCenterY);
+          const horizontalDistance = Math.abs(targetCenterX - sourceCenterX);
 
           // Calculate offsets for parallel transitions based on direction
           // Larger offset to prevent overlapping (100px per transition)
@@ -233,17 +241,20 @@ export function calculateAutoLayout(
           // Vertical spacing between parallel transitions (80px per transition)
           const verticalSpacing = (transitionIndex - (totalTransitions - 1) / 2) * 80;
 
-          let midX = (sourcePos.x + targetPos.x) / 2;
-          let midY = (sourcePos.y + targetPos.y) / 2;
-
           // Check if this is a bidirectional transition
           const canonicalKey = [sourceStateId, transition.next].sort().join('-');
           const isBidirectional = bidirectionalPairs.has(canonicalKey);
 
+          // Position transition nodes at 40% horizontally (closer to source), 50% vertically (centered)
+          const ratioX = 0.4;
+          const ratioY = 0.5;
+          let midX = sourceCenterX + (targetCenterX - sourceCenterX) * ratioX;
+          let midY = sourceCenterY + (targetCenterY - sourceCenterY) * ratioY;
+
           if (isBidirectional) {
             // For bidirectional transitions, use simple offset from the midpoint
-            const dx = targetPos.x - sourcePos.x;
-            const dy = targetPos.y - sourcePos.y;
+            const dx = targetCenterX - sourceCenterX;
+            const dy = targetCenterY - sourceCenterY;
             const distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance > 0) {
@@ -288,6 +299,10 @@ export function calculateAutoLayout(
                 // States are arranged vertically (one above the other)
                 // Offset horizontally (left/right) to separate the two transitions
                 midX += offsetDirection * offsetMagnitude;
+
+                // Also shift left to match non-bidirectional transitions visual alignment
+                // This moves both bidirectional transitions left by a fixed amount
+                midX -= 40;
               }
 
               console.log(`  After offset: midX=${midX}, midY=${midY}`);
@@ -314,20 +329,13 @@ export function calculateAutoLayout(
               midY += parallelOffset;
               midX += verticalSpacing;
 
-              // Ensure minimum horizontal distance
-              if (horizontalDistance < opts.minTransitionLength) {
-                midX = sourcePos.x - opts.minTransitionLength + (transitionIndex - (totalTransitions - 1) / 2) * opts.edgeSeparation;
-              }
-
-              // Ensure minimum vertical distance
-              if (verticalDistance < opts.minTransitionWidth) {
-                const direction = targetPos.y > sourcePos.y ? 1 : -1;
-                midY = sourcePos.y + (direction * opts.minTransitionWidth) + parallelOffset;
-              }
+              // For LR layout: keep transition node between source and target
+              // Don't apply minimum distance constraints that would push it outside this range
+              // The midpoint calculation already ensures good positioning
             }
           }
 
-          // Determine handles for bidirectional transitions
+          // Determine handles for all transitions
           let handles: {
             stateToTransitionSourceHandle?: string;
             stateToTransitionTargetHandle?: string;
@@ -335,10 +343,10 @@ export function calculateAutoLayout(
             transitionToStateTargetHandle?: string;
           } = {};
 
-          if (isBidirectional) {
-            const dx = targetPos.x - sourcePos.x;
-            const dy = targetPos.y - sourcePos.y;
+          const dx = targetPos.x - sourcePos.x;
+          const dy = targetPos.y - sourcePos.y;
 
+          if (isBidirectional) {
             // Determine if this is the first or second transition in the pair
             const isFirstInPair = sourceStateId < transition.next;
 
@@ -409,14 +417,85 @@ export function calculateAutoLayout(
             }
 
             console.log(`🎯 Handles for ${sourceStateId} -> ${transition.next}:`, handles);
+          } else {
+            // Non-bidirectional transition
+            // Use rank-based alternating handle strategy for LR layout
+            const sourceRank = ranks.get(sourceStateId) || 0;
+            const targetRank = ranks.get(transition.next) || 0;
+
+            // Determine if we're in LR or TB layout
+            const isHorizontal = Math.abs(dx) > Math.abs(dy);
+
+            if (isHorizontal) {
+              // LR layout: alternate between vertical and horizontal handles based on rank
+              // IMPORTANT: Transition nodes ALWAYS use left entry and right exit
+              // Even rank (0, 2, 4...): vertical exit → horizontal entry
+              // Odd rank (1, 3, 5...): horizontal exit → vertical entry
+              const useVerticalExit = sourceRank % 2 === 0;
+
+              if (useVerticalExit) {
+                // Vertical exit from source state, horizontal entry to target state
+                // State -> Transition: top/bottom of state → LEFT of transition (always)
+                // Transition -> State: RIGHT of transition (always) → left of state
+                const verticalHandle = dy > 0 ? 'bottom-center-source' : 'top-center-source';
+                handles.stateToTransitionSourceHandle = verticalHandle;
+                handles.stateToTransitionTargetHandle = 'left-top-target';
+                handles.transitionToStateSourceHandle = 'right-top-source';
+                handles.transitionToStateTargetHandle = 'left-top-target';
+              } else {
+                // Horizontal exit from source state, vertical entry to target state
+                // State -> Transition: right of state → LEFT of transition (always)
+                // Transition -> State: RIGHT of transition (always) → top/bottom of state
+                const horizontalHandle = dx > 0 ? 'right-top-source' : 'left-top-source';
+                const verticalTargetHandle = dy > 0 ? 'top-center-target' : 'bottom-center-target';
+                handles.stateToTransitionSourceHandle = horizontalHandle;
+                handles.stateToTransitionTargetHandle = 'left-top-target';
+                handles.transitionToStateSourceHandle = 'right-top-source';
+                handles.transitionToStateTargetHandle = verticalTargetHandle;
+              }
+            } else {
+              // TB layout: use top/bottom center handles for cleaner routing
+              if (dy > 0) {
+                // Target is below - use bottom-center on source, top-center on target
+                handles.stateToTransitionSourceHandle = 'bottom-center-source';
+                handles.stateToTransitionTargetHandle = 'top-center-target';
+                handles.transitionToStateSourceHandle = 'bottom-center-source';
+                handles.transitionToStateTargetHandle = 'top-center-target';
+              } else {
+                // Target is above - use top-center on source, bottom-center on target
+                handles.stateToTransitionSourceHandle = 'top-center-source';
+                handles.stateToTransitionTargetHandle = 'bottom-center-target';
+                handles.transitionToStateSourceHandle = 'top-center-source';
+                handles.transitionToStateTargetHandle = 'bottom-center-target';
+              }
+            }
+
+            console.log(`🎯 Handles for non-bidirectional ${sourceStateId} (rank ${sourceRank}) -> ${transition.next} (rank ${targetRank}):`, handles);
           }
+
+          const transitionPosition = {
+            x: midX - transitionWidth / 2,
+            y: midY - transitionHeight / 2,
+          };
+
+          console.log(`📍 Transition ${sourceStateId} -> ${transition.next}:`, {
+            sourcePos,
+            targetPos,
+            sourceCenter: { x: sourceCenterX, y: sourceCenterY },
+            targetCenter: { x: targetCenterX, y: targetCenterY },
+            midX,
+            midY,
+            transitionPosition,
+            transitionWidth,
+            transitionHeight,
+            calculatedCenter: { x: transitionPosition.x + transitionWidth / 2, y: transitionPosition.y + transitionHeight / 2 },
+            dx: targetCenterX - sourceCenterX,
+            dy: targetCenterY - sourceCenterY,
+          });
 
           transitions.push({
             id: transitionId,
-            position: {
-              x: midX - transitionWidth / 2,
-              y: midY - transitionHeight / 2,
-            },
+            position: transitionPosition,
             ...handles,
           });
         }

@@ -305,7 +305,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     } catch (error) {
       console.warn('Failed to load edge type from localStorage:', error);
     }
-    return 'default';
+    return 'smoothstep'; // Changed from 'default' to 'smoothstep' for cleaner routing
   });
 
   const [layoutDirection, setLayoutDirectionState] = useState<'TB' | 'LR'>(() => {
@@ -966,14 +966,14 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         }
 
         // For transition -> state edge:
-        // Source handle (transition node side): ALWAYS calculate automatically for best appearance
+        // Source handle (transition node side): Use layout if available, otherwise calculate
         // Target handle (state node side): Use manual selection if available, otherwise calculate
-        let transitionToStateSourceHandle: string;
+        let transitionToStateSourceHandle = layout?.transitionToStateSourceHandle;
         let transitionToStateTargetHandle = layout?.transitionToStateTargetHandle;
 
         if (isLoopback) {
           // For loopback: use right handle on transition to come back to bottom-right of state
-          transitionToStateSourceHandle = 'right-bottom-source';
+          transitionToStateSourceHandle = transitionToStateSourceHandle || 'right-bottom-source';
           transitionToStateTargetHandle = transitionToStateTargetHandle || 'bottom-right-target';
         } else if (totalTransitionsInPair > 1) {
           // For parallel transitions: use different handles to avoid overlapping
@@ -983,16 +983,15 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             transitionIndexInPair,
             totalTransitionsInPair
           );
-          transitionToStateSourceHandle = `${parallelHandles.target}-source`; // Opposite of incoming
-          transitionToStateTargetHandle = `${parallelHandles.source}-target`; // Opposite of outgoing
-        } else {
-          // Always calculate optimal source handle based on node positions
+          transitionToStateSourceHandle = transitionToStateSourceHandle || `${parallelHandles.target}-source`; // Opposite of incoming
+          transitionToStateTargetHandle = transitionToStateTargetHandle || `${parallelHandles.source}-target`; // Opposite of outgoing
+        } else if (!transitionToStateSourceHandle || !transitionToStateTargetHandle) {
+          // Calculate optimal handles based on node positions only if not provided by layout
           const anchors = calculateOptimalAnchorPoints(
             transitionNode.position,
             targetState.position
           );
-          transitionToStateSourceHandle = anchors.sourceHandle;
-          // Use manual target handle if available, otherwise use calculated
+          transitionToStateSourceHandle = transitionToStateSourceHandle || anchors.sourceHandle;
           transitionToStateTargetHandle = transitionToStateTargetHandle || anchors.targetHandle;
         }
 
@@ -1025,9 +1024,24 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
         let sourcePosition, targetPosition;
 
-        // Determine primary direction based on which delta is larger
-        if (absDeltaY > absDeltaX) {
-          // Vertical direction is dominant
+        // For LR layout: transition nodes ALWAYS exit from the right side
+        // Determine if we're in LR or TB layout based on overall graph direction
+        const isLRLayout = absDeltaX > absDeltaY;
+
+        if (isLRLayout) {
+          // LR layout: transition always exits right, target can be top/bottom/left
+          sourcePosition = Position.Right;
+
+          // Determine target position based on vertical offset
+          if (Math.abs(deltaY) > 50) {
+            // Significant vertical offset - use top/bottom
+            targetPosition = deltaY > 0 ? Position.Top : Position.Bottom;
+          } else {
+            // Minimal vertical offset - use left
+            targetPosition = Position.Left;
+          }
+        } else {
+          // TB layout: use vertical positions
           if (deltaY > 0) {
             // Target is below transition
             sourcePosition = Position.Bottom;
@@ -1036,17 +1050,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             // Target is above transition
             sourcePosition = Position.Top;
             targetPosition = Position.Bottom;
-          }
-        } else {
-          // Horizontal direction is dominant
-          if (deltaX > 0) {
-            // Target is to the right of transition
-            sourcePosition = Position.Right;
-            targetPosition = Position.Left;
-          } else {
-            // Target is to the left of transition
-            sourcePosition = Position.Left;
-            targetPosition = Position.Right;
           }
         }
 
