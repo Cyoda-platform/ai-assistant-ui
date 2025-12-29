@@ -73,6 +73,11 @@ export interface LayoutResult {
   transitions?: Array<{
     id: string;
     position: { x: number; y: number };
+    // Handle information for bidirectional transitions
+    stateToTransitionSourceHandle?: string;
+    stateToTransitionTargetHandle?: string;
+    transitionToStateSourceHandle?: string;
+    transitionToStateTargetHandle?: string;
   }>;
 }
 
@@ -251,7 +256,21 @@ export function calculateAutoLayout(
               // Determine direction: which transition comes first alphabetically?
               // This ensures consistent positioning for each pair
               const isFirstInPair = sourceStateId < transition.next;
-              const offsetDirection = isFirstInPair ? -1 : 1;
+
+              // For vertical arrangement: first uses RIGHT handles, second uses LEFT handles
+              // So first should offset RIGHT (+), second should offset LEFT (-)
+              // For horizontal arrangement: first uses TOP handles, second uses BOTTOM handles
+              // So first should offset UP (-), second should offset DOWN (+)
+              // Note: Y axis grows downward, so UP is negative
+              let offsetDirection: number;
+
+              if (isHorizontal) {
+                // Horizontal arrangement: invert the direction for Y offset
+                offsetDirection = isFirstInPair ? -1 : 1;
+              } else {
+                // Vertical arrangement: normal direction for X offset
+                offsetDirection = isFirstInPair ? 1 : -1;
+              }
 
               console.log(`🔄 Bidirectional transition ${sourceStateId} -> ${transition.next}:`, {
                 isHorizontal,
@@ -262,10 +281,12 @@ export function calculateAutoLayout(
               });
 
               if (isHorizontal) {
-                // For horizontal lines, offset vertically (up/down)
+                // States are side-by-side horizontally
+                // Offset vertically (up/down) to separate the two transitions
                 midY += offsetDirection * offsetMagnitude;
               } else {
-                // For vertical lines, offset horizontally (left/right)
+                // States are arranged vertically (one above the other)
+                // Offset horizontally (left/right) to separate the two transitions
                 midX += offsetDirection * offsetMagnitude;
               }
 
@@ -306,12 +327,97 @@ export function calculateAutoLayout(
             }
           }
 
+          // Determine handles for bidirectional transitions
+          let handles: {
+            stateToTransitionSourceHandle?: string;
+            stateToTransitionTargetHandle?: string;
+            transitionToStateSourceHandle?: string;
+            transitionToStateTargetHandle?: string;
+          } = {};
+
+          if (isBidirectional) {
+            const dx = targetPos.x - sourcePos.x;
+            const dy = targetPos.y - sourcePos.y;
+
+            // Determine if this is the first or second transition in the pair
+            const isFirstInPair = sourceStateId < transition.next;
+
+            // Check actual geometry to determine handle placement
+            // This works for both TB and LR layouts
+            const isHorizontal = Math.abs(dx) > Math.abs(dy);
+
+            if (isHorizontal) {
+              // States are side-by-side horizontally
+              // Use top/bottom handles for separation
+              if (dx > 0) {
+                // Target is to the right
+                if (isFirstInPair) {
+                  handles.stateToTransitionSourceHandle = 'right-top-source';
+                  handles.stateToTransitionTargetHandle = 'left-top-target';
+                  handles.transitionToStateSourceHandle = 'right-top-source';
+                  handles.transitionToStateTargetHandle = 'left-top-target';
+                } else {
+                  handles.stateToTransitionSourceHandle = 'right-bottom-source';
+                  handles.stateToTransitionTargetHandle = 'left-bottom-target';
+                  handles.transitionToStateSourceHandle = 'right-bottom-source';
+                  handles.transitionToStateTargetHandle = 'left-bottom-target';
+                }
+              } else {
+                // Target is to the left
+                if (isFirstInPair) {
+                  handles.stateToTransitionSourceHandle = 'left-top-source';
+                  handles.stateToTransitionTargetHandle = 'right-top-target';
+                  handles.transitionToStateSourceHandle = 'left-top-source';
+                  handles.transitionToStateTargetHandle = 'right-top-target';
+                } else {
+                  handles.stateToTransitionSourceHandle = 'left-bottom-source';
+                  handles.stateToTransitionTargetHandle = 'right-bottom-target';
+                  handles.transitionToStateSourceHandle = 'left-bottom-source';
+                  handles.transitionToStateTargetHandle = 'right-bottom-target';
+                }
+              }
+            } else {
+              // States are arranged vertically (one above the other)
+              // Use left/right handles for separation
+              if (dy > 0) {
+                // Target is below
+                if (isFirstInPair) {
+                  handles.stateToTransitionSourceHandle = 'bottom-right-source';
+                  handles.stateToTransitionTargetHandle = 'top-right-target';
+                  handles.transitionToStateSourceHandle = 'bottom-right-source';
+                  handles.transitionToStateTargetHandle = 'top-right-target';
+                } else {
+                  handles.stateToTransitionSourceHandle = 'bottom-left-source';
+                  handles.stateToTransitionTargetHandle = 'top-left-target';
+                  handles.transitionToStateSourceHandle = 'bottom-left-source';
+                  handles.transitionToStateTargetHandle = 'top-left-target';
+                }
+              } else {
+                // Target is above
+                if (isFirstInPair) {
+                  handles.stateToTransitionSourceHandle = 'top-right-source';
+                  handles.stateToTransitionTargetHandle = 'bottom-right-target';
+                  handles.transitionToStateSourceHandle = 'top-right-source';
+                  handles.transitionToStateTargetHandle = 'bottom-right-target';
+                } else {
+                  handles.stateToTransitionSourceHandle = 'top-left-source';
+                  handles.stateToTransitionTargetHandle = 'bottom-left-target';
+                  handles.transitionToStateSourceHandle = 'top-left-source';
+                  handles.transitionToStateTargetHandle = 'bottom-left-target';
+                }
+              }
+            }
+
+            console.log(`🎯 Handles for ${sourceStateId} -> ${transition.next}:`, handles);
+          }
+
           transitions.push({
             id: transitionId,
             position: {
               x: midX - transitionWidth / 2,
               y: midY - transitionHeight / 2,
             },
+            ...handles,
           });
         }
       }
@@ -355,6 +461,11 @@ export function applyLayoutToWorkflow(
     updatedTransitions = layoutResult.transitions.map(t => ({
       id: t.id,
       position: t.position,
+      // Include handle information for bidirectional transitions
+      stateToTransitionSourceHandle: t.stateToTransitionSourceHandle,
+      stateToTransitionTargetHandle: t.stateToTransitionTargetHandle,
+      transitionToStateSourceHandle: t.transitionToStateSourceHandle,
+      transitionToStateTargetHandle: t.transitionToStateTargetHandle,
     }));
   } else {
     // Update existing transitions
@@ -364,6 +475,11 @@ export function applyLayoutToWorkflow(
         return {
           ...layoutTransition,
           position: newPosition.position,
+          // Include handle information for bidirectional transitions
+          stateToTransitionSourceHandle: newPosition.stateToTransitionSourceHandle,
+          stateToTransitionTargetHandle: newPosition.stateToTransitionTargetHandle,
+          transitionToStateSourceHandle: newPosition.transitionToStateSourceHandle,
+          transitionToStateTargetHandle: newPosition.transitionToStateTargetHandle,
         };
       }
       return layoutTransition;
