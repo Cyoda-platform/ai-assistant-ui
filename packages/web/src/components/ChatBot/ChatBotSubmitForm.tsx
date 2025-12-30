@@ -336,6 +336,14 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
     const value = e.target.value;
     setAnswer(value);
 
+    // If input is completely cleared, also clear canvas content
+    if (!value.trim()) {
+      setCanvasContent('');
+      setIsCollapsed(false);
+      setUserPrefix('');
+      setUserSuffix('');
+    }
+
     // Trigger resize with slight delay for better performance
     debouncedResize();
   };
