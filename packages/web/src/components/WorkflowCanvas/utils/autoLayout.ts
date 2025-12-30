@@ -159,8 +159,6 @@ export function calculateAutoLayout(
         x = rankX;
         y = startY + index * opts.nodeSeparation;
 
-        console.log(`  📌 State ${stateId} (rank ${rank}): x=${x}, y=${y}`);
-
         statePositions.set(stateId, { x, y });
         states.push({
           id: stateId,
@@ -246,7 +244,8 @@ export function calculateAutoLayout(
           const isBidirectional = bidirectionalPairs.has(canonicalKey);
 
           // Position transition nodes at 40% horizontally (closer to source), 50% vertically (centered)
-          const ratioX = 0.4;
+          // For bidirectional transitions, use 50% to center them between states
+          const ratioX = isBidirectional ? 0.5 : 0.4;
           const ratioY = 0.5;
           let midX = sourceCenterX + (targetCenterX - sourceCenterX) * ratioX;
           let midY = sourceCenterY + (targetCenterY - sourceCenterY) * ratioY;
@@ -267,18 +266,34 @@ export function calculateAutoLayout(
                 // Rank 1 (middle states like 'active'/'inactive') → push transitions further right
                 midX += horizontalOffset;
               }
-              console.log(`🔧 LR Non-bidirectional ${sourceStateId} -> ${transition.next}: rank=${sourceRank}, oldMidX=${oldMidX}, newMidX=${midX}`);
             } else if (opts.direction === 'TB' || opts.direction === 'BT') {
-              // For Top-Bottom layout: push transitions horizontally based on direction
+              // For Top-Bottom layout: push transitions horizontally based on source and target positions
               const horizontalOffset = 80;
-              if (targetCenterX < sourceCenterX) {
-                // Transition going left → push further left
+              const diagramCenterX = 400; // Center of diagram (from startX calculation)
+
+              let shouldOffsetRight = false;
+              let shouldOffsetLeft = false;
+
+              if (targetCenterX > sourceCenterX && targetCenterX > diagramCenterX) {
+                // Target right of source AND right of center → push right
+                shouldOffsetRight = true;
+              } else if (targetCenterX < sourceCenterX && targetCenterX < diagramCenterX) {
+                // Target left of source AND left of center → push left
+                shouldOffsetLeft = true;
+              } else {
+                // Otherwise, use source position relative to center
+                if (sourceCenterX < diagramCenterX) {
+                  shouldOffsetLeft = true;
+                } else if (sourceCenterX > diagramCenterX) {
+                  shouldOffsetRight = true;
+                }
+              }
+
+              if (shouldOffsetLeft) {
                 midX -= horizontalOffset;
-              } else if (targetCenterX > sourceCenterX) {
-                // Transition going right → push further right
+              } else if (shouldOffsetRight) {
                 midX += horizontalOffset;
               }
-              console.log(`🔧 TB Non-bidirectional ${sourceStateId} -> ${transition.next}: sourceCenterX=${sourceCenterX}, targetCenterX=${targetCenterX}, oldMidX=${oldMidX}, newMidX=${midX}`);
             }
           }
 
@@ -314,14 +329,6 @@ export function calculateAutoLayout(
                 offsetDirection = isFirstInPair ? 1 : -1;
               }
 
-              console.log(`🔄 Bidirectional transition ${sourceStateId} -> ${transition.next}:`, {
-                isHorizontal,
-                isFirstInPair,
-                offsetDirection,
-                midX,
-                midY,
-              });
-
               if (isHorizontal) {
                 // States are side-by-side horizontally
                 // Offset vertically (up/down) to separate the two transitions
@@ -335,8 +342,6 @@ export function calculateAutoLayout(
                 // This moves both bidirectional transitions left by a fixed amount
                 midX -= 40;
               }
-
-              console.log(`  After offset: midX=${midX}, midY=${midY}`);
             }
           } else {
             // For non-bidirectional transitions, apply the standard positioning logic
@@ -446,8 +451,6 @@ export function calculateAutoLayout(
                 }
               }
             }
-
-            console.log(`🎯 Handles for ${sourceStateId} -> ${transition.next}:`, handles);
           } else {
             // Non-bidirectional transition
             // Use rank-based alternating handle strategy for LR layout
@@ -500,29 +503,12 @@ export function calculateAutoLayout(
                 handles.transitionToStateTargetHandle = 'bottom-center-target';
               }
             }
-
-            console.log(`🎯 Handles for non-bidirectional ${sourceStateId} (rank ${sourceRank}) -> ${transition.next} (rank ${targetRank}):`, handles);
           }
 
           const transitionPosition = {
             x: midX - transitionWidth / 2,
             y: midY - transitionHeight / 2,
           };
-
-          console.log(`📍 Transition ${sourceStateId} -> ${transition.next}:`, {
-            sourcePos,
-            targetPos,
-            sourceCenter: { x: sourceCenterX, y: sourceCenterY },
-            targetCenter: { x: targetCenterX, y: targetCenterY },
-            midX,
-            midY,
-            transitionPosition,
-            transitionWidth,
-            transitionHeight,
-            calculatedCenter: { x: transitionPosition.x + transitionWidth / 2, y: transitionPosition.y + transitionHeight / 2 },
-            dx: targetCenterX - sourceCenterX,
-            dy: targetCenterY - sourceCenterY,
-          });
 
           transitions.push({
             id: transitionId,
