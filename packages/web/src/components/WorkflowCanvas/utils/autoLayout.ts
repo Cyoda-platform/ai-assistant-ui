@@ -251,6 +251,37 @@ export function calculateAutoLayout(
           let midX = sourceCenterX + (targetCenterX - sourceCenterX) * ratioX;
           let midY = sourceCenterY + (targetCenterY - sourceCenterY) * ratioY;
 
+          // Add offset to "expand" the diagram (only for non-bidirectional)
+          if (!isBidirectional) {
+            const oldMidX = midX;
+            const oldMidY = midY;
+
+            if (opts.direction === 'LR' || opts.direction === 'RL') {
+              // For Left-Right layout: use rank-based horizontal offset
+              const sourceRank = ranks.get(sourceStateId) || 0;
+              const horizontalOffset = 80;
+              if (sourceRank === 0) {
+                // Rank 0 (leftmost states like 'created') → push transitions further left
+                midX -= horizontalOffset;
+              } else if (sourceRank === 1) {
+                // Rank 1 (middle states like 'active'/'inactive') → push transitions further right
+                midX += horizontalOffset;
+              }
+              console.log(`🔧 LR Non-bidirectional ${sourceStateId} -> ${transition.next}: rank=${sourceRank}, oldMidX=${oldMidX}, newMidX=${midX}`);
+            } else if (opts.direction === 'TB' || opts.direction === 'BT') {
+              // For Top-Bottom layout: push transitions horizontally based on direction
+              const horizontalOffset = 80;
+              if (targetCenterX < sourceCenterX) {
+                // Transition going left → push further left
+                midX -= horizontalOffset;
+              } else if (targetCenterX > sourceCenterX) {
+                // Transition going right → push further right
+                midX += horizontalOffset;
+              }
+              console.log(`🔧 TB Non-bidirectional ${sourceStateId} -> ${transition.next}: sourceCenterX=${sourceCenterX}, targetCenterX=${targetCenterX}, oldMidX=${oldMidX}, newMidX=${midX}`);
+            }
+          }
+
           if (isBidirectional) {
             // For bidirectional transitions, use simple offset from the midpoint
             const dx = targetCenterX - sourceCenterX;
