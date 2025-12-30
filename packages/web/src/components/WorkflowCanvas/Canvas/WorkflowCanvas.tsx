@@ -2291,16 +2291,17 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             <ControlButton
               onClick={handleToggleFullscreen}
               title={isInFullscreenMode ? "Exit fullscreen" : "Open in fullscreen"}
-              className={isInFullscreenMode
-                ? "bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/30 dark:to-red-900/30"
-                : "bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/30 dark:to-indigo-900/30"
-              }
+              className={isInFullscreenMode ? 'border-2' : ''}
+              style={isInFullscreenMode ? {
+                background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
+                borderColor: palette.ui.accentColor
+              } : {}}
               data-testid="fullscreen-button"
             >
               {isInFullscreenMode ? (
-                <Minimize2 size={16} className="text-orange-600 dark:text-orange-400" />
+                <Minimize2 size={16} />
               ) : (
-                <Maximize2 size={16} className="text-purple-600 dark:text-purple-400" />
+                <Maximize2 size={16} />
               )}
             </ControlButton>
           )}

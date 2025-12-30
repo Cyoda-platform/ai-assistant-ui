@@ -687,7 +687,7 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
   return (
     <div className={`${isFullscreen ? 'fixed inset-0 z-50' : 'h-full'} flex flex-col bg-gray-900`}>
       {/* Header with GitHub Link */}
-      {getGitHubUrl() && (
+      {!isFullscreen && getGitHubUrl() && (
         <div className="border-b border-gray-700 bg-gray-800/50 px-6 py-3 flex items-center justify-between">
           <div className="text-sm text-gray-400">
             GitHub Path
@@ -752,6 +752,7 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
       </div>
 
       {/* Footer with Send Button - Fixed at bottom */}
+      {!isFullscreen && (
       <div className="border-t border-gray-700 bg-gray-800/50 p-4 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center space-x-2">
           {onBack && (
@@ -781,6 +782,7 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
           </button>
         )}
       </div>
+      )}
     </div>
   );
 };
