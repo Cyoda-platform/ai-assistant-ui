@@ -384,7 +384,7 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
         {onSendToChat && !jsonError && (
           <button
             onClick={() => onSendToChat(jsonText)}
-            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-teal-600/80 hover:bg-teal-500/80 border border-teal-500 text-white whitespace-nowrap"
+            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-teal-600/80 hover:bg-teal-500/80 text-white whitespace-nowrap"
             title="Send edited entity to chat"
           >
             <Send size={12} />

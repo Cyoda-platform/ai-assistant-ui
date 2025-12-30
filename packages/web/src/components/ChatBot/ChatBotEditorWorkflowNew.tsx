@@ -773,7 +773,7 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
               const message = `\`\`\`json\n${workflowJson}\n\`\`\``;
               setTextareaContentCallback(message);
             }}
-            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-purple-600/80 hover:bg-purple-500/80 border border-purple-500 text-white whitespace-nowrap"
+            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-purple-600/80 hover:bg-purple-500/80 text-white whitespace-nowrap"
             title="Send edited workflow to chat"
           >
             <Send size={12} />
