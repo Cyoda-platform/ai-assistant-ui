@@ -53,7 +53,7 @@ function calculateOptimalHandles(
 
   // For bidirectional connections, use offset handles to avoid overlap
   if (isBidirectional) {
-    if (absDeltaY > absDeltaX * 0.6) {
+    if (absDeltaY >= absDeltaX) {
       // Vertical bidirectional - use left/right offset handles
       if (isReturnPath) {
         return {
@@ -99,31 +99,31 @@ function calculateOptimalHandles(
   }
 
   // Standard single-direction routing
-  if (absDeltaY > absDeltaX * 0.6) {
+  if (absDeltaY >= absDeltaX) {
     // Vertical connection is dominant
     if (deltaY > 0) {
-      // Target is below source
+      // Target is below source: use bottom of source, top of target
       return {
         sourceHandle: 'bottom-center-source',
         targetHandle: 'top-center-target'
       };
     } else {
-      // Target is above source
+      // Target is above source: use top of source, bottom of target
       return {
-        sourceHandle: 'bottom-center-source',
-        targetHandle: 'top-center-target'
+        sourceHandle: 'top-center-source',
+        targetHandle: 'bottom-center-target'
       };
     }
   } else {
     // Horizontal connection is dominant
     if (deltaX > 0) {
-      // Target is to the right
+      // Target is to the right: use right of source, left of target
       return {
         sourceHandle: 'right-top-source',
         targetHandle: 'left-top-target'
       };
     } else {
-      // Target is to the left
+      // Target is to the left: use left of source, right of target
       return {
         sourceHandle: 'left-top-source',
         targetHandle: 'right-top-target'
@@ -743,50 +743,49 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   }, []);
 
   // Helper function to calculate optimal anchor points based on relative positions
+  // Logic: Select the nearest logical handles based on state positions
+  // - If A is above B: use bottom handle of A, top handle of B
+  // - If A is below B: use top handle of A, bottom handle of B
+  // - If A is left of B: use right handle of A, left handle of B
+  // - If A is right of B: use left handle of A, right handle of B
   const calculateOptimalAnchorPoints = useCallback((
     sourcePos: { x: number; y: number },
     targetPos: { x: number; y: number }
   ): { sourceHandle: string; targetHandle: string } => {
     const dx = targetPos.x - sourcePos.x;
     const dy = targetPos.y - sourcePos.y;
-    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
 
-    // Determine best anchor points based on angle
+    // Determine primary direction based on which delta is larger
+    // Vertical if vertical distance >= horizontal distance
+    const isVerticalDominant = absDy >= absDx;
+
     let sourceHandle = 'bottom-center-source';
     let targetHandle = 'top-center-target';
 
-    if (angle >= -22.5 && angle < 22.5) {
-      // Right
-      sourceHandle = 'right-top-source';
-      targetHandle = 'left-top-target';
-    } else if (angle >= 22.5 && angle < 67.5) {
-      // Bottom-right
-      sourceHandle = 'bottom-right-source';
-      targetHandle = 'top-left-target';
-    } else if (angle >= 67.5 && angle < 112.5) {
-      // Bottom
-      sourceHandle = 'bottom-center-source';
-      targetHandle = 'top-center-target';
-    } else if (angle >= 112.5 && angle < 157.5) {
-      // Bottom-left
-      sourceHandle = 'bottom-left-source';
-      targetHandle = 'top-right-target';
-    } else if (angle >= 157.5 || angle < -157.5) {
-      // Left
-      sourceHandle = 'left-top-source';
-      targetHandle = 'right-top-target';
-    } else if (angle >= -157.5 && angle < -112.5) {
-      // Top-left
-      sourceHandle = 'top-left-source';
-      targetHandle = 'bottom-right-target';
-    } else if (angle >= -112.5 && angle < -67.5) {
-      // Top
-      sourceHandle = 'top-center-source';
-      targetHandle = 'bottom-center-target';
-    } else if (angle >= -67.5 && angle < -22.5) {
-      // Top-right
-      sourceHandle = 'top-right-source';
-      targetHandle = 'bottom-left-target';
+    if (isVerticalDominant) {
+      // Vertical connection is dominant
+      if (dy > 0) {
+        // Target is below source: use bottom of source, top of target
+        sourceHandle = 'bottom-center-source';
+        targetHandle = 'top-center-target';
+      } else {
+        // Target is above source: use top of source, bottom of target
+        sourceHandle = 'top-center-source';
+        targetHandle = 'bottom-center-target';
+      }
+    } else {
+      // Horizontal connection is dominant
+      if (dx > 0) {
+        // Target is to the right: use right of source, left of target
+        sourceHandle = 'right-top-source';
+        targetHandle = 'left-top-target';
+      } else {
+        // Target is to the left: use left of source, right of target
+        sourceHandle = 'left-top-source';
+        targetHandle = 'right-top-target';
+      }
     }
 
     return { sourceHandle, targetHandle };
@@ -844,6 +843,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           id: `transition-${transition.id}`,
           type: 'transitionNode' as const,
           position: position || { x: 0, y: 0 },
+          draggable: true,
           data: {
             label: transition.definition.name || 'Unnamed',
             transition: transition,
@@ -855,44 +855,64 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         };
       });
 
-      // Helper function to get handle for parallel transitions
+      // Helper function to get handle for parallel transitions from same source
+      // For parallel transitions, we distribute them across different handles to avoid overlapping
       const getParallelTransitionHandles = (
         sourceStateId: string,
         targetStateId: string,
         transitionIndex: number,
         totalTransitions: number
       ) => {
-        // For parallel transitions, use different handles to avoid overlapping
-        // Map of opposite handles
-        const oppositeHandles: Record<string, string> = {
-          'top-left': 'bottom-right',
-          'top-center': 'bottom-center',
-          'top-right': 'bottom-left',
-          'left-top': 'right-bottom',
-          'left-bottom': 'right-top',
-          'right-top': 'left-bottom',
-          'right-bottom': 'left-top',
-          'bottom-left': 'top-right',
-          'bottom-center': 'top-center',
-          'bottom-right': 'top-left'
-        };
+        // Get source and target state positions to determine direction
+        const sourceState = currentUiStates.find(s => s.id === sourceStateId);
+        const targetState = currentUiStates.find(s => s.id === targetStateId);
 
-        const handleOptions = [
-          'top-left', 'top-center', 'top-right',
-          'left-top', 'left-bottom',
-          'right-top', 'right-bottom',
-          'bottom-left', 'bottom-center', 'bottom-right'
-        ];
-
-        if (totalTransitions === 1) {
-          // Single transition - use center handles
-          return { source: 'top-center', target: 'bottom-center' };
+        if (!sourceState || !targetState) {
+          console.log('❌ States not found for parallel handles:', sourceStateId, targetStateId);
+          return { source: 'bottom-center', target: 'top-center' };
         }
 
-        // Multiple transitions - distribute across handles
-        const index = transitionIndex % handleOptions.length;
-        const sourceHandle = handleOptions[index];
-        const targetHandle = oppositeHandles[sourceHandle] || 'bottom-center';
+        const dx = targetState.position.x - sourceState.position.x;
+        const dy = targetState.position.y - sourceState.position.y;
+        const absDx = Math.abs(dx);
+        const absDy = Math.abs(dy);
+
+        // Determine if connection is vertical or horizontal
+        // Vertical if vertical distance >= horizontal distance
+        const isVerticalDominant = absDy >= absDx;
+
+        // For parallel transitions, distribute across handles in the appropriate direction
+        let sourceHandles: string[];
+        let targetHandles: string[];
+
+        if (isVerticalDominant) {
+          // Vertical connection: distribute left/right
+          if (dy > 0) {
+            // Target below: use bottom handles on source, top handles on target
+            sourceHandles = ['bottom-left', 'bottom-center', 'bottom-right'];
+            targetHandles = ['top-left', 'top-center', 'top-right'];
+          } else {
+            // Target above: use top handles on source, bottom handles on target
+            sourceHandles = ['top-left', 'top-center', 'top-right'];
+            targetHandles = ['bottom-left', 'bottom-center', 'bottom-right'];
+          }
+        } else {
+          // Horizontal connection: distribute top/bottom
+          if (dx > 0) {
+            // Target to the right: use right handles on source, left handles on target
+            sourceHandles = ['right-top', 'right-bottom'];
+            targetHandles = ['left-top', 'left-bottom'];
+          } else {
+            // Target to the left: use left handles on source, right handles on target
+            sourceHandles = ['left-top', 'left-bottom'];
+            targetHandles = ['right-top', 'right-bottom'];
+          }
+        }
+
+        // Distribute transitions across available handles
+        const index = transitionIndex % sourceHandles.length;
+        const sourceHandle = sourceHandles[index];
+        const targetHandle = targetHandles[index];
 
         return { source: sourceHandle, target: targetHandle };
       };
@@ -900,14 +920,15 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       // Create simple edges: state -> transition -> state
       const newEdges: any[] = [];
 
-      // Group transitions by source-target pair to count parallel transitions
-      const transitionsByPair = new Map<string, Array<{ transition: UITransitionData; index: number }>>();
+      // Group transitions by SOURCE STATE to count parallel transitions from same source
+      // (not by source-target pair, because we want to distribute handles for all transitions from one state)
+      const transitionsBySource = new Map<string, Array<{ transition: UITransitionData; index: number }>>();
       currentUiTransitions.forEach((transition, index) => {
-        const key = `${transition.sourceStateId}-${transition.targetStateId}`;
-        if (!transitionsByPair.has(key)) {
-          transitionsByPair.set(key, []);
+        const key = transition.sourceStateId; // Group by source state only
+        if (!transitionsBySource.has(key)) {
+          transitionsBySource.set(key, []);
         }
-        transitionsByPair.get(key)!.push({ transition, index });
+        transitionsBySource.get(key)!.push({ transition, index });
       });
 
       currentUiTransitions.forEach((transition, globalIndex) => {
@@ -924,11 +945,20 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         // Get layout for this transition (may have manual anchor point selections)
         const layout = transitionLayoutMap.get(transition.id);
 
-        // Get parallel transition info
-        const pairKey = `${transition.sourceStateId}-${transition.targetStateId}`;
-        const transitionsInPair = transitionsByPair.get(pairKey) || [];
-        const transitionIndexInPair = transitionsInPair.findIndex(t => t.transition.id === transition.id);
-        const totalTransitionsInPair = transitionsInPair.length;
+        console.log(`\n📍 Transition ${transition.id}: ${transition.sourceStateId} -> ${transition.targetStateId}`, {
+          layout: layout ? {
+            stateToTransitionSourceHandle: layout.stateToTransitionSourceHandle,
+            stateToTransitionTargetHandle: layout.stateToTransitionTargetHandle,
+            transitionToStateSourceHandle: layout.transitionToStateSourceHandle,
+            transitionToStateTargetHandle: layout.transitionToStateTargetHandle,
+          } : 'NO LAYOUT'
+        });
+
+        // Get parallel transition info (all transitions from the same source state)
+        const sourceKey = transition.sourceStateId;
+        const transitionsFromSource = transitionsBySource.get(sourceKey) || [];
+        const transitionIndexInSource = transitionsFromSource.findIndex(t => t.transition.id === transition.id);
+        const totalTransitionsFromSource = transitionsFromSource.length;
 
         // Determine if transition is manual or automated for styling
         const isManual = transition.definition.manual === true;
@@ -936,7 +966,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         const edgeWidth = 2;
 
         // For state -> transition edge:
-        // Use manual selection if available, otherwise calculate optimal
+        // Use layout handles if available (from autoLayout), otherwise calculate optimal
         let stateToTransitionSourceHandle = layout?.stateToTransitionSourceHandle;
         let stateToTransitionTargetHandle = layout?.stateToTransitionTargetHandle;
 
@@ -945,16 +975,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             // For loopback: use top-right handle on state to go out to transition
             stateToTransitionSourceHandle = 'top-right-source';
             stateToTransitionTargetHandle = 'left-top-target';
-          } else if (totalTransitionsInPair > 1) {
-            // For parallel transitions: use different handles to avoid overlapping
-            const parallelHandles = getParallelTransitionHandles(
-              transition.sourceStateId,
-              transition.targetStateId,
-              transitionIndexInPair,
-              totalTransitionsInPair
-            );
-            stateToTransitionSourceHandle = `${parallelHandles.source}-source`;
-            stateToTransitionTargetHandle = `${parallelHandles.target}-target`;
           } else {
             const anchors = calculateOptimalAnchorPoints(
               sourceState.position,
@@ -964,6 +984,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             stateToTransitionTargetHandle = stateToTransitionTargetHandle || anchors.targetHandle;
           }
         }
+
+        console.log(`  State->Transition: ${stateToTransitionSourceHandle} -> ${stateToTransitionTargetHandle}`);
 
         // For transition -> state edge:
         // Source handle (transition node side): Use layout if available, otherwise calculate
@@ -975,16 +997,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           // For loopback: use right handle on transition to come back to bottom-right of state
           transitionToStateSourceHandle = transitionToStateSourceHandle || 'right-bottom-source';
           transitionToStateTargetHandle = transitionToStateTargetHandle || 'bottom-right-target';
-        } else if (totalTransitionsInPair > 1) {
-          // For parallel transitions: use different handles to avoid overlapping
-          const parallelHandles = getParallelTransitionHandles(
-            transition.sourceStateId,
-            transition.targetStateId,
-            transitionIndexInPair,
-            totalTransitionsInPair
-          );
-          transitionToStateSourceHandle = transitionToStateSourceHandle || `${parallelHandles.target}-source`; // Opposite of incoming
-          transitionToStateTargetHandle = transitionToStateTargetHandle || `${parallelHandles.source}-target`; // Opposite of outgoing
         } else if (!transitionToStateSourceHandle || !transitionToStateTargetHandle) {
           // Calculate optimal handles based on node positions only if not provided by layout
           const anchors = calculateOptimalAnchorPoints(
@@ -994,6 +1006,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           transitionToStateSourceHandle = transitionToStateSourceHandle || anchors.sourceHandle;
           transitionToStateTargetHandle = transitionToStateTargetHandle || anchors.targetHandle;
         }
+
+        console.log(`  Transition->State: ${transitionToStateSourceHandle} -> ${transitionToStateTargetHandle}`);
 
         // Edge from source state to transition node (no specific direction, no arrow)
         // This is the "head" edge - should not be manually reconnectable
@@ -1569,11 +1583,60 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       if (node.id.startsWith('transition-')) {
         // Extract transition ID from node ID
         const transitionId = node.id.replace('transition-', '');
+        console.log(`[onNodeDragStop] Transition moved: ${transitionId}`);
+
+        // Find the transition data to get source and target state IDs
+        const transitionData = uiTransitionsRef.current.find(t => t.id === transitionId);
+        if (!transitionData) {
+          console.log(`[onNodeDragStop] Transition data not found for ${transitionId}`);
+          return;
+        }
+
+        const sourceState = cleanedWorkflow.layout.states.find(s => s.id === transitionData.sourceStateId);
+        const targetState = cleanedWorkflow.layout.states.find(s => s.id === transitionData.targetStateId);
+
+        // Recalculate handles based on new position
+        let updatedHandles = {};
+        if (sourceState && targetState) {
+          const dx = targetState.position.x - sourceState.position.x;
+          const dy = targetState.position.y - sourceState.position.y;
+
+          // Calculate angle from transition to target state
+          const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+          // Choose best handle based on angle
+          // Angle ranges: -180 to 180 degrees
+          // Right: -45 to 45
+          // Bottom: 45 to 135
+          // Left: 135 to 180 or -180 to -135
+          // Top: -135 to -45
+          let stateTargetHandle: string;
+
+          if (angle >= -45 && angle < 45) {
+            // Target is to the right
+            stateTargetHandle = 'left-top-target';
+          } else if (angle >= 45 && angle < 135) {
+            // Target is below
+            stateTargetHandle = 'top-center-target';
+          } else if (angle >= 135 || angle < -135) {
+            // Target is to the left
+            stateTargetHandle = 'right-top-target';
+          } else {
+            // Target is above
+            stateTargetHandle = 'bottom-center-target';
+          }
+
+          updatedHandles = {
+            transitionToStateTargetHandle: stateTargetHandle
+          };
+
+          console.log(`[onNodeDragStop] dx=${dx}, dy=${dy}, angle=${angle.toFixed(1)}°, handle=${stateTargetHandle}`);
+        }
 
         // Update transition position in layout
         const updatedLayoutTransitions = cleanedWorkflow.layout.transitions.map((transition) =>
           transition.id === transitionId
-            ? { ...transition, position: node.position }
+            ? { ...transition, position: node.position, ...updatedHandles }
             : transition
         );
 
@@ -1581,7 +1644,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         if (!updatedLayoutTransitions.find(t => t.id === transitionId)) {
           updatedLayoutTransitions.push({
             id: transitionId,
-            position: node.position
+            position: node.position,
+            ...updatedHandles
           });
         }
 
@@ -1595,6 +1659,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           }
         };
 
+        console.log(`[onNodeDragStop] Updated transition layout:`, updatedLayoutTransitions.find(t => t.id === transitionId));
+
         onWorkflowUpdate(updatedWorkflow, `Moved transition: ${transitionId}`);
       } else {
         // Update state position in layout
@@ -1604,12 +1670,39 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             : state
         );
 
+        // When a state is moved, recalculate positions of all related transitions
+        const updatedLayoutTransitions = cleanedWorkflow.layout.transitions.map((transition) => {
+          // Find the transition data to get source and target state IDs
+          const transitionData = uiTransitionsRef.current.find(t => t.id === transition.id);
+          if (!transitionData) return transition;
+
+          const sourceState = updatedLayoutStates.find(s => s.id === transitionData.sourceStateId);
+          const targetState = updatedLayoutStates.find(s => s.id === transitionData.targetStateId);
+
+          // Check if this transition is related to the moved state
+          const isSourceMoved = sourceState?.id === node.id;
+          const isTargetMoved = targetState?.id === node.id;
+
+          if ((isSourceMoved || isTargetMoved) && sourceState && targetState) {
+            // Recalculate transition position
+            const isLoopback = sourceState.id === targetState.id;
+            const newPosition = calculateTransitionNodePosition(
+              sourceState.position,
+              targetState.position,
+              isLoopback
+            );
+            return { ...transition, position: newPosition };
+          }
+
+          return transition;
+        });
+
         const updatedWorkflow: UIWorkflowData = {
           ...cleanedWorkflow,
           layout: {
             ...cleanedWorkflow.layout,
             states: updatedLayoutStates,
-            transitions: cleanedWorkflow.layout.transitions,
+            transitions: updatedLayoutTransitions,
             updatedAt: new Date().toISOString()
           }
         };

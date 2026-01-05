@@ -100,6 +100,7 @@ export interface CanvasLayout {
   transitions: TransitionLayout[];
   version: number;
   updatedAt: string;
+  direction?: 'TB' | 'BT' | 'LR' | 'RL'; // Layout direction
 }
 
 export interface WorkflowSummary {
