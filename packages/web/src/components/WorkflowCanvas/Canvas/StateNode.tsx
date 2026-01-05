@@ -180,7 +180,7 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
             ) : state.isFinal ? (
               <Square size={14} fill="currentColor" />
             ) : (
-              <div className="w-2.5 h-2.5 rounded-full border-2 border-current" />
+              <div className="w-2.5 h-2.5 rounded-full bg-current" />
             )}
           </div>
 
