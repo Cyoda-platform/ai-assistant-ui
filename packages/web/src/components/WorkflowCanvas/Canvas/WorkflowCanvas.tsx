@@ -2338,22 +2338,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           >
             <Upload size={16} />
           </ControlButton>
-          <ControlButton
-            onClick={handleExportToEnvironment}
-            title="Export workflow to environment (entity1/v1)"
-            data-testid="export-env-button"
-            className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30"
-          >
-            <CloudUpload size={16} className="text-blue-600 dark:text-blue-400" />
-          </ControlButton>
-          <ControlButton
-            onClick={handleImportFromEnvironment}
-            title="Import workflow from environment (entity1/v1)"
-            data-testid="import-env-button"
-            className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30"
-          >
-            <CloudDownload size={16} className="text-blue-600 dark:text-blue-400" />
-          </ControlButton>
 
           <ControlButton
             onClick={handleToggleSettings}
