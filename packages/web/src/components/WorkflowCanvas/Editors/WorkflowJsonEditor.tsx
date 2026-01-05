@@ -756,7 +756,7 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
               <h3
                 style={{
                   margin: 0,
-                  color: '#A78BFA',
+                  color: palette.ui.panelTitleFrom,
                   fontSize: '16px',
                   fontWeight: 500
                 }}
