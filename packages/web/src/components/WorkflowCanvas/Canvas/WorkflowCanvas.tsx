@@ -2436,10 +2436,15 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                 <select
                   value={edgeType}
                   onChange={(e) => setEdgeType(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2"
+                  className="w-full px-3 py-2 pr-10 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 appearance-none"
                   style={{
                     borderColor: palette.ui.panelBorder,
-                    borderWidth: '1px'
+                    borderWidth: '1px',
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e5e7eb' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 8px center',
+                    paddingRight: '32px',
+                    accentColor: palette.ui.accentColor
                   }}
                   onFocus={(e) => e.currentTarget.style.boxShadow = `0 0 0 2px ${palette.ui.accentColor}40`}
                   onBlur={(e) => e.currentTarget.style.boxShadow = 'none'}
@@ -2458,10 +2463,15 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                 <select
                   value={layoutDirection}
                   onChange={(e) => setLayoutDirection(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2"
+                  className="w-full px-3 py-2 pr-10 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 appearance-none"
                   style={{
                     borderColor: palette.ui.panelBorder,
-                    borderWidth: '1px'
+                    borderWidth: '1px',
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e5e7eb' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 8px center',
+                    paddingRight: '32px',
+                    accentColor: palette.ui.accentColor
                   }}
                   onFocus={(e) => e.currentTarget.style.boxShadow = `0 0 0 2px ${palette.ui.accentColor}40`}
                   onBlur={(e) => e.currentTarget.style.boxShadow = 'none'}
@@ -2478,10 +2488,15 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                 <select
                   value={theme}
                   onChange={(e) => setTheme(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2"
+                  className="w-full px-3 py-2 pr-10 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 appearance-none"
                   style={{
                     borderColor: palette.ui.panelBorder,
-                    borderWidth: '1px'
+                    borderWidth: '1px',
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e5e7eb' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 8px center',
+                    paddingRight: '32px',
+                    accentColor: palette.ui.accentColor
                   }}
                   onFocus={(e) => e.currentTarget.style.boxShadow = `0 0 0 2px ${palette.ui.accentColor}40`}
                   onBlur={(e) => e.currentTarget.style.boxShadow = 'none'}
