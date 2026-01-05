@@ -105,8 +105,8 @@
 // Notification overrides (replacing el-notification)
 .ant-notification {
   .ant-notification-notice {
-    background-color: var(--bg-dialog-color);
-    border: 1px solid var(--accent-border);
+    background-color: var(--bg-dialog-color) !important;
+    border: 1px solid var(--accent-border) !important;
     border-radius: 8px;
 
     .ant-notification-notice-content {
@@ -133,8 +133,8 @@
 // Message overrides
 .ant-message {
   .ant-message-notice-content {
-    background-color: var(--bg-dialog-color);
-    border: 1px solid var(--accent-border);
+    background-color: var(--bg-dialog-color) !important;
+    border: 1px solid var(--accent-border) !important;
     border-radius: 8px;
     color: var(--text-color-regular);
   }
