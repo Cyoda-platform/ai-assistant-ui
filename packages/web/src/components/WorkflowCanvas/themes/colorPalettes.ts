@@ -37,8 +37,8 @@ export const COLOR_PALETTES: Record<ThemeName, ColorPalette> = {
       stateInitial: '#0ea5e9',    // Cyan/Sky Blue (Created - bright cyan)
       stateFinal: '#64748b',      // Steel Blue-Gray (Archived - more gray with blue tone)
       stateNormal: '#3b82f6',     // Light Professional Blue (Activate - lighter blue)
-      transitionManual: '#f59e0b', // Amber-500 (Manual transitions - orange)
-      transitionAutomated: '#ff6b35', // Neon Orange (Automated transitions - vibrant neon orange)
+      transitionManual: '#ff8c42', // Warm Orange (Manual transitions - warm orange)
+      transitionAutomated: '#fbbf24', // Amber-400 (Automated transitions - amber orange)
     },
     ui: {
       panelBorder: '#3b82f6',     // Light Professional Blue
