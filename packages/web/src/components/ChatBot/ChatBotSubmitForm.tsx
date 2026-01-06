@@ -40,6 +40,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
   const [canvasContent, setCanvasContent] = useState(''); // Store the canvas content separately
   const [userPrefix, setUserPrefix] = useState(''); // Text before canvas content
   const [userSuffix, setUserSuffix] = useState(''); // Text after canvas content
+  const [isFocused, setIsFocused] = useState(false); // Track textarea focus state
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   let dragCounter = 0;
@@ -447,16 +448,18 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
             </div>
           )}
 
-          <div className="relative">
+          <div className={`relative overflow-hidden rounded-2xl border-2 transition-all duration-300 ${isFocused ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-600'}`}>
             <textarea
               ref={textareaRef}
               value={answer}
               onChange={handleInputChange}
               onPaste={handlePaste}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
               placeholder={placeholderText}
               onKeyDown={handleKeyDown}
               rows={1}
-              className="w-full bg-slate-800/80 backdrop-blur-sm border-2 border-slate-600 rounded-2xl px-6 pr-24 py-4 pb-12 text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300 resize-none text-lg"
+              className="w-full bg-slate-800/80 backdrop-blur-sm px-6 py-4 pb-12 text-white placeholder-slate-400 focus:outline-none resize-none text-lg"
               style={{
                 height: `${textareaHeight}px`,
                 minHeight: '48px',
@@ -464,7 +467,8 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
                 overflowY: textareaHeight >= 320 ? 'auto' : 'hidden',
                 lineHeight: '1.5',
                 scrollbarWidth: 'thin',
-                scrollbarColor: 'rgb(148 163 184) transparent'
+                scrollbarColor: 'rgb(148 163 184) transparent',
+                paddingRight: '96px'
               }}
             />
 
