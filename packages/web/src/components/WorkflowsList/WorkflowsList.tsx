@@ -82,22 +82,26 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
         cyoda_url: '',
         github_url: '',
         config: {
+          version: '1',
+          name: 'Workflow',
+          initialState: 'initial',
+          active: true,
           states: {
             initial: {
               transitions: [
                 {
-                  target: 'processing',
-                  trigger: 'start',
-                  type: 'manual'
+                  name: 'start',
+                  next: 'processing',
+                  manual: true
                 }
               ]
             },
             processing: {
               transitions: [
                 {
-                  target: 'completed',
-                  trigger: 'finish',
-                  type: 'automated'
+                  name: 'finish',
+                  next: 'completed',
+                  manual: false
                 }
               ]
             },

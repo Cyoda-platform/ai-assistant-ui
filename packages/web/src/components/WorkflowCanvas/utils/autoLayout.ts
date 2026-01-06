@@ -84,13 +84,68 @@ export interface LayoutResult {
 const DEFAULT_OPTIONS: Required<LayoutOptions> = {
   nodeWidth: 200,      // State node width (actual visual width ~180px)
   nodeHeight: 100,     // State node height (actual visual height ~80px)
-  rankSeparation: 380, // Vertical spacing between ranks (increased from 280 for better separation of transition nodes)
-  nodeSeparation: 600, // Horizontal spacing between nodes in same rank (increased from 550 for better separation)
+  rankSeparation: 500, // Vertical spacing between ranks (increased for better separation in TB layout)
+  nodeSeparation: 500, // Horizontal spacing between nodes in same rank
   edgeSeparation: 100, // Spacing between parallel edges
   minTransitionLength: 150, // Minimum vertical distance for transition nodes
   minTransitionWidth: 100, // Minimum horizontal distance for transition nodes
   direction: 'TB', // Top to Bottom
 };
+
+/**
+ * Extracts the position (without -source/-target suffix) from a handle name.
+ * E.g., "left-top-source" -> "left-top", "top-center-target" -> "top-center"
+ * This allows us to check if the exact same position is used by opposite handle type.
+ */
+function getHandlePosition(handle: string): string {
+  // Remove -source or -target suffix
+  return handle.replace(/-source$/, '').replace(/-target$/, '');
+}
+
+/**
+ * Find an available handle on a state, preferring handles in the given direction.
+ * Returns the first available handle, or reuses a handle if all are taken.
+ *
+ * Checks both source and target handles to avoid collisions on the same side.
+ * For example, if "left-top-target" is used, we should avoid "left-top-source".
+ */
+function findAvailableHandle(
+  stateId: string,
+  usedSourceHandles: Map<string, Set<string>>,
+  usedTargetHandles: Map<string, Set<string>>,
+  preferredHandles: string[],
+  isSourceHandle: boolean
+): string {
+  const usedSame = (isSourceHandle ? usedSourceHandles : usedTargetHandles).get(stateId) || new Set<string>();
+  const usedOpposite = (isSourceHandle ? usedTargetHandles : usedSourceHandles).get(stateId) || new Set<string>();
+
+  // Try to find an unused handle from preferred list
+  for (const handle of preferredHandles) {
+    // Check if this handle is already used
+    if (usedSame.has(handle)) {
+      continue;
+    }
+
+    // Check if the opposite type handle at the EXACT SAME POSITION is used
+    // E.g., if "left-top-target" is used, block "left-top-source", but allow "left-bottom-source"
+    const handlePosition = getHandlePosition(handle);
+    let positionBlocked = false;
+
+    for (const oppositeHandle of usedOpposite) {
+      if (getHandlePosition(oppositeHandle) === handlePosition) {
+        positionBlocked = true;
+        break;
+      }
+    }
+
+    if (!positionBlocked) {
+      return handle;
+    }
+  }
+
+  // All preferred handles are used, return the first one (will reuse)
+  return preferredHandles[0];
+}
 
 /**
  * Calculates optimal positions for workflow states using hierarchical layout.
@@ -105,6 +160,12 @@ export function calculateAutoLayout(
   options: LayoutOptions = {}
 ): LayoutResult {
   const opts = { ...DEFAULT_OPTIONS, ...options };
+
+  // Adjust spacing based on layout direction
+  // For both TB and LR: rankSeparation controls spacing along main axis (should be larger)
+  // nodeSeparation controls spacing along cross axis (should be smaller)
+  if (!options.rankSeparation) opts.rankSeparation = 600; // Spacing between ranks (main axis)
+  if (!options.nodeSeparation) opts.nodeSeparation = 500; // Spacing between nodes in same rank (cross axis)
   const stateIds = Object.keys(workflow.configuration.states);
 
   // Assign ranks to each state
@@ -179,6 +240,15 @@ export function calculateAutoLayout(
   // Detect bidirectional pairs (A->B and B->A)
   const bidirectionalPairs = new Set<string>();
 
+  // Track used handles for each state to avoid collisions
+  // Separate tracking for source and target handles to prevent same-side collisions
+  const usedSourceHandles = new Map<string, Set<string>>();
+  const usedTargetHandles = new Map<string, Set<string>>();
+  stateIds.forEach(stateId => {
+    usedSourceHandles.set(stateId, new Set<string>());
+    usedTargetHandles.set(stateId, new Set<string>());
+  });
+
   Object.entries(workflow.configuration.states).forEach(([sourceStateId, stateDefinition]) => {
     stateDefinition.transitions.forEach((transition, index) => {
       const key = `${sourceStateId}-${transition.next}`;
@@ -243,9 +313,15 @@ export function calculateAutoLayout(
           const canonicalKey = [sourceStateId, transition.next].sort().join('-');
           const isBidirectional = bidirectionalPairs.has(canonicalKey);
 
+          // Calculate deltas for later use (center-based)
+          const dxCenter = targetCenterX - sourceCenterX;
+          const dyCenter = targetCenterY - sourceCenterY;
+
           // Position transition nodes at 40% horizontally (closer to source), 50% vertically (centered)
           // For bidirectional transitions, use 50% to center them between states
-          const ratioX = isBidirectional ? 0.5 : 0.4;
+          // For horizontal transitions (dy ≈ 0), use 50% to center them between states
+          const isHorizontalTransition = Math.abs(dyCenter) < 50;
+          const ratioX = (isBidirectional || isHorizontalTransition) ? 0.5 : 0.4;
           const ratioY = 0.5;
           let midX = sourceCenterX + (targetCenterX - sourceCenterX) * ratioX;
           let midY = sourceCenterY + (targetCenterY - sourceCenterY) * ratioY;
@@ -271,6 +347,9 @@ export function calculateAutoLayout(
               const horizontalOffset = 80;
               const diagramCenterX = 400; // Center of diagram (from startX calculation)
 
+              // Check if transition is strictly vertical (dx ≈ 0)
+              const isVerticalTransition = Math.abs(dxCenter) < 50;
+
               let shouldOffsetRight = false;
               let shouldOffsetLeft = false;
 
@@ -289,23 +368,25 @@ export function calculateAutoLayout(
                 }
               }
 
-              if (shouldOffsetLeft) {
-                midX -= horizontalOffset;
-              } else if (shouldOffsetRight) {
-                midX += horizontalOffset;
+              // For horizontal transitions (states on same level) OR vertical transitions (dx ≈ 0),
+              // DON'T apply horizontal offset - keep label on the line between states
+              if (!isHorizontalTransition && !isVerticalTransition) {
+                if (shouldOffsetLeft) {
+                  midX -= horizontalOffset;
+                } else if (shouldOffsetRight) {
+                  midX += horizontalOffset;
+                }
               }
             }
           }
 
           if (isBidirectional) {
             // For bidirectional transitions, use simple offset from the midpoint
-            const dx = targetCenterX - sourceCenterX;
-            const dy = targetCenterY - sourceCenterY;
-            const distance = Math.sqrt(dx * dx + dy * dy);
+            const distance = Math.sqrt(dxCenter * dxCenter + dyCenter * dyCenter);
 
             if (distance > 0) {
               // Determine if the line is more horizontal or vertical
-              const isHorizontal = Math.abs(dx) > Math.abs(dy);
+              const isHorizontal = Math.abs(dxCenter) > Math.abs(dyCenter);
 
               // Offset magnitude for bidirectional separation
               const offsetMagnitude = 60;
@@ -329,6 +410,7 @@ export function calculateAutoLayout(
                 offsetDirection = isFirstInPair ? 1 : -1;
               }
 
+
               if (isHorizontal) {
                 // States are side-by-side horizontally
                 // Offset vertically (up/down) to separate the two transitions
@@ -347,18 +429,40 @@ export function calculateAutoLayout(
             // For non-bidirectional transitions, apply the standard positioning logic
             if (opts.direction === 'TB' || opts.direction === 'BT') {
               // Top-to-Bottom or Bottom-to-Top: offset horizontally for parallel edges
-              midX += parallelOffset;
+              // But NOT for vertical transitions (dx ≈ 0) - keep them on the straight line
+              const isVerticalTransition = Math.abs(dxCenter) < 50;
+              if (!isVerticalTransition) {
+                midX += parallelOffset;
+              } else {
+              }
               midY += verticalSpacing;
 
               // Ensure minimum vertical distance
-              if (verticalDistance < opts.minTransitionLength) {
+              // But NOT for horizontal transitions (states on same level)
+              const isHorizontalTransition = Math.abs(dyCenter) < 50;
+              if (verticalDistance < opts.minTransitionLength && !isHorizontalTransition) {
                 midY = sourcePos.y - opts.minTransitionLength + (transitionIndex - (totalTransitions - 1) / 2) * opts.edgeSeparation;
+              } else if (isHorizontalTransition) {
+
+                // For horizontal transitions, check if label is too close to target state
+                // If so, offset it vertically to avoid overlap with target state label
+                const distanceToTarget = Math.abs(midX - targetCenterX);
+                const minDistanceToTarget = 150; // Minimum horizontal distance from target center
+
+
+                if (distanceToTarget < minDistanceToTarget) {
+                  // Offset label vertically based on transition index
+                  const verticalOffset = (transitionIndex - (totalTransitions - 1) / 2) * 80;
+                  midY += verticalOffset;
+                }
               }
 
               // Ensure minimum horizontal distance
-              if (horizontalDistance < opts.minTransitionWidth) {
+              // But NOT for vertical transitions (dx ≈ 0) - keep them on the straight line
+              if (horizontalDistance < opts.minTransitionWidth && !isVerticalTransition) {
                 const direction = targetPos.x > sourcePos.x ? 1 : -1;
                 midX = sourcePos.x + (direction * opts.minTransitionWidth) + parallelOffset;
+              } else if (isVerticalTransition) {
               }
             } else {
               // Left-to-Right or Right-to-Left: offset vertically for parallel edges
@@ -379,8 +483,10 @@ export function calculateAutoLayout(
             transitionToStateTargetHandle?: string;
           } = {};
 
-          const dx = targetPos.x - sourcePos.x;
-          const dy = targetPos.y - sourcePos.y;
+          // Use center-based deltas (already calculated above) instead of position-based
+          // This ensures handles match the actual visual layout after all offsets are applied
+          const dx = dxCenter;
+          const dy = dyCenter;
 
           if (isBidirectional) {
             // Determine if this is the first or second transition in the pair
@@ -422,15 +528,17 @@ export function calculateAutoLayout(
               }
             } else {
               // States are arranged vertically (one above the other)
-              // Use left/right handles for separation
+              // For top-to-bottom layout: use bottom/top center handles for straight vertical flow
               if (dy > 0) {
                 // Target is below
                 if (isFirstInPair) {
+                  // First transition: use right side
                   handles.stateToTransitionSourceHandle = 'bottom-right-source';
                   handles.stateToTransitionTargetHandle = 'top-right-target';
                   handles.transitionToStateSourceHandle = 'bottom-right-source';
                   handles.transitionToStateTargetHandle = 'top-right-target';
                 } else {
+                  // Second transition: use left side
                   handles.stateToTransitionSourceHandle = 'bottom-left-source';
                   handles.stateToTransitionTargetHandle = 'top-left-target';
                   handles.transitionToStateSourceHandle = 'bottom-left-source';
@@ -451,56 +559,134 @@ export function calculateAutoLayout(
                 }
               }
             }
+
+            // Mark bidirectional handles as used
+            if (handles.stateToTransitionSourceHandle) {
+              usedSourceHandles.get(sourceStateId)?.add(handles.stateToTransitionSourceHandle);
+            }
+            if (handles.transitionToStateTargetHandle) {
+              usedTargetHandles.get(transition.next)?.add(handles.transitionToStateTargetHandle);
+            }
           } else {
             // Non-bidirectional transition
             // Use rank-based alternating handle strategy for LR layout
             const sourceRank = ranks.get(sourceStateId) || 0;
             const targetRank = ranks.get(transition.next) || 0;
 
-            // Determine if we're in LR or TB layout
-            const isHorizontal = Math.abs(dx) > Math.abs(dy);
+            // Determine if we're in LR or TB layout based on which direction is PRIMARY
+            // For TB layout: dy is primary direction (vertical movement is larger)
+            // For LR layout: dx is primary direction (horizontal movement is larger)
+            const isVertical = Math.abs(dy) > Math.abs(dx);
 
-            if (isHorizontal) {
-              // LR layout: alternate between vertical and horizontal handles based on rank
-              // IMPORTANT: Transition nodes ALWAYS use left entry and right exit
-              // Even rank (0, 2, 4...): vertical exit → horizontal entry
-              // Odd rank (1, 3, 5...): horizontal exit → vertical entry
-              const useVerticalExit = sourceRank % 2 === 0;
 
-              if (useVerticalExit) {
-                // Vertical exit from source state, horizontal entry to target state
-                // State -> Transition: top/bottom of state → LEFT of transition (always)
-                // Transition -> State: RIGHT of transition (always) → left of state
-                const verticalHandle = dy > 0 ? 'bottom-center-source' : 'top-center-source';
-                handles.stateToTransitionSourceHandle = verticalHandle;
-                handles.stateToTransitionTargetHandle = 'left-top-target';
-                handles.transitionToStateSourceHandle = 'right-top-source';
-                handles.transitionToStateTargetHandle = 'left-top-target';
+            if (!isVertical) {
+              // LR layout: ALWAYS use horizontal handles (right/left)
+              // Choose handles based on VERTICAL direction (dy) to avoid crossing
+
+              let preferredSourceHandles: string[];
+              let preferredTargetHandles: string[];
+
+              // Choose handles based on vertical direction (dy)
+              const isVerticalTransition = Math.abs(dy) < 50;
+
+              if (dx > 0) {
+                // Target is to the right
+                if (isVerticalTransition) {
+                  // Horizontal transition (dy ≈ 0) - prefer center handles
+                  preferredSourceHandles = ['right-top-source', 'right-bottom-source', 'bottom-center-source', 'top-center-source'];
+                  preferredTargetHandles = ['left-top-target', 'left-bottom-target', 'top-center-target', 'bottom-center-target'];
+                } else if (dy < 0) {
+                  // Target is above - prefer top handles
+                  preferredSourceHandles = ['right-top-source', 'top-right-source', 'top-center-source', 'right-bottom-source', 'top-left-source'];
+                  preferredTargetHandles = ['left-bottom-target', 'bottom-left-target', 'bottom-center-target', 'left-top-target', 'bottom-right-target'];
+                } else {
+                  // Target is below - prefer bottom handles
+                  preferredSourceHandles = ['right-bottom-source', 'bottom-right-source', 'bottom-center-source', 'right-top-source', 'bottom-left-source'];
+                  preferredTargetHandles = ['left-top-target', 'top-left-target', 'top-center-target', 'left-bottom-target', 'top-right-target'];
+                }
               } else {
-                // Horizontal exit from source state, vertical entry to target state
-                // State -> Transition: right of state → LEFT of transition (always)
-                // Transition -> State: RIGHT of transition (always) → top/bottom of state
-                const horizontalHandle = dx > 0 ? 'right-top-source' : 'left-top-source';
-                const verticalTargetHandle = dy > 0 ? 'top-center-target' : 'bottom-center-target';
-                handles.stateToTransitionSourceHandle = horizontalHandle;
-                handles.stateToTransitionTargetHandle = 'left-top-target';
-                handles.transitionToStateSourceHandle = 'right-top-source';
-                handles.transitionToStateTargetHandle = verticalTargetHandle;
+                // Target is to the left
+                if (isVerticalTransition) {
+                  // Horizontal transition (dy ≈ 0) - prefer center handles
+                  preferredSourceHandles = ['left-top-source', 'left-bottom-source', 'bottom-center-source', 'top-center-source'];
+                  preferredTargetHandles = ['right-top-target', 'right-bottom-target', 'top-center-target', 'bottom-center-target'];
+                } else if (dy < 0) {
+                  // Target is above - prefer top handles
+                  preferredSourceHandles = ['left-top-source', 'top-left-source', 'top-center-source', 'left-bottom-source', 'top-right-source'];
+                  preferredTargetHandles = ['right-bottom-target', 'bottom-right-target', 'bottom-center-target', 'right-top-target', 'bottom-left-target'];
+                } else {
+                  // Target is below - prefer bottom handles
+                  preferredSourceHandles = ['left-bottom-source', 'bottom-left-source', 'bottom-center-source', 'left-top-source', 'bottom-right-source'];
+                  preferredTargetHandles = ['right-top-target', 'top-right-target', 'top-center-target', 'right-bottom-target', 'top-left-target'];
+                }
               }
+
+              // Find available handles
+              const stateSourceHandle = findAvailableHandle(sourceStateId, usedSourceHandles, usedTargetHandles, preferredSourceHandles, true);
+              const stateTargetHandle = findAvailableHandle(transition.next, usedSourceHandles, usedTargetHandles, preferredTargetHandles, false);
+
+              // For transition node, use same direction as state handles
+              const transitionTargetHandle = dx > 0 ? 'left-top-target' : 'right-top-target';
+              const transitionSourceHandle = dx > 0 ? 'right-top-source' : 'left-top-source';
+
+
+              handles.stateToTransitionSourceHandle = stateSourceHandle;
+              handles.stateToTransitionTargetHandle = transitionTargetHandle;
+              handles.transitionToStateSourceHandle = transitionSourceHandle;
+              handles.transitionToStateTargetHandle = stateTargetHandle;
+
+              // Mark handles as used
+              usedSourceHandles.get(sourceStateId)?.add(stateSourceHandle);
+              usedTargetHandles.get(transition.next)?.add(stateTargetHandle);
             } else {
-              // TB layout: use top/bottom center handles for cleaner routing
+              // TB layout: prefer vertical handles, but distribute based on horizontal direction
               if (dy > 0) {
-                // Target is below - use bottom-center on source, top-center on target
-                handles.stateToTransitionSourceHandle = 'bottom-center-source';
+                // Target is below - prefer bottom handles on source, top handles on target
+                // Choose handle based on horizontal direction (dx)
+                let preferredSourceHandles: string[];
+                let preferredTargetHandles: string[];
+
+                if (Math.abs(dx) < 50) {
+                  // Vertical transition (dx ≈ 0) - prefer center handles
+                  preferredSourceHandles = ['bottom-center-source', 'bottom-left-source', 'bottom-right-source'];
+                  preferredTargetHandles = ['top-center-target', 'top-left-target', 'top-right-target'];
+                } else if (dx < 0) {
+                  // Target is to the left - prefer left handles
+                  preferredSourceHandles = ['bottom-left-source', 'bottom-center-source', 'bottom-right-source'];
+                  preferredTargetHandles = ['top-right-target', 'top-center-target', 'top-left-target'];
+                } else {
+                  // Target is to the right - prefer right handles
+                  preferredSourceHandles = ['bottom-right-source', 'bottom-center-source', 'bottom-left-source'];
+                  preferredTargetHandles = ['top-left-target', 'top-center-target', 'top-right-target'];
+                }
+
+                const stateSourceHandle = findAvailableHandle(sourceStateId, usedSourceHandles, usedTargetHandles, preferredSourceHandles, true);
+                const stateTargetHandle = findAvailableHandle(transition.next, usedSourceHandles, usedTargetHandles, preferredTargetHandles, false);
+
+                handles.stateToTransitionSourceHandle = stateSourceHandle;
                 handles.stateToTransitionTargetHandle = 'top-center-target';
                 handles.transitionToStateSourceHandle = 'bottom-center-source';
-                handles.transitionToStateTargetHandle = 'top-center-target';
+                handles.transitionToStateTargetHandle = stateTargetHandle;
+
+                // Mark handles as used
+                usedSourceHandles.get(sourceStateId)?.add(stateSourceHandle);
+                usedTargetHandles.get(transition.next)?.add(stateTargetHandle);
               } else {
-                // Target is above - use top-center on source, bottom-center on target
-                handles.stateToTransitionSourceHandle = 'top-center-source';
+                // Target is above - prefer top handles on source, bottom handles on target
+                const preferredSourceHandles = ['top-center-source', 'top-left-source', 'top-right-source'];
+                const preferredTargetHandles = ['bottom-center-target', 'bottom-left-target', 'bottom-right-target'];
+
+                const stateSourceHandle = findAvailableHandle(sourceStateId, usedSourceHandles, usedTargetHandles, preferredSourceHandles, true);
+                const stateTargetHandle = findAvailableHandle(transition.next, usedSourceHandles, usedTargetHandles, preferredTargetHandles, false);
+
+                handles.stateToTransitionSourceHandle = stateSourceHandle;
                 handles.stateToTransitionTargetHandle = 'bottom-center-target';
                 handles.transitionToStateSourceHandle = 'top-center-source';
-                handles.transitionToStateTargetHandle = 'bottom-center-target';
+                handles.transitionToStateTargetHandle = stateTargetHandle;
+
+                // Mark handles as used
+                usedSourceHandles.get(sourceStateId)?.add(stateSourceHandle);
+                usedTargetHandles.get(transition.next)?.add(stateTargetHandle);
               }
             }
           }
@@ -509,6 +695,7 @@ export function calculateAutoLayout(
             x: midX - transitionWidth / 2,
             y: midY - transitionHeight / 2,
           };
+
 
           transitions.push({
             id: transitionId,
@@ -520,6 +707,65 @@ export function calculateAutoLayout(
     });
   });
 
+  // Resolve label overlaps: if a transition label is too close to a state label, adjust transition label position
+  const stateWidth = opts.nodeWidth;
+  const stateHeight = opts.nodeHeight;
+  const transitionLabelWidth = 45; // Approximate width of transition label
+  const transitionLabelHeight = 14; // Approximate height of transition label
+  const stateLabelWidth = 80; // Approximate width of state label
+  const stateLabelHeight = 20; // Approximate height of state label
+  const labelPadding = 15; // Padding around labels
+
+
+  transitions.forEach(transition => {
+    let transitionLabelX = transition.position.x;
+    let transitionLabelY = transition.position.y;
+
+    // AABB for transition label
+    let transLeft = transitionLabelX - transitionLabelWidth / 2 - labelPadding;
+    let transRight = transitionLabelX + transitionLabelWidth / 2 + labelPadding;
+    let transTop = transitionLabelY - transitionLabelHeight / 2 - labelPadding;
+    let transBottom = transitionLabelY + transitionLabelHeight / 2 + labelPadding;
+
+
+    states.forEach(state => {
+      const stateLabelX = state.position.x + stateWidth / 2;
+      const stateLabelY = state.position.y + stateHeight / 2;
+
+      // AABB for state label
+      const stateLeft = stateLabelX - stateLabelWidth / 2 - labelPadding;
+      const stateRight = stateLabelX + stateLabelWidth / 2 + labelPadding;
+      const stateTop = stateLabelY - stateLabelHeight / 2 - labelPadding;
+      const stateBottom = stateLabelY + stateLabelHeight / 2 + labelPadding;
+
+      // Check AABB overlap
+      const overlaps = !(transRight < stateLeft || transLeft > stateRight ||
+                         transBottom < stateTop || transTop > stateBottom);
+
+      if (overlaps) {
+
+        // Move transition label vertically to avoid overlap
+        const moveDistance = 80; // Fixed distance to move
+        if (transitionLabelY > stateLabelY) {
+          // Transition label is below state label, move it up
+          transitionLabelY -= moveDistance;
+        } else {
+          // Transition label is above state label, move it down
+          transitionLabelY += moveDistance;
+        }
+
+        // Update AABB for next iteration
+        transLeft = transitionLabelX - transitionLabelWidth / 2 - labelPadding;
+        transRight = transitionLabelX + transitionLabelWidth / 2 + labelPadding;
+        transTop = transitionLabelY - transitionLabelHeight / 2 - labelPadding;
+        transBottom = transitionLabelY + transitionLabelHeight / 2 + labelPadding;
+      }
+    });
+
+    // Update transition position with adjusted label position
+    transition.position.y = transitionLabelY;
+  });
+
   return { states, transitions };
 }
 
@@ -528,11 +774,13 @@ export function calculateAutoLayout(
  *
  * @param workflow - The workflow to update
  * @param layoutResult - The layout result from calculateAutoLayout
+ * @param options - Layout options (to save direction)
  * @returns Updated workflow with new state positions
  */
 export function applyLayoutToWorkflow(
   workflow: UIWorkflowData,
-  layoutResult: LayoutResult
+  layoutResult: LayoutResult,
+  options: LayoutOptions = {}
 ): UIWorkflowData {
   const updatedLayout = { ...workflow.layout };
 
@@ -590,6 +838,7 @@ export function applyLayoutToWorkflow(
       ...updatedLayout,
       states: updatedStates,
       transitions: updatedTransitions,
+      direction: options.direction, // Save layout direction
       updatedAt: now, // Update layout timestamp to trigger useEffect
     },
     updatedAt: now,
@@ -608,7 +857,7 @@ export function autoLayoutWorkflow(
   options: LayoutOptions = {}
 ): UIWorkflowData {
   const layoutResult = calculateAutoLayout(workflow, options);
-  return applyLayoutToWorkflow(workflow, layoutResult);
+  return applyLayoutToWorkflow(workflow, layoutResult, options);
 }
 
 /**
