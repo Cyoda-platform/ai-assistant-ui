@@ -238,7 +238,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
       const scrollTop = textarea.scrollTop;
 
       // Temporarily set height to auto to get accurate scrollHeight
-      textarea.style.height = 'auto';
+      textarea.style.height = '48px'; // Set to minHeight first to get accurate scrollHeight
 
       // Calculate optimal height based on content
       const scrollHeight = textarea.scrollHeight;
