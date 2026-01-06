@@ -111,7 +111,7 @@ export const InlineNameEditor: React.FC<InlineNameEditorProps> = ({
 
   return (
     <div className={`flex items-center space-x-2 group ${className}`} onDoubleClick={handleStartEdit}>
-      <span className="flex-1 text-sm font-medium text-white truncate">
+      <span className={`flex-1 font-medium text-white truncate ${inputClassName}`}>
         {value || placeholder}
       </span>
       {!disabled && (

@@ -169,7 +169,7 @@ export const TransitionNode: React.FC<NodeProps> = ({ data, selected }) => {
       <div className="flex items-center space-x-1 group pr-1">
         {/* Transition Name */}
         <div className="flex-1 min-w-0">
-          <div className="text-xs font-medium text-white truncate">
+          <div className="text-base font-medium text-white truncate">
             {transition.definition.name || 'Unnamed'}
           </div>
         </div>
