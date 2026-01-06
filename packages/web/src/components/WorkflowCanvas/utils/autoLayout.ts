@@ -164,7 +164,7 @@ export function calculateAutoLayout(
   // Adjust spacing based on layout direction
   // For both TB and LR: rankSeparation controls spacing along main axis (should be larger)
   // nodeSeparation controls spacing along cross axis (should be smaller)
-  if (!options.rankSeparation) opts.rankSeparation = 700; // Spacing between ranks (main axis)
+  if (!options.rankSeparation) opts.rankSeparation = 600; // Spacing between ranks (main axis)
   if (!options.nodeSeparation) opts.nodeSeparation = 500; // Spacing between nodes in same rank (cross axis)
   const stateIds = Object.keys(workflow.configuration.states);
 
