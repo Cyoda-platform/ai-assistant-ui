@@ -4,8 +4,7 @@ export interface CreateChatRequest {
 }
 
 export interface CreateChatResponse {
-  message: string;
-  technical_id: string;
+  chat_id: string;
 }
 
 export interface ChatResponse {
@@ -25,4 +24,5 @@ export interface ChatData {
   name: string;
   technical_id: string;
   status?: 'open' | 'archived'; // Chat status - canvas only available for 'open' chats
+  adk_session_id?: string; // ADK session technical ID for conversation continuity
 }

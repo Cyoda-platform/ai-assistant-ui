@@ -96,7 +96,8 @@ class StreamingService {
     onEvent: (event: SSEChatEvent) => void,
     onError?: (error: Error) => void,
     onComplete?: () => void,
-    files?: File[]
+    files?: File[],
+    adkSessionId?: string
   ): Promise<AbortController> {
     // Check if there's already an active stream for this conversation
     const existingStream = this.activeStreams.get(conversationId);
@@ -139,7 +140,7 @@ class StreamingService {
       onError?.(error);
     };
 
-    return this.streamChatMessageWithRetry(conversationId, message, token, onEvent, wrappedOnError, wrappedOnComplete, 1, files);
+    return this.streamChatMessageWithRetry(conversationId, message, token, onEvent, wrappedOnError, wrappedOnComplete, 1, files, adkSessionId);
   }
 
   /**
@@ -225,7 +226,8 @@ class StreamingService {
     onError?: (error: Error) => void,
     onComplete?: () => void,
     attemptNumber: number = 1,
-    files?: File[]
+    files?: File[],
+    adkSessionId?: string
   ): Promise<AbortController> {
     const url = `${import.meta.env.VITE_APP_API_BASE}/v1/chats/${conversationId}/stream`;
     const abortController = new AbortController();
@@ -276,6 +278,9 @@ class StreamingService {
       if (files && files.length > 0) {
         const formData = new FormData();
         formData.append('message', message);
+        if (adkSessionId) {
+          formData.append('adk_session_id', adkSessionId);
+        }
         files.forEach((file) => {
           formData.append('files', file);
         });
@@ -283,7 +288,11 @@ class StreamingService {
         // Don't set Content-Type header - browser will set it with boundary
       } else {
         headers['Content-Type'] = 'application/json';
-        body = JSON.stringify({ message });
+        const requestBody: { message: string; adk_session_id?: string } = { message };
+        if (adkSessionId) {
+          requestBody.adk_session_id = adkSessionId;
+        }
+        body = JSON.stringify(requestBody);
       }
 
       const response = await fetch(url, {
@@ -393,7 +402,7 @@ class StreamingService {
           console.log(`Preserved ${accumulatedContent.length} characters for recovery`);
 
           await new Promise(resolve => setTimeout(resolve, delay));
-          return this.streamChatMessageWithRetry(conversationId, message, token, onEvent, onError, onComplete, attemptNumber + 1);
+          return this.streamChatMessageWithRetry(conversationId, message, token, onEvent, onError, onComplete, attemptNumber + 1, files, adkSessionId);
         } else {
           console.error('Max reconnection attempts reached');
 

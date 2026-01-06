@@ -2212,7 +2212,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             title="Toggle workflow info"
             className={showWorkflowInfo ? 'border-2' : ''}
             style={showWorkflowInfo ? {
-              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientVia})`,
+              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
               borderColor: palette.ui.accentColor
             } : {}}
             data-testid="workflow-info-button"
@@ -2224,7 +2224,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             title="Edit workflow JSON"
             className={showJsonEditor ? 'border-2' : ''}
             style={showJsonEditor ? {
-              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientVia})`,
+              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
               borderColor: palette.ui.accentColor
             } : {}}
             data-testid="json-editor-button"
@@ -2267,7 +2267,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             title="Canvas Settings"
             className={showSettings ? 'border-2' : ''}
             style={showSettings ? {
-              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientVia})`,
+              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
               borderColor: palette.ui.accentColor
             } : {}}
             data-testid="settings-button"
@@ -2279,7 +2279,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             title="Toggle Quick Help"
             className={showQuickHelp ? 'border-2' : ''}
             style={showQuickHelp ? {
-              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientVia})`,
+              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
               borderColor: palette.ui.accentColor
             } : {}}
             data-testid="quick-help-button"
@@ -2293,7 +2293,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
               title={isInFullscreenMode ? "Exit fullscreen" : "Open in fullscreen"}
               className={isInFullscreenMode ? 'border-2' : ''}
               style={isInFullscreenMode ? {
-                background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientVia})`,
+                background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
                 borderColor: palette.ui.accentColor
               } : {}}
               data-testid="fullscreen-button"
@@ -2407,7 +2407,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                 <h3
                   style={{
                     margin: 0,
-                    color: palette.ui.panelTitleFrom,
+                    color: '#A78BFA',
                     fontSize: '16px',
                     fontWeight: 500
                   }}

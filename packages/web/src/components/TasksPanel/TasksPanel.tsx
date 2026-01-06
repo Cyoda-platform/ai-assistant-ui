@@ -1,7 +1,5 @@
 import React, { useRef, useImperativeHandle, forwardRef } from 'react';
 import { X } from 'lucide-react';
-import ResizeHandle from '@/components/ResizeHandle/ResizeHandle';
-import { useResizablePanel } from '@/hooks/useResizablePanel';
 import TaskDashboard, { TaskDashboardHandle } from '@/components/TaskDashboard/TaskDashboard';
 
 interface TasksPanelProps {
@@ -25,7 +23,6 @@ const TasksPanel = forwardRef<TasksPanelHandle, TasksPanelProps>(({
   width: externalWidth,
   onWidthChange
 }, ref) => {
-  const [isExternalResizing, setIsExternalResizing] = React.useState(false);
   const taskDashboardRef = useRef<TaskDashboardHandle>(null);
 
   // Expose refreshTasks method via ref
@@ -36,63 +33,16 @@ const TasksPanel = forwardRef<TasksPanelHandle, TasksPanelProps>(({
     }
   }), []);
 
-  // Use external width if provided, otherwise use internal resize hook
-  const internalResize = useResizablePanel({
-    defaultWidth: 500,
-    minWidth: 350,
-    maxWidth: 800,
-    storageKey: 'tasksPanel-width'
-  });
-
-  const panelWidth = externalWidth ?? internalResize.width;
-  const isResizing = onWidthChange ? isExternalResizing : internalResize.isResizing;
-
-  // Custom resize handler for external width control
-  const handleMouseDown = React.useCallback((e: React.MouseEvent) => {
-    if (onWidthChange) {
-      e.preventDefault();
-      setIsExternalResizing(true);
-      const startX = e.clientX;
-      const startWidth = panelWidth;
-
-      const handleMouseMove = (moveEvent: MouseEvent) => {
-        const deltaX = startX - moveEvent.clientX;
-        const newWidth = Math.max(350, Math.min(800, startWidth + deltaX));
-        onWidthChange(newWidth);
-      };
-
-      const handleMouseUp = () => {
-        setIsExternalResizing(false);
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
-        document.body.classList.remove('resizing-active');
-      };
-
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
-      document.body.classList.add('resizing-active');
-    } else {
-      internalResize.handleMouseDown(e);
-    }
-  }, [onWidthChange, panelWidth, internalResize.handleMouseDown]);
+  // Use external width if provided (parent manages resizing)
+  const panelWidth = externalWidth ?? 500;
 
   if (!isOpen) return null;
 
   return (
     <div
-      className={`bg-slate-800/95 backdrop-blur-sm border-l border-slate-600 flex flex-col relative resizable-panel h-full ${isResizing ? 'resizing' : ''}`}
+      className={`bg-slate-800/95 backdrop-blur-sm border-l border-slate-600 flex flex-col relative resizable-panel h-full`}
       style={{ width: `${panelWidth}px` }}
     >
-      {/* Resize Handle */}
-      <ResizeHandle
-        onMouseDown={handleMouseDown}
-        isResizing={isResizing}
-        position="left"
-      />
 
       {/* Header */}
       <div className="border-b border-slate-700 bg-slate-800/50">

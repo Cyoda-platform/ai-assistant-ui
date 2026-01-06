@@ -413,8 +413,12 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
       environmentClient.interceptors.response.use(
         response => response,
         async (error: AxiosError) => {
-          if (error.response?.status === 401 && error.config) {
-            // Token has expired, try to refresh it against Auth0
+          const originalRequest = error.config;
+
+          if (error.response?.status === 401 && originalRequest && !(originalRequest as any)._retry) {
+            // Mark this request as retried to avoid infinite loops
+            (originalRequest as any)._retry = true;
+
             try {
               console.log('Token expired (401), attempting to refresh against Auth0...');
               const authStore = useAuthStore.getState();
@@ -425,11 +429,22 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
               // Get the new token from the store
               const newToken = useAuthStore.getState().token;
               if (newToken) {
-                console.log('Token refreshed successfully, retrying request...');
-                // Update the authorization header with the new token
-                error.config.headers['Authorization'] = `Bearer ${newToken}`;
-                // Retry the original request with the new token
-                return environmentClient.request(error.config);
+                console.log('Token refreshed successfully, retrying request with new token...');
+
+                // Create new headers object with updated token
+                const newHeaders = {
+                  ...originalRequest.headers,
+                  'Authorization': `Bearer ${newToken}`
+                };
+
+                // Create a fresh request config with new token
+                const retryConfig = {
+                  ...originalRequest,
+                  headers: newHeaders
+                };
+
+                // Retry the request with new token using a new axios instance
+                return axios(retryConfig);
               } else {
                 throw new Error('No token available after refresh');
               }

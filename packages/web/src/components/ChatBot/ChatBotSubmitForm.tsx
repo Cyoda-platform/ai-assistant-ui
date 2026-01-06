@@ -16,6 +16,7 @@ interface ChatBotSubmitFormProps {
   onStopRequest?: () => void; // Callback to stop current request
   onSetTextareaContent?: (callback: (content: string) => void) => void; // Expose method to set textarea content
   hasRepository?: boolean; // Whether repository is configured
+  onRecheckRepository?: () => Promise<boolean>; // Callback to recheck repository configuration
   onShowRepositoryConfigModal?: () => void; // Callback to show repository configuration modal
 }
 
@@ -29,6 +30,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
   onStopRequest,
   onSetTextareaContent,
   hasRepository = false,
+  onRecheckRepository,
   onShowRepositoryConfigModal
 }) => {
   const [form] = Form.useForm();
@@ -152,9 +154,19 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
     form.resetFields();
   };
 
-  const handleFileAttach = () => {
+  const handleFileAttach = async () => {
     // Check if repository is configured
     if (!hasRepository) {
+      // Recheck repository configuration before showing modal
+      if (onRecheckRepository) {
+        const hasRepo = await onRecheckRepository();
+        if (hasRepo) {
+          // Repository is now configured, proceed with file attach
+          fileInputRef.current?.click();
+          return;
+        }
+      }
+      // Repository still not configured, show modal
       onShowRepositoryConfigModal?.();
       return;
     }

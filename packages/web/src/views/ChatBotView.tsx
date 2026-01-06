@@ -609,7 +609,8 @@ const ChatBotView: React.FC = () => {
           // and then loadChatHistory tries to add the same message with technical_id
           const existingMessage = currentMessages.find(m =>
             m.id === el.technical_id ||
-            (el.adk_session_id && m.raw?.adk_session_id === el.adk_session_id)
+            (el.adk_session_id && m.raw?.adk_session_id === el.adk_session_id) ||
+            (el.adk_session_id && m.id === el.adk_session_id)  // Check if SSE ID matches
           );
           if (existingMessage) {
             console.log('[loadChatHistory] Skipping duplicate message:', {
@@ -1281,6 +1282,18 @@ const ChatBotView: React.FC = () => {
           return newMessages;
         });
 
+        // Update chatData with adk_session_id from SSE response for conversation continuity
+        if (event.adk_session_id) {
+          console.log('[SSE] Updating chatData with adk_session_id:', event.adk_session_id);
+          setChatData((prev: any) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              adk_session_id: event.adk_session_id
+            };
+          });
+        }
+
         // Update chatData with repository info from SSE response if available
         // This ensures githubRepository state is updated for the Analyze button
         const repoInfo = event.repository_info;
@@ -1481,7 +1494,8 @@ const ChatBotView: React.FC = () => {
             () => {
               console.log('[SSE] Stream completed successfully');
             },
-            data.files
+            data.files,
+            chatData?.adk_session_id
           );
 
           streamAbortControllerRef.current = abortController;
@@ -1531,7 +1545,9 @@ const ChatBotView: React.FC = () => {
             },
             () => {
               console.log('[SSE] Stream completed successfully');
-            }
+            },
+            undefined, // files parameter (not used in text-only mode)
+            chatData?.adk_session_id
           );
 
           streamAbortControllerRef.current = abortController;
@@ -2613,6 +2629,13 @@ const ChatBotView: React.FC = () => {
               conversationId={technicalId}
               width={entityDataResize.width}
               onWidthChange={entityDataResize.setWidth}
+            />
+
+            {/* Resize Handle */}
+            <ResizeHandle
+              position="left"
+              onMouseDown={entityDataResize.handleMouseDown}
+              isResizing={entityDataResize.isResizing}
             />
           </div>
         )}

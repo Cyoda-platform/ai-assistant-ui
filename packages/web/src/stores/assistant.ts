@@ -50,7 +50,8 @@ interface AssistantStore {
     onEvent: (event: SSEChatEvent) => void,
     onError?: (error: Error) => void,
     onComplete?: () => void,
-    files?: File[]
+    files?: File[],
+    adkSessionId?: string
   ) => Promise<AbortController>;
 
   retryChatMessage: (
@@ -279,7 +280,8 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
     onEvent: (event: SSEChatEvent) => void,
     onError?: (error: Error) => void,
     onComplete?: () => void,
-    files?: File[]
+    files?: File[],
+    adkSessionId?: string
   ) {
     const authState = useAuthStore.getState();
     const token = authState.token || '';
@@ -291,7 +293,8 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
       onEvent,
       onError,
       onComplete,
-      files
+      files,
+      adkSessionId
     );
   },
 

@@ -267,7 +267,7 @@ const HomeView: React.FC = () => {
     const tempId = `temp-${Date.now()}`;
 
     // Navigate immediately with temp ID - show preloader in chat view
-    console.log('[HomeView] Navigating to temp chat:', tempId);
+    console.log('[FintechHomeView] Navigating to temp chat:', tempId);
     navigate(`/chat/${tempId}?openCanvas=true&creating=true`);
 
     try {
@@ -296,8 +296,13 @@ const HomeView: React.FC = () => {
         });
       }
 
-      if (response?.data?.technical_id) {
-        const realId = response.data.technical_id;
+      console.log('[FintechHomeView] postChats response:', response);
+      console.log('[FintechHomeView] response.data:', response?.data);
+      console.log('[FintechHomeView] response.data.chat_id:', response?.data?.chat_id);
+
+      const chatId = response?.data?.chat_id;
+      if (chatId) {
+        const realId = chatId;
 
         // Refresh chat list in background
         assistantStore.getChats().catch(error => {

@@ -418,8 +418,8 @@ const LogsView: React.FC = () => {
                 <option disabled>No applications found</option>
               ) : (
                 applications.map((app) => (
-                  <option key={app.namespace} value={app.app_name}>
-                    {app.app_name}
+                  <option key={app.namespace} value={app.name}>
+                    {app.name}
                   </option>
                 ))
               )}

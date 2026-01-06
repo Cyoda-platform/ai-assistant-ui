@@ -95,6 +95,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const [chatBotPlaceholderHeight, setChatBotPlaceholderHeight] = useState(0);
   const [textareaContentCallback, setTextareaContentCallback] = useState<((content: string, options?: { collapse?: boolean }) => void) | null>(null);
   const [showRepositoryConfigModal, setShowRepositoryConfigModal] = useState(false);
+  const [hasRepository, setHasRepository] = useState(!!githubRepository);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const isUserNearBottomRef = useRef(true);
@@ -106,6 +107,35 @@ const ChatBot: React.FC<ChatBotProps> = ({
     setTextareaContentCallback(() => callback);
     // Also propagate to parent (ChatBotView) so canvas can use it
     onSetTextareaContent?.(callback);
+  };
+
+  // Update hasRepository when githubRepository prop changes
+  useEffect(() => {
+    setHasRepository(!!githubRepository);
+  }, [githubRepository]);
+
+  // Handler to recheck repository configuration
+  const handleRecheckRepository = async (): Promise<boolean> => {
+    try {
+      // Import assistantStore dynamically to avoid circular dependencies
+      const { useAssistantStore } = await import('@/stores/assistant');
+      const assistantStore = useAssistantStore.getState();
+
+      // Fetch latest chat data
+      const { data } = await assistantStore.getChatById(technicalId);
+
+      // Check if repository is now configured
+      const chatBody = data?.chat_body;
+      const hasRepo = !!(chatBody?.repository_name && chatBody?.repository_owner && chatBody?.repository_branch);
+
+      // Update local state
+      setHasRepository(hasRepo);
+
+      return hasRepo;
+    } catch (error) {
+      console.error('[ChatBot] Error rechecking repository:', error);
+      return false;
+    }
   };
 
   const scrollDownMessages = (smooth = false) => {
@@ -355,7 +385,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
             isAIThinking={isLoading || streamingState?.isStreaming}
             onStopRequest={onStopRequest}
             onSetTextareaContent={handleSetTextareaContent}
-            hasRepository={!!githubRepository}
+            hasRepository={hasRepository}
+            onRecheckRepository={handleRecheckRepository}
             onShowRepositoryConfigModal={() => setShowRepositoryConfigModal(true)}
           />
         </div>
