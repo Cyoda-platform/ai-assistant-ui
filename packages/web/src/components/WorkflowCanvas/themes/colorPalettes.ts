@@ -1,5 +1,5 @@
 // ABOUTME: This file defines color palettes for the workflow canvas
-// Supports multiple themes: bluey-orange (default), greeny-pink, and cyberpunk
+// Supports multiple themes: blue-violet (default), greeny-pink, and cyberpunk
 
 export type ThemeName = 'bluey-orange' | 'greeny-pink' | 'cyberpunk';
 
@@ -31,24 +31,24 @@ export interface ColorPalette {
 
 export const COLOR_PALETTES: Record<ThemeName, ColorPalette> = {
   'bluey-orange': {
-    name: 'Bluey Orange',
-    description: 'Professional blue and orange palette',
+    name: 'Blue Violet',
+    description: 'Professional blue and violet palette',
     colors: {
-      stateInitial: '#0ea5e9',    // Cyan/Sky Blue (Created - bright cyan)
-      stateFinal: '#64748b',      // Steel Blue-Gray (Archived - more gray with blue tone)
-      stateNormal: '#3b82f6',     // Light Professional Blue (Activate - lighter blue)
-      transitionManual: '#ff8c42', // Warm Orange (Manual transitions - warm orange)
-      transitionAutomated: '#fbbf24', // Amber-400 (Automated transitions - amber orange)
+      stateInitial: '#6366f1',    // Indigo-500 (Created - bright indigo)
+      stateFinal: '#64748b',      // Steel Gray (Archived - gray)
+      stateNormal: '#3b82f6',     // Blue-500 (Activate - professional blue)
+      transitionManual: '#a855f7', // Purple-500 (Manual transitions - purple)
+      transitionAutomated: '#7c3aed', // Violet-600 (Automated transitions - darker violet)
     },
     ui: {
-      panelBorder: '#3b82f6',     // Light Professional Blue
-      panelGradientFrom: '#0f172a', // Slate-950
-      panelGradientVia: '#1e3a8a',  // Blue-900
-      panelGradientTo: '#3b82f6',   // Light Professional Blue
-      panelTitleFrom: '#93c5fd',    // Blue-300
-      panelTitleTo: '#60a5fa',      // Blue-400
-      accentColor: '#3b82f6',       // Light Professional Blue
-      accentHover: '#0ea5e9',       // Cyan/Sky Blue
+      panelBorder: '#7c3aed',     // Violet-600
+      panelGradientFrom: '#1e1b4b', // Indigo-950
+      panelGradientVia: '#3730a3',  // Indigo-800
+      panelGradientTo: '#7c3aed',   // Violet-600
+      panelTitleFrom: '#c4b5fd',    // Violet-300
+      panelTitleTo: '#a78bfa',      // Violet-400
+      accentColor: '#7c3aed',       // Violet-600
+      accentHover: '#a855f7',       // Purple-500
     }
   },
   'greeny-pink': {
