@@ -2168,7 +2168,7 @@ const ChatBotView: React.FC = () => {
       await assistantStore.deleteChatById(chatId);
 
       // Refresh the chat list
-      await assistantStore.getChats();
+      await assistantStore.getChats(true);
 
       // If we're currently viewing the deleted chat, redirect to home
       if (chatId === technicalId) {
@@ -2185,27 +2185,22 @@ const ChatBotView: React.FC = () => {
       await assistantStore.renameChatById(chatId, { chat_name: newName });
 
       // Refresh the chat list
-      await assistantStore.getChats();
+      await assistantStore.getChats(true);
     } catch (error) {
       console.error('Failed to rename chat:', error);
     }
   };
 
-  // Load chat list for sidebar only if not already loaded
+  // Load chat list for sidebar - always refresh to show new chats
   useEffect(() => {
     const loadChats = async () => {
-      // Skip if chat list is already loaded
-      if (chatListReady) {
-        return;
-      }
-
       // Skip if currently transferring chats during login
       if (isTransferringChats) {
         return;
       }
 
       try {
-        await assistantStore.getChats();
+        await assistantStore.getChats(true); // Always reset and reload
       } catch (error) {
         console.error('Failed to load chats:', error);
       }
@@ -2215,7 +2210,7 @@ const ChatBotView: React.FC = () => {
 
     // Listen for chat list updates (e.g., when chat is deleted or renamed)
     const handleUpdateChatList = () => {
-      assistantStore.getChats();
+      assistantStore.getChats(true);
     };
 
     eventBus.$on(UPDATE_CHAT_LIST, handleUpdateChatList);
@@ -2223,7 +2218,7 @@ const ChatBotView: React.FC = () => {
     return () => {
       eventBus.$off(UPDATE_CHAT_LIST, handleUpdateChatList);
     };
-  }, [chatListReady, isTransferringChats]);
+  }, [isTransferringChats]);
 
   // Refresh chat list when super user mode changes
   useEffect(() => {

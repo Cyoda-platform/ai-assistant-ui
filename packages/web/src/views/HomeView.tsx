@@ -139,21 +139,16 @@ const HomeView: React.FC = () => {
     }
   }, []);
 
-  // Load chats on mount only if not already loaded
+  // Load chats on mount - always refresh to show new chats
   useEffect(() => {
     const loadChats = async () => {
-      // Skip if chat list is already loaded
-      if (chatListReady) {
-        return;
-      }
-
       // Skip if currently transferring chats during login
       if (isTransferringChats) {
         return;
       }
 
       try {
-        await assistantStore.getChats();
+        await assistantStore.getChats(true); // Always reset and reload
       } catch (error) {
         console.error('Failed to load chats:', error);
       }
@@ -163,7 +158,7 @@ const HomeView: React.FC = () => {
 
     // Listen for chat list updates (e.g., when chat is deleted or renamed)
     const handleUpdateChatList = () => {
-      assistantStore.getChats();
+      assistantStore.getChats(true);
     };
 
     eventBus.$on(UPDATE_CHAT_LIST, handleUpdateChatList);
@@ -171,12 +166,12 @@ const HomeView: React.FC = () => {
     return () => {
       eventBus.$off(UPDATE_CHAT_LIST, handleUpdateChatList);
     };
-  }, [chatListReady, isTransferringChats]);
+  }, [isTransferringChats]);
 
   // Refresh chat list when super user mode changes
   useEffect(() => {
     if (chatListReady) {
-      assistantStore.getChats().catch(error => {
+      assistantStore.getChats(true).catch(error => {
         console.error('Failed to refresh chat list after super user mode change:', error);
       });
     }
@@ -291,7 +286,7 @@ const HomeView: React.FC = () => {
         const realId = response.data.technical_id;
 
         // Refresh chat list in background
-        assistantStore.getChats().catch(error => {
+        assistantStore.getChats(true).catch(error => {
           console.error('Failed to refresh chat list:', error);
         });
 
@@ -572,7 +567,7 @@ const HomeView: React.FC = () => {
     try {
       await assistantStore.deleteChatById(chatId);
       // Refresh the chat list
-      await assistantStore.getChats();
+      await assistantStore.getChats(true);
     } catch (error) {
       console.error('Error deleting chat:', error);
     }

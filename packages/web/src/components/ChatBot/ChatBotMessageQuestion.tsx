@@ -4,6 +4,8 @@ import { Bot, Clock, Sparkles, CheckCircle, Check, Plus, Loader2, Undo, RotateCc
 import MarkdownRenderer from '../MarkdownRenderer/MarkdownRenderer';
 import ResponseSeparator from './ResponseSeparator';
 import DeploymentOptionsUI from './DeploymentOptionsUI';
+import HierarchicalOptionSelection from './HierarchicalOptionSelection';
+import WizardOptionSelection from './WizardOptionSelection';
 import { useTextResponsiveContainer } from '@/hooks/useTextResponsiveContainer';
 import LogoSmall from '@/assets/images/logo-small.svg';
 import apiService from '@/services/apiService';
@@ -351,23 +353,29 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     }
   };
 
-  const handleSubmitOptions = async () => {
+  const handleSubmitOptions = async (formattedData?: string) => {
     if (!optionSelectionHook || selectedOptions.length === 0) return;
 
-    // Find the selected option labels
-    const options = optionSelectionHook.data?.options || [];
-    const selectedLabels = selectedOptions.map(value => {
-      const option = options.find((opt: any) => opt.value === value);
-      return option?.label || value;
-    });
+    // Use formatted data from wizard if provided, otherwise build from labels
+    let selectionMessage: string;
 
-    // Build the selection message
-    const selectionMessage = selectedLabels.join(', ');
+    if (formattedData) {
+      // Wizard provided formatted data with labels and values
+      selectionMessage = formattedData;
+    } else {
+      // Fallback: Find the selected option labels for flat selection
+      const options = optionSelectionHook.data?.options || [];
+      const selectedLabels = selectedOptions.map(value => {
+        const option = options.find((opt: any) => opt.value === value);
+        return option?.label || value;
+      });
+      selectionMessage = selectedLabels.join(', ');
+    }
 
     // Put the message in the textarea instead of sending directly
     if (setTextareaContent) {
       setTextareaContent(selectionMessage, { collapse: false });
-      console.log('✅ Options placed in textarea:', { selectedOptions, selectedLabels, selectionMessage });
+      console.log('✅ Options placed in textarea:', { selectedOptions, selectionMessage });
     } else {
       // Fallback: send directly if setTextareaContent is not available
       console.warn('⚠️ setTextareaContent not available, sending directly');
@@ -375,7 +383,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
         try {
           setIsSubmittingOptions(true);
           await onAnswer({ answer: selectionMessage });
-          console.log('✅ Options submitted:', { selectedOptions, selectedLabels });
+          console.log('✅ Options submitted:', { selectedOptions });
         } catch (error) {
           console.error('Failed to submit options:', error);
         } finally {
@@ -478,52 +486,69 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                   </div>
                 )}
 
-                {/* Options */}
-                <div className="space-y-2">
-                  <div className="grid gap-3">
-                    {optionSelectionHook.data?.options?.map((option: any) => (
-                      <button
-                        key={option.value}
-                        onClick={() => handleToggleOption(option.value)}
-                        className={`px-4 py-3 rounded-xl border-2 transition-all duration-200 text-left ${
-                          selectedOptions.includes(option.value)
-                            ? 'border-teal-500 bg-teal-500/20 text-teal-300'
-                            : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500'
-                        }`}
-                      >
-                        <div className="flex items-start space-x-3">
-                          {/* Checkbox/Radio indicator */}
-                          <div className={`mt-0.5 w-5 h-5 rounded-${optionSelectionHook.data?.selection_type === 'single' ? 'full' : 'md'} border-2 flex items-center justify-center ${
-                            selectedOptions.includes(option.value)
-                              ? 'border-teal-500 bg-teal-500'
-                              : 'border-slate-500'
-                          }`}>
-                            {selectedOptions.includes(option.value) && (
-                              <div className="w-2 h-2 bg-white rounded-full"></div>
-                            )}
-                          </div>
+                {/* Check if options follow hierarchical pattern (language_repoType_branchType) */}
+                {optionSelectionHook.data?.options && optionSelectionHook.data.options.some((opt: any) => opt.value.split('_').length >= 3) ? (
+                  <>
+                    {/* Wizard Option Selection - Progressive disclosure */}
+                    <WizardOptionSelection
+                      options={optionSelectionHook.data.options}
+                      selectedOptions={selectedOptions}
+                      onToggleOption={handleToggleOption}
+                      onSubmit={handleSubmitOptions}
+                      isSubmitting={isSubmittingOptions}
+                      selectionType={optionSelectionHook.data?.selection_type || 'single'}
+                    />
+                  </>
+                ) : (
+                  <>
+                    {/* Flat Option Selection (fallback) */}
+                    <div className="space-y-2">
+                      <div className="grid gap-3">
+                        {optionSelectionHook.data?.options?.map((option: any) => (
+                          <button
+                            key={option.value}
+                            onClick={() => handleToggleOption(option.value)}
+                            className={`px-4 py-3 rounded-xl border-2 transition-all duration-200 text-left ${
+                              selectedOptions.includes(option.value)
+                                ? 'border-teal-500 bg-teal-500/20 text-teal-300'
+                                : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500'
+                            }`}
+                          >
+                            <div className="flex items-start space-x-3">
+                              {/* Checkbox/Radio indicator */}
+                              <div className={`mt-0.5 w-5 h-5 rounded-${optionSelectionHook.data?.selection_type === 'single' ? 'full' : 'md'} border-2 flex items-center justify-center ${
+                                selectedOptions.includes(option.value)
+                                  ? 'border-teal-500 bg-teal-500'
+                                  : 'border-slate-500'
+                              }`}>
+                                {selectedOptions.includes(option.value) && (
+                                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                                )}
+                              </div>
 
-                          <div className="flex-1">
-                            <div className="text-sm font-medium">{option.label}</div>
-                            {option.description && (
-                              <div className="text-xs opacity-75 mt-1 break-all">{option.description}</div>
-                            )}
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                              <div className="flex-1">
+                                <div className="text-sm font-medium">{option.label}</div>
+                                {option.description && (
+                                  <div className="text-xs opacity-75 mt-1 break-all">{option.description}</div>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
-                {/* Select Button - places message in textarea for user to review and send */}
-                <button
-                  onClick={handleSubmitOptions}
-                  disabled={isSubmittingOptions || selectedOptions.length === 0}
-                  className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                >
-                  <Send size={18} />
-                  <span>Select</span>
-                </button>
+                    {/* Select Button - places message in textarea for user to review and send */}
+                    <button
+                      onClick={handleSubmitOptions}
+                      disabled={isSubmittingOptions || selectedOptions.length === 0}
+                      className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    >
+                      <Send size={18} />
+                      <span>Select</span>
+                    </button>
+                  </>
+                )}
               </div>
               </>
             )}
