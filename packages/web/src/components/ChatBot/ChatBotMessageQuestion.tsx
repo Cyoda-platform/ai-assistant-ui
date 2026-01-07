@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import dayjs from 'dayjs';
-import { Bot, Clock, Sparkles, CheckCircle, Check, Plus, Loader2, Undo, RotateCcw, Search, Send } from 'lucide-react';
+import { Bot, Clock, Sparkles, CheckCircle, Check, Plus, Loader2, Undo, RotateCcw, Search, Send, Info } from 'lucide-react';
 import MarkdownRenderer from '../MarkdownRenderer/MarkdownRenderer';
 import ResponseSeparator from './ResponseSeparator';
 import DeploymentOptionsUI from './DeploymentOptionsUI';
@@ -499,7 +499,9 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
           </div>
 
           {/* Message Bubble - Left aligned bot message */}
-          <div className={`${containerInfo.className} relative group ${message.approve || canvasData || canvasAnalysisHook || canvasOpenHook || repoConfigHook || optionSelectionHook || deploymentHook || backgroundTaskHook || canvasTabHook || codeChangesHook ? 'pb-12' : ''} !rounded-3xl ${
+          <div className={`${containerInfo.className} relative group ${
+            (message.approve || canvasData || canvasAnalysisHook || repoConfigHook || optionSelectionHook || deploymentHook || backgroundTaskHook || canvasTabHook || codeChangesHook) && !canvasOpenHook ? 'pb-12' : ''
+          } !rounded-3xl ${
             message.isCanvasQA ? 'canvas-qa-question' : ''
           }`}>
             <MarkdownRenderer>
@@ -799,15 +801,52 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
 
             {/* Canvas Open Button - Bottom Left (for new repository setup) */}
             {canvasOpenHook && (
-              <div className="absolute bottom-3 left-3 flex items-center space-x-2">
-                <button
-                  onClick={handleOpenCanvas}
-                  className="px-4 py-2 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white"
-                  title="Open Canvas to visually design your requirements, entities, and workflows"
-                >
-                  <Sparkles size={16} />
-                  <span className="text-sm font-medium">Open Canvas</span>
-                </button>
+              <div className="mt-6 pt-6 border-t border-slate-700/50">
+                <div className="flex flex-col space-y-4">
+                  {/* Info Card */}
+                  <div className="bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border border-teal-500/30 rounded-2xl p-5 backdrop-blur-sm">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 mt-0.5">
+                        <Info size={20} className="text-teal-400" />
+                      </div>
+                      <div className="flex-1 space-y-3">
+                        <h4 className="text-sm font-semibold text-teal-300">Canvas - Your Visual Design Studio</h4>
+                        <p className="text-xs text-slate-300 leading-relaxed">
+                          Open Canvas to visually design and manage your application:
+                        </p>
+                        <ul className="text-xs text-slate-400 space-y-2 ml-1">
+                          <li className="flex items-start space-x-2">
+                            <span className="text-teal-400 mt-0.5">•</span>
+                            <span><span className="font-medium text-slate-300">Requirements:</span> Define project features and user stories</span>
+                          </li>
+                          <li className="flex items-start space-x-2">
+                            <span className="text-cyan-400 mt-0.5">•</span>
+                            <span><span className="font-medium text-slate-300">Data Models:</span> Create and edit entities with drag-and-drop</span>
+                          </li>
+                          <li className="flex items-start space-x-2">
+                            <span className="text-teal-400 mt-0.5">•</span>
+                            <span><span className="font-medium text-slate-300">Workflows:</span> Design business logic flows visually</span>
+                          </li>
+                          <li className="flex items-start space-x-2">
+                            <span className="text-cyan-400 mt-0.5">•</span>
+                            <span><span className="font-medium text-slate-300">Code Generation:</span> Generate production-ready code from your designs</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <div className="flex justify-center">
+                    <button
+                      onClick={handleOpenCanvas}
+                      className="px-6 py-3 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 flex items-center space-x-2.5 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-medium"
+                    >
+                      <Sparkles size={20} />
+                      <span className="text-sm">Open Canvas</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
