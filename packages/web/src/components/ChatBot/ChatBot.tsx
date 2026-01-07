@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Row, Col } from 'antd';
 import { Github, X } from 'lucide-react';
 import ChatBotSubmitForm from './ChatBotSubmitForm';
@@ -93,7 +93,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
 }) => {
   const chatBotPlaceholderRef = useRef<HTMLDivElement>(null);
   const [chatBotPlaceholderHeight, setChatBotPlaceholderHeight] = useState(0);
-  const [textareaContentCallback, setTextareaContentCallback] = useState<((content: string, options?: { collapse?: boolean }) => void) | null>(null);
+  const textareaContentCallbackRef = useRef<((content: string, options?: { collapse?: boolean }) => void) | null>(null);
   const [showRepositoryConfigModal, setShowRepositoryConfigModal] = useState(false);
   const [hasRepository, setHasRepository] = useState(!!githubRepository);
 
@@ -103,11 +103,20 @@ const ChatBot: React.FC<ChatBotProps> = ({
   const hasCalledScrollToBottomRef = useRef(false); // Track if we've already called the callback
 
   // Handler to store the textarea content callback from ChatBotSubmitForm
-  const handleSetTextareaContent = (callback: (content: string, options?: { collapse?: boolean }) => void) => {
-    setTextareaContentCallback(() => callback);
-    // Also propagate to parent (ChatBotView) so canvas can use it
-    onSetTextareaContent?.(callback);
-  };
+  const handleSetTextareaContent = useCallback((callback: (content: string, options?: { collapse?: boolean }) => void) => {
+    textareaContentCallbackRef.current = callback;
+    // Propagate to parent immediately
+    if (onSetTextareaContent) {
+      onSetTextareaContent(callback);
+    }
+  }, [onSetTextareaContent]);
+
+  // Wrapper function to call the callback from ref
+  const callTextareaContent = useCallback((content: string, options?: { collapse?: boolean }) => {
+    if (textareaContentCallbackRef.current) {
+      textareaContentCallbackRef.current(content, options);
+    }
+  }, []);
 
   // Update hasRepository when githubRepository prop changes
   useEffect(() => {
@@ -257,7 +266,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
             hasRepository={!!githubRepository}
             onAnswer={onAnswer}
             onOpenTaskPanel={onOpenTaskPanel}
-            setTextareaContent={textareaContentCallback || undefined}
+            setTextareaContent={callTextareaContent}
           />
         );
       case 'notification':

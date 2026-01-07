@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { flushSync } from 'react-dom';
+
 import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import ChatBot from '@/components/ChatBot/ChatBot';
 import ChatBotCanvas from '@/components/ChatBot/ChatBotCanvas';
@@ -1380,26 +1380,23 @@ const ChatBotView: React.FC = () => {
     // Block polling FIRST before any state updates
     isRequestInProgressRef.current = true;
 
-    // Use flushSync to force synchronous state updates
-    // This ensures the UI updates immediately before the API call
-    flushSync(() => {
-      setDisabled(true);
+    // Update UI state - React will batch these updates automatically
+    setDisabled(true);
 
-      // Display user question immediately (no ID)
-      const userMessage: Message = {
-        id: '', // No ID - will be replaced by polling
-        type: 'user',
-        text: data.answer,
-        last_modified: new Date().toISOString(),
-        isCanvasQA: data.mode === 'qa',
-        files: data.files,
-        raw: {}
-      };
-      setMessages(prev => [...prev, userMessage]);
+    // Display user question immediately (no ID)
+    const userMessage: Message = {
+      id: '', // No ID - will be replaced by polling
+      type: 'user',
+      text: data.answer,
+      last_modified: new Date().toISOString(),
+      isCanvasQA: data.mode === 'qa',
+      files: data.files,
+      raw: {}
+    };
+    setMessages(prev => [...prev, userMessage]);
 
-      // Show preloader immediately after user message
-      setIsLoading(true);
-    });
+    // Show preloader immediately after user message
+    setIsLoading(true);
 
     try {
       let response;

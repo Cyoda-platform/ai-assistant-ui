@@ -92,15 +92,34 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
   const [repoUrl, setRepoUrl] = useState<string>('');
   const [installationId, setInstallationId] = useState<string>('');
   const [expandedInfo, setExpandedInfo] = useState<string | null>(null);
-  const [showSetupTooltip, setShowSetupTooltip] = useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   // Extract unique languages, repo types, and branch types
+  // Parse option value to extract language, repo type, and branch type
+  const parseOptionValue = (value: string) => {
+    // New format: "Python — Public repo — New Branch"
+    if (value.includes('—')) {
+      const parts = value.split('—').map(p => p.trim());
+      if (parts.length >= 3) {
+        const language = parts[0].toLowerCase();
+        const repoType = parts[1].includes('Public') ? 'public' : 'private';
+        const branchType = parts[2].includes('New') ? 'new' : 'existing';
+        return { language, repoType, branchType };
+      }
+    }
+    // Old format: "python_public_new"
+    const parts = value.split('_');
+    if (parts.length >= 3) {
+      return { language: parts[0], repoType: parts[1], branchType: parts[2] };
+    }
+    return null;
+  };
+
   const languages = useMemo(() => {
     const langs = new Set<string>();
     options.forEach(opt => {
-      const parts = opt.value.split('_');
-      if (parts.length >= 3) langs.add(parts[0]);
+      const parsed = parseOptionValue(opt.value);
+      if (parsed) langs.add(parsed.language);
     });
     return Array.from(langs).sort();
   }, [options]);
@@ -109,9 +128,9 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
     if (!selectedLanguage) return [];
     const types = new Set<string>();
     options.forEach(opt => {
-      const parts = opt.value.split('_');
-      if (parts.length >= 3 && parts[0] === selectedLanguage) {
-        types.add(parts[2]); // branch type is at index 2
+      const parsed = parseOptionValue(opt.value);
+      if (parsed && parsed.language === selectedLanguage) {
+        types.add(parsed.branchType);
       }
     });
     // Sort with 'new' before 'existing'
@@ -126,9 +145,9 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
     if (!selectedLanguage || !selectedBranchType) return [];
     const types = new Set<string>();
     options.forEach(opt => {
-      const parts = opt.value.split('_');
-      if (parts.length >= 3 && parts[0] === selectedLanguage && parts[2] === selectedBranchType) {
-        types.add(parts[1]); // repo type is at index 1
+      const parsed = parseOptionValue(opt.value);
+      if (parsed && parsed.language === selectedLanguage && parsed.branchType === selectedBranchType) {
+        types.add(parsed.repoType);
       }
     });
     // Sort with 'public' before 'private'
@@ -144,20 +163,57 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
     return options.find(opt => opt.value === value);
   };
 
+  // Map shorthand values to full descriptive text
+  const mapValueToDescriptive = (value: string): string => {
+    const mapping: { [key: string]: string } = {
+      'python_public_new': 'Python — Public repo — New Branch',
+      'python_public_existing': 'Python — Public repo — My Existing Branch',
+      'python_private_new': 'Python — Private repo — New Branch',
+      'python_private_existing': 'Python — Private repo — My Existing Branch',
+      'java_public_new': 'Java — Public repo — New Branch',
+      'java_public_existing': 'Java — Public repo — My Existing Branch',
+      'java_private_new': 'Java — Private repo — New Branch',
+      'java_private_existing': 'Java — Private repo — My Existing Branch',
+    };
+    return mapping[value] || value;
+  };
+
   // Get label for language
   const getLanguageLabel = (lang: string) => {
-    const option = options.find(opt => opt.value.startsWith(lang + '_'));
-    return lang.charAt(0).toUpperCase() + lang.slice(1);
+    const labels: { [key: string]: string } = {
+      python: "I'm building a Python project",
+      java: 'I want to build with Java'
+    };
+    return labels[lang] || lang.charAt(0).toUpperCase() + lang.slice(1);
+  };
+
+  // Get description for language
+  const getLanguageDescription = (lang: string) => {
+    const descriptions: { [key: string]: string } = {
+      python: 'Perfect for AI, data science, and backend services',
+      java: 'Enterprise-grade, scalable applications'
+    };
+    return descriptions[lang] || '';
   };
 
   // Get label for repo type
   const getRepoTypeLabel = (type: string) => {
-    return type === 'public' ? '🌐 Public Repository' : '🔒 Private Repository';
+    return type === 'public' ? 'I am ok with a public repository' : 'I will use my private repository';
+  };
+
+  // Get description for repo type
+  const getRepoTypeDescription = (type: string) => {
+    return type === 'public' ? 'Anyone can access your repository' : 'Only authorized users can access your repository';
   };
 
   // Get label for branch type
   const getBranchTypeLabel = (type: string) => {
-    return type === 'new' ? '🆕 New Branch' : '📋 Existing Branch';
+    return type === 'new' ? 'Set up a fresh branch' : 'Continue with an existing branch';
+  };
+
+  // Get description for branch type
+  const getBranchTypeDescription = (type: string) => {
+    return type === 'new' ? 'Creates a fresh branch for your project' : 'Use an already created branch in your repository';
   };
 
   // Calculate final option value and get its label
@@ -187,9 +243,21 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
 
   const handleRepoTypeSelect = (type: string) => {
     setSelectedRepoType(type);
-    const value = `${selectedLanguage}_${type}_${selectedBranchType}`;
-    const option = getOptionByValue(value);
-    if (option) {
+
+    // Build the value to match the option format (old or new)
+    let value: string | null = null;
+
+    // Try to find matching option by checking all options
+    const matchingOption = options.find(opt => {
+      const parsed = parseOptionValue(opt.value);
+      return parsed &&
+        parsed.language === selectedLanguage &&
+        parsed.repoType === type &&
+        parsed.branchType === selectedBranchType;
+    });
+
+    if (matchingOption) {
+      value = matchingOption.value;
       onToggleOption(value);
     }
   };
@@ -197,9 +265,18 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
   const handleBack = () => {
     if (step === 'branchType') {
       setSelectedLanguage(null);
+      setSelectedBranchType(null);
+      setSelectedRepoType(null);
+      setBranchName('');
+      setRepoUrl('');
+      setInstallationId('');
       setStep('language');
     } else if (step === 'repoType') {
       setSelectedBranchType(null);
+      setSelectedRepoType(null);
+      setBranchName('');
+      setRepoUrl('');
+      setInstallationId('');
       setStep('branchType');
     }
   };
@@ -275,10 +352,13 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
               <div key={lang} className="relative">
                 <button
                   onClick={() => handleLanguageSelect(lang)}
-                  className="w-full px-4 py-3 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-teal-300 transition-all duration-300 text-center text-sm font-medium overflow-hidden relative group"
+                  className="w-full px-4 py-3 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-teal-300 transition-all duration-300 text-center overflow-hidden relative group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-teal-500/0 via-teal-500/10 to-teal-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <span className="relative">{getLanguageLabel(lang)}</span>
+                  <div className="relative">
+                    <p className="text-sm font-medium">{getLanguageLabel(lang)}</p>
+                    <p className="text-xs text-slate-400 mt-1">{getLanguageDescription(lang)}</p>
+                  </div>
                 </button>
                 <div
                   className="absolute top-2 right-2 p-1 rounded-full hover:bg-teal-500/20 transition-colors cursor-help group"
@@ -292,7 +372,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
                         <div className="flex gap-2">
                           <div className="text-teal-400 text-lg flex-shrink-0">💡</div>
                           <p className="text-xs text-slate-200 leading-relaxed">
-                            {lang === 'python' ? 'Python: Great for AI, data science, and backend services' : 'Java: Enterprise-grade, scalable applications'}
+                            {getLanguageDescription(lang)}
                           </p>
                         </div>
                       </div>
@@ -319,10 +399,13 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
               <div key={type} className="relative">
                 <button
                   onClick={() => handleBranchTypeSelect(type)}
-                  className="w-full px-4 py-3 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-teal-300 transition-all duration-300 text-center text-sm font-medium overflow-hidden relative group"
+                  className="w-full px-4 py-3 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-teal-300 transition-all duration-300 text-center overflow-hidden relative group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-teal-500/0 via-teal-500/10 to-teal-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <span className="relative">{getBranchTypeLabel(type)}</span>
+                  <div className="relative">
+                    <p className="text-sm font-medium">{getBranchTypeLabel(type)}</p>
+                    <p className="text-xs text-slate-400 mt-1">{getBranchTypeDescription(type)}</p>
+                  </div>
                 </button>
                 <div
                   className="absolute top-2 right-2 p-1 rounded-full hover:bg-teal-500/20 transition-colors cursor-help group"
@@ -336,7 +419,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
                         <div className="flex gap-2">
                           <div className="text-teal-400 text-lg flex-shrink-0">💡</div>
                           <p className="text-xs text-slate-200 leading-relaxed">
-                            {type === 'new' ? 'New Branch: Creates a fresh branch for your project' : 'Existing Branch: Use an already created branch in your repository'}
+                            {getBranchTypeDescription(type)}
                           </p>
                         </div>
                       </div>
@@ -405,10 +488,13 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
               <div key={type} className="relative">
                 <button
                   onClick={() => handleRepoTypeSelect(type)}
-                  className="w-full px-4 py-3 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-teal-300 transition-all duration-300 text-center text-sm font-medium overflow-hidden relative group"
+                  className="w-full px-4 py-3 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-teal-300 transition-all duration-300 text-center overflow-hidden relative group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-teal-500/0 via-teal-500/10 to-teal-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <span className="relative">{getRepoTypeLabel(type)}</span>
+                  <div className="relative">
+                    <p className="text-sm font-medium">{getRepoTypeLabel(type)}</p>
+                    <p className="text-xs text-slate-400 mt-1">{getRepoTypeDescription(type)}</p>
+                  </div>
                 </button>
                 <div
                   className="absolute top-2 right-2 p-1 rounded-full hover:bg-teal-500/20 transition-colors cursor-help group"
@@ -422,7 +508,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
                         <div className="flex gap-2">
                           <div className="text-teal-400 text-lg flex-shrink-0">💡</div>
                           <p className="text-xs text-slate-200 leading-relaxed">
-                            {type === 'public' ? 'Public: Anyone can access your repository' : 'Private: Only authorized users can access your repository'}
+                            {getRepoTypeDescription(type)}
                           </p>
                         </div>
                       </div>
@@ -440,25 +526,13 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
                 <div className="flex gap-3">
                   <div className="text-teal-400 text-xl flex-shrink-0">🔐</div>
                   <div className="flex-1">
-                    <p className="text-xs font-semibold text-teal-300 mb-1">Private Repository Credentials</p>
-                    <p className="text-xs text-slate-200 leading-relaxed mb-2">
-                      To connect, I just need your <strong>Repo URL</strong> and the <strong>GitHub App Installation ID</strong>.
+                    <p className="text-xs font-semibold text-teal-300 mb-2">Private Repository Credentials</p>
+                    <p className="text-xs text-slate-200 leading-relaxed mb-3">
+                      To connect, I need your <strong>Repo URL</strong> and <strong>GitHub App Installation ID</strong>.
                     </p>
-                    <div className="relative inline-block">
-                      <div
-                        className="text-xs text-teal-400 hover:text-teal-300 flex items-center gap-1 transition-colors cursor-help"
-                        onMouseEnter={() => setShowSetupTooltip(true)}
-                        onMouseLeave={() => setShowSetupTooltip(false)}
-                      >
-                        <HelpCircle size={14} />
-                        <span>Setup</span>
-                      </div>
-                      {showSetupTooltip && (
-                        <div className="absolute bottom-full left-0 mb-2 w-48 p-2 bg-slate-900 border border-teal-500/50 rounded-lg text-xs text-slate-200 z-50 shadow-lg animate-slideDown">
-                          Go to <a href="https://github.com/apps/cyoda-ai-assistant" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300 underline">github.com/apps/cyoda-ai-assistant</a>, click Install, and copy the ID from the URL.
-                        </div>
-                      )}
-                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Don't have the Installation ID? Go to <a href="https://github.com/apps/cyoda-ai-assistant" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300 underline">github.com/apps/cyoda-ai-assistant</a>, click Install, and copy the ID from the URL.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -506,7 +580,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
       {/* Summary Box - Show all recorded information */}
       {(selectedLanguage || selectedBranchType || selectedRepoType || branchName || repoUrl || installationId) && (
         <div className="p-3 bg-gradient-to-r from-teal-500/10 to-cyan-500/10 border border-teal-500/40 rounded-lg animate-slideDown">
-          <p className="text-xs text-teal-300 space-y-1">
+          <div className="text-xs text-teal-300 space-y-1">
             {selectedLanguage && (
               <div className="flex items-start gap-2">
                 <span className="text-sm">✓</span>
@@ -543,7 +617,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
                 <span><strong>Installation ID:</strong> {installationId}</span>
               </div>
             )}
-          </p>
+          </div>
         </div>
       )}
 
@@ -580,7 +654,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
           className="flex-1 px-4 py-2.5 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-semibold text-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-teal-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
         >
           <Send size={16} />
-          <span>Confirm</span>
+          <span>Send</span>
         </button>
       </div>
     </div>

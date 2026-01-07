@@ -72,47 +72,47 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
     }
   };
 
-  // Expose method to set textarea content from parent
-  // Use useEffect with empty dependency array to register callback only once
-  // The callback accepts content and optional options: { collapse?: boolean }
-  // - collapse: true (default for canvas) - show [...] placeholder, store full content
-  // - collapse: false (for options) - show full content directly
+  // Create the textarea content setter callback
+  const setTextareaContentCallback = useCallback((content: string, options?: { collapse?: boolean }) => {
+    // Ensure content is a string
+    const contentStr = typeof content === 'string' ? content : String(content);
+    const shouldCollapse = options?.collapse ?? true; // Default to collapse for canvas
+
+    if (shouldCollapse) {
+      // Canvas mode: collapse content with [...] placeholder
+      setCanvasContent(contentStr);
+      setAnswer('[...]');
+      setIsCollapsed(true);
+      setUserPrefix('');
+      setUserSuffix('');
+      setTextareaHeight(60); // Keep default height for collapsed view
+    } else {
+      // Options mode: show full content directly
+      setAnswer(contentStr);
+      setCanvasContent('');
+      setIsCollapsed(false);
+      setUserPrefix('');
+      setUserSuffix('');
+    }
+
+    // Focus and adjust
+    setTimeout(() => {
+      if (!shouldCollapse) {
+        adjustTextareaHeight();
+      }
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.setSelectionRange(textareaRef.current.value.length, textareaRef.current.value.length);
+      }
+    }, 0);
+  }, []);
+
+  // Register the callback with parent
   useEffect(() => {
     if (onSetTextareaContent) {
-      onSetTextareaContent((content: string, options?: { collapse?: boolean }) => {
-        const shouldCollapse = options?.collapse ?? true; // Default to collapse for canvas
-
-        if (shouldCollapse) {
-          // Canvas mode: collapse content with [...] placeholder
-          setCanvasContent(content);
-          setAnswer('[...]');
-          setIsCollapsed(true);
-          setUserPrefix('');
-          setUserSuffix('');
-          setTextareaHeight(60); // Keep default height for collapsed view
-        } else {
-          // Options mode: show full content directly
-          setAnswer(content);
-          setCanvasContent('');
-          setIsCollapsed(false);
-          setUserPrefix('');
-          setUserSuffix('');
-        }
-
-        // Focus and adjust
-        setTimeout(() => {
-          if (!shouldCollapse) {
-            adjustTextareaHeight();
-          }
-          if (textareaRef.current) {
-            textareaRef.current.focus();
-            textareaRef.current.setSelectionRange(textareaRef.current.value.length, textareaRef.current.value.length);
-          }
-        }, 0);
-      });
+      onSetTextareaContent(setTextareaContentCallback);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array - only register once on mount
+  }, [onSetTextareaContent, setTextareaContentCallback]);
 
   const onClickTextAnswer = async (mode: 'workflow' | 'qa' = 'workflow') => {
     // Validation: require message text
@@ -520,7 +520,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
                 <button
                   type="button"
                   onClick={() => onClickTextAnswer('workflow')}
-                  disabled={disabled || (!answer.trim() && currentFiles.length === 0)}
+                  disabled={disabled || (!(typeof answer === 'string' && answer.trim()) && currentFiles.length === 0)}
                   className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:from-slate-600 disabled:to-slate-700 disabled:opacity-50 shadow-lg hover:shadow-xl hover:shadow-teal-500/25 disabled:shadow-none transition-all duration-300 flex items-center justify-center group active:scale-95 disabled:cursor-not-allowed border border-teal-400/30 disabled:border-slate-500/30"
                   style={{
                     transform: 'translateY(5%)',

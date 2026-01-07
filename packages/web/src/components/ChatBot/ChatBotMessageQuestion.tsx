@@ -377,19 +377,8 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
       setTextareaContent(selectionMessage, { collapse: false });
       console.log('✅ Options placed in textarea:', { selectedOptions, selectionMessage });
     } else {
-      // Fallback: send directly if setTextareaContent is not available
-      console.warn('⚠️ setTextareaContent not available, sending directly');
-      if (onAnswer) {
-        try {
-          setIsSubmittingOptions(true);
-          await onAnswer({ answer: selectionMessage });
-          console.log('✅ Options submitted:', { selectedOptions });
-        } catch (error) {
-          console.error('Failed to submit options:', error);
-        } finally {
-          setIsSubmittingOptions(false);
-        }
-      }
+      // If setTextareaContent is not available, don't send - just warn
+      console.warn('⚠️ setTextareaContent not available, cannot place options in textarea');
     }
   };
 
@@ -486,8 +475,17 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                   </div>
                 )}
 
-                {/* Check if options follow hierarchical pattern (language_repoType_branchType) */}
-                {optionSelectionHook.data?.options && optionSelectionHook.data.options.some((opt: any) => opt.value.split('_').length >= 3) ? (
+                {/* Check if options follow hierarchical pattern (language_repoType_branchType or new em-dash format) */}
+                {optionSelectionHook.data?.options && optionSelectionHook.data.options.some((opt: any) => {
+                  // Old format: python_public_new (split by underscore)
+                  const isOldFormat = opt.value.split('_').length >= 3;
+                  // New format: Python — Public repo — New Branch (contains em-dash and language/repo/branch keywords)
+                  const isNewFormat = opt.value.includes('—') &&
+                    (opt.value.includes('Python') || opt.value.includes('Java')) &&
+                    (opt.value.includes('Public') || opt.value.includes('Private')) &&
+                    (opt.value.includes('New Branch') || opt.value.includes('Existing Branch'));
+                  return isOldFormat || isNewFormat;
+                }) ? (
                   <>
                     {/* Wizard Option Selection - Progressive disclosure */}
                     <WizardOptionSelection
@@ -540,7 +538,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
 
                     {/* Select Button - places message in textarea for user to review and send */}
                     <button
-                      onClick={handleSubmitOptions}
+                      onClick={() => handleSubmitOptions()}
                       disabled={isSubmittingOptions || selectedOptions.length === 0}
                       className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                     >
