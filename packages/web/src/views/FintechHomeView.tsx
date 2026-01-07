@@ -64,6 +64,7 @@ const HomeView: React.FC = () => {
   const [isResizing, setIsResizing] = useState(false);
   const [textareaHeight, setTextareaHeight] = useState(60);
   const [currentPromptIndex, setCurrentPromptIndex] = useState(0);
+  const [isFocused, setIsFocused] = useState(false);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -696,7 +697,7 @@ const HomeView: React.FC = () => {
                 <div
                   className="absolute inset-0 pointer-events-none"
                   style={{
-                    background: 'radial-gradient(circle at center top, rgba(0,185,200,0.06), transparent 60%)',
+                    background: 'radial-gradient(circle at center top, rgba(20,184,166,0.06), transparent 60%)',
                     top: '100px',
                     height: '500px'
                   }}
@@ -712,7 +713,7 @@ const HomeView: React.FC = () => {
                         fontFamily: 'Montserrat, sans-serif',
                         fontWeight: 700,
                         fontSize: 'clamp(36px, 5vw, 64px)',
-                        color: '#3b82f6',
+                        color: '#14b8a6',
                         lineHeight: 1,
                         animationDelay: '0.1s',
                         margin: 0
@@ -727,7 +728,7 @@ const HomeView: React.FC = () => {
                         fontFamily: 'Montserrat, sans-serif',
                         fontWeight: 600,
                         fontSize: 'clamp(36px, 5vw, 64px)',
-                        background: 'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
+                        background: 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         backgroundClip: 'text',
@@ -773,9 +774,9 @@ const HomeView: React.FC = () => {
                     >
                       {/* Subtle gradient overlay */}
                       <div
-                        className="absolute inset-0 pointer-events-none z-10"
+                        className="absolute inset-0 pointer-events-none z-0"
                         style={{
-                          background: 'linear-gradient(135deg, rgba(59,130,246,0.05) 0%, transparent 50%, rgba(30,58,138,0.05) 100%)'
+                          background: 'linear-gradient(135deg, rgba(20,184,166,0.05) 0%, transparent 50%, rgba(13,148,136,0.05) 100%)'
                         }}
                       />
 
@@ -794,7 +795,7 @@ const HomeView: React.FC = () => {
                                 console.log('Carousel item clicked, prompt:', example.prompt); // Debug log
                                 handlePromptClick(example.prompt);
                               }}
-                              className="w-full text-left p-4 transition-all duration-500 group relative overflow-hidden cursor-pointer"
+                              className="w-full text-left p-4 transition-all duration-500 group relative overflow-hidden cursor-pointer rounded-3xl"
                               style={{
                                 background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)',
                                 backdropFilter: 'blur(20px)'
@@ -804,7 +805,7 @@ const HomeView: React.FC = () => {
                               <div
                                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                                 style={{
-                                  background: 'radial-gradient(circle at top right, rgba(59,130,246,0.1), transparent 70%)'
+                                  background: 'radial-gradient(circle at top right, rgba(20,184,166,0.1), transparent 70%)'
                                 }}
                               />
 
@@ -815,7 +816,7 @@ const HomeView: React.FC = () => {
                                     <span
                                       className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider"
                                       style={{
-                                        background: '#1e40af',
+                                        background: '#0d9488',
                                         color: 'white'
                                       }}
                                     >
@@ -827,13 +828,13 @@ const HomeView: React.FC = () => {
                                     </div>
                                   </div>
 
-                                  <div className="flex items-end space-x-4">
+                                  <div className="flex items-stretch space-x-4">
                                     {/* Person Image positioned on the left, aligned with bottom of text area */}
                                     <div className="flex-shrink-0" style={{ marginLeft: '3%' }}>
                                       <div
-                                        className="w-16 h-32 p-2 rounded-lg overflow-hidden"
+                                        className="w-16 h-full p-2 rounded-lg overflow-hidden"
                                         style={{
-                                          background: '#1e40af'
+                                          background: '#0d9488'
                                         }}
                                       >
                                         {React.cloneElement(example.icon, {
@@ -844,7 +845,7 @@ const HomeView: React.FC = () => {
 
                                     {/* Text Content on the Right */}
                                     <div className="flex-1 space-y-3">
-                                      <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-blue-300 transition-colors duration-300">
+                                      <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-teal-300 transition-colors duration-300">
                                         {example.title}
                                       </h3>
 
@@ -864,7 +865,7 @@ const HomeView: React.FC = () => {
                                             navigator.clipboard.writeText(example.prompt);
                                             handlePromptClick(example.prompt);
                                           }}
-                                          className="absolute top-3 right-3 p-3 text-slate-400 hover:text-blue-400 transition-all duration-200 hover:scale-110 rounded-lg hover:bg-slate-700/50"
+                                          className="absolute top-3 right-3 p-3 text-slate-400 hover:text-teal-400 transition-all duration-200 hover:scale-110 rounded-lg hover:bg-slate-700/50"
                                           title="Copy prompt and set in input"
                                         >
                                           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -887,9 +888,9 @@ const HomeView: React.FC = () => {
                       onClick={prevPrompt}
                       className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
                       style={{
-                        background: 'linear-gradient(135deg, rgba(59,130,246,0.9), rgba(30,58,138,0.9))',
+                        background: 'linear-gradient(135deg, rgba(20,184,166,0.9), rgba(13,148,136,0.9))',
                         backdropFilter: 'blur(10px)',
-                        boxShadow: '0 4px 12px rgba(59,130,246,0.2), 0 0 0 1px rgba(59,130,246,0.3)',
+                        boxShadow: '0 4px 12px rgba(20,184,166,0.2), 0 0 0 1px rgba(20,184,166,0.3)',
                       }}
                     >
                       <ChevronRight className="text-white rotate-180 group-hover:-translate-x-0.5 transition-transform" size={22} />
@@ -899,9 +900,9 @@ const HomeView: React.FC = () => {
                       onClick={nextPrompt}
                       className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
                       style={{
-                        background: 'linear-gradient(135deg, rgba(59,130,246,0.9), rgba(30,58,138,0.9))',
+                        background: 'linear-gradient(135deg, rgba(20,184,166,0.9), rgba(13,148,136,0.9))',
                         backdropFilter: 'blur(10px)',
-                        boxShadow: '0 4px 12px rgba(59,130,246,0.2), 0 0 0 1px rgba(59,130,246,0.3)',
+                        boxShadow: '0 4px 12px rgba(20,184,166,0.2), 0 0 0 1px rgba(20,184,166,0.3)',
                       }}
                     >
                       <ChevronRight className="text-white group-hover:translate-x-0.5 transition-transform" size={22} />
@@ -914,7 +915,12 @@ const HomeView: React.FC = () => {
               <div className="mb-4" style={{ marginTop: '-1vh' }}>
                 <form onSubmit={handleChatSubmit}>
                   <div
-                    className="relative"
+                    className={`relative overflow-hidden rounded-3xl border-2 transition-all duration-300 ${isFocused ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-600'}`}
+                    style={{
+                      background: 'rgba(30, 41, 59, 0.6)',
+                      backdropFilter: 'blur(14px)',
+                      WebkitBackdropFilter: 'blur(14px)'
+                    }}
                     onDragEnter={handleDragEnter}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
@@ -933,6 +939,8 @@ const HomeView: React.FC = () => {
                       ref={chatInputRef}
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
+                      onFocus={() => setIsFocused(true)}
+                      onBlur={() => setIsFocused(false)}
                       onPaste={() => {
                         // Allow the paste to happen first, then adjust height
                         setTimeout(() => {
@@ -954,13 +962,9 @@ const HomeView: React.FC = () => {
                         maxHeight: '300px',
                         overflowY: textareaHeight >= 300 ? 'auto' : 'hidden',
                         lineHeight: '1.5',
-                        background: 'rgba(30, 41, 59, 0.6)',
-                        backdropFilter: 'blur(14px)',
-                        WebkitBackdropFilter: 'blur(14px)',
-                        border: '1px solid rgba(255,255,255,0.12)',
-                        borderRadius: '24px',
+                        background: 'transparent',
+                        border: 'none',
                         padding: '18px 120px 18px 24px',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
                         fontFamily: 'Montserrat, sans-serif'
                       }}
                       disabled={isLoading}
@@ -975,14 +979,14 @@ const HomeView: React.FC = () => {
                         className="hover:scale-110 transition-all duration-200 flex items-center justify-center flex-shrink-0 p-3"
                         style={{
                           transform: 'translateY(5%)',
-                          color: '#be123c'
+                          color: chatInput.trim() ? '#14b8a6' : '#9ca3af'
                         }}
                         title="Send Message (Enter)"
                       >
                         {isLoading ? (
-                          <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: '#be123c33', borderTopColor: '#be123c' }} />
+                          <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: chatInput.trim() ? '#14b8a633' : '#9ca3af33', borderTopColor: chatInput.trim() ? '#14b8a6' : '#9ca3af' }} />
                         ) : (
-                          <Send size={24} style={{ color: '#be123c' }} />
+                          <Send size={24} style={{ color: chatInput.trim() ? '#14b8a6' : '#9ca3af' }} />
                         )}
                       </button>
                     </div>
@@ -1061,21 +1065,21 @@ const HomeView: React.FC = () => {
                           <div
                             className="flex-shrink-0 mt-0.5 p-2 rounded-lg transition-all duration-300 group-hover:scale-105"
                             style={{
-                              background: 'linear-gradient(135deg, rgba(59,130,246,0.2), rgba(30,58,138,0.2))',
-                              border: '1px solid rgba(59,130,246,0.3)'
+                              background: 'linear-gradient(135deg, rgba(20,184,166,0.2), rgba(13,148,136,0.2))',
+                              border: '1px solid rgba(20,184,166,0.3)'
                             }}
                           >
                             {action.icon}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm sm:text-base font-semibold text-white group-hover:text-blue-300 transition-colors duration-300 mb-1">
+                            <div className="text-sm sm:text-base font-semibold text-white group-hover:text-teal-300 transition-colors duration-300 mb-1">
                               {action.label}
                             </div>
                             <div className="text-xs text-slate-300 group-hover:text-slate-200 transition-colors duration-300 line-clamp-2">
                               {action.description}
                             </div>
                           </div>
-                          <ChevronRight size={14} className="text-slate-500 group-hover:text-blue-400 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0 mt-1" />
+                          <ChevronRight size={14} className="text-slate-500 group-hover:text-teal-400 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0 mt-1" />
                         </div>
                       </div>
                     </button>
@@ -1095,7 +1099,7 @@ const HomeView: React.FC = () => {
                   }}
                 >
                   {/* Heading */}
-                  <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center" style={{ color: '#3b82f6' }}>
+                  <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center" style={{ color: '#14b8a6' }}>
                     Cyoda AI Studio Features
                   </h2>
 
@@ -1107,9 +1111,9 @@ const HomeView: React.FC = () => {
                   {/* Features Grid */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     {/* Feature 1 */}
-                    <div className="p-6 rounded-lg" style={{ background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                    <div className="p-6 rounded-lg" style={{ background: 'rgba(20, 184, 166, 0.05)', border: '1px solid rgba(20, 184, 166, 0.2)' }}>
                       <div className="flex items-start space-x-4">
-                        <Zap className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" />
+                        <Zap className="w-6 h-6 text-teal-400 flex-shrink-0 mt-1" />
                         <div>
                           <h3 className="text-lg font-semibold text-white mb-2">Event-Driven Architecture</h3>
                           <p className="text-slate-300 text-sm">Declarative state machines with automated transitions, event sourcing, and complete audit trails for all entity changes.</p>
@@ -1118,9 +1122,9 @@ const HomeView: React.FC = () => {
                     </div>
 
                     {/* Feature 2 */}
-                    <div className="p-6 rounded-lg" style={{ background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                    <div className="p-6 rounded-lg" style={{ background: 'rgba(20, 184, 166, 0.05)', border: '1px solid rgba(20, 184, 166, 0.2)' }}>
                       <div className="flex items-start space-x-4">
-                        <Rocket className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" />
+                        <Rocket className="w-6 h-6 text-teal-400 flex-shrink-0 mt-1" />
                         <div>
                           <h3 className="text-lg font-semibold text-white mb-2">AI-Assisted Development</h3>
                           <p className="text-slate-300 text-sm">Intelligent code generation, automatic scaffolding, and AI-driven workflow design for accelerated development cycles.</p>
@@ -1129,9 +1133,9 @@ const HomeView: React.FC = () => {
                     </div>
 
                     {/* Feature 3 */}
-                    <div className="p-6 rounded-lg" style={{ background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                    <div className="p-6 rounded-lg" style={{ background: 'rgba(20, 184, 166, 0.05)', border: '1px solid rgba(20, 184, 166, 0.2)' }}>
                       <div className="flex items-start space-x-4">
-                        <Database className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" />
+                        <Database className="w-6 h-6 text-teal-400 flex-shrink-0 mt-1" />
                         <div>
                           <h3 className="text-lg font-semibold text-white mb-2">Entity Database</h3>
                           <p className="text-slate-300 text-sm">Native entity storage with time-travel capabilities, versioning, and queryable state history for complete traceability.</p>
@@ -1140,9 +1144,9 @@ const HomeView: React.FC = () => {
                     </div>
 
                     {/* Feature 4 */}
-                    <div className="p-6 rounded-lg" style={{ background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                    <div className="p-6 rounded-lg" style={{ background: 'rgba(20, 184, 166, 0.05)', border: '1px solid rgba(20, 184, 166, 0.2)' }}>
                       <div className="flex items-start space-x-4">
-                        <Shield className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1" />
+                        <Shield className="w-6 h-6 text-teal-400 flex-shrink-0 mt-1" />
                         <div>
                           <h3 className="text-lg font-semibold text-white mb-2">Runtime Governance</h3>
                           <p className="text-slate-300 text-sm">Declarative workflow enforcement, compliance automation, and regulatory reporting for mission-critical applications.</p>
@@ -1159,9 +1163,9 @@ const HomeView: React.FC = () => {
                       rel="noopener noreferrer"
                       className="inline-flex items-center space-x-2 px-6 py-3 font-semibold text-base transition-all duration-300 hover:scale-105 group"
                       style={{
-                        background: 'linear-gradient(135deg, #3b82f6, #1e40af)',
+                        background: 'linear-gradient(135deg, #14b8a6, #0d9488)',
                         borderRadius: '12px',
-                        boxShadow: '0 2px 8px rgba(59, 130, 246, 0.15)',
+                        boxShadow: '0 2px 8px rgba(20, 184, 166, 0.15)',
                         color: '#ffffff',
                         border: '1px solid rgba(255,255,255, 0.15)'
                       }}
@@ -1176,7 +1180,7 @@ const HomeView: React.FC = () => {
               {/* Cyoda Platform Resources Section */}
               <div className="max-w-5xl mx-auto px-6 mb-12 mt-8" style={{ fontFamily: 'Montserrat, sans-serif' }}>
                 {/* Heading */}
-                <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center" style={{ color: '#3b82f6' }}>
+                <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center" style={{ color: '#14b8a6' }}>
                   Cyoda Platform Resources
                 </h2>
 
@@ -1191,11 +1195,11 @@ const HomeView: React.FC = () => {
                     href="https://cyoda.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center space-x-3 px-10 py-4 font-bold text-lg transition-all duration-300 transform hover:scale-105 group"
+                    className="inline-flex items-center space-x-3 px-10 py-3 font-bold text-lg transition-all duration-300 transform hover:scale-105 group"
                     style={{
-                      background: 'linear-gradient(135deg, #3b82f6, #1e40af)',
+                      background: 'linear-gradient(135deg, #14b8a6, #0d9488)',
                       borderRadius: '16px',
-                      boxShadow: '0 4px 12px rgba(59, 130, 246, 0.15)',
+                      boxShadow: '0 4px 12px rgba(20, 184, 166, 0.15)',
                       color: '#ffffff',
                       border: '1px solid rgba(255,255,255,0.15)'
                     }}
@@ -1263,7 +1267,7 @@ const HomeView: React.FC = () => {
                   <div
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                     style={{
-                      background: 'radial-gradient(circle at top right, rgba(59, 130, 246, 0.05), transparent 70%)'
+                      background: 'radial-gradient(circle at top right, rgba(20, 184, 166, 0.05), transparent 70%)'
                     }}
                   />
 
@@ -1272,13 +1276,13 @@ const HomeView: React.FC = () => {
                       <div
                         className="w-12 h-12 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
                         style={{
-                          background: 'linear-gradient(135deg, #3b82f6, #1e40af)',
-                          boxShadow: '0 2px 8px rgba(59, 130, 246, 0.15)'
+                          background: 'linear-gradient(135deg, #14b8a6, #0d9488)',
+                          boxShadow: '0 2px 8px rgba(20, 184, 166, 0.15)'
                         }}
                       >
                         <Rocket className="text-white w-6 h-6" />
                       </div>
-                      <h3 className="text-2xl md:text-3xl font-bold" style={{ color: '#3b82f6' }}>
+                      <h3 className="text-2xl md:text-3xl font-bold" style={{ color: '#14b8a6' }}>
                         Get Started with Cyoda
                       </h3>
                     </div>
@@ -1291,13 +1295,13 @@ const HomeView: React.FC = () => {
                       href="https://docs.cyoda.net/getting-started/introduction/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-3 px-8 py-4 font-bold text-lg transition-all duration-300 transform hover:scale-105 group/btn"
+                      className="inline-flex items-center space-x-3 px-8 py-3 font-bold text-lg transition-all duration-300 transform hover:scale-105 group/btn"
                       style={{
-                        background: 'linear-gradient(135deg, #3b82f6, #1e40af)',
+                        background: 'linear-gradient(135deg, #14b8a6, #0d9488)',
                         borderRadius: '12px',
-                        boxShadow: '0 4px 12px rgba(59, 130, 246, 0.15)',
+                        boxShadow: '0 4px 12px rgba(20, 184, 166, 0.15)',
                         color: '#ffffff',
-                        border: '1px solid rgba(59, 130, 246, 0.2)'
+                        border: '1px solid rgba(20, 184, 166, 0.2)'
                       }}
                     >
                       <Zap className="w-5 h-5 group-hover/btn:translate-y-[-2px] transition-transform duration-300" />
@@ -1309,15 +1313,15 @@ const HomeView: React.FC = () => {
 
                     <div className="mt-6 flex items-center justify-center space-x-6 text-sm text-slate-400">
                       <div className="flex items-center space-x-2">
-                        <CheckCircle2 className="w-4 h-4 text-blue-400" />
+                        <CheckCircle2 className="w-4 h-4 text-teal-400" />
                         <span>Event-Driven Design</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <CheckCircle2 className="w-4 h-4 text-blue-400" />
+                        <CheckCircle2 className="w-4 h-4 text-teal-400" />
                         <span>AI-Assisted Development</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <CheckCircle2 className="w-4 h-4 text-blue-400" />
+                        <CheckCircle2 className="w-4 h-4 text-teal-400" />
                         <span>Complete Traceability</span>
                       </div>
                     </div>
@@ -1337,7 +1341,7 @@ const HomeView: React.FC = () => {
                 <div
                   className="absolute inset-0 opacity-50"
                   style={{
-                    background: 'linear-gradient(180deg, transparent 0%, rgba(0,121,129,0.1) 100%)'
+                    background: 'linear-gradient(180deg, transparent 0%, rgba(20,184,166,0.1) 100%)'
                   }}
                 />
 
@@ -1349,7 +1353,7 @@ const HomeView: React.FC = () => {
                   <div
                     className="h-px mb-8"
                     style={{
-                      background: 'linear-gradient(90deg, transparent, rgba(0,185,200,0.3), transparent)'
+                      background: 'linear-gradient(90deg, transparent, rgba(20,184,166,0.3), transparent)'
                     }}
                   />
 
