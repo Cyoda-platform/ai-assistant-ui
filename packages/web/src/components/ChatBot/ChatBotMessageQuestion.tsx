@@ -79,22 +79,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     return dayjs(message.last_modified).format('HH:mm');
   }, [message.last_modified]);
 
-  // Detect if message contains canvas analysis suggestion hook
-  const canvasAnalysisHook = useMemo(() => {
-    if (message.raw?.hook?.type === 'canvas_analysis_suggestion') {
-      return message.raw.hook;
-    }
-    return null;
-  }, [message.raw]);
-
-  // Detect if message contains canvas open hook (for new repository setup)
-  const canvasOpenHook = useMemo(() => {
-    if (message.raw?.hook?.type === 'canvas_open') {
-      return message.raw.hook;
-    }
-    return null;
-  }, [message.raw]);
-
   // Helper function to extract hooks from combined hook
   const extractHooksFromCombined = (hook: any) => {
     if (hook?.type === 'combined' && Array.isArray(hook.hooks)) {
@@ -105,35 +89,88 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
 
   // Extract individual hooks from combined hook if present
   const allHooks = useMemo(() => {
-    return extractHooksFromCombined(message.raw?.hook);
-  }, [message.raw?.hook]);
+    console.log('[ChatBotMessageQuestion] Processing hooks - message.raw:', message.raw);
+    const hooksFromSingleHook = extractHooksFromCombined(message.raw?.hook);
+    console.log('[ChatBotMessageQuestion] Hooks from single hook:', hooksFromSingleHook.map((h: any) => h?.type));
+
+    // Also check for hooks array (plural) at the same level
+    const hooksArray = message.raw?.hooks;
+    console.log('[ChatBotMessageQuestion] Hooks array exists?', !!hooksArray, 'Length:', hooksArray?.length);
+    if (Array.isArray(hooksArray) && hooksArray.length > 0) {
+      console.log('[ChatBotMessageQuestion] Found hooks array with', hooksArray.length, 'hooks:', hooksArray.map((h: any) => h?.type));
+      // Include ALL hooks from the hooks array (don't filter)
+      // Each hook detector will handle deduplication on its own
+      console.log('[ChatBotMessageQuestion] Including all hooks from hooks array');
+      const merged = [...hooksFromSingleHook, ...hooksArray];
+      console.log('[ChatBotMessageQuestion] Merged allHooks:', merged.map((h: any) => h?.type));
+      return merged;
+    }
+
+    console.log('[ChatBotMessageQuestion] Final allHooks (no hooks array):', hooksFromSingleHook.map((h: any) => h?.type));
+    return hooksFromSingleHook;
+  }, [message.raw?.hook, message.raw?.hooks]);
+
+  // Detect if message contains canvas analysis suggestion hook
+  const canvasAnalysisHook = useMemo(() => {
+    if (message.raw?.hook?.type === 'canvas_analysis_suggestion') {
+      return message.raw.hook;
+    }
+    // Also check in hooks array (from allHooks)
+    const hook = allHooks.find((h: any) => h?.type === 'canvas_analysis_suggestion');
+    return hook || null;
+  }, [message.raw, allHooks]);
+
+  // Detect if message contains canvas open hook (for new repository setup)
+  const canvasOpenHook = useMemo(() => {
+    console.log('[ChatBotMessageQuestion] Detecting canvas open hook...');
+    console.log('[ChatBotMessageQuestion] Main hook type:', message.raw?.hook?.type);
+    console.log('[ChatBotMessageQuestion] allHooks types:', allHooks.map((h: any) => h?.type));
+
+    if (message.raw?.hook?.type === 'canvas_open') {
+      console.log('[ChatBotMessageQuestion] ✅ Canvas open hook found in main hook');
+      return message.raw.hook;
+    }
+    // Also check in hooks array (from allHooks)
+    const hook = allHooks.find((h: any) => h?.type === 'canvas_open');
+    if (hook) {
+      console.log('[ChatBotMessageQuestion] ✅ Canvas open hook detected in hooks array:', hook);
+      return hook;
+    }
+    console.log('[ChatBotMessageQuestion] ❌ No canvas open hook found');
+    return null;
+  }, [message.raw, allHooks]);
 
   // Detect if message contains repository config selection hook
   const repoConfigHook = useMemo(() => {
-    if (message.raw?.hook?.type === 'repository_config_selection') {
-      const hook = message.raw.hook;
+    // Check top-level hook first
+    let hook = message.raw?.hook?.type === 'repository_config_selection' ? message.raw.hook : null;
 
-      // WORKAROUND: Cyoda's JSON serialization converts the options object to an array
-      // Handle both formats: object (correct) and array (from Cyoda)
-      let normalizedHook = { ...hook };
-
-      if (hook.data?.options && Array.isArray(hook.data.options) && hook.data.options.length > 0) {
-        // Convert array back to object
-        console.log('🎣 Fixing Cyoda serialization bug: converting options array to object');
-        normalizedHook = {
-          ...hook,
-          data: {
-            ...hook.data,
-            options: hook.data.options[0] // Extract the first (and only) element
-          }
-        };
-      }
-
-      console.log('🎣 Repository config hook (normalized):', normalizedHook);
-      return normalizedHook;
+    // If not found, check in allHooks array
+    if (!hook) {
+      hook = allHooks.find((h: any) => h?.type === 'repository_config_selection');
     }
-    return null;
-  }, [message.raw]);
+
+    if (!hook) return null;
+
+    // WORKAROUND: Cyoda's JSON serialization converts the options object to an array
+    // Handle both formats: object (correct) and array (from Cyoda)
+    let normalizedHook = { ...hook };
+
+    if (hook.data?.options && Array.isArray(hook.data.options) && hook.data.options.length > 0) {
+      // Convert array back to object
+      console.log('🎣 Fixing Cyoda serialization bug: converting options array to object');
+      normalizedHook = {
+        ...hook,
+        data: {
+          ...hook.data,
+          options: hook.data.options[0] // Extract the first (and only) element
+        }
+      };
+    }
+
+    console.log('🎣 Repository config hook (normalized):', normalizedHook);
+    return normalizedHook;
+  }, [message.raw, allHooks]);
 
   // Detect if message contains option selection hook (from combined or top-level)
   const optionSelectionHook = useMemo(() => {
@@ -154,8 +191,10 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     if (message.raw?.hook?.type === 'deployment_options') {
       return message.raw.hook;
     }
-    return null;
-  }, [message.raw]);
+    // Also check in allHooks array
+    const hook = allHooks.find((h: any) => h?.type === 'deployment_options');
+    return hook || null;
+  }, [message.raw, allHooks]);
 
   // DEPRECATED: canvas_with_proceed hook is no longer used
   // Agent should use open_canvas_tab hook dynamically instead
@@ -165,8 +204,10 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     if (message.raw?.hook?.type === 'canvas_tab') {
       return message.raw.hook;
     }
-    return null;
-  }, [message.raw]);
+    // Also check in allHooks array
+    const hook = allHooks.find((h: any) => h?.type === 'canvas_tab');
+    return hook || null;
+  }, [message.raw, allHooks]);
 
   // Detect if message contains code_changes hook
   const codeChangesHook = useMemo(() => {
@@ -174,8 +215,13 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
       console.log('[ChatBotMessageQuestion] Code changes hook detected:', message.raw.hook);
       return message.raw.hook;
     }
-    return null;
-  }, [message.raw]);
+    // Also check in allHooks array
+    const hook = allHooks.find((h: any) => h?.type === 'code_changes');
+    if (hook) {
+      console.log('[ChatBotMessageQuestion] Code changes hook detected in hooks array:', hook);
+    }
+    return hook || null;
+  }, [message.raw, allHooks]);
 
   // Find specific hook types from all hooks
   const backgroundTaskHook = useMemo(() => {

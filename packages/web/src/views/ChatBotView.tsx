@@ -864,6 +864,7 @@ const ChatBotView: React.FC = () => {
               tool_name: event.tool_name,
               tool_id: event.tool_id,
               hook: event.hook,
+              hooks: event.hooks, // Include hooks array for canvas_open and other hooks
               sse_events: [eventRecord]
             }
           };
@@ -1181,6 +1182,7 @@ const ChatBotView: React.FC = () => {
             raw: {
               adk_session_id: event.adk_session_id,
               hook: event.hook,
+              hooks: event.hooks, // Include hooks array for canvas_open and other hooks
               background_task_ids: backgroundTaskIds,
               sse_events: finalEvents
             }
@@ -1243,6 +1245,7 @@ const ChatBotView: React.FC = () => {
             adk_session_id: event.adk_session_id,
             ui_functions: allUIFunctions.length > 0 ? allUIFunctions : undefined,
             hook: event.hook,
+            hooks: event.hooks, // Include hooks array for canvas_open and other hooks
             sse_events: finalEvents // Store events for debug panel
           }
         };
@@ -1265,6 +1268,7 @@ const ChatBotView: React.FC = () => {
               last_modified: new Date().toISOString(),
               raw: {
                 adk_session_id: event.adk_session_id,
+                hooks: event.hooks, // Include hooks array for canvas_open and other hooks
                 ...uiFunc
               }
             };
@@ -1447,6 +1451,7 @@ const ChatBotView: React.FC = () => {
             isCanvasQA: true,
             raw: {
               hook: response.hook,
+              hooks: response.hooks, // Include hooks array for canvas_open and other hooks
               canvasTab: canvasActiveTab // Store which tab this response is for
             }
           };
