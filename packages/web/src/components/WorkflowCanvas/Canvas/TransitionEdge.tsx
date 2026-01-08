@@ -96,6 +96,36 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
   // Define colors based on manual/automated state
   const edgeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
 
+  // Calculate position for process badge near target node
+  const getProcessBadgePosition = () => {
+    // Offset from target based on target position
+    // Balanced offset to separate badge from arrow without being too far
+    let offsetX = 0;
+    let offsetY = 0;
+
+    switch (targetPosition) {
+      case 'top':
+        offsetY = -40; // Above the target node
+        break;
+      case 'bottom':
+        offsetY = 40; // Below the target node
+        break;
+      case 'left':
+        offsetX = -40; // Left of the target node
+        break;
+      case 'right':
+        offsetX = 40; // Right of the target node
+        break;
+    }
+
+    return {
+      x: targetX + offsetX,
+      y: targetY + offsetY,
+    };
+  };
+
+  const processBadgePos = getProcessBadgePosition();
+
   // Format criterion information for tooltip
   const getCriterionTooltip = () => {
     if (!transition.definition.criterion) return null;
@@ -139,6 +169,7 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
       />
 
       <EdgeLabelRenderer>
+        {/* Primary Label - Center of the edge (Transition name + Criterion) */}
         <div
           style={{
             position: 'absolute',
@@ -148,7 +179,6 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
           className="nodrag nopan"
           onDoubleClick={handleDoubleClick}
         >
-          {/* Unified container with icons above text */}
           <div
             style={{
               display: 'inline-flex',
@@ -160,55 +190,30 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
               padding: '4px 8px',
             }}
           >
-            {/* Icons row - above the text */}
-            {(hasCriterion || hasProcessors) && (
+            {/* Criterion icon - above the text */}
+            {hasCriterion && (
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                {/* Criterion - Pink Diamond with Filter icon */}
-                {hasCriterion && (
-                  <Tooltip title={getCriterionTooltip()} color="#1f2937">
-                    <div
-                      style={{
-                        width: '28px',
-                        height: '28px',
-                        backgroundColor: '#ec4899', // Pink-500
-                        transform: 'rotate(45deg)',
-                        borderRadius: '2px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 0 8px rgba(236, 72, 153, 0.5)',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <div style={{ transform: 'rotate(-45deg)' }}>
-                        <Filter size={14} color="white" />
-                      </div>
+                <Tooltip title={getCriterionTooltip()} color="#1f2937">
+                  <div
+                    style={{
+                      width: '28px',
+                      height: '28px',
+                      backgroundColor: '#ec4899', // Pink-500
+                      transform: 'rotate(45deg)',
+                      borderRadius: '2px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 0 8px rgba(236, 72, 153, 0.5)',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <div style={{ transform: 'rotate(-45deg)' }}>
+                      <Filter size={14} color="white" />
                     </div>
-                  </Tooltip>
-                )}
-
-                {/* Processors - Blue Circle with Zap icon */}
-                {hasProcessors && (
-                  <Tooltip title={getProcessorsTooltip()} color="#1f2937">
-                    <div
-                      style={{
-                        width: '37px',
-                        height: '37px',
-                        backgroundColor: '#3b82f6', // Blue-500
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 0 8px rgba(59, 130, 246, 0.5)',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Zap size={16} color="white" />
-                    </div>
-                  </Tooltip>
-                )}
+                  </div>
+                </Tooltip>
               </div>
             )}
 
@@ -225,6 +230,36 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Secondary Label - Process Badge near target node */}
+        {hasProcessors && (
+          <div
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${processBadgePos.x}px,${processBadgePos.y}px)`,
+              pointerEvents: 'all',
+            }}
+            className="nodrag nopan"
+          >
+            <Tooltip title={getProcessorsTooltip()} color="#1f2937">
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  backgroundColor: '#3b82f6', // Blue-500
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 0 12px rgba(59, 130, 246, 0.6)',
+                  cursor: 'pointer',
+                }}
+              >
+                <Zap size={16} color="white" />
+              </div>
+            </Tooltip>
+          </div>
+        )}
       </EdgeLabelRenderer>
 
       {/* Custom arrow marker with unique ID */}
