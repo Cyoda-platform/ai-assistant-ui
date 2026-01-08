@@ -59,6 +59,7 @@ interface ChatBotProps {
   activeCanvasTab?: 'apps' | 'data' | 'workflow' | 'requirement' | 'code'; // Active tab in canvas
   hasCanvasAIRollback?: boolean; // Whether there are Canvas AI changes to rollback
   onOpenTaskPanel?: () => void; // Callback to open task panel
+  onOpenEnvironmentPanel?: () => void; // Callback to open environment/cloud panel
   onRetryStreaming?: () => void; // Callback to retry streaming
   isRetrying?: boolean; // Whether streaming retry is in progress
   onSetTextareaContent?: (callback: (content: string, options?: { collapse?: boolean }) => void) => void; // Expose method to set textarea content
@@ -86,6 +87,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
   activeCanvasTab,
   hasCanvasAIRollback = false,
   onOpenTaskPanel,
+  onOpenEnvironmentPanel,
   onRetryStreaming,
   isRetrying = false,
   onStopRequest,
@@ -266,6 +268,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
             hasRepository={!!githubRepository}
             onAnswer={onAnswer}
             onOpenTaskPanel={onOpenTaskPanel}
+            onOpenEnvironmentPanel={onOpenEnvironmentPanel}
             setTextareaContent={callTextareaContent}
           />
         );
@@ -279,6 +282,8 @@ const ChatBot: React.FC<ChatBotProps> = ({
             onOpenCanvas={onToggleCanvas}
             technicalId={technicalId}
             githubRepository={githubRepository}
+            onAnswer={onAnswer}
+            setTextareaContent={callTextareaContent}
           />
         );
       case 'user':
@@ -342,10 +347,12 @@ const ChatBot: React.FC<ChatBotProps> = ({
                     agentName={streamingState.currentAgent}
                     isComplete={false}
                     events={streamingState.events}
+                    cloneRepositoryDetected={streamingState.cloneRepositoryDetected}
                     error={streamingState.error}
                     errorDetails={streamingState.errorDetails}
                     onRetry={onRetryStreaming}
                     isRetrying={isRetrying}
+                    onOpenCanvas={onToggleCanvas}
                   />
                 </div>
               )}
@@ -357,10 +364,12 @@ const ChatBot: React.FC<ChatBotProps> = ({
                     agentName={streamingState.currentAgent}
                     isComplete={false}
                     events={streamingState.events}
+                    cloneRepositoryDetected={streamingState.cloneRepositoryDetected}
                     error={streamingState.error}
                     errorDetails={streamingState.errorDetails}
                     onRetry={onRetryStreaming}
                     isRetrying={isRetrying}
+                    onOpenCanvas={onToggleCanvas}
                   />
                 </div>
               )}

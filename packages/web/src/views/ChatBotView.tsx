@@ -186,6 +186,7 @@ const ChatBotView: React.FC = () => {
     currentTool: undefined,
     toolArgs: undefined,
     accumulatedContent: '',
+    cloneRepositoryDetected: false,
     error: undefined,
     events: []
   });
@@ -408,7 +409,26 @@ const ChatBotView: React.FC = () => {
   // Helper function to extract UI functions from message text
   const extractUIFunctions = (text: string): any[] | null => {
     try {
-      // Try to find JSON code block in the message
+      // Check for new text-based UI function format: [ui-function: issue_technical_user, env: https://...]
+      const textFunctionMatch = text.match(/\[ui-function:\s*(\w+),\s*env:\s*(https?:\/\/[^\]]+)\]/);
+      if (textFunctionMatch) {
+        const functionName = textFunctionMatch[1];
+        const envUrl = textFunctionMatch[2];
+
+        // Convert to UI function format
+        const uiFunction = {
+          type: 'ui_function',
+          function: functionName,
+          method: 'POST',
+          path: '/api/clients',
+          response_format: 'json',
+          env_url: envUrl.replace('https://', '')
+        };
+
+        return [uiFunction];
+      }
+
+      // Try to find JSON code block in the message (legacy format)
       const jsonMatch = text.match(/```json\s*\n([\s\S]*?)\n```/);
       if (jsonMatch) {
         const jsonData = JSON.parse(jsonMatch[1]);
@@ -436,8 +456,13 @@ const ChatBotView: React.FC = () => {
 
   // Helper function to remove JSON code block from message text
   const removeJsonCodeBlock = (text: string): string => {
+    // Remove text-based UI function markers: [ui-function: ...]
+    let cleanedText = text.replace(/\[ui-function:\s*\w+,\s*env:\s*https?:\/\/[^\]]+\]/g, '').trim();
+
     // Remove the JSON code block containing background_task_ids or UI functions
-    return text.replace(/```json\s*\n[\s\S]*?\n```/g, '').trim();
+    cleanedText = cleanedText.replace(/```json\s*\n[\s\S]*?\n```/g, '').trim();
+
+    return cleanedText;
   };
 
   // Fetch repository information from conversation (without loading messages)
@@ -793,6 +818,7 @@ const ChatBotView: React.FC = () => {
             ...prev,
             isStreaming: true,
             accumulatedContent: '',
+            cloneRepositoryDetected: false, // Reset clone_repository detection
             error: undefined,
             events: [eventRecord] // Start fresh with first event
           };
@@ -841,10 +867,18 @@ const ChatBotView: React.FC = () => {
       case 'tool_call':
         console.log('[SSE] Tool call:', event.tool_name, event.tool_args);
         eventsRef.current = [...eventsRef.current, eventRecord]; // Update ref
+
+        // Detect clone_repository tool call
+        const isCloneRepository = event.tool_name === 'clone_repository';
+        if (isCloneRepository) {
+          console.log('[SSE] clone_repository tool detected!');
+        }
+
         setStreamingState(prev => ({
           ...prev,
           currentTool: event.tool_name,
           toolArgs: event.tool_args,
+          cloneRepositoryDetected: prev.cloneRepositoryDetected || isCloneRepository,
           events: [...(prev.events || []), eventRecord]
         }));
         break;
@@ -2601,6 +2635,10 @@ const ChatBotView: React.FC = () => {
                   console.error('[ChatBotView] Failed to refresh tasks:', err);
                 });
               }, 100);
+            }}
+            onOpenEnvironmentPanel={() => {
+              console.log('[ChatBotView] onOpenEnvironmentPanel called, opening Environments Panel');
+              setIsEnvironmentsOpen(true);
             }}
             onRetryStreaming={retryStreaming}
             isRetrying={isRetrying}

@@ -162,7 +162,23 @@ export async function convertGitHubToAppRoot(
     // 1. New format: entity.content (full JSON from /analyze)
     // 2. Old format: entity.fields (direct fields from EntityResponse)
     const entityContent = (entity as any).content;
-    const fields = entityContent?.fields || (entity as any).fields || [];
+    let fields = entityContent?.fields || (entity as any).fields || [];
+
+    // Safety check: ensure fields is an array, convert object to array if needed
+    if (!Array.isArray(fields)) {
+      console.warn('⚠️ fields is not an array, converting:', { fields, type: typeof fields });
+      if (typeof fields === 'object' && fields !== null) {
+        // Convert object to array of field objects
+        fields = Object.entries(fields).map(([key, value]: [string, any]) => ({
+          name: key,
+          type: value?.type || typeof value === 'string' ? value : 'string',
+          required: value?.required || false,
+        }));
+      } else {
+        fields = [];
+      }
+    }
+
     const className = entityContent?.className || (entity as any).className || entity.name;
     const description = entityContent?.description || `Entity from ${entity.path}`;
 

@@ -186,6 +186,7 @@ export interface StreamingState {
   toolArgs?: Record<string, any>;
   toolResponseContent?: string; // Accumulated tool response content for real-time display
   accumulatedContent: string;
+  cloneRepositoryDetected?: boolean; // Flag to indicate clone_repository tool was called
   error?: string;
   errorDetails?: {
     error_type?: string;

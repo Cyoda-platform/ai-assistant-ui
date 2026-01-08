@@ -28,6 +28,7 @@ export default defineConfig({
     include: ['monaco-editor'],
   },
   build: {
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks: {
@@ -35,6 +36,9 @@ export default defineConfig({
         }
       }
     }
+  },
+  esbuild: {
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
   },
   server: {
     proxy: {

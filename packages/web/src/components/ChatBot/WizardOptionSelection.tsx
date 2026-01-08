@@ -97,13 +97,15 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
   // Extract unique languages, repo types, and branch types
   // Parse option value to extract language, repo type, and branch type
   const parseOptionValue = (value: string) => {
-    // New format: "Python — Public repo — New Branch"
+    // Handle markdown-generated values like "python_—_public_repo_—_new_branch"
+    // or labels like "Python — Public repo — New Branch"
     if (value.includes('—')) {
-      const parts = value.split('—').map(p => p.trim());
+      // Split by em dash (with or without underscores around it)
+      const parts = value.split(/[_\s]*—[_\s]*/).map(p => p.trim().replace(/_/g, ' '));
       if (parts.length >= 3) {
         const language = parts[0].toLowerCase();
-        const repoType = parts[1].includes('Public') ? 'public' : 'private';
-        const branchType = parts[2].includes('New') ? 'new' : 'existing';
+        const repoType = parts[1].toLowerCase().includes('public') ? 'public' : 'private';
+        const branchType = parts[2].toLowerCase().includes('new') ? 'new' : 'existing';
         return { language, repoType, branchType };
       }
     }

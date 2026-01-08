@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Sparkles, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Sparkles, RefreshCw, AlertTriangle, ExternalLink } from 'lucide-react';
 import LogoSmall from '@/assets/images/logo-small.svg';
 import MarkdownRenderer from '../MarkdownRenderer/MarkdownRenderer';
 import StreamingDebugPanel from './StreamingDebugPanel';
@@ -10,6 +10,7 @@ interface StreamingMessageProps {
   agentName?: string;
   isComplete?: boolean;
   events?: SSEEventRecord[];
+  cloneRepositoryDetected?: boolean;
   error?: string;
   errorDetails?: {
     error_type?: string;
@@ -25,6 +26,7 @@ interface StreamingMessageProps {
   };
   onRetry?: () => void;
   isRetrying?: boolean;
+  onOpenCanvas?: () => void;
 }
 
 /**
@@ -37,10 +39,12 @@ const StreamingMessage: React.FC<StreamingMessageProps> = ({
   agentName,
   isComplete = false,
   events = [],
+  cloneRepositoryDetected = false,
   error,
   errorDetails,
   onRetry,
-  isRetrying = false
+  isRetrying = false,
+  onOpenCanvas
 }) => {
   const messageRef = useRef<HTMLDivElement>(null);
   const [displayedContent, setDisplayedContent] = useState('');
@@ -121,6 +125,32 @@ const StreamingMessage: React.FC<StreamingMessageProps> = ({
                 </div>
               )}
             </div>
+
+            {/* Open Canvas Button - Show when clone_repository is detected */}
+            {cloneRepositoryDetected && onOpenCanvas && (
+              <div className="mt-4 p-4 bg-teal-900/20 border border-teal-700/50 rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <ExternalLink size={20} className="text-teal-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h4 className="text-teal-300 font-medium mb-2">
+                      Repository Cloned Successfully
+                    </h4>
+
+                    <p className="text-teal-200 text-sm mb-3">
+                      Your repository has been cloned. You can now view and edit the code in the canvas.
+                    </p>
+
+                    <button
+                      onClick={onOpenCanvas}
+                      className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white rounded-lg transition-all duration-200 text-sm font-medium shadow-lg hover:shadow-teal-500/25"
+                    >
+                      <ExternalLink size={16} />
+                      <span>Open Canvas</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Stream Error Retry Section */}
             {error && onRetry && (
