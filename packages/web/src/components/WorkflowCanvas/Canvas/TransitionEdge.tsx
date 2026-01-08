@@ -5,7 +5,8 @@ import {
   BaseEdge,
 } from '@xyflow/react';
 import type { EdgeProps } from '@xyflow/react';
-import { Pencil, Filter, Zap } from 'lucide-react';
+import { Filter, Zap } from 'lucide-react';
+import { Tooltip } from 'antd';
 import type { UITransitionData } from '../types/workflow';
 import type { ColorPalette } from '../themes/colorPalettes';
 
@@ -56,31 +57,37 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
   const hasProcessors = transition.definition.processors && transition.definition.processors.length > 0;
 
   // Determine if transition is manual or automated
-  // If manual is undefined, treat as automated (false)
   const isManual = transition.definition.manual === true;
-  const isAutomated = !isManual;
 
-  // Define colors and thickness based on manual/automated state
-  const getTransitionStyles = () => {
-    const baseStrokeWidth = 2;
-    const strokeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
+  // Define colors based on manual/automated state
+  const edgeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
 
-    return {
-      style: {
-        stroke: strokeColor,
-        strokeWidth: baseStrokeWidth,
-        opacity: selected ? 0.9 : 0.7
-      }
-    };
+  // Format criterion information for tooltip
+  const getCriterionTooltip = () => {
+    if (!transition.definition.criterion) return null;
+    const criterion = transition.definition.criterion;
+    const lines: string[] = [];
+    if (criterion.type) lines.push(`Type: ${criterion.type}`);
+    if (criterion.field) lines.push(`Field: ${criterion.field}`);
+    if (criterion.operator) lines.push(`Operator: ${criterion.operator}`);
+    if (criterion.value !== undefined) lines.push(`Value: ${JSON.stringify(criterion.value)}`);
+    return lines.join('\n') || 'Has criterion';
   };
+
+  // Format processors information for tooltip
+  const getProcessorsTooltip = () => {
+    if (!transition.definition.processors || transition.definition.processors.length === 0) {
+      return null;
+    }
+    return transition.definition.processors
+      .map((p, idx) => `${idx + 1}. ${p.name}${p.executionMode ? ` (${p.executionMode})` : ''}`)
+      .join('\n');
+  };
+
+
 
   // Create unique marker ID for this transition
   const markerId = `arrow-${id}`;
-  const styles = getTransitionStyles();
-  const edgeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
-  const labelBgColor = edgeColor;
-
-
 
   return (
     <>
@@ -88,11 +95,13 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
         id={id as string}
         path={edgePath}
         style={{
-          ...styles.style,
+          stroke: edgeColor,
+          strokeWidth: 2,
           strokeDasharray: isManual ? '8 4' : 'none',
-          transition: 'stroke 300ms ease-in-out, stroke-width 300ms ease-in-out, stroke-dasharray 300ms ease-in-out'
+          opacity: selected ? 0.9 : 0.7,
         }}
         markerEnd={`url(#${markerId})`}
+        interactionWidth={20}
       />
 
       <EdgeLabelRenderer>
@@ -104,54 +113,82 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
           }}
           className="nodrag nopan"
           onDoubleClick={handleDoubleClick}
-          title="Double-click to edit transition"
         >
+          {/* Unified container with icons above text */}
           <div
-            className={`border-0 rounded-full px-4 py-2 text-sm transition-all duration-300 ${
-              selected
-                ? 'ring-2 ring-white ring-offset-2 ring-offset-[#0b0f1a]'
-                : 'hover:scale-105'
-            }`}
-            style={{ backgroundColor: labelBgColor }}
+            style={{
+              display: 'inline-flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              backgroundColor: 'transparent',
+              padding: '4px 8px',
+            }}
           >
-            <div className="flex items-center space-x-2">
-              {/* Transition Name */}
-              <div className="flex-1 min-w-0">
-                <div className="font-medium text-xs text-white truncate">
-                  {transition.definition.name || 'Unnamed'}
-                </div>
-              </div>
-
-              {/* Compact Indicators */}
-              <div className="flex items-center space-x-1">
+            {/* Icons row - above the text */}
+            {(hasCriterion || hasProcessors) && (
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {/* Criterion - Pink Diamond with Filter icon */}
                 {hasCriterion && (
-                  <div className="text-white/80" title="Has criterion">
-                    <Filter size={10} />
-                  </div>
+                  <Tooltip title={getCriterionTooltip()} color="#1f2937">
+                    <div
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        backgroundColor: '#ec4899', // Pink-500
+                        transform: 'rotate(45deg)',
+                        borderRadius: '2px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 0 8px rgba(236, 72, 153, 0.5)',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <div style={{ transform: 'rotate(-45deg)' }}>
+                        <Filter size={14} color="white" />
+                      </div>
+                    </div>
+                  </Tooltip>
                 )}
 
+                {/* Processors - Blue Circle with Zap icon */}
                 {hasProcessors && (
-                  <div className="flex items-center space-x-0.5 text-white/80" title={`${transition.definition.processors!.length} processors`}>
-                    <Zap size={10} />
-                    <span className="text-xs">{transition.definition.processors!.length}</span>
-                  </div>
+                  <Tooltip title={getProcessorsTooltip()} color="#1f2937">
+                    <div
+                      style={{
+                        width: '37px',
+                        height: '37px',
+                        backgroundColor: '#3b82f6', // Blue-500
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 0 8px rgba(59, 130, 246, 0.5)',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Zap size={16} color="white" />
+                    </div>
+                  </Tooltip>
                 )}
               </div>
+            )}
 
-
-
-              {/* Edit Button */}
-              <button
-                onClick={handleDoubleClick}
-                onMouseDown={(e) => e.stopPropagation()}
-                className="flex-shrink-0 p-0.5 text-gray-400 hover:text-gray-300 transition-colors"
-                title="Click to edit transition"
-              >
-                <Pencil size={10} />
-              </button>
+            {/* Label with transition name - below icons */}
+            <div
+              className="text-xl font-medium text-white/90 whitespace-nowrap px-2 py-1 rounded cursor-pointer"
+              style={{
+                backgroundColor: 'transparent',
+                flexShrink: 0,
+              }}
+              title="Double-click to edit transition"
+            >
+              {transition.definition.name || 'Unnamed'}
             </div>
-
-
           </div>
         </div>
       </EdgeLabelRenderer>
@@ -160,15 +197,15 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
       <defs>
         <marker
           id={markerId}
-          markerWidth="10"
-          markerHeight="10"
-          refX="9"
-          refY="3"
+          markerWidth="20"
+          markerHeight="30"
+          refX="18"
+          refY="9"
           orient="auto"
           markerUnits="userSpaceOnUse"
         >
           <path
-            d="M0,0 L0,6 L9,3 z"
+            d="M0,0 L0,18 L18,9 z"
             fill={edgeColor}
             className="transition-colors duration-200"
           />

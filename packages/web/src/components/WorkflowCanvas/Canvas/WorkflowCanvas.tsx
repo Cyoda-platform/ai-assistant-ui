@@ -161,7 +161,6 @@ interface WorkflowCanvasProps {
 
 const nodeTypes = {
   stateNode: StateNode,
-  transitionNode: TransitionNode,
 };
 
 const edgeTypes = {
@@ -821,263 +820,55 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       // Get transition layout map for positions
       const transitionLayoutMap = new Map(cleanedWorkflow.layout.transitions.map(t => [t.id, t]));
 
-      // Create transition nodes
-      const transitionNodes = currentUiTransitions.map((transition) => {
+      // Create direct edges: state -> state with transition data in edge
+      const newEdges: any[] = [];
+
+      currentUiTransitions.forEach((transition) => {
         const isLoopback = transition.sourceStateId === transition.targetStateId;
 
         // Get source and target state positions
         const sourceState = currentUiStates.find(s => s.id === transition.sourceStateId);
         const targetState = currentUiStates.find(s => s.id === transition.targetStateId);
 
-        // Calculate position: use saved position from transition data if available, otherwise calculate default
-        let position = transition.position; // Now comes from UITransitionData
-        if (!position && sourceState && targetState) {
-          position = calculateTransitionNodePosition(
-            sourceState.position,
-            targetState.position,
-            isLoopback
-          );
-        }
-
-        return {
-          id: `transition-${transition.id}`,
-          type: 'transitionNode' as const,
-          position: position || { x: 0, y: 0 },
-          draggable: true,
-          data: {
-            label: transition.definition.name || 'Unnamed',
-            transition: transition,
-            onEdit: currentOnTransitionEdit,
-            onSendToChat: onSendToChat ? currentHandleTransitionSendToChat : undefined,
-            isLoopback,
-            palette: palette,
-          },
-        };
-      });
-
-      // Helper function to get handle for parallel transitions from same source
-      // For parallel transitions, we distribute them across different handles to avoid overlapping
-      const getParallelTransitionHandles = (
-        sourceStateId: string,
-        targetStateId: string,
-        transitionIndex: number,
-        totalTransitions: number
-      ) => {
-        // Get source and target state positions to determine direction
-        const sourceState = currentUiStates.find(s => s.id === sourceStateId);
-        const targetState = currentUiStates.find(s => s.id === targetStateId);
-
-        if (!sourceState || !targetState) {
-          console.log('❌ States not found for parallel handles:', sourceStateId, targetStateId);
-          return { source: 'bottom-center', target: 'top-center' };
-        }
-
-        const dx = targetState.position.x - sourceState.position.x;
-        const dy = targetState.position.y - sourceState.position.y;
-        const absDx = Math.abs(dx);
-        const absDy = Math.abs(dy);
-
-        // Determine if connection is vertical or horizontal
-        // Vertical if vertical distance >= horizontal distance
-        const isVerticalDominant = absDy >= absDx;
-
-        // For parallel transitions, distribute across handles in the appropriate direction
-        let sourceHandles: string[];
-        let targetHandles: string[];
-
-        if (isVerticalDominant) {
-          // Vertical connection: distribute left/right
-          if (dy > 0) {
-            // Target below: use bottom handles on source, top handles on target
-            sourceHandles = ['bottom-left', 'bottom-center', 'bottom-right'];
-            targetHandles = ['top-left', 'top-center', 'top-right'];
-          } else {
-            // Target above: use top handles on source, bottom handles on target
-            sourceHandles = ['top-left', 'top-center', 'top-right'];
-            targetHandles = ['bottom-left', 'bottom-center', 'bottom-right'];
-          }
-        } else {
-          // Horizontal connection: distribute top/bottom
-          if (dx > 0) {
-            // Target to the right: use right handles on source, left handles on target
-            sourceHandles = ['right-top', 'right-bottom'];
-            targetHandles = ['left-top', 'left-bottom'];
-          } else {
-            // Target to the left: use left handles on source, right handles on target
-            sourceHandles = ['left-top', 'left-bottom'];
-            targetHandles = ['right-top', 'right-bottom'];
-          }
-        }
-
-        // Distribute transitions across available handles
-        const index = transitionIndex % sourceHandles.length;
-        const sourceHandle = sourceHandles[index];
-        const targetHandle = targetHandles[index];
-
-        return { source: sourceHandle, target: targetHandle };
-      };
-
-      // Create simple edges: state -> transition -> state
-      const newEdges: any[] = [];
-
-      // Group transitions by SOURCE STATE to count parallel transitions from same source
-      // (not by source-target pair, because we want to distribute handles for all transitions from one state)
-      const transitionsBySource = new Map<string, Array<{ transition: UITransitionData; index: number }>>();
-      currentUiTransitions.forEach((transition, index) => {
-        const key = transition.sourceStateId; // Group by source state only
-        if (!transitionsBySource.has(key)) {
-          transitionsBySource.set(key, []);
-        }
-        transitionsBySource.get(key)!.push({ transition, index });
-      });
-
-      currentUiTransitions.forEach((transition, globalIndex) => {
-        const transitionNodeId = `transition-${transition.id}`;
-        const isLoopback = transition.sourceStateId === transition.targetStateId;
-
-        // Get node positions
-        const sourceState = currentUiStates.find(s => s.id === transition.sourceStateId);
-        const targetState = currentUiStates.find(s => s.id === transition.targetStateId);
-        const transitionNode = transitionNodes.find(n => n.id === transitionNodeId);
-
-        if (!sourceState || !targetState || !transitionNode) return;
+        if (!sourceState || !targetState) return;
 
         // Get layout for this transition (may have manual anchor point selections)
         const layout = transitionLayoutMap.get(transition.id);
-
-        console.log(`\n📍 Transition ${transition.id}: ${transition.sourceStateId} -> ${transition.targetStateId}`, {
-          layout: layout ? {
-            stateToTransitionSourceHandle: layout.stateToTransitionSourceHandle,
-            stateToTransitionTargetHandle: layout.stateToTransitionTargetHandle,
-            transitionToStateSourceHandle: layout.transitionToStateSourceHandle,
-            transitionToStateTargetHandle: layout.transitionToStateTargetHandle,
-          } : 'NO LAYOUT'
-        });
-
-        // Get parallel transition info (all transitions from the same source state)
-        const sourceKey = transition.sourceStateId;
-        const transitionsFromSource = transitionsBySource.get(sourceKey) || [];
-        const transitionIndexInSource = transitionsFromSource.findIndex(t => t.transition.id === transition.id);
-        const totalTransitionsFromSource = transitionsFromSource.length;
 
         // Determine if transition is manual or automated for styling
         const isManual = transition.definition.manual === true;
         const edgeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
         const edgeWidth = 2;
 
-        // For state -> transition edge:
-        // Use layout handles if available (from autoLayout), otherwise calculate optimal
-        let stateToTransitionSourceHandle = layout?.stateToTransitionSourceHandle;
-        let stateToTransitionTargetHandle = layout?.stateToTransitionTargetHandle;
+        // Calculate optimal handles based on node positions
+        let sourceHandle = layout?.stateToTransitionSourceHandle;
+        let targetHandle = layout?.transitionToStateTargetHandle;
 
-        if (!stateToTransitionSourceHandle || !stateToTransitionTargetHandle) {
-          if (isLoopback) {
-            // For loopback: use top-right handle on state to go out to transition
-            stateToTransitionSourceHandle = 'top-right-source';
-            stateToTransitionTargetHandle = 'left-top-target';
-          } else {
-            const anchors = calculateOptimalAnchorPoints(
-              sourceState.position,
-              transitionNode.position
-            );
-            stateToTransitionSourceHandle = stateToTransitionSourceHandle || anchors.sourceHandle;
-            stateToTransitionTargetHandle = stateToTransitionTargetHandle || anchors.targetHandle;
-          }
-        }
-
-        console.log(`  State->Transition: ${stateToTransitionSourceHandle} -> ${stateToTransitionTargetHandle}`);
-
-        // For transition -> state edge:
-        // Source handle (transition node side): Use layout if available, otherwise calculate
-        // Target handle (state node side): Use manual selection if available, otherwise calculate
-        let transitionToStateSourceHandle = layout?.transitionToStateSourceHandle;
-        let transitionToStateTargetHandle = layout?.transitionToStateTargetHandle;
-
-        if (isLoopback) {
-          // For loopback: use right handle on transition to come back to bottom-right of state
-          transitionToStateSourceHandle = transitionToStateSourceHandle || 'right-bottom-source';
-          transitionToStateTargetHandle = transitionToStateTargetHandle || 'bottom-right-target';
-        } else if (!transitionToStateSourceHandle || !transitionToStateTargetHandle) {
-          // Calculate optimal handles based on node positions only if not provided by layout
+        if (!sourceHandle || !targetHandle) {
           const anchors = calculateOptimalAnchorPoints(
-            transitionNode.position,
+            sourceState.position,
             targetState.position
           );
-          transitionToStateSourceHandle = transitionToStateSourceHandle || anchors.sourceHandle;
-          transitionToStateTargetHandle = transitionToStateTargetHandle || anchors.targetHandle;
+          sourceHandle = sourceHandle || anchors.sourceHandle;
+          targetHandle = targetHandle || anchors.targetHandle;
         }
 
-        console.log(`  Transition->State: ${transitionToStateSourceHandle} -> ${transitionToStateTargetHandle}`);
+        // For loopback transitions, use specific handles
+        if (isLoopback) {
+          sourceHandle = sourceHandle || 'top-right-source';
+          targetHandle = targetHandle || 'bottom-right-target';
+        }
 
-        // Edge from source state to transition node (no specific direction, no arrow)
-        // This is the "head" edge - should not be manually reconnectable
-        const edge1 = {
-          id: `edge-${transition.sourceStateId}-to-${transition.id}`,
-          type: edgeType, // Use the current edge type setting
+        // Create single edge from source state to target state with transition data
+        const edge = {
+          id: `edge-${transition.id}`,
+          type: isLoopback ? 'loopbackEdge' : 'transitionEdge',
           source: transition.sourceStateId,
-          target: transitionNodeId,
-          sourceHandle: stateToTransitionSourceHandle,
-          targetHandle: stateToTransitionTargetHandle,
-          animated: false,
-          reconnectable: false, // Disallow manual reconnection - this edge moves automatically
-          style: {
-            stroke: edgeColor,
-            strokeWidth: edgeWidth,
-            strokeDasharray: isManual ? '8 4' : 'none'
-          },
-        };
-        newEdges.push(edge1);
-
-        // Edge from transition node to target state (with arrow marker)
-        // This is the "tail" edge - users can reconnect the arrow end to any state anchor point
-        // Calculate direction based on relative positions
-        const deltaX = targetState.position.x - transitionNode.position.x;
-        const deltaY = targetState.position.y - transitionNode.position.y;
-        const absDeltaX = Math.abs(deltaX);
-        const absDeltaY = Math.abs(deltaY);
-
-        let sourcePosition, targetPosition;
-
-        // For LR layout: transition nodes ALWAYS exit from the right side
-        // Determine if we're in LR or TB layout based on overall graph direction
-        const isLRLayout = absDeltaX > absDeltaY;
-
-        if (isLRLayout) {
-          // LR layout: transition always exits right, target can be top/bottom/left
-          sourcePosition = Position.Right;
-
-          // Determine target position based on vertical offset
-          if (Math.abs(deltaY) > 50) {
-            // Significant vertical offset - use top/bottom
-            targetPosition = deltaY > 0 ? Position.Top : Position.Bottom;
-          } else {
-            // Minimal vertical offset - use left
-            targetPosition = Position.Left;
-          }
-        } else {
-          // TB layout: use vertical positions
-          if (deltaY > 0) {
-            // Target is below transition
-            sourcePosition = Position.Bottom;
-            targetPosition = Position.Top;
-          } else {
-            // Target is above transition
-            sourcePosition = Position.Top;
-            targetPosition = Position.Bottom;
-          }
-        }
-
-        const edge2 = {
-          id: `edge-${transition.id}-to-${transition.targetStateId}`,
-          type: edgeType, // Use the current edge type setting
-          source: transitionNodeId,
           target: transition.targetStateId,
-          sourceHandle: transitionToStateSourceHandle,
-          targetHandle: transitionToStateTargetHandle,
-          sourcePosition,
-          targetPosition,
+          sourceHandle,
+          targetHandle,
           animated: !isManual, // Only animate automated transitions
-          reconnectable: 'target', // Only allow reconnecting the target end (state node side with arrow)
+          reconnectable: true, // Allow reconnecting both ends
           style: {
             stroke: edgeColor,
             strokeWidth: edgeWidth,
@@ -1089,16 +880,23 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             height: 20,
             color: edgeColor,
           },
+          data: {
+            transition: transition,
+            onEdit: currentOnTransitionEdit,
+            onUpdate: (updatedTransition: UITransitionData) => {
+              // Handle transition update
+              console.log('Transition updated:', updatedTransition);
+            },
+            palette: palette,
+          },
         };
-        newEdges.push(edge2);
+        newEdges.push(edge);
       });
 
-      // Combine state nodes and transition nodes
-      const allNodes = [...stateNodes, ...transitionNodes];
-
-      setNodes(allNodes);
+      // Only use state nodes (transitions are now rendered as edges with labels)
+      setNodes(stateNodes);
       setEdges(newEdges);
-      if (allNodes.length > 0) {
+      if (stateNodes.length > 0) {
         setIsInitialized(true);
       }
     } else {
@@ -1305,94 +1103,72 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     [cleanedWorkflow, onWorkflowUpdate]
   );
 
-  // Validate connections to prevent invalid handle combinations
+  // Validate connections - only allow State → State connections
   const isValidConnection = useCallback((connection: Connection) => {
-    // Determine node types
-    const sourceIsTransition = connection.source?.startsWith('transition-');
-    const targetIsTransition = connection.target?.startsWith('transition-');
-    const sourceIsState = !sourceIsTransition;
-    const targetIsState = !targetIsTransition;
+    // Only allow State → State connections (creating new transitions)
+    // All nodes are states now (transitions are edges)
 
-    // Block Transition → Transition connections (doesn't make sense)
-    if (sourceIsTransition && targetIsTransition) {
-      return false;
-    }
-
-    // Block State → Transition connections (transitions are auto-created)
-    if (sourceIsState && targetIsTransition) {
-      return false;
-    }
-
-    // Allow State → State connections (creating new transitions)
-    // Allow Transition → State connections (reconnecting transition target)
-    if ((sourceIsState && targetIsState) || (sourceIsTransition && targetIsState)) {
-      // Validate handles
-
-      // Check that source handle ends with -source (silently reject if not)
-      if (connection.sourceHandle) {
-        if (!connection.sourceHandle.endsWith('-source')) {
-          // User is trying to drag from a target handle, silently reject
-          return false;
-        }
-        // Allow all 10 positions for source handles
-        const sourcePosition = connection.sourceHandle.replace('-source', '');
-        const validPositions = ['top-left', 'top-center', 'top-right', 'left-top', 'left-bottom', 'right-top', 'right-bottom', 'bottom-left', 'bottom-center', 'bottom-right'];
-        if (!validPositions.includes(sourcePosition)) {
-          return false;
-        }
+    // Validate handles
+    // Check that source handle ends with -source (silently reject if not)
+    if (connection.sourceHandle) {
+      if (!connection.sourceHandle.endsWith('-source')) {
+        // User is trying to drag from a target handle, silently reject
+        return false;
       }
-
-      // Check that target handle ends with -target
-      if (connection.targetHandle) {
-        if (!connection.targetHandle.endsWith('-target')) {
-          // Invalid target handle, silently reject
-          return false;
-        }
-        // Allow all 10 positions for target handles
-        const targetPosition = connection.targetHandle.replace('-target', '');
-        const validPositions = ['top-left', 'top-center', 'top-right', 'left-top', 'left-bottom', 'right-top', 'right-bottom', 'bottom-left', 'bottom-center', 'bottom-right'];
-        if (!validPositions.includes(targetPosition)) {
-          return false;
-        }
+      // Allow all 10 positions for source handles
+      const sourcePosition = connection.sourceHandle.replace('-source', '');
+      const validPositions = ['top-left', 'top-center', 'top-right', 'left-top', 'left-bottom', 'right-top', 'right-bottom', 'bottom-left', 'bottom-center', 'bottom-right'];
+      if (!validPositions.includes(sourcePosition)) {
+        return false;
       }
-
-      return true;
     }
 
-    return false;
+    // Check that target handle ends with -target
+    if (connection.targetHandle) {
+      if (!connection.targetHandle.endsWith('-target')) {
+        // Invalid target handle, silently reject
+        return false;
+      }
+      // Allow all 10 positions for target handles
+      const targetPosition = connection.targetHandle.replace('-target', '');
+      const validPositions = ['top-left', 'top-center', 'top-right', 'left-top', 'left-bottom', 'right-top', 'right-bottom', 'bottom-left', 'bottom-center', 'bottom-right'];
+      if (!validPositions.includes(targetPosition)) {
+        return false;
+      }
+    }
+
+    return true;
   }, []);
 
   const onReconnect: OnReconnect = useCallback(
     (oldEdge: Edge, newConnection: Connection) => {
       if (!cleanedWorkflow) return;
 
-      // Determine what type of edge this is
-      const isStateToTransition = oldEdge.id.includes('-to-') && oldEdge.target.startsWith('transition-');
-      const isTransitionToState = oldEdge.id.includes('-to-') && oldEdge.source.startsWith('transition-');
+      // Extract transition ID from edge (format: edge-{transitionId})
+      const transitionId = oldEdge.id.replace('edge-', '');
 
-      if (isStateToTransition) {
-        // Reconnecting the source state of a transition
-        // This means changing which state the transition comes from
+      // Parse to get source state and transition index
+      const parsed = parseTransitionId(transitionId);
+      if (!parsed) return;
 
-        // Extract transition ID from edge
-        const transitionNodeId = oldEdge.target;
-        const transitionId = transitionNodeId.replace('transition-', '');
+      const { sourceStateId: oldSourceStateId, transitionIndex } = parsed;
 
-        // Parse to get old source state and transition index
-        const parsed = parseTransitionId(transitionId);
-        if (!parsed) return;
+      // Check if source or target changed
+      const sourceChanged = oldEdge.source !== newConnection.source;
+      const targetChanged = oldEdge.target !== newConnection.target;
 
-        const { sourceStateId: oldSourceStateId, transitionIndex } = parsed;
+      const updatedStates = { ...cleanedWorkflow.configuration.states };
+      const oldSourceState = updatedStates[oldSourceStateId];
+
+      if (!oldSourceState || !oldSourceState.transitions[transitionIndex]) return;
+
+      const transitionDef = oldSourceState.transitions[transitionIndex];
+
+      if (sourceChanged) {
+        // Moving transition to a different source state
         const newSourceStateId = newConnection.source!;
 
-        // Get the transition definition
-        const oldSourceState = cleanedWorkflow.configuration.states[oldSourceStateId];
-        if (!oldSourceState || !oldSourceState.transitions[transitionIndex]) return;
-
-        const transitionDef = oldSourceState.transitions[transitionIndex];
-
         // Remove from old source state
-        const updatedStates = { ...cleanedWorkflow.configuration.states };
         updatedStates[oldSourceStateId] = {
           ...oldSourceState,
           transitions: oldSourceState.transitions.filter((_, idx) => idx !== transitionIndex)
@@ -1403,174 +1179,66 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         if (newSourceState) {
           updatedStates[newSourceStateId] = {
             ...newSourceState,
-            transitions: [...newSourceState.transitions, transitionDef]
+            transitions: [...newSourceState.transitions, {
+              ...transitionDef,
+              next: newConnection.target! // Update target as well if changed
+            }]
           };
         }
-
-        const updatedWorkflow: UIWorkflowData = {
-          ...cleanedWorkflow,
-          configuration: {
-            ...cleanedWorkflow.configuration,
-            states: updatedStates
-          },
-          layout: {
-            ...cleanedWorkflow.layout,
-            updatedAt: new Date().toISOString()
-          }
-        };
-
-        onWorkflowUpdate(updatedWorkflow, `Reconnected transition source from ${oldSourceStateId} to ${newSourceStateId}`);
-
-      } else if (isTransitionToState) {
-        // Reconnecting the target state of a transition
-        // This means changing which state the transition goes to
-
-
-        // Extract transition ID from edge
-        const transitionNodeId = oldEdge.source;
-        const transitionId = transitionNodeId.replace('transition-', '');
-
-        // Parse to get source state and transition index
-        const parsed = parseTransitionId(transitionId);
-        if (!parsed) return;
-
-        const { sourceStateId, transitionIndex } = parsed;
+      } else if (targetChanged) {
+        // Only changing target state
         const newTargetStateId = newConnection.target!;
-
-        // Update the transition's target
-        const updatedStates = { ...cleanedWorkflow.configuration.states };
-        const sourceState = updatedStates[sourceStateId];
-
-        if (sourceState && sourceState.transitions[transitionIndex]) {
-          const updatedTransitions = [...sourceState.transitions];
-          updatedTransitions[transitionIndex] = {
-            ...updatedTransitions[transitionIndex],
-            next: newTargetStateId
-          };
-
-          updatedStates[sourceStateId] = {
-            ...sourceState,
-            transitions: updatedTransitions
-          };
-        }
-
-        // Save the anchor point selection for the target handle only
-        // Source handle (transition node side) is always calculated automatically
-        const updatedLayoutTransitions = [...(cleanedWorkflow.layout.transitions || [])];
-        const existingTransitionIndex = updatedLayoutTransitions.findIndex(t => t.id === transitionId);
-
-        let transitionLayout = existingTransitionIndex >= 0
-          ? { ...updatedLayoutTransitions[existingTransitionIndex] }
-          : { id: transitionId };
-
-        // Only save the target handle (state node side with arrow) - user's manual selection
-        // Do NOT save source handle - it's always calculated automatically for best appearance
-        if (newConnection.targetHandle) {
-          transitionLayout.transitionToStateTargetHandle = newConnection.targetHandle;
-        }
-
-        // Clear any previously saved source handle since we now always calculate it
-        transitionLayout.transitionToStateSourceHandle = null;
-
-        if (existingTransitionIndex >= 0) {
-          updatedLayoutTransitions[existingTransitionIndex] = transitionLayout;
-        } else {
-          updatedLayoutTransitions.push(transitionLayout);
-        }
-
-
-        const updatedWorkflow: UIWorkflowData = {
-          ...cleanedWorkflow,
-          configuration: {
-            ...cleanedWorkflow.configuration,
-            states: updatedStates
-          },
-          layout: {
-            ...cleanedWorkflow.layout,
-            transitions: updatedLayoutTransitions,
-            updatedAt: new Date().toISOString()
-          }
+        const updatedTransitions = [...oldSourceState.transitions];
+        updatedTransitions[transitionIndex] = {
+          ...updatedTransitions[transitionIndex],
+          next: newTargetStateId
         };
 
-        onWorkflowUpdate(updatedWorkflow, `Reconnected transition target to ${newTargetStateId}`);
-
-      } else {
-        // Just reconnecting to a different anchor point on the same nodes
-        // OR reconnecting to the same node/handle (which means no change)
-
-        const sourceChanged = oldEdge.source !== newConnection.source;
-        const targetChanged = oldEdge.target !== newConnection.target;
-        const sourceHandleChanged = oldEdge.sourceHandle !== newConnection.sourceHandle;
-        const targetHandleChanged = oldEdge.targetHandle !== newConnection.targetHandle;
-
-        if (!sourceChanged && !targetChanged && !sourceHandleChanged && !targetHandleChanged) {
-          return;
-        }
-
-        // Save the manual anchor point selection to the layout
-        // Determine which edge this is (state→transition or transition→state)
-        const isStateToTransition = oldEdge.id.includes('-to-') && oldEdge.target.startsWith('transition-');
-        const isTransitionToState = oldEdge.id.includes('-to-') && oldEdge.source.startsWith('transition-');
-
-        // Extract transition ID
-        let transitionId: string;
-        if (isStateToTransition) {
-          // Edge ID format: edge-{sourceStateId}-to-{transitionId}
-          const parts = oldEdge.id.split('-to-');
-          transitionId = parts[1];
-        } else if (isTransitionToState) {
-          // Edge ID format: edge-{transitionId}-to-{targetStateId}
-          const parts = oldEdge.id.split('-to-');
-          transitionId = parts[0].replace('edge-', '');
-        } else {
-          return;
-        }
-
-        // Update the transition layout with manual anchor point selections
-        const updatedLayoutTransitions = [...(cleanedWorkflow.layout.transitions || [])];
-        const existingTransitionIndex = updatedLayoutTransitions.findIndex(t => t.id === transitionId);
-
-        let transitionLayout = existingTransitionIndex >= 0
-          ? { ...updatedLayoutTransitions[existingTransitionIndex] }
-          : { id: transitionId };
-
-        // Save the manual anchor point selections
-        if (isStateToTransition) {
-          // State→Transition edge: This should not happen since we made it non-reconnectable
-          // But if it does, save both handles for state→transition edge
-          if (sourceHandleChanged) {
-            transitionLayout.stateToTransitionSourceHandle = newConnection.sourceHandle || null;
-          }
-          if (targetHandleChanged) {
-            transitionLayout.stateToTransitionTargetHandle = newConnection.targetHandle || null;
-          }
-        } else if (isTransitionToState) {
-          // Transition→State edge: Only save target handle (state node side)
-          // Source handle (transition node side) is always calculated automatically
-          if (targetHandleChanged) {
-            transitionLayout.transitionToStateTargetHandle = newConnection.targetHandle || null;
-          }
-          // Clear any previously saved source handle
-          transitionLayout.transitionToStateSourceHandle = null;
-        }
-
-        if (existingTransitionIndex >= 0) {
-          updatedLayoutTransitions[existingTransitionIndex] = transitionLayout;
-        } else {
-          updatedLayoutTransitions.push(transitionLayout);
-        }
-
-        const updatedWorkflow: UIWorkflowData = {
-          ...cleanedWorkflow,
-          layout: {
-            ...cleanedWorkflow.layout,
-            transitions: updatedLayoutTransitions,
-            updatedAt: new Date().toISOString()
-          }
+        updatedStates[oldSourceStateId] = {
+          ...oldSourceState,
+          transitions: updatedTransitions
         };
-
-        onWorkflowUpdate(updatedWorkflow, 'Reconnected edge to different anchor point');
       }
+
+      // Save the anchor point selection
+      const updatedLayoutTransitions = [...(cleanedWorkflow.layout.transitions || [])];
+      const existingTransitionIndex = updatedLayoutTransitions.findIndex(t => t.id === transitionId);
+
+      let transitionLayout = existingTransitionIndex >= 0
+        ? { ...updatedLayoutTransitions[existingTransitionIndex] }
+        : { id: transitionId };
+
+      // Save handles if changed
+      if (newConnection.sourceHandle) {
+        transitionLayout.stateToTransitionSourceHandle = newConnection.sourceHandle;
+      }
+      if (newConnection.targetHandle) {
+        transitionLayout.transitionToStateTargetHandle = newConnection.targetHandle;
+      }
+
+      if (existingTransitionIndex >= 0) {
+        updatedLayoutTransitions[existingTransitionIndex] = transitionLayout;
+      } else {
+        updatedLayoutTransitions.push(transitionLayout);
+      }
+
+      const updatedWorkflow: UIWorkflowData = {
+        ...cleanedWorkflow,
+        configuration: {
+          ...cleanedWorkflow.configuration,
+          states: updatedStates
+        },
+        layout: {
+          ...cleanedWorkflow.layout,
+          transitions: updatedLayoutTransitions,
+          updatedAt: new Date().toISOString()
+        }
+      };
+
+      const message = sourceChanged
+        ? `Reconnected transition source to ${newConnection.source}`
+        : `Reconnected transition target to ${newConnection.target}`;
+      onWorkflowUpdate(updatedWorkflow, message);
     },
     [cleanedWorkflow, onWorkflowUpdate]
   );
@@ -1583,60 +1251,11 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       if (node.id.startsWith('transition-')) {
         // Extract transition ID from node ID
         const transitionId = node.id.replace('transition-', '');
-        console.log(`[onNodeDragStop] Transition moved: ${transitionId}`);
-
-        // Find the transition data to get source and target state IDs
-        const transitionData = uiTransitionsRef.current.find(t => t.id === transitionId);
-        if (!transitionData) {
-          console.log(`[onNodeDragStop] Transition data not found for ${transitionId}`);
-          return;
-        }
-
-        const sourceState = cleanedWorkflow.layout.states.find(s => s.id === transitionData.sourceStateId);
-        const targetState = cleanedWorkflow.layout.states.find(s => s.id === transitionData.targetStateId);
-
-        // Recalculate handles based on new position
-        let updatedHandles = {};
-        if (sourceState && targetState) {
-          const dx = targetState.position.x - sourceState.position.x;
-          const dy = targetState.position.y - sourceState.position.y;
-
-          // Calculate angle from transition to target state
-          const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-
-          // Choose best handle based on angle
-          // Angle ranges: -180 to 180 degrees
-          // Right: -45 to 45
-          // Bottom: 45 to 135
-          // Left: 135 to 180 or -180 to -135
-          // Top: -135 to -45
-          let stateTargetHandle: string;
-
-          if (angle >= -45 && angle < 45) {
-            // Target is to the right
-            stateTargetHandle = 'left-top-target';
-          } else if (angle >= 45 && angle < 135) {
-            // Target is below
-            stateTargetHandle = 'top-center-target';
-          } else if (angle >= 135 || angle < -135) {
-            // Target is to the left
-            stateTargetHandle = 'right-top-target';
-          } else {
-            // Target is above
-            stateTargetHandle = 'bottom-center-target';
-          }
-
-          updatedHandles = {
-            transitionToStateTargetHandle: stateTargetHandle
-          };
-
-          console.log(`[onNodeDragStop] dx=${dx}, dy=${dy}, angle=${angle.toFixed(1)}°, handle=${stateTargetHandle}`);
-        }
 
         // Update transition position in layout
         const updatedLayoutTransitions = cleanedWorkflow.layout.transitions.map((transition) =>
           transition.id === transitionId
-            ? { ...transition, position: node.position, ...updatedHandles }
+            ? { ...transition, position: node.position }
             : transition
         );
 
@@ -1645,7 +1264,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           updatedLayoutTransitions.push({
             id: transitionId,
             position: node.position,
-            ...updatedHandles
           });
         }
 
@@ -1653,56 +1271,25 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           ...cleanedWorkflow,
           layout: {
             ...cleanedWorkflow.layout,
-            states: cleanedWorkflow.layout.states,
             transitions: updatedLayoutTransitions,
             updatedAt: new Date().toISOString()
           }
         };
 
-        console.log(`[onNodeDragStop] Updated transition layout:`, updatedLayoutTransitions.find(t => t.id === transitionId));
-
-        onWorkflowUpdate(updatedWorkflow, `Moved transition: ${transitionId}`);
+        onWorkflowUpdate(updatedWorkflow, `Moved transition label: ${transitionId}`);
       } else {
-        // Update state position in layout
+        // State node - update state position in layout
         const updatedLayoutStates = cleanedWorkflow.layout.states.map((state) =>
           state.id === node.id
             ? { ...state, position: node.position }
             : state
         );
 
-        // When a state is moved, recalculate positions of all related transitions
-        const updatedLayoutTransitions = cleanedWorkflow.layout.transitions.map((transition) => {
-          // Find the transition data to get source and target state IDs
-          const transitionData = uiTransitionsRef.current.find(t => t.id === transition.id);
-          if (!transitionData) return transition;
-
-          const sourceState = updatedLayoutStates.find(s => s.id === transitionData.sourceStateId);
-          const targetState = updatedLayoutStates.find(s => s.id === transitionData.targetStateId);
-
-          // Check if this transition is related to the moved state
-          const isSourceMoved = sourceState?.id === node.id;
-          const isTargetMoved = targetState?.id === node.id;
-
-          if ((isSourceMoved || isTargetMoved) && sourceState && targetState) {
-            // Recalculate transition position
-            const isLoopback = sourceState.id === targetState.id;
-            const newPosition = calculateTransitionNodePosition(
-              sourceState.position,
-              targetState.position,
-              isLoopback
-            );
-            return { ...transition, position: newPosition };
-          }
-
-          return transition;
-        });
-
         const updatedWorkflow: UIWorkflowData = {
           ...cleanedWorkflow,
           layout: {
             ...cleanedWorkflow.layout,
             states: updatedLayoutStates,
-            transitions: updatedLayoutTransitions,
             updatedAt: new Date().toISOString()
           }
         };
@@ -1764,25 +1351,17 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
   // Handle node click to navigate in JSON editor
   const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
-    if (node.id.startsWith('transition-')) {
-      // Extract transition ID and select it
-      const transitionId = node.id.replace('transition-', '');
-      setSelectedTransitionId(transitionId);
-      setSelectedStateId(null);
-    } else {
-      // State node
-      setSelectedStateId(node.id);
-      setSelectedTransitionId(null);
-    }
+    // Only state nodes now (transitions are edges)
+    setSelectedStateId(node.id);
+    setSelectedTransitionId(null);
   }, []);
 
   // Handle edge click to navigate in JSON editor
-  // Navigate to the source state of the transition
   const handleEdgeClick = useCallback((_event: React.MouseEvent, edge: Edge) => {
-    // Extract source state from edge
-    const sourceStateId = edge.source;
-    setSelectedStateId(sourceStateId);
-    setSelectedTransitionId(null);
+    // Extract transition ID from edge (format: edge-{transitionId})
+    const transitionId = edge.id.replace('edge-', '');
+    setSelectedTransitionId(transitionId);
+    setSelectedStateId(null);
   }, []);
 
 
