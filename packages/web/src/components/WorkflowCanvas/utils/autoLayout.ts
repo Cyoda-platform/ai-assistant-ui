@@ -84,8 +84,8 @@ export interface LayoutResult {
 const DEFAULT_OPTIONS: Required<LayoutOptions> = {
   nodeWidth: 200,      // State node width (actual visual width ~180px)
   nodeHeight: 100,     // State node height (actual visual height ~80px)
-  rankSeparation: 500, // Vertical spacing between ranks (increased for better separation in TB layout)
-  nodeSeparation: 500, // Horizontal spacing between nodes in same rank
+  rankSeparation: 350, // Vertical spacing between ranks (TB/BT layout)
+  nodeSeparation: 400, // Horizontal spacing between nodes in same rank
   edgeSeparation: 100, // Spacing between parallel edges
   minTransitionLength: 150, // Minimum vertical distance for transition nodes
   minTransitionWidth: 100, // Minimum horizontal distance for transition nodes
@@ -164,8 +164,8 @@ export function calculateAutoLayout(
   // Adjust spacing based on layout direction
   // For both TB and LR: rankSeparation controls spacing along main axis (should be larger)
   // nodeSeparation controls spacing along cross axis (should be smaller)
-  if (!options.rankSeparation) opts.rankSeparation = 500; // Spacing between ranks (main axis)
-  if (!options.nodeSeparation) opts.nodeSeparation = 500; // Spacing between nodes in same rank (cross axis)
+  if (!options.rankSeparation) opts.rankSeparation = 350; // Spacing between ranks (main axis)
+  if (!options.nodeSeparation) opts.nodeSeparation = 400; // Spacing between nodes in same rank (cross axis)
   const stateIds = Object.keys(workflow.configuration.states);
 
   // Assign ranks to each state
@@ -578,8 +578,11 @@ export function calculateAutoLayout(
             // For LR layout: dx is primary direction (horizontal movement is larger)
             const isVertical = Math.abs(dy) > Math.abs(dx);
 
+            // For initial state in TB/BT layout, ALWAYS use bottom handles (force vertical flow)
+            const isInitialState = sourceStateId === workflow.configuration.initialState;
+            const forceVerticalForInitial = isInitialState && (opts.direction === 'TB' || opts.direction === 'BT') && dy > 0;
 
-            if (!isVertical) {
+            if (!isVertical && !forceVerticalForInitial) {
               // LR layout: ALWAYS use horizontal handles (right/left)
               // Choose handles based on VERTICAL direction (dy) to avoid crossing
 
