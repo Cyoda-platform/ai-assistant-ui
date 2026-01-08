@@ -1,7 +1,8 @@
 import React from 'react';
 import { Handle, Position } from '@xyflow/react';
 import type { NodeProps } from '@xyflow/react';
-import { Edit2, Filter, Zap, ArrowRight } from 'lucide-react';
+import { Filter, Zap } from 'lucide-react';
+import { Tooltip } from 'antd';
 import type { UITransitionData } from '../types/workflow';
 import type { ColorPalette } from '../themes/colorPalettes';
 
@@ -83,20 +84,6 @@ export const TransitionNode: React.FC<NodeProps> = ({ data, selected }) => {
     }
   };
 
-  const handleEditClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (transition && onEdit) {
-      onEdit(transition.id);
-    }
-  };
-
-  const handleSendToChat = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onSendToChat && transition) {
-      onSendToChat(transition);
-    }
-  };
-
   if (!transition) {
     return null;
   }
@@ -104,23 +91,45 @@ export const TransitionNode: React.FC<NodeProps> = ({ data, selected }) => {
   const hasCriterion = transition.definition.criterion !== undefined;
   const hasProcessors = transition.definition.processors && transition.definition.processors.length > 0;
 
-  // Determine if transition is manual or automated
-  const isManual = transition.definition.manual === true;
+  // Format criterion information for tooltip
+  const getCriterionTooltip = () => {
+    if (!transition.definition.criterion) return null;
 
-  const getNodeStyle = () => {
-    const baseClasses = "px-3 py-2 rounded-lg border-0 transition-all duration-300 min-w-[100px]";
-    const selectedClasses = selected ? " ring-2 ring-white ring-offset-2 ring-offset-[#0b0f1a]" : "";
+    const criterion = transition.definition.criterion;
+    const lines: string[] = [];
 
-    return baseClasses + selectedClasses;
+    if (criterion.type) {
+      lines.push(`Type: ${criterion.type}`);
+    }
+
+    if ('jsonPath' in criterion && criterion.jsonPath) {
+      lines.push(`Path: ${criterion.jsonPath}`);
+    }
+
+    if ('operation' in criterion && criterion.operation) {
+      lines.push(`Operation: ${criterion.operation}`);
+    }
+
+    if ('value' in criterion && criterion.value !== undefined) {
+      lines.push(`Value: ${criterion.value}`);
+    }
+
+    if ('operator' in criterion && criterion.operator) {
+      lines.push(`Operator: ${criterion.operator}`);
+    }
+
+    return lines.length > 0 ? lines.join('\n') : 'Criterion';
   };
 
-  const getNodeBackgroundColor = () => {
-    return isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
-  };
+  // Format processors information for tooltip
+  const getProcessorsTooltip = () => {
+    if (!transition.definition.processors || transition.definition.processors.length === 0) {
+      return null;
+    }
 
-  const getIconColor = () => {
-    // White icons on colored backgrounds
-    return 'text-white';
+    return transition.definition.processors
+      .map((p, idx) => `${idx + 1}. ${p.name}${p.executionMode ? ` (${p.executionMode})` : ''}`)
+      .join('\n');
   };
 
   // Render a single anchor point with both source and target handles
@@ -157,60 +166,75 @@ export const TransitionNode: React.FC<NodeProps> = ({ data, selected }) => {
 
   return (
     <div
-      className={getNodeStyle()}
-      style={{ backgroundColor: getNodeBackgroundColor() }}
-      onDoubleClick={handleDoubleClick}
-      title="Double-click to edit transition"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '4px',
+        backgroundColor: 'transparent',
+        border: 'none',
+      }}
     >
       {/* Render all 8 anchor points */}
       {(Object.keys(ANCHOR_POINTS) as AnchorPoint[]).map(renderAnchorPoint)}
 
-      {/* Node Content */}
-      <div className="flex items-center space-x-1 group pr-1">
-        {/* Transition Name */}
-        <div className="flex-1 min-w-0">
-          <div className="text-base font-medium text-white truncate">
-            {transition.definition.name || 'Unnamed'}
-          </div>
-        </div>
-
-        {/* Indicators */}
-        <div className="flex items-center space-x-1">
-          {hasCriterion && (
-            <div className="text-white/80" title="Has criterion">
-              <Filter size={10} />
+      {/* Indicators - Criterion Diamond and Processors Badge */}
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        {/* Criterion - Pink Diamond with Filter icon */}
+        {hasCriterion && (
+          <Tooltip title={getCriterionTooltip()} color="#1f2937">
+            <div
+              style={{
+                width: '28px',
+                height: '28px',
+                backgroundColor: '#ec4899', // Pink-500
+                transform: 'rotate(45deg)',
+                borderRadius: '2px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 8px rgba(236, 72, 153, 0.5)',
+                cursor: 'pointer',
+              }}
+            >
+              <div style={{ transform: 'rotate(-45deg)' }}>
+                <Filter size={14} color="white" />
+              </div>
             </div>
-          )}
-
-          {hasProcessors && (
-            <div className="flex items-center space-x-0.5 text-white/80" title={`${transition.definition.processors!.length} processors`}>
-              <Zap size={10} />
-              <span className="text-xs">{transition.definition.processors!.length}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Edit Button */}
-        <button
-          onClick={handleEditClick}
-          onMouseDown={(e) => e.stopPropagation()}
-          className="flex-shrink-0 p-0.5 text-gray-400 hover:text-gray-300 transition-colors opacity-0 group-hover:opacity-100"
-          title="Click to edit transition"
-        >
-          <Edit2 size={11} />
-        </button>
-
-        {/* Send to Chat Button */}
-        {onSendToChat && (
-          <button
-            onClick={handleSendToChat}
-            onMouseDown={(e) => e.stopPropagation()}
-            className="flex-shrink-0 p-1 text-white hover:bg-white/20 rounded transition-colors"
-            title="Send transition to chat"
-          >
-            <ArrowRight size={14} />
-          </button>
+          </Tooltip>
         )}
+
+        {/* Processors - Blue Circle with Zap icon */}
+        {hasProcessors && (
+          <Tooltip title={getProcessorsTooltip()} color="#1f2937">
+            <div
+              style={{
+                width: '37px',
+                height: '37px',
+                backgroundColor: '#3b82f6', // Blue-500
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 8px rgba(59, 130, 246, 0.5)',
+                cursor: 'pointer',
+              }}
+            >
+              <Zap size={16} color="white" />
+            </div>
+          </Tooltip>
+        )}
+      </div>
+
+      {/* Label with transition name - transparent background */}
+      <div
+        className="text-xl font-medium text-white/90 whitespace-nowrap px-2 py-1 rounded cursor-pointer"
+        onDoubleClick={handleDoubleClick}
+        title="Double-click to edit transition"
+        style={{ backgroundColor: 'transparent' }}
+      >
+        {transition.definition.name || 'Unnamed'}
       </div>
     </div>
   );
