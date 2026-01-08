@@ -888,6 +888,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
               console.log('Transition updated:', updatedTransition);
             },
             palette: palette,
+            edgeType: edgeType, // Pass edge type to custom edge component
           },
         };
         newEdges.push(edge);

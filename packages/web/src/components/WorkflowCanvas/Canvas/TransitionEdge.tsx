@@ -1,6 +1,8 @@
 import React from 'react';
 import {
   getBezierPath,
+  getStraightPath,
+  getSmoothStepPath,
   EdgeLabelRenderer,
   BaseEdge,
 } from '@xyflow/react';
@@ -15,6 +17,7 @@ interface TransitionEdgeData {
   onEdit: (transitionId: string) => void;
   onUpdate: (transition: UITransitionData) => void;
   palette: ColorPalette;
+  edgeType?: 'default' | 'straight' | 'step' | 'smoothstep';
 }
 
 export const TransitionEdge: React.FC<EdgeProps> = ({
@@ -28,17 +31,48 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
   data,
   selected,
 }) => {
-  const { transition, onEdit, onUpdate, palette } = (data as unknown as TransitionEdgeData) || {};
+  const { transition, onEdit, onUpdate, palette, edgeType = 'default' } = (data as unknown as TransitionEdgeData) || {};
 
-  // Calculate edge path and label position (always centered on arrow)
-  const [edgePath, finalLabelX, finalLabelY] = getBezierPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-    targetX,
-    targetY,
-    targetPosition,
-  });
+  // Calculate edge path and label position based on edge type
+  let edgePath: string;
+  let finalLabelX: number;
+  let finalLabelY: number;
+
+  switch (edgeType) {
+    case 'straight':
+      [edgePath, finalLabelX, finalLabelY] = getStraightPath({
+        sourceX,
+        sourceY,
+        targetX,
+        targetY,
+      });
+      break;
+    case 'step':
+    case 'smoothstep':
+      [edgePath, finalLabelX, finalLabelY] = getSmoothStepPath({
+        sourceX,
+        sourceY,
+        sourcePosition,
+        targetX,
+        targetY,
+        targetPosition,
+        borderRadius: edgeType === 'smoothstep' ? 20 : 0,
+      });
+      break;
+    case 'default':
+    default:
+      // Use slightly higher curvature (0.35) for Bezier to create more pronounced curves
+      [edgePath, finalLabelX, finalLabelY] = getBezierPath({
+        sourceX,
+        sourceY,
+        sourcePosition,
+        targetX,
+        targetY,
+        targetPosition,
+        curvature: 0.35, // Increased from default 0.25 for more curved paths
+      });
+      break;
+  }
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
