@@ -218,6 +218,12 @@ const LogsView: React.FC = () => {
         }
       }
 
+      // Don't display ELK_API_KEY_EXPIRED error to user - it's handled automatically above
+      if (errorCode === 'ELK_API_KEY_EXPIRED') {
+        console.log('ELK_API_KEY_EXPIRED error suppressed - handled automatically');
+        return;
+      }
+
       setError(errorMsg);
       console.error('Error fetching logs:', err);
       message.error(errorMsg);

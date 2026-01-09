@@ -1231,6 +1231,7 @@ const ChatBotView: React.FC = () => {
             currentTool: undefined,
             toolArgs: undefined,
             accumulatedContent: '',
+            cloneRepositoryDetected: false,
             error: undefined,
             events: []
           });
@@ -1360,6 +1361,7 @@ const ChatBotView: React.FC = () => {
           currentTool: undefined,
           toolArgs: undefined,
           accumulatedContent: '',
+          cloneRepositoryDetected: false,
           error: undefined,
           events: []
         });

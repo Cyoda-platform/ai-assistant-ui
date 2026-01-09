@@ -330,7 +330,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     return allHooks.find((h: any) => h?.type === 'deployment_options');
   }, [allHooks]);
 
-  // Detect if save_file_to_repository or retrieve_and_save_conversation_files tool was called in SSE events
+  // Detect if save_file_to_repository, retrieve_and_save_conversation_files, or clone_repository tool was called in SSE events
   const hasSaveFileToRepository = useMemo(() => {
     const sseEvents = message.raw?.sse_events;
     if (!sseEvents || !Array.isArray(sseEvents)) return false;
@@ -340,7 +340,8 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
       if (event.type === 'tool_call' || event.type === 'tool_response') {
         const toolName = event.data?.tool_name || event.tool_name;
         return toolName === 'save_file_to_repository' ||
-               toolName === 'retrieve_and_save_conversation_files';
+               toolName === 'retrieve_and_save_conversation_files' ||
+               toolName === 'clone_repository';
       }
       return false;
     });

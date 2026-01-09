@@ -80,6 +80,13 @@ export default class HelperErrors {
 
         if (data.response?.data?.error?.includes('Invalid token')) return;
 
+        // Never display ELK_API_KEY_EXPIRED error - it's handled automatically
+        const errorCode = (data.response?.data as any)?.details?.error_code;
+        if (errorCode === 'ELK_API_KEY_EXPIRED') {
+            console.log('[HelperErrors] ELK_API_KEY_EXPIRED error suppressed - handled automatically');
+            return;
+        }
+
         if (
             data?.response?.status &&
             [401, 403].includes(data.response.status) &&

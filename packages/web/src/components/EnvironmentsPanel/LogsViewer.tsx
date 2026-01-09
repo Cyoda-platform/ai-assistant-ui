@@ -195,6 +195,14 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
         }
       }
 
+      // Don't display ELK_API_KEY_EXPIRED error to user - it's handled automatically above
+      if (errorCode === 'ELK_API_KEY_EXPIRED') {
+        console.log('ELK_API_KEY_EXPIRED error suppressed - handled automatically');
+        setLogs([]);
+        setTotalHits(0);
+        return;
+      }
+
       const errorMsg = error?.response?.data?.error || error?.message || 'Failed to fetch logs';
       message.error(`Error: ${errorMsg}`);
       setLogs([]);
