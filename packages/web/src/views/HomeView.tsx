@@ -770,7 +770,7 @@ const HomeView: React.FC = () => {
                         fontFamily: 'Montserrat, sans-serif',
                         fontWeight: 700,
                         fontSize: 'clamp(48px, 6vw, 72px)',
-                        background: 'linear-gradient(135deg, #06b6d4 0%, #14b8a6 50%, #10b981 100%)',
+                        background: 'linear-gradient(135deg, #22d3ee 0%, #2dd4bf 50%, #34d399 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         backgroundClip: 'text',
@@ -878,7 +878,7 @@ const HomeView: React.FC = () => {
                                     <span
                                       className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider"
                                       style={{
-                                        background: `linear-gradient(135deg, ${example.gradient})`,
+                                        background: 'linear-gradient(135deg, #06b6d4 0%, #14b8a6 50%, #10b981 100%)',
                                         color: 'white'
                                       }}
                                     >
@@ -894,9 +894,9 @@ const HomeView: React.FC = () => {
                                     {/* Person Image positioned on the left, aligned with bottom of text area */}
                                     <div className="flex-shrink-0" style={{ marginLeft: '3%' }}>
                                       <div
-                                        className="w-16 h-32 p-2 rounded-lg overflow-hidden"
+                                        className="w-16 h-32 p-1 rounded-lg overflow-hidden"
                                         style={{
-                                          background: `linear-gradient(135deg, ${example.gradient})`
+                                          background: 'linear-gradient(135deg, #06b6d4 0%, #14b8a6 50%, #10b981 100%)'
                                         }}
                                       >
                                         {React.cloneElement(example.icon, {
@@ -948,26 +948,26 @@ const HomeView: React.FC = () => {
                     {/* Elegant Navigation Buttons */}
                     <button
                       onClick={prevPrompt}
-                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
                       style={{
-                        background: 'linear-gradient(135deg, rgba(0,185,200,0.9), rgba(0,121,129,0.9))',
+                        background: 'linear-gradient(135deg, #06b6d4, #14b8a6, #10b981)',
                         backdropFilter: 'blur(10px)',
-                        boxShadow: '0 8px 24px rgba(0,185,200,0.4), 0 0 0 1px rgba(0,185,200,0.5)',
+                        boxShadow: '0 4px 12px rgba(6,182,212,0.3), 0 0 0 1px rgba(6,182,212,0.4)',
                       }}
                     >
-                      <ChevronRight className="text-white rotate-180 group-hover:-translate-x-0.5 transition-transform" size={22} />
+                      <ChevronRight className="text-white rotate-180 group-hover:-translate-x-0.5 transition-transform" size={20} />
                     </button>
 
                     <button
                       onClick={nextPrompt}
-                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
+                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
                       style={{
-                        background: 'linear-gradient(135deg, rgba(0,185,200,0.9), rgba(0,121,129,0.9))',
+                        background: 'linear-gradient(135deg, #06b6d4, #14b8a6, #10b981)',
                         backdropFilter: 'blur(10px)',
-                        boxShadow: '0 8px 24px rgba(0,185,200,0.4), 0 0 0 1px rgba(0,185,200,0.5)',
+                        boxShadow: '0 4px 12px rgba(6,182,212,0.3), 0 0 0 1px rgba(6,182,212,0.4)',
                       }}
                     >
-                      <ChevronRight className="text-white group-hover:translate-x-0.5 transition-transform" size={22} />
+                      <ChevronRight className="text-white group-hover:translate-x-0.5 transition-transform" size={20} />
                     </button>
                   </div>
                 </div>
