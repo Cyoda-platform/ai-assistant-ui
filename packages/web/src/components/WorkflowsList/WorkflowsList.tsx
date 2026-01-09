@@ -174,6 +174,8 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
 
   const handleDeleteWorkflow = (workflowName: string, entityName: string, e: React.MouseEvent) => {
     e.stopPropagation();
+
+    // Delete from entities
     const updatedAppData: AppRoot = {
       ...appData,
       app: {
@@ -186,9 +188,15 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
             };
           }
           return entity;
-        }) || []
+        }) || [],
+        metadata: {
+          ...appData.app.metadata,
+          // Also delete from metadata workflows (for newly created workflows)
+          workflows: ((appData.app.metadata as any)?.workflows || []).filter((wf: any) => wf.name !== workflowName)
+        } as any
       }
     };
+
     if (onAppDataUpdate) {
       onAppDataUpdate(updatedAppData);
     }

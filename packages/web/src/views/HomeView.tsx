@@ -770,7 +770,10 @@ const HomeView: React.FC = () => {
                         fontFamily: 'Montserrat, sans-serif',
                         fontWeight: 700,
                         fontSize: 'clamp(48px, 6vw, 72px)',
-                        color: '#007981',
+                        background: 'linear-gradient(135deg, #06b6d4 0%, #14b8a6 50%, #10b981 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text',
                         letterSpacing: '2px',
                         lineHeight: 1.1,
                         animationDelay: '0.1s'
@@ -786,13 +789,17 @@ const HomeView: React.FC = () => {
                         fontFamily: 'Montserrat, sans-serif',
                         fontWeight: 600,
                         fontSize: 'clamp(36px, 4.5vw, 52px)',
-                        color: '#007981',
                         letterSpacing: 'normal',
                         lineHeight: 1.1,
                         animationDelay: '0.2s'
                       }}
                     >
-                      <span style={{ color: '#10b981' }}>Solve. Build. Deploy.</span>
+                      <span style={{
+                        background: 'linear-gradient(135deg, #10b981 0%, #14b8a6 50%, #06b6d4 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text'
+                      }}>Solve. Build. Deploy.</span>
                     </h1>
 
                     {/* Subtitle - 22-26px, better contrast and line-height */}

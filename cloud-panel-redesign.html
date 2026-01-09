@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Panel - Redesign</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(20, 184, 166, 0.3);
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(20, 184, 166, 0.5);
+        }
+
+        /* Pulse animation for status dot */
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .pulse-dot {
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #14b8a6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 flex">
+    <!-- Side Panel (LEFT) -->
+    <div class="w-[480px] h-screen bg-slate-800/95 backdrop-blur-sm border-r border-slate-700 flex flex-col shadow-2xl">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-4 py-3.5 border-b border-slate-700/80 bg-slate-800/50">
+            <div class="flex items-center gap-3">
+                <button class="p-1.5 rounded-lg hover:bg-slate-700 transition-colors" title="Back">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+                <svg class="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+                <h2 class="font-semibold text-white text-base">dev Environment</h2>
+            </div>
+            <div class="flex items-center gap-2">
+                <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    <span>View Logs</span>
+                </button>
+                <button class="p-1.5 rounded-lg hover:bg-slate-700 transition-colors" title="Close">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Content - Scrollable -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
+
+            <!-- Environment Details -->
+            <section>
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Environment Details</h3>
+                    <button class="flex items-center gap-1 px-2 py-1 rounded text-xs bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 transition-colors">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+                <div class="bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-600/50 rounded-xl p-4 space-y-3.5">
+                    <!-- Namespace -->
+                    <div>
+                        <label class="text-xs text-slate-400 font-medium mb-1.5 block">Namespace</label>
+                        <div class="flex items-center gap-2">
+                            <code class="flex-1 text-sm text-teal-300 bg-slate-900/60 px-3 py-2.5 rounded-lg border border-slate-600/50 font-mono truncate">
+                                client-05e11da2107844fc944ee5b872fcb6b6-dev
+                            </code>
+                            <button class="p-2 rounded-lg hover:bg-slate-700/70 transition-colors group" title="Copy">
+                                <svg class="w-4 h-4 text-slate-400 group-hover:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div>
+                        <label class="text-xs text-slate-400 font-medium mb-1.5 block">Status</label>
+                        <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 px-3 py-2 rounded-lg border bg-green-500/10 text-green-400 border-green-500/30">
+                                <div class="w-1.5 h-1.5 rounded-full bg-green-400 pulse-dot"></div>
+                                <span class="text-xs font-semibold">Active</span>
+                            </div>
+                            <button class="p-2 rounded-lg hover:bg-slate-700/70 transition-colors" title="Refresh status">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Client Environment URL -->
+                    <div>
+                        <label class="text-xs text-slate-400 font-medium mb-1.5 block">Client Environment URL</label>
+                        <div class="flex items-center gap-2">
+                            <code class="flex-1 text-sm text-teal-300 bg-slate-900/60 px-3 py-2.5 rounded-lg border border-slate-600/50 font-mono truncate">
+                                https://client-05e11da...dev.kube3.cyoda.org
+                            </code>
+                            <button class="p-2 rounded-lg hover:bg-slate-700/70 transition-colors group" title="Copy">
+                                <svg class="w-4 h-4 text-slate-400 group-hover:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Organization ID -->
+                    <div>
+                        <label class="text-xs text-slate-400 font-medium mb-1.5 block">Organization ID</label>
+                        <div class="flex items-center gap-2">
+                            <code class="flex-1 text-sm text-teal-300 bg-slate-900/60 px-3 py-2.5 rounded-lg border border-slate-600/50 font-mono truncate">
+                                05e11da2107844fc944ee5b872fcb6b6
+                            </code>
+                            <button class="p-2 rounded-lg hover:bg-slate-700/70 transition-colors group" title="Copy">
+                                <svg class="w-4 h-4 text-slate-400 group-hover:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- User Applications -->
+            <section>
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">User Applications</h3>
+                    <button class="flex items-center gap-1 px-2 py-1 rounded text-xs bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 transition-colors">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+                <div class="bg-gradient-to-br from-slate-700/30 to-slate-800/30 border border-slate-600/40 rounded-xl p-6 text-center">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                    </svg>
+                    <p class="text-sm text-slate-400 mb-1">No user applications deployed</p>
+                    <p class="text-xs text-slate-500">Deploy an application to get started</p>
+                </div>
+            </section>
+
+            <!-- Feature Cards: Logs & Metrics -->
+            <section class="grid grid-cols-1 gap-3">
+                <!-- Logs Card -->
+                <div class="group relative bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-teal-500/10 border border-purple-500/30 hover:border-purple-400/50 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-purple-500/10 overflow-hidden">
+                    <!-- Glow effect on hover -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-purple-500/0 via-blue-500/0 to-teal-500/0 group-hover:from-purple-500/5 group-hover:via-blue-500/5 group-hover:to-teal-500/5 transition-all duration-500"></div>
+
+                    <div class="relative">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="p-2.5 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-lg group-hover:scale-110 transition-transform">
+                                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-semibold text-white mb-0.5">View System Logs</h4>
+                                    <p class="text-xs text-slate-400">Real-time log analysis & monitoring</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 text-purple-400 group-hover:translate-x-0.5 transition-transform">
+                                <span class="text-xs font-medium">Open</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Features -->
+                        <div class="grid grid-cols-2 gap-2 mb-3">
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-1 h-1 rounded-full bg-teal-400"></div>
+                                <span class="text-xs text-slate-300">Advanced Search</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-1 h-1 rounded-full bg-blue-400"></div>
+                                <span class="text-xs text-slate-300">Query DSL</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-1 h-1 rounded-full bg-purple-400"></div>
+                                <span class="text-xs text-slate-300">Level Filtering</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-1 h-1 rounded-full bg-pink-400"></div>
+                                <span class="text-xs text-slate-300">Export JSON</span>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Access comprehensive logging with Elasticsearch integration
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Metrics Card -->
+                <div class="group relative bg-gradient-to-br from-orange-500/10 via-amber-500/10 to-yellow-500/10 border border-orange-500/30 hover:border-orange-400/50 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-orange-500/10 overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-orange-500/0 via-amber-500/0 to-yellow-500/0 group-hover:from-orange-500/5 group-hover:via-amber-500/5 group-hover:to-yellow-500/5 transition-all duration-500"></div>
+
+                    <div class="relative">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="p-2.5 bg-gradient-to-br from-orange-500/20 to-amber-500/20 rounded-lg group-hover:scale-110 transition-transform">
+                                    <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-semibold text-white mb-0.5">Metrics & Dashboards</h4>
+                                    <p class="text-xs text-slate-400">Real-time performance monitoring</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 text-orange-400 group-hover:translate-x-0.5 transition-transform">
+                                <span class="text-xs font-medium">Open</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 mb-3">
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-1 h-1 rounded-full bg-orange-400"></div>
+                                <span class="text-xs text-slate-300">CPU & Memory</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-1 h-1 rounded-full bg-amber-400"></div>
+                                <span class="text-xs text-slate-300">Network Traffic</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-1 h-1 rounded-full bg-yellow-400"></div>
+                                <span class="text-xs text-slate-300">Pod Metrics</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-1 h-1 rounded-full bg-orange-300"></div>
+                                <span class="text-xs text-slate-300">Custom Dashboards</span>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Grafana dashboards with real-time Kubernetes metrics
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- API Functions -->
+            <section>
+                <div class="flex items-center gap-2 mb-3">
+                    <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                    </svg>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">API Functions</h3>
+                </div>
+
+                <!-- API Function Items -->
+                <div class="space-y-2">
+                    <!-- Issue Technical User -->
+                    <div class="bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-600/50 rounded-lg p-3 hover:border-teal-500/40 transition-all">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-teal-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <div class="flex-1 min-w-0">
+                                <h5 class="text-sm font-medium text-white mb-1">Issue Technical User</h5>
+                                <p class="text-xs text-slate-400 mb-2">Create a new technical user account</p>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="px-2 py-0.5 rounded text-xs font-semibold bg-green-500/20 text-green-400">POST</span>
+                                    <code class="text-xs text-slate-500">/api/clients</code>
+                                </div>
+                            </div>
+                            <button class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 transition-all flex-shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span class="text-xs font-medium">Execute</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Get Users -->
+                    <div class="bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-600/50 rounded-lg p-3 hover:border-teal-500/40 transition-all">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-teal-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            <div class="flex-1 min-w-0">
+                                <h5 class="text-sm font-medium text-white mb-1">Get Users</h5>
+                                <p class="text-xs text-slate-400 mb-2">Retrieve list of all users</p>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="px-2 py-0.5 rounded text-xs font-semibold bg-blue-500/20 text-blue-400">GET</span>
+                                    <code class="text-xs text-slate-500">/api/clients</code>
+                                </div>
+                            </div>
+                            <button class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 transition-all flex-shrink-0">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span class="text-xs font-medium">Execute</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Delete User -->
+                    <div class="bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-600/50 rounded-lg p-3 hover:border-teal-500/40 transition-all">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-teal-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            <div class="flex-1 min-w-0">
+                                <h5 class="text-sm font-medium text-white mb-1">Delete User</h5>
+                                <p class="text-xs text-slate-400 mb-2">Delete a user account</p>
+                                <div class="flex items-center gap-2 mb-3">
+                                    <span class="px-2 py-0.5 rounded text-xs font-semibold bg-red-500/20 text-red-400">DELETE</span>
+                                    <code class="text-xs text-slate-500">/api/clients/{userId}</code>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-xs text-slate-400 flex items-center gap-1">
+                                        userId <span class="text-red-400">*</span>
+                                        <span class="text-slate-500">- User ID</span>
+                                    </label>
+                                    <input type="text" placeholder="Enter userId" class="w-full px-2.5 py-1.5 text-xs bg-slate-900/60 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/50 transition-colors" />
+                                </div>
+                            </div>
+                            <button class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 transition-all flex-shrink-0 self-start">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span class="text-xs font-medium">Execute</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- OAuth Token -->
+                    <div class="bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-600/50 rounded-lg p-3 hover:border-teal-500/40 transition-all">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-4 h-4 text-teal-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            <div class="flex-1 min-w-0">
+                                <h5 class="text-sm font-medium text-white mb-1">Obtain Access Token</h5>
+                                <p class="text-xs text-slate-400 mb-2">Authenticates M2M client using client credentials</p>
+                                <div class="flex items-center gap-2 mb-3">
+                                    <span class="px-2 py-0.5 rounded text-xs font-semibold bg-green-500/20 text-green-400">POST</span>
+                                    <code class="text-xs text-slate-500">/api/oauth/token</code>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="space-y-1">
+                                        <label class="text-xs text-slate-400 flex items-center gap-1">
+                                            client_id <span class="text-red-400">*</span>
+                                        </label>
+                                        <input type="text" placeholder="abc523BCD" class="w-full px-2.5 py-1.5 text-xs bg-slate-900/60 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/50 transition-colors" />
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-xs text-slate-400 flex items-center gap-1">
+                                            client_secret <span class="text-red-400">*</span>
+                                        </label>
+                                        <input type="password" placeholder="••••••••••" class="w-full px-2.5 py-1.5 text-xs bg-slate-900/60 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/50 transition-colors" />
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-teal-500/20 text-teal-400 hover:bg-teal-500/30 transition-all flex-shrink-0 self-start">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span class="text-xs font-medium">Execute</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Redeploy -->
+            <section>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Redeploy</h3>
+                <div class="bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-600/50 rounded-xl p-4">
+                    <p class="text-xs text-slate-400 mb-2.5">Copy this message to request environment redeployment:</p>
+                    <div class="flex items-start gap-2">
+                        <code class="flex-1 text-xs text-slate-300 bg-slate-900/60 px-3 py-2.5 rounded-lg border border-slate-600/50 font-mono break-all">Please, redeploy my cyoda environment: https://client-05e11da2107844fc944ee5b872fcb6b6-dev.kube3.cyoda.org</code>
+                        <button class="p-2 rounded-lg hover:bg-slate-700/70 transition-colors group flex-shrink-0" title="Copy">
+                            <svg class="w-4 h-4 text-slate-400 group-hover:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Main content backdrop (RIGHT) -->
+    <div class="flex-1 bg-slate-950 flex items-center justify-center">
+        <p class="text-slate-600 text-sm">Main canvas area →</p>
+    </div>
+</body>
+</html>

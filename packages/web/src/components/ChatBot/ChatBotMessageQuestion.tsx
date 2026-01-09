@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import dayjs from 'dayjs';
-import { Bot, Clock, Sparkles, CheckCircle, Check, Plus, Loader2, Undo, RotateCcw, Search, Send, Info, Activity, Palette, Cloud, ArrowRight, Zap } from 'lucide-react';
+import { Bot, Clock, Sparkles, CheckCircle, Check, Plus, Loader2, Undo, RotateCcw, Search, Send, Info, Activity, Palette, Cloud, ArrowRight, Zap, Award, Shield } from 'lucide-react';
 import MarkdownRenderer from '../MarkdownRenderer/MarkdownRenderer';
 import ResponseSeparator from './ResponseSeparator';
 import DeploymentOptionsUI from './DeploymentOptionsUI';
@@ -700,40 +700,86 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
 
 
   return (
-    <div className="flex justify-start mb-6 animate-fade-in-up">
-      <div className="flex items-start space-x-3 w-full max-w-[95%]">
-        {/* AI Avatar */}
-        <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden">
-          <img src={LogoSmall} alt="CYODA" className="w-10 h-10" />
-        </div>
+    <div className="w-full mb-6 animate-fade-in-up px-4 md:px-6 lg:px-8">
+      <div className="flex items-start gap-3 max-w-6xl">
+          {/* AI Avatar */}
+          <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <img src={LogoSmall} alt="CYODA" className="w-10 h-10" />
+          </div>
 
-        <div className="flex-1">
+          <div className="flex-1 min-w-0">
           {/* AI Badge */}
-          <div className="flex items-center space-x-2 mb-2">
-            <div className={`flex items-center space-x-1.5 backdrop-blur-sm px-3 py-1 rounded-full border ${
-              message.isCanvasQA
-                ? 'bg-purple-900/30 border-purple-500/40'
-                : 'bg-slate-800/50 border-slate-600'
-            }`}>
-              <Sparkles size={12} className={message.isCanvasQA ? 'text-purple-400' : 'text-teal-400'} />
-              <span className="text-xs font-medium text-slate-300">
-                {message.isCanvasQA ? 'CANVAS AI' : 'CYODA AI'}
-              </span>
-            </div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs font-medium text-slate-400">
+              {message.isCanvasQA ? 'CANVAS AI' : 'CYODA AI'}
+            </span>
             {date && (
-              <div className="flex items-center space-x-1 text-xs text-slate-500">
-                <Clock size={12} />
-                <span>{date}</span>
-              </div>
+              <span className="text-xs text-slate-500">{date}</span>
             )}
           </div>
 
-          {/* Message Bubble - Left aligned bot message */}
-          <div className={`${containerInfo.className} relative group ${
+          {/* Message Bubble - Modern design */}
+          <div className={`rounded-3xl bg-slate-800/40 px-4 py-3 border border-slate-700/30 relative ${
             (message.approve || canvasAnalysisHook || (message.isCanvasQA && (hasRollback || message.id))) && !canvasOpenHook ? 'pb-12' : ''
-          } !rounded-3xl ${
+          } ${
             message.isCanvasQA ? 'canvas-qa-question' : ''
           }`}>
+            {/* Horizontal Badge Menu for Actions */}
+            {((canvasOpenHook || hasSaveFileToRepository || codeChangesHook) || hasBackgroundCodeGeneration || hasDeploymentTools || hasEnvironmentTools) && (
+              <div className="absolute -top-7 -right-2 z-30 flex items-center gap-2">
+                {/* Canvas Badge */}
+                {(canvasOpenHook || hasSaveFileToRepository || codeChangesHook) && onOpenCanvas && (
+                  <button
+                    onClick={handleOpenCanvasWithPull}
+                    className="px-4 py-2 rounded-full backdrop-blur-sm bg-slate-700/40 border border-slate-600/40 hover:bg-slate-600/50 hover:border-slate-500/50 text-slate-300 hover:text-slate-200 font-medium shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
+                  >
+                    <Palette size={14} className="text-slate-400" />
+                    <span className="text-sm">Canvas</span>
+                    <div className="relative group/info">
+                      <Info size={12} className="text-slate-500 cursor-help" />
+                      <div className="absolute top-full right-0 mt-2 hidden group-hover/info:block w-48 p-2.5 bg-slate-900/95 backdrop-blur-sm text-slate-300 text-xs rounded-lg shadow-xl border border-slate-700 z-40 pointer-events-none">
+                        View saved files, edit content, and generate artifacts
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Tasks Badge */}
+                {(hasBackgroundCodeGeneration || hasDeploymentTools) && onOpenTaskPanel && (
+                  <button
+                    onClick={onOpenTaskPanel}
+                    className="px-4 py-2 rounded-full backdrop-blur-sm bg-slate-700/40 border border-slate-600/40 hover:bg-slate-600/50 hover:border-slate-500/50 text-slate-300 hover:text-slate-200 font-medium shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
+                  >
+                    <Award size={14} className="text-slate-400" />
+                    <span className="text-sm">Tasks</span>
+                    <div className="relative group/info">
+                      <Info size={12} className="text-slate-500 cursor-help" />
+                      <div className="absolute top-full right-0 mt-2 hidden group-hover/info:block w-48 p-2.5 bg-slate-900/95 backdrop-blur-sm text-slate-300 text-xs rounded-lg shadow-xl border border-slate-700 z-40 pointer-events-none">
+                        Track progress and monitor real-time status
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Cloud Badge */}
+                {hasEnvironmentTools && onOpenEnvironmentPanel && (
+                  <button
+                    onClick={onOpenEnvironmentPanel}
+                    className="px-4 py-2 rounded-full backdrop-blur-sm bg-slate-700/40 border border-slate-600/40 hover:bg-slate-600/50 hover:border-slate-500/50 text-slate-300 hover:text-slate-200 font-medium shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
+                  >
+                    <Shield size={14} className="text-slate-400" />
+                    <span className="text-sm">Cloud</span>
+                    <div className="relative group/info">
+                      <Info size={12} className="text-slate-500 cursor-help" />
+                      <div className="absolute top-full right-0 mt-2 hidden group-hover/info:block w-48 p-2.5 bg-slate-900/95 backdrop-blur-sm text-slate-300 text-xs rounded-lg shadow-xl border border-slate-700 z-40 pointer-events-none">
+                        Monitor environments and manage credentials
+                      </div>
+                    </div>
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Only show message content if no UI function marker is present */}
             {!hasUIFunctionMarker && (
               <>
@@ -791,10 +837,10 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                   hookType="option_selection"
                   label={optionSelection.data?.question || 'Options'}
                 />
-                <div className="space-y-4 p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
+                <div className="space-y-3">
                 {/* Context/Additional Info */}
                 {optionSelection.data?.context && (
-                  <div className="text-sm text-slate-400 mb-3">
+                  <div className="text-xs text-slate-400 mb-2">
                     {optionSelection.data.context}
                   </div>
                 )}
@@ -833,49 +879,43 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                 ) : (
                   <>
                     {/* Flat Option Selection (fallback) */}
-                    <div className="space-y-2">
-                      <div className="grid gap-3">
-                        {optionSelection.data?.options?.map((option: any) => (
-                          <button
-                            key={option.value}
-                            onClick={() => handleToggleOption(option.value)}
-                            className={`px-4 py-3 rounded-xl border-2 transition-all duration-200 text-left ${
-                              selectedOptions.includes(option.value)
-                                ? 'border-teal-500 bg-teal-500/20 text-teal-300'
-                                : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500'
-                            }`}
-                          >
-                            <div className="flex items-start space-x-3">
-                              {/* Checkbox/Radio indicator */}
-                              <div className={`mt-0.5 w-5 h-5 rounded-${optionSelection.data?.selection_type === 'single' ? 'full' : 'md'} border-2 flex items-center justify-center ${
-                                selectedOptions.includes(option.value)
-                                  ? 'border-teal-500 bg-teal-500'
-                                  : 'border-slate-500'
-                              }`}>
-                                {selectedOptions.includes(option.value) && (
-                                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                                )}
-                              </div>
-
-                              <div className="flex-1">
-                                <div className="text-sm font-medium">{option.label}</div>
-                                {option.description && (
-                                  <div className="text-xs opacity-75 mt-1 break-all">{option.description}</div>
-                                )}
-                              </div>
+                    <div className="grid gap-2">
+                      {optionSelection.data?.options?.map((option: any) => (
+                        <button
+                          key={option.value}
+                          onClick={() => handleToggleOption(option.value)}
+                          className={`group/option px-4 py-3 rounded-2xl border transition-all duration-200 text-left relative ${
+                            selectedOptions.includes(option.value)
+                              ? 'border-teal-500/70 bg-teal-500/15 shadow-lg shadow-teal-500/10'
+                              : 'border-slate-700/40 bg-slate-800/20 hover:border-teal-500/40 hover:bg-slate-800/40'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className={`text-sm font-medium ${
+                              selectedOptions.includes(option.value) ? 'text-teal-300' : 'text-slate-300'
+                            }`}>
+                              {option.label}
                             </div>
-                          </button>
-                        ))}
-                      </div>
+                            {option.description && (
+                              <div className="relative ml-2">
+                                <Info size={14} className={selectedOptions.includes(option.value) ? 'text-teal-400' : 'text-slate-400 group-hover/option:text-slate-300'} />
+                                <div className="absolute bottom-full right-0 mb-2 hidden group-hover/option:block w-48 p-2 bg-slate-900 text-slate-300 text-xs rounded-lg shadow-xl border border-slate-700 z-10">
+                                  {option.description}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      ))}
                     </div>
 
                     {/* Select Button - places message in textarea for user to review and send */}
                     <button
                       onClick={() => handleSubmitOptions()}
                       disabled={isSubmittingOptions || selectedOptions.length === 0}
-                      className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                      className="w-full px-4 py-2.5 rounded-full backdrop-blur-md bg-slate-700/40 border border-slate-600/50 hover:bg-slate-600/50 hover:border-slate-500/60 disabled:bg-slate-800/40 disabled:border-slate-700/30 disabled:opacity-50 text-slate-200 hover:text-white disabled:text-slate-500 text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-slate-500/20 disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                      <Send size={18} />
+                      <Send size={16} />
                       <span>Select</span>
                     </button>
                   </>
@@ -907,170 +947,32 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                   hookType="background_task"
                   label={backgroundTaskHook.data?.task_name || 'Background Task'}
                 />
-                <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
-                  <div className="space-y-3">
-                    <div>
-                      <div className="text-sm font-medium text-slate-300">
-                        {backgroundTaskHook.data?.task_name}
-                      </div>
-                      {backgroundTaskHook.data?.task_description && (
-                        <div className="text-xs text-slate-400 mt-1">
-                          {backgroundTaskHook.data.task_description}
-                        </div>
-                      )}
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-sm font-medium text-slate-300">
+                      {backgroundTaskHook.data?.task_name}
                     </div>
-                    <button
-                      onClick={() => {
-                        console.log('[View Tasks Button] Clicked, calling onOpenTaskPanel');
-                        console.log('[View Tasks Button] onOpenTaskPanel function:', onOpenTaskPanel);
-                        onOpenTaskPanel?.();
-                      }}
-                      className="w-full px-4 py-2 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/50 text-teal-300 text-sm font-medium transition-all duration-200"
-                    >
-                      📊 View Tasks
-                    </button>
+                    {backgroundTaskHook.data?.task_description && (
+                      <div className="text-xs text-slate-400 mt-1">
+                        {backgroundTaskHook.data.task_description}
+                      </div>
+                    )}
                   </div>
+                  <button
+                    onClick={() => {
+                      console.log('[View Tasks Button] Clicked, calling onOpenTaskPanel');
+                      console.log('[View Tasks Button] onOpenTaskPanel function:', onOpenTaskPanel);
+                      onOpenTaskPanel?.();
+                    }}
+                    className="w-full px-4 py-2 rounded-full bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/50 text-teal-300 text-sm font-medium transition-all duration-200"
+                  >
+                    📊 View Tasks
+                  </button>
                 </div>
               </>
             )}
 
-            {/* Background Code Generation Detection - View Tasks Button */}
-            {hasBackgroundCodeGeneration && !backgroundTaskHook && (
-              <div className="mt-6 pt-6 border-t border-slate-700/50">
-                <div className="flex flex-col space-y-4">
-                  {/* Info Card */}
-                  <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 rounded-2xl p-5 backdrop-blur-sm">
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 mt-0.5">
-                        <Info size={20} className="text-emerald-400" />
-                      </div>
-                      <div className="flex-1 space-y-3">
-                        <h4 className="text-sm font-semibold text-emerald-300">Background Task Running</h4>
-                        <p className="text-xs text-slate-300 leading-relaxed">
-                          Code generation is running in the background. Open the Task Panel to:
-                        </p>
-                        <ul className="text-xs text-slate-400 space-y-2 ml-1">
-                          <li className="flex items-start space-x-2">
-                            <span className="text-emerald-400 mt-0.5">•</span>
-                            <span><span className="font-medium text-slate-300">Track progress:</span> Monitor real-time generation status</span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Button */}
-                  <div className="flex justify-center">
-                    <button
-                      onClick={() => {
-                        console.log('[View Background Tasks Button] Clicked, calling onOpenTaskPanel');
-                        onOpenTaskPanel?.();
-                      }}
-                      className="px-6 py-3 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 flex items-center space-x-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-medium"
-                    >
-                      <Sparkles size={20} />
-                      <span className="text-sm">View Background Tasks</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Deployment Tools Detection - View Tasks Button */}
-            {hasDeploymentTools && onOpenTaskPanel && (
-              <div className="mt-6 pt-6 border-t border-slate-700/50">
-                <div className="flex flex-col space-y-4">
-                  {/* Info Card */}
-                  <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 rounded-2xl p-5 backdrop-blur-sm">
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 mt-0.5">
-                        <Info size={20} className="text-emerald-400" />
-                      </div>
-                      <div className="flex-1 space-y-3">
-                        <h4 className="text-sm font-semibold text-emerald-300">Deployment in Progress</h4>
-                        <p className="text-xs text-slate-300 leading-relaxed">
-                          Your application is being deployed. Open the Task Panel to:
-                        </p>
-                        <ul className="text-xs text-slate-400 space-y-2 ml-1">
-                          <li className="flex items-start space-x-2">
-                            <span className="text-emerald-400 mt-0.5">•</span>
-                            <span><span className="font-medium text-slate-300">Track progress:</span> Monitor real-time deployment status</span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Button */}
-                  <div className="flex justify-center">
-                    <button
-                      onClick={() => {
-                        console.log('[View Deployment Tasks Button] Clicked, calling onOpenTaskPanel');
-                        onOpenTaskPanel?.();
-                      }}
-                      className="px-6 py-3 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 flex items-center space-x-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-medium"
-                    >
-                      <Sparkles size={20} />
-                      <span className="text-sm">View Deployment Tasks</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Environment Tools Detection - Open Cloud Panel Button */}
-            {hasEnvironmentTools && onOpenEnvironmentPanel && (
-              <div className="mt-6 pt-6 border-t border-slate-700/50">
-                <div className="flex flex-col space-y-4">
-                  {/* Info Card */}
-                  <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 rounded-2xl p-5 backdrop-blur-sm">
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 mt-0.5">
-                        <Info size={20} className="text-emerald-400" />
-                      </div>
-                      <div className="flex-1 space-y-3">
-                        <h4 className="text-sm font-semibold text-emerald-300">Ready to Manage Your Environments?</h4>
-                        <p className="text-xs text-slate-300 leading-relaxed">
-                          Your cloud environments are waiting. Jump into the Cloud Panel to:
-                        </p>
-                        <ul className="text-xs text-slate-400 space-y-2 ml-1">
-                          <li className="flex items-start space-x-2">
-                            <span className="text-emerald-400 mt-0.5">•</span>
-                            <span><span className="font-medium text-slate-300">View deployments:</span> Monitor all active environments and applications</span>
-                          </li>
-                          <li className="flex items-start space-x-2">
-                            <span className="text-teal-400 mt-0.5">•</span>
-                            <span><span className="font-medium text-slate-300">Check status:</span> Track deployment health and metrics</span>
-                          </li>
-                          <li className="flex items-start space-x-2">
-                            <span className="text-emerald-400 mt-0.5">•</span>
-                            <span><span className="font-medium text-slate-300">Manage credentials:</span> Issue and view technical user credentials</span>
-                          </li>
-                          <li className="flex items-start space-x-2">
-                            <span className="text-teal-400 mt-0.5">•</span>
-                            <span><span className="font-medium text-slate-300">Configure settings:</span> Update environment configurations</span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Button */}
-                  <div className="flex justify-center">
-                    <button
-                      onClick={() => {
-                        console.log('[Open Cloud Panel Button] Clicked, calling onOpenEnvironmentPanel');
-                        onOpenEnvironmentPanel?.();
-                      }}
-                      className="px-6 py-3 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 flex items-center space-x-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-medium"
-                    >
-                      <Sparkles size={20} />
-                      <span className="text-sm">Go to Cloud Panel</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* Promotional cards removed - users can access via badges */}
 
             {/* DEPRECATED: canvas_with_proceed hook is no longer used */}
 
@@ -1081,16 +983,14 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                   hookType="canvas_tab"
                   label="Canvas Tab"
                 />
-                <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
-                  <div className="flex items-center space-x-3">
-                    <div className="text-2xl">🎨</div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-slate-300">
-                        Opening Canvas Tab
-                      </div>
-                      <div className="text-xs text-slate-400 mt-1">
-                        {canvasTabHook.data?.message || `Opening ${canvasTabHook.data?.tab_name} tab...`}
-                      </div>
+                <div className="flex items-center space-x-3">
+                  <div className="text-2xl">🎨</div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-slate-300">
+                      Opening Canvas Tab
+                    </div>
+                    <div className="text-xs text-slate-400 mt-1">
+                      {canvasTabHook.data?.message || `Opening ${canvasTabHook.data?.tab_name} tab...`}
                     </div>
                   </div>
                 </div>
@@ -1104,27 +1004,25 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                   hookType="code_changes"
                   label="Code Changes"
                 />
-                <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center space-x-3 flex-1 min-w-[200px]">
-                      <div className="text-2xl flex-shrink-0">📝</div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-slate-300">
-                          Changes Committed
-                        </div>
-                        <div className="text-xs text-slate-400 mt-1 break-words">
-                          {codeChangesHook.data?.commit_message || 'View changes in Canvas'}
-                        </div>
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center space-x-3 flex-1 min-w-[200px]">
+                    <div className="text-2xl flex-shrink-0">📝</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-slate-300">
+                        Changes Committed
+                      </div>
+                      <div className="text-xs text-slate-400 mt-1 break-words">
+                        {codeChangesHook.data?.commit_message || 'View changes in Canvas'}
                       </div>
                     </div>
-                    <button
-                      onClick={handleOpenCanvasWithPull}
-                      type="button"
-                      className="px-4 py-2 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/50 text-teal-300 text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0"
-                    >
-                      🎨 Open Canvas
-                    </button>
                   </div>
+                  <button
+                    onClick={handleOpenCanvasWithPull}
+                    type="button"
+                    className="px-4 py-2 rounded-full bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/50 text-teal-300 text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0"
+                  >
+                    🎨 Open Canvas
+                  </button>
                 </div>
               </>
             )}
@@ -1136,27 +1034,29 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                   hookType="repository_config_selection"
                   label={repoConfigHook.data?.question || 'Repository Configuration'}
                 />
-                <div className="space-y-4 p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
+                <div className="space-y-3">
 
                 {/* Branch Choice Selection */}
                 {repoConfigHook.data?.options?.branch_choice && (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">
+                    <label className="text-xs font-medium text-slate-400">
                       {repoConfigHook.data?.options?.branch_choice?.label || 'Branch'}
                     </label>
-                    <div className="flex gap-3">
+                    <div className="flex gap-2">
                       {repoConfigHook.data?.options?.branch_choice?.choices?.map((choice: any) => (
                         <button
                           key={choice.value}
                           onClick={() => setBranchChoice(choice.value)}
-                          className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all duration-200 ${
+                          className={`flex-1 px-3 py-2 rounded-2xl border-2 transition-colors ${
                             branchChoice === choice.value
-                              ? 'border-teal-500 bg-teal-500/20 text-teal-300'
-                              : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500'
+                              ? 'border-teal-500/60 bg-teal-500/10 text-teal-300'
+                              : 'border-slate-600/50 bg-slate-800/30 text-slate-300 hover:border-slate-500'
                           }`}
                         >
-                          <div className="text-sm font-medium">{choice.label}</div>
-                          <div className="text-xs opacity-75 mt-1">{choice.description}</div>
+                          <div className="text-xs font-medium">{choice.label}</div>
+                          {choice.description && (
+                            <div className="text-xs opacity-75 mt-0.5">{choice.description}</div>
+                          )}
                         </button>
                       ))}
                     </div>
@@ -1165,22 +1065,24 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
 
                 {/* Repository Type Selection */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300">
+                  <label className="text-xs font-medium text-slate-400">
                     {repoConfigHook.data?.options?.repository_type?.label || 'Repository Type'}
                   </label>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2">
                     {repoConfigHook.data?.options?.repository_type?.choices?.map((choice: any) => (
                       <button
                         key={choice.value}
                         onClick={() => setRepositoryType(choice.value)}
-                        className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all duration-200 ${
+                        className={`flex-1 px-3 py-2 rounded-2xl border-2 transition-colors ${
                           repositoryType === choice.value
-                            ? 'border-teal-500 bg-teal-500/20 text-teal-300'
-                            : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500'
+                            ? 'border-teal-500/60 bg-teal-500/10 text-teal-300'
+                            : 'border-slate-600/50 bg-slate-800/30 text-slate-300 hover:border-slate-500'
                         }`}
                       >
-                        <div className="text-sm font-medium">{choice.label}</div>
-                        <div className="text-xs opacity-75 mt-1">{choice.description}</div>
+                        <div className="text-xs font-medium">{choice.label}</div>
+                        {choice.description && (
+                          <div className="text-xs opacity-75 mt-0.5">{choice.description}</div>
+                        )}
                       </button>
                     ))}
                   </div>
@@ -1188,22 +1090,24 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
 
                 {/* Programming Language Selection */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300">
+                  <label className="text-xs font-medium text-slate-400">
                     {repoConfigHook.data?.options?.language?.label || 'Programming Language'}
                   </label>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2">
                     {repoConfigHook.data?.options?.language?.choices?.map((choice: any) => (
                       <button
                         key={choice.value}
                         onClick={() => setLanguage(choice.value)}
-                        className={`flex-1 px-4 py-3 rounded-xl border-2 transition-all duration-200 ${
+                        className={`flex-1 px-3 py-2 rounded-2xl border-2 transition-colors ${
                           language === choice.value
-                            ? 'border-teal-500 bg-teal-500/20 text-teal-300'
-                            : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500'
+                            ? 'border-teal-500/60 bg-teal-500/10 text-teal-300'
+                            : 'border-slate-600/50 bg-slate-800/30 text-slate-300 hover:border-slate-500'
                         }`}
                       >
-                        <div className="text-sm font-medium">{choice.label}</div>
-                        <div className="text-xs opacity-75 mt-1">{choice.description}</div>
+                        <div className="text-xs font-medium">{choice.label}</div>
+                        {choice.description && (
+                          <div className="text-xs opacity-75 mt-0.5">{choice.description}</div>
+                        )}
                       </button>
                     ))}
                   </div>
@@ -1213,115 +1117,13 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                 <button
                   onClick={handleSubmitRepoConfig}
                   disabled={isSubmittingConfig}
-                  className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  className="w-full px-4 py-2.5 rounded-full backdrop-blur-md bg-slate-700/40 border border-slate-600/50 hover:bg-slate-600/50 hover:border-slate-500/60 disabled:bg-slate-800/40 disabled:border-slate-700/30 disabled:opacity-50 text-slate-200 hover:text-white disabled:text-slate-500 text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-slate-500/20 disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  <Send size={18} />
+                  <Send size={16} />
                   <span>Select</span>
                 </button>
               </div>
               </>
-            )}
-
-            {/* Canvas Open Button - Bottom Left (for new repository setup) */}
-            {canvasOpenHook && (
-              <div className="mt-6 pt-6 border-t border-slate-700/50">
-                <div className="flex flex-col space-y-4">
-                  {/* Info Card */}
-                  <div className="bg-gradient-to-br from-teal-500/10 to-cyan-500/10 border border-teal-500/30 rounded-2xl p-5 backdrop-blur-sm">
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 mt-0.5">
-                        <Info size={20} className="text-teal-400" />
-                      </div>
-                      <div className="flex-1 space-y-3">
-                        <h4 className="text-sm font-semibold text-teal-300">Canvas - Your Visual Design Studio</h4>
-                        <p className="text-xs text-slate-300 leading-relaxed">
-                          Open Canvas to visually design and manage your application:
-                        </p>
-                        <ul className="text-xs text-slate-400 space-y-2 ml-1">
-                          <li className="flex items-start space-x-2">
-                            <span className="text-teal-400 mt-0.5">•</span>
-                            <span><span className="font-medium text-slate-300">Requirements:</span> Define project features and user stories</span>
-                          </li>
-                          <li className="flex items-start space-x-2">
-                            <span className="text-cyan-400 mt-0.5">•</span>
-                            <span><span className="font-medium text-slate-300">Data Models:</span> Create and edit entities with drag-and-drop</span>
-                          </li>
-                          <li className="flex items-start space-x-2">
-                            <span className="text-teal-400 mt-0.5">•</span>
-                            <span><span className="font-medium text-slate-300">Workflows:</span> Design business logic flows visually</span>
-                          </li>
-                          <li className="flex items-start space-x-2">
-                            <span className="text-cyan-400 mt-0.5">•</span>
-                            <span><span className="font-medium text-slate-300">Code Generation:</span> Generate production-ready code from your designs</span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Button */}
-                  <div className="flex justify-center">
-                    <button
-                      onClick={handleOpenCanvas}
-                      className="px-6 py-3 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 flex items-center space-x-2.5 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-medium"
-                    >
-                      <Sparkles size={20} />
-                      <span className="text-sm">Open Canvas</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Save File to Repository - Open Canvas to View */}
-            {hasSaveFileToRepository && !canvasOpenHook && (
-              <div className="mt-6 pt-6 border-t border-slate-700/50">
-                <div className="flex flex-col space-y-4">
-                  {/* Info Card */}
-                  <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 rounded-2xl p-5 backdrop-blur-sm">
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 mt-0.5">
-                        <Info size={20} className="text-emerald-400" />
-                      </div>
-                      <div className="flex-1 space-y-3">
-                        <h4 className="text-sm font-semibold text-emerald-300">Files Saved to Repository</h4>
-                        <p className="text-xs text-slate-300 leading-relaxed">
-                          Your files have been saved to the repository. Open Canvas to:
-                        </p>
-                        <ul className="text-xs text-slate-400 space-y-2 ml-1">
-                          <li className="flex items-start space-x-2">
-                            <span className="text-emerald-400 mt-0.5">•</span>
-                            <span><span className="font-medium text-slate-300">View saved files:</span> See all uploaded documents and resources</span>
-                          </li>
-                          <li className="flex items-start space-x-2">
-                            <span className="text-teal-400 mt-0.5">•</span>
-                            <span><span className="font-medium text-slate-300">Edit and refine:</span> Make changes to your files</span>
-                          </li>
-                          <li className="flex items-start space-x-2">
-                            <span className="text-emerald-400 mt-0.5">•</span>
-                            <span><span className="font-medium text-slate-300">Generate artifacts:</span> Create entities and workflows from your files</span>
-                          </li>
-                          <li className="flex items-start space-x-2">
-                            <span className="text-teal-400 mt-0.5">•</span>
-                            <span><span className="font-medium text-slate-300">Visualize structure:</span> Explore your project architecture</span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Button */}
-                  <div className="flex justify-center">
-                    <button
-                      onClick={handleOpenCanvasWithPull}
-                      className="px-6 py-3 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 flex items-center space-x-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-medium"
-                    >
-                      <Sparkles size={20} />
-                      <span className="text-sm">Open Canvas</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
             )}
 
             {/* Canvas Analysis Suggestion Button - Bottom Left */}
@@ -1415,8 +1217,8 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
               />
             );
           })()}
+          </div>
         </div>
-      </div>
     </div>
   );
 };

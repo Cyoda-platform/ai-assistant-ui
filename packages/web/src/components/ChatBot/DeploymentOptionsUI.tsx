@@ -56,29 +56,30 @@ const DeploymentOptionsUI: React.FC<DeploymentOptionsUIProps> = ({
   };
 
   return (
-    <div className="space-y-4 p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
+    <div className="space-y-3">
       {/* Question */}
-      <div className="text-sm font-medium text-slate-200">
+      <div className="text-xs font-medium text-slate-300">
         {question}
       </div>
 
       {/* Warning Message */}
       {warning && (
-        <div className="flex items-start space-x-2 p-3 bg-amber-900/20 border border-amber-700/30 rounded-lg">
+        <div className="flex items-start space-x-2 p-3 bg-amber-900/20 border border-amber-700/30 rounded-2xl">
           <AlertCircle size={16} className="text-amber-400 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-amber-200">{warning}</p>
         </div>
       )}
 
       {/* Deployment Options */}
-      <div className="space-y-2">
+      <div className="grid gap-2">
         {options.map((option) => (
           <label
             key={option.value}
-            className="flex items-start space-x-3 p-3 rounded-lg border border-slate-600/50 hover:border-slate-500 cursor-pointer transition-colors"
-            style={{
-              backgroundColor: selectedOption === option.value ? 'rgba(20, 184, 166, 0.1)' : 'rgba(15, 23, 42, 0.5)'
-            }}
+            className={`flex items-start space-x-3 p-3 rounded-2xl border cursor-pointer transition-all duration-200 ${
+              selectedOption === option.value
+                ? 'border-teal-500/70 bg-teal-500/15 shadow-lg shadow-teal-500/10'
+                : 'border-slate-700/40 bg-slate-800/20 hover:border-teal-500/40 hover:bg-slate-800/40'
+            }`}
           >
             <input
               type="radio"
@@ -102,11 +103,11 @@ const DeploymentOptionsUI: React.FC<DeploymentOptionsUIProps> = ({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center space-x-2 pt-2">
+      <div className="flex items-center space-x-2 pt-1">
         <button
           onClick={handleSubmit}
           disabled={!selectedOption || isSubmitting}
-          className="flex items-center space-x-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center space-x-2 px-4 py-2.5 rounded-full backdrop-blur-md bg-slate-700/40 border border-slate-600/50 hover:bg-slate-600/50 hover:border-slate-500/60 disabled:bg-slate-800/40 disabled:border-slate-700/30 disabled:opacity-50 text-slate-200 hover:text-white disabled:text-slate-500 text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-slate-500/20 disabled:shadow-none disabled:cursor-not-allowed"
         >
           <Send size={16} />
           <span>Select</span>
@@ -115,7 +116,7 @@ const DeploymentOptionsUI: React.FC<DeploymentOptionsUIProps> = ({
         <button
           onClick={handleOpenEnvironment}
           disabled={isSubmitting}
-          className="flex items-center space-x-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-700 disabled:cursor-not-allowed text-slate-200 text-sm font-medium rounded-lg transition-colors"
+          className="flex items-center space-x-2 px-4 py-2.5 rounded-full backdrop-blur-md bg-slate-700/30 border border-slate-600/40 hover:bg-slate-700/40 hover:border-slate-600/50 disabled:bg-slate-800/20 disabled:border-slate-700/20 disabled:cursor-not-allowed text-slate-300 hover:text-slate-200 disabled:text-slate-600 text-sm font-medium transition-all duration-200"
         >
           <Cloud size={16} />
           <span>Open Env Window</span>

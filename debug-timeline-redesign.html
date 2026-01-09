@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Timeline - Redesign</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0e1a;
+            color: #e4e7eb;
+            padding: 24px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header Section */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #10b981;
+            color: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-badge::before {
+            content: '✓';
+            font-size: 16px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .stat-unit {
+            font-size: 16px;
+            color: #64748b;
+            margin-left: 4px;
+        }
+
+        /* Event Breakdown */
+        .event-breakdown {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .event-breakdown h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #f1f5f9;
+        }
+
+        .event-types {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .event-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .event-type:hover {
+            background: #334155;
+            transform: scale(1.05);
+        }
+
+        .event-type .icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .event-type .count {
+            background: #475569;
+            color: #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Event type colors */
+        .event-type.start { border-left: 3px solid #8b5cf6; }
+        .event-type.agent { border-left: 3px solid #3b82f6; }
+        .event-type.tool_call { border-left: 3px solid #f59e0b; }
+        .event-type.tool_response { border-left: 3px solid #10b981; }
+        .event-type.agent_transfer { border-left: 3px solid #ec4899; }
+        .event-type.content { border-left: 3px solid #06b6d4; }
+        .event-type.done { border-left: 3px solid #22c55e; }
+
+        /* Agents & Tools Section */
+        .resources-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .resource-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .resource-card h3 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+            margin-bottom: 16px;
+        }
+
+        .resource-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .resource-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: #1e293b;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .resource-item:hover {
+            background: #334155;
+        }
+
+        .resource-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        /* Timeline */
+        .timeline-section {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .timeline-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .timeline-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .timeline-btn {
+            padding: 6px 12px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #e4e7eb;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .timeline-btn:hover {
+            background: #334155;
+        }
+
+        .timeline-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        /* Timeline Events */
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, #8b5cf6 0%, #10b981 100%);
+        }
+
+        .timeline-event {
+            position: relative;
+            margin-bottom: 24px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.2s;
+        }
+
+        .timeline-event:hover {
+            background: #334155;
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .timeline-event::before {
+            content: '';
+            position: absolute;
+            left: -32px;
+            top: 24px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #0f172a;
+            z-index: 1;
+        }
+
+        .timeline-event.start::before { background: #8b5cf6; }
+        .timeline-event.agent::before { background: #3b82f6; }
+        .timeline-event.tool_call::before { background: #f59e0b; }
+        .timeline-event.tool_response::before { background: #10b981; }
+        .timeline-event.agent_transfer::before { background: #ec4899; }
+        .timeline-event.content::before { background: #06b6d4; }
+        .timeline-event.done::before { background: #22c55e; }
+
+        .event-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .event-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .event-type-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .event-type-badge.start { background: #8b5cf6; color: white; }
+        .event-type-badge.agent { background: #3b82f6; color: white; }
+        .event-type-badge.tool_call { background: #f59e0b; color: white; }
+        .event-type-badge.tool_response { background: #10b981; color: white; }
+        .event-type-badge.agent_transfer { background: #ec4899; color: white; }
+        .event-type-badge.content { background: #06b6d4; color: white; }
+        .event-type-badge.done { background: #22c55e; color: white; }
+
+        .event-time {
+            font-size: 13px;
+            color: #64748b;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .event-description {
+            color: #cbd5e1;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .event-details {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #334155;
+        }
+
+        .event-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .expand-btn {
+            margin-top: 12px;
+            padding: 6px 12px;
+            background: transparent;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #94a3b8;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .expand-btn:hover {
+            background: #1e293b;
+            color: #e4e7eb;
+        }
+
+        /* Raw Data */
+        .raw-data {
+            display: none;
+            margin-top: 12px;
+            padding: 12px;
+            background: #0a0e1a;
+            border-radius: 6px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 12px;
+            color: #10b981;
+            overflow-x: auto;
+        }
+
+        .raw-data.show {
+            display: block;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            height: 4px;
+            background: #1e293b;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 32px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8b5cf6 0%, #10b981 100%);
+            width: 100%;
+            animation: fillProgress 1s ease-out;
+        }
+
+        @keyframes fillProgress {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .resources-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Processing Timeline</h1>
+            <div class="status-badge">Processing Complete</div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Events</div>
+                <div class="stat-value">10</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Duration</div>
+                <div class="stat-value">55.82<span class="stat-unit">s</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Agents Used</div>
+                <div class="stat-value">2</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Tools Invoked</div>
+                <div class="stat-value">2</div>
+            </div>
+        </div>
+
+        <div class="event-breakdown">
+            <h2>Event Breakdown</h2>
+            <div class="event-types">
+                <div class="event-type start">
+                    <span class="icon">▶</span>
+                    <span>Start</span>
+                    <span class="count">1</span>
+                </div>
+                <div class="event-type agent">
+                    <span class="icon">🤖</span>
+                    <span>Agent</span>
+                    <span class="count">2</span>
+                </div>
+                <div class="event-type tool_call">
+                    <span class="icon">🔧</span>
+                    <span>Tool Call</span>
+                    <span class="count">2</span>
+                </div>
+                <div class="event-type tool_response">
+                    <span class="icon">✓</span>
+                    <span>Tool Response</span>
+                    <span class="count">2</span>
+                </div>
+                <div class="event-type agent_transfer">
+                    <span class="icon">→</span>
+                    <span>Agent Transfer</span>
+                    <span class="count">1</span>
+                </div>
+                <div class="event-type content">
+                    <span class="icon">📄</span>
+                    <span>Content</span>
+                    <span class="count">1</span>
+                </div>
+                <div class="event-type done">
+                    <span class="icon">✓</span>
+                    <span>Done</span>
+                    <span class="count">1</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="resources-grid">
+            <div class="resource-card">
+                <h3>Agents Used</h3>
+                <div class="resource-list">
+                    <div class="resource-item">
+                        <div class="resource-icon">🎯</div>
+                        <span>Coordinator</span>
+                    </div>
+                    <div class="resource-item">
+                        <div class="resource-icon">📦</div>
+                        <span>GitHub Agent</span>
+                    </div>
+                </div>
+            </div>
+            <div class="resource-card">
+                <h3>Tools Used</h3>
+                <div class="resource-list">
+                    <div class="resource-item">
+                        <div class="resource-icon">🔄</div>
+                        <span>Transfer To Agent</span>
+                    </div>
+                    <div class="resource-item">
+                        <div class="resource-icon">🔍</div>
+                        <span>Check Existing Branch Configuration</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="timeline-section">
+            <div class="timeline-header">
+                <h2>Timeline Details</h2>
+                <div class="timeline-controls">
+                    <button class="timeline-btn active">All Events</button>
+                    <button class="timeline-btn">Tools Only</button>
+                    <button class="timeline-btn">Agents Only</button>
+                </div>
+            </div>
+
+            <div class="timeline">
+                <div class="timeline-event start">
+                    <div class="event-header">
+                        <div class="event-title">
+                            <span class="event-type-badge start">Start</span>
+                        </div>
+                        <span class="event-time">04:53:00.000 PM</span>
+                    </div>
+                    <div class="event-description">
+                        Processing started
+                    </div>
+                </div>
+
+                <div class="timeline-event agent">
+                    <div class="event-header">
+                        <div class="event-title">
+                            <span class="event-type-badge agent">Agent</span>
+                        </div>
+                        <span class="event-time">04:53:01.245 PM</span>
+                    </div>
+                    <div class="event-description">
+                        Coordinator agent initialized
+                    </div>
+                    <button class="expand-btn" onclick="toggleRawData(this)">View raw data ▼</button>
+                    <div class="raw-data">
+                        { "agent": "coordinator", "action": "initialize", "timestamp": 1704396781245 }
+                    </div>
+                </div>
+
+                <div class="timeline-event tool_call">
+                    <div class="event-header">
+                        <div class="event-title">
+                            <span class="event-type-badge tool_call">Tool Call</span>
+                        </div>
+                        <span class="event-time">04:53:03.512 PM</span>
+                    </div>
+                    <div class="event-description">
+                        Calling tool: Check Existing Branch Configuration
+                    </div>
+                    <div class="event-details">
+                        <div class="event-meta">
+                            <span>Tool: check_existing_branch_configuration</span>
+                        </div>
+                    </div>
+                    <button class="expand-btn" onclick="toggleRawData(this)">View raw data ▼</button>
+                    <div class="raw-data">
+                        { "tool": "check_existing_branch_configuration", "parameters": {}, "timestamp": 1704396783512 }
+                    </div>
+                </div>
+
+                <div class="timeline-event tool_response">
+                    <div class="event-header">
+                        <div class="event-title">
+                            <span class="event-type-badge tool_response">Tool Response</span>
+                        </div>
+                        <span class="event-time">04:53:05.601 PM</span>
+                    </div>
+                    <div class="event-description">
+                        Tool response: check_existing_branch_configuration - No branch configuration found in conversation
+                    </div>
+                    <button class="expand-btn" onclick="toggleRawData(this)">View raw data ▼</button>
+                    <div class="raw-data">
+                        { "tool": "check_existing_branch_configuration", "result": "No branch configuration found in conversation", "timestamp": 1704396785601 }
+                    </div>
+                </div>
+
+                <div class="timeline-event agent_transfer">
+                    <div class="event-header">
+                        <div class="event-title">
+                            <span class="event-type-badge agent_transfer">Agent Transfer</span>
+                        </div>
+                        <span class="event-time">04:53:18.332 PM</span>
+                    </div>
+                    <div class="event-description">
+                        Transfer from Coordinator to GitHub Agent
+                    </div>
+                    <div class="event-details">
+                        <div class="event-meta">
+                            <span>From: Coordinator</span>
+                            <span>To: GitHub Agent</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-event content">
+                    <div class="event-header">
+                        <div class="event-title">
+                            <span class="event-type-badge content">Content</span>
+                        </div>
+                        <span class="event-time">04:53:22.837 PM</span>
+                    </div>
+                    <div class="event-description">
+                        Content received: 1139 characters
+                    </div>
+                    <button class="expand-btn" onclick="toggleRawData(this)">View raw data ▼</button>
+                    <div class="raw-data">
+                        { "type": "content", "length": 1139, "timestamp": 1704396802837 }
+                    </div>
+                </div>
+
+                <div class="timeline-event done">
+                    <div class="event-header">
+                        <div class="event-title">
+                            <span class="event-type-badge done">Done</span>
+                        </div>
+                        <span class="event-time">04:53:29.815 PM</span>
+                    </div>
+                    <div class="event-description">
+                        Done: Thank you for the request. To get started, we need to set up the repository firs...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleRawData(button) {
+            const rawData = button.nextElementSibling;
+            rawData.classList.toggle('show');
+            button.textContent = rawData.classList.contains('show')
+                ? 'Hide raw data ▲'
+                : 'View raw data ▼';
+        }
+
+        // Timeline filter functionality
+        document.querySelectorAll('.timeline-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.timeline-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const events = document.querySelectorAll('.timeline-event');
+                const filter = this.textContent.toLowerCase();
+
+                events.forEach(event => {
+                    if (filter === 'all events') {
+                        event.style.display = 'block';
+                    } else if (filter === 'tools only') {
+                        const isToolEvent = event.classList.contains('tool_call') ||
+                                          event.classList.contains('tool_response');
+                        event.style.display = isToolEvent ? 'block' : 'none';
+                    } else if (filter === 'agents only') {
+                        const isAgentEvent = event.classList.contains('agent') ||
+                                           event.classList.contains('agent_transfer');
+                        event.style.display = isAgentEvent ? 'block' : 'none';
+                    }
+                });
+            });
+        });
+
+        // Event type filter functionality
+        document.querySelectorAll('.event-type').forEach(type => {
+            type.addEventListener('click', function() {
+                const eventClass = this.classList[1];
+                const events = document.querySelectorAll('.timeline-event');
+
+                events.forEach(event => {
+                    if (event.classList.contains(eventClass)) {
+                        event.style.display = event.style.display === 'none' ? 'block' : 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -76,28 +76,28 @@ const StreamingMessage: React.FC<StreamingMessageProps> = ({
   return (
     <div
       ref={messageRef}
-      className="flex justify-start mb-6 animate-fade-in-up"
+      className="w-full mb-6 animate-fade-in-up px-4 md:px-6 lg:px-8"
     >
-      <div className="flex items-start space-x-3 w-full max-w-[90%]">
-        {/* AI Avatar */}
-        <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden">
-          <img src={LogoSmall} alt="CYODA" className="w-10 h-10" />
-        </div>
+      <div className="flex items-start gap-3 max-w-6xl">
+          {/* AI Avatar */}
+          <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <img src={LogoSmall} alt="CYODA" className="w-10 h-10" />
+          </div>
 
-        <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0">
           {/* AI Badge */}
-          <div className="flex items-center space-x-2 flex-wrap mb-2">
-            <div className="flex items-center space-x-1.5 bg-slate-800/50 backdrop-blur-sm px-3 py-1 rounded-full border border-slate-600">
-              <Sparkles size={12} className={isComplete ? "text-purple-400" : "text-purple-400 animate-pulse"} />
-              <span className="text-xs font-medium text-slate-300">{displayAgentName}</span>
-            </div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs font-medium text-slate-400">{displayAgentName}</span>
             {!isComplete && (
-              <span className="text-xs text-slate-500 italic">streaming...</span>
+              <>
+                <span className="text-xs text-teal-400 animate-pulse">●</span>
+                <span className="text-xs text-slate-500 italic">streaming...</span>
+              </>
             )}
           </div>
 
           {/* Message Content */}
-          <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl px-4 py-3 border border-slate-700/50 shadow-lg">
+          <div className="rounded-3xl bg-slate-800/40 px-4 py-3 border border-slate-700/30">
             <div className="prose prose-invert prose-sm max-w-none">
               {content ? (
                 <div className="relative">
@@ -197,8 +197,8 @@ const StreamingMessage: React.FC<StreamingMessageProps> = ({
               />
             )}
           </div>
+          </div>
         </div>
-      </div>
     </div>
   );
 };

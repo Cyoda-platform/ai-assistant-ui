@@ -79,8 +79,8 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
   };
 
   return (
-    <div className="flex justify-end mb-2 animate-fade-in-up">
-      <div className="flex items-start space-x-2 max-w-[85%]">
+    <div className="flex justify-end mb-6 animate-fade-in-up px-4 md:px-6 lg:px-8">
+      <div className="flex items-start space-x-2 max-w-6xl w-full">
         {/* Message Content Container */}
         <div className="flex flex-col items-end space-y-1.5 flex-1">
           {/* User Badge */}
@@ -128,7 +128,7 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
         </div>
 
         {/* User Avatar */}
-        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 shadow-md overflow-hidden border border-teal-500/30">
+        <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-md overflow-hidden border border-teal-500/30">
           {userAvatar ? (
             <img
               src={userAvatar}
@@ -136,7 +136,7 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center text-white text-[10px] font-semibold">
+            <div className="w-full h-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center text-white text-sm font-semibold">
               {userInitials}
             </div>
           )}

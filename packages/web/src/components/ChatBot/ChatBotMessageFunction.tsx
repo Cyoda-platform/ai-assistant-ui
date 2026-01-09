@@ -188,11 +188,11 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
   }
 
   return (
-    <div className="flex justify-start mb-6 animate-fade-in-up">
-      <div className="flex items-start space-x-3 max-w-[85%]">
+    <div className="flex justify-start mb-6 animate-fade-in-up px-4 md:px-6 lg:px-8">
+      <div className="flex items-start space-x-3 max-w-6xl w-full">
         {/* Bot Avatar */}
-        <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden">
-          <img src={LogoSmall} alt="CYODA" className="w-10 h-10" />
+        <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden">
+          <img src={LogoSmall} alt="CYODA" className="w-12 h-12" />
         </div>
 
         <div className="flex-1">
