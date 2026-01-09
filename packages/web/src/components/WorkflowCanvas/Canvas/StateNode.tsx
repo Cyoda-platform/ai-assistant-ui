@@ -178,7 +178,7 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
               value={state.name}
               onSave={handleNameChange}
               className="min-w-0"
-              inputClassName="text-base font-semibold text-white uppercase"
+              inputClassName="text-xl font-semibold text-white"
               showIconOnHover={true}
             />
           </div>
