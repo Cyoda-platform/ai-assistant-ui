@@ -171,9 +171,15 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
     if (!transition.definition.processors || transition.definition.processors.length === 0) {
       return null;
     }
-    return transition.definition.processors
-      .map((p, idx) => `${idx + 1}. ${p.name}${p.executionMode ? ` (${p.executionMode})` : ''}`)
-      .join('\n');
+    return (
+      <div style={{ whiteSpace: 'pre-wrap' }}>
+        {transition.definition.processors.map((p, idx) => (
+          <div key={idx}>
+            {idx + 1}. {p.name}{p.executionMode ? ` (${p.executionMode})` : ''}
+          </div>
+        ))}
+      </div>
+    );
   };
 
 
