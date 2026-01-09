@@ -4,7 +4,6 @@ import {
   BaseEdge,
 } from '@xyflow/react';
 import type { EdgeProps } from '@xyflow/react';
-import { Edit, Move, RotateCcw } from 'lucide-react';
 import type { UITransitionData } from '../types/workflow';
 import type { ColorPalette } from '../themes/colorPalettes';
 
@@ -30,10 +29,6 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
 }) => {
   const { transition, onEdit, onUpdate, palette } = (data as unknown as LoopbackEdgeData) || {};
 
-  // Use labelPosition from transition layout if available, otherwise use default offset
-  // This allows users to adjust loop position by dragging the label
-  const dragOffset = transition?.labelPosition || { x: 0, y: 0 };
-
   // Helper function to get handle direction based on handle ID
   const getHandleDirection = (handleId: string | null): { x: number; y: number } => {
     if (!handleId) return { x: 0, y: 0 };
@@ -43,17 +38,23 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
 
     // Map handle positions to tangent directions
     switch (position) {
+      // Top handles - loop goes up
       case 'top-left':
       case 'top-center':
       case 'top-right':
         return { x: 0, y: -1 }; // Upward direction
+      // Bottom handles - loop goes down
       case 'bottom-left':
       case 'bottom-center':
       case 'bottom-right':
         return { x: 0, y: 1 }; // Downward direction
-      case 'left-center':
+      // Left handles - loop goes left
+      case 'left-top':
+      case 'left-bottom':
         return { x: -1, y: 0 }; // Leftward direction
-      case 'right-center':
+      // Right handles - loop goes right
+      case 'right-top':
+      case 'right-bottom':
         return { x: 1, y: 0 }; // Rightward direction
       default:
         return { x: 0, y: 0 };
@@ -62,59 +63,46 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
 
   // Create a curved loop path for self-connections
   const createLoopPath = () => {
-    // React Flow provides the actual handle coordinates directly
+    // "Mickey Mouse Ears" algorithm for wide, expressive self-loops
+    // Since source and target are the same point, we need to create an artificial loop
+    const LOOP_WIDTH = 400; // How wide the loop is (horizontal spread)
+    const LOOP_HEIGHT = 250; // How tall the loop is (vertical extension)
+
     const startX = sourceX;
     const startY = sourceY;
     const endX = targetX;
     const endY = targetY;
 
-    // Get handle directions for proper tangent angles
-    const sourceDirection = getHandleDirection(transition?.sourceHandle);
-    const targetDirection = getHandleDirection(transition?.targetHandle);
+    // Get handle direction to determine loop orientation
+    const sourceHandle = data?.sourceHandle || transition?.sourceHandle;
+    const handleDirection = getHandleDirection(sourceHandle);
 
-    // Calculate the base position for the loop (midpoint between handles)
-    const baseMidX = (startX + endX) / 2;
-    const baseMidY = (startY + endY) / 2;
+    // Create control points that form a smooth loop
+    // For top handles: loop goes up and curves smoothly
+    // Strategy: Both control points go UP, but spread horizontally
 
-    // Apply user's drag offset to the loop position
-    // If no drag offset is set, use a much larger default offset to push the loop away from the node
-    const defaultOffset = 120; // Large default offset
-    const effectiveDragOffsetX = dragOffset.x !== 0 ? dragOffset.x : defaultOffset;
-    const effectiveDragOffsetY = dragOffset.y !== 0 ? dragOffset.y : -defaultOffset;
+    let cp1X, cp1Y, cp2X, cp2Y;
 
-    const loopCenterX = baseMidX + effectiveDragOffsetX;
-    const loopCenterY = baseMidY + effectiveDragOffsetY;
+    if (handleDirection.y !== 0) {
+      // Vertical handle (top or bottom) - create smooth arc above/below
+      // Both control points at the same height, spread horizontally
+      // handleDirection.y = -1 for top (loop goes up), +1 for bottom (loop goes down)
+      cp1X = startX - LOOP_WIDTH / 4;
+      cp1Y = startY + handleDirection.y * LOOP_HEIGHT; // Adaptive: up or down based on handle
+      cp2X = endX + LOOP_WIDTH / 4;
+      cp2Y = endY + handleDirection.y * LOOP_HEIGHT; // Adaptive: up or down based on handle
+    } else {
+      // Horizontal handle (left or right) - create smooth arc to the side
+      // handleDirection.x = -1 for left (loop goes left), +1 for right (loop goes right)
+      // Both control points at the same horizontal distance, spread vertically
+      cp1X = startX + handleDirection.x * LOOP_HEIGHT; // Extend left or right
+      cp1Y = startY - LOOP_WIDTH / 4; // Spread vertically (up)
+      cp2X = endX + handleDirection.x * LOOP_HEIGHT; // Extend left or right
+      cp2Y = endY + LOOP_WIDTH / 4; // Spread vertically (down)
+    }
 
-    // Calculate loop size based on distance between handles and drag offset
-    const handleDistance = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
-    const baseLoopSize = Math.max(180, handleDistance * 4); // Further increased for even more spacing
-    const dragDistance = Math.sqrt(effectiveDragOffsetX * effectiveDragOffsetX + effectiveDragOffsetY * effectiveDragOffsetY);
-    const loopSize = baseLoopSize + dragDistance * 0.3;
-
-    // Create control points that respect handle directions
-    // Control point 1: extends from source handle in its natural direction
-    const controlPoint1Distance = loopSize * 2.0; // Significantly increased to 2.0 for very wide loops
-    const controlPoint1X = startX + sourceDirection.x * controlPoint1Distance;
-    const controlPoint1Y = startY + sourceDirection.y * controlPoint1Distance;
-
-    // Control point 2: approaches target handle from its natural direction
-    const controlPoint2Distance = loopSize * 2.0; // Significantly increased to 2.0 for very wide loops
-    const controlPoint2X = endX + targetDirection.x * controlPoint2Distance;
-    const controlPoint2Y = endY + targetDirection.y * controlPoint2Distance;
-
-    // Adjust control points to create a proper loop that goes through the drag position
-    // Blend the natural directions with the loop center position
-    const blendFactor = 0.3; // Further reduced blend factor to keep loop much further from node
-    const finalControlPoint1X = controlPoint1X * (1 - blendFactor) + loopCenterX * blendFactor;
-    const finalControlPoint1Y = controlPoint1Y * (1 - blendFactor) + loopCenterY * blendFactor;
-    const finalControlPoint2X = controlPoint2X * (1 - blendFactor) + loopCenterX * blendFactor;
-    const finalControlPoint2Y = controlPoint2Y * (1 - blendFactor) + loopCenterY * blendFactor;
-
-    // Create the loop path using cubic bezier curves with proper tangent directions
-    const path = `M ${startX},${startY}
-                  C ${finalControlPoint1X},${finalControlPoint1Y}
-                    ${finalControlPoint2X},${finalControlPoint2Y}
-                    ${endX},${endY}`;
+    // Create the loop path using cubic bezier curve
+    const path = `M ${startX},${startY} C ${cp1X},${cp1Y} ${cp2X},${cp2Y} ${endX},${endY}`;
 
     // Calculate label position at the midpoint of the bezier curve (t=0.5)
     // Using the cubic bezier formula: B(t) = (1-t)³P0 + 3(1-t)²tP1 + 3(1-t)t²P2 + t³P3
@@ -125,8 +113,8 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
     const mt2 = mt * mt;
     const mt3 = mt2 * mt;
 
-    const labelX = mt3 * startX + 3 * mt2 * t * finalControlPoint1X + 3 * mt * t2 * finalControlPoint2X + t3 * endX;
-    const labelY = mt3 * startY + 3 * mt2 * t * finalControlPoint1Y + 3 * mt * t2 * finalControlPoint2Y + t3 * endY;
+    const labelX = mt3 * startX + 3 * mt2 * t * cp1X + 3 * mt * t2 * cp2X + t3 * endX;
+    const labelY = mt3 * startY + 3 * mt2 * t * cp1Y + 3 * mt * t2 * cp2Y + t3 * endY;
 
     return {
       path,
@@ -171,7 +159,6 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
   const markerId = `arrow-loopback-${id}`;
   const styles = getLoopbackStyles();
   const edgeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
-  const labelBgColor = edgeColor;
 
   return (
     <>
@@ -187,6 +174,7 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
       />
 
       <EdgeLabelRenderer>
+        {/* Primary Label - Center of the loop (Transition name) */}
         <div
           style={{
             position: 'absolute',
@@ -195,46 +183,16 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
           }}
           className="nodrag nopan"
           onDoubleClick={handleDoubleClick}
-          title="Double-click to edit transition"
         >
+          {/* Label with transition name */}
           <div
-            className={`border-0 rounded-full px-4 py-2 text-sm transition-all duration-300 ${
-              selected
-                ? 'ring-2 ring-white ring-offset-2 ring-offset-[#0b0f1a]'
-                : ''
-            }`}
-            style={{ backgroundColor: labelBgColor }}
+            className="text-xl font-medium text-white/90 whitespace-nowrap px-2 py-1 rounded cursor-pointer"
+            style={{
+              backgroundColor: 'transparent',
+            }}
+            title="Double-click to edit transition"
           >
-            <div className="flex items-center space-x-2">
-              {/* Drag Handle */}
-              <div className="flex-shrink-0 text-white/70 hover:text-white">
-                <Move size={10} />
-              </div>
-
-              {/* Loop Icon */}
-              <div className="flex-shrink-0 text-white">
-                <RotateCcw size={12} />
-              </div>
-
-              {/* Transition Name */}
-              <span className="text-white font-medium">
-                {transition?.definition?.name || 'Loop-back'}
-              </span>
-
-              {/* Edit Button */}
-              <button
-                onClick={handleDoubleClick}
-                onMouseDown={(e) => {
-                  e.stopPropagation(); // Prevent drag from starting
-                }}
-                className="flex-shrink-0 text-gray-400 hover:text-gray-300 transition-colors cursor-pointer"
-                title="Click to edit transition"
-              >
-                <Edit size={10} />
-              </button>
-
-
-            </div>
+            {transition?.definition?.name || 'Loop-back'}
           </div>
         </div>
       </EdgeLabelRenderer>
@@ -243,15 +201,15 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
       <defs>
         <marker
           id={markerId}
-          markerWidth="10"
-          markerHeight="10"
-          refX="9"
-          refY="3"
+          markerWidth="20"
+          markerHeight="30"
+          refX="18"
+          refY="9"
           orient="auto"
           markerUnits="userSpaceOnUse"
         >
           <path
-            d="M0,0 L0,6 L9,3 z"
+            d="M0,0 L0,18 L18,9 z"
             fill={edgeColor}
             className="transition-colors duration-200"
           />

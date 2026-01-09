@@ -841,22 +841,26 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         const edgeWidth = 2;
 
         // Calculate optimal handles based on node positions
-        let sourceHandle = layout?.stateToTransitionSourceHandle;
-        let targetHandle = layout?.transitionToStateTargetHandle;
+        let sourceHandle: string;
+        let targetHandle: string;
 
-        if (!sourceHandle || !targetHandle) {
-          const anchors = calculateOptimalAnchorPoints(
-            sourceState.position,
-            targetState.position
-          );
-          sourceHandle = sourceHandle || anchors.sourceHandle;
-          targetHandle = targetHandle || anchors.targetHandle;
-        }
-
-        // For loopback transitions, use specific handles
+        // For loopback transitions, use handles from layout (user selected when drawing)
         if (isLoopback) {
-          sourceHandle = sourceHandle || 'top-right-source';
-          targetHandle = targetHandle || 'bottom-right-target';
+          // Use stored handles from layout, or fallback to defaults
+          sourceHandle = layout?.sourceHandle || 'top-left-source';
+          targetHandle = layout?.targetHandle || 'top-center-target';
+        } else {
+          sourceHandle = layout?.stateToTransitionSourceHandle || '';
+          targetHandle = layout?.transitionToStateTargetHandle || '';
+
+          if (!sourceHandle || !targetHandle) {
+            const anchors = calculateOptimalAnchorPoints(
+              sourceState.position,
+              targetState.position
+            );
+            sourceHandle = sourceHandle || anchors.sourceHandle;
+            targetHandle = targetHandle || anchors.targetHandle;
+          }
         }
 
         // Create single edge from source state to target state with transition data
@@ -882,6 +886,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           },
           data: {
             transition: transition,
+            sourceHandle: sourceHandle,
+            targetHandle: targetHandle,
             onEdit: currentOnTransitionEdit,
             onUpdate: (updatedTransition: UITransitionData) => {
               // Handle transition update
@@ -1070,9 +1076,10 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       const transitionLayout = {
         id: transitionId,
         position: transitionNodePosition,
-        // Keep legacy fields for backward compatibility
-        sourceHandle: params.sourceHandle || (isLoopback ? 'top-right' : null),
-        targetHandle: params.targetHandle || (isLoopback ? 'right-bottom' : null),
+        // For loopback, store the actual handles user selected
+        // For regular transitions, these are null (handled by edge routing)
+        sourceHandle: isLoopback ? params.sourceHandle : null,
+        targetHandle: isLoopback ? params.targetHandle : null,
         labelPosition: isLoopback ? { x: 80, y: -80 } : { x: 0, y: 0 }
       };
 
