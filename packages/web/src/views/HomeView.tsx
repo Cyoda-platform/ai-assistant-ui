@@ -770,16 +770,19 @@ const HomeView: React.FC = () => {
                         fontFamily: 'Montserrat, sans-serif',
                         fontWeight: 700,
                         fontSize: 'clamp(48px, 6vw, 72px)',
-                        background: 'linear-gradient(135deg, #22d3ee 0%, #2dd4bf 50%, #34d399 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text',
                         letterSpacing: '2px',
                         lineHeight: 1.1,
                         animationDelay: '0.1s'
                       }}
                     >
-                      Cyoda AI Studio
+                      <span style={{ color: '#0d9488' }}>Cyoda </span>
+                      <span style={{
+                        background: 'linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text'
+                      }}>AI</span>
+                      <span style={{ color: '#0d9488' }}> Studio</span>
                     </h2>
 
                     {/* Main Tagline - 46-52px, weight 600 */}

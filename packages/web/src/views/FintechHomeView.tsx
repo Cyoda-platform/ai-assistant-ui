@@ -713,16 +713,19 @@ const HomeView: React.FC = () => {
                         fontFamily: 'Montserrat, sans-serif',
                         fontWeight: 700,
                         fontSize: 'clamp(36px, 5vw, 64px)',
-                        background: 'linear-gradient(135deg, #22d3ee 0%, #2dd4bf 50%, #34d399 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text',
                         lineHeight: 1,
                         animationDelay: '0.1s',
                         margin: 0
                       }}
                     >
-                      Cyoda AI Studio
+                      <span style={{ color: '#0d9488' }}>Cyoda </span>
+                      <span style={{
+                        background: 'linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text'
+                      }}>AI</span>
+                      <span style={{ color: '#0d9488' }}> Studio</span>
                     </h1>
 
                     <h2
@@ -731,16 +734,12 @@ const HomeView: React.FC = () => {
                         fontFamily: 'Montserrat, sans-serif',
                         fontWeight: 600,
                         fontSize: 'clamp(36px, 5vw, 64px)',
-                        background: 'linear-gradient(135deg, #22d3ee 0%, #2dd4bf 50%, #34d399 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text',
                         lineHeight: 1,
                         animationDelay: '0.2s',
                         margin: 0
                       }}
                     >
-                      Event-Driven AI Platform
+                      <span style={{ color: '#0891b2' }}>Event-Driven AI Platform</span>
                     </h2>
                   </div>
 
