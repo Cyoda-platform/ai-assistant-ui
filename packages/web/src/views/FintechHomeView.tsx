@@ -739,7 +739,7 @@ const HomeView: React.FC = () => {
                         margin: 0
                       }}
                     >
-                      <span style={{ color: '#0891b2' }}>Event-Driven AI Platform</span>
+                      <span style={{ color: '#0d9488' }}>Event-Driven AI Platform</span>
                     </h2>
                   </div>
 
