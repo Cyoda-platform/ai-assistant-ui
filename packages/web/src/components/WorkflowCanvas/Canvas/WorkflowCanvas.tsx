@@ -1993,6 +1993,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           }}
           className="dark"
           style={{
+            width: 150,
+            height: 120,
             backgroundColor: palette.ui.panelGradientFrom,
             borderColor: palette.ui.panelBorder
           }}
