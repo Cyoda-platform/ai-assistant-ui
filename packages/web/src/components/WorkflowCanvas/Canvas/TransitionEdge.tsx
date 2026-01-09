@@ -96,6 +96,33 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
   // Define colors based on manual/automated state
   const edgeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
 
+  // Calculate position for criterion badge near source node
+  const getCriterionBadgePosition = () => {
+    // Offset from source based on source position
+    let offsetX = 0;
+    let offsetY = 0;
+
+    switch (sourcePosition) {
+      case 'top':
+        offsetY = -30; // Above the source node
+        break;
+      case 'bottom':
+        offsetY = 30; // Below the source node
+        break;
+      case 'left':
+        offsetX = -30; // Left of the source node
+        break;
+      case 'right':
+        offsetX = 30; // Right of the source node
+        break;
+    }
+
+    return {
+      x: sourceX + offsetX,
+      y: sourceY + offsetY,
+    };
+  };
+
   // Calculate position for process badge near target node
   const getProcessBadgePosition = () => {
     // Offset from target based on target position
@@ -125,6 +152,7 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
   };
 
   const processBadgePos = getProcessBadgePosition();
+  const criterionBadgePos = getCriterionBadgePosition();
 
   // Format criterion information for tooltip
   const getCriterionTooltip = () => {
@@ -169,7 +197,7 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
       />
 
       <EdgeLabelRenderer>
-        {/* Primary Label - Center of the edge (Transition name + Criterion) */}
+        {/* Primary Label - Center of the edge (Transition name) */}
         <div
           style={{
             position: 'absolute',
@@ -179,59 +207,52 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
           className="nodrag nopan"
           onDoubleClick={handleDoubleClick}
         >
+          {/* Label with transition name */}
           <div
+            className="text-xl font-medium text-white/90 whitespace-nowrap px-2 py-1 rounded cursor-pointer"
             style={{
-              display: 'inline-flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
               backgroundColor: 'transparent',
-              padding: '4px 8px',
             }}
+            title="Double-click to edit transition"
           >
-            {/* Criterion icon - above the text */}
-            {hasCriterion && (
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <Tooltip title={getCriterionTooltip()} color="#1f2937">
-                  <div
-                    style={{
-                      width: '28px',
-                      height: '28px',
-                      backgroundColor: '#ec4899', // Pink-500
-                      transform: 'rotate(45deg)',
-                      borderRadius: '2px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 0 8px rgba(236, 72, 153, 0.5)',
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <div style={{ transform: 'rotate(-45deg)' }}>
-                      <Filter size={14} color="white" />
-                    </div>
-                  </div>
-                </Tooltip>
-              </div>
-            )}
-
-            {/* Label with transition name - below icons */}
-            <div
-              className="text-xl font-medium text-white/90 whitespace-nowrap px-2 py-1 rounded cursor-pointer"
-              style={{
-                backgroundColor: 'transparent',
-                flexShrink: 0,
-              }}
-              title="Double-click to edit transition"
-            >
-              {transition.definition.name || 'Unnamed'}
-            </div>
+            {transition.definition.name || 'Unnamed'}
           </div>
         </div>
 
-        {/* Secondary Label - Process Badge near target node */}
+        {/* Criterion Badge - Near source node (start of edge) */}
+        {hasCriterion && (
+          <div
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${criterionBadgePos.x}px,${criterionBadgePos.y}px)`,
+              pointerEvents: 'all',
+            }}
+            className="nodrag nopan"
+          >
+            <Tooltip title={getCriterionTooltip()} color="#1f2937">
+              <div
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  backgroundColor: '#ec4899', // Pink-500
+                  transform: 'rotate(45deg)',
+                  borderRadius: '2px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 0 8px rgba(236, 72, 153, 0.5)',
+                  cursor: 'pointer',
+                }}
+              >
+                <div style={{ transform: 'rotate(-45deg)' }}>
+                  <Filter size={14} color="white" />
+                </div>
+              </div>
+            </Tooltip>
+          </div>
+        )}
+
+        {/* Process Badge - Near target node (end of edge) */}
         {hasProcessors && (
           <div
             style={{
