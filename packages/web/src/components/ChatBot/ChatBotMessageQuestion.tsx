@@ -728,7 +728,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                     className="px-4 py-2 rounded-full backdrop-blur-sm bg-slate-700/40 border border-amber-400/50 hover:bg-slate-600/50 hover:border-amber-400/70 text-slate-300 hover:text-slate-200 font-medium shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
                   >
                     <Palette size={14} className="text-amber-400" />
-                    <span className="text-sm">Canvas</span>
+                    <span className="text-sm">Open Canvas</span>
                     <div className="relative group/info">
                       <Info size={12} className="text-slate-500 cursor-help" />
                       <div className="absolute top-full right-0 mt-2 hidden group-hover/info:block w-48 p-2.5 bg-slate-900/95 backdrop-blur-sm text-slate-300 text-xs rounded-lg shadow-xl border border-slate-700 z-40 pointer-events-none">
@@ -745,7 +745,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                     className="px-4 py-2 rounded-full backdrop-blur-sm bg-slate-700/40 border border-slate-300/50 hover:bg-slate-600/50 hover:border-slate-200/70 text-slate-300 hover:text-slate-200 font-medium shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
                   >
                     <Award size={14} className="text-slate-300" />
-                    <span className="text-sm">Tasks</span>
+                    <span className="text-sm">Open Tasks</span>
                     <div className="relative group/info">
                       <Info size={12} className="text-slate-500 cursor-help" />
                       <div className="absolute top-full right-0 mt-2 hidden group-hover/info:block w-48 p-2.5 bg-slate-900/95 backdrop-blur-sm text-slate-300 text-xs rounded-lg shadow-xl border border-slate-700 z-40 pointer-events-none">
@@ -762,7 +762,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                     className="px-4 py-2 rounded-full backdrop-blur-sm bg-slate-700/40 border border-emerald-600/50 hover:bg-slate-600/50 hover:border-emerald-500/70 text-slate-300 hover:text-slate-200 font-medium shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
                   >
                     <Shield size={14} className="text-emerald-500" />
-                    <span className="text-sm">Cloud</span>
+                    <span className="text-sm">Open Cloud</span>
                     <div className="relative group/info">
                       <Info size={12} className="text-slate-500 cursor-help" />
                       <div className="absolute top-full right-0 mt-2 hidden group-hover/info:block w-48 p-2.5 bg-slate-900/95 backdrop-blur-sm text-slate-300 text-xs rounded-lg shadow-xl border border-slate-700 z-40 pointer-events-none">
