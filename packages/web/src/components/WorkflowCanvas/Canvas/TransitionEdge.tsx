@@ -104,16 +104,16 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
 
     switch (sourcePosition) {
       case 'top':
-        offsetY = -30; // Above the source node
+        offsetY = -20; // Above the source node
         break;
       case 'bottom':
-        offsetY = 30; // Below the source node
+        offsetY = 20; // Below the source node
         break;
       case 'left':
-        offsetX = -30; // Left of the source node
+        offsetX = -20; // Left of the source node
         break;
       case 'right':
-        offsetX = 30; // Right of the source node
+        offsetX = 20; // Right of the source node
         break;
     }
 
