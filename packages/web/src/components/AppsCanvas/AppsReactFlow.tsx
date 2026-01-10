@@ -19,7 +19,7 @@ import {
 } from '@xyflow/react';
 import type { Node, Edge, NodeChange, Connection, OnReconnect } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Download, Upload, Maximize2, Minimize2, FileJson, Network, Save, RefreshCw, GitCompare, GitPullRequest } from 'lucide-react';
+import { Download, Upload, Maximize2, Minimize2, FileJson, Network, Save, RefreshCw, GitCompare, GitPullRequest, ArrowLeft } from 'lucide-react';
 import { hierarchicalLayout } from './utils/layoutAlgorithms';
 
 import { AppNode } from './nodes/AppNode';
@@ -56,6 +56,7 @@ interface AppsReactFlowProps {
   onPullChanges?: () => void;
   isPulling?: boolean;
   onShowDiff?: () => void;
+  onBack?: () => void;
 }
 
 export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
@@ -74,6 +75,7 @@ export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
   onPullChanges,
   isPulling = false,
   onShowDiff,
+  onBack,
 }) => {
   const { fitView } = useReactFlow();
   const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
@@ -702,6 +704,20 @@ export const AppsReactFlow: React.FC<AppsReactFlowProps> = ({
                   <span className="canvas-button-text">Pull</span>
                 </div>
               )}
+            </ControlButton>
+          )}
+
+          {/* Back Button */}
+          {onBack && (
+            <ControlButton
+              onClick={onBack}
+              title="Go Back - Return to the previous page"
+              className="canvas-action-button back hover:bg-slate-700"
+            >
+              <div className="flex items-center space-x-2 px-2">
+                <ArrowLeft size={16} />
+                <span className="canvas-button-text">Back</span>
+              </div>
             </ControlButton>
           )}
         </Controls>

@@ -206,14 +206,8 @@ class TaskService {
         const response = await this.listTasks({ conversation_id: conversationId });
         onUpdate(response.tasks);
 
-        // Check if all tasks are done
-        const allDone = response.tasks.every(task =>
-          ['completed', 'failed', 'cancelled'].includes(task.status)
-        );
-
-        if (allDone && response.tasks.length > 0) {
-          stopPolling();
-        }
+        // Don't auto-stop polling - keep polling while the panel is open
+        // This ensures we catch new tasks that are added after all tasks complete
       } catch (error: any) {
         console.error(`Error polling tasks for conversation ${conversationId}:`, error);
         if (onError) {

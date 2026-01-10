@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FileText, Eye, Code2, Send, Loader2, ArrowLeft, Github, Copy, Check, Maximize2, Settings } from 'lucide-react';
+import { FileText, Eye, Code2, Send, Loader2, ArrowLeft, Github, Copy, Check, Maximize2, Settings, Upload, Download, FileDown } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Requirement } from '@/components/AppsCanvas/types/appSchema';
 import Editor, { useMonaco } from '@monaco-editor/react';
 import { message, Dropdown, Slider } from 'antd';
+import { EnhancedRequirementPreview } from './EnhancedRequirementPreview';
 import './RequirementEditor.css';
 
 interface RequirementEditorProps {
@@ -44,6 +45,7 @@ export const RequirementEditor: React.FC<RequirementEditorProps> = ({
   // Editor refs
   const editorRef = useRef<any>(null);
   const splitEditorRef = useRef<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const monaco = useMonaco();
 
   const getGitHubUrl = (req: Requirement) => {
@@ -209,6 +211,261 @@ Additional notes and considerations...
     setTimeout(() => setIsCopied(false), 2000);
   };
 
+  const handleUploadFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const extension = file.name.split('.').pop()?.toLowerCase() || '';
+    const supportedFormats = ['md', 'markdown', 'txt', 'text', 'html', 'htm', 'rtf', 'json', 'xml', 'csv'];
+
+    if (!supportedFormats.includes(extension)) {
+      message.error(`Unsupported file format. Supported formats: ${supportedFormats.join(', ')}`);
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      let content = e.target?.result as string;
+
+      try {
+        // Convert different formats to markdown
+        switch (extension) {
+          case 'md':
+          case 'markdown':
+          case 'txt':
+          case 'text':
+            // Plain text and markdown - use as is
+            setMarkdownText(content);
+            break;
+
+          case 'html':
+          case 'htm':
+            // Convert HTML to markdown
+            content = await convertHtmlToMarkdown(content);
+            setMarkdownText(content);
+            break;
+
+          case 'rtf':
+            // Strip RTF formatting and extract plain text
+            content = stripRtfFormatting(content);
+            setMarkdownText(content);
+            break;
+
+          case 'json':
+            // Pretty print JSON in a code block
+            try {
+              const jsonObj = JSON.parse(content);
+              const formatted = JSON.stringify(jsonObj, null, 2);
+              setMarkdownText(`# ${file.name}\n\n\`\`\`json\n${formatted}\n\`\`\``);
+            } catch {
+              setMarkdownText(`# ${file.name}\n\n\`\`\`\n${content}\n\`\`\``);
+            }
+            break;
+
+          case 'xml':
+            // Display XML in a code block
+            setMarkdownText(`# ${file.name}\n\n\`\`\`xml\n${content}\n\`\`\``);
+            break;
+
+          case 'csv':
+            // Convert CSV to markdown table
+            content = convertCsvToMarkdownTable(content);
+            setMarkdownText(content);
+            break;
+
+          default:
+            setMarkdownText(content);
+        }
+
+        message.success(`Loaded ${file.name} (${extension.toUpperCase()})`);
+      } catch (error) {
+        console.error('File conversion error:', error);
+        message.warning(`Loaded ${file.name} but conversion may be incomplete`);
+        setMarkdownText(content);
+      }
+    };
+
+    reader.onerror = () => {
+      message.error('Failed to read file');
+    };
+
+    reader.readAsText(file);
+
+    // Reset input so same file can be uploaded again
+    event.target.value = '';
+  };
+
+  // Helper function to convert HTML to Markdown
+  const convertHtmlToMarkdown = async (html: string): Promise<string> => {
+    try {
+      // Use Turndown library for HTML to Markdown conversion
+      const TurndownService = (await import('turndown')).default;
+      const turndownService = new TurndownService({
+        headingStyle: 'atx',
+        codeBlockStyle: 'fenced',
+      });
+      return turndownService.turndown(html);
+    } catch (error) {
+      // Fallback: basic HTML stripping
+      const temp = document.createElement('div');
+      temp.innerHTML = html;
+      return temp.textContent || temp.innerText || html;
+    }
+  };
+
+  // Helper function to strip RTF formatting
+  const stripRtfFormatting = (rtf: string): string => {
+    // Basic RTF to plain text conversion
+    // Remove RTF control words and braces
+    let text = rtf.replace(/\\[a-z]{1,32}(-?\d{1,10})?[ ]?/g, '');
+    text = text.replace(/[{}]/g, '');
+    text = text.replace(/\\\\/g, '\\');
+    text = text.replace(/\\'/g, "'");
+
+    // Clean up extra whitespace
+    text = text.replace(/\n{3,}/g, '\n\n');
+    text = text.trim();
+
+    return text;
+  };
+
+  // Helper function to convert CSV to Markdown table
+  const convertCsvToMarkdownTable = (csv: string): string => {
+    const lines = csv.trim().split('\n');
+    if (lines.length === 0) return '';
+
+    const rows = lines.map(line => {
+      // Simple CSV parsing (handles basic cases)
+      const cells = line.split(',').map(cell => cell.trim().replace(/^"|"$/g, ''));
+      return cells;
+    });
+
+    if (rows.length === 0) return '';
+
+    // Create markdown table
+    const header = '| ' + rows[0].join(' | ') + ' |';
+    const separator = '| ' + rows[0].map(() => '---').join(' | ') + ' |';
+    const body = rows.slice(1).map(row => '| ' + row.join(' | ') + ' |').join('\n');
+
+    return `# CSV Data\n\n${header}\n${separator}\n${body}`;
+  };
+
+  const handleDownloadMarkdown = () => {
+    const fileName = requirement?.title
+      ? `${requirement.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`
+      : 'requirement.md';
+
+    const blob = new Blob([markdownText], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    message.success(`Downloaded ${fileName}`);
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      message.info('Generating PDF...');
+
+      // Create a temporary div with the rendered content
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.width = '210mm'; // A4 width
+      tempDiv.style.padding = '20mm';
+      tempDiv.style.backgroundColor = 'white';
+      tempDiv.style.color = 'black';
+      tempDiv.style.fontFamily = 'Arial, sans-serif';
+      tempDiv.innerHTML = `
+        <style>
+          h1 { font-size: 24px; margin-top: 20px; margin-bottom: 10px; }
+          h2 { font-size: 20px; margin-top: 16px; margin-bottom: 8px; }
+          h3 { font-size: 16px; margin-top: 12px; margin-bottom: 6px; }
+          p { margin-bottom: 10px; line-height: 1.6; }
+          ul, ol { margin-left: 20px; margin-bottom: 10px; }
+          li { margin-bottom: 5px; }
+          code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; }
+          pre { background: #f5f5f5; padding: 12px; border-radius: 6px; overflow-x: auto; }
+          blockquote { border-left: 4px solid #ddd; padding-left: 12px; color: #666; }
+          table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background: #f5f5f5; }
+        </style>
+      `;
+
+      // Convert markdown to HTML
+      const { unified } = await import('unified');
+      const { default: remarkParse } = await import('remark-parse');
+      const { default: remarkRehype } = await import('remark-rehype');
+      const { default: rehypeStringify } = await import('rehype-stringify');
+
+      const file = await unified()
+        .use(remarkParse)
+        .use(remarkGfm)
+        .use(remarkRehype)
+        .use(rehypeStringify)
+        .process(markdownText);
+
+      const htmlContent = String(file);
+      tempDiv.innerHTML += htmlContent;
+      document.body.appendChild(tempDiv);
+
+      // Use browser's print functionality
+      const fileName = requirement?.title
+        ? `${requirement.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`
+        : 'requirement.pdf';
+
+      // For now, open print dialog (browser native PDF export)
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>${requirement?.title || 'Requirement'}</title>
+              <style>
+                body { font-family: Arial, sans-serif; padding: 20mm; color: black; }
+                h1 { font-size: 24px; margin-top: 20px; margin-bottom: 10px; }
+                h2 { font-size: 20px; margin-top: 16px; margin-bottom: 8px; }
+                h3 { font-size: 16px; margin-top: 12px; margin-bottom: 6px; }
+                p { margin-bottom: 10px; line-height: 1.6; }
+                ul, ol { margin-left: 20px; margin-bottom: 10px; }
+                li { margin-bottom: 5px; }
+                code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; }
+                pre { background: #f5f5f5; padding: 12px; border-radius: 6px; overflow-x: auto; }
+                blockquote { border-left: 4px solid #ddd; padding-left: 12px; color: #666; }
+                table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background: #f5f5f5; }
+                @media print {
+                  body { margin: 0; padding: 20mm; }
+                }
+              </style>
+            </head>
+            <body>
+              ${htmlContent}
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+        setTimeout(() => {
+          printWindow.print();
+        }, 250);
+      }
+
+      document.body.removeChild(tempDiv);
+      message.success('PDF export ready - use your browser\'s print dialog to save as PDF');
+    } catch (error) {
+      console.error('PDF export error:', error);
+      message.error('Failed to export PDF. Please try downloading as Markdown instead.');
+    }
+  };
+
   const fontFamilies = [
     { label: 'Consolas', value: 'Consolas' },
     { label: 'Courier New', value: 'Courier New' },
@@ -221,6 +478,31 @@ Additional notes and considerations...
   const handleFontChange = (font: string) => {
     setFontFamily(font);
     message.success(`Font changed to ${font}`);
+  };
+
+  const downloadMenu = {
+    items: [
+      {
+        key: 'download-markdown',
+        label: (
+          <div className="flex items-center gap-2">
+            <Download size={14} />
+            <span>Download as Markdown</span>
+          </div>
+        ),
+        onClick: handleDownloadMarkdown,
+      },
+      {
+        key: 'download-pdf',
+        label: (
+          <div className="flex items-center gap-2">
+            <FileDown size={14} />
+            <span>Download as PDF</span>
+          </div>
+        ),
+        onClick: handleDownloadPDF,
+      },
+    ],
   };
 
   const settingsMenu = {
@@ -335,17 +617,58 @@ Additional notes and considerations...
 
         {/* Right: Controls */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
+          <div className="flex items-center gap-0.5 bg-slate-800/50 rounded border border-slate-600/50 p-0.5">
+            <button
+              onClick={() => setViewMode('markdown')}
+              className={`p-1.5 rounded transition-all ${
+                viewMode === 'markdown'
+                  ? 'bg-blue-600/30 text-blue-400'
+                  : 'text-gray-400 hover:text-gray-300'
+              }`}
+              title="Edit mode"
+            >
+              <Code2 size={14} />
+            </button>
+            <button
+              onClick={() => setViewMode('split')}
+              className={`p-1.5 rounded transition-all ${
+                viewMode === 'split'
+                  ? 'bg-blue-600/30 text-blue-400'
+                  : 'text-gray-400 hover:text-gray-300'
+              }`}
+              title="Split view"
+            >
+              <FileText size={14} />
+            </button>
+            <button
+              onClick={() => setViewMode('preview')}
+              className={`p-1.5 rounded transition-all ${
+                viewMode === 'preview'
+                  ? 'bg-blue-600/30 text-blue-400'
+                  : 'text-gray-400 hover:text-gray-300'
+              }`}
+              title="Preview mode"
+            >
+              <Eye size={14} />
+            </button>
+          </div>
+
           <button
-            onClick={() => setViewMode(viewMode === 'markdown' ? 'split' : 'markdown')}
-            className={`p-1.5 rounded transition-all ${
-              viewMode === 'markdown'
-                ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                : 'bg-slate-700/50 text-gray-400 hover:text-gray-300 border border-slate-600/50'
-            }`}
-            title={viewMode === 'markdown' ? 'Switch to split view' : 'Switch to edit mode'}
+            onClick={() => fileInputRef.current?.click()}
+            className="p-1.5 rounded bg-slate-700/50 text-gray-400 hover:text-gray-300 border border-slate-600/50 transition-all"
+            title="Upload file (supports: .md, .txt, .html, .json, .xml, .csv, .rtf)"
           >
-            {viewMode === 'markdown' ? <Code2 size={16} /> : <Eye size={16} />}
+            <Upload size={16} />
           </button>
+
+          <Dropdown menu={downloadMenu} trigger={['click']}>
+            <button
+              className="p-1.5 rounded bg-slate-700/50 text-gray-400 hover:text-gray-300 border border-slate-600/50 transition-all"
+              title="Download"
+            >
+              <Download size={16} />
+            </button>
+          </Dropdown>
 
           <Dropdown menu={settingsMenu} trigger={['click']}>
             <button
@@ -445,6 +768,14 @@ Additional notes and considerations...
               }}
             />
           </div>
+        ) : viewMode === 'preview' ? (
+          // Preview Only Mode
+          <div className="h-full overflow-auto bg-slate-900/30 requirement-preview-split">
+            <EnhancedRequirementPreview
+              markdownText={markdownText}
+              requirement={requirement}
+            />
+          </div>
         ) : (
           // Split View - Editor on left, preview on right
           <div className="h-full flex">
@@ -496,18 +827,24 @@ Additional notes and considerations...
                 }}
               />
             </div>
-            <div className="w-1/2 overflow-auto bg-slate-900/30 p-6 requirement-preview-split">
-              <div className="prose prose-invert prose-slate max-w-none">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {markdownText}
-                </ReactMarkdown>
-              </div>
+            <div className="w-1/2 overflow-auto bg-slate-900/30 requirement-preview-split">
+              <EnhancedRequirementPreview
+                markdownText={markdownText}
+                requirement={requirement}
+              />
             </div>
           </div>
         )}
       </div>
 
-
+      {/* Hidden file input for upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".md,.markdown,.txt,.text,.html,.htm,.rtf,.json,.xml,.csv"
+        onChange={handleUploadFile}
+        style={{ display: 'none' }}
+      />
     </div>
   );
 };

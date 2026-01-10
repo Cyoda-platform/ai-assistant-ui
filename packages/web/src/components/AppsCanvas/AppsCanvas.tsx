@@ -23,6 +23,7 @@ interface AppsCanvasProps {
   onToggleFullscreen?: () => void;
   simplified?: boolean; // Show simplified view (only app name, environments group, entities group)
   onSendToChat?: (appJson: string) => void; // Send app JSON to chat
+  onBack?: () => void; // Navigate back
 }
 
 /**
@@ -336,7 +337,8 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
   isFullscreen,
   onToggleFullscreen,
   simplified = false,
-  onSendToChat
+  onSendToChat,
+  onBack
 }) => {
   // Repository store (replaces app-config)
   const repositoryStore = useRepositoryStore();
@@ -1050,6 +1052,7 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
           onPullChanges={conversationId ? handlePullChanges : undefined}
           isPulling={isPulling}
           onShowDiff={githubRepository ? handleShowDiff : undefined}
+          onBack={onBack}
         />
 
         {/* Custom JSON Editor for App Config - positioned absolutely to overlay */}

@@ -136,12 +136,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
 
       {/* Stats */}
       <div className="flex items-center justify-between text-xs text-slate-400">
-        <div className="flex items-center space-x-4">
-          <span>Duration: {task.statistics.duration_formatted}</span>
-          {task.statistics.time_remaining_formatted && (
-            <span>Remaining: {task.statistics.time_remaining_formatted}</span>
-          )}
-        </div>
         {task.language && (
           <div className="flex items-center space-x-1">
             <Code size={12} />

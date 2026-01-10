@@ -21,7 +21,8 @@ import {
   Maximize2,
   Minimize2,
   Filter,
-  RefreshCw
+  RefreshCw,
+  ArrowLeft
 } from 'lucide-react';
 
 import { EntityNode } from './Nodes/EntityNode';
@@ -47,6 +48,7 @@ interface PortalCanvasProps {
   onRequirementClick?: (requirementId: string) => void;
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
+  onBack?: () => void;
 }
 
 const PortalCanvasInner: React.FC<PortalCanvasProps> = ({
@@ -57,7 +59,8 @@ const PortalCanvasInner: React.FC<PortalCanvasProps> = ({
   onWorkflowEdit,
   onRequirementClick,
   isFullscreen = false,
-  onToggleFullscreen
+  onToggleFullscreen,
+  onBack
 }) => {
   const [layoutAlgorithm, setLayoutAlgorithm] = useState<LayoutAlgorithm>('hierarchical');
   const [filters, setFilters] = useState<PortalFilters>({
@@ -313,6 +316,17 @@ const PortalCanvasInner: React.FC<PortalCanvasProps> = ({
             >
               {isFullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
               <span>{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
+            </button>
+          )}
+
+          {/* Back Button */}
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="w-full px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded text-white text-xs flex items-center justify-center space-x-1"
+            >
+              <ArrowLeft size={12} />
+              <span>Back</span>
             </button>
           )}
         </Panel>
