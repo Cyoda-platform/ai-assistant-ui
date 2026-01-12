@@ -257,9 +257,15 @@ export function calculateAutoLayout(
   const opts = { ...DEFAULT_OPTIONS, ...options };
 
   // Adjust spacing based on layout direction
-  // For both TB and LR: rankSeparation controls spacing along main axis (should be larger)
-  // nodeSeparation controls spacing along cross axis (should be smaller)
-  if (!options.rankSeparation) opts.rankSeparation = 350; // Spacing between ranks (main axis)
+  // For TB/BT: rankSeparation controls vertical spacing between ranks
+  // For LR/RL: rankSeparation controls horizontal spacing between ranks (needs to be larger)
+  if (!options.rankSeparation) {
+    if (opts.direction === 'LR' || opts.direction === 'RL') {
+      opts.rankSeparation = 500; // Larger horizontal spacing for LR/RL
+    } else {
+      opts.rankSeparation = 350; // Vertical spacing for TB/BT
+    }
+  }
   if (!options.nodeSeparation) opts.nodeSeparation = 400; // Spacing between nodes in same rank (cross axis)
   const stateIds = Object.keys(workflow.configuration.states);
 
