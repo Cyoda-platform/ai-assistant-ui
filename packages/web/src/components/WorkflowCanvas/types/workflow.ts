@@ -73,6 +73,9 @@ export interface StateLayout {
 // UPDATED: Now supports transition nodes (position) in addition to legacy edge-based layout (labelPosition, handles)
 export interface TransitionLayout {
   id: string;
+  // Source and target state IDs (for identifying which states this transition connects)
+  sourceStateId?: string;
+  targetStateId?: string;
   // Legacy edge-based layout (for backward compatibility)
   labelPosition?: {
     x: number;

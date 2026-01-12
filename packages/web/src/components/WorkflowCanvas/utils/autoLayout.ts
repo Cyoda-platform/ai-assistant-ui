@@ -72,6 +72,8 @@ export interface LayoutResult {
   }>;
   transitions?: Array<{
     id: string;
+    sourceStateId?: string;
+    targetStateId?: string;
     position: { x: number; y: number };
     // Handle information for bidirectional transitions
     stateToTransitionSourceHandle?: string;
@@ -230,7 +232,7 @@ export function calculateAutoLayout(
   });
 
   // Calculate transition node positions
-  const transitions: Array<{ id: string; position: { x: number; y: number } }> = [];
+  const transitions: LayoutResult['transitions'] = [];
   const transitionWidth = 45; // Average actual width of transition nodes (~40-48px)
   const transitionHeight = 14; // Actual height (~13.66px)
 
@@ -282,6 +284,8 @@ export function calculateAutoLayout(
           // Position loopback transition to the right and above the state
           transitions.push({
             id: transitionId,
+            sourceStateId: sourceStateId,
+            targetStateId: transition.next,
             position: {
               x: sourcePos.x + 150,
               y: sourcePos.y - 100,
@@ -702,6 +706,8 @@ export function calculateAutoLayout(
 
           transitions.push({
             id: transitionId,
+            sourceStateId: sourceStateId,
+            targetStateId: transition.next,
             position: transitionPosition,
             ...handles,
           });
@@ -807,6 +813,8 @@ export function applyLayoutToWorkflow(
     // Create new transitions from layout result
     updatedTransitions = layoutResult.transitions.map(t => ({
       id: t.id,
+      sourceStateId: t.sourceStateId,
+      targetStateId: t.targetStateId,
       position: t.position,
       // Include handle information for bidirectional transitions
       stateToTransitionSourceHandle: t.stateToTransitionSourceHandle,
