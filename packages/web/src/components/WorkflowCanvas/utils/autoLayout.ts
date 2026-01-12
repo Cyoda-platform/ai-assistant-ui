@@ -80,6 +80,9 @@ export interface LayoutResult {
     stateToTransitionTargetHandle?: string;
     transitionToStateSourceHandle?: string;
     transitionToStateTargetHandle?: string;
+    // Handle information for regular transitions
+    sourceHandle?: string;
+    targetHandle?: string;
   }>;
 }
 
@@ -133,7 +136,9 @@ function findAvailableHandle(
     const handlePosition = getHandlePosition(handle);
     let positionBlocked = false;
 
-    for (const oppositeHandle of usedOpposite) {
+    const oppositeHandlesArray = Array.from(usedOpposite);
+    for (let i = 0; i < oppositeHandlesArray.length; i++) {
+      const oppositeHandle = oppositeHandlesArray[i];
       if (getHandlePosition(oppositeHandle) === handlePosition) {
         positionBlocked = true;
         break;
@@ -147,6 +152,43 @@ function findAvailableHandle(
 
   // All preferred handles are used, return the first one (will reuse)
   return preferredHandles[0];
+}
+
+/**
+ * Get all available handles for a given side of a state.
+ * Returns handles in order: center, then left/top, then right/bottom
+ */
+function getAllHandlesForSide(side: 'top' | 'bottom' | 'left' | 'right'): string[] {
+  switch (side) {
+    case 'top':
+      return ['top-center-source', 'top-left-source', 'top-right-source'];
+    case 'bottom':
+      return ['bottom-center-source', 'bottom-left-source', 'bottom-right-source'];
+    case 'left':
+      return ['left-top-source', 'left-bottom-source'];
+    case 'right':
+      return ['right-top-source', 'right-bottom-source'];
+    default:
+      return [];
+  }
+}
+
+/**
+ * Get all available target handles for a given side of a state.
+ */
+function getAllTargetHandlesForSide(side: 'top' | 'bottom' | 'left' | 'right'): string[] {
+  switch (side) {
+    case 'top':
+      return ['top-center-target', 'top-left-target', 'top-right-target'];
+    case 'bottom':
+      return ['bottom-center-target', 'bottom-left-target', 'bottom-right-target'];
+    case 'left':
+      return ['left-top-target', 'left-bottom-target'];
+    case 'right':
+      return ['right-top-target', 'right-bottom-target'];
+    default:
+      return [];
+  }
 }
 
 /**
@@ -251,6 +293,10 @@ export function calculateAutoLayout(
     usedTargetHandles.set(stateId, new Set<string>());
   });
 
+  // Group transitions by source state and target state for handle distribution
+  const outgoingTransitionsByState = new Map<string, Array<{ targetStateId: string; index: number; targetPos?: { x: number; y: number } }>>();
+  const incomingTransitionsByState = new Map<string, Array<{ sourceStateId: string; index: number; sourcePos?: { x: number; y: number } }>>();
+
   Object.entries(workflow.configuration.states).forEach(([sourceStateId, stateDefinition]) => {
     stateDefinition.transitions.forEach((transition, index) => {
       const key = `${sourceStateId}-${transition.next}`;
@@ -261,13 +307,98 @@ export function calculateAutoLayout(
       }
       transitionsByPair.get(key)!.push({ sourceStateId, index });
 
-      // Check if reverse transition exists
-      const reverseStateDefinition = workflow.configuration.states[transition.next];
-      if (reverseStateDefinition?.transitions.some(t => t.next === sourceStateId)) {
-        const canonicalKey = [sourceStateId, transition.next].sort().join('-');
-        bidirectionalPairs.add(canonicalKey);
+      // Track outgoing transitions from source state
+      if (!outgoingTransitionsByState.has(sourceStateId)) {
+        outgoingTransitionsByState.set(sourceStateId, []);
+      }
+      outgoingTransitionsByState.get(sourceStateId)!.push({
+        targetStateId: transition.next,
+        index,
+        targetPos: statePositions.get(transition.next),
+      });
+
+      // Track incoming transitions to target state
+      if (!incomingTransitionsByState.has(transition.next)) {
+        incomingTransitionsByState.set(transition.next, []);
+      }
+      incomingTransitionsByState.get(transition.next)!.push({
+        sourceStateId,
+        index,
+        sourcePos: statePositions.get(sourceStateId),
+      });
+
+      // Check if reverse transition exists (but exclude loopback transitions)
+      // Loopback transitions should not be treated as bidirectional
+      const isLoopback = sourceStateId === transition.next;
+      if (!isLoopback) {
+        const reverseStateDefinition = workflow.configuration.states[transition.next];
+        if (reverseStateDefinition?.transitions.some(t => t.next === sourceStateId)) {
+          const canonicalKey = [sourceStateId, transition.next].sort().join('-');
+          bidirectionalPairs.add(canonicalKey);
+        }
       }
     });
+  });
+
+  // Pre-assign handles for outgoing transitions from each state
+  // This ensures that multiple transitions from the same state use different handles
+  const transitionHandleAssignments = new Map<string, { sourceHandle: string; targetHandle: string }>();
+
+  outgoingTransitionsByState.forEach((outgoingTransitions, sourceStateId) => {
+    const sourcePos = statePositions.get(sourceStateId);
+    if (!sourcePos) return;
+
+    // Initialize used handles for this state
+    let stateUsedHandles = usedSourceHandles.get(sourceStateId) || new Set<string>();
+
+    // Group transitions by direction to assign handles intelligently
+    const transitionsByDirection = new Map<string, typeof outgoingTransitions>();
+
+    outgoingTransitions.forEach(trans => {
+      if (!trans.targetPos) return;
+
+      const dx = trans.targetPos.x - sourcePos.x;
+      const dy = trans.targetPos.y - sourcePos.y;
+
+      // Determine primary direction
+      let direction: string;
+      if (Math.abs(dy) > Math.abs(dx)) {
+        // Vertical movement is primary
+        direction = dy > 0 ? 'bottom' : 'top';
+      } else {
+        // Horizontal movement is primary
+        direction = dx > 0 ? 'right' : 'left';
+      }
+
+      if (!transitionsByDirection.has(direction)) {
+        transitionsByDirection.set(direction, []);
+      }
+      transitionsByDirection.get(direction)!.push(trans);
+    });
+
+    // Assign handles for each direction group
+    transitionsByDirection.forEach((transitionsInDirection, direction) => {
+      const allHandles = getAllHandlesForSide(direction as 'top' | 'bottom' | 'left' | 'right');
+
+      // Find available handles for this direction
+      const availableHandles = allHandles.filter(h => !stateUsedHandles.has(h));
+
+      // Assign handles to transitions in this direction
+      transitionsInDirection.forEach((trans, i) => {
+        const handleIndex = Math.min(i, availableHandles.length - 1);
+        const assignedHandle = availableHandles.length > 0 ? availableHandles[handleIndex] : allHandles[0];
+        stateUsedHandles.add(assignedHandle);
+
+        const transitionKey = `${sourceStateId}-${trans.index}`;
+        transitionHandleAssignments.set(transitionKey, {
+          sourceHandle: assignedHandle,
+          targetHandle: '', // Will be assigned later
+        });
+      });
+    });
+
+    // Update the map with the modified set
+    usedSourceHandles.set(sourceStateId, stateUsedHandles);
   });
 
   // Position transition nodes
@@ -282,6 +413,8 @@ export function calculateAutoLayout(
 
         if (isLoopback) {
           // Position loopback transition to the right and above the state
+          // For loopback transitions, use top handles for both source and target
+          // This creates a clean loop from top-right back to top-left
           transitions.push({
             id: transitionId,
             sourceStateId: sourceStateId,
@@ -290,6 +423,13 @@ export function calculateAutoLayout(
               x: sourcePos.x + 150,
               y: sourcePos.y - 100,
             },
+            // Add default handles for loopback transitions
+            sourceHandle: 'top-right-source',
+            targetHandle: 'top-left-target',
+            stateToTransitionSourceHandle: 'top-right-source',
+            stateToTransitionTargetHandle: 'top-center-target',
+            transitionToStateSourceHandle: 'bottom-center-source',
+            transitionToStateTargetHandle: 'top-left-target',
           });
         } else {
           // Get all transitions between these two states
@@ -566,136 +706,88 @@ export function calculateAutoLayout(
 
             // Mark bidirectional handles as used
             if (handles.stateToTransitionSourceHandle) {
-              usedSourceHandles.get(sourceStateId)?.add(handles.stateToTransitionSourceHandle);
+              const sourceSet = usedSourceHandles.get(sourceStateId) || new Set<string>();
+              sourceSet.add(handles.stateToTransitionSourceHandle);
+              usedSourceHandles.set(sourceStateId, sourceSet);
             }
             if (handles.transitionToStateTargetHandle) {
-              usedTargetHandles.get(transition.next)?.add(handles.transitionToStateTargetHandle);
+              const targetSet = usedTargetHandles.get(transition.next) || new Set<string>();
+              targetSet.add(handles.transitionToStateTargetHandle);
+              usedTargetHandles.set(transition.next, targetSet);
             }
           } else {
             // Non-bidirectional transition
-            // Use rank-based alternating handle strategy for LR layout
-            const sourceRank = ranks.get(sourceStateId) || 0;
-            const targetRank = ranks.get(transition.next) || 0;
+            // Use pre-assigned source handle from the grouping logic
+            const transitionKey = `${sourceStateId}-${index}`;
+            const preAssignedHandles = transitionHandleAssignments.get(transitionKey);
 
-            // Determine if we're in LR or TB layout based on which direction is PRIMARY
-            // For TB layout: dy is primary direction (vertical movement is larger)
-            // For LR layout: dx is primary direction (horizontal movement is larger)
-            const isVertical = Math.abs(dy) > Math.abs(dx);
+            let stateSourceHandle = preAssignedHandles?.sourceHandle || 'bottom-center-source';
 
-            // For initial state in TB/BT layout, ALWAYS use bottom handles (force vertical flow)
-            const isInitialState = sourceStateId === workflow.configuration.initialState;
-            const forceVerticalForInitial = isInitialState && (opts.direction === 'TB' || opts.direction === 'BT') && dy > 0;
+            // Now assign target handle based on target state's incoming transitions
+            const incomingTransitions = incomingTransitionsByState.get(transition.next) || [];
+            const incomingIndex = incomingTransitions.findIndex(t => t.sourceStateId === sourceStateId && t.index === index);
 
-            if (!isVertical && !forceVerticalForInitial) {
-              // LR layout: ALWAYS use horizontal handles (right/left)
-              // Choose handles based on VERTICAL direction (dy) to avoid crossing
+            // Group incoming transitions by direction
+            const incomingByDirection = new Map<string, typeof incomingTransitions>();
+            incomingTransitions.forEach(trans => {
+              if (!trans.sourcePos) return;
 
-              let preferredSourceHandles: string[];
-              let preferredTargetHandles: string[];
+              const dx = targetPos.x - trans.sourcePos.x;
+              const dy = targetPos.y - trans.sourcePos.y;
 
-              // Choose handles based on vertical direction (dy)
-              const isVerticalTransition = Math.abs(dy) < 50;
-
-              if (dx > 0) {
-                // Target is to the right
-                if (isVerticalTransition) {
-                  // Horizontal transition (dy ≈ 0) - prefer center handles
-                  preferredSourceHandles = ['right-top-source', 'right-bottom-source', 'bottom-center-source', 'top-center-source'];
-                  preferredTargetHandles = ['left-top-target', 'left-bottom-target', 'top-center-target', 'bottom-center-target'];
-                } else if (dy < 0) {
-                  // Target is above - prefer top handles
-                  preferredSourceHandles = ['right-top-source', 'top-right-source', 'top-center-source', 'right-bottom-source', 'top-left-source'];
-                  preferredTargetHandles = ['left-bottom-target', 'bottom-left-target', 'bottom-center-target', 'left-top-target', 'bottom-right-target'];
-                } else {
-                  // Target is below - prefer bottom handles
-                  preferredSourceHandles = ['right-bottom-source', 'bottom-right-source', 'bottom-center-source', 'right-top-source', 'bottom-left-source'];
-                  preferredTargetHandles = ['left-top-target', 'top-left-target', 'top-center-target', 'left-bottom-target', 'top-right-target'];
-                }
+              let direction: string;
+              if (Math.abs(dy) > Math.abs(dx)) {
+                direction = dy > 0 ? 'top' : 'bottom';
               } else {
-                // Target is to the left
-                if (isVerticalTransition) {
-                  // Horizontal transition (dy ≈ 0) - prefer center handles
-                  preferredSourceHandles = ['left-top-source', 'left-bottom-source', 'bottom-center-source', 'top-center-source'];
-                  preferredTargetHandles = ['right-top-target', 'right-bottom-target', 'top-center-target', 'bottom-center-target'];
-                } else if (dy < 0) {
-                  // Target is above - prefer top handles
-                  preferredSourceHandles = ['left-top-source', 'top-left-source', 'top-center-source', 'left-bottom-source', 'top-right-source'];
-                  preferredTargetHandles = ['right-bottom-target', 'bottom-right-target', 'bottom-center-target', 'right-top-target', 'bottom-left-target'];
-                } else {
-                  // Target is below - prefer bottom handles
-                  preferredSourceHandles = ['left-bottom-source', 'bottom-left-source', 'bottom-center-source', 'left-top-source', 'bottom-right-source'];
-                  preferredTargetHandles = ['right-top-target', 'top-right-target', 'top-center-target', 'right-bottom-target', 'top-left-target'];
-                }
+                direction = dx > 0 ? 'left' : 'right';
               }
 
-              // Find available handles
-              const stateSourceHandle = findAvailableHandle(sourceStateId, usedSourceHandles, usedTargetHandles, preferredSourceHandles, true);
-              const stateTargetHandle = findAvailableHandle(transition.next, usedSourceHandles, usedTargetHandles, preferredTargetHandles, false);
+              if (!incomingByDirection.has(direction)) {
+                incomingByDirection.set(direction, []);
+              }
+              incomingByDirection.get(direction)!.push(trans);
+            });
 
-              // For transition node, use same direction as state handles
-              const transitionTargetHandle = dx > 0 ? 'left-top-target' : 'right-top-target';
-              const transitionSourceHandle = dx > 0 ? 'right-top-source' : 'left-top-source';
+            // Find which direction group this transition belongs to
+            let targetDirection = 'top';
+            let indexInDirection = 0;
 
-
-              handles.stateToTransitionSourceHandle = stateSourceHandle;
-              handles.stateToTransitionTargetHandle = transitionTargetHandle;
-              handles.transitionToStateSourceHandle = transitionSourceHandle;
-              handles.transitionToStateTargetHandle = stateTargetHandle;
-
-              // Mark handles as used
-              usedSourceHandles.get(sourceStateId)?.add(stateSourceHandle);
-              usedTargetHandles.get(transition.next)?.add(stateTargetHandle);
-            } else {
-              // TB layout: prefer vertical handles, but distribute based on horizontal direction
-              if (dy > 0) {
-                // Target is below - prefer bottom handles on source, top handles on target
-                // Choose handle based on horizontal direction (dx)
-                let preferredSourceHandles: string[];
-                let preferredTargetHandles: string[];
-
-                if (Math.abs(dx) < 50) {
-                  // Vertical transition (dx ≈ 0) - prefer center handles
-                  preferredSourceHandles = ['bottom-center-source', 'bottom-left-source', 'bottom-right-source'];
-                  preferredTargetHandles = ['top-center-target', 'top-left-target', 'top-right-target'];
-                } else if (dx < 0) {
-                  // Target is to the left - prefer left handles
-                  preferredSourceHandles = ['bottom-left-source', 'bottom-center-source', 'bottom-right-source'];
-                  preferredTargetHandles = ['top-right-target', 'top-center-target', 'top-left-target'];
-                } else {
-                  // Target is to the right - prefer right handles
-                  preferredSourceHandles = ['bottom-right-source', 'bottom-center-source', 'bottom-left-source'];
-                  preferredTargetHandles = ['top-left-target', 'top-center-target', 'top-right-target'];
-                }
-
-                const stateSourceHandle = findAvailableHandle(sourceStateId, usedSourceHandles, usedTargetHandles, preferredSourceHandles, true);
-                const stateTargetHandle = findAvailableHandle(transition.next, usedSourceHandles, usedTargetHandles, preferredTargetHandles, false);
-
-                handles.stateToTransitionSourceHandle = stateSourceHandle;
-                handles.stateToTransitionTargetHandle = 'top-center-target';
-                handles.transitionToStateSourceHandle = 'bottom-center-source';
-                handles.transitionToStateTargetHandle = stateTargetHandle;
-
-                // Mark handles as used
-                usedSourceHandles.get(sourceStateId)?.add(stateSourceHandle);
-                usedTargetHandles.get(transition.next)?.add(stateTargetHandle);
-              } else {
-                // Target is above - prefer top handles on source, bottom handles on target
-                const preferredSourceHandles = ['top-center-source', 'top-left-source', 'top-right-source'];
-                const preferredTargetHandles = ['bottom-center-target', 'bottom-left-target', 'bottom-right-target'];
-
-                const stateSourceHandle = findAvailableHandle(sourceStateId, usedSourceHandles, usedTargetHandles, preferredSourceHandles, true);
-                const stateTargetHandle = findAvailableHandle(transition.next, usedSourceHandles, usedTargetHandles, preferredTargetHandles, false);
-
-                handles.stateToTransitionSourceHandle = stateSourceHandle;
-                handles.stateToTransitionTargetHandle = 'bottom-center-target';
-                handles.transitionToStateSourceHandle = 'top-center-source';
-                handles.transitionToStateTargetHandle = stateTargetHandle;
-
-                // Mark handles as used
-                usedSourceHandles.get(sourceStateId)?.add(stateSourceHandle);
-                usedTargetHandles.get(transition.next)?.add(stateTargetHandle);
+            const directionEntries = Array.from(incomingByDirection.entries());
+            for (let i = 0; i < directionEntries.length; i++) {
+              const [dir, trans] = directionEntries[i];
+              const idx = trans.findIndex(t => t.sourceStateId === sourceStateId && t.index === index);
+              if (idx >= 0) {
+                targetDirection = dir;
+                indexInDirection = idx;
+                break;
               }
             }
+
+            // Get available target handles for this direction
+            const allTargetHandles = getAllTargetHandlesForSide(targetDirection as 'top' | 'bottom' | 'left' | 'right');
+            let usedTargets = usedTargetHandles.get(transition.next) || new Set<string>();
+            const availableTargetHandles = allTargetHandles.filter(h => !usedTargets.has(h));
+
+            const stateTargetHandle = availableTargetHandles.length > 0
+              ? availableTargetHandles[Math.min(indexInDirection, availableTargetHandles.length - 1)]
+              : allTargetHandles[0];
+
+            // For transition node, use center handles
+            const transitionTargetHandle = 'top-center-target';
+            const transitionSourceHandle = 'bottom-center-source';
+
+            handles.stateToTransitionSourceHandle = stateSourceHandle;
+            handles.stateToTransitionTargetHandle = transitionTargetHandle;
+            handles.transitionToStateSourceHandle = transitionSourceHandle;
+            handles.transitionToStateTargetHandle = stateTargetHandle;
+
+            // Mark handles as used
+            const sourceSet = usedSourceHandles.get(sourceStateId) || new Set<string>();
+            sourceSet.add(stateSourceHandle);
+            usedSourceHandles.set(sourceStateId, sourceSet);
+
+            usedTargets.add(stateTargetHandle);
+            usedTargetHandles.set(transition.next, usedTargets);
           }
 
           const transitionPosition = {
@@ -703,6 +795,19 @@ export function calculateAutoLayout(
             y: midY - transitionHeight / 2,
           };
 
+          // For non-bidirectional transitions, also add sourceHandle and targetHandle
+          // These are used by WorkflowCanvas to create edges directly from source state to target state
+          const regularHandles = isBidirectional ? {} : {
+            sourceHandle: handles.stateToTransitionSourceHandle,
+            targetHandle: handles.transitionToStateTargetHandle,
+          };
+
+          console.log('🔧 Creating transition in autoLayout:', {
+            transitionId,
+            isBidirectional,
+            handles,
+            regularHandles,
+          });
 
           transitions.push({
             id: transitionId,
@@ -710,6 +815,7 @@ export function calculateAutoLayout(
             targetStateId: transition.next,
             position: transitionPosition,
             ...handles,
+            ...regularHandles,
           });
         }
       }
@@ -811,23 +917,30 @@ export function applyLayoutToWorkflow(
 
   if (updatedLayout.transitions.length === 0 && layoutResult.transitions.length > 0) {
     // Create new transitions from layout result
-    updatedTransitions = layoutResult.transitions.map(t => ({
-      id: t.id,
-      sourceStateId: t.sourceStateId,
-      targetStateId: t.targetStateId,
-      position: t.position,
-      // Include handle information for bidirectional transitions
-      stateToTransitionSourceHandle: t.stateToTransitionSourceHandle,
-      stateToTransitionTargetHandle: t.stateToTransitionTargetHandle,
-      transitionToStateSourceHandle: t.transitionToStateSourceHandle,
-      transitionToStateTargetHandle: t.transitionToStateTargetHandle,
-    }));
+    updatedTransitions = layoutResult.transitions.map(t => {
+      const transition = {
+        id: t.id,
+        sourceStateId: t.sourceStateId,
+        targetStateId: t.targetStateId,
+        position: t.position,
+        // Include handle information for bidirectional transitions
+        stateToTransitionSourceHandle: t.stateToTransitionSourceHandle,
+        stateToTransitionTargetHandle: t.stateToTransitionTargetHandle,
+        transitionToStateSourceHandle: t.transitionToStateSourceHandle,
+        transitionToStateTargetHandle: t.transitionToStateTargetHandle,
+        // Include handle information for regular transitions
+        sourceHandle: t.sourceHandle,
+        targetHandle: t.targetHandle,
+      };
+      console.log('💾 Saving transition to layout (new):', transition);
+      return transition;
+    });
   } else {
     // Update existing transitions
     updatedTransitions = updatedLayout.transitions.map(layoutTransition => {
       const newPosition = layoutResult.transitions?.find(t => t.id === layoutTransition.id);
       if (newPosition) {
-        return {
+        const transition = {
           ...layoutTransition,
           position: newPosition.position,
           // Include handle information for bidirectional transitions
@@ -835,7 +948,12 @@ export function applyLayoutToWorkflow(
           stateToTransitionTargetHandle: newPosition.stateToTransitionTargetHandle,
           transitionToStateSourceHandle: newPosition.transitionToStateSourceHandle,
           transitionToStateTargetHandle: newPosition.transitionToStateTargetHandle,
+          // Include handle information for regular transitions
+          sourceHandle: newPosition.sourceHandle,
+          targetHandle: newPosition.targetHandle,
         };
+        console.log('💾 Saving transition to layout (update):', transition);
+        return transition;
       }
       return layoutTransition;
     });
