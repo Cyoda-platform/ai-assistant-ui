@@ -905,24 +905,24 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           sourceHandle = layout?.sourceHandle || 'top-left-source';
           targetHandle = layout?.targetHandle || 'top-center-target';
 
-          console.log('📖 Reading LOOPBACK handles from layout:', {
-            transitionId: transition.id,
-            layout,
-            sourceHandle,
-            targetHandle,
-          });
+          // console.log('📖 Reading LOOPBACK handles from layout:', {
+          //   transitionId: transition.id,
+          //   layout,
+          //   sourceHandle,
+          //   targetHandle,
+          // });
         } else if (isBidirectional) {
           // For bidirectional transitions, use the special handles from autoLayout
           // These ensure the two transitions don't overlap
           sourceHandle = layout?.stateToTransitionSourceHandle || '';
           targetHandle = layout?.transitionToStateTargetHandle || '';
 
-          console.log('📖 Reading bidirectional handles from layout:', {
-            transitionId: transition.id,
-            sourceHandle,
-            targetHandle,
-            layout
-          });
+          // console.log('📖 Reading bidirectional handles from layout:', {
+          //   transitionId: transition.id,
+          //   sourceHandle,
+          //   targetHandle,
+          //   layout
+          // });
 
           if (!sourceHandle || !targetHandle) {
             const anchors = calculateOptimalAnchorPoints(
@@ -932,19 +932,19 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             );
             sourceHandle = sourceHandle || anchors.sourceHandle;
             targetHandle = targetHandle || anchors.targetHandle;
-            console.log('📖 Using calculated bidirectional anchors:', { sourceHandle, targetHandle });
+            // console.log('📖 Using calculated bidirectional anchors:', { sourceHandle, targetHandle });
           }
         } else {
           // For regular (non-bidirectional) transitions, use sourceHandle/targetHandle
           sourceHandle = layout?.sourceHandle || '';
           targetHandle = layout?.targetHandle || '';
 
-          console.log('📖 Reading regular handles from layout:', {
-            transitionId: transition.id,
-            layout,
-            sourceHandle,
-            targetHandle
-          });
+          // console.log('📖 Reading regular handles from layout:', {
+          //   transitionId: transition.id,
+          //   layout,
+          //   sourceHandle,
+          //   targetHandle
+          // });
 
           if (!sourceHandle || !targetHandle) {
             const anchors = calculateOptimalAnchorPoints(
@@ -953,7 +953,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             );
             sourceHandle = sourceHandle || anchors.sourceHandle;
             targetHandle = targetHandle || anchors.targetHandle;
-            console.log('📖 Using calculated anchors:', { sourceHandle, targetHandle });
+            // console.log('📖 Using calculated anchors:', { sourceHandle, targetHandle });
           }
         }
 

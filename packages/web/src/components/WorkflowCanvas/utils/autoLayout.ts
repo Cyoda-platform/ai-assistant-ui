@@ -270,13 +270,7 @@ function calculateDynamicSpacing(
     });
   });
 
-  console.log('[AutoLayout] Node measurements:', {
-    maxStateNodeWidth,
-    longestStateName,
-    maxTransitionLabelWidth,
-    longestTransitionName,
-    direction,
-  });
+
 
   let adjustedRankSeparation = baseRankSeparation;
   let adjustedNodeSeparation = baseNodeSeparation;
@@ -623,13 +617,13 @@ export function calculateAutoLayout(
     opts.nodeSeparation
   );
 
-  console.log('[AutoLayout] Dynamic spacing:', {
-    direction: opts.direction,
-    baseRankSeparation: opts.rankSeparation,
-    baseNodeSeparation: opts.nodeSeparation,
-    perRankSpacing: Object.fromEntries(perRankSpacing),
-    adjustedNodeSeparation: dynamicSpacing.nodeSeparation,
-  });
+  // console.log('[AutoLayout] Dynamic spacing:', {
+  //   direction: opts.direction,
+  //   baseRankSeparation: opts.rankSeparation,
+  //   baseNodeSeparation: opts.nodeSeparation,
+  //   perRankSpacing: Object.fromEntries(perRankSpacing),
+  //   adjustedNodeSeparation: dynamicSpacing.nodeSeparation,
+  // });
 
   // Use dynamic nodeSeparation
   opts.nodeSeparation = dynamicSpacing.nodeSeparation;
@@ -804,13 +798,13 @@ export function calculateAutoLayout(
           targetHandle,
         });
 
-        console.log('[AutoLayout] Reserved loopback handles:', {
-          stateId,
-          transitionKey,
-          transitionName: transition.name,
-          sourceHandle,
-          targetHandle,
-        });
+        // console.log('[AutoLayout] Reserved loopback handles:', {
+        //   stateId,
+        //   transitionKey,
+        //   transitionName: transition.name,
+        //   sourceHandle,
+        //   targetHandle,
+        // });
       }
     });
   });
@@ -852,18 +846,18 @@ export function calculateAutoLayout(
       transitionsByDirection.get(direction)!.push(trans);
     });
 
-    console.log('[AutoLayout] Grouped transitions by direction for source handles:', {
-      sourceStateId,
-      groups: Array.from(transitionsByDirection.entries()).map(([dir, trans]) => ({
-        direction: dir,
-        transitions: trans.map(t => ({
-          index: t.index,
-          targetStateId: t.targetStateId,
-          dx: t.targetPos ? t.targetPos.x - sourcePos.x : 0,
-          dy: t.targetPos ? t.targetPos.y - sourcePos.y : 0,
-        })),
-      })),
-    });
+    // console.log('[AutoLayout] Grouped transitions by direction for source handles:', {
+    //   sourceStateId,
+    //   groups: Array.from(transitionsByDirection.entries()).map(([dir, trans]) => ({
+    //     direction: dir,
+    //     transitions: trans.map(t => ({
+    //       index: t.index,
+    //       targetStateId: t.targetStateId,
+    //       dx: t.targetPos ? t.targetPos.x - sourcePos.x : 0,
+    //       dy: t.targetPos ? t.targetPos.y - sourcePos.y : 0,
+    //     })),
+    //   })),
+    // });
 
     // Assign handles for each direction group
     transitionsByDirection.forEach((transitionsInDirection, direction) => {
@@ -944,19 +938,19 @@ export function calculateAutoLayout(
             opts.nodeHeight
           );
 
-          console.log('[AutoLayout] Assigned source handle:', {
-            sourceStateId,
-            transitionKey,
-            targetStateId: trans.targetStateId,
-            direction,
-            index: i,
-            assignedHandle,
-            assignedDistance: Math.round(assignedDistance),
-            isPrimaryHandle,
-            isFallbackHandle,
-            primaryHandles,
-            fallbackHandles,
-          });
+          // console.log('[AutoLayout] Assigned source handle:', {
+          //   sourceStateId,
+          //   transitionKey,
+          //   targetStateId: trans.targetStateId,
+          //   direction,
+          //   index: i,
+          //   assignedHandle,
+          //   assignedDistance: Math.round(assignedDistance),
+          //   isPrimaryHandle,
+          //   isFallbackHandle,
+          //   primaryHandles,
+          //   fallbackHandles,
+          // });
         }
       });
     });
@@ -999,11 +993,11 @@ export function calculateAutoLayout(
             transitionToStateTargetHandle: targetHandle,
           };
 
-          console.log('🔄 Creating LOOPBACK transition:', {
-            transitionId,
-            transitionName: transition.name,
-            loopbackTransition,
-          });
+          // console.log('🔄 Creating LOOPBACK transition:', {
+          //   transitionId,
+          //   transitionName: transition.name,
+          //   loopbackTransition,
+          // });
 
           transitions.push(loopbackTransition);
         } else {
@@ -1310,11 +1304,11 @@ export function calculateAutoLayout(
               handles.transitionToStateSourceHandle = 'bottom-center-source';
               handles.transitionToStateTargetHandle = preAssignedHandles?.targetHandle || 'top-left-target';
 
-              console.log('[AutoLayout] Using loopback handles:', {
-                transitionKey,
-                transitionName: transition.name,
-                handles,
-              });
+              // console.log('[AutoLayout] Using loopback handles:', {
+              //   transitionKey,
+              //   transitionName: transition.name,
+              //   handles,
+              // });
             } else {
               // Regular non-bidirectional transition
               // Use pre-assigned source handle from the grouping logic
@@ -1378,15 +1372,15 @@ export function calculateAutoLayout(
             let usedTargets = usedTargetHandles.get(transition.next) || new Set<string>();
             const availableTargetHandles = allTargetHandles.filter(h => !usedTargets.has(h));
 
-            console.log('[AutoLayout] Assigning target handle:', {
-              transitionKey: `${sourceStateId}-${index}`,
-              transitionName: transition.name,
-              targetStateId: transition.next,
-              targetDirection,
-              allTargetHandles,
-              usedTargets: Array.from(usedTargets),
-              availableTargetHandles,
-            });
+            // console.log('[AutoLayout] Assigning target handle:', {
+            //   transitionKey: `${sourceStateId}-${index}`,
+            //   transitionName: transition.name,
+            //   targetStateId: transition.next,
+            //   targetDirection,
+            //   allTargetHandles,
+            //   usedTargets: Array.from(usedTargets),
+            //   availableTargetHandles,
+            // });
 
             // For TB/BT layouts with top/bottom direction, always prefer center handle first
             let stateTargetHandle: string;
@@ -1434,12 +1428,12 @@ export function calculateAutoLayout(
             targetHandle: handles.transitionToStateTargetHandle,
           };
 
-          console.log('🔧 Creating transition in autoLayout:', {
-            transitionId,
-            isBidirectional,
-            handles,
-            regularHandles,
-          });
+          // console.log('🔧 Creating transition in autoLayout:', {
+          //   transitionId,
+          //   isBidirectional,
+          //   handles,
+          //   regularHandles,
+          // });
 
           transitions.push({
             id: transitionId,
@@ -1564,7 +1558,7 @@ export function applyLayoutToWorkflow(
         sourceHandle: t.sourceHandle,
         targetHandle: t.targetHandle,
       };
-      console.log('💾 Saving transition to layout (new):', transition);
+      // console.log('💾 Saving transition to layout (new):', transition);
       return transition;
     });
   } else {
@@ -1584,7 +1578,7 @@ export function applyLayoutToWorkflow(
           sourceHandle: newPosition.sourceHandle,
           targetHandle: newPosition.targetHandle,
         };
-        console.log('💾 Saving transition to layout (update):', transition);
+        // console.log('💾 Saving transition to layout (update):', transition);
         return transition;
       }
       return layoutTransition;
@@ -1650,7 +1644,7 @@ export function recalculateHandlesForMovedState(
 ): UIWorkflowData {
   const opts: Required<LayoutOptions> = { ...DEFAULT_OPTIONS, ...options };
 
-  console.log('[AutoLayout] Recalculating handles for moved state:', movedStateId);
+  // console.log('[AutoLayout] Recalculating handles for moved state:', movedStateId);
 
   // Build position map from layout
   const statePositions = new Map<string, { x: number; y: number }>();
@@ -1675,7 +1669,7 @@ export function recalculateHandlesForMovedState(
     });
   });
 
-  console.log('[AutoLayout] Affected states:', Array.from(affectedStates));
+  // console.log('[AutoLayout] Affected states:', Array.from(affectedStates));
 
   // Track used handles for each state
   const usedSourceHandles = new Map<string, Set<string>>();
@@ -1713,12 +1707,12 @@ export function recalculateHandlesForMovedState(
       const transitionKey = `${stateId}-${index}`;
       newHandleAssignments.set(transitionKey, { sourceHandle, targetHandle });
 
-      console.log('[AutoLayout] Reserved loopback handles:', {
-        stateId,
-        transitionKey,
-        sourceHandle,
-        targetHandle,
-      });
+      // console.log('[AutoLayout] Reserved loopback handles:', {
+      //   stateId,
+      //   transitionKey,
+      //   sourceHandle,
+      //   targetHandle,
+      // });
     });
   });
 
@@ -1827,7 +1821,7 @@ export function recalculateHandlesForMovedState(
     usedSourceHandles.set(sourceStateId, stateUsedHandles);
   });
 
-  console.log('[AutoLayout] Recalculated source handles:', newHandleAssignments.size);
+  // console.log('[AutoLayout] Recalculated source handles:', newHandleAssignments.size);
 
   // STEP 3: Assign target handles for incoming transitions to affected states
   affectedStates.forEach(targetStateId => {
@@ -1896,20 +1890,20 @@ export function recalculateHandlesForMovedState(
     });
   });
 
-  console.log('[AutoLayout] Recalculated target handles');
+  // console.log('[AutoLayout] Recalculated target handles');
 
   // STEP 4: Update layout transitions with new handles
   const updatedLayoutTransitions = workflow.layout.transitions.map(layoutTransition => {
     const assignment = newHandleAssignments.get(layoutTransition.id);
     if (!assignment) return layoutTransition;
 
-    console.log('[AutoLayout] Updating handles for transition:', {
-      id: layoutTransition.id,
-      oldSourceHandle: layoutTransition.sourceHandle,
-      newSourceHandle: assignment.sourceHandle,
-      oldTargetHandle: layoutTransition.targetHandle,
-      newTargetHandle: assignment.targetHandle,
-    });
+    // console.log('[AutoLayout] Updating handles for transition:', {
+    //   id: layoutTransition.id,
+    //   oldSourceHandle: layoutTransition.sourceHandle,
+    //   newSourceHandle: assignment.sourceHandle,
+    //   oldTargetHandle: layoutTransition.targetHandle,
+    //   newTargetHandle: assignment.targetHandle,
+    // });
 
     return {
       ...layoutTransition,
@@ -1927,7 +1921,7 @@ export function recalculateHandlesForMovedState(
     },
   };
 
-  console.log('[AutoLayout] Handle recalculation complete');
+  // console.log('[AutoLayout] Handle recalculation complete');
 
   return updatedWorkflow;
 }
