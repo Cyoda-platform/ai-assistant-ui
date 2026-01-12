@@ -106,7 +106,8 @@ function getHandlePosition(handle: string): string {
 
 /**
  * Find an available handle on a state, preferring handles in the given direction.
- * Returns the first available handle, or reuses a handle if all are taken.
+ * First tries preferred handles, then searches all available handles.
+ * Only reuses a handle if ALL handles are taken.
  *
  * Checks both source and target handles to avoid collisions on the same side.
  * For example, if "left-top-target" is used, we should avoid "left-top-source".
@@ -121,7 +122,29 @@ function findAvailableHandle(
   const usedSame = (isSourceHandle ? usedSourceHandles : usedTargetHandles).get(stateId) || new Set<string>();
   const usedOpposite = (isSourceHandle ? usedTargetHandles : usedSourceHandles).get(stateId) || new Set<string>();
 
-  // Try to find an unused handle from preferred list
+  // All available handles for states (10 positions × 2 types = 20 total)
+  const allAvailableHandles = [
+    // Top handles
+    'top-left-source', 'top-left-target',
+    'top-center-source', 'top-center-target',
+    'top-right-source', 'top-right-target',
+    // Left handles
+    'left-top-source', 'left-top-target',
+    'left-bottom-source', 'left-bottom-target',
+    // Right handles
+    'right-top-source', 'right-top-target',
+    'right-bottom-source', 'right-bottom-target',
+    // Bottom handles
+    'bottom-left-source', 'bottom-left-target',
+    'bottom-center-source', 'bottom-center-target',
+    'bottom-right-source', 'bottom-right-target',
+  ];
+
+  // Filter to only handles of the correct type (source or target)
+  const handleType = isSourceHandle ? 'source' : 'target';
+  const availableHandlesOfType = allAvailableHandles.filter(h => h.endsWith(`-${handleType}`));
+
+  // First, try to find an unused handle from preferred list
   for (const handle of preferredHandles) {
     // Check if this handle is already used
     if (usedSame.has(handle)) {
@@ -145,7 +168,35 @@ function findAvailableHandle(
     }
   }
 
-  // All preferred handles are used, return the first one (will reuse)
+  // If all preferred handles are used, search for any available handle
+  for (const handle of availableHandlesOfType) {
+    // Skip if already in preferred list (we already tried those)
+    if (preferredHandles.includes(handle)) {
+      continue;
+    }
+
+    // Check if this handle is already used
+    if (usedSame.has(handle)) {
+      continue;
+    }
+
+    // Check if the opposite type handle at the EXACT SAME POSITION is used
+    const handlePosition = getHandlePosition(handle);
+    let positionBlocked = false;
+
+    for (const oppositeHandle of usedOpposite) {
+      if (getHandlePosition(oppositeHandle) === handlePosition) {
+        positionBlocked = true;
+        break;
+      }
+    }
+
+    if (!positionBlocked) {
+      return handle;
+    }
+  }
+
+  // All handles are taken, reuse the first preferred handle
   return preferredHandles[0];
 }
 
