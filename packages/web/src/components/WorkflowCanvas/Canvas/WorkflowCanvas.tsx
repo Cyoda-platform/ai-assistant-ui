@@ -692,11 +692,18 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       const updatedLayoutTransitions = [...cleanedWorkflow.layout.transitions];
 
       removedEdgeIds.forEach(edgeId => {
+        // Remove 'edge-' prefix if present
+        const transitionId = edgeId.startsWith('edge-') ? edgeId.substring(5) : edgeId;
+
+        console.log('🗑️ Deleting edge:', { edgeId, transitionId });
+
         // Parse the transition ID to find the source state and transition index
-        const parsed = parseTransitionId(edgeId);
+        const parsed = parseTransitionId(transitionId);
         if (parsed) {
           const { sourceStateId, transitionIndex } = parsed;
           const sourceState = updatedStates[sourceStateId];
+
+          console.log('🗑️ Parsed transition:', { sourceStateId, transitionIndex, sourceState: !!sourceState });
 
           if (sourceState && sourceState.transitions[transitionIndex]) {
             // Remove the transition from the source state
@@ -708,12 +715,19 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
               transitions: updatedTransitions
             };
 
+            console.log('🗑️ Removed transition from state:', { sourceStateId, newTransitionCount: updatedTransitions.length });
+
             // Remove the corresponding layout transition
-            const layoutIndex = updatedLayoutTransitions.findIndex(t => t.id === edgeId);
+            const layoutIndex = updatedLayoutTransitions.findIndex(t => t.id === transitionId);
             if (layoutIndex >= 0) {
               updatedLayoutTransitions.splice(layoutIndex, 1);
+              console.log('🗑️ Removed layout transition');
             }
+          } else {
+            console.log('❌ Could not find transition to delete:', { sourceStateId, transitionIndex });
           }
+        } else {
+          console.log('❌ Could not parse transition ID:', transitionId);
         }
       });
 
