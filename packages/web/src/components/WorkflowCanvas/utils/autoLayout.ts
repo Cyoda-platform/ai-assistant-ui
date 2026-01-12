@@ -1638,3 +1638,296 @@ export function canAutoLayout(workflow: UIWorkflowData | null): boolean {
     workflow.layout.states.some(layoutState => layoutState.id === stateId)
   );
 }
+
+/**
+ * Recalculate handles for transitions connected to a moved state.
+ * This function updates handles based on new state positions without changing transition positions.
+ */
+export function recalculateHandlesForMovedState(
+  workflow: UIWorkflowData,
+  movedStateId: string,
+  options?: Partial<LayoutOptions>
+): UIWorkflowData {
+  const opts: Required<LayoutOptions> = { ...DEFAULT_OPTIONS, ...options };
+
+  console.log('[AutoLayout] Recalculating handles for moved state:', movedStateId);
+
+  // Build position map from layout
+  const statePositions = new Map<string, { x: number; y: number }>();
+  workflow.layout.states.forEach(layoutState => {
+    statePositions.set(layoutState.id, layoutState.position);
+  });
+
+  // Find all states that have transitions to/from the moved state
+  const affectedStates = new Set<string>();
+  affectedStates.add(movedStateId); // The moved state itself
+
+  Object.entries(workflow.configuration.states).forEach(([sourceStateId, stateDefinition]) => {
+    stateDefinition.transitions.forEach((transition) => {
+      // If this state has a transition TO the moved state, it's affected
+      if (transition.next === movedStateId) {
+        affectedStates.add(sourceStateId);
+      }
+      // If the moved state has a transition TO this state, the moved state is affected (already added)
+      if (sourceStateId === movedStateId) {
+        affectedStates.add(movedStateId);
+      }
+    });
+  });
+
+  console.log('[AutoLayout] Affected states:', Array.from(affectedStates));
+
+  // Track used handles for each state
+  const usedSourceHandles = new Map<string, Set<string>>();
+  const usedTargetHandles = new Map<string, Set<string>>();
+  Object.keys(workflow.configuration.states).forEach(stateId => {
+    usedSourceHandles.set(stateId, new Set<string>());
+    usedTargetHandles.set(stateId, new Set<string>());
+  });
+
+  // Store new handle assignments
+  const newHandleAssignments = new Map<string, { sourceHandle: string; targetHandle: string }>();
+
+  // STEP 1: Reserve handles for loopback transitions on affected states
+  affectedStates.forEach(stateId => {
+    const state = workflow.configuration.states[stateId];
+    if (!state) return;
+
+    state.transitions.forEach((transition, index) => {
+      const isLoopback = transition.next === stateId;
+      if (!isLoopback) return;
+
+      const sourceHandle = 'top-right-source';
+      const targetHandle = 'top-left-target';
+
+      const sourceUsed = usedSourceHandles.get(stateId) || new Set<string>();
+      const targetUsed = usedTargetHandles.get(stateId) || new Set<string>();
+
+      sourceUsed.add(sourceHandle);
+      targetUsed.add('top-right-target');
+      targetUsed.add('top-left-target');
+
+      usedSourceHandles.set(stateId, sourceUsed);
+      usedTargetHandles.set(stateId, targetUsed);
+
+      const transitionKey = `${stateId}-${index}`;
+      newHandleAssignments.set(transitionKey, { sourceHandle, targetHandle });
+
+      console.log('[AutoLayout] Reserved loopback handles:', {
+        stateId,
+        transitionKey,
+        sourceHandle,
+        targetHandle,
+      });
+    });
+  });
+
+  // STEP 2: Assign source handles for outgoing transitions from affected states
+  affectedStates.forEach(sourceStateId => {
+    const sourcePos = statePositions.get(sourceStateId);
+    if (!sourcePos) return;
+
+    const state = workflow.configuration.states[sourceStateId];
+    if (!state) return;
+
+    // Group transitions by direction
+    const transitionsByDirection = new Map<string, Array<{ targetStateId: string; index: number; targetPos?: { x: number; y: number } }>>();
+
+    state.transitions.forEach((transition, index) => {
+      const targetPos = statePositions.get(transition.next);
+      if (!targetPos) return;
+
+      // Skip loopback transitions (already handled)
+      const isLoopback = sourceStateId === transition.next;
+      if (isLoopback) return;
+
+      const dx = targetPos.x - sourcePos.x;
+      const dy = targetPos.y - sourcePos.y;
+
+      // Determine primary direction
+      let direction: string;
+      if (Math.abs(dy) > Math.abs(dx)) {
+        direction = dy > 0 ? 'bottom' : 'top';
+      } else {
+        direction = dx > 0 ? 'right' : 'left';
+      }
+
+      if (!transitionsByDirection.has(direction)) {
+        transitionsByDirection.set(direction, []);
+      }
+      transitionsByDirection.get(direction)!.push({ targetStateId: transition.next, index, targetPos });
+    });
+
+    // Assign handles for each direction group
+    let stateUsedHandles = usedSourceHandles.get(sourceStateId) || new Set<string>();
+
+    transitionsByDirection.forEach((transitionsInDirection, direction) => {
+      const primaryHandles = getAllHandlesForSide(direction as 'top' | 'bottom' | 'left' | 'right');
+      const fallbackHandles = getFallbackHandlesForSide(direction as 'top' | 'bottom' | 'left' | 'right');
+      const allHandlesInOrder = [...primaryHandles, ...fallbackHandles];
+
+      // Sort transitions by angle
+      const sortedTransitions = transitionsInDirection.sort((a, b) => {
+        const angleA = Math.atan2(a.targetPos!.y - sourcePos.y, a.targetPos!.x - sourcePos.x);
+        const angleB = Math.atan2(b.targetPos!.y - sourcePos.y, b.targetPos!.x - sourcePos.x);
+        return angleA - angleB;
+      });
+
+      // Assign handles
+      sortedTransitions.forEach((trans, i) => {
+        let assignedHandle: string | null = null;
+
+        // Try primary handles first
+        if (i < primaryHandles.length) {
+          const primaryHandle = primaryHandles[i];
+          if (!stateUsedHandles.has(primaryHandle)) {
+            assignedHandle = primaryHandle;
+          }
+        }
+
+        // Use fallback if needed
+        if (!assignedHandle) {
+          const sortedFallbacks = [...fallbackHandles].sort((a, b) => {
+            const distA = getHandleDistanceToTarget(a, sourcePos, trans.targetPos!, opts.nodeWidth, opts.nodeHeight);
+            const distB = getHandleDistanceToTarget(b, sourcePos, trans.targetPos!, opts.nodeWidth, opts.nodeHeight);
+            return distA - distB;
+          });
+
+          for (const handle of sortedFallbacks) {
+            if (!stateUsedHandles.has(handle)) {
+              assignedHandle = handle;
+              break;
+            }
+          }
+        }
+
+        // Ultimate fallback
+        if (!assignedHandle) {
+          assignedHandle = primaryHandles[primaryHandles.length - 1];
+        }
+
+        stateUsedHandles.add(assignedHandle);
+
+        // Reserve corresponding target handle
+        const correspondingTargetHandle = sourceHandleToTargetHandle(assignedHandle);
+        const stateTargetHandles = usedTargetHandles.get(sourceStateId) || new Set<string>();
+        stateTargetHandles.add(correspondingTargetHandle);
+        usedTargetHandles.set(sourceStateId, stateTargetHandles);
+
+        const transitionKey = `${sourceStateId}-${trans.index}`;
+        if (!newHandleAssignments.has(transitionKey)) {
+          newHandleAssignments.set(transitionKey, {
+            sourceHandle: assignedHandle,
+            targetHandle: '', // Will be assigned in STEP 3
+          });
+        }
+      });
+    });
+
+    usedSourceHandles.set(sourceStateId, stateUsedHandles);
+  });
+
+  console.log('[AutoLayout] Recalculated source handles:', newHandleAssignments.size);
+
+  // STEP 3: Assign target handles for incoming transitions to affected states
+  affectedStates.forEach(targetStateId => {
+    const targetPos = statePositions.get(targetStateId);
+    if (!targetPos) return;
+
+    // Find all incoming transitions to this state
+    const incomingTransitions: Array<{ sourceStateId: string; index: number; sourcePos?: { x: number; y: number } }> = [];
+
+    Object.entries(workflow.configuration.states).forEach(([sourceStateId, stateDefinition]) => {
+      stateDefinition.transitions.forEach((transition, index) => {
+        if (transition.next === targetStateId) {
+          const sourcePos = statePositions.get(sourceStateId);
+          incomingTransitions.push({ sourceStateId, index, sourcePos });
+        }
+      });
+    });
+
+    // Group incoming transitions by direction
+    const incomingByDirection = new Map<string, typeof incomingTransitions>();
+
+    incomingTransitions.forEach(trans => {
+      if (!trans.sourcePos) return;
+
+      const dx = targetPos.x - trans.sourcePos.x;
+      const dy = targetPos.y - trans.sourcePos.y;
+
+      let direction: string;
+      if (Math.abs(dy) > Math.abs(dx)) {
+        direction = dy > 0 ? 'top' : 'bottom';
+      } else {
+        direction = dx > 0 ? 'left' : 'right';
+      }
+
+      if (!incomingByDirection.has(direction)) {
+        incomingByDirection.set(direction, []);
+      }
+      incomingByDirection.get(direction)!.push(trans);
+    });
+
+    // Assign target handles for each direction group
+    incomingByDirection.forEach((transitionsInDirection, direction) => {
+      const allTargetHandles = getAllTargetHandlesForSide(direction as 'top' | 'bottom' | 'left' | 'right');
+      let usedTargets = usedTargetHandles.get(targetStateId) || new Set<string>();
+      const availableTargetHandles = allTargetHandles.filter(h => !usedTargets.has(h));
+
+      transitionsInDirection.forEach((trans, i) => {
+        const handleIndex = Math.min(i, availableTargetHandles.length - 1);
+        const stateTargetHandle = availableTargetHandles.length > 0
+          ? availableTargetHandles[handleIndex]
+          : allTargetHandles[0];
+
+        usedTargets.add(stateTargetHandle);
+
+        const transitionKey = `${trans.sourceStateId}-${trans.index}`;
+        const existing = newHandleAssignments.get(transitionKey);
+        if (existing) {
+          newHandleAssignments.set(transitionKey, {
+            ...existing,
+            targetHandle: stateTargetHandle,
+          });
+        }
+      });
+
+      usedTargetHandles.set(targetStateId, usedTargets);
+    });
+  });
+
+  console.log('[AutoLayout] Recalculated target handles');
+
+  // STEP 4: Update layout transitions with new handles
+  const updatedLayoutTransitions = workflow.layout.transitions.map(layoutTransition => {
+    const assignment = newHandleAssignments.get(layoutTransition.id);
+    if (!assignment) return layoutTransition;
+
+    console.log('[AutoLayout] Updating handles for transition:', {
+      id: layoutTransition.id,
+      oldSourceHandle: layoutTransition.sourceHandle,
+      newSourceHandle: assignment.sourceHandle,
+      oldTargetHandle: layoutTransition.targetHandle,
+      newTargetHandle: assignment.targetHandle,
+    });
+
+    return {
+      ...layoutTransition,
+      sourceHandle: assignment.sourceHandle,
+      targetHandle: assignment.targetHandle,
+    };
+  });
+
+  const updatedWorkflow: UIWorkflowData = {
+    ...workflow,
+    layout: {
+      ...workflow.layout,
+      transitions: updatedLayoutTransitions,
+      updatedAt: new Date().toISOString(),
+    },
+  };
+
+  console.log('[AutoLayout] Handle recalculation complete');
+
+  return updatedWorkflow;
+}

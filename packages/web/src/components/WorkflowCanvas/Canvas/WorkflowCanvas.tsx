@@ -139,7 +139,7 @@ import { TransitionEdge } from './TransitionEdge';
 import { LoopbackEdge } from './LoopbackEdge';
 import { WorkflowJsonEditor } from '../Editors/WorkflowJsonEditor';
 import { generateTransitionId, generateLayoutTransitionId, migrateLayoutTransitionId, validateTransitionExists, parseLayoutTransitionId, parseTransitionId, migrateLayoutTransitions } from '../utils/transitionUtils';
-import { autoLayoutWorkflow, canAutoLayout } from '../utils/autoLayout';
+import { autoLayoutWorkflow, canAutoLayout, recalculateHandlesForMovedState } from '../utils/autoLayout';
 import { useTheme } from '../hooks/useTheme';
 import { getAvailableThemes, COLOR_PALETTES } from '../themes/colorPalettes';
 
@@ -1444,7 +1444,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             : state
         );
 
-        const updatedWorkflow: UIWorkflowData = {
+        let updatedWorkflow: UIWorkflowData = {
           ...cleanedWorkflow,
           layout: {
             ...cleanedWorkflow.layout,
@@ -1452,6 +1452,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             updatedAt: new Date().toISOString()
           }
         };
+
+        // Recalculate handles for transitions connected to the moved state
+        updatedWorkflow = recalculateHandlesForMovedState(updatedWorkflow, node.id);
 
         onWorkflowUpdate(updatedWorkflow, `Moved state: ${node.id}`);
       }
