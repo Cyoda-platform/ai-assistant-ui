@@ -477,6 +477,69 @@ function getAllHandlesForSide(side: 'top' | 'bottom' | 'left' | 'right'): string
 }
 
 /**
+ * Get fallback handles when primary side is full.
+ * Returns handles from adjacent sides in priority order.
+ * NOTE: Does NOT include primary handles (they're already in the primary list)
+ */
+function getFallbackHandlesForSide(side: 'top' | 'bottom' | 'left' | 'right'): string[] {
+  switch (side) {
+    case 'top':
+      // Top is full → try corners from adjacent sides
+      return ['top-right-source', 'top-left-source', 'right-top-source', 'left-top-source'];
+    case 'bottom':
+      // Bottom is full → try corners from adjacent sides
+      return ['bottom-right-source', 'bottom-left-source', 'right-bottom-source', 'left-bottom-source'];
+    case 'left':
+      // Left is full → try corners from adjacent sides
+      return ['top-left-source', 'bottom-left-source', 'left-top-source', 'left-bottom-source'];
+    case 'right':
+      // Right is full → try corners from adjacent sides
+      return ['top-right-source', 'bottom-right-source', 'right-top-source', 'right-bottom-source'];
+    default:
+      return [];
+  }
+}
+
+/**
+ * Calculate approximate distance from a handle to target position.
+ * Lower distance = better match.
+ */
+function getHandleDistanceToTarget(
+  handle: string,
+  sourcePos: { x: number; y: number },
+  targetPos: { x: number; y: number },
+  nodeWidth: number,
+  nodeHeight: number
+): number {
+  // Map handle to offset from state center
+  const handleOffsets: Record<string, { x: number; y: number }> = {
+    'top-left-source': { x: -nodeWidth * 0.3, y: -nodeHeight / 2 },
+    'top-center-source': { x: 0, y: -nodeHeight / 2 },
+    'top-right-source': { x: nodeWidth * 0.3, y: -nodeHeight / 2 },
+    'bottom-left-source': { x: -nodeWidth * 0.3, y: nodeHeight / 2 },
+    'bottom-center-source': { x: 0, y: nodeHeight / 2 },
+    'bottom-right-source': { x: nodeWidth * 0.3, y: nodeHeight / 2 },
+    'left-top-source': { x: -nodeWidth / 2, y: -nodeHeight * 0.25 },
+    'left-bottom-source': { x: -nodeWidth / 2, y: nodeHeight * 0.25 },
+    'right-top-source': { x: nodeWidth / 2, y: -nodeHeight * 0.25 },
+    'right-bottom-source': { x: nodeWidth / 2, y: nodeHeight * 0.25 },
+  };
+
+  const offset = handleOffsets[handle];
+  if (!offset) return Infinity;
+
+  // Calculate handle position in world coordinates
+  const handleX = sourcePos.x + offset.x;
+  const handleY = sourcePos.y + offset.y;
+
+  // Calculate distance to target
+  const dx = targetPos.x - handleX;
+  const dy = targetPos.y - handleY;
+
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+/**
  * Get all available target handles for a given side of a state.
  */
 function getAllTargetHandlesForSide(side: 'top' | 'bottom' | 'left' | 'right'): string[] {
@@ -789,17 +852,69 @@ export function calculateAutoLayout(
       transitionsByDirection.get(direction)!.push(trans);
     });
 
+    console.log('[AutoLayout] Grouped transitions by direction for source handles:', {
+      sourceStateId,
+      groups: Array.from(transitionsByDirection.entries()).map(([dir, trans]) => ({
+        direction: dir,
+        transitions: trans.map(t => ({
+          index: t.index,
+          targetStateId: t.targetStateId,
+          dx: t.targetPos ? t.targetPos.x - sourcePos.x : 0,
+          dy: t.targetPos ? t.targetPos.y - sourcePos.y : 0,
+        })),
+      })),
+    });
+
     // Assign handles for each direction group
     transitionsByDirection.forEach((transitionsInDirection, direction) => {
-      const allHandles = getAllHandlesForSide(direction as 'top' | 'bottom' | 'left' | 'right');
+      const primaryHandles = getAllHandlesForSide(direction as 'top' | 'bottom' | 'left' | 'right');
+      const fallbackHandles = getFallbackHandlesForSide(direction as 'top' | 'bottom' | 'left' | 'right');
 
-      // Find available handles for this direction (excluding loopback-reserved handles)
-      const availableHandles = allHandles.filter(h => !stateUsedHandles.has(h));
+      // Combine primary and fallback handles
+      const allHandlesInOrder = [...primaryHandles, ...fallbackHandles];
+
+      // Sort transitions by angle to distribute handles evenly
+      const sortedTransitions = transitionsInDirection.sort((a, b) => {
+        const angleA = Math.atan2(a.targetPos!.y - sourcePos.y, a.targetPos!.x - sourcePos.x);
+        const angleB = Math.atan2(b.targetPos!.y - sourcePos.y, b.targetPos!.x - sourcePos.x);
+        return angleA - angleB;
+      });
 
       // Assign handles to transitions in this direction
-      transitionsInDirection.forEach((trans, i) => {
-        const handleIndex = Math.min(i, availableHandles.length - 1);
-        const assignedHandle = availableHandles.length > 0 ? availableHandles[handleIndex] : allHandles[0];
+      sortedTransitions.forEach((trans, i) => {
+        let assignedHandle: string | null = null;
+
+        // First, try primary handles
+        if (i < primaryHandles.length) {
+          const primaryHandle = primaryHandles[i];
+          if (!stateUsedHandles.has(primaryHandle)) {
+            assignedHandle = primaryHandle;
+          }
+        }
+
+        // If primary handle is taken or we ran out of primary handles, use fallback
+        if (!assignedHandle) {
+          // Sort fallback handles by distance to target (shortest path wins)
+          const sortedFallbacks = [...fallbackHandles].sort((a, b) => {
+            const distA = getHandleDistanceToTarget(a, sourcePos, trans.targetPos!, opts.nodeWidth, opts.nodeHeight);
+            const distB = getHandleDistanceToTarget(b, sourcePos, trans.targetPos!, opts.nodeWidth, opts.nodeHeight);
+            return distA - distB; // Lower distance = better match
+          });
+
+          // Find first available fallback handle
+          for (const handle of sortedFallbacks) {
+            if (!stateUsedHandles.has(handle)) {
+              assignedHandle = handle;
+              break;
+            }
+          }
+        }
+
+        // If all handles are taken, reuse the last primary handle (ultimate fallback)
+        if (!assignedHandle) {
+          assignedHandle = primaryHandles[primaryHandles.length - 1];
+        }
+
         stateUsedHandles.add(assignedHandle);
 
         // IMPORTANT: Also reserve the corresponding target handle on the same position
@@ -815,6 +930,32 @@ export function calculateAutoLayout(
           transitionHandleAssignments.set(transitionKey, {
             sourceHandle: assignedHandle,
             targetHandle: '', // Will be assigned later
+          });
+
+          const isPrimaryHandle = primaryHandles.includes(assignedHandle);
+          const isFallbackHandle = fallbackHandles.includes(assignedHandle);
+
+          // Calculate distance for the assigned handle
+          const assignedDistance = getHandleDistanceToTarget(
+            assignedHandle,
+            sourcePos,
+            trans.targetPos!,
+            opts.nodeWidth,
+            opts.nodeHeight
+          );
+
+          console.log('[AutoLayout] Assigned source handle:', {
+            sourceStateId,
+            transitionKey,
+            targetStateId: trans.targetStateId,
+            direction,
+            index: i,
+            assignedHandle,
+            assignedDistance: Math.round(assignedDistance),
+            isPrimaryHandle,
+            isFallbackHandle,
+            primaryHandles,
+            fallbackHandles,
           });
         }
       });
