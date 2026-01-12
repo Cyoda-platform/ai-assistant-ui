@@ -98,6 +98,258 @@ const DEFAULT_OPTIONS: Required<LayoutOptions> = {
 };
 
 /**
+ * Estimate text width based on character count and font size.
+ * For text-xl (20px) font-semibold, average character width is ~9px (accounting for Cyrillic).
+ * This matches the implementation in dagreLayout.ts.
+ */
+function estimateTextWidth(text: string | undefined | null, fontSize: number = 20, isBold: boolean = true): number {
+  if (!text) return 0;
+  // Average character width (9px works well for both Latin and Cyrillic)
+  const avgCharWidth = 9;
+  const scaleFactor = fontSize / 20; // Scale based on font size
+  return text.length * avgCharWidth * scaleFactor;
+}
+
+/**
+ * Estimate the total width of a state node including icon, text, button, and padding.
+ * StateNode has: icon (14px) + space (4px) + text + space (4px) + button (14px) + padding (40px)
+ */
+function estimateStateNodeWidth(stateName: string | undefined | null): number {
+  const iconWidth = 14;
+  const buttonWidth = 14;
+  const spacing = 4 * 2; // space-x-1 between elements
+  const padding = 40; // px-5 on both sides
+  const textWidth = estimateTextWidth(stateName, 20, true);
+
+  const totalWidth = iconWidth + spacing + textWidth + buttonWidth + padding;
+  const minWidth = 180; // min-w-[180px] from StateNode
+
+  return Math.max(minWidth, totalWidth);
+}
+
+/**
+ * Estimate the width of a transition label.
+ * Transition labels are simpler, just text with some padding.
+ */
+function estimateTransitionLabelWidth(transitionName: string | undefined | null): number {
+  const textWidth = estimateTextWidth(transitionName, 20, false);
+  const padding = 20; // Approximate padding around transition labels
+  const minWidth = 50; // Minimum width for transition labels
+  return Math.max(minWidth, textWidth + padding);
+}
+
+/**
+ * Calculate dynamic spacing per rank based on transitions between consecutive ranks.
+ * Returns a map of rank -> spacing to next rank.
+ */
+function calculatePerRankSpacing(
+  workflow: UIWorkflowData,
+  ranks: Map<string, number>,
+  statesByRank: Map<number, string[]>,
+  direction: 'TB' | 'BT' | 'LR' | 'RL',
+  baseRankSeparation: number
+): Map<number, number> {
+  const nodeWidth = 200;
+  const rankSpacing = new Map<number, number>();
+
+  // Get sorted ranks
+  const sortedRanks = Array.from(statesByRank.keys()).sort((a, b) => a - b);
+
+  // For each rank, calculate spacing to the next rank
+  sortedRanks.forEach((rank, index) => {
+    if (index === sortedRanks.length - 1) {
+      // Last rank - use base spacing
+      rankSpacing.set(rank, baseRankSeparation);
+      return;
+    }
+
+    const nextRank = sortedRanks[index + 1];
+    const statesInRank = statesByRank.get(rank) || [];
+    const statesInNextRank = statesByRank.get(nextRank) || [];
+
+    // Find max state node width in current and next rank
+    let maxStateNodeWidth = 0;
+    [...statesInRank, ...statesInNextRank].forEach(stateId => {
+      const state = workflow.configuration.states[stateId];
+      if (state) {
+        const width = estimateStateNodeWidth(state.name);
+        maxStateNodeWidth = Math.max(maxStateNodeWidth, width);
+      }
+    });
+
+    // Find max transition label width between this rank and next rank
+    let maxTransitionLabelWidth = 0;
+    statesInRank.forEach(stateId => {
+      const state = workflow.configuration.states[stateId];
+      if (!state) return;
+
+      state.transitions.forEach(transition => {
+        const targetRank = ranks.get(transition.next);
+        // Only consider transitions going to the next rank
+        if (targetRank === nextRank) {
+          const width = estimateTransitionLabelWidth(transition.name);
+          maxTransitionLabelWidth = Math.max(maxTransitionLabelWidth, width);
+        }
+      });
+    });
+
+    // Calculate spacing based on direction
+    let spacing = baseRankSeparation;
+
+    if (direction === 'TB' || direction === 'BT') {
+      // For TB/BT: rankSeparation is vertical
+      // Adjust based on transition label width (transitions appear vertically between ranks)
+      if (maxTransitionLabelWidth > 100) {
+        const extraSpace = (maxTransitionLabelWidth - 100) * 0.5;
+        spacing = Math.max(spacing, baseRankSeparation + extraSpace);
+      }
+    } else {
+      // For LR/RL: rankSeparation is horizontal
+      // Adjust based on both state node width and transition label width
+      let horizontalAdjustment = 0;
+
+      // Account for wide state nodes
+      if (maxStateNodeWidth > nodeWidth) {
+        const overflow = maxStateNodeWidth - nodeWidth;
+        horizontalAdjustment = Math.max(horizontalAdjustment, overflow);
+      }
+
+      // Account for long transition labels (critical for LR layout!)
+      if (maxTransitionLabelWidth > 100) {
+        const transitionOverflow = maxTransitionLabelWidth - 100;
+        horizontalAdjustment = Math.max(horizontalAdjustment, transitionOverflow + 100);
+      }
+
+      spacing = Math.max(spacing, baseRankSeparation + horizontalAdjustment);
+    }
+
+    // Apply reasonable limits
+    const maxSpacing = direction === 'TB' || direction === 'BT' ? 600 : 1000;
+    rankSpacing.set(rank, Math.min(spacing, maxSpacing));
+  });
+
+  return rankSpacing;
+}
+
+/**
+ * Calculate dynamic spacing based on the longest state/transition names in the workflow.
+ * Returns adjusted rankSeparation and nodeSeparation values.
+ * This is used for nodeSeparation (cross-axis spacing).
+ */
+function calculateDynamicSpacing(
+  workflow: UIWorkflowData,
+  statesByRank: Map<number, string[]>,
+  direction: 'TB' | 'BT' | 'LR' | 'RL',
+  baseRankSeparation: number,
+  baseNodeSeparation: number
+): { rankSeparation: number; nodeSeparation: number } {
+  const nodeWidth = 200;
+  const nodeHeight = 100;
+
+  // Find the longest state node width (including icon, button, padding)
+  let maxStateNodeWidth = 0;
+  let longestStateName = '';
+  Object.values(workflow.configuration.states).forEach(state => {
+    const width = estimateStateNodeWidth(state.name);
+    if (width > maxStateNodeWidth) {
+      maxStateNodeWidth = width;
+      longestStateName = state.name;
+    }
+  });
+
+  // Find the longest transition label width
+  let maxTransitionLabelWidth = 0;
+  let longestTransitionName = '';
+  Object.values(workflow.configuration.states).forEach(state => {
+    state.transitions.forEach(transition => {
+      const width = estimateTransitionLabelWidth(transition.name);
+      if (width > maxTransitionLabelWidth) {
+        maxTransitionLabelWidth = width;
+        longestTransitionName = transition.name;
+      }
+    });
+  });
+
+  console.log('[AutoLayout] Node measurements:', {
+    maxStateNodeWidth,
+    longestStateName,
+    maxTransitionLabelWidth,
+    longestTransitionName,
+    direction,
+  });
+
+  let adjustedRankSeparation = baseRankSeparation;
+  let adjustedNodeSeparation = baseNodeSeparation;
+
+  if (direction === 'TB' || direction === 'BT') {
+    // For TB/BT: rankSeparation is vertical, nodeSeparation is horizontal
+
+    // Adjust horizontal spacing (nodeSeparation) if state nodes are wide
+    if (maxStateNodeWidth > nodeWidth) {
+      const overflow = maxStateNodeWidth - nodeWidth;
+      adjustedNodeSeparation = Math.max(
+        baseNodeSeparation,
+        baseNodeSeparation + overflow + 50 // Add overflow + 50px clearance
+      );
+    }
+
+    // Adjust vertical spacing (rankSeparation) if transition labels are long
+    // Transitions are positioned between states vertically
+    if (maxTransitionLabelWidth > 100) {
+      const extraSpace = Math.max(0, (maxTransitionLabelWidth - 100) * 0.5);
+      adjustedRankSeparation = Math.max(
+        baseRankSeparation,
+        baseRankSeparation + extraSpace
+      );
+    }
+  } else {
+    // For LR/RL: rankSeparation is horizontal, nodeSeparation is vertical
+
+    // Adjust horizontal spacing (rankSeparation) based on both state nodes and transition labels
+    let horizontalAdjustment = 0;
+
+    // Account for wide state nodes
+    if (maxStateNodeWidth > nodeWidth) {
+      const overflow = maxStateNodeWidth - nodeWidth;
+      horizontalAdjustment = Math.max(horizontalAdjustment, overflow);
+    }
+
+    // Account for long transition labels (they appear between states horizontally)
+    // This is critical for LR layout!
+    if (maxTransitionLabelWidth > 100) {
+      const transitionOverflow = maxTransitionLabelWidth - 100;
+      // Use full overflow + extra clearance for transitions
+      horizontalAdjustment = Math.max(horizontalAdjustment, transitionOverflow + 100);
+    }
+
+    adjustedRankSeparation = Math.max(
+      baseRankSeparation,
+      baseRankSeparation + horizontalAdjustment
+    );
+
+    // Adjust vertical spacing (nodeSeparation) if state nodes are tall
+    // For LR/RL, states are stacked vertically in the same rank
+    if (maxStateNodeWidth > nodeWidth) {
+      // If nodes are wide, they might need more vertical space too
+      const extraSpace = Math.max(0, (maxStateNodeWidth - nodeWidth) * 0.1);
+      adjustedNodeSeparation = Math.max(
+        baseNodeSeparation,
+        baseNodeSeparation + extraSpace
+      );
+    }
+  }
+
+  // Apply reasonable limits
+  const maxRankSeparation = direction === 'TB' || direction === 'BT' ? 600 : 1000;
+  const maxNodeSeparation = 700;
+
+  return {
+    rankSeparation: Math.min(adjustedRankSeparation, maxRankSeparation),
+    nodeSeparation: Math.min(adjustedNodeSeparation, maxNodeSeparation),
+  };
+}
+
+/**
  * Extracts the position (without -source/-target suffix) from a handle name.
  * E.g., "left-top-source" -> "left-top", "top-center-target" -> "top-center"
  * This allows us to check if the exact same position is used by opposite handle type.
@@ -282,12 +534,53 @@ export function calculateAutoLayout(
     statesByRank.get(rank)!.push(stateId);
   });
 
+  // Calculate per-rank spacing (spacing between each rank and the next)
+  const perRankSpacing = calculatePerRankSpacing(
+    workflow,
+    ranks,
+    statesByRank,
+    opts.direction,
+    opts.rankSeparation
+  );
+
+  // Calculate dynamic spacing for nodeSeparation (cross-axis)
+  const dynamicSpacing = calculateDynamicSpacing(
+    workflow,
+    statesByRank,
+    opts.direction,
+    opts.rankSeparation,
+    opts.nodeSeparation
+  );
+
+  console.log('[AutoLayout] Dynamic spacing:', {
+    direction: opts.direction,
+    baseRankSeparation: opts.rankSeparation,
+    baseNodeSeparation: opts.nodeSeparation,
+    perRankSpacing: Object.fromEntries(perRankSpacing),
+    adjustedNodeSeparation: dynamicSpacing.nodeSeparation,
+  });
+
+  // Use dynamic nodeSeparation
+  opts.nodeSeparation = dynamicSpacing.nodeSeparation;
+
   // Calculate positions based on ranks
   const states: Array<{ id: string; position: { x: number; y: number } }> = [];
   const statePositions = new Map<string, { x: number; y: number }>();
 
   // Sort ranks
   const sortedRanks = Array.from(statesByRank.keys()).sort((a, b) => a - b);
+
+  // Calculate cumulative positions for each rank
+  const rankPositions = new Map<number, number>();
+  let cumulativePosition = 100; // Starting position
+  sortedRanks.forEach((rank, index) => {
+    rankPositions.set(rank, cumulativePosition);
+    if (index < sortedRanks.length - 1) {
+      // Add spacing to next rank
+      const spacing = perRankSpacing.get(rank) || opts.rankSeparation;
+      cumulativePosition += spacing;
+    }
+  });
 
   sortedRanks.forEach(rank => {
     const statesInRank = statesByRank.get(rank) || [];
@@ -297,7 +590,7 @@ export function calculateAutoLayout(
 
     if (opts.direction === 'TB' || opts.direction === 'BT') {
       // Top-to-Bottom or Bottom-to-Top: ranks go vertically
-      const rankY = 100 + rank * opts.rankSeparation;
+      const rankY = rankPositions.get(rank) || 100;
       const totalWidth = statesInRank.length * opts.nodeSeparation;
       const startX = 400 - totalWidth / 2; // Center around x=400
 
@@ -313,7 +606,7 @@ export function calculateAutoLayout(
       });
     } else {
       // Left-to-Right or Right-to-Left: ranks go horizontally
-      const rankX = 100 + rank * opts.rankSeparation;
+      const rankX = rankPositions.get(rank) || 100;
       const totalHeight = statesInRank.length * opts.nodeSeparation;
       const startY = 300 - totalHeight / 2; // Center around y=300
 
@@ -533,9 +826,13 @@ export function calculateAutoLayout(
             const oldMidY = midY;
 
             if (opts.direction === 'LR' || opts.direction === 'RL') {
-              // For Left-Right layout: use rank-based horizontal offset
+              // For Left-Right layout: calculate offset based on transition label width
+              const transitionLabelWidth = estimateTransitionLabelWidth(transition.name);
+              const minOffset = 80;
+              const extraOffset = Math.max(0, (transitionLabelWidth - 100) * 0.3);
+              const horizontalOffset = minOffset + extraOffset;
+
               const sourceRank = ranks.get(sourceStateId) || 0;
-              const horizontalOffset = 80;
               if (sourceRank === 0) {
                 // Rank 0 (leftmost states like 'created') → push transitions further left
                 midX -= horizontalOffset;
