@@ -117,7 +117,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
 
       if (hook.data?.options && Array.isArray(hook.data.options) && hook.data.options.length > 0) {
         // Convert array back to object
-        console.log('🎣 Fixing Cyoda serialization bug: converting options array to object');
         normalizedHook = {
           ...hook,
           data: {
@@ -126,8 +125,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
           }
         };
       }
-
-      console.log('🎣 Repository config hook (normalized):', normalizedHook);
       return normalizedHook;
     }
     return null;
@@ -141,9 +138,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     }
     // Otherwise, extract from allHooks (for combined hooks)
     const hook = allHooks.find((h: any) => h?.type === 'option_selection');
-    if (hook) {
-      console.log('[ChatBotMessageQuestion] Option selection hook detected:', hook);
-    }
     return hook || null;
   }, [message.raw, allHooks]);
 
@@ -169,7 +163,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
   // Detect if message contains code_changes hook
   const codeChangesHook = useMemo(() => {
     if (message.raw?.hook?.type === 'code_changes') {
-      console.log('[ChatBotMessageQuestion] Code changes hook detected:', message.raw.hook);
       return message.raw.hook;
     }
     return null;
@@ -178,9 +171,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
   // Find specific hook types from all hooks
   const backgroundTaskHook = useMemo(() => {
     const hook = allHooks.find((h: any) => h?.type === 'background_task');
-    if (hook) {
-      console.log('[ChatBotMessageQuestion] Background task hook detected:', hook);
-    }
     return hook;
   }, [allHooks]);
 
@@ -288,8 +278,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
       if (onOpenCanvas) {
         onOpenCanvas();
       }
-
-      console.log('✅ Canvas analysis complete and canvas opened');
     } catch (error) {
       console.error('❌ Failed to analyze and open canvas:', error);
     } finally {
@@ -299,8 +287,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
 
   const handleOpenCanvas = () => {
     if (!canvasOpenHook || !onOpenCanvas) return;
-
-    console.log('🎨 Opening Canvas from canvas_open hook');
 
     // Simply open the canvas panel
     onOpenCanvas();
@@ -315,7 +301,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     // Put the message in the textarea instead of sending directly
     if (setTextareaContent) {
       setTextareaContent(configMessage, { collapse: false });
-      console.log('✅ Repository configuration placed in textarea:', { branchChoice, repositoryType, language });
     } else {
       // Fallback: send directly if setTextareaContent is not available
       console.warn('⚠️ setTextareaContent not available, sending directly');
@@ -323,7 +308,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
         try {
           setIsSubmittingConfig(true);
           onAnswer({ answer: configMessage });
-          console.log('✅ Repository configuration submitted:', { branchChoice, repositoryType, language });
         } catch (error) {
           console.error('Failed to submit repository configuration:', error);
         } finally {
@@ -367,7 +351,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     // Put the message in the textarea instead of sending directly
     if (setTextareaContent) {
       setTextareaContent(selectionMessage, { collapse: false });
-      console.log('✅ Options placed in textarea:', { selectedOptions, selectedLabels, selectionMessage });
     } else {
       // Fallback: send directly if setTextareaContent is not available
       console.warn('⚠️ setTextareaContent not available, sending directly');
@@ -375,7 +358,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
         try {
           setIsSubmittingOptions(true);
           await onAnswer({ answer: selectionMessage });
-          console.log('✅ Options submitted:', { selectedOptions, selectedLabels });
         } catch (error) {
           console.error('Failed to submit options:', error);
         } finally {
@@ -399,12 +381,9 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     // Build the deployment message
     const deploymentMessage = `I choose: ${optionLabel}`;
 
-    console.log('[Deployment] Preparing deployment option:', { option, optionLabel, deploymentMessage });
-
     // Put the message in the textarea instead of sending directly
     if (setTextareaContent) {
       setTextareaContent(deploymentMessage, { collapse: false });
-      console.log('✅ Deployment option placed in textarea:', { option, optionLabel });
     } else {
       // Fallback: send directly if setTextareaContent is not available
       console.warn('⚠️ setTextareaContent not available, sending directly');
@@ -412,7 +391,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
         try {
           setIsSubmittingOptions(true);
           await onAnswer({ answer: deploymentMessage });
-          console.log('✅ Deployment option selected:', { option, optionLabel });
         } catch (error) {
           console.error('Failed to submit deployment option:', error);
         } finally {
@@ -546,7 +524,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
             {/* Background Task Hook - View Tasks Button */}
             {backgroundTaskHook && (
               <>
-                {console.log('[ChatBotMessageQuestion] Rendering background task hook UI')}
                 <ResponseSeparator
                   hookType="background_task"
                   label={backgroundTaskHook.data?.task_name || 'Background Task'}
@@ -565,8 +542,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                     </div>
                     <button
                       onClick={() => {
-                        console.log('[View Tasks Button] Clicked, calling onOpenTaskPanel');
-                        console.log('[View Tasks Button] onOpenTaskPanel function:', onOpenTaskPanel);
                         onOpenTaskPanel?.();
                       }}
                       className="w-full px-4 py-2 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/50 text-teal-300 text-sm font-medium transition-all duration-200"
@@ -818,12 +793,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
             const hasEvents = (sseEvents?.length > 0) || (debugEvents?.length > 0);
 
             if (hasEvents) {
-              console.log('[ChatBotMessageQuestion] Rendering debug panel:', {
-                hasSseEvents: !!sseEvents?.length,
-                hasDebugEvents: !!debugEvents?.length,
-                sseEventsCount: sseEvents?.length || 0,
-                debugEventsCount: debugEvents?.length || 0
-              });
             }
 
             return hasEvents && (
