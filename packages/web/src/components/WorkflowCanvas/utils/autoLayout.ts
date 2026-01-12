@@ -787,10 +787,23 @@ export function calculateAutoLayout(
               const dy = targetPos.y - trans.sourcePos.y;
 
               let direction: string;
-              if (Math.abs(dy) > Math.abs(dx)) {
-                direction = dy > 0 ? 'top' : 'bottom';
+
+              // For TB/BT layouts, prioritize vertical direction
+              // Use a lower threshold to prefer top/bottom over left/right
+              if (opts.direction === 'TB' || opts.direction === 'BT') {
+                // If there's any significant vertical movement, use vertical direction
+                if (Math.abs(dy) > Math.abs(dx) * 0.3) {
+                  direction = dy > 0 ? 'top' : 'bottom';
+                } else {
+                  direction = dx > 0 ? 'left' : 'right';
+                }
               } else {
-                direction = dx > 0 ? 'left' : 'right';
+                // For LR/RL layouts, use standard logic
+                if (Math.abs(dy) > Math.abs(dx)) {
+                  direction = dy > 0 ? 'top' : 'bottom';
+                } else {
+                  direction = dx > 0 ? 'left' : 'right';
+                }
               }
 
               if (!incomingByDirection.has(direction)) {
@@ -819,9 +832,20 @@ export function calculateAutoLayout(
             let usedTargets = usedTargetHandles.get(transition.next) || new Set<string>();
             const availableTargetHandles = allTargetHandles.filter(h => !usedTargets.has(h));
 
-            const stateTargetHandle = availableTargetHandles.length > 0
-              ? availableTargetHandles[Math.min(indexInDirection, availableTargetHandles.length - 1)]
-              : allTargetHandles[0];
+            // For TB/BT layouts with top/bottom direction, always prefer center handle first
+            let stateTargetHandle: string;
+            if ((opts.direction === 'TB' || opts.direction === 'BT') &&
+                (targetDirection === 'top' || targetDirection === 'bottom')) {
+              // Always try center first, then left/right
+              stateTargetHandle = availableTargetHandles.length > 0
+                ? availableTargetHandles[0]  // Always use first available (which is center)
+                : allTargetHandles[0];
+            } else {
+              // For other directions, use index-based selection
+              stateTargetHandle = availableTargetHandles.length > 0
+                ? availableTargetHandles[Math.min(indexInDirection, availableTargetHandles.length - 1)]
+                : allTargetHandles[0];
+            }
 
             // For transition node, use center handles
             const transitionTargetHandle = 'top-center-target';
