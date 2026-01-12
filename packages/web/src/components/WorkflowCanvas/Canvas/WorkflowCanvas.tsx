@@ -887,6 +887,13 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         const edgeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
         const edgeWidth = 2;
 
+        // Check if this is a bidirectional transition (there's a reverse transition)
+        const isBidirectional = hasBidirectionalConnection(
+          transition.sourceStateId,
+          transition.targetStateId,
+          currentUiTransitions
+        );
+
         // Calculate optimal handles based on node positions
         let sourceHandle: string;
         let targetHandle: string;
@@ -896,11 +903,35 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           // Use stored handles from layout, or fallback to defaults
           sourceHandle = layout?.sourceHandle || 'top-left-source';
           targetHandle = layout?.targetHandle || 'top-center-target';
+        } else if (isBidirectional) {
+          // For bidirectional transitions, use the special handles from autoLayout
+          // These ensure the two transitions don't overlap
+          sourceHandle = layout?.stateToTransitionSourceHandle || '';
+          targetHandle = layout?.transitionToStateTargetHandle || '';
+
+          console.log('📖 Reading bidirectional handles from layout:', {
+            transitionId: transition.id,
+            sourceHandle,
+            targetHandle,
+            layout
+          });
+
+          if (!sourceHandle || !targetHandle) {
+            const anchors = calculateOptimalAnchorPoints(
+              sourceState.position,
+              targetState.position,
+              true // isBidirectional
+            );
+            sourceHandle = sourceHandle || anchors.sourceHandle;
+            targetHandle = targetHandle || anchors.targetHandle;
+            console.log('📖 Using calculated bidirectional anchors:', { sourceHandle, targetHandle });
+          }
         } else {
+          // For regular (non-bidirectional) transitions, use sourceHandle/targetHandle
           sourceHandle = layout?.sourceHandle || '';
           targetHandle = layout?.targetHandle || '';
 
-          console.log('📖 Reading handles from layout:', {
+          console.log('📖 Reading regular handles from layout:', {
             transitionId: transition.id,
             layout,
             sourceHandle,
