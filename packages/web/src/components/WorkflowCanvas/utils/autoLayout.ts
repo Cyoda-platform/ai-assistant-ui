@@ -495,6 +495,14 @@ function getAllTargetHandlesForSide(side: 'top' | 'bottom' | 'left' | 'right'): 
 }
 
 /**
+ * Convert a source handle to its corresponding target handle on the same position.
+ * This is used to reserve target handles when source handles are used.
+ */
+function sourceHandleToTargetHandle(sourceHandle: string): string {
+  return sourceHandle.replace('-source', '-target');
+}
+
+/**
  * Calculates optimal positions for workflow states using hierarchical layout.
  * States are arranged in ranks (levels) based on topological distance from initial state.
  *
@@ -694,11 +702,62 @@ export function calculateAutoLayout(
   // This ensures that multiple transitions from the same state use different handles
   const transitionHandleAssignments = new Map<string, { sourceHandle: string; targetHandle: string }>();
 
+  // STEP 1: Reserve handles for loopback transitions FIRST (highest priority)
+  // Loopback transitions need adjacent handles (e.g., top-right-source and top-left-target)
+  stateIds.forEach(stateId => {
+    const state = workflow.configuration.states[stateId];
+    if (!state) return;
+
+    state.transitions.forEach((transition, index) => {
+      const isLoopback = stateId === transition.next;
+      if (isLoopback) {
+        // Reserve handles for loopback - create a petal shape (left to center)
+        // Loopback exits from top-left, curves above, enters at top-center
+        // This creates a clean petal/loop without crossing, using adjacent handles
+        const sourceHandle = 'top-left-source';
+        const targetHandle = 'top-center-target';
+
+        // Mark these handles as used
+        const sourceUsed = usedSourceHandles.get(stateId) || new Set<string>();
+        const targetUsed = usedTargetHandles.get(stateId) || new Set<string>();
+
+        // Reserve source handle (for outgoing transitions)
+        sourceUsed.add(sourceHandle);
+
+        // Reserve target handle (for incoming transitions)
+        targetUsed.add(targetHandle);
+
+        // IMPORTANT: Also reserve the source handle as a target handle
+        // This prevents incoming transitions from using the same handle as loopback exit
+        targetUsed.add('top-left-target'); // Reserve left side for loopback
+
+        usedSourceHandles.set(stateId, sourceUsed);
+        usedTargetHandles.set(stateId, targetUsed);
+
+        // Store assignment
+        const transitionKey = `${stateId}-${index}`;
+        transitionHandleAssignments.set(transitionKey, {
+          sourceHandle,
+          targetHandle,
+        });
+
+        console.log('[AutoLayout] Reserved loopback handles:', {
+          stateId,
+          transitionKey,
+          transitionName: transition.name,
+          sourceHandle,
+          targetHandle,
+        });
+      }
+    });
+  });
+
+  // STEP 2: Assign handles for regular (non-loopback) transitions
   outgoingTransitionsByState.forEach((outgoingTransitions, sourceStateId) => {
     const sourcePos = statePositions.get(sourceStateId);
     if (!sourcePos) return;
 
-    // Initialize used handles for this state
+    // Get already used handles (including loopback reservations)
     let stateUsedHandles = usedSourceHandles.get(sourceStateId) || new Set<string>();
 
     // Group transitions by direction to assign handles intelligently
@@ -706,6 +765,10 @@ export function calculateAutoLayout(
 
     outgoingTransitions.forEach(trans => {
       if (!trans.targetPos) return;
+
+      // Skip loopback transitions (already handled)
+      const isLoopback = sourceStateId === trans.targetStateId;
+      if (isLoopback) return;
 
       const dx = trans.targetPos.x - sourcePos.x;
       const dy = trans.targetPos.y - sourcePos.y;
@@ -730,7 +793,7 @@ export function calculateAutoLayout(
     transitionsByDirection.forEach((transitionsInDirection, direction) => {
       const allHandles = getAllHandlesForSide(direction as 'top' | 'bottom' | 'left' | 'right');
 
-      // Find available handles for this direction
+      // Find available handles for this direction (excluding loopback-reserved handles)
       const availableHandles = allHandles.filter(h => !stateUsedHandles.has(h));
 
       // Assign handles to transitions in this direction
@@ -739,11 +802,21 @@ export function calculateAutoLayout(
         const assignedHandle = availableHandles.length > 0 ? availableHandles[handleIndex] : allHandles[0];
         stateUsedHandles.add(assignedHandle);
 
+        // IMPORTANT: Also reserve the corresponding target handle on the same position
+        // This prevents incoming transitions from using the same handle position
+        const correspondingTargetHandle = sourceHandleToTargetHandle(assignedHandle);
+        const stateTargetHandles = usedTargetHandles.get(sourceStateId) || new Set<string>();
+        stateTargetHandles.add(correspondingTargetHandle);
+        usedTargetHandles.set(sourceStateId, stateTargetHandles);
+
         const transitionKey = `${sourceStateId}-${trans.index}`;
-        transitionHandleAssignments.set(transitionKey, {
-          sourceHandle: assignedHandle,
-          targetHandle: '', // Will be assigned later
-        });
+        // Only set if not already set (loopback transitions already have assignments)
+        if (!transitionHandleAssignments.has(transitionKey)) {
+          transitionHandleAssignments.set(transitionKey, {
+            sourceHandle: assignedHandle,
+            targetHandle: '', // Will be assigned later
+          });
+        }
       });
     });
 
@@ -763,9 +836,12 @@ export function calculateAutoLayout(
 
         if (isLoopback) {
           // Position loopback transition to the right and above the state
-          // For loopback transitions, use top handles for both source and target
-          // This creates a clean loop from top-right back to top-left
-          transitions.push({
+          // Use pre-assigned handles (reserved in STEP 1)
+          const preAssignedHandles = transitionHandleAssignments.get(transitionId);
+          const sourceHandle = preAssignedHandles?.sourceHandle || 'top-right-source';
+          const targetHandle = preAssignedHandles?.targetHandle || 'top-left-target';
+
+          const loopbackTransition = {
             id: transitionId,
             sourceStateId: sourceStateId,
             targetStateId: transition.next,
@@ -773,14 +849,22 @@ export function calculateAutoLayout(
               x: sourcePos.x + 150,
               y: sourcePos.y - 100,
             },
-            // Add default handles for loopback transitions
-            sourceHandle: 'top-right-source',
-            targetHandle: 'top-left-target',
-            stateToTransitionSourceHandle: 'top-right-source',
+            // Use pre-assigned handles for loopback transitions
+            sourceHandle,
+            targetHandle,
+            stateToTransitionSourceHandle: sourceHandle,
             stateToTransitionTargetHandle: 'top-center-target',
             transitionToStateSourceHandle: 'bottom-center-source',
-            transitionToStateTargetHandle: 'top-left-target',
+            transitionToStateTargetHandle: targetHandle,
+          };
+
+          console.log('🔄 Creating LOOPBACK transition:', {
+            transitionId,
+            transitionName: transition.name,
+            loopbackTransition,
           });
+
+          transitions.push(loopbackTransition);
         } else {
           // Get all transitions between these two states
           const key = `${sourceStateId}-${transition.next}`;
@@ -1071,11 +1155,29 @@ export function calculateAutoLayout(
             }
           } else {
             // Non-bidirectional transition
-            // Use pre-assigned source handle from the grouping logic
             const transitionKey = `${sourceStateId}-${index}`;
             const preAssignedHandles = transitionHandleAssignments.get(transitionKey);
 
-            let stateSourceHandle = preAssignedHandles?.sourceHandle || 'bottom-center-source';
+            // Check if this is a loopback transition
+            const isLoopbackTransition = sourceStateId === transition.next;
+
+            if (isLoopbackTransition) {
+              // Loopback transitions already have handles assigned in STEP 1
+              // Use the pre-assigned handles directly
+              handles.stateToTransitionSourceHandle = preAssignedHandles?.sourceHandle || 'top-right-source';
+              handles.stateToTransitionTargetHandle = 'top-center-target';
+              handles.transitionToStateSourceHandle = 'bottom-center-source';
+              handles.transitionToStateTargetHandle = preAssignedHandles?.targetHandle || 'top-left-target';
+
+              console.log('[AutoLayout] Using loopback handles:', {
+                transitionKey,
+                transitionName: transition.name,
+                handles,
+              });
+            } else {
+              // Regular non-bidirectional transition
+              // Use pre-assigned source handle from the grouping logic
+              let stateSourceHandle = preAssignedHandles?.sourceHandle || 'bottom-center-source';
 
             // Now assign target handle based on target state's incoming transitions
             const incomingTransitions = incomingTransitionsByState.get(transition.next) || [];
@@ -1135,6 +1237,16 @@ export function calculateAutoLayout(
             let usedTargets = usedTargetHandles.get(transition.next) || new Set<string>();
             const availableTargetHandles = allTargetHandles.filter(h => !usedTargets.has(h));
 
+            console.log('[AutoLayout] Assigning target handle:', {
+              transitionKey: `${sourceStateId}-${index}`,
+              transitionName: transition.name,
+              targetStateId: transition.next,
+              targetDirection,
+              allTargetHandles,
+              usedTargets: Array.from(usedTargets),
+              availableTargetHandles,
+            });
+
             // For TB/BT layouts with top/bottom direction, always prefer center handle first
             let stateTargetHandle: string;
             if ((opts.direction === 'TB' || opts.direction === 'BT') &&
@@ -1150,22 +1262,23 @@ export function calculateAutoLayout(
                 : allTargetHandles[0];
             }
 
-            // For transition node, use center handles
-            const transitionTargetHandle = 'top-center-target';
-            const transitionSourceHandle = 'bottom-center-source';
+              // For transition node, use center handles
+              const transitionTargetHandle = 'top-center-target';
+              const transitionSourceHandle = 'bottom-center-source';
 
-            handles.stateToTransitionSourceHandle = stateSourceHandle;
-            handles.stateToTransitionTargetHandle = transitionTargetHandle;
-            handles.transitionToStateSourceHandle = transitionSourceHandle;
-            handles.transitionToStateTargetHandle = stateTargetHandle;
+              handles.stateToTransitionSourceHandle = stateSourceHandle;
+              handles.stateToTransitionTargetHandle = transitionTargetHandle;
+              handles.transitionToStateSourceHandle = transitionSourceHandle;
+              handles.transitionToStateTargetHandle = stateTargetHandle;
 
-            // Mark handles as used
-            const sourceSet = usedSourceHandles.get(sourceStateId) || new Set<string>();
-            sourceSet.add(stateSourceHandle);
-            usedSourceHandles.set(sourceStateId, sourceSet);
+              // Mark handles as used
+              const sourceSet = usedSourceHandles.get(sourceStateId) || new Set<string>();
+              sourceSet.add(stateSourceHandle);
+              usedSourceHandles.set(sourceStateId, sourceSet);
 
-            usedTargets.add(stateTargetHandle);
-            usedTargetHandles.set(transition.next, usedTargets);
+              usedTargets.add(stateTargetHandle);
+              usedTargetHandles.set(transition.next, usedTargets);
+            }
           }
 
           const transitionPosition = {

@@ -901,8 +901,16 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         // For loopback transitions, use handles from layout (user selected when drawing)
         if (isLoopback) {
           // Use stored handles from layout, or fallback to defaults
+          // Default: loopback creates a petal shape using adjacent handles (left to center)
           sourceHandle = layout?.sourceHandle || 'top-left-source';
           targetHandle = layout?.targetHandle || 'top-center-target';
+
+          console.log('📖 Reading LOOPBACK handles from layout:', {
+            transitionId: transition.id,
+            layout,
+            sourceHandle,
+            targetHandle,
+          });
         } else if (isBidirectional) {
           // For bidirectional transitions, use the special handles from autoLayout
           // These ensure the two transitions don't overlap
