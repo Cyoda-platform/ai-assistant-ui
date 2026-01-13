@@ -271,7 +271,7 @@ const MonitoringView: React.FC = () => {
   useEffect(() => {
     const initializeFromUrl = async () => {
       const envName = searchParams.get('env_name');
-      const appName = searchParams.get('app_name') || 'cyoda';
+      const appName = searchParams.get('app_name');
 
       // Fetch environments first
       await fetchEnvironments();

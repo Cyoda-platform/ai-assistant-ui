@@ -22,7 +22,7 @@ const LogsView: React.FC = () => {
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [generatingKey, setGeneratingKey] = useState(false);
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('');
-  const [selectedApplication, setSelectedApplication] = useState<string>('cyoda');
+  const [selectedApplication, setSelectedApplication] = useState<string>('');
   const [environments, setEnvironments] = useState<Environment[]>([]);
   const [loadingEnvironments, setLoadingEnvironments] = useState(true);
   const [applications, setApplications] = useState<any[]>([]);
@@ -113,13 +113,17 @@ const LogsView: React.FC = () => {
 
   const fetchLogs = async (customQuery?: string, retryCount = 0) => {
     console.log('fetchLogs called with customQuery:', customQuery, 'retryCount:', retryCount);
+
+    // Don't fetch if environment or application is not selected
+    if (!selectedEnvironment || !selectedApplication) {
+      console.log('Skipping fetch - environment or application not selected');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      if (!selectedEnvironment) {
-        throw new Error('Please select an environment');
-      }
 
       // Get API key from localStorage (may be empty on first load)
       let key = apiKey || localStorage.getItem('logs-api-key') || '';
@@ -131,14 +135,14 @@ const LogsView: React.FC = () => {
         // Merge custom query with required env_name and app_name
         queryBody = {
           env_name: selectedEnvironment,
-          app_name: selectedApplication || 'cyoda',
+          app_name: selectedApplication,
           ...parsedQuery
         };
         console.log('Using custom query:', queryBody);
       } else {
         queryBody = {
           env_name: selectedEnvironment,
-          app_name: selectedApplication || 'cyoda',
+          app_name: selectedApplication,
           query: {
             bool: {
               must: [{ match_all: {} }]
@@ -250,7 +254,7 @@ const LogsView: React.FC = () => {
 
   // Auto-fetch logs when API key, selectedEnvironment, or selectedApplication changes
   useEffect(() => {
-    if (apiKey && selectedEnvironment) {
+    if (apiKey && selectedEnvironment && selectedApplication) {
       fetchLogs();
     }
   }, [apiKey, selectedEnvironment, selectedApplication]);
@@ -417,7 +421,7 @@ const LogsView: React.FC = () => {
                 opacity: selectedEnvironment ? 1 : 0.6
               }}
             >
-              <option value="cyoda">cyoda (default)</option>
+              <option value="">Select an application...</option>
               {loadingApplications ? (
                 <option disabled>Loading applications...</option>
               ) : applications.length === 0 ? (
@@ -430,6 +434,161 @@ const LogsView: React.FC = () => {
                 ))
               )}
             </select>
+          </div>
+        </div>
+      )}
+
+      {/* Information Banner */}
+      {apiKey && !selectedEnvironment && (
+        <div style={{
+          padding: '32px 24px',
+          background: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)',
+          borderBottom: '2px solid #3b82f6',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px',
+          color: '#e0e7ff'
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <h2 style={{
+              fontSize: '24px',
+              fontWeight: '700',
+              marginBottom: '12px',
+              color: 'white'
+            }}>
+              📊 Environment Logs Viewer
+            </h2>
+            <p style={{ fontSize: '16px', color: '#cbd5e1', marginBottom: '0' }}>
+              View and analyze logs from your deployed environments and applications
+            </p>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '16px',
+            marginTop: '8px'
+          }}>
+            {/* Your Applications Card */}
+            <div style={{
+              padding: '20px',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              border: '2px solid rgba(16, 185, 129, 0.3)',
+              borderRadius: '12px'
+            }}>
+              <div style={{ fontSize: '32px', marginBottom: '12px' }}>✅</div>
+              <h3 style={{
+                fontSize: '18px',
+                fontWeight: '600',
+                marginBottom: '8px',
+                color: '#10b981'
+              }}>
+                Your Applications
+              </h3>
+              <p style={{ fontSize: '14px', color: '#d1d5db', lineHeight: '1.5', margin: 0 }}>
+                Select an environment above to freely view logs from all your deployed applications
+              </p>
+            </div>
+
+            {/* CYODA Access Card */}
+            <div style={{
+              padding: '20px',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              border: '2px solid rgba(59, 130, 246, 0.3)',
+              borderRadius: '12px'
+            }}>
+              <div style={{ fontSize: '32px', marginBottom: '12px' }}>💬</div>
+              <h3 style={{
+                fontSize: '18px',
+                fontWeight: '600',
+                marginBottom: '8px',
+                color: '#60a5fa'
+              }}>
+                Need a CYODA Environment?
+              </h3>
+              <p style={{ fontSize: '14px', color: '#d1d5db', lineHeight: '1.5', marginBottom: '12px' }}>
+                Get access to CYODA environments and platform logs by joining our community
+              </p>
+              <a
+                href="https://discord.com/invite/95rdAyBZr2"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-block',
+                  padding: '8px 16px',
+                  backgroundColor: '#3b82f6',
+                  color: 'white',
+                  borderRadius: '6px',
+                  textDecoration: 'none',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
+              >
+                Join Discord Community
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Banner when environment is selected but no application */}
+      {apiKey && selectedEnvironment && !selectedApplication && (
+        <div style={{
+          padding: '20px 24px',
+          backgroundColor: '#0f172a',
+          borderBottom: '2px solid #3b82f6',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          color: '#e0e7ff'
+        }}>
+          <div style={{
+            fontSize: '48px',
+            flexShrink: 0
+          }}>
+            {applications.length === 0 && !loadingApplications ? '💬' : '📱'}
+          </div>
+          <div style={{ flex: 1 }}>
+            <h3 style={{
+              fontSize: '18px',
+              fontWeight: '600',
+              marginBottom: '8px',
+              color: '#60a5fa'
+            }}>
+              {applications.length === 0 && !loadingApplications
+                ? 'No Applications Found'
+                : 'Select an Application'}
+            </h3>
+            <p style={{
+              fontSize: '14px',
+              color: '#cbd5e1',
+              lineHeight: '1.5',
+              margin: 0
+            }}>
+              {applications.length === 0 && !loadingApplications ? (
+                <>
+                  No applications found in this environment. Need help deploying applications or want access to CYODA platform logs?{' '}
+                  <a
+                    href="https://discord.com/invite/95rdAyBZr2"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: '#60a5fa',
+                      textDecoration: 'underline',
+                      fontWeight: '600'
+                    }}
+                  >
+                    Reach out on Discord
+                  </a>
+                  {' '}for assistance!
+                </>
+              ) : (
+                'Choose an application from the dropdown above to view its logs.'
+              )}
+            </p>
           </div>
         </div>
       )}

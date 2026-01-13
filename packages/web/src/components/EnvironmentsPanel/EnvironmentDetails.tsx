@@ -539,7 +539,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => window.open(`/logs?env_name=${encodeURIComponent(environmentName)}&app_name=cyoda`, '_blank')}
+            onClick={() => window.open(`/logs?env_name=${encodeURIComponent(environmentName)}`, '_blank')}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-teal-300 border border-teal-500/30 hover:from-teal-500/30 hover:to-cyan-500/30 hover:border-teal-400/50 hover:shadow-lg hover:shadow-teal-500/20 transition-all duration-200 hover:-translate-y-0.5"
             title="View logs for this environment"
           >
@@ -810,7 +810,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Environment Logs</h3>
 
           <div
-            onClick={() => window.open(`/logs?env_name=${encodeURIComponent(environmentName)}&app_name=cyoda`, '_blank')}
+            onClick={() => window.open(`/logs?env_name=${encodeURIComponent(environmentName)}`, '_blank')}
             className="relative bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-teal-500/10 border border-purple-500/30 hover:border-purple-400/50 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-purple-500/10 group overflow-hidden"
           >
             {/* Animated Background Glow */}
@@ -867,7 +867,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Metrics & Dashboards</h3>
 
           <div
-            onClick={() => window.open(`/monitoring?env_name=${encodeURIComponent(environmentName)}&app_name=cyoda`, '_blank')}
+            onClick={() => window.open(`/monitoring?env_name=${encodeURIComponent(environmentName)}`, '_blank')}
             className="relative bg-gradient-to-br from-orange-500/10 via-amber-500/10 to-yellow-500/10 border border-orange-500/30 hover:border-orange-400/50 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-orange-500/10 group overflow-hidden"
           >
             {/* Animated Background Glow */}

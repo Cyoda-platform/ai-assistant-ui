@@ -139,6 +139,14 @@ const ChatBotView: React.FC = () => {
     storageKey: 'environments-width'
   });
 
+  const tasksResize = useResizablePanel({
+    defaultWidth: 500,  // Start at 500px
+    minWidth: 350,      // Minimum width for tasks
+    maxWidth: 1200,     // Maximum width
+    storageKey: 'tasks-width',
+    side: 'right'       // Panel is on the right side of the screen
+  });
+
   // Check if returning from fullscreen and reopen environments panel
   useEffect(() => {
     const wasInFullscreen = localStorage.getItem('environments-width-before-fullscreen');
@@ -2652,10 +2660,10 @@ const ChatBotView: React.FC = () => {
         {/* Tasks Panel - Resizable */}
         {isTasksPanelOpen && (
           <div
-            className={`resizable-panel h-full ${entityDataResize.isResizing ? 'resizing' : ''}`}
+            className={`resizable-panel h-full relative ${tasksResize.isResizing ? 'resizing' : ''}`}
             style={{
-              width: `${entityDataResize.width}px`,
-              zIndex: entityDataResize.isResizing ? 30 : 10
+              width: `${tasksResize.width}px`,
+              zIndex: tasksResize.isResizing ? 30 : 10
             }}
           >
             <TasksPanel
@@ -2664,15 +2672,15 @@ const ChatBotView: React.FC = () => {
               onClose={() => setIsTasksPanelOpen(false)}
               chatData={chatData}
               conversationId={technicalId}
-              width={entityDataResize.width}
-              onWidthChange={entityDataResize.setWidth}
+              width={tasksResize.width}
+              onWidthChange={tasksResize.setWidth}
             />
 
             {/* Resize Handle */}
             <ResizeHandle
               position="left"
-              onMouseDown={entityDataResize.handleMouseDown}
-              isResizing={entityDataResize.isResizing}
+              onMouseDown={tasksResize.handleMouseDown}
+              isResizing={tasksResize.isResizing}
             />
           </div>
         )}

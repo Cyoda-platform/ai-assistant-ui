@@ -5,6 +5,7 @@ interface UseResizablePanelOptions {
   minWidth: number;
   maxWidth: number;
   storageKey?: string;
+  side?: 'left' | 'right'; // Which side of the screen the panel is on
 }
 
 interface UseResizablePanelReturn {
@@ -18,7 +19,8 @@ export const useResizablePanel = ({
   defaultWidth,
   minWidth,
   maxWidth,
-  storageKey
+  storageKey,
+  side = 'left' // Default to left side for backward compatibility
 }: UseResizablePanelOptions): UseResizablePanelReturn => {
   // Load initial width from localStorage if available
   const getInitialWidth = () => {
@@ -53,9 +55,13 @@ export const useResizablePanel = ({
     if (!isResizing) return;
 
     const deltaX = e.clientX - startX.current;
-    const newWidth = startWidth.current + deltaX;
+    // For left-side panels, dragging right (positive deltaX) increases width
+    // For right-side panels, dragging left (negative deltaX) increases width, so we negate
+    const newWidth = side === 'left'
+      ? startWidth.current + deltaX
+      : startWidth.current - deltaX;
     setWidth(newWidth);
-  }, [isResizing, setWidth]);
+  }, [isResizing, setWidth, side]);
 
   const handleMouseUp = useCallback(() => {
     setIsResizing(false);
