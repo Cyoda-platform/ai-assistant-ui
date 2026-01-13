@@ -979,6 +979,10 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           }
         }
 
+        // Determine if this is a "return path" in a bidirectional pair
+        // Return path is when source > target alphabetically (to have consistent ordering)
+        const isReturnPath = isBidirectional && transition.sourceStateId > transition.targetStateId;
+
         // Create single edge from source state to target state with transition data
         const edge = {
           id: `edge-${transition.id}`,
@@ -1004,6 +1008,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             transition: transition,
             sourceHandle: sourceHandle,
             targetHandle: targetHandle,
+            isBidirectional: isBidirectional,
+            isReturnPath: isReturnPath,
             onEdit: currentOnTransitionEdit,
             onUpdate: (updatedTransition: UITransitionData) => {
               // Handle transition update
