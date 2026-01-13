@@ -520,6 +520,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     const currentStateIds = Object.keys(cleanedWorkflow.configuration.states);
     const newStateIds = Object.keys(updatedConfig.states);
 
+    // Check if there are new states that don't have layout positions
+    const hasNewStates = newStateIds.some(id => !cleanedWorkflow.layout.states.find(s => s.id === id));
+
     // Preserve existing layout positions for states that still exist
     const existingLayoutStates = cleanedWorkflow.layout.states;
     const layoutStateMap = new Map(existingLayoutStates.map(s => [s.id, s]));
@@ -556,7 +559,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
     console.log('🎨 Updated layout states:', updatedLayoutStates.map(s => ({ id: s.id, x: s.position.x, y: s.position.y })));
 
-    const updatedWorkflow: UIWorkflowData = {
+    let updatedWorkflow: UIWorkflowData = {
       ...cleanedWorkflow,
       configuration: updatedConfig,
       layout: {
@@ -567,8 +570,26 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       updatedAt: new Date().toISOString()
     };
 
+    // If there are new states OR workflow is not manually positioned, apply auto-layout
+    if ((hasNewStates || !cleanedWorkflow.layout.manuallyPositioned) && canAutoLayout(updatedWorkflow)) {
+      console.log('🎨 Applying auto-layout after JSON update (hasNewStates:', hasNewStates, ', manuallyPositioned:', cleanedWorkflow.layout.manuallyPositioned, ')');
+      updatedWorkflow = autoLayoutWorkflow(updatedWorkflow, { direction: layoutDirection });
+
+      // Keep manuallyPositioned as false since this is automatic layout
+      updatedWorkflow = {
+        ...updatedWorkflow,
+        layout: {
+          ...updatedWorkflow.layout,
+          manuallyPositioned: false,
+        }
+      };
+
+      // Set flag to trigger fitView after layout is applied
+      shouldFitViewRef.current = true;
+    }
+
     onWorkflowUpdate(updatedWorkflow, 'Updated workflow configuration from JSON editor', false);
-  }, [cleanedWorkflow, onWorkflowUpdate]);
+  }, [cleanedWorkflow, onWorkflowUpdate, layoutDirection]);
 
   const [nodes, setNodes, defaultOnNodesChange] = useNodesState([]);
   const [edges, setEdges, defaultOnEdgesChange] = useEdgesState([]);
