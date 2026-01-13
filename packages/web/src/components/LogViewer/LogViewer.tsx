@@ -256,7 +256,6 @@ const LogViewer: React.FC<LogViewerProps> = ({ data, onRefresh, onAdvancedQuery,
                 <option value={100}>100 entries</option>
                 <option value={500}>500 entries</option>
                 <option value={1000}>1000 entries</option>
-                <option value={data?.total_hits || 1000}>All entries</option>
               </select>
             </div>
 
