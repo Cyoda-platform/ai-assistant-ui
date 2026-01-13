@@ -319,6 +319,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   });
 
   const [layoutDirection, setLayoutDirectionState] = useState<'TB' | 'LR'>(() => {
+    // Always use global localStorage setting for direction
     try {
       const stored = localStorage.getItem('workflow-canvas-layout-direction');
       if (stored && ['TB', 'LR'].includes(stored)) {
@@ -1431,6 +1432,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           layout: {
             ...cleanedWorkflow.layout,
             transitions: updatedLayoutTransitions,
+            manuallyPositioned: true, // User manually moved a transition node
             updatedAt: new Date().toISOString()
           }
         };
@@ -1449,6 +1451,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           layout: {
             ...cleanedWorkflow.layout,
             states: updatedLayoutStates,
+            manuallyPositioned: true, // User manually moved a state node
             updatedAt: new Date().toISOString()
           }
         };
@@ -1466,7 +1469,17 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   const handleAutoLayout = useCallback(() => {
     if (!cleanedWorkflow || !canAutoLayout(cleanedWorkflow)) return;
 
-    const layoutedWorkflow = autoLayoutWorkflow(cleanedWorkflow, { direction: layoutDirection });
+    let layoutedWorkflow = autoLayoutWorkflow(cleanedWorkflow, { direction: layoutDirection });
+
+    // Reset manuallyPositioned flag since we're applying auto-layout
+    // This allows future global direction changes to affect this workflow
+    layoutedWorkflow = {
+      ...layoutedWorkflow,
+      layout: {
+        ...layoutedWorkflow.layout,
+        manuallyPositioned: false,
+      }
+    };
 
     // Set flag to trigger fitView after layout is applied
     shouldFitViewRef.current = true;
@@ -1476,12 +1489,28 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     onWorkflowUpdate(layoutedWorkflow, 'Applied auto-layout');
   }, [cleanedWorkflow, onWorkflowUpdate, layoutDirection]);
 
-  // Auto-apply layout when layout direction changes
+  // Auto-apply layout when direction changes, but only for non-manually-positioned workflows
   const previousLayoutDirectionRef = useRef(layoutDirection);
   React.useEffect(() => {
-    // Only auto-apply if the direction actually changed (not on initial mount)
-    if (previousLayoutDirectionRef.current !== layoutDirection && cleanedWorkflow && canAutoLayout(cleanedWorkflow)) {
-      const layoutedWorkflow = autoLayoutWorkflow(cleanedWorkflow, { direction: layoutDirection });
+    // Only auto-apply if:
+    // 1. Direction actually changed (not on initial mount)
+    // 2. Workflow exists and can be auto-laid out
+    // 3. Workflow has NOT been manually positioned by user
+    if (previousLayoutDirectionRef.current !== layoutDirection &&
+        cleanedWorkflow &&
+        canAutoLayout(cleanedWorkflow) &&
+        !cleanedWorkflow.layout.manuallyPositioned) {
+
+      let layoutedWorkflow = autoLayoutWorkflow(cleanedWorkflow, { direction: layoutDirection });
+
+      // Keep manuallyPositioned as false since this is automatic layout
+      layoutedWorkflow = {
+        ...layoutedWorkflow,
+        layout: {
+          ...layoutedWorkflow.layout,
+          manuallyPositioned: false,
+        }
+      };
 
       // Set flag to trigger fitView after layout is applied
       shouldFitViewRef.current = true;

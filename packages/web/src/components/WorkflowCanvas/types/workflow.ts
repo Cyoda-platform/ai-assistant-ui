@@ -104,6 +104,7 @@ export interface CanvasLayout {
   version: number;
   updatedAt: string;
   direction?: 'TB' | 'BT' | 'LR' | 'RL'; // Layout direction
+  manuallyPositioned?: boolean; // True if user manually moved nodes or applied auto-layout
 }
 
 export interface WorkflowSummary {

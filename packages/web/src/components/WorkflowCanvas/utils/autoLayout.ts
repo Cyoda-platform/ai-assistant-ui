@@ -1716,7 +1716,7 @@ export function applyLayoutToWorkflow(
       ...updatedLayout,
       states: updatedStates,
       transitions: updatedTransitions,
-      direction: options.direction, // Save layout direction
+      // Note: direction is NOT saved in workflow.layout, always use global localStorage setting
       updatedAt: now, // Update layout timestamp to trigger useEffect
     },
     updatedAt: now,
