@@ -172,13 +172,92 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
   // Format criterion information for tooltip
   const getCriterionTooltip = () => {
     if (!transition.definition.criterion) return null;
-    const criterion = transition.definition.criterion;
-    const lines: string[] = [];
-    if (criterion.type) lines.push(`Type: ${criterion.type}`);
-    if (criterion.field) lines.push(`Field: ${criterion.field}`);
-    if (criterion.operator) lines.push(`Operator: ${criterion.operator}`);
-    if (criterion.value !== undefined) lines.push(`Value: ${JSON.stringify(criterion.value)}`);
-    return lines.join('\n') || 'Has criterion';
+    const criterion = transition.definition.criterion as any;
+
+    const fieldStyle = { fontSize: '0.9em', opacity: 0.9, marginBottom: '2px' };
+
+    return (
+      <div style={{ whiteSpace: 'pre-wrap', maxWidth: '300px' }}>
+        {/* Type */}
+        {criterion.type && (
+          <div style={fieldStyle}>
+            Type: {criterion.type}
+          </div>
+        )}
+
+        {/* For 'simple' type */}
+        {criterion.type === 'simple' && (
+          <div style={fieldStyle}>
+            {criterion.jsonPath || criterion.field || 'condition'}
+            {criterion.operation && ` ${criterion.operation}`}
+            {criterion.value !== undefined && ` ${JSON.stringify(criterion.value)}`}
+          </div>
+        )}
+
+        {/* For 'function' type */}
+        {criterion.type === 'function' && criterion.function && (
+          <>
+            {criterion.function.name && (
+              <div style={fieldStyle}>
+                Function: {criterion.function.name}
+              </div>
+            )}
+            {criterion.function.config?.responseTimeoutMs && (
+              <div style={fieldStyle}>
+                Timeout: {criterion.function.config.responseTimeoutMs}ms
+              </div>
+            )}
+            {criterion.function.config?.retryPolicy && (
+              <div style={fieldStyle}>
+                Retry: {criterion.function.config.retryPolicy}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* For 'group' type */}
+        {criterion.type === 'group' && (
+          <>
+            {criterion.operator && (
+              <div style={fieldStyle}>
+                Operator: {criterion.operator}
+              </div>
+            )}
+            {criterion.conditions?.length > 0 && (
+              <>
+                <div style={fieldStyle}>
+                  Conditions: {criterion.conditions.length}
+                </div>
+                {criterion.conditions.map((cond: any, idx: number) => (
+                  <div key={idx} style={{ ...fieldStyle, marginLeft: '12px', marginTop: '4px' }}>
+                    {idx + 1}. {cond.jsonPath || cond.field || 'condition'}
+                    {cond.operation && ` ${cond.operation}`}
+                    {cond.value !== undefined && ` ${JSON.stringify(cond.value)}`}
+                  </div>
+                ))}
+              </>
+            )}
+          </>
+        )}
+
+        {/* Legacy fields (backward compatibility) */}
+        {criterion.field && (
+          <div style={fieldStyle}>
+            Field: {criterion.field}
+          </div>
+        )}
+        {criterion.operator && criterion.type !== 'group' && (
+          <div style={fieldStyle}>
+            Operator: {criterion.operator}
+          </div>
+        )}
+        {criterion.value !== undefined && criterion.type !== 'simple' && (
+          <div style={fieldStyle}>
+            Value: {JSON.stringify(criterion.value)}
+          </div>
+        )}
+      </div>
+    );
   };
 
   // Format processors information for tooltip
@@ -186,13 +265,41 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
     if (!transition.definition.processors || transition.definition.processors.length === 0) {
       return null;
     }
+
+    const fieldStyle = { fontSize: '0.9em', opacity: 0.9, marginBottom: '2px' };
+
     return (
-      <div style={{ whiteSpace: 'pre-wrap' }}>
-        {transition.definition.processors.map((p, idx) => (
-          <div key={idx}>
-            {idx + 1}. {p.name}{p.executionMode ? ` (${p.executionMode})` : ''}
-          </div>
-        ))}
+      <div style={{ whiteSpace: 'pre-wrap', maxWidth: '300px' }}>
+        {transition.definition.processors.map((p, idx) => {
+          const config = p.config as any;
+          return (
+            <div key={idx} style={{ marginBottom: idx < transition.definition.processors!.length - 1 ? '8px' : '0' }}>
+              <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>
+                {idx + 1}. {p.name}
+              </div>
+              {p.executionMode && (
+                <div style={fieldStyle}>
+                  Mode: {p.executionMode}
+                </div>
+              )}
+              {config?.attachEntity !== undefined && (
+                <div style={fieldStyle}>
+                  Attach Entity: {config.attachEntity ? 'Yes' : 'No'}
+                </div>
+              )}
+              {config?.responseTimeoutMs && (
+                <div style={fieldStyle}>
+                  Timeout: {config.responseTimeoutMs}ms
+                </div>
+              )}
+              {config?.retryPolicy && (
+                <div style={fieldStyle}>
+                  Retry: {config.retryPolicy}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     );
   };
