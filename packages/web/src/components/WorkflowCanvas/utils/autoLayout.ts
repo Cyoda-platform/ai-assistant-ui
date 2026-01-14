@@ -1775,24 +1775,24 @@ export function recalculateHandlesForMovedState(
     statePositions.set(layoutState.id, layoutState.position);
   });
 
-  // Find all states that have transitions to/from the moved state
-  const affectedStates = new Set<string>();
-  affectedStates.add(movedStateId); // The moved state itself
+  // Find all specific transitions that are connected to the moved state
+  // We track transitions by their key (sourceStateId-transitionIndex)
+  const affectedTransitions = new Set<string>();
 
   Object.entries(workflow.configuration.states).forEach(([sourceStateId, stateDefinition]) => {
-    stateDefinition.transitions.forEach((transition) => {
-      // If this state has a transition TO the moved state, it's affected
-      if (transition.next === movedStateId) {
-        affectedStates.add(sourceStateId);
-      }
-      // If the moved state has a transition TO this state, the moved state is affected (already added)
-      if (sourceStateId === movedStateId) {
-        affectedStates.add(movedStateId);
+    stateDefinition.transitions.forEach((transition, index) => {
+      const transitionKey = `${sourceStateId}-${index}`;
+
+      // Include transition if:
+      // 1. It originates FROM the moved state (sourceStateId === movedStateId)
+      // 2. It goes TO the moved state (transition.next === movedStateId)
+      if (sourceStateId === movedStateId || transition.next === movedStateId) {
+        affectedTransitions.add(transitionKey);
       }
     });
   });
 
-  // console.log('[AutoLayout] Affected states:', Array.from(affectedStates));
+  // console.log('[AutoLayout] Affected transitions:', Array.from(affectedTransitions));
 
   // Track used handles for each state
   const usedSourceHandles = new Map<string, Set<string>>();
@@ -1805,12 +1805,14 @@ export function recalculateHandlesForMovedState(
   // Store new handle assignments
   const newHandleAssignments = new Map<string, { sourceHandle: string; targetHandle: string }>();
 
-  // STEP 1: Reserve handles for loopback transitions on affected states
-  affectedStates.forEach(stateId => {
-    const state = workflow.configuration.states[stateId];
-    if (!state) return;
-
+  // STEP 1: Reserve handles for loopback transitions that are affected
+  Object.entries(workflow.configuration.states).forEach(([stateId, state]) => {
     state.transitions.forEach((transition, index) => {
+      const transitionKey = `${stateId}-${index}`;
+
+      // Only process if this transition is affected
+      if (!affectedTransitions.has(transitionKey)) return;
+
       const isLoopback = transition.next === stateId;
       if (!isLoopback) return;
 
@@ -1827,7 +1829,6 @@ export function recalculateHandlesForMovedState(
       usedSourceHandles.set(stateId, sourceUsed);
       usedTargetHandles.set(stateId, targetUsed);
 
-      const transitionKey = `${stateId}-${index}`;
       newHandleAssignments.set(transitionKey, { sourceHandle, targetHandle });
 
       // console.log('[AutoLayout] Reserved loopback handles:', {
@@ -1839,24 +1840,42 @@ export function recalculateHandlesForMovedState(
     });
   });
 
-  // STEP 2: Assign source handles for outgoing transitions from affected states
-  affectedStates.forEach(sourceStateId => {
-    const sourcePos = statePositions.get(sourceStateId);
-    if (!sourcePos) return;
+  // STEP 2: Assign source handles for affected outgoing transitions
+  // Group affected transitions by their source state
+  const transitionsBySourceState = new Map<string, Array<{ targetStateId: string; index: number; targetPos?: { x: number; y: number } }>>();
+
+  affectedTransitions.forEach(transitionKey => {
+    const parts = transitionKey.split('-');
+    const index = parseInt(parts[parts.length - 1], 10);
+    const sourceStateId = parts.slice(0, -1).join('-');
 
     const state = workflow.configuration.states[sourceStateId];
-    if (!state) return;
+    if (!state || !state.transitions[index]) return;
+
+    const transition = state.transitions[index];
+    const targetPos = statePositions.get(transition.next);
+    if (!targetPos) return;
+
+    // Skip loopback transitions (already handled)
+    const isLoopback = sourceStateId === transition.next;
+    if (isLoopback) return;
+
+    if (!transitionsBySourceState.has(sourceStateId)) {
+      transitionsBySourceState.set(sourceStateId, []);
+    }
+    transitionsBySourceState.get(sourceStateId)!.push({ targetStateId: transition.next, index, targetPos });
+  });
+
+  transitionsBySourceState.forEach((transitions, sourceStateId) => {
+    const sourcePos = statePositions.get(sourceStateId);
+    if (!sourcePos) return;
 
     // Group transitions by direction
     const transitionsByDirection = new Map<string, Array<{ targetStateId: string; index: number; targetPos?: { x: number; y: number } }>>();
 
-    state.transitions.forEach((transition, index) => {
-      const targetPos = statePositions.get(transition.next);
+    transitions.forEach((trans) => {
+      const targetPos = trans.targetPos;
       if (!targetPos) return;
-
-      // Skip loopback transitions (already handled)
-      const isLoopback = sourceStateId === transition.next;
-      if (isLoopback) return;
 
       const dx = targetPos.x - sourcePos.x;
       const dy = targetPos.y - sourcePos.y;
@@ -1872,7 +1891,7 @@ export function recalculateHandlesForMovedState(
       if (!transitionsByDirection.has(direction)) {
         transitionsByDirection.set(direction, []);
       }
-      transitionsByDirection.get(direction)!.push({ targetStateId: transition.next, index, targetPos });
+      transitionsByDirection.get(direction)!.push(trans);
     });
 
     // Assign handles for each direction group
@@ -1946,22 +1965,31 @@ export function recalculateHandlesForMovedState(
 
   // console.log('[AutoLayout] Recalculated source handles:', newHandleAssignments.size);
 
-  // STEP 3: Assign target handles for incoming transitions to affected states
-  affectedStates.forEach(targetStateId => {
+  // STEP 3: Assign target handles for affected incoming transitions
+  // Group affected transitions by their target state
+  const transitionsByTargetState = new Map<string, Array<{ sourceStateId: string; index: number; sourcePos?: { x: number; y: number } }>>();
+
+  affectedTransitions.forEach(transitionKey => {
+    const parts = transitionKey.split('-');
+    const index = parseInt(parts[parts.length - 1], 10);
+    const sourceStateId = parts.slice(0, -1).join('-');
+
+    const state = workflow.configuration.states[sourceStateId];
+    if (!state || !state.transitions[index]) return;
+
+    const transition = state.transitions[index];
+    const targetStateId = transition.next;
+    const sourcePos = statePositions.get(sourceStateId);
+
+    if (!transitionsByTargetState.has(targetStateId)) {
+      transitionsByTargetState.set(targetStateId, []);
+    }
+    transitionsByTargetState.get(targetStateId)!.push({ sourceStateId, index, sourcePos });
+  });
+
+  transitionsByTargetState.forEach((incomingTransitions, targetStateId) => {
     const targetPos = statePositions.get(targetStateId);
     if (!targetPos) return;
-
-    // Find all incoming transitions to this state
-    const incomingTransitions: Array<{ sourceStateId: string; index: number; sourcePos?: { x: number; y: number } }> = [];
-
-    Object.entries(workflow.configuration.states).forEach(([sourceStateId, stateDefinition]) => {
-      stateDefinition.transitions.forEach((transition, index) => {
-        if (transition.next === targetStateId) {
-          const sourcePos = statePositions.get(sourceStateId);
-          incomingTransitions.push({ sourceStateId, index, sourcePos });
-        }
-      });
-    });
 
     // Group incoming transitions by direction
     const incomingByDirection = new Map<string, typeof incomingTransitions>();
