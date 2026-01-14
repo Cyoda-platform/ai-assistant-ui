@@ -19,7 +19,7 @@ import {
 } from '@xyflow/react';
 import type { Node, Edge, Connection, OnConnect, OnReconnect } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Network, Download, Upload, FileJson, Info, X, Cloud, CloudDownload, CloudUpload, Maximize2, Minimize2, Settings, ArrowLeft, Lightbulb, RotateCcw, RotateCw, Scan } from 'lucide-react';
+import { Network, Download, Upload, FileJson, Info, X, Cloud, CloudDownload, CloudUpload, Maximize2, Minimize2, Settings, ArrowLeft, Lightbulb, Undo2, Redo2, Scan } from 'lucide-react';
 import axios from 'axios';
 import privateClient from '@/clients/private';
 import { useAuthStore } from '@/stores/auth';
@@ -2155,7 +2155,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
               cursor: canUndo ? 'pointer' : 'not-allowed',
             }}
           >
-            <RotateCcw size={16} strokeWidth={2} />
+            <Undo2 size={16} strokeWidth={2} />
           </ControlButton>
 
           <ControlButton
@@ -2167,7 +2167,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
               cursor: canRedo ? 'pointer' : 'not-allowed',
             }}
           >
-            <RotateCw size={16} strokeWidth={2} />
+            <Redo2 size={16} strokeWidth={2} />
           </ControlButton>
 
           <ControlButton
