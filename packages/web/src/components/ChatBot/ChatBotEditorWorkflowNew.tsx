@@ -35,6 +35,19 @@ interface ChatBotEditorWorkflowNewProps {
   setTextareaContentCallback?: ((content: string) => void) | null; // Callback to set textarea content
 }
 
+// Helper function to get global layout direction from localStorage
+function getGlobalLayoutDirection(): 'TB' | 'LR' {
+  try {
+    const stored = localStorage.getItem('workflow-canvas-layout-direction');
+    if (stored && ['TB', 'LR'].includes(stored)) {
+      return stored as 'TB' | 'LR';
+    }
+  } catch (error) {
+    console.warn('Failed to load layout direction from localStorage:', error);
+  }
+  return 'TB';
+}
+
 // Helper function to combine configuration and layout into UI workflow data
 function combineWorkflowData(
   workflowId: string,
@@ -365,10 +378,13 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
             layout
           );
 
-          // Only apply auto-layout if we created a new layout (not restored from storage)
-          const formattedWorkflow = storedCanvasData && layout
-            ? uiWorkflow  // Use saved layout as-is
-            : autoLayoutWorkflow(uiWorkflow, { direction: 'TB' });  // Apply auto-layout for new workflows
+          // Apply auto-layout if:
+          // 1. No saved layout (new workflow)
+          // 2. Saved layout exists but manuallyPositioned is false (user wants auto-layout)
+          const shouldApplyAutoLayout = !storedCanvasData || layout?.manuallyPositioned === false;
+          const formattedWorkflow = shouldApplyAutoLayout
+            ? autoLayoutWorkflow(uiWorkflow, { direction: getGlobalLayoutDirection() })
+            : uiWorkflow;  // Use saved layout as-is
 
           setCurrentWorkflow(formattedWorkflow);
 
@@ -467,10 +483,13 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
                 layout
               );
 
-              // Only apply auto-layout if we created a new layout (not restored from storage)
-              const formattedWorkflow = storedCanvasData && layout
-                ? uiWorkflow  // Use saved layout as-is
-                : autoLayoutWorkflow(uiWorkflow, { direction: 'TB' });  // Apply auto-layout for new workflows
+              // Apply auto-layout if:
+              // 1. No saved layout (new workflow)
+              // 2. Saved layout exists but manuallyPositioned is false (user wants auto-layout)
+              const shouldApplyAutoLayout = !storedCanvasData || layout?.manuallyPositioned === false;
+              const formattedWorkflow = shouldApplyAutoLayout
+                ? autoLayoutWorkflow(uiWorkflow, { direction: getGlobalLayoutDirection() })
+                : uiWorkflow;  // Use saved layout as-is
 
               setCurrentWorkflow(formattedWorkflow);
               setLoading(false);
@@ -506,14 +525,11 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
               parsed.layout
             );
 
-            // Apply auto-layout formatting when opening workflow from localStorage
-            // console.log('🎨 Applying auto-layout formatting to workflow from localStorage...');
-            const formattedWorkflow = autoLayoutWorkflow(workflow, { direction: 'TB' });
-
-            // console.log('✅ Auto-layout applied to localStorage workflow:', {
-            //   id: formattedWorkflow.id,
-            //   layoutStatesCount: formattedWorkflow.layout.states.length
-            // });
+            // Apply auto-layout if manuallyPositioned is false
+            const shouldApplyAutoLayout = parsed.layout?.manuallyPositioned === false;
+            const formattedWorkflow = shouldApplyAutoLayout
+              ? autoLayoutWorkflow(workflow, { direction: getGlobalLayoutDirection() })
+              : workflow;  // Use saved layout as-is
 
             setCurrentWorkflow(formattedWorkflow);
           }
