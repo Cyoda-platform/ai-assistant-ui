@@ -2576,48 +2576,48 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
                 <div className="flex items-start space-x-3 py-0.5">
                   <span className="text-blue-500 mt-0.5 flex-shrink-0">⊡</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Fit View</span> Center and fit entire workflow in view</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Fit View</span> Center and fit workflow</span>
+                </div>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-pink-500 mt-0.5 flex-shrink-0">↶</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Undo</span> Revert last change</span>
+                </div>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">↷</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Redo</span> Restore undone change</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
                   <span className="text-yellow-500 mt-0.5 flex-shrink-0">⚡</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Auto-arrange</span> Automatically layout states hierarchically</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Auto-arrange</span> Layout states hierarchically</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
                   <span className="text-blue-500 mt-0.5 flex-shrink-0">ℹ️</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Info</span> Toggle workflow information panel</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Info</span> Workflow information panel</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
                   <span className="text-lime-500 mt-0.5 flex-shrink-0">{'{}'}</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">JSON Editor</span> Edit workflow configuration as JSON</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">JSON Editor</span> Edit workflow as JSON</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
                   <span className="text-pink-500 mt-0.5 flex-shrink-0">↓</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Download</span> Export workflow to JSON file</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Download</span> Export to JSON file</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
                   <span className="text-lime-500 mt-0.5 flex-shrink-0">↑</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Upload</span> Import workflow from JSON file</span>
-                </div>
-                <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-blue-500 mt-0.5 flex-shrink-0">☁↑</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Cloud Export</span> Export to environment API</span>
-                </div>
-                <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-blue-500 mt-0.5 flex-shrink-0">☁↓</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Cloud Import</span> Import from environment API</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Upload</span> Import from JSON file</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
                   <span className="text-purple-500 mt-0.5 flex-shrink-0">⚙️</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Settings</span> Canvas settings and preferences</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Settings</span> Canvas preferences</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
                   <span className="text-yellow-500 mt-0.5 flex-shrink-0">💡</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Quick Help</span> Toggle this help panel</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Quick Help</span> Toggle this panel</span>
                 </div>
                 {modelName && modelVersion && (
                   <div className="flex items-start space-x-3 py-0.5">
                     <span className="text-purple-500 mt-0.5 flex-shrink-0">{isInFullscreenMode ? '⤓' : '⤢'}</span>
-                    <span className="text-gray-300"><span className="text-white font-bold">Fullscreen</span> {isInFullscreenMode ? 'Exit fullscreen mode' : 'Open in fullscreen mode'}</span>
+                    <span className="text-gray-300"><span className="text-white font-bold">Fullscreen</span> {isInFullscreenMode ? 'Exit fullscreen' : 'Enter fullscreen'}</span>
                   </div>
                 )}
               </div>
@@ -2626,12 +2626,16 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
               <div className="space-y-3 pt-4 border-t border-pink-200 dark:border-pink-800">
                 <div className="text-xs font-semibold uppercase text-gray-400 opacity-60 tracking-wide">Keyboard Shortcuts</div>
                 <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">{navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? 'Cmd' : 'Ctrl'} + Z</span> Undo last change</span>
+                </div>
+                <div className="flex items-start space-x-3 py-0.5">
                   <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Delete/Backspace</span> Delete selected state/transition</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">{navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? 'Cmd + Shift + Z' : 'Ctrl + Y'}</span> Redo change</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
                   <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Ctrl/Cmd + Z</span> Undo (via JSON editor)</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Delete / Backspace</span> Delete selected item</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
                   <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
