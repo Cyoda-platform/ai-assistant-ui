@@ -1802,6 +1802,52 @@ export function recalculateHandlesForMovedState(
     usedTargetHandles.set(stateId, new Set<string>());
   });
 
+  // IMPORTANT: Pre-populate used handles from existing layout for NON-affected transitions
+  // This ensures we don't reassign handles that are already in use by unaffected transitions
+  workflow.layout.transitions.forEach(layoutTransition => {
+    if (affectedTransitions.has(layoutTransition.id)) {
+      // Skip affected transitions - they will be recalculated
+      return;
+    }
+
+    // Parse transition ID to get source and target states
+    const parts = layoutTransition.id.split('-');
+    const index = parseInt(parts[parts.length - 1], 10);
+    const sourceStateId = parts.slice(0, -1).join('-');
+
+    const state = workflow.configuration.states[sourceStateId];
+    if (!state || !state.transitions[index]) return;
+
+    const targetStateId = state.transitions[index].next;
+
+    // Mark all handles as used (both legacy and new format)
+    // Legacy format: sourceHandle and targetHandle
+    if (layoutTransition.sourceHandle) {
+      const sourceUsed = usedSourceHandles.get(sourceStateId) || new Set<string>();
+      sourceUsed.add(layoutTransition.sourceHandle);
+      usedSourceHandles.set(sourceStateId, sourceUsed);
+    }
+
+    if (layoutTransition.targetHandle) {
+      const targetUsed = usedTargetHandles.get(targetStateId) || new Set<string>();
+      targetUsed.add(layoutTransition.targetHandle);
+      usedTargetHandles.set(targetStateId, targetUsed);
+    }
+
+    // New format: stateToTransition and transitionToState handles
+    if (layoutTransition.stateToTransitionSourceHandle) {
+      const sourceUsed = usedSourceHandles.get(sourceStateId) || new Set<string>();
+      sourceUsed.add(layoutTransition.stateToTransitionSourceHandle);
+      usedSourceHandles.set(sourceStateId, sourceUsed);
+    }
+
+    if (layoutTransition.transitionToStateTargetHandle) {
+      const targetUsed = usedTargetHandles.get(targetStateId) || new Set<string>();
+      targetUsed.add(layoutTransition.transitionToStateTargetHandle);
+      usedTargetHandles.set(targetStateId, targetUsed);
+    }
+  });
+
   // Store new handle assignments
   const newHandleAssignments = new Map<string, { sourceHandle: string; targetHandle: string }>();
 
