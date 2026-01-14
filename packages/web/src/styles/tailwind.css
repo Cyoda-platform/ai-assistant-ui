@@ -1310,6 +1310,53 @@ header .ant-card .ant-card-actions a:hover {
   color: white !important;
 }
 
+/* Fix for Lucide icons - force stroke rendering, remove fill */
+.react-flow__controls button svg.lucide {
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+.react-flow__controls button svg.lucide path {
+  fill: none !important;
+  stroke: currentColor !important;
+}
+
+.react-flow__controls button svg.lucide circle,
+.react-flow__controls button svg.lucide rect,
+.react-flow__controls button svg.lucide line,
+.react-flow__controls button svg.lucide polyline,
+.react-flow__controls button svg.lucide polygon {
+  fill: none !important;
+  stroke: currentColor !important;
+}
+
+/* Remove default disabled state dots/circles */
+.react-flow__controls button:disabled {
+  background-color: #0f172a !important;
+  color: #64748b !important;
+  opacity: 0.5;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.react-flow__controls button:disabled::before,
+.react-flow__controls button:disabled::after {
+  content: none !important;
+  display: none !important;
+}
+
+.react-flow__controls button:disabled > *:not(svg) {
+  display: none !important;
+}
+
+.react-flow__controls button:disabled:hover {
+  background-color: #0f172a !important;
+  color: #64748b !important;
+}
+
 /* ReactFlow MiniMap Dark Theme */
 .react-flow__minimap {
   background-color: #1e293b !important;

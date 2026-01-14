@@ -19,13 +19,14 @@ import {
 } from '@xyflow/react';
 import type { Node, Edge, Connection, OnConnect, OnReconnect } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Network, Download, Upload, FileJson, Info, X, Cloud, CloudDownload, CloudUpload, Maximize2, Minimize2, Settings, ArrowLeft, Lightbulb } from 'lucide-react';
+import { Network, Download, Upload, FileJson, Info, X, Cloud, CloudDownload, CloudUpload, Maximize2, Minimize2, Settings, ArrowLeft, Lightbulb, RotateCcw, RotateCw, Scan } from 'lucide-react';
 import axios from 'axios';
 import privateClient from '@/clients/private';
 import { useAuthStore } from '@/stores/auth';
 import { Modal } from 'antd';
 import { useNotifications, NotificationManager } from '@/components/Notification/Notification';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useUndoRedoWorkflow } from '@/hooks/useUndoRedoWorkflow';
 
 // Helper function to detect bidirectional connections
 function hasBidirectionalConnection(
@@ -596,6 +597,22 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   const [isInitialized, setIsInitialized] = React.useState(false);
   const [isInitializing, setIsInitializing] = React.useState(true);
 
+  // Undo/Redo functionality - restore workflow from history
+  const handleWorkflowRestore = useCallback((restoredWorkflow: UIWorkflowData) => {
+    // Update the workflow without adding to history (undo/redo action)
+    onWorkflowUpdate(restoredWorkflow, 'Undo/Redo');
+  }, [onWorkflowUpdate]);
+
+  const { canUndo, canRedo, undo, redo, saveStateImmediate } = useUndoRedoWorkflow(
+    cleanedWorkflow,
+    handleWorkflowRestore,
+    {
+      maxHistorySize: 50,
+      debounceMs: 500,
+      enableKeyboardShortcuts: true,
+    }
+  );
+
   // Custom onNodesChange handler that updates workflow configuration when nodes are deleted
   const onNodesChange = useCallback((changes: any[]) => {
     // First apply the changes to React Flow's internal state
@@ -707,6 +724,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     }
 
     if (removedEdges.length > 0 && cleanedWorkflow) {
+      // Save state before deleting edges
+      saveStateImmediate();
+
       // Update workflow configuration to remove deleted transitions
       const removedEdgeIds = removedEdges.map(change => change.id);
 
@@ -787,7 +807,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         });
       });
     }
-  }, [defaultOnEdgesChange, cleanedWorkflow, onWorkflowUpdate]);
+  }, [defaultOnEdgesChange, cleanedWorkflow, onWorkflowUpdate, saveStateImmediate]);
 
   // Helper function to calculate default position for transition node
   const calculateTransitionNodePosition = useCallback((
@@ -1084,6 +1104,18 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     }
   }, [isInitialized, nodes.length, fitView]);
 
+  // Save initial state to undo/redo history after initialization (only once)
+  const initialStateSavedRef = useRef(false);
+  React.useEffect(() => {
+    if (isInitialized && nodes.length > 0 && edges.length >= 0 && cleanedWorkflow && !initialStateSavedRef.current) {
+      const timer = setTimeout(() => {
+        saveStateImmediate();
+        initialStateSavedRef.current = true;
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [isInitialized]); // Only run when initialization completes
+
   const onConnect = useCallback(
     (params: Connection) => {
       console.log('🔗🔗🔗 onConnect CALLED! 🔗🔗🔗', params);
@@ -1092,6 +1124,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         console.log('❌ Missing cleanedWorkflow or source/target');
         return;
       }
+
+      // Save state before adding connection
+      saveStateImmediate();
 
       // Determine node types
       const sourceIsTransition = params.source.startsWith('transition-');
@@ -1248,7 +1283,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
       onWorkflowUpdate(updatedWorkflow, description);
     },
-    [cleanedWorkflow, onWorkflowUpdate]
+    [cleanedWorkflow, onWorkflowUpdate, saveStateImmediate]
   );
 
   // Validate connections - only allow State → State connections
@@ -1296,6 +1331,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         console.log('❌ No cleanedWorkflow');
         return;
       }
+
+      // Save state before reconnecting
+      saveStateImmediate();
 
       // Extract transition ID from edge (format: edge-{transitionId})
       const transitionId = oldEdge.id.replace('edge-', '');
@@ -1418,7 +1456,16 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         : `Reconnected transition target to ${newConnection.target}`;
       onWorkflowUpdate(updatedWorkflow, message);
     },
-    [cleanedWorkflow, onWorkflowUpdate]
+    [cleanedWorkflow, onWorkflowUpdate, saveStateImmediate]
+  );
+
+  // Save state before drag starts
+  const onNodeDragStart = useCallback(
+    (_event: React.MouseEvent, _node: Node) => {
+      // Save current state before any changes
+      saveStateImmediate();
+    },
+    [saveStateImmediate]
   );
 
   const onNodeDragStop = useCallback(
@@ -2040,6 +2087,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         onConnect={onConnect}
         onReconnect={onReconnect}
         isValidConnection={isValidConnection}
+        onNodeDragStart={onNodeDragStart}
         onNodeDragStop={onNodeDragStop}
         onNodeClick={handleNodeClick}
         onEdgeClick={handleEdgeClick}
@@ -2073,7 +2121,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         }}
       >
         <Background />
-        <Controls showZoom={false} showInteractive={false}>
+        <Controls showZoom={false} showInteractive={false} showFitView={false}>
           {onBack && (
             <ControlButton
               onClick={onBack}
@@ -2087,6 +2135,40 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
               <ArrowLeft size={16} className="text-white" />
             </ControlButton>
           )}
+
+          {/* Fit View button */}
+          <ControlButton
+            onClick={() => fitView({ padding: 0.2, duration: 300 })}
+            title="Fit view"
+            data-testid="fit-view-button"
+          >
+            <Scan size={16} strokeWidth={2} />
+          </ControlButton>
+
+          {/* Undo/Redo buttons */}
+          <ControlButton
+            onClick={canUndo ? undo : undefined}
+            title={`Undo (${navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? 'Cmd' : 'Ctrl'}+Z)`}
+            data-testid="undo-button"
+            style={{
+              opacity: canUndo ? 1 : 0.4,
+              cursor: canUndo ? 'pointer' : 'not-allowed',
+            }}
+          >
+            <RotateCcw size={16} strokeWidth={2} />
+          </ControlButton>
+
+          <ControlButton
+            onClick={canRedo ? redo : undefined}
+            title={`Redo (${navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? 'Cmd+Shift+Z' : 'Ctrl+Y'})`}
+            data-testid="redo-button"
+            style={{
+              opacity: canRedo ? 1 : 0.4,
+              cursor: canRedo ? 'pointer' : 'not-allowed',
+            }}
+          >
+            <RotateCw size={16} strokeWidth={2} />
+          </ControlButton>
 
           <ControlButton
             onClick={handleAutoLayout}
