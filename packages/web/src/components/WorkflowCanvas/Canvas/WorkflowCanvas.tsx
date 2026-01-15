@@ -1107,17 +1107,19 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     }
   }, [isInitialized, nodes.length, fitView]);
 
-  // Save initial state to undo/redo history after initialization (only once)
+  // NOTE: We don't save initial state to undo/redo history anymore
+  // This prevents the Undo button from being active when no changes have been made
+  // History will start being saved only after the first user action
   const initialStateSavedRef = useRef(false);
-  React.useEffect(() => {
-    if (isInitialized && nodes.length > 0 && edges.length >= 0 && cleanedWorkflow && !initialStateSavedRef.current) {
-      const timer = setTimeout(() => {
-        saveStateImmediate();
-        initialStateSavedRef.current = true;
-      }, 200);
-      return () => clearTimeout(timer);
-    }
-  }, [isInitialized]); // Only run when initialization completes
+  // React.useEffect(() => {
+  //   if (isInitialized && nodes.length > 0 && edges.length >= 0 && cleanedWorkflow && !initialStateSavedRef.current) {
+  //     const timer = setTimeout(() => {
+  //       saveStateImmediate();
+  //       initialStateSavedRef.current = true;
+  //     }, 200);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [isInitialized]); // Only run when initialization completes
 
   const onConnect = useCallback(
     (params: Connection) => {
