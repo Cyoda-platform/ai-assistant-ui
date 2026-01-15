@@ -417,8 +417,8 @@ const ChatBotView: React.FC = () => {
   // Helper function to extract UI functions from message text
   const extractUIFunctions = (text: string): any[] | null => {
     try {
-      // Check for new text-based UI function format: [ui-function: issue_technical_user, env: https://...]
-      const textFunctionMatch = text.match(/\[ui-function:\s*(\w+),\s*env:\s*(https?:\/\/[^\]]+)\]/);
+      // Check for new text-based UI function format: [ui_function: issue_technical_user, env: https://...] or [ui-function: ...]
+      const textFunctionMatch = text.match(/\[ui[_-]function:\s*(\w+),\s*env:\s*(https?:\/\/[^\]]+)\]/);
       if (textFunctionMatch) {
         const functionName = textFunctionMatch[1];
         const envUrl = textFunctionMatch[2];
