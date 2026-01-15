@@ -566,6 +566,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       layout: {
         ...cleanedWorkflow.layout,
         states: updatedLayoutStates,
+        direction: layoutDirection, // Save current direction
         updatedAt: new Date().toISOString()
       },
       updatedAt: new Date().toISOString()
@@ -693,6 +694,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           ...cleanedWorkflow.layout,
           states: updatedLayoutStates,
           transitions: updatedLayoutTransitions,
+          direction: layoutDirection, // Save current direction
           updatedAt: new Date().toISOString()
         }
       };
@@ -783,6 +785,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         layout: {
           ...cleanedWorkflow.layout,
           transitions: updatedLayoutTransitions,
+          direction: layoutDirection, // Save current direction
           updatedAt: new Date().toISOString()
         }
       };
@@ -1273,6 +1276,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         layout: {
           ...cleanedWorkflow.layout,
           transitions: updatedLayoutTransitions,
+          direction: layoutDirection, // Save current direction
           updatedAt: new Date().toISOString()
         }
       };
@@ -1445,6 +1449,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         layout: {
           ...cleanedWorkflow.layout,
           transitions: updatedLayoutTransitions,
+          direction: layoutDirection, // Save current direction
           updatedAt: new Date().toISOString()
         }
       };
@@ -1506,6 +1511,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           layout: {
             ...cleanedWorkflow.layout,
             transitions: updatedLayoutTransitions,
+            direction: layoutDirection, // Save current direction
             manuallyPositioned: true, // User manually moved a transition node
             updatedAt: new Date().toISOString()
           }
@@ -1525,6 +1531,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           layout: {
             ...cleanedWorkflow.layout,
             states: updatedLayoutStates,
+            direction: layoutDirection, // Save current direction
             manuallyPositioned: true, // User manually moved a state node
             updatedAt: new Date().toISOString()
           }
@@ -1993,6 +2000,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           ...currentWorkflow.layout,
           states: updatedLayoutStates,
           transitions: currentWorkflow.layout.transitions, // Explicitly preserve transitions
+          direction: layoutDirection, // Save current direction
           updatedAt: new Date().toISOString()
         }
       };

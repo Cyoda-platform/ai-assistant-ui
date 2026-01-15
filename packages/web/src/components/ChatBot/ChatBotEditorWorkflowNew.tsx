@@ -381,9 +381,18 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
           // Apply auto-layout if:
           // 1. No saved layout (new workflow)
           // 2. Saved layout exists but manuallyPositioned is false (user wants auto-layout)
-          const shouldApplyAutoLayout = !storedCanvasData || layout?.manuallyPositioned === false;
+          // 3. Layout direction has changed AND manuallyPositioned is false
+          const currentDirection = getGlobalLayoutDirection();
+          const savedDirection = layout?.direction;
+          const directionChanged = savedDirection && savedDirection !== currentDirection;
+          const isManuallyPositioned = layout?.manuallyPositioned === true;
+
+          const shouldApplyAutoLayout = !storedCanvasData ||
+                                       layout?.manuallyPositioned === false ||
+                                       (directionChanged && !isManuallyPositioned);
+
           const formattedWorkflow = shouldApplyAutoLayout
-            ? autoLayoutWorkflow(uiWorkflow, { direction: getGlobalLayoutDirection() })
+            ? autoLayoutWorkflow(uiWorkflow, { direction: currentDirection })
             : uiWorkflow;  // Use saved layout as-is
 
           setCurrentWorkflow(formattedWorkflow);
@@ -486,9 +495,18 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
               // Apply auto-layout if:
               // 1. No saved layout (new workflow)
               // 2. Saved layout exists but manuallyPositioned is false (user wants auto-layout)
-              const shouldApplyAutoLayout = !storedCanvasData || layout?.manuallyPositioned === false;
+              // 3. Layout direction has changed AND manuallyPositioned is false
+              const currentDirection = getGlobalLayoutDirection();
+              const savedDirection = layout?.direction;
+              const directionChanged = savedDirection && savedDirection !== currentDirection;
+              const isManuallyPositioned = layout?.manuallyPositioned === true;
+
+              const shouldApplyAutoLayout = !storedCanvasData ||
+                                           layout?.manuallyPositioned === false ||
+                                           (directionChanged && !isManuallyPositioned);
+
               const formattedWorkflow = shouldApplyAutoLayout
-                ? autoLayoutWorkflow(uiWorkflow, { direction: getGlobalLayoutDirection() })
+                ? autoLayoutWorkflow(uiWorkflow, { direction: currentDirection })
                 : uiWorkflow;  // Use saved layout as-is
 
               setCurrentWorkflow(formattedWorkflow);
@@ -525,10 +543,18 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
               parsed.layout
             );
 
-            // Apply auto-layout if manuallyPositioned is false
-            const shouldApplyAutoLayout = parsed.layout?.manuallyPositioned === false;
+            // Apply auto-layout if:
+            // 1. manuallyPositioned is false
+            // 2. Layout direction has changed AND manuallyPositioned is false
+            const currentDirection = getGlobalLayoutDirection();
+            const savedDirection = parsed.layout?.direction;
+            const directionChanged = savedDirection && savedDirection !== currentDirection;
+            const isManuallyPositioned = parsed.layout?.manuallyPositioned === true;
+
+            const shouldApplyAutoLayout = parsed.layout?.manuallyPositioned === false ||
+                                         (directionChanged && !isManuallyPositioned);
             const formattedWorkflow = shouldApplyAutoLayout
-              ? autoLayoutWorkflow(workflow, { direction: getGlobalLayoutDirection() })
+              ? autoLayoutWorkflow(workflow, { direction: currentDirection })
               : workflow;  // Use saved layout as-is
 
             setCurrentWorkflow(formattedWorkflow);
