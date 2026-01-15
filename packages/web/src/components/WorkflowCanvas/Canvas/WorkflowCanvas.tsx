@@ -2136,15 +2136,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             </ControlButton>
           )}
 
-          {/* Fit View button */}
-          <ControlButton
-            onClick={() => fitView({ padding: 0.2, duration: 300 })}
-            title="Fit view"
-            data-testid="fit-view-button"
-          >
-            <Scan size={16} strokeWidth={2} />
-          </ControlButton>
-
           {/* Undo/Redo buttons */}
           <ControlButton
             onClick={canUndo ? undo : undefined}
@@ -2168,6 +2159,15 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             }}
           >
             <Redo2 size={16} strokeWidth={2} />
+          </ControlButton>
+
+          {/* Fit View button */}
+          <ControlButton
+            onClick={() => fitView({ padding: 0.2, duration: 300 })}
+            title="Fit view"
+            data-testid="fit-view-button"
+          >
+            <Scan size={16} strokeWidth={2} />
           </ControlButton>
 
           <ControlButton
@@ -2575,16 +2575,16 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                 <div className="text-xs font-semibold uppercase text-gray-400 opacity-60 tracking-wide">Toolbar Buttons</div>
 
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-blue-500 mt-0.5 flex-shrink-0">⊡</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Fit View</span> Center and fit workflow</span>
-                </div>
-                <div className="flex items-start space-x-3 py-0.5">
                   <span className="text-pink-500 mt-0.5 flex-shrink-0">↶</span>
                   <span className="text-gray-300"><span className="text-white font-bold">Undo</span> Revert last change</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
                   <span className="text-lime-500 mt-0.5 flex-shrink-0">↷</span>
                   <span className="text-gray-300"><span className="text-white font-bold">Redo</span> Restore undone change</span>
+                </div>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-blue-500 mt-0.5 flex-shrink-0">⊡</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Fit View</span> Center and fit workflow</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
                   <span className="text-yellow-500 mt-0.5 flex-shrink-0">⚡</span>
