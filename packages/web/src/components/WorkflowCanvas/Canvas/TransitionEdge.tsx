@@ -18,6 +18,8 @@ interface TransitionEdgeData {
   onUpdate: (transition: UITransitionData) => void;
   palette: ColorPalette;
   edgeType?: 'default' | 'straight' | 'step' | 'smoothstep';
+  isBidirectional?: boolean;
+  isReturnPath?: boolean;
 }
 
 export const TransitionEdge: React.FC<EdgeProps> = ({
@@ -31,7 +33,15 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
   data,
   selected,
 }) => {
-  const { transition, onEdit, onUpdate, palette, edgeType = 'default' } = (data as unknown as TransitionEdgeData) || {};
+  const {
+    transition,
+    onEdit,
+    onUpdate,
+    palette,
+    edgeType = 'default',
+    isBidirectional = false,
+    isReturnPath = false
+  } = (data as unknown as TransitionEdgeData) || {};
 
   // Calculate edge path and label position based on edge type
   let edgePath: string;
@@ -74,6 +84,11 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
       break;
   }
 
+  // Apply vertical offset for bidirectional transitions to prevent label overlap
+  // Forward path (A→B where A < B): offset upward (-20px)
+  // Return path (B→A where B > A): offset downward (+20px)
+  const labelOffsetY = isBidirectional ? (isReturnPath ? 20 : -20) : 0;
+
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (transition && onEdit) {
@@ -95,6 +110,33 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
 
   // Define colors based on manual/automated state
   const edgeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
+
+  // Calculate position for criterion badge near source node
+  const getCriterionBadgePosition = () => {
+    // Offset from source based on source position
+    let offsetX = 0;
+    let offsetY = 0;
+
+    switch (sourcePosition) {
+      case 'top':
+        offsetY = -28; // Above the source node
+        break;
+      case 'bottom':
+        offsetY = 28; // Below the source node
+        break;
+      case 'left':
+        offsetX = -28; // Left of the source node
+        break;
+      case 'right':
+        offsetX = 28; // Right of the source node
+        break;
+    }
+
+    return {
+      x: sourceX + offsetX,
+      y: sourceY + offsetY,
+    };
+  };
 
   // Calculate position for process badge near target node
   const getProcessBadgePosition = () => {
@@ -125,17 +167,97 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
   };
 
   const processBadgePos = getProcessBadgePosition();
+  const criterionBadgePos = getCriterionBadgePosition();
 
   // Format criterion information for tooltip
   const getCriterionTooltip = () => {
     if (!transition.definition.criterion) return null;
-    const criterion = transition.definition.criterion;
-    const lines: string[] = [];
-    if (criterion.type) lines.push(`Type: ${criterion.type}`);
-    if (criterion.field) lines.push(`Field: ${criterion.field}`);
-    if (criterion.operator) lines.push(`Operator: ${criterion.operator}`);
-    if (criterion.value !== undefined) lines.push(`Value: ${JSON.stringify(criterion.value)}`);
-    return lines.join('\n') || 'Has criterion';
+    const criterion = transition.definition.criterion as any;
+
+    const fieldStyle = { fontSize: '0.9em', opacity: 0.9, marginBottom: '2px' };
+
+    return (
+      <div style={{ whiteSpace: 'pre-wrap', maxWidth: '300px' }}>
+        {/* Type */}
+        {criterion.type && (
+          <div style={fieldStyle}>
+            Type: {criterion.type}
+          </div>
+        )}
+
+        {/* For 'simple' type */}
+        {criterion.type === 'simple' && (
+          <div style={fieldStyle}>
+            {criterion.jsonPath || criterion.field || 'condition'}
+            {criterion.operation && ` ${criterion.operation}`}
+            {criterion.value !== undefined && ` ${JSON.stringify(criterion.value)}`}
+          </div>
+        )}
+
+        {/* For 'function' type */}
+        {criterion.type === 'function' && criterion.function && (
+          <>
+            {criterion.function.name && (
+              <div style={fieldStyle}>
+                Function: {criterion.function.name}
+              </div>
+            )}
+            {criterion.function.config?.responseTimeoutMs && (
+              <div style={fieldStyle}>
+                Timeout: {criterion.function.config.responseTimeoutMs}ms
+              </div>
+            )}
+            {criterion.function.config?.retryPolicy && (
+              <div style={fieldStyle}>
+                Retry: {criterion.function.config.retryPolicy}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* For 'group' type */}
+        {criterion.type === 'group' && (
+          <>
+            {criterion.operator && (
+              <div style={fieldStyle}>
+                Operator: {criterion.operator}
+              </div>
+            )}
+            {criterion.conditions?.length > 0 && (
+              <>
+                <div style={fieldStyle}>
+                  Conditions: {criterion.conditions.length}
+                </div>
+                {criterion.conditions.map((cond: any, idx: number) => (
+                  <div key={idx} style={{ ...fieldStyle, marginLeft: '12px', marginTop: '4px' }}>
+                    {idx + 1}. {cond.jsonPath || cond.field || 'condition'}
+                    {cond.operation && ` ${cond.operation}`}
+                    {cond.value !== undefined && ` ${JSON.stringify(cond.value)}`}
+                  </div>
+                ))}
+              </>
+            )}
+          </>
+        )}
+
+        {/* Legacy fields (backward compatibility) */}
+        {criterion.field && (
+          <div style={fieldStyle}>
+            Field: {criterion.field}
+          </div>
+        )}
+        {criterion.operator && criterion.type !== 'group' && (
+          <div style={fieldStyle}>
+            Operator: {criterion.operator}
+          </div>
+        )}
+        {criterion.value !== undefined && criterion.type !== 'simple' && (
+          <div style={fieldStyle}>
+            Value: {JSON.stringify(criterion.value)}
+          </div>
+        )}
+      </div>
+    );
   };
 
   // Format processors information for tooltip
@@ -143,9 +265,43 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
     if (!transition.definition.processors || transition.definition.processors.length === 0) {
       return null;
     }
-    return transition.definition.processors
-      .map((p, idx) => `${idx + 1}. ${p.name}${p.executionMode ? ` (${p.executionMode})` : ''}`)
-      .join('\n');
+
+    const fieldStyle = { fontSize: '0.9em', opacity: 0.9, marginBottom: '2px' };
+
+    return (
+      <div style={{ whiteSpace: 'pre-wrap', maxWidth: '300px' }}>
+        {transition.definition.processors.map((p, idx) => {
+          const config = p.config as any;
+          return (
+            <div key={idx} style={{ marginBottom: idx < transition.definition.processors!.length - 1 ? '8px' : '0' }}>
+              <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>
+                {idx + 1}. {p.name}
+              </div>
+              {p.executionMode && (
+                <div style={fieldStyle}>
+                  Mode: {p.executionMode}
+                </div>
+              )}
+              {config?.attachEntity !== undefined && (
+                <div style={fieldStyle}>
+                  Attach Entity: {config.attachEntity ? 'Yes' : 'No'}
+                </div>
+              )}
+              {config?.responseTimeoutMs && (
+                <div style={fieldStyle}>
+                  Timeout: {config.responseTimeoutMs}ms
+                </div>
+              )}
+              {config?.retryPolicy && (
+                <div style={fieldStyle}>
+                  Retry: {config.retryPolicy}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
 
@@ -169,69 +325,62 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
       />
 
       <EdgeLabelRenderer>
-        {/* Primary Label - Center of the edge (Transition name + Criterion) */}
+        {/* Primary Label - Center of the edge (Transition name) */}
         <div
           style={{
             position: 'absolute',
-            transform: `translate(-50%, -50%) translate(${finalLabelX}px,${finalLabelY}px)`,
+            transform: `translate(-50%, -50%) translate(${finalLabelX}px,${finalLabelY + labelOffsetY}px)`,
             pointerEvents: 'all',
           }}
           className="nodrag nopan"
           onDoubleClick={handleDoubleClick}
         >
+          {/* Label with transition name */}
           <div
+            className="text-xl font-medium text-white/90 whitespace-nowrap px-2 py-1 rounded cursor-pointer"
             style={{
-              display: 'inline-flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
               backgroundColor: 'transparent',
-              padding: '4px 8px',
             }}
+            title="Double-click to edit transition"
           >
-            {/* Criterion icon - above the text */}
-            {hasCriterion && (
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <Tooltip title={getCriterionTooltip()} color="#1f2937">
-                  <div
-                    style={{
-                      width: '28px',
-                      height: '28px',
-                      backgroundColor: '#ec4899', // Pink-500
-                      transform: 'rotate(45deg)',
-                      borderRadius: '2px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 0 8px rgba(236, 72, 153, 0.5)',
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <div style={{ transform: 'rotate(-45deg)' }}>
-                      <Filter size={14} color="white" />
-                    </div>
-                  </div>
-                </Tooltip>
-              </div>
-            )}
-
-            {/* Label with transition name - below icons */}
-            <div
-              className="text-xl font-medium text-white/90 whitespace-nowrap px-2 py-1 rounded cursor-pointer"
-              style={{
-                backgroundColor: 'transparent',
-                flexShrink: 0,
-              }}
-              title="Double-click to edit transition"
-            >
-              {transition.definition.name || 'Unnamed'}
-            </div>
+            {transition.definition.name || 'Unnamed'}
           </div>
         </div>
 
-        {/* Secondary Label - Process Badge near target node */}
+        {/* Criterion Badge - Near source node (start of edge) */}
+        {hasCriterion && (
+          <div
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${criterionBadgePos.x}px,${criterionBadgePos.y}px)`,
+              pointerEvents: 'all',
+            }}
+            className="nodrag nopan"
+          >
+            <Tooltip title={getCriterionTooltip()} color="#1f2937">
+              <div
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  backgroundColor: '#ec4899', // Pink-500
+                  transform: 'rotate(45deg)',
+                  borderRadius: '2px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 0 8px rgba(236, 72, 153, 0.5)',
+                  cursor: 'pointer',
+                }}
+              >
+                <div style={{ transform: 'rotate(-45deg)' }}>
+                  <Filter size={14} color="white" />
+                </div>
+              </div>
+            </Tooltip>
+          </div>
+        )}
+
+        {/* Process Badge - Near target node (end of edge) */}
         {hasProcessors && (
           <div
             style={{

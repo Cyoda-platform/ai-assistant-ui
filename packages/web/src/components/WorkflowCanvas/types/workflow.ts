@@ -73,6 +73,9 @@ export interface StateLayout {
 // UPDATED: Now supports transition nodes (position) in addition to legacy edge-based layout (labelPosition, handles)
 export interface TransitionLayout {
   id: string;
+  // Source and target state IDs (for identifying which states this transition connects)
+  sourceStateId?: string;
+  targetStateId?: string;
   // Legacy edge-based layout (for backward compatibility)
   labelPosition?: {
     x: number;
@@ -101,6 +104,7 @@ export interface CanvasLayout {
   version: number;
   updatedAt: string;
   direction?: 'TB' | 'BT' | 'LR' | 'RL'; // Layout direction
+  manuallyPositioned?: boolean; // True if user manually moved nodes or applied auto-layout
 }
 
 export interface WorkflowSummary {

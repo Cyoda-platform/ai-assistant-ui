@@ -35,6 +35,19 @@ interface ChatBotEditorWorkflowNewProps {
   setTextareaContentCallback?: ((content: string) => void) | null; // Callback to set textarea content
 }
 
+// Helper function to get global layout direction from localStorage
+function getGlobalLayoutDirection(): 'TB' | 'LR' {
+  try {
+    const stored = localStorage.getItem('workflow-canvas-layout-direction');
+    if (stored && ['TB', 'LR'].includes(stored)) {
+      return stored as 'TB' | 'LR';
+    }
+  } catch (error) {
+    console.warn('Failed to load layout direction from localStorage:', error);
+  }
+  return 'TB';
+}
+
 // Helper function to combine configuration and layout into UI workflow data
 function combineWorkflowData(
   workflowId: string,
@@ -266,14 +279,14 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
         let workflowCount = 1;
 
         if (rawConfig) {
-          console.log('✅ Using workflow data passed directly:', workflowData.name);
-          console.log('📦 Raw config structure:', {
-            hasStatesObject: rawConfig.states && typeof rawConfig.states === 'object' && !Array.isArray(rawConfig.states),
-            hasStatesArray: Array.isArray(rawConfig.states),
-            hasTransitionsArray: Array.isArray(rawConfig.transitions),
-            hasWorkflowsArray: Array.isArray(rawConfig.workflows),
-            keys: Object.keys(rawConfig)
-          });
+          // console.log('✅ Using workflow data passed directly:', workflowData.name);
+          // console.log('📦 Raw config structure:', {
+          //   hasStatesObject: rawConfig.states && typeof rawConfig.states === 'object' && !Array.isArray(rawConfig.states),
+          //   hasStatesArray: Array.isArray(rawConfig.states),
+          //   hasTransitionsArray: Array.isArray(rawConfig.transitions),
+          //   hasWorkflowsArray: Array.isArray(rawConfig.workflows),
+          //   keys: Object.keys(rawConfig)
+          // });
 
           // Check if this is a wrapper format (has workflows array)
           if (rawConfig.workflows && Array.isArray(rawConfig.workflows)) {
@@ -299,20 +312,59 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
             return;
           }
 
-          console.log('✅ Transformed config:', {
-            stateIds: Object.keys(config.states || {}),
-            initialState: config.initialState
-          });
+          // console.log('✅ Transformed config:', {
+          //   stateIds: Object.keys(config.states || {}),
+          //   initialState: config.initialState
+          // });
 
           const stateIds = Object.keys(config.states || {});
-          const layout: CanvasLayout = {
-            states: stateIds.map((stateId, index) => ({
-              id: stateId,
-              position: { x: 100 + (index * 300), y: 200 }
-            })),
-            transitions: [],
-            updatedAt: new Date().toISOString()
-          };
+
+          // Try to load saved layout from localStorage first
+          let layout: CanvasLayout | null = null;
+          const storedCanvasData = helperStorage.get(workflowCanvasDataKey, null);
+
+          if (storedCanvasData) {
+            // console.log('📖 Found saved layout in localStorage, attempting to restore...');
+            try {
+              const canvasStr = typeof storedCanvasData === 'string'
+                ? storedCanvasData
+                : JSON.stringify(storedCanvasData, null, 2);
+
+              const parsed = parseWorkflowFromStorage(canvasStr);
+
+              if (parsed && parsed.layout) {
+                // Verify that the saved layout matches the current workflow states
+                const savedStateIds = new Set(parsed.layout.states.map(s => s.id));
+                const currentStateIds = new Set(stateIds);
+
+                // Check if states match (same states, regardless of order)
+                const statesMatch = savedStateIds.size === currentStateIds.size &&
+                  [...savedStateIds].every(id => currentStateIds.has(id));
+
+                if (statesMatch) {
+                  // console.log('✅ Saved layout matches current workflow, restoring positions');
+                  layout = parsed.layout;
+                } else {
+                  console.log('⚠️ Saved layout does not match current workflow states, will use auto-layout');
+                }
+              }
+            } catch (error) {
+              console.error('❌ Error parsing saved layout:', error);
+            }
+          }
+
+          // If no saved layout or it doesn't match, create default layout
+          if (!layout) {
+            // console.log('🎨 No saved layout found, creating default layout');
+            layout = {
+              states: stateIds.map((stateId, index) => ({
+                id: stateId,
+                position: { x: 100 + (index * 300), y: 200 }
+              })),
+              transitions: [],
+              updatedAt: new Date().toISOString()
+            };
+          }
 
           const entityModel: EntityModelIdentifier = {
             modelName: workflowData.entity_name || modelName,
@@ -326,7 +378,23 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
             layout
           );
 
-          const formattedWorkflow = autoLayoutWorkflow(uiWorkflow, { direction: 'TB' });
+          // Apply auto-layout if:
+          // 1. No saved layout (new workflow)
+          // 2. Saved layout exists but manuallyPositioned is false (user wants auto-layout)
+          // 3. Layout direction has changed AND manuallyPositioned is false
+          const currentDirection = getGlobalLayoutDirection();
+          const savedDirection = layout?.direction;
+          const directionChanged = savedDirection && savedDirection !== currentDirection;
+          const isManuallyPositioned = layout?.manuallyPositioned === true;
+
+          const shouldApplyAutoLayout = !storedCanvasData ||
+                                       layout?.manuallyPositioned === false ||
+                                       (directionChanged && !isManuallyPositioned);
+
+          const formattedWorkflow = shouldApplyAutoLayout
+            ? autoLayoutWorkflow(uiWorkflow, { direction: currentDirection })
+            : uiWorkflow;  // Use saved layout as-is
+
           setCurrentWorkflow(formattedWorkflow);
 
           // Show wrapper format notification if detected
@@ -361,17 +429,56 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
             );
 
             if (workflow?.config) {
-              console.log('✅ Loaded workflow from AppRoot:', workflow.name);
+              // console.log('✅ Loaded workflow from AppRoot:', workflow.name);
 
               const stateIds = Object.keys(workflow.config.states || {});
-              const layout: CanvasLayout = {
-                states: stateIds.map((stateId, index) => ({
-                  id: stateId,
-                  position: { x: 100 + (index * 300), y: 200 }
-                })),
-                transitions: [],
-                updatedAt: new Date().toISOString()
-              };
+
+              // Try to load saved layout from localStorage first
+              let layout: CanvasLayout | null = null;
+              const storedCanvasData = helperStorage.get(workflowCanvasDataKey, null);
+
+              if (storedCanvasData) {
+                // console.log('📖 Found saved layout in localStorage, attempting to restore...');
+                try {
+                  const canvasStr = typeof storedCanvasData === 'string'
+                    ? storedCanvasData
+                    : JSON.stringify(storedCanvasData, null, 2);
+
+                  const parsed = parseWorkflowFromStorage(canvasStr);
+
+                  if (parsed && parsed.layout) {
+                    // Verify that the saved layout matches the current workflow states
+                    const savedStateIds = new Set(parsed.layout.states.map(s => s.id));
+                    const currentStateIds = new Set(stateIds);
+
+                    // Check if states match (same states, regardless of order)
+                    const statesMatch = savedStateIds.size === currentStateIds.size &&
+                      [...savedStateIds].every(id => currentStateIds.has(id));
+
+                    if (statesMatch) {
+                      // console.log('✅ Saved layout matches current workflow, restoring positions');
+                      layout = parsed.layout;
+                    } else {
+                      console.log('⚠️ Saved layout does not match current workflow states, will use auto-layout');
+                    }
+                  }
+                } catch (error) {
+                  console.error('❌ Error parsing saved layout:', error);
+                }
+              }
+
+              // If no saved layout or it doesn't match, create default layout
+              if (!layout) {
+                // console.log('🎨 No saved layout found, creating default layout');
+                layout = {
+                  states: stateIds.map((stateId, index) => ({
+                    id: stateId,
+                    position: { x: 100 + (index * 300), y: 200 }
+                  })),
+                  transitions: [],
+                  updatedAt: new Date().toISOString()
+                };
+              }
 
               const entityModel: EntityModelIdentifier = {
                 modelName: entity.name,
@@ -385,7 +492,23 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
                 layout
               );
 
-              const formattedWorkflow = autoLayoutWorkflow(uiWorkflow, { direction: 'TB' });
+              // Apply auto-layout if:
+              // 1. No saved layout (new workflow)
+              // 2. Saved layout exists but manuallyPositioned is false (user wants auto-layout)
+              // 3. Layout direction has changed AND manuallyPositioned is false
+              const currentDirection = getGlobalLayoutDirection();
+              const savedDirection = layout?.direction;
+              const directionChanged = savedDirection && savedDirection !== currentDirection;
+              const isManuallyPositioned = layout?.manuallyPositioned === true;
+
+              const shouldApplyAutoLayout = !storedCanvasData ||
+                                           layout?.manuallyPositioned === false ||
+                                           (directionChanged && !isManuallyPositioned);
+
+              const formattedWorkflow = shouldApplyAutoLayout
+                ? autoLayoutWorkflow(uiWorkflow, { direction: currentDirection })
+                : uiWorkflow;  // Use saved layout as-is
+
               setCurrentWorkflow(formattedWorkflow);
               setLoading(false);
               updateHistoryState();
@@ -394,10 +517,10 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
           }
         }
 
-        console.log('⚠️ Could not load workflow, falling back to localStorage');
+        // console.log('⚠️ Could not load workflow, falling back to localStorage');
 
         // Fall back to localStorage (legacy behavior or fullscreen mode)
-        console.log('📖 Loading workflow from localStorage');
+        // console.log('📖 Loading workflow from localStorage');
         const storedCanvasData = helperStorage.get(workflowCanvasDataKey, null);
 
         if (storedCanvasData) {
@@ -420,14 +543,19 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
               parsed.layout
             );
 
-            // Apply auto-layout formatting when opening workflow from localStorage
-            console.log('🎨 Applying auto-layout formatting to workflow from localStorage...');
-            const formattedWorkflow = autoLayoutWorkflow(workflow, { direction: 'TB' });
+            // Apply auto-layout if:
+            // 1. manuallyPositioned is false
+            // 2. Layout direction has changed AND manuallyPositioned is false
+            const currentDirection = getGlobalLayoutDirection();
+            const savedDirection = parsed.layout?.direction;
+            const directionChanged = savedDirection && savedDirection !== currentDirection;
+            const isManuallyPositioned = parsed.layout?.manuallyPositioned === true;
 
-            console.log('✅ Auto-layout applied to localStorage workflow:', {
-              id: formattedWorkflow.id,
-              layoutStatesCount: formattedWorkflow.layout.states.length
-            });
+            const shouldApplyAutoLayout = parsed.layout?.manuallyPositioned === false ||
+                                         (directionChanged && !isManuallyPositioned);
+            const formattedWorkflow = shouldApplyAutoLayout
+              ? autoLayoutWorkflow(workflow, { direction: currentDirection })
+              : workflow;  // Use saved layout as-is
 
             setCurrentWorkflow(formattedWorkflow);
           }
