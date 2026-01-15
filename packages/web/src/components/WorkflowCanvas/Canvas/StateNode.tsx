@@ -152,18 +152,6 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
     return "text-white";
   };
 
-  const getBorderColor = () => {
-    // Subtle white divider
-    return "border-white/20";
-  };
-
-  const getTransitionCount = () => {
-    // Count outgoing transitions from this state using transitionIds
-    return state.transitionIds?.length || 0;
-  };
-
-  const transitionCount = getTransitionCount();
-
   return (
     <div className={`${getNodeStyle()} group`} style={{ backgroundColor: getNodeBackgroundColor() }}>
       {/* Render all 8 anchor points */}
@@ -205,28 +193,6 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
               <ArrowRight size={14} className="text-white" />
             </button>
           )}
-        </div>
-
-        {/* Additional Information - Subtle white sublabels with emojis */}
-        <div className={`flex items-center justify-center text-xs text-white/70 pt-2 border-t ${getBorderColor()}`}>
-          <div className="flex items-center space-x-2 flex-wrap gap-1">
-            {/* State Type Labels with emojis - Show both initial and active states */}
-            {state.isInitial && (
-              <span className="font-normal">🚀 Initial</span>
-            )}
-            {state.isFinal && (
-              <span className="font-normal">🏁 Final</span>
-            )}
-            {!state.isInitial && !state.isFinal && (
-              <span className="font-normal">⚡ Active</span>
-            )}
-
-            {/* Always show transition count */}
-            <span className="flex items-center space-x-1 font-normal">
-              <span>•</span>
-              <span>🔀 {transitionCount}</span>
-            </span>
-          </div>
         </div>
       </div>
     </div>

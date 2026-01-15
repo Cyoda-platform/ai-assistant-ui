@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Save, Trash2, Check, AlertCircle, Code2, Edit } from 'lucide-react';
+import { X, Save, Trash2, Check, AlertCircle, Code2, Edit, Send } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { InlineNameEditor } from './InlineNameEditor';
 import type { TransitionDefinition, WorkflowConfiguration } from '../types/workflow';
@@ -12,6 +12,7 @@ interface TransitionEditorProps {
   onClose: () => void;
   onSave: (transitionId: string, definition: TransitionDefinition) => void;
   onDelete?: (transitionId: string) => void;
+  setTextareaContentCallback?: (content: string) => void;
   workflowConfig?: WorkflowConfiguration | null; // Optional workflow context for autocomplete
   palette: ColorPalette; // Color palette for theming
 }
@@ -23,6 +24,7 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
   onClose,
   onSave,
   onDelete,
+  setTextareaContentCallback,
   workflowConfig,
   palette
 }) => {
@@ -259,6 +261,14 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
       };
       onSave(transitionId, updatedDefinition);
       onClose();
+    }
+  };
+
+  const handleSendToChat = () => {
+    if (setTextareaContentCallback) {
+      // Send only the configuration wrapped in markdown code block
+      const message = `\`\`\`json\n${jsonText}\n\`\`\``;
+      setTextareaContentCallback(message);
     }
   };
 
@@ -818,35 +828,67 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
               </button>
             )}
           </div>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={!isValid}
-            className="flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-all text-white shadow-md"
-            style={{
-              backgroundColor: isValid ? palette.ui.accentColor : '#4b5563',
-              color: isValid ? 'white' : '#9ca3af',
-              cursor: isValid ? 'pointer' : 'not-allowed',
-              opacity: isValid ? 1 : 0.6
-            }}
-            onMouseEnter={(e) => {
-              if (isValid) {
-                e.currentTarget.style.backgroundColor = palette.ui.accentHover;
-                e.currentTarget.style.transform = 'scale(1.05)';
-                e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.3)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (isValid) {
-                e.currentTarget.style.backgroundColor = palette.ui.accentColor;
-                e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
-              }
-            }}
-          >
-            <Save size={16} />
-            <span>Save</span>
-          </button>
+          <div className="flex items-center gap-4">
+            {setTextareaContentCallback && (
+              <button
+                type="button"
+                onClick={handleSendToChat}
+                disabled={!isValid}
+                className="flex items-center space-x-2 px-4 py-2 text-sm text-white rounded-lg shadow-lg transition-all hover:shadow-xl hover:scale-105"
+                style={{
+                  background: isValid ? 'linear-gradient(to right, #8b5cf6, #7c3aed)' : 'linear-gradient(to right, #4b5563, #374151)',
+                  boxShadow: isValid ? '0 4px 6px -1px rgba(139, 92, 246, 0.3)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  cursor: isValid ? 'pointer' : 'not-allowed',
+                  opacity: isValid ? 1 : 0.6
+                }}
+                onMouseEnter={(e) => {
+                  if (isValid) {
+                    e.currentTarget.style.background = 'linear-gradient(to right, #7c3aed, #6d28d9)';
+                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(139, 92, 246, 0.4)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (isValid) {
+                    e.currentTarget.style.background = 'linear-gradient(to right, #8b5cf6, #7c3aed)';
+                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(139, 92, 246, 0.3)';
+                  }
+                }}
+                title="Send transition to chat"
+              >
+                <Send size={16} />
+                <span>Send to Chat</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={!isValid}
+              className="flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-all text-white shadow-md"
+              style={{
+                backgroundColor: isValid ? palette.ui.accentColor : '#4b5563',
+                color: isValid ? 'white' : '#9ca3af',
+                cursor: isValid ? 'pointer' : 'not-allowed',
+                opacity: isValid ? 1 : 0.6
+              }}
+              onMouseEnter={(e) => {
+                if (isValid) {
+                  e.currentTarget.style.backgroundColor = palette.ui.accentHover;
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.3)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (isValid) {
+                  e.currentTarget.style.backgroundColor = palette.ui.accentColor;
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+                }
+              }}
+            >
+              <Save size={16} />
+              <span>Save</span>
+            </button>
+          </div>
         </div>
 
         {/* Resize Handles */}

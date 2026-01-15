@@ -1,11 +1,14 @@
 import React from 'react';
 import {
   getBezierPath,
+  getStraightPath,
+  getSmoothStepPath,
   EdgeLabelRenderer,
   BaseEdge,
 } from '@xyflow/react';
 import type { EdgeProps } from '@xyflow/react';
-import { Pencil, Filter, Zap } from 'lucide-react';
+import { Filter, Zap } from 'lucide-react';
+import { Tooltip } from 'antd';
 import type { UITransitionData } from '../types/workflow';
 import type { ColorPalette } from '../themes/colorPalettes';
 
@@ -14,6 +17,7 @@ interface TransitionEdgeData {
   onEdit: (transitionId: string) => void;
   onUpdate: (transition: UITransitionData) => void;
   palette: ColorPalette;
+  edgeType?: 'default' | 'straight' | 'step' | 'smoothstep';
 }
 
 export const TransitionEdge: React.FC<EdgeProps> = ({
@@ -27,17 +31,48 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
   data,
   selected,
 }) => {
-  const { transition, onEdit, onUpdate, palette } = (data as unknown as TransitionEdgeData) || {};
+  const { transition, onEdit, onUpdate, palette, edgeType = 'default' } = (data as unknown as TransitionEdgeData) || {};
 
-  // Calculate edge path and label position (always centered on arrow)
-  const [edgePath, finalLabelX, finalLabelY] = getBezierPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-    targetX,
-    targetY,
-    targetPosition,
-  });
+  // Calculate edge path and label position based on edge type
+  let edgePath: string;
+  let finalLabelX: number;
+  let finalLabelY: number;
+
+  switch (edgeType) {
+    case 'straight':
+      [edgePath, finalLabelX, finalLabelY] = getStraightPath({
+        sourceX,
+        sourceY,
+        targetX,
+        targetY,
+      });
+      break;
+    case 'step':
+    case 'smoothstep':
+      [edgePath, finalLabelX, finalLabelY] = getSmoothStepPath({
+        sourceX,
+        sourceY,
+        sourcePosition,
+        targetX,
+        targetY,
+        targetPosition,
+        borderRadius: edgeType === 'smoothstep' ? 20 : 0,
+      });
+      break;
+    case 'default':
+    default:
+      // Use slightly higher curvature (0.35) for Bezier to create more pronounced curves
+      [edgePath, finalLabelX, finalLabelY] = getBezierPath({
+        sourceX,
+        sourceY,
+        sourcePosition,
+        targetX,
+        targetY,
+        targetPosition,
+        curvature: 0.35, // Increased from default 0.25 for more curved paths
+      });
+      break;
+  }
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -56,31 +91,67 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
   const hasProcessors = transition.definition.processors && transition.definition.processors.length > 0;
 
   // Determine if transition is manual or automated
-  // If manual is undefined, treat as automated (false)
   const isManual = transition.definition.manual === true;
-  const isAutomated = !isManual;
 
-  // Define colors and thickness based on manual/automated state
-  const getTransitionStyles = () => {
-    const baseStrokeWidth = 2;
-    const strokeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
+  // Define colors based on manual/automated state
+  const edgeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
+
+  // Calculate position for process badge near target node
+  const getProcessBadgePosition = () => {
+    // Offset from target based on target position
+    // Balanced offset to separate badge from arrow without being too far
+    let offsetX = 0;
+    let offsetY = 0;
+
+    switch (targetPosition) {
+      case 'top':
+        offsetY = -40; // Above the target node
+        break;
+      case 'bottom':
+        offsetY = 40; // Below the target node
+        break;
+      case 'left':
+        offsetX = -40; // Left of the target node
+        break;
+      case 'right':
+        offsetX = 40; // Right of the target node
+        break;
+    }
 
     return {
-      style: {
-        stroke: strokeColor,
-        strokeWidth: baseStrokeWidth,
-        opacity: selected ? 0.9 : 0.7
-      }
+      x: targetX + offsetX,
+      y: targetY + offsetY,
     };
   };
 
+  const processBadgePos = getProcessBadgePosition();
+
+  // Format criterion information for tooltip
+  const getCriterionTooltip = () => {
+    if (!transition.definition.criterion) return null;
+    const criterion = transition.definition.criterion;
+    const lines: string[] = [];
+    if (criterion.type) lines.push(`Type: ${criterion.type}`);
+    if (criterion.field) lines.push(`Field: ${criterion.field}`);
+    if (criterion.operator) lines.push(`Operator: ${criterion.operator}`);
+    if (criterion.value !== undefined) lines.push(`Value: ${JSON.stringify(criterion.value)}`);
+    return lines.join('\n') || 'Has criterion';
+  };
+
+  // Format processors information for tooltip
+  const getProcessorsTooltip = () => {
+    if (!transition.definition.processors || transition.definition.processors.length === 0) {
+      return null;
+    }
+    return transition.definition.processors
+      .map((p, idx) => `${idx + 1}. ${p.name}${p.executionMode ? ` (${p.executionMode})` : ''}`)
+      .join('\n');
+  };
+
+
+
   // Create unique marker ID for this transition
   const markerId = `arrow-${id}`;
-  const styles = getTransitionStyles();
-  const edgeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
-  const labelBgColor = edgeColor;
-
-
 
   return (
     <>
@@ -88,14 +159,17 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
         id={id as string}
         path={edgePath}
         style={{
-          ...styles.style,
+          stroke: edgeColor,
+          strokeWidth: 2,
           strokeDasharray: isManual ? '8 4' : 'none',
-          transition: 'stroke 300ms ease-in-out, stroke-width 300ms ease-in-out, stroke-dasharray 300ms ease-in-out'
+          opacity: selected ? 0.9 : 0.7,
         }}
         markerEnd={`url(#${markerId})`}
+        interactionWidth={20}
       />
 
       <EdgeLabelRenderer>
+        {/* Primary Label - Center of the edge (Transition name + Criterion) */}
         <div
           style={{
             position: 'absolute',
@@ -104,71 +178,103 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
           }}
           className="nodrag nopan"
           onDoubleClick={handleDoubleClick}
-          title="Double-click to edit transition"
         >
           <div
-            className={`border-0 rounded-full px-4 py-2 text-sm transition-all duration-300 ${
-              selected
-                ? 'ring-2 ring-white ring-offset-2 ring-offset-[#0b0f1a]'
-                : 'hover:scale-105'
-            }`}
-            style={{ backgroundColor: labelBgColor }}
+            style={{
+              display: 'inline-flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              backgroundColor: 'transparent',
+              padding: '4px 8px',
+            }}
           >
-            <div className="flex items-center space-x-2">
-              {/* Transition Name */}
-              <div className="flex-1 min-w-0">
-                <div className="font-medium text-xs text-white truncate">
-                  {transition.definition.name || 'Unnamed'}
-                </div>
-              </div>
-
-              {/* Compact Indicators */}
-              <div className="flex items-center space-x-1">
-                {hasCriterion && (
-                  <div className="text-white/80" title="Has criterion">
-                    <Filter size={10} />
+            {/* Criterion icon - above the text */}
+            {hasCriterion && (
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <Tooltip title={getCriterionTooltip()} color="#1f2937">
+                  <div
+                    style={{
+                      width: '28px',
+                      height: '28px',
+                      backgroundColor: '#ec4899', // Pink-500
+                      transform: 'rotate(45deg)',
+                      borderRadius: '2px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 0 8px rgba(236, 72, 153, 0.5)',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <div style={{ transform: 'rotate(-45deg)' }}>
+                      <Filter size={14} color="white" />
+                    </div>
                   </div>
-                )}
-
-                {hasProcessors && (
-                  <div className="flex items-center space-x-0.5 text-white/80" title={`${transition.definition.processors!.length} processors`}>
-                    <Zap size={10} />
-                    <span className="text-xs">{transition.definition.processors!.length}</span>
-                  </div>
-                )}
+                </Tooltip>
               </div>
+            )}
 
-
-
-              {/* Edit Button */}
-              <button
-                onClick={handleDoubleClick}
-                onMouseDown={(e) => e.stopPropagation()}
-                className="flex-shrink-0 p-0.5 text-gray-400 hover:text-gray-300 transition-colors"
-                title="Click to edit transition"
-              >
-                <Pencil size={10} />
-              </button>
+            {/* Label with transition name - below icons */}
+            <div
+              className="text-xl font-medium text-white/90 whitespace-nowrap px-2 py-1 rounded cursor-pointer"
+              style={{
+                backgroundColor: 'transparent',
+                flexShrink: 0,
+              }}
+              title="Double-click to edit transition"
+            >
+              {transition.definition.name || 'Unnamed'}
             </div>
-
-
           </div>
         </div>
+
+        {/* Secondary Label - Process Badge near target node */}
+        {hasProcessors && (
+          <div
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${processBadgePos.x}px,${processBadgePos.y}px)`,
+              pointerEvents: 'all',
+            }}
+            className="nodrag nopan"
+          >
+            <Tooltip title={getProcessorsTooltip()} color="#1f2937">
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  backgroundColor: '#3b82f6', // Blue-500
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 0 12px rgba(59, 130, 246, 0.6)',
+                  cursor: 'pointer',
+                }}
+              >
+                <Zap size={16} color="white" />
+              </div>
+            </Tooltip>
+          </div>
+        )}
       </EdgeLabelRenderer>
 
       {/* Custom arrow marker with unique ID */}
       <defs>
         <marker
           id={markerId}
-          markerWidth="10"
-          markerHeight="10"
-          refX="9"
-          refY="3"
+          markerWidth="20"
+          markerHeight="30"
+          refX="18"
+          refY="9"
           orient="auto"
           markerUnits="userSpaceOnUse"
         >
           <path
-            d="M0,0 L0,6 L9,3 z"
+            d="M0,0 L0,18 L18,9 z"
             fill={edgeColor}
             className="transition-colors duration-200"
           />

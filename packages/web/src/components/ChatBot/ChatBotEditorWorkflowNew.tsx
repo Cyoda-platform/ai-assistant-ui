@@ -743,6 +743,7 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
                 transitionDefinition={editingTransitionDefinition}
                 transitionId={editingTransitionId}
                 onSave={handleTransitionSave}
+                setTextareaContentCallback={setTextareaContentCallback || undefined}
                 workflowConfig={currentWorkflow?.configuration}
                 palette={palette}
               />
