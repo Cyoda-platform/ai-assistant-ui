@@ -458,12 +458,16 @@ function findAvailableHandle(
 function getAllHandlesForSide(side: 'top' | 'bottom' | 'left' | 'right'): string[] {
   switch (side) {
     case 'top':
-      return ['top-center-source', 'top-left-source', 'top-right-source'];
+      // Order: left to right (matches angle sorting from left to right)
+      return ['top-left-source', 'top-center-source', 'top-right-source'];
     case 'bottom':
-      return ['bottom-center-source', 'bottom-left-source', 'bottom-right-source'];
+      // Order: left to right (matches angle sorting from left to right)
+      return ['bottom-left-source', 'bottom-center-source', 'bottom-right-source'];
     case 'left':
+      // Order: top to bottom (matches angle sorting from top to bottom)
       return ['left-top-source', 'left-bottom-source'];
     case 'right':
+      // Order: top to bottom (matches angle sorting from top to bottom)
       return ['right-top-source', 'right-bottom-source'];
     default:
       return [];
