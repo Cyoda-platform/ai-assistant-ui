@@ -986,6 +986,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
           // console.log('📖 Reading regular handles from layout:', {
           //   transitionId: transition.id,
+          //   transitionName: transition.definition.name,
           //   layout,
           //   sourceHandle,
           //   targetHandle

@@ -478,16 +478,16 @@ function findAvailableHandle(
 
 /**
  * Get all available handles for a given side of a state.
- * Returns handles in order: center, then left/top, then right/bottom
+ * Returns handles in order: center first (for single transitions), then left/right or top/bottom
  */
 function getAllHandlesForSide(side: 'top' | 'bottom' | 'left' | 'right'): string[] {
   switch (side) {
     case 'top':
-      // Order: left to right (matches angle sorting from left to right)
-      return ['top-left-source', 'top-center-source', 'top-right-source'];
+      // Order: center first (for single transitions), then left, then right
+      return ['top-center-source', 'top-left-source', 'top-right-source'];
     case 'bottom':
-      // Order: left to right (matches angle sorting from left to right)
-      return ['bottom-left-source', 'bottom-center-source', 'bottom-right-source'];
+      // Order: center first (for single transitions), then left, then right
+      return ['bottom-center-source', 'bottom-left-source', 'bottom-right-source'];
     case 'left':
       // Order: top to bottom (matches angle sorting from top to bottom)
       return ['left-top-source', 'left-bottom-source'];
@@ -1040,11 +1040,8 @@ export function calculateAutoLayout(
 
     // Assign handles for each direction group
     transitionsByDirection.forEach((transitionsInDirection, direction) => {
-      const primaryHandles = getAllHandlesForSide(direction as 'top' | 'bottom' | 'left' | 'right');
+      let primaryHandles = getAllHandlesForSide(direction as 'top' | 'bottom' | 'left' | 'right');
       const fallbackHandles = getFallbackHandlesForSide(direction as 'top' | 'bottom' | 'left' | 'right');
-
-      // Combine primary and fallback handles
-      const allHandlesInOrder = [...primaryHandles, ...fallbackHandles];
 
       // Sort transitions by their vertical position (for horizontal directions) or horizontal position (for vertical directions)
       // This ensures that handles are assigned based on spatial layout, not configuration order
@@ -1067,6 +1064,16 @@ export function calculateAutoLayout(
 
         return 0;
       });
+
+      // IMPORTANT: For multiple transitions in the same direction, skip center handle
+      // Use left/right (or top/bottom) handles to avoid crossings
+      if (sortedTransitions.length > 1 && (direction === 'top' || direction === 'bottom')) {
+        // For vertical directions with multiple transitions, use left/right handles only
+        primaryHandles = primaryHandles.filter(h => !h.includes('-center-'));
+      }
+
+      // Combine primary and fallback handles
+      const allHandlesInOrder = [...primaryHandles, ...fallbackHandles];
 
       // Assign handles to transitions in this direction
       sortedTransitions.forEach((trans, i) => {
@@ -1612,6 +1619,7 @@ export function calculateAutoLayout(
 
           // console.log('🔧 Creating transition in autoLayout:', {
           //   transitionId,
+          //   transitionName: transition.name,
           //   isBidirectional,
           //   handles,
           //   regularHandles,
