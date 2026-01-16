@@ -5,8 +5,21 @@ import dagre from '@dagrejs/dagre';
 import type { UIWorkflowData, UIStateData, UITransitionData } from '../types/workflow';
 
 /**
+ * Helper function to determine if a transition is a failure path
+ */
+function isFailureTransition(transition: UITransitionData, targetStateId: string): boolean {
+  const transitionName = (transition.name || '').toLowerCase();
+  const targetState = targetStateId.toLowerCase();
+  const failureKeywords = ['fail', 'error', 'exception', 'reject', 'abort', 'cancel'];
+  return failureKeywords.some(keyword =>
+    transitionName.includes(keyword) || targetState.includes(keyword)
+  );
+}
+
+/**
  * Assigns rank (level) to each state based on topological distance from initial state.
  * Handles cycles by allowing back-edges.
+ * Prioritizes main path (success) over failure paths.
  */
 function assignRanks(workflow: UIWorkflowData): Map<string, number> {
   const ranks = new Map<string, number>();
@@ -16,24 +29,36 @@ function assignRanks(workflow: UIWorkflowData): Map<string, number> {
   // Initialize all ranks to -1 (unvisited)
   stateIds.forEach(id => ranks.set(id, -1));
 
-  // BFS from initial state
-  const queue: string[] = [initialState];
+  // Priority queue: process main path transitions first, then failure paths
+  // Each item: { stateId, rank, isFailurePath }
+  const queue: Array<{ stateId: string; rank: number; isFailurePath: boolean }> = [];
+  queue.push({ stateId: initialState, rank: 0, isFailurePath: false });
   ranks.set(initialState, 0);
 
   while (queue.length > 0) {
-    const currentStateId = queue.shift()!;
-    const currentRank = ranks.get(currentStateId)!;
+    // Sort queue: process non-failure paths first (lower isFailurePath value)
+    queue.sort((a, b) => {
+      if (a.isFailurePath !== b.isFailurePath) {
+        return a.isFailurePath ? 1 : -1; // Non-failure first
+      }
+      return a.rank - b.rank; // Then by rank
+    });
+
+    const current = queue.shift()!;
+    const currentStateId = current.stateId;
+    const currentRank = current.rank;
     const stateDefinition = workflow.configuration.states[currentStateId];
 
     if (stateDefinition) {
       stateDefinition.transitions.forEach(transition => {
         const nextStateId = transition.next;
         const nextRank = ranks.get(nextStateId) ?? -1;
+        const isFailure = isFailureTransition(transition, nextStateId);
 
         // Only update if we haven't visited this state yet, or if we found a shorter path
         if (nextRank === -1) {
           ranks.set(nextStateId, currentRank + 1);
-          queue.push(nextStateId);
+          queue.push({ stateId: nextStateId, rank: currentRank + 1, isFailurePath: isFailure });
         } else if (nextRank <= currentRank) {
           // This is a back-edge or self-loop, keep the existing rank
           // (don't increase rank for cycles)
@@ -662,16 +687,46 @@ export function calculateAutoLayout(
   sortedRanks.forEach(rank => {
     const statesInRank = statesByRank.get(rank) || [];
 
+    // Sort states in rank: main path states first, then failure states
+    // This ensures main path is centered and failure paths are on the sides
+    const sortedStatesInRank = [...statesInRank].sort((a, b) => {
+      const stateA = workflow.configuration.states[a];
+      const stateB = workflow.configuration.states[b];
+
+      // Check if state is a failure state by looking at incoming transitions
+      const isFailureStateA = stateIds.some(sourceId => {
+        const sourceState = workflow.configuration.states[sourceId];
+        return sourceState?.transitions.some(t =>
+          t.next === a && isFailureTransition(t, a)
+        );
+      });
+
+      const isFailureStateB = stateIds.some(sourceId => {
+        const sourceState = workflow.configuration.states[sourceId];
+        return sourceState?.transitions.some(t =>
+          t.next === b && isFailureTransition(t, b)
+        );
+      });
+
+      // Main path states come first (lower value)
+      if (isFailureStateA !== isFailureStateB) {
+        return isFailureStateA ? 1 : -1;
+      }
+
+      // Otherwise maintain original order
+      return 0;
+    });
+
     let x: number;
     let y: number;
 
     if (opts.direction === 'TB' || opts.direction === 'BT') {
       // Top-to-Bottom or Bottom-to-Top: ranks go vertically
       const rankY = rankPositions.get(rank) || 100;
-      const totalWidth = statesInRank.length * opts.nodeSeparation;
+      const totalWidth = sortedStatesInRank.length * opts.nodeSeparation;
       const startX = 400 - totalWidth / 2; // Center around x=400
 
-      statesInRank.forEach((stateId, index) => {
+      sortedStatesInRank.forEach((stateId, index) => {
         x = startX + index * opts.nodeSeparation;
         y = rankY;
 
@@ -684,10 +739,10 @@ export function calculateAutoLayout(
     } else {
       // Left-to-Right or Right-to-Left: ranks go horizontally
       const rankX = rankPositions.get(rank) || 100;
-      const totalHeight = statesInRank.length * opts.nodeSeparation;
+      const totalHeight = sortedStatesInRank.length * opts.nodeSeparation;
       const startY = 300 - totalHeight / 2; // Center around y=300
 
-      statesInRank.forEach((stateId, index) => {
+      sortedStatesInRank.forEach((stateId, index) => {
         x = rankX;
         y = startY + index * opts.nodeSeparation;
 

@@ -296,7 +296,8 @@ export async function applyDagreLayout(
     nodesep: isVertical ? 60 : 200,    // Increased from 150 to 200 for horizontal spacing
     ranksep: isVertical ? 90 : 350,    // Increased from 250 to 350 for horizontal rank separation
     marginx: 40,
-    marginy: isVertical ? 20 : 50
+    marginy: isVertical ? 20 : 50,
+    ranker: 'network-simplex'  // Используем network-simplex для учета весов ребер
   });
   g.setDefaultEdgeLabel(() => ({}));
 
@@ -341,10 +342,21 @@ export async function applyDagreLayout(
           transitionKey
         });
 
+        // Определяем вес ребра для приоритизации основного пути
+        // Побочные ветки (failure/error paths) получают меньший вес
+        const edgeLabel = (transition.name || '').toLowerCase();
+        const targetState = (transition.next || '').toLowerCase();
+        const failureKeywords = ['fail', 'error', 'exception', 'reject', 'abort', 'cancel'];
+        const isFailurePath = failureKeywords.some(keyword =>
+          edgeLabel.includes(keyword) || targetState.includes(keyword)
+        );
+        const edgeWeight = isFailurePath ? 1 : 100;
+
         // Добавляем ребро с уникальным именем для multigraph
         g.setEdge(stateName, transition.next, {
           id: transitionKey,
-          label: transition.name || ''
+          label: transition.name || '',
+          weight: edgeWeight
         }, transitionKey);
       }
     });
