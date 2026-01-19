@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import AuthState from '@/components/AuthState/AuthState';
 import Logo from '@/assets/images/logo.svg';
+import LogoSmall from '@/assets/images/logo-small.svg';
 import { useSuperUserMode, useIsCyodaEmployee, useAuthStore } from '@/stores/auth';
 
 interface Notification {
@@ -321,10 +322,10 @@ const Header: React.FC<HeaderProps> = ({
                 href="https://docs.cyoda.net/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200"
+                className="p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
                 title="View Documentation"
               >
-                <BookOpen size={18} />
+                <BookOpen size={18} className="group-hover:scale-110 transition-transform duration-200" />
               </a>
 
               {/* GitHub */}
@@ -332,10 +333,10 @@ const Header: React.FC<HeaderProps> = ({
                 href="https://github.com/Cyoda-platform"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200"
+                className="p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
                 title="View on GitHub"
               >
-                <Github size={18} />
+                <Github size={18} className="group-hover:scale-110 transition-transform duration-200" />
               </a>
 
               {/* LinkedIn */}
@@ -343,10 +344,10 @@ const Header: React.FC<HeaderProps> = ({
                 href="https://www.linkedin.com/company/cyoda"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200"
+                className="p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
                 title="Follow us on LinkedIn"
               >
-                <Linkedin size={18} />
+                <Linkedin size={18} className="group-hover:scale-110 transition-transform duration-200" />
               </a>
             </div>
 
@@ -357,13 +358,10 @@ const Header: React.FC<HeaderProps> = ({
               href="https://cyoda.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden lg:flex items-center space-x-1.5 px-3 py-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200"
+              className="hidden lg:block p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
               title="Visit cyoda.com"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-              <span className="text-xs font-medium">cyoda.com</span>
+              <img src={LogoSmall} alt="CYODA" className="w-[18px] h-[18px] group-hover:scale-110 group-hover:brightness-125 transition-all duration-200" />
             </a>
 
             {/* Discord - Hidden on mobile */}
