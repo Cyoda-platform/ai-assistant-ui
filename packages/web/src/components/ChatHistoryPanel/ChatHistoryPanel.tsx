@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Home, History, Clock, ChevronRight, X, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Modal } from 'antd';
@@ -314,50 +315,48 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
       <ResizeHandle onMouseDown={onResizeMouseDown} isResizing={isResizing} position="right" />
 
       {/* Delete Confirmation Modal */}
-      {deleteModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-800 rounded-xl shadow-2xl border border-slate-700 max-w-md w-full mx-4 overflow-hidden">
+      {deleteModalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
+          <div className="bg-slate-800 rounded-lg shadow-xl border border-slate-700 max-w-md w-full mx-4 overflow-hidden">
             {/* Header */}
-            <div className="flex items-center space-x-3 p-6 border-b border-slate-700">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-500/20">
-                <AlertTriangle size={24} className="text-red-400" />
+            <div className="flex items-center space-x-2.5 px-5 py-4 border-b border-slate-700">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-500/20">
+                <AlertTriangle size={16} className="text-red-400" />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-white">Delete Chat</h3>
-                <p className="text-sm text-slate-400">This action cannot be undone</p>
-              </div>
+              <h3 className="font-semibold text-white">Delete Chat</h3>
             </div>
 
             {/* Body */}
-            <div className="p-6">
-              <p className="text-slate-300 mb-2">
-                Are you sure you want to delete this chat?
+            <div className="px-5 py-4 space-y-3">
+              <p className="text-sm text-slate-300">
+                Are you sure you want to delete this chat? This action cannot be undone.
               </p>
               {chatToDelete?.name && (
-                <div className="mt-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700">
-                  <p className="text-sm text-slate-400 mb-1">Chat name:</p>
-                  <p className="text-white font-medium truncate">{chatToDelete.name}</p>
+                <div className="text-center py-2">
+                  <p className="text-base text-white font-medium italic">"{chatToDelete.name}"</p>
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-end space-x-3 p-6 border-t border-slate-700 bg-slate-900/30">
+            <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-slate-700 bg-slate-900/30">
               <button
                 onClick={handleCancelDelete}
-                className="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors font-medium"
+                className="px-3 py-1.5 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
-                className="px-4 py-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-red-500/25"
+                className="px-3 py-1.5 rounded-lg hover:bg-slate-700 transition-colors"
+                style={{ color: '#ef4444' }}
               >
                 Delete Chat
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Rename Dialog */}

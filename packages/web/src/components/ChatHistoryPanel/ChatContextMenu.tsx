@@ -1,15 +1,12 @@
 import React from 'react';
 import { Dropdown, MenuProps } from 'antd';
-import { Edit, Trash2, Info, Calendar, MessageSquare, MoreVertical } from 'lucide-react';
-import { formatRelativeTime } from '@/utils/dateUtils';
+import { Edit, Trash2, MoreVertical } from 'lucide-react';
 import './ChatContextMenu.css';
 
 interface ChatContextMenuProps {
   children: React.ReactNode;
   chatId: string;
   chatName: string;
-  chatDescription?: string;
-  chatDate?: string;
   onRename: (chatId: string, chatName: string) => void;
   onDelete: (chatId: string, chatName: string) => void;
   disabled?: boolean;
@@ -20,8 +17,6 @@ const ChatContextMenu: React.FC<ChatContextMenuProps> = ({
   children,
   chatId,
   chatName,
-  chatDescription,
-  chatDate,
   onRename,
   onDelete,
   disabled = false,
@@ -38,40 +33,7 @@ const ChatContextMenu: React.FC<ChatContextMenuProps> = ({
     }
   };
 
-  // Create chat details header
-  const chatDetailsHeader = {
-    key: 'chat-details',
-    type: 'group' as const,
-    label: (
-      <div className="px-2 py-3 border-b border-slate-600/50">
-        <div className="flex items-start space-x-3">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500/20 to-blue-500/20 border border-teal-500/30">
-            <MessageSquare size={16} className="text-teal-400" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="font-medium text-slate-200 truncate text-sm" title={chatName}>
-              {chatName || 'Untitled Chat'}
-            </div>
-            {chatDescription && chatDescription !== chatName && (
-              <div className="text-xs text-slate-400 mt-1 line-clamp-2" title={chatDescription}>
-                {chatDescription}
-              </div>
-            )}
-            {chatDate && (
-              <div className="flex items-center space-x-1 mt-2 text-xs text-slate-500">
-                <Calendar size={12} />
-                <span>{formatRelativeTime(chatDate)}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    ),
-    children: []
-  };
-
   const menuItems: MenuProps['items'] = [
-    chatDetailsHeader,
     {
       key: 'rename',
       label: (
