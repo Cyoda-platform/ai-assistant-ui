@@ -1195,15 +1195,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
             const debugEvents = message.raw?.debug_history?.events;
             const hasEvents = (sseEvents?.length > 0) || (debugEvents?.length > 0);
 
-            if (hasEvents) {
-              console.log('[ChatBotMessageQuestion] Rendering debug panel:', {
-                hasSseEvents: !!sseEvents?.length,
-                hasDebugEvents: !!debugEvents?.length,
-                sseEventsCount: sseEvents?.length || 0,
-                debugEventsCount: debugEvents?.length || 0
-              });
-            }
-
             return hasEvents && (
               <StreamingDebugPanel
                 events={sseEvents || debugEvents || []}
