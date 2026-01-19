@@ -177,20 +177,8 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
           <span className="font-semibold text-sm" style={{ color: '#ffffff' }}>New Chat</span>
         </a>
 
-        {/* Current Chat / History Header */}
-        <div className="flex-1 flex flex-col space-y-3 overflow-hidden">
-          <div
-            className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg ${
-              !showHomeAsActive
-                ? 'cursor-pointer group text-white bg-slate-700/60 border border-slate-600/50 shadow-sm'
-                : 'text-slate-300 border border-transparent'
-            }`}
-          >
-            <History size={19} className={`flex-shrink-0 ${!showHomeAsActive ? 'group-hover:scale-110 transition-transform' : ''}`} />
-            <span className="font-semibold text-sm">{!showHomeAsActive ? 'Current Chat' : 'History'}</span>
-          </div>
-
-          {/* Chat History List */}
+        {/* Chat History List */}
+        <div className="flex-1 flex flex-col overflow-hidden">
           <div className={`space-y-4 flex-1 chat-container ${isLoading ? 'overflow-hidden' : 'overflow-y-auto pr-2'}`}>
             {isLoading ? (
               <div className="flex flex-col items-center justify-center h-full space-y-3 py-8">
@@ -233,27 +221,30 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
                               window.open(`/chat/${chat.technical_id}`, '_blank');
                             }
                           }}
-                          className={`group block cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-200 text-sm no-underline relative chat-item-hover ${
+                          className={`group block cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-200 text-sm no-underline relative ${
                             chat.technical_id === currentChatId
-                              ? 'bg-slate-700/70 border border-slate-600/60 text-slate-300 shadow-sm'
+                              ? 'text-white border border-transparent'
                               : 'text-slate-400 hover:text-slate-300 hover:bg-slate-700/40 border border-transparent hover:border-slate-600/30'
                           }`}
+                          style={chat.technical_id === currentChatId ? {
+                            backgroundColor: 'rgba(20, 184, 166, 0.2)'
+                          } : undefined}
                         >
                         <div className="flex items-start space-x-2.5">
                           <Clock
                             size={16}
                             className={`mt-0.5 flex-shrink-0 ${
-                              chat.technical_id === currentChatId ? 'text-slate-300' : 'text-slate-500 group-hover:text-slate-400'
+                              chat.technical_id === currentChatId ? 'text-white' : 'text-slate-500 group-hover:text-slate-400'
                             }`}
                           />
                           <div className="flex-1 min-w-0 pr-10">
                             <div className={`truncate font-medium ${
-                              chat.technical_id === currentChatId ? 'text-slate-300' : 'text-slate-400 group-hover:text-slate-300'
+                              chat.technical_id === currentChatId ? 'text-white' : 'text-slate-400 group-hover:text-slate-300'
                             }`} title={chat.name || chat.description}>
                               {chat.name || chat.description || 'Untitled Chat'}
                             </div>
                             <div className={`text-xs mt-0.5 ${
-                              chat.technical_id === currentChatId ? 'text-slate-400' : 'text-slate-500'
+                              chat.technical_id === currentChatId ? 'text-white/80' : 'text-slate-500'
                             }`}>
                               {formatRelativeTime(chat.last_modified || chat.date || '')}
                             </div>
