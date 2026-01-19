@@ -158,7 +158,7 @@ export const EntitiesList: React.FC<EntitiesListProps> = ({
             <CanvasEmptyState type="entities" />
           </div>
         ) : (
-          <div className="flex flex-wrap gap-4 h-full">
+          <div className="flex flex-wrap gap-4">
             {entities.map((entity, index) => {
               // Generate entity ID from name and version
               const entityId = `entity-${entity.name.toLowerCase()}-${entity.version}`;

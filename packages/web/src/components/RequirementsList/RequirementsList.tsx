@@ -156,7 +156,7 @@ Add any additional context, constraints, or considerations here.`,
             <CanvasEmptyState type="requirements" />
           </div>
         ) : (
-          <div className="flex flex-wrap gap-4 h-full">
+          <div className="flex flex-wrap gap-4">
             {requirements.map((requirement, index) => {
               return (
                 <div

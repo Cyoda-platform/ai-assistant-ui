@@ -273,7 +273,7 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
             <CanvasEmptyState type="workflows" />
           </div>
         ) : (
-          <div className="flex flex-wrap gap-4 h-full">
+          <div className="flex flex-wrap gap-4">
             {workflows.map((workflow: any, index: number) => {
               return (
                 <div
