@@ -178,8 +178,6 @@ const Header: React.FC<HeaderProps> = ({
 
           {/* Right Section - Desktop */}
           <div className="hidden md:flex items-center space-x-3">
-            <div className="w-px h-6 bg-slate-600 mx-2"></div>
-
             {/* Action Buttons - Only show on chat page */}
             {showActions && (
               <div className="flex items-center gap-2">
@@ -315,42 +313,6 @@ const Header: React.FC<HeaderProps> = ({
               </div>
             )}
 
-            {/* Social Media Buttons - Hidden on mobile and tablet */}
-            <div className="hidden lg:flex items-center space-x-2">
-              {/* Documentation */}
-              <a
-                href="https://docs.cyoda.net/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
-                title="View Documentation"
-              >
-                <BookOpen size={18} className="group-hover:scale-110 transition-transform duration-200" />
-              </a>
-
-              {/* GitHub */}
-              <a
-                href="https://github.com/Cyoda-platform"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
-                title="View on GitHub"
-              >
-                <Github size={18} className="group-hover:scale-110 transition-transform duration-200" />
-              </a>
-
-              {/* LinkedIn */}
-              <a
-                href="https://www.linkedin.com/company/cyoda"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
-                title="Follow us on LinkedIn"
-              >
-                <Linkedin size={18} className="group-hover:scale-110 transition-transform duration-200" />
-              </a>
-            </div>
-
             <div className="hidden lg:block w-px h-6 bg-slate-600"></div>
 
             {/* CYODA Website - Hidden on mobile */}
@@ -362,6 +324,39 @@ const Header: React.FC<HeaderProps> = ({
               title="Visit cyoda.com"
             >
               <img src={LogoSmall} alt="CYODA" className="w-[18px] h-[18px] group-hover:scale-110 group-hover:brightness-125 transition-all duration-200" />
+            </a>
+
+            {/* GitHub */}
+            <a
+              href="https://github.com/Cyoda-platform"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden lg:block p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
+              title="View on GitHub"
+            >
+              <Github size={18} className="group-hover:scale-110 transition-transform duration-200" />
+            </a>
+
+            {/* LinkedIn */}
+            <a
+              href="https://www.linkedin.com/company/cyoda"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden lg:block p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
+              title="Follow us on LinkedIn"
+            >
+              <Linkedin size={18} className="group-hover:scale-110 transition-transform duration-200" />
+            </a>
+
+            {/* Documentation */}
+            <a
+              href="https://docs.cyoda.net/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden lg:block p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
+              title="View Documentation"
+            >
+              <BookOpen size={18} className="group-hover:scale-110 transition-transform duration-200" />
             </a>
 
             {/* Discord - Hidden on mobile */}
