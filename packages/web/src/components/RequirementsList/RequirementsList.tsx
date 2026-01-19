@@ -49,6 +49,17 @@ export const RequirementsList: React.FC<RequirementsListProps> = ({
 
   const handleCreateRequirement = async () => {
     try {
+      // Check if there's already a draft requirement without metadata.filePath
+      // (draft requirements that haven't been pushed to Git don't have filePath)
+      const existingDraft = requirements.find(req =>
+        req.status === 'draft' && !req.metadata?.filePath
+      );
+
+      if (existingDraft) {
+        message.warning('You already have a draft requirement. Please Send to chat to push it to Git before creating a new one.');
+        return;
+      }
+
       // Generate new requirement ID
       const requirementId = `req-${Date.now()}`;
 

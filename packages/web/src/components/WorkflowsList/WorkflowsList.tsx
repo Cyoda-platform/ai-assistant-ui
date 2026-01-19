@@ -72,6 +72,45 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
 
   const handleCreateWorkflow = () => {
     try {
+      // Check if there's already a draft workflow in ANY entity
+      // Draft workflow = workflow without proper github_url
+      const isDraftWorkflow = (w: any) =>
+        !w.github_url ||
+        w.github_url === '' ||
+        w.github_url === 'https://github.com' ||
+        w.github_url === 'https://example.com';
+
+      let existingDraftWorkflow: any = null;
+      let draftEntityName: string = '';
+
+      // Check all entities for draft workflows
+      for (const entity of appData.app.entities || []) {
+        if (entity.workflows && Array.isArray(entity.workflows)) {
+          const draft = entity.workflows.find(isDraftWorkflow);
+          if (draft) {
+            existingDraftWorkflow = draft;
+            draftEntityName = entity.name;
+            break;
+          }
+        }
+      }
+
+      // Also check metadata workflows (for newly created workflows)
+      const metadataWorkflows = (appData.app.metadata as any)?.workflows || [];
+      if (!existingDraftWorkflow && metadataWorkflows.length > 0) {
+        const draft = metadataWorkflows.find(isDraftWorkflow);
+        if (draft) {
+          existingDraftWorkflow = draft;
+          draftEntityName = 'metadata';
+        }
+      }
+
+      if (existingDraftWorkflow) {
+        const entityInfo = draftEntityName === 'metadata' ? '' : ` in entity "${draftEntityName}"`;
+        message.warning(`You already have a draft workflow "${existingDraftWorkflow.name}"${entityInfo}. Please Send to chat to push it to Git before creating a new one.`);
+        return;
+      }
+
       let updatedAppData = { ...appData };
 
       // Create new workflow with default configuration

@@ -40,6 +40,17 @@ export const EntitiesList: React.FC<EntitiesListProps> = ({
 
   const handleCreateEntity = () => {
     try {
+      // Check if there's already a draft entity
+      // Draft entity = entity without github_url
+      const existingDraftEntity = appData.app.entities?.find(e =>
+        !e.github_url || e.github_url === ''
+      );
+
+      if (existingDraftEntity) {
+        message.warning('You already have a draft entity. Please Send to chat to push it to Git before creating a new one.');
+        return;
+      }
+
       // Create new entity object with default values
       const newEntity: Entity = {
         name: 'New Entity',
