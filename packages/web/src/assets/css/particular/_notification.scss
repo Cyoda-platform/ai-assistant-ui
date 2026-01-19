@@ -10,17 +10,17 @@
 
 // Legacy notification styles for any remaining custom notifications
 .custom-notification {
-  background-color: var(--bg-dialog-color);
+  background-color: #0F172A; // slate-900 - matches chat background
   border: 1px solid var(--accent-border);
   border-radius: 8px;
 
   .notification-content,
   .notification-title {
-    color: var(--text-color-regular);
+    color: #FFFFFF;
   }
 
   &.notification-success {
-    fill: var(--text-color-regular) !important;
-    color: var(--text-color-regular) !important;
+    fill: #FFFFFF !important;
+    color: #FFFFFF !important;
   }
 }
