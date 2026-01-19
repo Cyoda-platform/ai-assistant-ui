@@ -164,28 +164,34 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
               window.open('/', '_blank');
             }
           }}
-          className={`flex items-center space-x-3 cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-200 group no-underline ${
-            showHomeAsActive
-              ? 'text-white bg-slate-700/60 border border-slate-600/50 shadow-sm'
-              : 'text-slate-300 hover:bg-slate-700/40 border border-transparent'
-          }`}
+          className="flex items-center justify-center space-x-2 cursor-pointer px-4 py-3 rounded-lg transition-all duration-200 no-underline"
+          style={{
+            backgroundColor: '#0d9488',
+            color: '#ffffff',
+            boxShadow: '0 10px 15px -3px rgba(20, 184, 166, 0.2), 0 4px 6px -4px rgba(20, 184, 166, 0.2)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#14b8a6';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#0d9488';
+          }}
         >
-          <Home size={19} className="group-hover:scale-110 transition-transform flex-shrink-0" />
-          <span className="font-semibold text-sm">New Chat</span>
+          <Home size={19} className="flex-shrink-0" style={{ color: '#ffffff' }} />
+          <span className="font-semibold text-sm" style={{ color: '#ffffff' }}>New Chat</span>
         </a>
 
         {/* Current Chat / History Header */}
         <div className="flex-1 flex flex-col space-y-3 overflow-hidden">
           <div
-            className={`flex items-center space-x-3 cursor-pointer px-3 py-2.5 rounded-lg group ${
+            className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg ${
               !showHomeAsActive
-                ? 'text-white bg-slate-700/60 border border-slate-600/50 shadow-sm'
-                : 'text-slate-300 hover:text-white hover:bg-slate-700/40 transition-all duration-200 border border-transparent'
+                ? 'cursor-pointer group text-white bg-slate-700/60 border border-slate-600/50 shadow-sm'
+                : 'text-slate-300 border border-transparent'
             }`}
           >
-            <History size={19} className="group-hover:scale-110 transition-transform flex-shrink-0" />
+            <History size={19} className={`flex-shrink-0 ${!showHomeAsActive ? 'group-hover:scale-110 transition-transform' : ''}`} />
             <span className="font-semibold text-sm">{!showHomeAsActive ? 'Current Chat' : 'History'}</span>
-            {showHomeAsActive && <ChevronRight size={16} className="ml-auto group-hover:translate-x-1 transition-transform" />}
           </div>
 
           {/* Chat History List */}
