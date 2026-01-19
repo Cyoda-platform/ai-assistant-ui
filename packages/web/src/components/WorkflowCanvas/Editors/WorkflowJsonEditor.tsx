@@ -3,6 +3,7 @@ import { X, Upload, Send } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import type { WorkflowConfiguration } from '../types/workflow';
 import type { ColorPalette } from '../themes/colorPalettes';
+import { parseTransitionId } from '../utils/transitionUtils';
 
 interface WorkflowJsonEditorProps {
   workflow: WorkflowConfiguration;
@@ -11,6 +12,7 @@ interface WorkflowJsonEditorProps {
   onUpdate?: (config: WorkflowConfiguration) => void;
   selectedStateId?: string | null;
   selectedTransitionId?: string | null;
+  selectedTransitionSection?: 'criterion' | 'processors';
   technicalId?: string;
   palette: ColorPalette;
   onSendToChat?: (data: string) => void;
@@ -23,6 +25,7 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
   onUpdate,
   selectedStateId,
   selectedTransitionId,
+  selectedTransitionSection,
   technicalId,
   palette,
   onSendToChat,
@@ -243,12 +246,18 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
       let targetLine: number | null = null;
 
       if (selectedTransitionId) {
+        console.log('🔍 Searching for transition:', {
+          selectedTransitionId,
+          selectedTransitionSection
+        });
         // Parse transition ID to get state and transition index
-        // Format: "stateId-transition-index"
-        const parts = selectedTransitionId.split('-transition-');
-        if (parts.length === 2) {
-          const stateId = parts[0];
-          const transitionIndex = parseInt(parts[1], 10);
+        // Format: "sourceStateId-transitionIndex"
+        const parsed = parseTransitionId(selectedTransitionId);
+        console.log('📋 Parsed transition ID:', parsed);
+        if (parsed) {
+          const stateId = parsed.sourceStateId;
+          const transitionIndex = parsed.transitionIndex;
+          console.log('🎯 Looking for state:', stateId, 'transition index:', transitionIndex);
 
           try {
             // First find the state definition as a key
@@ -299,35 +308,151 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
                 if (transitionsAfterState.length > 0) {
                   const transitionsLineNumber = transitionsAfterState[0].range.startLineNumber;
 
-                  // Find all "name" fields after the transitions array
-                  const nameMatches = model.findMatches(
-                    '"name"\\s*:',
-                    false,
-                    true, // isRegex
-                    false,
-                    null,
-                    true
-                  );
-
-                  // Filter to get name fields after transitions line
-                  const namesAfterTransitions = nameMatches.filter(
-                    m => m.range.startLineNumber > transitionsLineNumber
-                  );
-
                   // Find the next state to limit our search
                   const nextStateMatch = stateKeyMatches.find(
                     m => m.range.startLineNumber > stateLineNumber + 1
                   );
                   const searchEndLine = nextStateMatch ? nextStateMatch.range.startLineNumber : model.getLineCount();
 
-                  // Filter to only names within this state's scope
-                  const namesInScope = namesAfterTransitions.filter(
-                    m => m.range.startLineNumber < searchEndLine
-                  );
+                  console.log('🔍 Search boundaries:', {
+                    transitionsLineNumber,
+                    searchEndLine,
+                    stateId,
+                    transitionIndex
+                  });
 
-                  // Get the nth occurrence based on transitionIndex
-                  if (namesInScope.length > transitionIndex) {
-                    targetLine = namesInScope[transitionIndex].range.startLineNumber;
+                  // Strategy: Find the N-th transition object by looking for opening braces
+                  // after "transitions": [ and counting them carefully
+
+                  // Get all lines between transitions line and search end
+                  const lines: string[] = [];
+                  for (let i = transitionsLineNumber; i <= searchEndLine; i++) {
+                    lines.push(model.getLineContent(i));
+                  }
+
+                  // Find transition objects by counting braces
+                  let braceDepth = 0;
+                  let transitionCount = 0;
+                  let transitionStartLine = -1;
+                  let transitionEndLine = -1;
+                  let inTransitionsArray = false;
+
+                  for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const actualLineNumber = transitionsLineNumber + i;
+
+                    // Check if we're entering the transitions array
+                    if (line.includes('"transitions"') && line.includes('[')) {
+                      inTransitionsArray = true;
+                      console.log('📍 Found transitions array at line', actualLineNumber);
+                      continue;
+                    }
+
+                    if (!inTransitionsArray) continue;
+
+                    // Count braces to track transition objects
+                    for (let j = 0; j < line.length; j++) {
+                      const char = line[j];
+
+                      if (char === '{') {
+                        if (braceDepth === 0) {
+                          // This is the start of a transition object
+                          if (transitionCount === transitionIndex) {
+                            transitionStartLine = actualLineNumber;
+                            console.log('🎯 Found transition', transitionIndex, 'start at line', transitionStartLine);
+                          }
+                          transitionCount++;
+                        }
+                        braceDepth++;
+                      } else if (char === '}') {
+                        braceDepth--;
+                        if (braceDepth === 0 && transitionStartLine !== -1 && transitionEndLine === -1) {
+                          // This is the end of our target transition
+                          transitionEndLine = actualLineNumber;
+                          console.log('🎯 Found transition', transitionIndex, 'end at line', transitionEndLine);
+                          break;
+                        }
+                      }
+                    }
+
+                    if (transitionEndLine !== -1) break;
+                  }
+
+                  // Now search for the field within the transition boundaries
+                  if (transitionStartLine !== -1 && transitionEndLine !== -1) {
+                    let searchField = 'name';
+                    if (selectedTransitionSection === 'criterion') {
+                      searchField = 'criterion';
+                    } else if (selectedTransitionSection === 'processors') {
+                      searchField = 'processors';
+                    }
+
+                    console.log('🔎 Searching for field:', searchField, 'between lines', transitionStartLine, '-', transitionEndLine);
+
+                    const fieldPattern = `"${searchField}"\\s*:`;
+                    const fieldMatches = model.findMatches(
+                      fieldPattern,
+                      false,
+                      true,
+                      false,
+                      null,
+                      true
+                    );
+
+                    // Find the field within the transition boundaries
+                    const fieldInTransition = fieldMatches.find(
+                      m => m.range.startLineNumber >= transitionStartLine &&
+                           m.range.startLineNumber <= transitionEndLine
+                    );
+
+                    if (fieldInTransition) {
+                      targetLine = fieldInTransition.range.startLineNumber;
+                      console.log('✅ Found target line:', targetLine);
+
+                      // For criterion and processors, find the end of the block to highlight the whole section
+                      if (selectedTransitionSection === 'criterion' || selectedTransitionSection === 'processors') {
+                        // Find the end of this block by counting braces
+                        let blockEndLine = targetLine;
+                        const startLine = targetLine;
+
+                        // Check if the value is an object or array
+                        const fieldLine = model.getLineContent(targetLine);
+                        const hasOpenBrace = fieldLine.includes('{');
+                        const hasOpenBracket = fieldLine.includes('[');
+
+                        if (hasOpenBrace || hasOpenBracket) {
+                          let depth = 0;
+                          let foundStart = false;
+
+                          for (let i = targetLine; i <= transitionEndLine; i++) {
+                            const line = model.getLineContent(i);
+
+                            for (let j = 0; j < line.length; j++) {
+                              const char = line[j];
+                              if (char === '{' || char === '[') {
+                                depth++;
+                                foundStart = true;
+                              } else if (char === '}' || char === ']') {
+                                depth--;
+                                if (foundStart && depth === 0) {
+                                  blockEndLine = i;
+                                  console.log('📦 Block spans from line', startLine, 'to', blockEndLine);
+                                  // Store the range for multi-line highlighting
+                                  (window as any).__highlightRange = { start: startLine, end: blockEndLine };
+                                  break;
+                                }
+                              }
+                            }
+
+                            if (depth === 0 && foundStart) break;
+                          }
+                        }
+                      }
+                    } else {
+                      console.log('❌ Field not found in transition boundaries');
+                    }
+                  } else {
+                    console.log('❌ Could not find transition boundaries');
                   }
                 }
               }
@@ -380,21 +505,29 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
       }
 
       if (targetLine !== null) {
+        // Check if we have a range to highlight (for criterion/processors)
+        const highlightRange = (window as any).__highlightRange;
+        const startLine = highlightRange?.start || targetLine;
+        const endLine = highlightRange?.end || targetLine;
+
+        // Clear the temporary range
+        delete (window as any).__highlightRange;
+
         // Reveal and select the line
-        editor.revealLineInCenter(targetLine);
+        editor.revealLineInCenter(startLine);
         editor.setPosition({
-          lineNumber: targetLine,
+          lineNumber: startLine,
           column: 1
         });
 
-        // Highlight the line temporarily
+        // Highlight the line(s) temporarily
         const decorations = editor.deltaDecorations([], [
           {
             range: new monaco.Range(
-              targetLine,
+              startLine,
               1,
-              targetLine,
-              model.getLineMaxColumn(targetLine)
+              endLine,
+              model.getLineMaxColumn(endLine)
             ),
             options: {
               isWholeLine: true,
@@ -412,7 +545,7 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
     } catch (err) {
       console.error('Error navigating to selection:', err);
     }
-  }, [selectedStateId, selectedTransitionId, isOpen]);
+  }, [selectedStateId, selectedTransitionId, selectedTransitionSection, isOpen]);
 
   const handleTextChange = useCallback((value: string | undefined) => {
     if (value === undefined) return;

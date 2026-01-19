@@ -16,6 +16,7 @@ interface TransitionEdgeData {
   transition: UITransitionData;
   onEdit: (transitionId: string) => void;
   onUpdate: (transition: UITransitionData) => void;
+  onLabelClick?: (transitionId: string, section?: 'criterion' | 'processors') => void;
   palette: ColorPalette;
   edgeType?: 'default' | 'straight' | 'step' | 'smoothstep';
   isBidirectional?: boolean;
@@ -37,6 +38,7 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
     transition,
     onEdit,
     onUpdate,
+    onLabelClick,
     palette,
     edgeType = 'default',
     isBidirectional = false,
@@ -93,6 +95,27 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
     e.stopPropagation();
     if (transition && onEdit) {
       onEdit(transition.id);
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (transition && onLabelClick) {
+      onLabelClick(transition.id, undefined); // Explicitly pass undefined to reset section
+    }
+  };
+
+  const handleCriterionClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (transition && onLabelClick) {
+      onLabelClick(transition.id, 'criterion');
+    }
+  };
+
+  const handleProcessorsClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (transition && onLabelClick) {
+      onLabelClick(transition.id, 'processors');
     }
   };
 
@@ -333,6 +356,7 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
             pointerEvents: 'all',
           }}
           className="nodrag nopan"
+          onClick={handleClick}
           onDoubleClick={handleDoubleClick}
         >
           {/* Label with transition name */}
@@ -341,7 +365,7 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
             style={{
               backgroundColor: 'transparent',
             }}
-            title="Double-click to edit transition"
+            title="Click to highlight in JSON, double-click to edit transition"
           >
             {transition.definition.name || 'Unnamed'}
           </div>
@@ -356,6 +380,7 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
               pointerEvents: 'all',
             }}
             className="nodrag nopan"
+            onClick={handleCriterionClick}
           >
             <Tooltip title={getCriterionTooltip()} color="#1f2937">
               <div
@@ -389,6 +414,7 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
               pointerEvents: 'all',
             }}
             className="nodrag nopan"
+            onClick={handleProcessorsClick}
           >
             <Tooltip title={getProcessorsTooltip()} color="#1f2937">
               <div

@@ -14,6 +14,7 @@ interface LoopbackEdgeData {
   transition: UITransitionData;
   onEdit: (transitionId: string) => void;
   onUpdate: (transition: UITransitionData) => void;
+  onLabelClick?: (transitionId: string, section?: 'criterion' | 'processors') => void;
   isLoopback: boolean;
   palette: ColorPalette;
 }
@@ -27,7 +28,7 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
   data,
   selected,
 }) => {
-  const { transition, onEdit, onUpdate, palette } = (data as unknown as LoopbackEdgeData) || {};
+  const { transition, onEdit, onUpdate, onLabelClick, palette } = (data as unknown as LoopbackEdgeData) || {};
 
   // Helper function to get handle direction based on handle ID
   const getHandleDirection = (handleId: string | null): { x: number; y: number } => {
@@ -133,6 +134,27 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
     }
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (transition && onLabelClick) {
+      onLabelClick(transition.id, undefined); // Explicitly pass undefined to reset section
+    }
+  };
+
+  const handleCriterionClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (transition && onLabelClick) {
+      onLabelClick(transition.id, 'criterion');
+    }
+  };
+
+  const handleProcessorsClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (transition && onLabelClick) {
+      onLabelClick(transition.id, 'processors');
+    }
+  };
+
 
 
 
@@ -182,6 +204,7 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
             pointerEvents: 'all',
           }}
           className="nodrag nopan"
+          onClick={handleClick}
           onDoubleClick={handleDoubleClick}
         >
           {/* Label with transition name */}
@@ -190,7 +213,7 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
             style={{
               backgroundColor: 'transparent',
             }}
-            title="Double-click to edit transition"
+            title="Click to highlight in JSON, double-click to edit transition"
           >
             {transition?.definition?.name || 'Loop-back'}
           </div>

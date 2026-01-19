@@ -305,6 +305,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   const [showSettings, setShowSettings] = useState(false);
   const [selectedStateId, setSelectedStateId] = useState<string | null>(null);
   const [selectedTransitionId, setSelectedTransitionId] = useState<string | null>(null);
+  const [selectedTransitionSection, setSelectedTransitionSection] = useState<'criterion' | 'processors' | undefined>(undefined);
 
   // Settings state with localStorage persistence
   const [edgeType, setEdgeTypeState] = useState<'default' | 'straight' | 'step' | 'smoothstep'>(() => {
@@ -1039,6 +1040,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
               // Handle transition update
               console.log('Transition updated:', updatedTransition);
             },
+            onLabelClick: handleTransitionLabelClick,
             palette: palette,
             edgeType: edgeType, // Pass edge type to custom edge component
           },
@@ -1637,6 +1639,13 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     const transitionId = edge.id.replace('edge-', '');
     setSelectedTransitionId(transitionId);
     setSelectedStateId(null);
+  }, []);
+
+  // Handle transition label click to navigate in JSON editor
+  const handleTransitionLabelClick = useCallback((transitionId: string, section?: 'criterion' | 'processors') => {
+    setSelectedTransitionId(transitionId);
+    setSelectedStateId(null);
+    setSelectedTransitionSection(section);
   }, []);
 
 
@@ -2689,6 +2698,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           onUpdate={handleConfigurationUpdate}
           selectedStateId={selectedStateId}
           selectedTransitionId={selectedTransitionId}
+          selectedTransitionSection={selectedTransitionSection}
           technicalId={technicalId}
           onSendToChat={onSendToChat}
           palette={palette}
