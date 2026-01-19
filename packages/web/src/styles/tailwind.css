@@ -1298,6 +1298,11 @@ header .ant-card .ant-card-actions a:hover {
   color: white !important;
 }
 
+/* Override global link hover color for header social icons */
+header a.rounded-lg:hover {
+  color: rgb(20 184 166) !important; /* teal-500 */
+}
+
 /* ReactFlow Canvas Styles */
 .react-flow__controls button {
   background-color: #1e293b !important;

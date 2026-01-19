@@ -321,7 +321,7 @@ const Header: React.FC<HeaderProps> = ({
                 href="https://docs.cyoda.net/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-teal-600/20 hover:border-teal-500/50 border border-transparent transition-all duration-200"
+                className="p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200"
                 title="View Documentation"
               >
                 <BookOpen size={18} />
@@ -332,7 +332,7 @@ const Header: React.FC<HeaderProps> = ({
                 href="https://github.com/Cyoda-platform"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-600/20 hover:border-slate-500/50 border border-transparent transition-all duration-200"
+                className="p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200"
                 title="View on GitHub"
               >
                 <Github size={18} />
@@ -343,7 +343,7 @@ const Header: React.FC<HeaderProps> = ({
                 href="https://www.linkedin.com/company/cyoda"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-blue-600/20 hover:border-blue-500/50 border border-transparent transition-all duration-200"
+                className="p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200"
                 title="Follow us on LinkedIn"
               >
                 <Linkedin size={18} />
@@ -357,7 +357,7 @@ const Header: React.FC<HeaderProps> = ({
               href="https://cyoda.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden lg:flex items-center space-x-1.5 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-teal-600/20 hover:border-teal-500/50 border border-transparent transition-all duration-200"
+              className="hidden lg:flex items-center space-x-1.5 px-3 py-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200"
               title="Visit cyoda.com"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
