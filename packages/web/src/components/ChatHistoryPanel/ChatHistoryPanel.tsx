@@ -164,20 +164,15 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
               window.open('/', '_blank');
             }
           }}
-          className="flex items-center justify-center space-x-2 cursor-pointer px-4 py-3 rounded-lg transition-all duration-200 no-underline"
+          className="flex items-center justify-center space-x-2 cursor-pointer px-4 py-3 rounded-xl transition-all duration-300 no-underline hover:scale-105 group"
           style={{
-            backgroundColor: '#0d9488',
+            background: 'linear-gradient(135deg, #14b8a6, #0d9488)',
             color: '#ffffff',
-            boxShadow: '0 10px 15px -3px rgba(20, 184, 166, 0.2), 0 4px 6px -4px rgba(20, 184, 166, 0.2)'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#14b8a6';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#0d9488';
+            boxShadow: '0 2px 8px rgba(20, 184, 166, 0.15)',
+            border: '1px solid rgba(255, 255, 255, 0.15)'
           }}
         >
-          <Home size={19} className="flex-shrink-0" style={{ color: '#ffffff' }} />
+          <Home size={19} className="flex-shrink-0 group-hover:scale-110 transition-transform duration-300" style={{ color: '#ffffff' }} />
           <span className="font-semibold text-sm" style={{ color: '#ffffff' }}>New Chat</span>
         </a>
 
