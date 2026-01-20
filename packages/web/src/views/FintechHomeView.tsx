@@ -757,7 +757,9 @@ const HomeView: React.FC = () => {
                       margin: '1rem auto 0'
                     }}
                   >
-                    Build mission-critical systems with declarative workflows, AI-assisted development, and complete event sourcing
+                    Build mission-critical systems with<br />
+                    declarative workflows, AI-assisted development,<br />
+                    and complete event sourcing
                   </p>
                 </div>
 
