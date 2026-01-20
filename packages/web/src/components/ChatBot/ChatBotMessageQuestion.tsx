@@ -704,9 +704,11 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
           <div className="flex-1 min-w-0">
           {/* AI Badge */}
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-medium text-slate-400">
-              {message.isCanvasQA ? 'CANVAS AI' : 'CYODA AI'}
-            </span>
+            <div className="flex items-center space-x-1.5 bg-slate-800/50 backdrop-blur-sm px-3 py-1 rounded-full border border-slate-600">
+              <span className="text-xs font-medium text-slate-300">
+                {message.isCanvasQA ? 'CANVAS AI' : 'CYODA AI'}
+              </span>
+            </div>
             {date && (
               <span className="text-xs text-slate-500">{date}</span>
             )}
