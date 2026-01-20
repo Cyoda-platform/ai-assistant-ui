@@ -715,7 +715,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
           </div>
 
           {/* Message Bubble - Modern design */}
-          <div className={`rounded-3xl bg-slate-800/40 px-4 py-3 border border-slate-700/30 relative ${
+          <div className={`rounded-3xl bg-slate-800/40 p-6 border border-slate-700/30 relative ${
             (message.approve || canvasAnalysisHook || (message.isCanvasQA && (hasRollback || message.id))) && !canvasOpenHook ? 'pb-12' : ''
           } ${
             message.isCanvasQA ? 'canvas-qa-question' : ''
