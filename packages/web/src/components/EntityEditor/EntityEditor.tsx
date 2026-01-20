@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Database, Edit2, Save, X, ChevronRight, ChevronDown, Loader2, Send, ArrowLeft, Github } from 'lucide-react';
-import Editor from '@monaco-editor/react';
+import Editor, { Monaco } from '@monaco-editor/react';
 import apiService from '@/services/apiService';
 
 interface Entity {
@@ -274,10 +274,60 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
               <div className="h-full rounded-lg overflow-hidden border-2 border-gray-700">
                 <Editor
                   height="100%"
-                  defaultLanguage="python"
+                  defaultLanguage="json"
                   value={jsonText}
                   onChange={handleJsonChange}
-                  theme="vs-dark"
+                  theme="workflow-dark"
+                  onMount={(editor, monaco) => {
+                    // Define custom theme matching the Tree Preview colors
+                    monaco.editor.defineTheme('workflow-dark', {
+                      base: 'vs-dark',
+                      inherit: true,
+                      rules: [
+                        { token: '', foreground: 'E2E8F0' },
+                        { token: 'string.key.json', foreground: '93C5FD' }, // text-blue-300 (keys)
+                        { token: 'string.value.json', foreground: '4ADE80' }, // text-green-400 (string values)
+                        { token: 'number', foreground: '60A5FA' }, // text-blue-400 (numbers)
+                        { token: 'keyword.json', foreground: 'C084FC' }, // text-purple-400 (true/false/null)
+                        { token: 'keyword', foreground: 'C084FC' },
+                        { token: 'comment', foreground: '64748B' },
+                      ],
+                      colors: {
+                        'editor.background': '#0E1525',
+                        'editor.foreground': '#E2E8F0',
+                        'editorLineNumber.foreground': '#475569',
+                        'editorLineNumber.activeForeground': '#93C5FD',
+                        'editorGutter.background': '#0E1525',
+                        'editor.lineHighlightBackground': '#1E293B',
+                        'editor.lineHighlightBorder': '#1E293B',
+                        'editorCursor.foreground': '#93C5FD',
+                        'editor.selectionBackground': '#1E293B',
+                        'editor.inactiveSelectionBackground': '#1E293B80',
+                        'editorMinimap.background': '#0E1525',
+                        'minimapSlider.background': '#33415540',
+                        'minimapSlider.hoverBackground': '#33415560',
+                        'minimapSlider.activeBackground': '#33415580',
+                        'editorStickyScroll.background': '#0E1525',
+                        'editorStickyScrollHover.background': '#1E293B',
+                        'scrollbar.shadow': '#00000000',
+                        'scrollbarSlider.background': '#33415580',
+                        'scrollbarSlider.hoverBackground': '#334155A0',
+                        'scrollbarSlider.activeBackground': '#334155C0',
+                        'editorBracketMatch.background': '#1E293B',
+                        'editorBracketMatch.border': '#93C5FD',
+                        'editorWidget.background': '#1E293B',
+                        'editorWidget.border': '#93C5FD',
+                        'editorSuggestWidget.background': '#1E293B',
+                        'editorSuggestWidget.border': '#93C5FD',
+                        'editorSuggestWidget.selectedBackground': '#334155',
+                        'editorHoverWidget.background': '#1E293B',
+                        'editorHoverWidget.border': '#93C5FD',
+                        'editorIndentGuide.background': '#334155',
+                        'editorIndentGuide.activeBackground': '#475569',
+                      }
+                    });
+                    monaco.editor.setTheme('workflow-dark');
+                  }}
                   options={{
                     readOnly: false,
                     minimap: { enabled: false },
@@ -289,6 +339,15 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
                     wordWrap: 'on',
                     formatOnPaste: true,
                     formatOnType: true,
+                    guides: {
+                      indentation: true,
+                      highlightActiveIndentation: true,
+                      bracketPairs: true,
+                      bracketPairsHorizontal: 'active',
+                    },
+                    bracketPairColorization: {
+                      enabled: true,
+                    },
                   }}
                 />
               </div>
