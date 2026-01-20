@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Form, Input, message } from 'antd';
-import { SendHorizontal, Paperclip, X, Github } from 'lucide-react';
+import { Send, Paperclip, X, Github } from 'lucide-react';
 import FileSubmitPreview from '@/components/FileSubmitPreview/FileSubmitPreview';
 import HelperUpload from '@/helpers/HelperUpload';
 
@@ -471,70 +471,71 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
               placeholder={placeholderText}
               onKeyDown={handleKeyDown}
               rows={1}
-              className="w-full bg-slate-800/80 backdrop-blur-sm px-6 py-4 pb-12 text-white placeholder-slate-400 focus:outline-none resize-none text-lg"
+              className="w-full bg-slate-800/80 backdrop-blur-sm text-white placeholder-slate-400 focus:outline-none resize-none text-lg"
               style={{
                 height: `${textareaHeight}px`,
-                minHeight: '48px',
-                maxHeight: '320px',
-                overflowY: textareaHeight >= 320 ? 'auto' : 'hidden',
+                minHeight: '64px',
+                maxHeight: '300px',
+                overflowY: textareaHeight >= 300 ? 'auto' : 'hidden',
                 lineHeight: '1.5',
                 scrollbarWidth: 'thin',
                 scrollbarColor: 'rgb(148 163 184) transparent',
-                paddingRight: '96px'
+                padding: '18px 80px 18px 24px'
               }}
             />
 
             {/* Bottom Right Controls - Lovable Style */}
-            <div className="absolute right-5 bottom-6 flex items-center" style={{ gap: '0.2rem' }}>
+            <div className="absolute right-4 bottom-4 flex items-center" style={{ gap: '0.25rem' }}>
               {/* Attach File Button */}
               <button
                 type="button"
                 onClick={handleFileAttach}
                 disabled={disabled}
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ transform: 'translateY(25%)' }}
+                className="p-1.5 rounded-lg hover:scale-110 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ transform: 'translateY(5%)' }}
                 title="Attach file"
               >
-                <Paperclip size={18} />
+                <Paperclip
+                  size={20}
+                  className="text-slate-400 hover:text-slate-300 transition-colors duration-200"
+                  strokeWidth={2}
+                />
               </button>
 
               {/* Conditional Button - Send or Stop based on AI thinking state */}
               {isAIThinking && onStopRequest ? (
-                /* Stop Button when AI is thinking - Square with circular preloader */
+                /* Stop Button when AI is thinking - Spinner only */
                 <button
                   type="button"
                   onClick={onStopRequest}
-                  className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 shadow-lg hover:shadow-xl hover:shadow-slate-500/25 transition-all duration-300 flex items-center justify-center group active:scale-95 border border-slate-500/30"
-                  style={{
-                    transform: 'translateY(20%)',
-                    backdropFilter: 'blur(10px)',
-                    boxShadow: '0 8px 32px rgba(100, 116, 139, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-                  }}
+                  className="p-1.5 rounded-lg hover:scale-110 transition-all duration-200 flex items-center justify-center"
+                  style={{ transform: 'translateY(5%)' }}
                   title="Stop AI request"
                 >
                   {/* Circular preloader */}
-                  <div className="w-6 h-6 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin"></div>
+                  <div className="w-5 h-5 border-2 border-slate-600 border-t-teal-500 rounded-full animate-spin"></div>
                 </button>
               ) : (
-                /* Send Button when not thinking - Beautiful square design */
+                /* Send Button when not thinking - Icon only with color change */
                 <button
                   type="button"
                   onClick={() => onClickTextAnswer('workflow')}
                   disabled={disabled || (!(typeof answer === 'string' && answer.trim()) && currentFiles.length === 0)}
-                  className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:from-slate-600 disabled:to-slate-700 disabled:opacity-50 shadow-lg hover:shadow-xl hover:shadow-teal-500/25 disabled:shadow-none transition-all duration-300 flex items-center justify-center group active:scale-95 disabled:cursor-not-allowed border border-teal-400/30 disabled:border-slate-500/30"
+                  className="p-1.5 rounded-lg transition-all duration-200 flex items-center justify-center group hover:scale-110 disabled:cursor-not-allowed"
                   style={{
-                    transform: 'translateY(5%)',
-                    backdropFilter: 'blur(10px)',
-                    boxShadow: disabled
-                      ? '0 4px 16px rgba(0, 0, 0, 0.1)'
-                      : '0 8px 32px rgba(20, 184, 166, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                    transform: 'translateY(5%)'
                   }}
                   title="Send message (Enter)"
                 >
-                  <SendHorizontal
+                  <Send
                     size={20}
-                    className="text-white group-hover:scale-110 group-disabled:scale-100 transition-transform duration-200"
-                    strokeWidth={2.5}
+                    className="transition-all duration-200"
+                    strokeWidth={2}
+                    style={{
+                      color: disabled || (!(typeof answer === 'string' && answer.trim()) && currentFiles.length === 0)
+                        ? '#0D8484' // темная бирюзовая - как логотип CYODA
+                        : '#14b8a6' // teal-500 - яркая бирюзовая когда активна
+                    }}
                   />
                 </button>
               )}
