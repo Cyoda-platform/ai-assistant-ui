@@ -698,7 +698,7 @@ const HomeView: React.FC = () => {
                   className="absolute inset-0 pointer-events-none"
                   style={{
                     background: 'radial-gradient(circle at center top, rgba(20,184,166,0.06), transparent 60%)',
-                    top: '100px',
+                    top: '0',
                     height: '500px'
                   }}
                 />
