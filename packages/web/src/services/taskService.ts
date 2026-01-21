@@ -209,6 +209,14 @@ class TaskService {
         // Don't auto-stop polling - keep polling while the panel is open
         // This ensures we catch new tasks that are added after all tasks complete
       } catch (error: any) {
+        // If 404, it means no tasks exist yet for this conversation - this is normal
+        if (error?.response?.status === 404) {
+          // Call onUpdate with empty array instead of error
+          onUpdate([]);
+          return;
+        }
+
+        // For other errors, log and call error handler
         console.error(`Error polling tasks for conversation ${conversationId}:`, error);
         if (onError) {
           onError(error);

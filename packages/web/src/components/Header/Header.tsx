@@ -33,6 +33,7 @@ interface Notification {
   timestamp: string;
   isRead: boolean;
   messageId?: string; // ID of the related message for navigation
+  taskId?: string; // ID of the related task for opening tasks panel
 }
 
 interface HeaderProps {
@@ -50,7 +51,7 @@ interface HeaderProps {
   notifications?: Notification[];
   onMarkNotificationAsRead?: (id: number) => void;
   onMarkAllNotificationsAsRead?: () => void;
-  onNotificationClick?: (notificationId: number, messageId?: string) => void;
+  onNotificationClick?: (notificationId: number, messageId?: string, taskId?: string) => void;
   isArchivedChat?: boolean; // Disable canvas for archived chats
   showCanvasButton?: boolean; // Show canvas button only on chat pages
   showRepositoryConfigPrompt?: boolean; // Whether to show repository config prompt
@@ -440,7 +441,7 @@ const Header: React.FC<HeaderProps> = ({
                             e.stopPropagation();
                             // Use external notification click handler if provided, otherwise just mark as read
                             if (externalNotificationClick) {
-                              externalNotificationClick(notification.id, notification.messageId);
+                              externalNotificationClick(notification.id, notification.messageId, notification.taskId);
                             } else {
                               markNotificationAsRead(notification.id);
                             }
