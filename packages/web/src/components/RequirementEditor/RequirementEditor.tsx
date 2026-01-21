@@ -661,7 +661,7 @@ Additional notes and considerations...
             <Upload size={16} />
           </button>
 
-          <Dropdown menu={downloadMenu} trigger={['click']}>
+          <Dropdown menu={downloadMenu} trigger={['click']} overlayClassName="editor-settings-dropdown">
             <button
               className="p-1.5 rounded bg-slate-700/50 text-gray-400 hover:text-gray-300 border border-slate-600/50 transition-all"
               title="Download"
@@ -670,7 +670,7 @@ Additional notes and considerations...
             </button>
           </Dropdown>
 
-          <Dropdown menu={settingsMenu} trigger={['click']}>
+          <Dropdown menu={settingsMenu} trigger={['click']} overlayClassName="editor-settings-dropdown">
             <button
               className="p-1.5 rounded bg-slate-700/50 text-gray-400 hover:text-gray-300 border border-slate-600/50 transition-all"
               title="Editor settings"
