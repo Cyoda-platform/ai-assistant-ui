@@ -710,7 +710,10 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
               </span>
             </div>
             {date && (
-              <span className="text-xs text-slate-500">{date}</span>
+              <div className="flex items-center space-x-1 text-xs text-slate-500">
+                <Clock size={10} />
+                <span className="text-xs">{date}</span>
+              </div>
             )}
           </div>
 
