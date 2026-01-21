@@ -690,7 +690,7 @@ Additional notes and considerations...
           {onSendToChat && (
             <button
               onClick={() => onSendToChat(markdownText)}
-              className="p-1.5 rounded bg-orange-600/20 text-orange-400 hover:text-orange-300 border border-orange-500/30 transition-all"
+              className="p-1.5 rounded bg-emerald-600/20 text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 transition-all"
               title="Send to chat"
             >
               <Send size={16} />
