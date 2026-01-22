@@ -524,37 +524,39 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
   return (
     <div className="h-full flex flex-col bg-slate-800/95">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-700/80 bg-slate-800/50">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onBack}
-            className="p-2 rounded-lg hover:bg-slate-700/70 border border-transparent hover:border-slate-600 transition-all duration-200 group"
-            title="Back to environments"
-          >
-            <ArrowLeft size={18} className="text-slate-400 group-hover:text-white transition-colors" />
-          </button>
-          <div className="h-8 w-px bg-slate-700"></div>
-          <Server size={18} className="text-teal-400" />
-          <h2 className="font-semibold text-white text-base uppercase tracking-wide translate-y-[4px]">{environmentName}</h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => window.open(`/logs?env_name=${encodeURIComponent(environmentName)}`, '_blank')}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-teal-300 border border-teal-500/30 hover:from-teal-500/30 hover:to-cyan-500/30 hover:border-teal-400/50 hover:shadow-lg hover:shadow-teal-500/20 transition-all duration-200 hover:-translate-y-0.5"
-            title="View logs for this environment"
-          >
-            <Activity size={12} />
-            <span>View Logs</span>
-          </button>
-          {onClose && (
+      <div className="border-b border-slate-700 bg-slate-800/50">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center space-x-2">
             <button
-              onClick={onClose}
-              className="p-2 rounded-lg hover:bg-red-500/10 hover:border-red-500/30 border border-transparent transition-all duration-200 group"
-              title="Close Cloud panel"
+              onClick={onBack}
+              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+              title="Back to environments"
             >
-              <X size={18} className="text-slate-400 group-hover:text-red-400 transition-colors" />
+              <ArrowLeft size={16} />
             </button>
-          )}
+            <div className="h-6 w-px bg-slate-700"></div>
+            <Server size={18} className="text-teal-400" />
+            <h3 className="font-semibold text-white !mb-0 leading-none">{environmentName}</h3>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => window.open(`/logs?env_name=${encodeURIComponent(environmentName)}`, '_blank')}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-teal-300 hover:from-teal-500/30 hover:to-cyan-500/30 transition-all duration-200"
+              title="View logs for this environment"
+            >
+              <Activity size={12} />
+              <span>View Logs</span>
+            </button>
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                title="Close Cloud panel"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
