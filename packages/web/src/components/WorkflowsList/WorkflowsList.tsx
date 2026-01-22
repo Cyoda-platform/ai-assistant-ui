@@ -294,13 +294,11 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
                     <div className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5 bg-purple-400" />
                   </div>
 
-                  {getWorkflowPath(workflow) && (
-                    <p className="text-xs text-gray-400 leading-tight flex-1 overflow-hidden break-words">
-                      Workflow from {getWorkflowPath(workflow)}
-                    </p>
-                  )}
+                  <p className="text-xs text-gray-400 leading-tight flex-1 overflow-hidden break-words">
+                    {getWorkflowPath(workflow) ? `Workflow from ${getWorkflowPath(workflow)}` : (workflow.description || 'No description provided')}
+                  </p>
 
-                  <div className="flex items-center justify-end text-xs text-gray-500 gap-1">
+                  <div className="flex items-center justify-end text-xs text-gray-500 gap-1 mt-2">
                     {!getWorkflowPath(workflow) && (
                       <button
                         onClick={(e) => handleDeleteWorkflow(workflow.name, workflow.entity_name, e)}
