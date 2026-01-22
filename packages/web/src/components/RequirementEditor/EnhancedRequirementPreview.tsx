@@ -166,14 +166,9 @@ export const EnhancedRequirementPreview: React.FC<EnhancedRequirementPreviewProp
       {/* Metadata Header */}
       {requirement && (
         <div className="mb-6 pb-4 border-b border-slate-700/50">
-          <div className="flex items-start justify-between gap-4 mb-3">
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold text-white mb-2">{requirement.title}</h1>
-              {requirement.description && (
-                <p className="text-sm text-gray-400 leading-relaxed">{requirement.description}</p>
-              )}
-            </div>
-          </div>
+          {requirement.description && (
+            <p className="text-sm text-gray-400 leading-relaxed mb-3">{requirement.description}</p>
+          )}
 
           <div className="flex flex-wrap items-center gap-2">
             {requirement.status && getStatusBadge(requirement.status)}
