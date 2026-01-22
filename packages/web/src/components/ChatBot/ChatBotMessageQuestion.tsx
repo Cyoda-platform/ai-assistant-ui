@@ -12,6 +12,7 @@ import apiService from '@/services/apiService';
 import StreamingDebugPanel from './StreamingDebugPanel';
 import { useRepositoryStore } from '@/stores/repository';
 import { useAssistantStore } from '@/stores/assistant';
+import { useHeaderHighlightStore } from '@/stores/headerHighlight';
 import { extractMarkdownOptions, MarkdownOptionsData } from '@/utils/markdownOptionsParser';
 interface Message {
   id?: string;
@@ -439,6 +440,24 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
     }
   }, [optionSelection]);
 
+  // Update header highlight based on trigger conditions
+  useEffect(() => {
+    const { setHighlightedContext } = useHeaderHighlightStore.getState();
+
+    // Determine which context should be highlighted
+    // Priority: Canvas > Tasks > Cloud (if multiple triggers are active)
+    if (canvasOpenHook || hasSaveFileToRepository || codeChangesHook) {
+      setHighlightedContext('canvas');
+    } else if (hasBackgroundCodeGeneration || hasDeploymentTools) {
+      setHighlightedContext('tasks');
+    } else if (hasEnvironmentTools) {
+      setHighlightedContext('cloud');
+    } else {
+      // Clear highlight if no triggers are active
+      setHighlightedContext(null);
+    }
+  }, [canvasOpenHook, hasSaveFileToRepository, codeChangesHook, hasBackgroundCodeGeneration, hasDeploymentTools, hasEnvironmentTools]);
+
   // Check if content should show "Read more" button
   useEffect(() => {
     if (contentRef.current) {
@@ -723,62 +742,6 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
           } ${
             message.isCanvasQA ? 'canvas-qa-question' : ''
           }`}>
-            {/* Horizontal Badge Menu for Actions */}
-            {((canvasOpenHook || hasSaveFileToRepository || codeChangesHook) || hasBackgroundCodeGeneration || hasDeploymentTools || hasEnvironmentTools) && (
-              <div className="absolute -top-7 -right-2 z-30 flex items-center gap-2">
-                {/* Canvas Badge */}
-                {(canvasOpenHook || hasSaveFileToRepository || codeChangesHook) && onOpenCanvas && (
-                  <button
-                    onClick={handleOpenCanvasWithPull}
-                    className="px-4 py-2 rounded-full backdrop-blur-sm bg-slate-700/40 border border-amber-400/50 hover:bg-slate-600/50 hover:border-amber-400/70 text-slate-300 hover:text-slate-200 font-medium shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
-                  >
-                    <Palette size={14} className="text-amber-400" />
-                    <span className="text-sm">Open Canvas</span>
-                    <div className="relative group/info">
-                      <Info size={12} className="text-slate-500 cursor-help" />
-                      <div className="absolute top-full right-0 mt-2 hidden group-hover/info:block w-48 p-2.5 bg-slate-900/95 backdrop-blur-sm text-slate-300 text-xs rounded-lg shadow-xl border border-slate-700 z-40 pointer-events-none">
-                        View saved files, edit content, and generate artifacts
-                      </div>
-                    </div>
-                  </button>
-                )}
-
-                {/* Tasks Badge */}
-                {(hasBackgroundCodeGeneration || hasDeploymentTools) && onOpenTaskPanel && (
-                  <button
-                    onClick={onOpenTaskPanel}
-                    className="px-4 py-2 rounded-full backdrop-blur-sm bg-slate-700/40 border border-slate-300/50 hover:bg-slate-600/50 hover:border-slate-200/70 text-slate-300 hover:text-slate-200 font-medium shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
-                  >
-                    <Award size={14} className="text-slate-300" />
-                    <span className="text-sm">Open Tasks</span>
-                    <div className="relative group/info">
-                      <Info size={12} className="text-slate-500 cursor-help" />
-                      <div className="absolute top-full right-0 mt-2 hidden group-hover/info:block w-48 p-2.5 bg-slate-900/95 backdrop-blur-sm text-slate-300 text-xs rounded-lg shadow-xl border border-slate-700 z-40 pointer-events-none">
-                        Track progress and monitor real-time status
-                      </div>
-                    </div>
-                  </button>
-                )}
-
-                {/* Cloud Badge */}
-                {hasEnvironmentTools && onOpenEnvironmentPanel && (
-                  <button
-                    onClick={onOpenEnvironmentPanel}
-                    className="px-4 py-2 rounded-full backdrop-blur-sm bg-slate-700/40 border border-emerald-600/50 hover:bg-slate-600/50 hover:border-emerald-500/70 text-slate-300 hover:text-slate-200 font-medium shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
-                  >
-                    <Shield size={14} className="text-emerald-500" />
-                    <span className="text-sm">Open Cloud</span>
-                    <div className="relative group/info">
-                      <Info size={12} className="text-slate-500 cursor-help" />
-                      <div className="absolute top-full right-0 mt-2 hidden group-hover/info:block w-48 p-2.5 bg-slate-900/95 backdrop-blur-sm text-slate-300 text-xs rounded-lg shadow-xl border border-slate-700 z-40 pointer-events-none">
-                        Monitor environments and manage credentials
-                      </div>
-                    </div>
-                  </button>
-                )}
-              </div>
-            )}
-
             {/* Only show message content if no UI function marker is present */}
             {!hasUIFunctionMarker && (
               <>

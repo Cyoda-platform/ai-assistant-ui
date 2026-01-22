@@ -24,6 +24,7 @@ import AuthState from '@/components/AuthState/AuthState';
 import Logo from '@/assets/images/logo.svg';
 import LogoSmall from '@/assets/images/logo-small.svg';
 import { useSuperUserMode, useIsCyodaEmployee, useAuthStore } from '@/stores/auth';
+import { useHeaderHighlightStore } from '@/stores/headerHighlight';
 
 interface Notification {
   id: number;
@@ -98,9 +99,25 @@ const Header: React.FC<HeaderProps> = ({
   const superUserMode = useSuperUserMode();
   const isCyodaEmployee = useIsCyodaEmployee();
 
+  // Get highlighted context from store
+  const highlightedContext = useHeaderHighlightStore((state) => state.highlightedContext);
+
   // Use external notifications if provided, otherwise use empty array
   const notifications = externalNotifications || [];
   const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  // Clear highlight when user opens the corresponding panel
+  useEffect(() => {
+    const { clearHighlight } = useHeaderHighlightStore.getState();
+
+    if (highlightedContext === 'canvas' && canvasVisible) {
+      clearHighlight();
+    } else if (highlightedContext === 'cloud' && environmentsVisible) {
+      clearHighlight();
+    } else if (highlightedContext === 'tasks' && tasksVisible) {
+      clearHighlight();
+    }
+  }, [canvasVisible, environmentsVisible, tasksVisible, highlightedContext]);
 
   // Debug: Log when notifications prop changes
   useEffect(() => {
@@ -204,12 +221,16 @@ const Header: React.FC<HeaderProps> = ({
                     <button
                       onClick={onToggleCanvas}
                       disabled={isArchivedChat || isLoadingCanvasToggle}
-                      className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                      className={`relative px-3 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
                         isArchivedChat || isLoadingCanvasToggle
                           ? 'text-slate-600 cursor-not-allowed opacity-50'
                           : canvasVisible
                           ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
                           : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                      } ${
+                        highlightedContext === 'canvas' && !canvasVisible && !isArchivedChat && !isLoadingCanvasToggle
+                          ? 'ring-1 ring-green-500/80 ring-offset-2 ring-offset-slate-800 animate-pulse-three-times'
+                          : ''
                       }`}
                       title={isArchivedChat ? 'Canvas not available for archived chats' : isLoadingCanvasToggle ? 'Loading...' : `${canvasVisible ? 'Close' : 'Open'} Canvas`}
                     >
@@ -284,10 +305,14 @@ const Header: React.FC<HeaderProps> = ({
                 {onToggleEnvironments && isLoggedIn && (
                   <button
                     onClick={onToggleEnvironments}
-                    className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                    className={`relative px-3 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
                       environmentsVisible
                         ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
                         : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                    } ${
+                      highlightedContext === 'cloud' && !environmentsVisible
+                        ? 'ring-1 ring-green-500/80 ring-offset-2 ring-offset-slate-800 animate-pulse-three-times'
+                        : ''
                     }`}
                     title={`${environmentsVisible ? 'Hide' : 'Show'} Cloud`}
                   >
@@ -300,10 +325,14 @@ const Header: React.FC<HeaderProps> = ({
                 {onToggleTasks && (
                   <button
                     onClick={onToggleTasks}
-                    className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                    className={`relative px-3 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
                       tasksVisible
                         ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
                         : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                    } ${
+                      highlightedContext === 'tasks' && !tasksVisible
+                        ? 'ring-1 ring-green-500/80 ring-offset-2 ring-offset-slate-800 animate-pulse-three-times'
+                        : ''
                     }`}
                     title={`${tasksVisible ? 'Hide' : 'Show'} Tasks`}
                   >
@@ -541,12 +570,16 @@ const Header: React.FC<HeaderProps> = ({
                         }
                       }}
                       disabled={isArchivedChat || isLoadingCanvasToggle}
-                      className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
+                      className={`w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center space-x-3 ${
                         isArchivedChat || isLoadingCanvasToggle
                           ? 'text-slate-600 cursor-not-allowed opacity-50'
                           : canvasVisible
                           ? 'bg-teal-500/20 text-teal-400'
                           : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                      } ${
+                        highlightedContext === 'canvas' && !canvasVisible && !isArchivedChat && !isLoadingCanvasToggle
+                          ? 'ring-1 ring-green-500/80 ring-offset-2 ring-offset-slate-800 animate-pulse-three-times'
+                          : ''
                       }`}
                     >
                       {isLoadingCanvasToggle ? (
@@ -566,10 +599,14 @@ const Header: React.FC<HeaderProps> = ({
                         onToggleEnvironments();
                         setShowMobileMenu(false);
                       }}
-                      className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
+                      className={`w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center space-x-3 ${
                         environmentsVisible
                           ? 'bg-teal-500/20 text-teal-400'
                           : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                      } ${
+                        highlightedContext === 'cloud' && !environmentsVisible
+                          ? 'ring-1 ring-green-500/80 ring-offset-2 ring-offset-slate-800 animate-pulse-three-times'
+                          : ''
                       }`}
                     >
                       <Server size={20} />
@@ -583,10 +620,14 @@ const Header: React.FC<HeaderProps> = ({
                         onToggleTasks();
                         setShowMobileMenu(false);
                       }}
-                      className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
+                      className={`w-full px-4 py-3 rounded-lg transition-all duration-200 flex items-center space-x-3 ${
                         tasksVisible
                           ? 'bg-teal-500/20 text-teal-400'
                           : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                      } ${
+                        highlightedContext === 'tasks' && !tasksVisible
+                          ? 'ring-1 ring-green-500/80 ring-offset-2 ring-offset-slate-800 animate-pulse-three-times'
+                          : ''
                       }`}
                     >
                       <Database size={20} />

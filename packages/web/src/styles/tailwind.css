@@ -1609,3 +1609,30 @@ header a.rounded-lg:hover {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(20, 184, 166, 0.5);
 }
+
+/* Header Context Highlight Animation - 3 pulses then static ring */
+@keyframes pulse-three-times {
+  0%, 100% {
+    opacity: 1;
+  }
+  16.67% {
+    opacity: 0.5;
+  }
+  33.33% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  66.67% {
+    opacity: 1;
+  }
+  83.33% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-three-times {
+  animation: pulse-three-times 1.8s ease-in-out;
+  animation-fill-mode: forwards;
+}
