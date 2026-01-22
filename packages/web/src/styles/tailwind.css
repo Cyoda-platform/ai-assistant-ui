@@ -691,11 +691,14 @@ html, body {
 /* Main layout containers - full viewport, no outer scrolling */
 .main-layout {
   height: 100vh;
+  height: 100dvh; /* Use dynamic viewport height for better mobile support */
   width: 100vw;
   overflow: hidden; /* No outer scrolling */
   position: fixed; /* Prevent any body scrolling */
   top: 0;
   left: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .main-content {

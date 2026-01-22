@@ -53,7 +53,7 @@ const WorkflowTabsView: React.FC = () => {
   const technicalId = `${modelName}_v${modelVersion}`;
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-gray-900" style={{ position: 'fixed', top: 0, left: 0 }}>
+    <div className="h-screen w-screen overflow-hidden bg-gray-900 flex flex-col" style={{ position: 'fixed', top: 0, left: 0 }}>
       {/* Header with exit button */}
       <div className="h-10 bg-gray-800 border-b border-gray-700 flex items-center px-4 gap-3">
         <button
@@ -71,7 +71,7 @@ const WorkflowTabsView: React.FC = () => {
       </div>
 
       {/* Workflow Editor */}
-      <div className="h-[calc(100vh-40px)]">
+      <div className="flex-1 overflow-hidden">
         <ChatBotEditorWorkflowNew
           technicalId={technicalId}
           modelName={modelName}

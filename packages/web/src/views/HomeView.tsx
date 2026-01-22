@@ -622,7 +622,7 @@ const HomeView: React.FC = () => {
         environmentsVisible={isEnvironmentsOpen}
         showCanvasButton={false}
       />
-      <div className="flex h-[calc(100vh-73px)] overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
         {/* Enhanced Left Sidebar - Resizable Chat History Panel */}
         {isChatHistoryOpen && (
           <div
