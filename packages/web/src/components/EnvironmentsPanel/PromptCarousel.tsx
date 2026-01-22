@@ -124,18 +124,18 @@ const PromptCarousel: React.FC<PromptCarouselProps> = ({ environmentName, onProm
         </div>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-teal-500/15 to-cyan-500/15 hover:from-teal-500/25 hover:to-cyan-500/25 text-teal-400 border border-teal-500/25 hover:border-teal-400/40 transition-all duration-200 font-medium flex items-center gap-1.5 hover:shadow-md hover:shadow-teal-500/10"
+          className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-teal-500/15 to-cyan-500/15 hover:from-teal-500/25 hover:to-cyan-500/25 text-teal-400 border border-teal-500/25 hover:border-teal-400/40 transition-all duration-200 font-medium flex items-center gap-1.5 hover:shadow-md hover:shadow-teal-500/10 text-xs"
           title={isExpanded ? 'Collapse prompts' : 'Expand prompts'}
         >
           {isExpanded ? (
             <>
-              <ChevronUp size={16} />
-              <span className="text-xs">Collapse</span>
+              <ChevronUp size={12} />
+              <span>Collapse</span>
             </>
           ) : (
             <>
-              <ChevronDown size={16} />
-              <span className="text-xs">Expand</span>
+              <ChevronDown size={12} />
+              <span>Expand</span>
             </>
           )}
         </button>

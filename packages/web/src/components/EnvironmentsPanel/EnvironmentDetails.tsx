@@ -540,10 +540,10 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
         <div className="flex items-center gap-2">
           <button
             onClick={() => window.open(`/logs?env_name=${encodeURIComponent(environmentName)}`, '_blank')}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-teal-300 border border-teal-500/30 hover:from-teal-500/30 hover:to-cyan-500/30 hover:border-teal-400/50 hover:shadow-lg hover:shadow-teal-500/20 transition-all duration-200 hover:-translate-y-0.5"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-teal-300 border border-teal-500/30 hover:from-teal-500/30 hover:to-cyan-500/30 hover:border-teal-400/50 hover:shadow-lg hover:shadow-teal-500/20 transition-all duration-200 hover:-translate-y-0.5"
             title="View logs for this environment"
           >
-            <Activity size={16} />
+            <Activity size={12} />
             <span>View Logs</span>
           </button>
           {onClose && (
