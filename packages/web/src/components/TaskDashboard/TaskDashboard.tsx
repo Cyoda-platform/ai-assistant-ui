@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from 'react';
-import { Activity, RefreshCw, Filter } from 'lucide-react';
+import { Activity, Filter, RefreshCw } from 'lucide-react';
 import TaskCard from './TaskCard';
 import taskService, { type BackgroundTask } from '@/services/taskService';
 
@@ -25,22 +25,13 @@ const TaskDashboard = forwardRef<TaskDashboardHandle, TaskDashboardProps>(({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Load tasks
-  const loadTasks = useCallback(async (showRefreshAnimation = false) => {
+  const loadTasks = useCallback(async () => {
     try {
-      if (showRefreshAnimation) {
-        setIsRefreshing(true);
-      }
       setError(null);
       const response = await taskService.listTasks({ conversation_id: conversationId });
       setTasks(response.tasks);
-
-      // Keep the animation for a bit to show it's working
-      if (showRefreshAnimation) {
-        setTimeout(() => setIsRefreshing(false), 500);
-      }
     } catch (err: any) {
       console.error('Error loading tasks:', err);
 
@@ -55,8 +46,6 @@ const TaskDashboard = forwardRef<TaskDashboardHandle, TaskDashboardProps>(({
       } else {
         setError(err?.response?.data?.message || err?.message || 'Failed to load tasks');
       }
-
-      setIsRefreshing(false);
     } finally {
       setIsLoading(false);
     }
@@ -152,43 +141,31 @@ const TaskDashboard = forwardRef<TaskDashboardHandle, TaskDashboardProps>(({
     <div className="flex flex-col h-full min-h-0">
       {/* Header with filters */}
       <div className="px-4 py-3 border-b border-slate-700/50">
-        <div className="flex items-center justify-between">
-          {/* Filter buttons */}
-          <div className="flex items-center gap-1.5">
-            {[
-              { key: 'all', label: 'All', count: statusCounts.all },
-              { key: 'active', label: 'Active', count: statusCounts.active },
-              { key: 'completed', label: 'Completed', count: statusCounts.completed },
-              { key: 'failed', label: 'Failed', count: statusCounts.failed },
-            ].map(filter => (
-              <button
-                key={filter.key}
-                onClick={() => setFilterStatus(filter.key)}
-                className={`group relative px-3 py-1.5 rounded-md text-xs font-medium transition-all border ${
-                  filterStatus === filter.key
-                    ? 'bg-teal-500/20 text-teal-200 border-teal-500/40'
-                    : 'text-slate-400 hover:text-teal-300 hover:bg-slate-700/50 border-transparent'
-                }`}
-              >
-                <span>{filter.label}</span>
-                <span className={`ml-1.5 ${
-                  filterStatus === filter.key ? 'text-teal-300' : 'text-slate-500'
-                }`}>
-                  {filter.count}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          {/* Refresh button */}
-          <button
-            onClick={() => loadTasks(true)}
-            disabled={isRefreshing}
-            className="p-1.5 rounded-md text-slate-400 hover:text-teal-300 hover:bg-slate-700/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Refresh tasks"
-          >
-            <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
-          </button>
+        {/* Filter buttons */}
+        <div className="flex items-center gap-1.5">
+          {[
+            { key: 'all', label: 'All', count: statusCounts.all },
+            { key: 'active', label: 'Active', count: statusCounts.active },
+            { key: 'completed', label: 'Completed', count: statusCounts.completed },
+            { key: 'failed', label: 'Failed', count: statusCounts.failed },
+          ].map(filter => (
+            <button
+              key={filter.key}
+              onClick={() => setFilterStatus(filter.key)}
+              className={`group relative px-3 py-1.5 rounded-md text-xs font-medium transition-all border ${
+                filterStatus === filter.key
+                  ? 'bg-teal-500/20 text-teal-200 border-teal-500/40'
+                  : 'text-slate-400 hover:text-teal-300 hover:bg-slate-700/50 border-transparent'
+              }`}
+            >
+              <span>{filter.label}</span>
+              <span className={`ml-1.5 ${
+                filterStatus === filter.key ? 'text-teal-300' : 'text-slate-500'
+              }`}>
+                {filter.count}
+              </span>
+            </button>
+          ))}
         </div>
       </div>
 

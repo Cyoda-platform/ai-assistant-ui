@@ -1,5 +1,6 @@
-import React, { useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useRef, useImperativeHandle, forwardRef, useState } from 'react';
 import { X } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import TaskDashboard, { TaskDashboardHandle } from '@/components/TaskDashboard/TaskDashboard';
 
 interface TasksPanelProps {
@@ -24,6 +25,7 @@ const TasksPanel = forwardRef<TasksPanelHandle, TasksPanelProps>(({
   onWidthChange
 }, ref) => {
   const taskDashboardRef = useRef<TaskDashboardHandle>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Expose refreshTasks method via ref
   useImperativeHandle(ref, () => ({
@@ -32,6 +34,19 @@ const TasksPanel = forwardRef<TasksPanelHandle, TasksPanelProps>(({
       await taskDashboardRef.current?.refreshTasks();
     }
   }), []);
+
+  // Handle refresh button click
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await taskDashboardRef.current?.refreshTasks();
+      // Keep the animation for a bit to show it's working
+      setTimeout(() => setIsRefreshing(false), 500);
+    } catch (err) {
+      console.error('[TasksPanel] Failed to refresh tasks:', err);
+      setIsRefreshing(false);
+    }
+  };
 
   // Use external width if provided (parent manages resizing)
   const panelWidth = externalWidth ?? 500;
@@ -56,13 +71,23 @@ const TasksPanel = forwardRef<TasksPanelHandle, TasksPanelProps>(({
               Live
             </span>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg text-slate-400 hover:text-emerald-300 hover:bg-slate-700 transition-colors"
-            title="Close Tasks Panel"
-          >
-            <X size={16} />
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Refresh tasks"
+            >
+              <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg text-slate-400 hover:text-emerald-300 hover:bg-slate-700 transition-colors"
+              title="Close Tasks Panel"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
       </div>
 
