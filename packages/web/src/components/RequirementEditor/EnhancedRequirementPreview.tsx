@@ -110,7 +110,7 @@ export const EnhancedRequirementPreview: React.FC<EnhancedRequirementPreviewProp
       case 'in progress':
       case 'in_progress':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30">
             <Clock size={12} />
             In Progress
           </span>
@@ -213,7 +213,7 @@ export const EnhancedRequirementPreview: React.FC<EnhancedRequirementPreviewProp
                 onClick={() => toggleSection(section.id)}
                 className="flex items-center gap-3 p-4 cursor-pointer hover:bg-slate-700/20 transition-colors border-b border-slate-700/20"
               >
-                <div className="text-blue-400 flex-shrink-0">
+                <div className="text-orange-400 flex-shrink-0">
                   {section.icon}
                 </div>
                 <h2

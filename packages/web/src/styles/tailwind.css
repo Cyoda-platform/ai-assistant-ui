@@ -15,6 +15,17 @@ html {
   color-scheme: dark;
 }
 
+/* Override Tailwind Typography (prose) link colors to match orange theme */
+.prose a {
+  color: rgb(251 146 60) !important; /* orange-400 */
+  text-decoration: none;
+}
+
+.prose a:hover {
+  color: rgb(249 115 22) !important; /* orange-500 */
+  text-decoration: underline;
+}
+
 /* Custom scrollbar styles */
 @layer utilities {
   .scrollbar-thin {
