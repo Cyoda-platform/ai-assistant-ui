@@ -538,7 +538,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
             <Server size={18} className="text-teal-400" />
             <h3 className="font-semibold text-white !mb-0 leading-none">{environmentName}</h3>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => window.open(`/logs?env_name=${encodeURIComponent(environmentName)}`, '_blank')}
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-teal-300 hover:from-teal-500/30 hover:to-cyan-500/30 transition-all duration-200"
