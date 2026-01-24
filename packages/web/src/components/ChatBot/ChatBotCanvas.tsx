@@ -500,7 +500,7 @@ gantt
   return (
     <div className="flex flex-col h-full bg-slate-800/95 backdrop-blur-sm overflow-hidden">
       {/* Canvas Header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
+      <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50" style={{ height: '65px' }}>
         <div className="flex items-center space-x-2">
           <Activity size={18} className="text-teal-400" />
           <h3 className="font-semibold text-white translate-y-[20%]">Canvas</h3>
@@ -534,7 +534,7 @@ gantt
             className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
             title="Close Canvas"
           >
-            <X size={14} />
+            <X size={16} />
           </button>
         </div>
       </div>
