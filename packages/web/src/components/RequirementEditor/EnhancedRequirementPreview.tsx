@@ -164,30 +164,8 @@ export const EnhancedRequirementPreview: React.FC<EnhancedRequirementPreviewProp
   return (
     <div className="enhanced-requirement-preview">
       {/* Metadata Header */}
-      {requirement && (
-        <div className="mb-6 pb-4 border-b border-slate-700/50">
-          {requirement.description && (
-            <p className="text-sm text-gray-400 leading-relaxed mb-3">{requirement.description}</p>
-          )}
-
-          <div className="flex flex-wrap items-center gap-2">
-            {requirement.status && getStatusBadge(requirement.status)}
-            {requirement.priority && getPriorityBadge(requirement.priority)}
-            {requirement.metadata?.tags && requirement.metadata.tags.length > 0 && (
-              <>
-                {requirement.metadata.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-purple-500/20 text-purple-400 border border-purple-500/30"
-                  >
-                    <Tag size={12} />
-                    {tag}
-                  </span>
-                ))}
-              </>
-            )}
-          </div>
-        </div>
+      {requirement && requirement.description && (
+        <p className="text-sm text-gray-400 leading-relaxed mb-6">{requirement.description}</p>
       )}
 
       {/* Sections */}
