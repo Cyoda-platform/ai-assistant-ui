@@ -114,7 +114,9 @@ const MonitoringView: React.FC = () => {
         data: { env_name: envName }
       });
 
+      console.log('Applications response:', response.data);
       if (response.data && response.data.user_applications) {
+        console.log('Applications array:', response.data.user_applications);
         setApplications(response.data.user_applications);
       } else {
         setApplications([]);
@@ -432,9 +434,9 @@ const MonitoringView: React.FC = () => {
                   cursor: 'pointer'
                 }}
               >
-                <option value="">Select environment...</option>
+                <option value="" style={{ backgroundColor: '#0f172a', color: '#94a3b8' }}>Select environment...</option>
                 {environments.map((env) => (
-                  <option key={env.name} value={env.name}>
+                  <option key={env.name} value={env.name} style={{ backgroundColor: '#0f172a', color: '#e2e8f0' }}>
                     {env.name}
                   </option>
                 ))}
@@ -462,15 +464,15 @@ const MonitoringView: React.FC = () => {
                   opacity: loadingApplications ? 0.6 : 1
                 }}
               >
-                <option value="cyoda">cyoda (default)</option>
+                <option value="cyoda" style={{ backgroundColor: '#0f172a', color: '#e2e8f0' }}>cyoda (default)</option>
                 {loadingApplications ? (
-                  <option disabled>Loading applications...</option>
+                  <option disabled style={{ backgroundColor: '#0f172a', color: '#94a3b8' }}>Loading applications...</option>
                 ) : applications.length === 0 ? (
-                  <option disabled>No applications found</option>
+                  <option disabled style={{ backgroundColor: '#0f172a', color: '#94a3b8' }}>No applications found</option>
                 ) : (
                   applications.map((app) => (
-                    <option key={app.namespace} value={app.app_name}>
-                      {app.app_name}
+                    <option key={app.namespace} value={app.name} style={{ backgroundColor: '#0f172a', color: '#e2e8f0' }}>
+                      {app.name}
                     </option>
                   ))
                 )}
