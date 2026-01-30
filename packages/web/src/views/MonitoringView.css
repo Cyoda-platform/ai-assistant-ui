@@ -79,8 +79,9 @@
 }
 
 .action-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(13, 132, 132, 0.4);
+  background: linear-gradient(135deg, #109f9f 0%, #14b8a6 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 132, 132, 0.4);
 }
 
 .action-button:disabled {
