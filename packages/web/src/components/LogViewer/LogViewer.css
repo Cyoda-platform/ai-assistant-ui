@@ -1,9 +1,9 @@
 .log-viewer {
   display: flex;
   flex-direction: column;
-  border: 1px solid #434343;
+  border: 1px solid #334155;
   border-radius: 8px;
-  background: #1f1f1f;
+  background: #0f172a;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
@@ -14,8 +14,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid #434343;
-  background: linear-gradient(to bottom, #2a2a2a, #1f1f1f);
+  border-bottom: 1px solid #334155;
+  background: linear-gradient(to bottom, #1e293b, #0f172a);
 }
 
 .log-viewer-title h2 {
@@ -34,8 +34,8 @@
 /* Search and Controls */
 .log-viewer-controls {
   padding: 16px 20px;
-  border-bottom: 1px solid #434343;
-  background: #2a2a2a;
+  border-bottom: 1px solid #334155;
+  background: #1e293b;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -50,18 +50,18 @@
 .search-input {
   flex: 1;
   padding: 8px 12px;
-  border: 1px solid #434343;
+  border: 1px solid #334155;
   border-radius: 6px;
   font-size: 14px;
   outline: none;
   transition: all 0.2s;
-  background: #1f1f1f;
+  background: #0f172a;
   color: #e8e8e8;
 }
 
 .search-input:focus {
-  border-color: #1890ff;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  border-color: #0d8484;
+  box-shadow: 0 0 0 2px rgba(13, 132, 132, 0.2);
 }
 
 .search-input::placeholder {
@@ -70,7 +70,7 @@
 
 .search-button {
   padding: 8px 20px;
-  background: #1890ff;
+  background: linear-gradient(135deg, #0d8484 0%, #109f9f 100%);
   color: white;
   border: none;
   border-radius: 6px;
@@ -81,7 +81,8 @@
 }
 
 .search-button:hover {
-  background: #40a9ff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 132, 132, 0.4);
 }
 
 .controls-row {
@@ -101,9 +102,9 @@
 
 .level-toggle-all {
   padding: 6px 14px;
-  border: 1px solid #434343;
+  border: 1px solid #334155;
   border-radius: 6px;
-  background: #1f1f1f;
+  background: #0f172a;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -112,14 +113,14 @@
 }
 
 .level-toggle-all:hover {
-  border-color: #1890ff;
-  color: #1890ff;
+  border-color: #0d8484;
+  color: #0d8484;
 }
 
 .level-toggle-all.active {
-  background: #1890ff;
+  background: linear-gradient(135deg, #0d8484 0%, #109f9f 100%);
   color: white;
-  border-color: #1890ff;
+  border-color: #0d8484;
 }
 
 .level-filter-buttons {
@@ -217,9 +218,9 @@
 
 .entries-select {
   padding: 6px 12px;
-  border: 1px solid #434343;
+  border: 1px solid #334155;
   border-radius: 6px;
-  background: #1f1f1f;
+  background: #0f172a;
   font-size: 13px;
   cursor: pointer;
   outline: none;
@@ -228,15 +229,15 @@
 }
 
 .entries-select:hover {
-  border-color: #1890ff;
+  border-color: #0d8484;
 }
 
 .advanced-button,
 .export-button {
   padding: 6px 14px;
-  border: 1px solid #434343;
+  border: 1px solid #334155;
   border-radius: 6px;
-  background: #1f1f1f;
+  background: #0f172a;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -246,8 +247,8 @@
 
 .advanced-button:hover,
 .export-button:hover {
-  border-color: #1890ff;
-  color: #1890ff;
+  border-color: #0d8484;
+  color: #0d8484;
 }
 
 /* Advanced Query Panel */
@@ -283,8 +284,8 @@
 /* Results Info */
 .log-viewer-results {
   padding: 10px 20px;
-  background: #2a2a2a;
-  border-bottom: 1px solid #434343;
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
   font-size: 13px;
   color: #a8a8a8;
 }
@@ -292,18 +293,18 @@
 /* Log List */
 .log-viewer-list {
   position: relative;
-  background: #1f1f1f;
+  background: #0f172a;
 }
 
 .log-row {
-  border-bottom: 1px solid #434343;
+  border-bottom: 1px solid #334155;
   cursor: pointer;
   transition: all 0.15s;
   padding: 0 20px;
 }
 
 .log-row:hover {
-  background-color: #2a2a2a;
+  background-color: #1e293b;
 }
 
 /* Add left border color based on log level */
@@ -404,16 +405,16 @@
 }
 
 .log-viewer-list::-webkit-scrollbar-track {
-  background: #0d1117;
+  background: #0f172a;
 }
 
 .log-viewer-list::-webkit-scrollbar-thumb {
-  background: #434343;
+  background: #334155;
   border-radius: 5px;
 }
 
 .log-viewer-list::-webkit-scrollbar-thumb:hover {
-  background: #666;
+  background: #475569;
 }
 
 /* Dark theme is now the default - no media query needed */
@@ -434,7 +435,7 @@
 }
 
 .log-modal {
-  background: #1f1f1f;
+  background: #0f172a;
   border-radius: 12px;
   max-width: 900px;
   width: 100%;
@@ -443,7 +444,7 @@
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid #434343;
+  border: 1px solid #334155;
 }
 
 .log-modal-header {
@@ -451,8 +452,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid #434343;
-  background: linear-gradient(to bottom, #2a2a2a, #1f1f1f);
+  border-bottom: 1px solid #334155;
+  background: linear-gradient(to bottom, #1e293b, #0f172a);
 }
 
 .log-modal-title {
@@ -480,7 +481,7 @@
 
 .log-modal-close:hover {
   color: #e8e8e8;
-  background: #2a2a2a;
+  background: #1e293b;
   border-radius: 4px;
 }
 
@@ -507,13 +508,13 @@
 }
 
 .log-modal-message {
-  background: #0d1117;
+  background: #1e293b;
   padding: 16px;
   border-radius: 6px;
   color: #e8e8e8;
   font-size: 14px;
   line-height: 1.6;
-  border: 1px solid #434343;
+  border: 1px solid #334155;
   word-break: break-word;
 }
 
@@ -528,9 +529,9 @@
   flex-direction: column;
   gap: 4px;
   padding: 12px;
-  background: #0d1117;
+  background: #1e293b;
   border-radius: 6px;
-  border: 1px solid #434343;
+  border: 1px solid #334155;
 }
 
 .log-modal-label {
