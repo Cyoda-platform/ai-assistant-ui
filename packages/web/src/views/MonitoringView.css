@@ -318,7 +318,12 @@
 }
 
 .status-active {
-  color: #0d8484;
+  color: #52c41a;
+  font-weight: 600;
+}
+
+.status-error {
+  color: #ff4d4f;
   font-weight: 600;
 }
 

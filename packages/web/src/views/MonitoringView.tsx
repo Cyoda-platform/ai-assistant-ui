@@ -770,8 +770,8 @@ const MonitoringView: React.FC = () => {
                           <XAxis dataKey="time" stroke="#a8a8a8" />
                           <YAxis stroke="#a8a8a8" />
                           <Tooltip
-                            contentStyle={{ backgroundColor: '#1f1f1f', border: '1px solid #434343', borderRadius: '6px' }}
-                            labelStyle={{ color: '#e8e8e8' }}
+                            contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '4px' }}
+                            labelStyle={{ color: '#e2e8f0' }}
                           />
                           <Line
                             type="monotone"
