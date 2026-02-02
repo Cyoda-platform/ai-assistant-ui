@@ -1,0 +1,66 @@
+name: Test Coverage
+
+on:
+  pull_request:
+    branches: [main, develop, cyoda-ai-studio-2]
+  push:
+    branches: [main, develop, cyoda-ai-studio-2]
+
+jobs:
+  test:
+    name: Run Tests & Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Prepare Yarn
+        run: corepack prepare yarn@4.9.4 --activate
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.yarn/cache
+            node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Run tests
+        working-directory: packages/web
+        run: yarn test:run
+
+      - name: Generate coverage report
+        working-directory: packages/web
+        run: yarn test:coverage
+        continue-on-error: true
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./packages/web/coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: Comment PR with coverage
+        if: github.event_name == 'pull_request'
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        with:
+          lcov-file: ./packages/web/coverage/lcov.info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          delete-old-comments: true

@@ -11,6 +11,7 @@ import taskService, { type BackgroundTask } from '@/services/taskService';
 interface TaskDashboardProps {
   conversationId: string;
   backgroundTaskIds?: string[];
+  onRestartTask?: (userRequest: string) => void;
 }
 
 export interface TaskDashboardHandle {
@@ -19,7 +20,8 @@ export interface TaskDashboardHandle {
 
 const TaskDashboard = forwardRef<TaskDashboardHandle, TaskDashboardProps>(({
   conversationId,
-  backgroundTaskIds = []
+  backgroundTaskIds = [],
+  onRestartTask
 }, ref) => {
   const [tasks, setTasks] = useState<BackgroundTask[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -200,7 +202,19 @@ const TaskDashboard = forwardRef<TaskDashboardHandle, TaskDashboardProps>(({
           </div>
         ) : (
           filteredTasks.map(task => (
-            <TaskCard key={task.technical_id} task={task} />
+            <TaskCard
+              key={task.technical_id}
+              task={task}
+              onTaskUpdate={(updatedTask) => {
+                // Update task in the list
+                setTasks(prevTasks =>
+                  prevTasks.map(t =>
+                    t.technical_id === updatedTask.technical_id ? updatedTask : t
+                  )
+                );
+              }}
+              onRestartTask={onRestartTask}
+            />
           ))
         )}
       </div>

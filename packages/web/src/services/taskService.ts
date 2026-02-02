@@ -36,14 +36,19 @@ export interface BackgroundTask {
   completed_at?: string;
   branch_name?: string;
   language?: string;
+  user_request?: string;
   conversation_id: string;
   repository_path?: string;
   repository_type?: string;
+  repository_url?: string;
   progress_messages: ProgressMessage[];
   result?: any;
   error?: string;
   process_pid?: number;
   build_job_id?: string;
+  build_id?: string;
+  namespace?: string;
+  env_url?: string;
   statistics: TaskStatistics;
   metadata?: {
     output?: string;
@@ -119,6 +124,16 @@ class TaskService {
     task_type?: string;
   }): Promise<TaskListResponse> {
     const response = await privateClient.get<TaskListResponse>('/v1/tasks', { params });
+    return response.data;
+  }
+
+  /**
+   * Cancel a running task
+   */
+  async cancelTask(taskId: string): Promise<{ message: string; task: BackgroundTask }> {
+    const response = await privateClient.delete<{ message: string; task: BackgroundTask }>(
+      `/v1/tasks/${taskId}/cancel`
+    );
     return response.data;
   }
 

@@ -19,19 +19,28 @@ import {
   Edit,
   Server,
   Link as LinkIcon,
-  Copy
+  Copy,
+  StopCircle,
+  RotateCcw,
+  AlertTriangle
 } from 'lucide-react';
+import { message } from 'antd';
 import type { BackgroundTask } from '@/services/taskService';
+import taskService from '@/services/taskService';
 import CLIOutputViewer from './CLIOutputViewer';
 
 interface TaskCardProps {
   task: BackgroundTask;
+  onTaskUpdate?: (task: BackgroundTask) => void;
+  onRestartTask?: (userRequest: string) => void;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [expandedMessages, setExpandedMessages] = useState<Set<number>>(new Set());
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const toggleMessageExpanded = (idx: number) => {
     const newSet = new Set(expandedMessages);
@@ -48,6 +57,50 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
     setCopiedField(fieldName);
     setTimeout(() => setCopiedField(null), 2000);
   };
+
+  const handleCancelTask = async () => {
+    setShowCancelModal(false);
+    setIsCancelling(true);
+
+    try {
+      const response = await taskService.cancelTask(task.technical_id);
+
+      // Notify parent of update if callback provided
+      if (onTaskUpdate && response.task) {
+        onTaskUpdate(response.task);
+      }
+
+      // Show success feedback
+      message.success('Task cancelled successfully');
+    } catch (error: any) {
+      console.error('Failed to cancel task:', error);
+      const errorMsg = error?.response?.data?.message || error?.message || 'Failed to cancel task';
+      message.error(`Error: ${errorMsg}`);
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  const handleRestartTask = () => {
+    if (!onRestartTask) {
+      message.error('Restart functionality not available');
+      return;
+    }
+
+    if (!task.user_request) {
+      message.error('Cannot restart: original request not found');
+      return;
+    }
+
+    onRestartTask(task.user_request);
+    message.success('Restarting task with original request...');
+  };
+
+  // Check if task can be cancelled
+  const canCancel = task.status === 'running' || task.status === 'pending';
+
+  // Check if task can be restarted (failed, cancelled, or completed)
+  const canRestart = ['failed', 'cancelled', 'completed'].includes(task.status) && task.user_request;
 
   // Status icon and color
   const getStatusIcon = () => {
@@ -110,12 +163,39 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
             <p className="text-slate-400 text-xs mt-1 line-clamp-2">{task.description}</p>
           </div>
         </div>
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="text-slate-400 hover:text-teal-300 transition-colors ml-2 flex-shrink-0"
-        >
-          {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-        </button>
+        <div className="flex items-center space-x-2 ml-2 flex-shrink-0">
+          {/* Restart button - only show for failed/cancelled/completed tasks */}
+          {canRestart && (
+            <button
+              onClick={handleRestartTask}
+              className="text-teal-400 hover:text-teal-300 hover:bg-teal-500/10 p-1.5 rounded transition-colors"
+              title="Restart task with same request"
+            >
+              <RotateCcw size={16} />
+            </button>
+          )}
+          {/* Cancel button - only show for running/pending tasks */}
+          {canCancel && (
+            <button
+              onClick={() => setShowCancelModal(true)}
+              disabled={isCancelling}
+              className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Cancel task"
+            >
+              {isCancelling ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <StopCircle size={16} />
+              )}
+            </button>
+          )}
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-slate-400 hover:text-teal-300 transition-colors"
+          >
+            {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          </button>
+        </div>
       </div>
 
       {/* Progress Bar */}
@@ -368,6 +448,58 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
             <div>Created: {new Date(task.date).toLocaleString()}</div>
             {task.started_at && <div>Started: {new Date(task.started_at).toLocaleString()}</div>}
             {task.completed_at && <div>Completed: {new Date(task.completed_at).toLocaleString()}</div>}
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Confirmation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-800 rounded-xl shadow-2xl border border-slate-700 max-w-md w-full mx-4 overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center space-x-3 p-6 border-b border-slate-700">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-500/20">
+                <AlertTriangle size={24} className="text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white">Cancel Task</h3>
+                <p className="text-sm text-slate-400">This action cannot be undone</p>
+              </div>
+            </div>
+            {/* Body */}
+            <div className="p-6">
+              <p className="text-slate-300 mb-2">
+                Are you sure you want to cancel this task?
+              </p>
+              <div className="mt-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700">
+                <p className="text-sm text-slate-400 mb-1">Task name:</p>
+                <p className="text-white font-medium truncate">{task.name}</p>
+              </div>
+            </div>
+            {/* Footer */}
+            <div className="flex items-center justify-end space-x-3 p-6 border-t border-slate-700 bg-slate-900/30">
+              <button
+                onClick={() => setShowCancelModal(false)}
+                disabled={isCancelling}
+                className="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Keep Running
+              </button>
+              <button
+                onClick={handleCancelTask}
+                disabled={isCancelling}
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-red-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                {isCancelling ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Cancelling...</span>
+                  </>
+                ) : (
+                  <span>Cancel Task</span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

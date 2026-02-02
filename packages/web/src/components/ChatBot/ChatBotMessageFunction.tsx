@@ -128,6 +128,17 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
 
     try {
       setIsLoading(true);
+      setServerResponse(null); // Clear previous response
+
+      // Preemptively refresh the token to avoid 401 errors during execution
+      // This prevents triggering the global logout behavior in the interceptor
+      try {
+        await useAuthStore.getState().refreshAccessToken();
+      } catch (refreshError) {
+        console.warn('Token refresh failed, will attempt request anyway:', refreshError);
+        // Continue with the request - the interceptor will handle it if needed
+      }
+
       const method = functionData.method.toLowerCase() as 'get' | 'post' | 'put' | 'delete' | 'patch';
 
       // Use privateClient to benefit from refresh token interceptor
@@ -138,6 +149,8 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
         headers: {
           'Content-Type': 'application/json',
         },
+        // @ts-ignore - Custom flag to prevent global logout on auth failure
+        __skipLogoutOnAuthFailure: true,
       });
 
       // Handle response based on format
@@ -152,9 +165,19 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
       } else {
         setServerResponse(data);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to execute UI function:', error);
-      setServerResponse({ error: 'Failed to execute request' });
+
+      // Handle 401 errors more gracefully
+      if (error?.response?.status === 401) {
+        setServerResponse({
+          error: 'Authentication failed. Your session may have expired. Please try again or refresh the page to re-authenticate.'
+        });
+      } else {
+        setServerResponse({
+          error: error?.response?.data?.message || error?.message || 'Failed to execute request'
+        });
+      }
     } finally {
       setIsLoading(false);
     }

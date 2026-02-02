@@ -52,7 +52,10 @@ const refreshToken = (instance: AxiosInstance): void => {
 
                     autoLogoutTimeout = setTimeout(() => {
                         console.error('❌ Token refresh timeout after 10 seconds');
-                        handleLogoutAndRedirect();
+                        // @ts-ignore - Check if this request should skip logout on auth failure
+                        if (!originalConfig?.__skipLogoutOnAuthFailure) {
+                            handleLogoutAndRedirect();
+                        }
                     }, 10000);
 
                     await refreshAccessTokenPromise;
@@ -78,7 +81,10 @@ const refreshToken = (instance: AxiosInstance): void => {
                     return instance.request(originalConfig);
                 } catch (e) {
                     console.error('❌ Token refresh failed:', e);
-                    handleLogoutAndRedirect();
+                    // @ts-ignore - Check if this request should skip logout on auth failure
+                    if (!originalConfig?.__skipLogoutOnAuthFailure) {
+                        handleLogoutAndRedirect();
+                    }
                 } finally {
                     if (autoLogoutTimeout) clearTimeout(autoLogoutTimeout);
                     autoLogoutTimeout = null;
@@ -89,6 +95,12 @@ const refreshToken = (instance: AxiosInstance): void => {
                 const url = originalConfig?.url || '';
                 if (url.includes('/logs/')) {
                     console.log('[RefreshToken] 401 on logs API after retry, letting component handle it');
+                    return Promise.reject(error);
+                }
+
+                // @ts-ignore - Check if this request should skip logout on auth failure
+                if (originalConfig?.__skipLogoutOnAuthFailure) {
+                    console.log('[RefreshToken] 401 after retry, but skipping logout due to flag');
                     return Promise.reject(error);
                 }
 

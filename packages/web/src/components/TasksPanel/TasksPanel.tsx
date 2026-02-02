@@ -9,6 +9,7 @@ interface TasksPanelProps {
   chatData?: any;
   width?: number;
   onWidthChange?: (width: number) => void;
+  onRestartTask?: (userRequest: string) => void;
 }
 
 export interface TasksPanelHandle {
@@ -21,7 +22,8 @@ const TasksPanel = forwardRef<TasksPanelHandle, TasksPanelProps>(({
   conversationId,
   chatData,
   width: externalWidth,
-  onWidthChange
+  onWidthChange,
+  onRestartTask
 }, ref) => {
   const taskDashboardRef = useRef<TaskDashboardHandle>(null);
 
@@ -72,6 +74,7 @@ const TasksPanel = forwardRef<TasksPanelHandle, TasksPanelProps>(({
           ref={taskDashboardRef}
           conversationId={conversationId}
           backgroundTaskIds={chatData?.chat_body?.background_task_ids}
+          onRestartTask={onRestartTask}
         />
       ) : (
         <div className="flex-1 flex items-center justify-center h-full w-full">

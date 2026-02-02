@@ -2674,6 +2674,10 @@ const ChatBotView: React.FC = () => {
               conversationId={technicalId}
               width={tasksResize.width}
               onWidthChange={tasksResize.setWidth}
+              onRestartTask={(userRequest) => {
+                // Send the original user request as a new message
+                onAnswer({ answer: userRequest });
+              }}
             />
 
             {/* Resize Handle */}
