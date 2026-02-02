@@ -91,7 +91,7 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
                 <span className="text-xs">{date}</span>
               </div>
             )}
-            <div className="flex items-center space-x-1 bg-slate-800/50 backdrop-blur-sm px-2 py-0.5 rounded-full border border-slate-600 shrink-0">
+            <div className="flex items-center space-x-1 bg-slate-800/50 backdrop-blur-sm px-3 py-1 rounded-full border border-slate-600 shrink-0">
               <span className="text-xs font-medium text-slate-300 whitespace-nowrap max-w-[150px] truncate">{userName}</span>
               <User size={10} className="text-teal-400 flex-shrink-0" />
             </div>
@@ -119,7 +119,7 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
             {/* Copy Button - Inside message container, top right */}
             <button
               onClick={handleCopy}
-              className="absolute top-1.5 right-1.5 w-6 h-6 rounded bg-teal-600/30 hover:bg-teal-600/50 text-slate-300 hover:text-white transition-all duration-200 flex items-center justify-center border border-teal-500/30"
+              className="absolute top-1.5 right-1.5 w-6 h-6 rounded text-slate-300 hover:text-white transition-all duration-200 flex items-center justify-center"
               title="Copy message"
             >
               {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}

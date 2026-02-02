@@ -637,7 +637,7 @@ const HomeView: React.FC = () => {
         environmentsVisible={isEnvironmentsOpen}
         showCanvasButton={false}
       />
-      <div className="flex h-[calc(100vh-73px)] overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
         {/* Enhanced Left Sidebar - Resizable Chat History Panel */}
         {isChatHistoryOpen && (
           <div
@@ -698,7 +698,7 @@ const HomeView: React.FC = () => {
                   className="absolute inset-0 pointer-events-none"
                   style={{
                     background: 'radial-gradient(circle at center top, rgba(20,184,166,0.06), transparent 60%)',
-                    top: '100px',
+                    top: '0',
                     height: '500px'
                   }}
                 />
@@ -757,7 +757,9 @@ const HomeView: React.FC = () => {
                       margin: '1rem auto 0'
                     }}
                   >
-                    Build mission-critical systems with declarative workflows, AI-assisted development, and complete event sourcing
+                    Build mission-critical systems with<br />
+                    declarative workflows, AI-assisted development,<br />
+                    and complete event sourcing
                   </p>
                 </div>
 

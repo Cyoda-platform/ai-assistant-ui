@@ -25,6 +25,7 @@ import ChatLoader from '@/components/ChatBot/ChatLoader';
 import StreamErrorNotification from '@/components/ChatBot/StreamErrorNotification';
 import StreamingStatusBanner from '@/components/ChatBot/StreamingStatusBanner';
 import type { GitHubRepositoryInfo } from '@/services/githubAppDataService';
+import taskService, { type BackgroundTask } from '@/services/taskService';
 
 interface Message {
   id: string;
@@ -46,6 +47,7 @@ interface HeaderNotification {
   timestamp: string;
   isRead: boolean;
   messageId?: string; // ID of the related message for navigation
+  taskId?: string; // ID of the related task for opening tasks panel
 }
 
 const ChatBotView: React.FC = () => {
@@ -2167,9 +2169,21 @@ const ChatBotView: React.FC = () => {
     });
   };
 
-  const handleNotificationClick = (notificationId: number, messageId?: string) => {
+  const handleNotificationClick = (notificationId: number, messageId?: string, taskId?: string) => {
     // Mark notification as read
     handleMarkNotificationAsRead(notificationId);
+
+    // Open tasks panel if taskId is provided
+    if (taskId) {
+      setIsTasksPanelOpen(true);
+      // Trigger refresh of tasks when notification is clicked
+      setTimeout(() => {
+        tasksPanelRef.current?.refreshTasks().catch(err => {
+          console.error('[ChatBotView] Failed to refresh tasks from notification:', err);
+        });
+      }, 100);
+      return;
+    }
 
     // Navigate to the message if messageId is provided
     if (messageId) {
@@ -2446,6 +2460,79 @@ const ChatBotView: React.FC = () => {
     }
   }, []); // Empty dependency array - set up once and use functional updates to access latest state
 
+  // Track task completion and send notifications when tasks panel is closed
+  const previousTaskStatusesRef = useRef<Map<string, string>>(new Map());
+  const taskPollingCleanupRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    if (!technicalId) return;
+
+    // Clean up previous polling if exists
+    if (taskPollingCleanupRef.current) {
+      taskPollingCleanupRef.current();
+    }
+
+    const cleanup = taskService.pollConversationTasks(
+      technicalId,
+      (tasks: BackgroundTask[]) => {
+        // Check each task for completion
+        tasks.forEach(task => {
+          const previousStatus = previousTaskStatusesRef.current.get(task.technical_id);
+          const currentStatus = task.status;
+
+          // Send notification if:
+          // 1. Task status changed to completed/failed (and we saw it before)
+          // 2. OR this is first time seeing this task and it's already completed/failed
+          const shouldNotify = !isTasksPanelOpen && (
+            // Status changed to completed/failed
+            (previousStatus && previousStatus !== currentStatus && (currentStatus === 'completed' || currentStatus === 'failed')) ||
+            // First time seeing this task and it's already completed/failed (within last 5 minutes)
+            (!previousStatus && (currentStatus === 'completed' || currentStatus === 'failed') &&
+             task.completed_at && (Date.now() - new Date(task.completed_at).getTime()) < 5 * 60 * 1000)
+          );
+
+          if (shouldNotify) {
+            // Send notification
+            const notification: HeaderNotification = {
+              id: notificationIdCounter.current++,
+              type: currentStatus === 'completed' ? 'success' : 'error',
+              title: currentStatus === 'completed' ? 'Task Completed' : 'Task Failed',
+              message: task.name || task.description || 'Background task finished',
+              timestamp: new Date().toLocaleTimeString(),
+              isRead: false,
+              taskId: task.technical_id // Add task ID for opening tasks panel
+            };
+            setHeaderNotifications(prev => [notification, ...prev]);
+            setCountNewMessages(prev => prev + 1);
+          }
+
+          // Update previous status
+          previousTaskStatusesRef.current.set(task.technical_id, currentStatus);
+        });
+      },
+      (error) => {
+        console.error('[Task Polling] Error polling tasks:', error);
+      },
+      5000 // Poll every 5 seconds for faster notifications
+    );
+
+    taskPollingCleanupRef.current = cleanup;
+
+    return () => {
+      if (taskPollingCleanupRef.current) {
+        taskPollingCleanupRef.current();
+        taskPollingCleanupRef.current = null;
+      }
+    };
+  }, [technicalId]); // Only re-run when chat changes, NOT when panel opens/closes
+
+  // Clear previous task statuses when switching chats
+  useEffect(() => {
+    return () => {
+      previousTaskStatusesRef.current.clear();
+    };
+  }, [technicalId]);
+
   // Debug: Log when headerNotifications changes
   useEffect(() => {
 
@@ -2530,7 +2617,7 @@ const ChatBotView: React.FC = () => {
         onCloseRepositoryConfigPrompt={handleCloseRepositoryConfigPrompt}
         isLoadingCanvasToggle={isLoadingCanvasToggle}
       />
-      <div className="flex h-[calc(100vh-73px)] overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
         {/* Enhanced Left Sidebar - Resizable Chat History Panel */}
         {isChatHistoryOpen && (
           <div

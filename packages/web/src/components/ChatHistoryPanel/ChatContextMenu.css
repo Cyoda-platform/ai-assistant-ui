@@ -81,20 +81,25 @@
   opacity: 1;
 }
 
+/* Show hover state on chat item when menu button is hovered */
+.group:has(.menu-button:hover) > a {
+  background-color: rgba(51, 65, 85, 0.4) !important;
+  border-color: rgba(100, 116, 139, 0.3) !important;
+  color: rgb(203, 213, 225) !important;
+}
+
 .menu-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  /* No additional effects */
 }
 
 .menu-button:active {
-  transform: scale(0.95);
+  /* No additional effects */
 }
 
 /* Ensure menu button is visible on focus for accessibility */
 .menu-button:focus {
   opacity: 1 !important;
-  outline: 2px solid rgb(20, 184, 166);
-  outline-offset: 2px;
+  outline: none;
 }
 
 /* Show menu button on mobile/touch devices */
@@ -102,4 +107,9 @@
   .menu-button {
     opacity: 0.7 !important;
   }
+}
+
+/* Override global link hover color for New Chat button */
+.resizable-panel a.no-underline:hover {
+  color: #14b8a6 !important; /* teal-500 */
 }

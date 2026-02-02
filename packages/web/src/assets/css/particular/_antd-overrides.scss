@@ -105,26 +105,26 @@
 // Notification overrides (replacing el-notification)
 .ant-notification {
   .ant-notification-notice {
-    background-color: var(--bg-dialog-color) !important;
+    background-color: #0F172A !important; // slate-900 - matches chat background
     border: 1px solid var(--accent-border) !important;
     border-radius: 8px;
 
     .ant-notification-notice-content {
-      color: var(--text-color-regular);
+      color: #FFFFFF;
     }
 
     .ant-notification-notice-message {
-      color: var(--text-color-regular);
+      color: #FFFFFF;
       font-weight: 600;
     }
 
     .ant-notification-notice-description {
-      color: var(--text-color-regular);
+      color: #FFFFFF;
     }
 
     &.ant-notification-notice-success {
       .ant-notification-notice-icon {
-        color: var(--text-color-regular);
+        color: #FFFFFF;
       }
     }
   }
@@ -133,10 +133,10 @@
 // Message overrides
 .ant-message {
   .ant-message-notice-content {
-    background-color: var(--bg-dialog-color) !important;
+    background-color: #0F172A !important; // slate-900 - matches chat background
     border: 1px solid var(--accent-border) !important;
     border-radius: 8px;
-    color: var(--text-color-regular);
+    color: #FFFFFF;
   }
 }
 

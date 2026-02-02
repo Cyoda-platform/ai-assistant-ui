@@ -971,16 +971,17 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
                 editorRef.current = editor;
                 monacoRef.current = monaco;
 
-                // Define custom theme matching the application design
+                // Define custom theme matching the Tree Preview colors
                 monaco.editor.defineTheme('workflow-dark', {
                   base: 'vs-dark', // Critical for correct scrollbars and menus
                   inherit: true,
                   rules: [
                     { token: '', foreground: 'E2E8F0' }, // Default text color
-                    { token: 'string.key.json', foreground: '2DD4BF' }, // JSON keys - teal accent
-                    { token: 'string.value.json', foreground: '86EFAC' }, // JSON string values - light green
-                    { token: 'number', foreground: 'FCD34D' }, // Numbers - amber
-                    { token: 'keyword', foreground: '2DD4BF' }, // Keywords - teal accent
+                    { token: 'string.key.json', foreground: '93C5FD' }, // JSON keys - text-blue-300
+                    { token: 'string.value.json', foreground: '4ADE80' }, // JSON string values - text-green-400
+                    { token: 'number', foreground: '60A5FA' }, // Numbers - text-blue-400
+                    { token: 'keyword.json', foreground: 'C084FC' }, // Keywords (true/false/null) - text-purple-400
+                    { token: 'keyword', foreground: 'C084FC' }, // Keywords - text-purple-400
                     { token: 'comment', foreground: '64748B' }, // Comments - muted gray
                   ],
                   colors: {
@@ -990,15 +991,15 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
 
                     // Line numbers and gutter
                     'editorLineNumber.foreground': '#475569',
-                    'editorLineNumber.activeForeground': '#2DD4BF',
+                    'editorLineNumber.activeForeground': '#93C5FD',
                     'editorGutter.background': '#0E1525',
 
                     // Current line highlight
                     'editor.lineHighlightBackground': '#1E293B',
                     'editor.lineHighlightBorder': '#1E293B',
 
-                    // Cursor - bright teal
-                    'editorCursor.foreground': '#2DD4BF',
+                    // Cursor - light blue
+                    'editorCursor.foreground': '#93C5FD',
 
                     // Selection
                     'editor.selectionBackground': '#1E293B',
@@ -1022,16 +1023,16 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
 
                     // Bracket matching
                     'editorBracketMatch.background': '#1E293B',
-                    'editorBracketMatch.border': '#2DD4BF',
+                    'editorBracketMatch.border': '#93C5FD',
 
                     // Widget backgrounds (autocomplete, hover, etc.)
                     'editorWidget.background': '#1E293B',
-                    'editorWidget.border': '#2DD4BF',
+                    'editorWidget.border': '#93C5FD',
                     'editorSuggestWidget.background': '#1E293B',
-                    'editorSuggestWidget.border': '#2DD4BF',
+                    'editorSuggestWidget.border': '#93C5FD',
                     'editorSuggestWidget.selectedBackground': '#334155',
                     'editorHoverWidget.background': '#1E293B',
-                    'editorHoverWidget.border': '#2DD4BF',
+                    'editorHoverWidget.border': '#93C5FD',
 
                     // Indentation guides
                     'editorIndentGuide.background': '#334155',
@@ -1196,7 +1197,12 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
                 wordWrap: 'on',
                 folding: true,
                 bracketPairColorization: { enabled: true },
-                guides: { bracketPairs: true, indentation: true },
+                guides: {
+                  indentation: true,
+                  highlightActiveIndentation: true,
+                  bracketPairs: true,
+                  bracketPairsHorizontal: 'active',
+                },
                 suggest: { showKeywords: true, showSnippets: true },
                 quickSuggestions: { other: true, comments: false, strings: true },
                 padding: { top: 12, bottom: 12 }

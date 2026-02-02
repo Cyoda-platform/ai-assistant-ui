@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Home, History, Clock, ChevronRight, X, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Modal } from 'antd';
@@ -144,7 +145,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
       )}
 
       {/* Navigation */}
-      <nav className={`flex-1 flex flex-col p-4 space-y-2 overflow-hidden ${onClose ? 'pt-4' : 'pt-6'}`}>
+      <nav className={`flex-1 flex flex-col pl-4 pr-2 py-4 space-y-2 overflow-hidden ${onClose ? 'pt-4' : 'pt-6'}`}>
         {/* Home Button */}
         <a
           href="/"
@@ -164,32 +165,16 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
               window.open('/', '_blank');
             }
           }}
-          className={`flex items-center space-x-3 cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-200 group no-underline ${
-            showHomeAsActive
-              ? 'text-white bg-slate-700/60 border border-slate-600/50 shadow-sm'
-              : 'text-slate-300 hover:text-white hover:bg-slate-700/40 border border-transparent'
-          }`}
+          className="flex items-center justify-center gap-2 cursor-pointer px-4 py-2.5 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-semibold text-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-teal-500/20 no-underline"
+          style={{ color: '#ffffff' }}
         >
-          <Home size={19} className="group-hover:scale-110 transition-transform flex-shrink-0" />
-          <span className="font-semibold text-sm">New Chat</span>
+          <Home size={19} className="flex-shrink-0" style={{ color: '#ffffff' }} />
+          <span style={{ color: '#ffffff' }}>New Chat</span>
         </a>
 
-        {/* Current Chat / History Header */}
-        <div className="flex-1 flex flex-col space-y-3 overflow-hidden">
-          <div
-            className={`flex items-center space-x-3 cursor-pointer px-3 py-2.5 rounded-lg group ${
-              !showHomeAsActive
-                ? 'text-white bg-slate-700/60 border border-slate-600/50 shadow-sm'
-                : 'text-slate-300 hover:text-white hover:bg-slate-700/40 transition-all duration-200 border border-transparent'
-            }`}
-          >
-            <History size={19} className="group-hover:scale-110 transition-transform flex-shrink-0" />
-            <span className="font-semibold text-sm">{!showHomeAsActive ? 'Current Chat' : 'History'}</span>
-            {showHomeAsActive && <ChevronRight size={16} className="ml-auto group-hover:translate-x-1 transition-transform" />}
-          </div>
-
-          {/* Chat History List */}
-          <div className={`space-y-4 flex-1 chat-container ${isLoading ? 'overflow-hidden' : 'overflow-y-auto pr-2'}`}>
+        {/* Chat History List */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className={`space-y-4 flex-1 chat-container ${isLoading ? 'overflow-hidden' : 'overflow-y-auto'}`}>
             {isLoading ? (
               <div className="flex flex-col items-center justify-center h-full space-y-3 py-8">
                 <LoadingSpinner size="md" />
@@ -231,27 +216,30 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
                               window.open(`/chat/${chat.technical_id}`, '_blank');
                             }
                           }}
-                          className={`group block cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-200 text-sm no-underline relative chat-item-hover ${
+                          className={`group block cursor-pointer px-3 py-2.5 rounded-lg transition-all duration-200 text-sm no-underline relative ${
                             chat.technical_id === currentChatId
-                              ? 'bg-slate-700/70 border border-slate-600/60 text-slate-300 shadow-sm'
+                              ? 'text-white border border-transparent'
                               : 'text-slate-400 hover:text-slate-300 hover:bg-slate-700/40 border border-transparent hover:border-slate-600/30'
                           }`}
+                          style={chat.technical_id === currentChatId ? {
+                            backgroundColor: 'rgba(20, 184, 166, 0.2)'
+                          } : undefined}
                         >
                         <div className="flex items-start space-x-2.5">
                           <Clock
                             size={16}
                             className={`mt-0.5 flex-shrink-0 ${
-                              chat.technical_id === currentChatId ? 'text-slate-300' : 'text-slate-500 group-hover:text-slate-400'
+                              chat.technical_id === currentChatId ? 'text-white' : 'text-slate-500 group-hover:text-slate-400'
                             }`}
                           />
                           <div className="flex-1 min-w-0 pr-10">
                             <div className={`truncate font-medium ${
-                              chat.technical_id === currentChatId ? 'text-slate-300' : 'text-slate-400 group-hover:text-slate-300'
+                              chat.technical_id === currentChatId ? 'text-white' : 'text-slate-400 group-hover:text-slate-300'
                             }`} title={chat.name || chat.description}>
                               {chat.name || chat.description || 'Untitled Chat'}
                             </div>
                             <div className={`text-xs mt-0.5 ${
-                              chat.technical_id === currentChatId ? 'text-slate-400' : 'text-slate-500'
+                              chat.technical_id === currentChatId ? 'text-white/80' : 'text-slate-500'
                             }`}>
                               {formatRelativeTime(chat.last_modified || chat.date || '')}
                             </div>
@@ -313,50 +301,48 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
       <ResizeHandle onMouseDown={onResizeMouseDown} isResizing={isResizing} position="right" />
 
       {/* Delete Confirmation Modal */}
-      {deleteModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-800 rounded-xl shadow-2xl border border-slate-700 max-w-md w-full mx-4 overflow-hidden">
+      {deleteModalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
+          <div className="bg-slate-800 rounded-lg shadow-xl border border-slate-700 max-w-md w-full mx-4 overflow-hidden">
             {/* Header */}
-            <div className="flex items-center space-x-3 p-6 border-b border-slate-700">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-500/20">
-                <AlertTriangle size={24} className="text-red-400" />
+            <div className="flex items-center space-x-2.5 px-5 py-4 border-b border-slate-700">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-500/20">
+                <AlertTriangle size={16} className="text-red-400" />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-white">Delete Chat</h3>
-                <p className="text-sm text-slate-400">This action cannot be undone</p>
-              </div>
+              <h3 className="font-semibold text-white">Delete Chat</h3>
             </div>
 
             {/* Body */}
-            <div className="p-6">
-              <p className="text-slate-300 mb-2">
-                Are you sure you want to delete this chat?
+            <div className="px-5 py-4 space-y-3">
+              <p className="text-sm text-slate-300">
+                Are you sure you want to delete this chat? This action cannot be undone.
               </p>
               {chatToDelete?.name && (
-                <div className="mt-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700">
-                  <p className="text-sm text-slate-400 mb-1">Chat name:</p>
-                  <p className="text-white font-medium truncate">{chatToDelete.name}</p>
+                <div className="text-center py-2">
+                  <p className="text-base text-white font-medium italic">"{chatToDelete.name}"</p>
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-end space-x-3 p-6 border-t border-slate-700 bg-slate-900/30">
+            <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-slate-700 bg-slate-900/30">
               <button
                 onClick={handleCancelDelete}
-                className="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors font-medium"
+                className="px-3 py-1.5 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
-                className="px-4 py-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-red-500/25"
+                className="px-3 py-1.5 rounded-lg hover:bg-slate-700 transition-colors"
+                style={{ color: '#ef4444' }}
               >
                 Delete Chat
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Rename Dialog */}

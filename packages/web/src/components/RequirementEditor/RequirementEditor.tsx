@@ -516,7 +516,7 @@ Additional notes and considerations...
           label: (
             <div className="flex items-center justify-between w-full">
               <span>{font.label}</span>
-              {fontFamily === font.value && <span className="text-blue-400 ml-2">✓</span>}
+              {fontFamily === font.value && <span className="text-orange-400 ml-2">✓</span>}
             </div>
           ),
           onClick: () => handleFontChange(font.value),
@@ -575,7 +575,7 @@ Additional notes and considerations...
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <Loader2 size={64} className="mx-auto mb-4 text-blue-400 animate-spin" />
+          <Loader2 size={64} className="mx-auto mb-4 text-orange-400 animate-spin" />
           <h2 className="text-xl font-semibold text-gray-300 mb-2">
             Loading Requirements...
           </h2>
@@ -590,7 +590,7 @@ Additional notes and considerations...
       <div className="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur-sm px-4 py-2.5 flex items-center justify-between gap-4">
         {/* Left: Title and Path */}
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <h3 className="text-sm font-semibold text-white truncate">{requirement?.title || 'Requirement'}</h3>
+          <h3 className="text-sm font-semibold text-white truncate !m-0">{requirement?.title || 'Requirement'}</h3>
 
           {requirement && (requirement.metadata?.filePath || getGitHubUrl(requirement)) && (
             <div className="flex items-center gap-1.5 text-xs text-gray-400 min-w-0">
@@ -599,7 +599,10 @@ Additional notes and considerations...
                   href={getGitHubUrl(requirement)!}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-blue-400 hover:text-blue-300 font-mono truncate transition-colors"
+                  className="flex items-center gap-1 font-mono truncate transition-colors"
+                  style={{ color: '#fb923c' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#fdba74'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#fb923c'}
                   title="View on GitHub"
                 >
                   <Github size={12} className="flex-shrink-0" />
@@ -622,7 +625,7 @@ Additional notes and considerations...
               onClick={() => setViewMode('markdown')}
               className={`p-1.5 rounded transition-all ${
                 viewMode === 'markdown'
-                  ? 'bg-blue-600/30 text-blue-400'
+                  ? 'bg-orange-600/30 text-orange-400'
                   : 'text-gray-400 hover:text-gray-300'
               }`}
               title="Edit mode"
@@ -633,7 +636,7 @@ Additional notes and considerations...
               onClick={() => setViewMode('split')}
               className={`p-1.5 rounded transition-all ${
                 viewMode === 'split'
-                  ? 'bg-blue-600/30 text-blue-400'
+                  ? 'bg-orange-600/30 text-orange-400'
                   : 'text-gray-400 hover:text-gray-300'
               }`}
               title="Split view"
@@ -644,7 +647,7 @@ Additional notes and considerations...
               onClick={() => setViewMode('preview')}
               className={`p-1.5 rounded transition-all ${
                 viewMode === 'preview'
-                  ? 'bg-blue-600/30 text-blue-400'
+                  ? 'bg-orange-600/30 text-orange-400'
                   : 'text-gray-400 hover:text-gray-300'
               }`}
               title="Preview mode"
@@ -661,7 +664,7 @@ Additional notes and considerations...
             <Upload size={16} />
           </button>
 
-          <Dropdown menu={downloadMenu} trigger={['click']}>
+          <Dropdown menu={downloadMenu} trigger={['click']} overlayClassName="editor-settings-dropdown">
             <button
               className="p-1.5 rounded bg-slate-700/50 text-gray-400 hover:text-gray-300 border border-slate-600/50 transition-all"
               title="Download"
@@ -670,7 +673,7 @@ Additional notes and considerations...
             </button>
           </Dropdown>
 
-          <Dropdown menu={settingsMenu} trigger={['click']}>
+          <Dropdown menu={settingsMenu} trigger={['click']} overlayClassName="editor-settings-dropdown">
             <button
               className="p-1.5 rounded bg-slate-700/50 text-gray-400 hover:text-gray-300 border border-slate-600/50 transition-all"
               title="Editor settings"
@@ -684,28 +687,8 @@ Additional notes and considerations...
             className="p-1.5 rounded bg-slate-700/50 text-gray-400 hover:text-gray-300 border border-slate-600/50 transition-all"
             title="Copy to clipboard"
           >
-            {isCopied ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
+            {isCopied ? <Check size={16} className="text-orange-400" /> : <Copy size={16} />}
           </button>
-
-          {onSendToChat && (
-            <button
-              onClick={() => onSendToChat(markdownText)}
-              className="p-1.5 rounded bg-orange-600/20 text-orange-400 hover:text-orange-300 border border-orange-500/30 transition-all"
-              title="Send to chat"
-            >
-              <Send size={16} />
-            </button>
-          )}
-
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="p-1.5 rounded bg-slate-700/50 text-gray-400 hover:text-gray-300 border border-slate-600/50 transition-all"
-              title="Go back"
-            >
-              <ArrowLeft size={16} />
-            </button>
-          )}
         </div>
       </div>
 
@@ -834,6 +817,35 @@ Additional notes and considerations...
               />
             </div>
           </div>
+        )}
+      </div>
+
+      {/* Footer with Send Button - Fixed at bottom */}
+      <div className="border-t border-gray-700 bg-gray-800/50 p-4 flex items-center justify-between flex-shrink-0">
+        <div className="flex items-center space-x-2">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 whitespace-nowrap"
+              title="Go back to requirements list"
+            >
+              <ArrowLeft size={12} />
+              <span>Back</span>
+            </button>
+          )}
+        </div>
+        {onSendToChat && (
+          <button
+            onClick={() => onSendToChat(markdownText)}
+            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 text-white whitespace-nowrap"
+            style={{ backgroundColor: '#f97316' }}
+            title="Send edited requirement to chat"
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#ea580c'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f97316'}
+          >
+            <Send size={12} />
+            <span>Send to Chat</span>
+          </button>
         )}
       </div>
 

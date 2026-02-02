@@ -110,7 +110,7 @@ export const EnhancedRequirementPreview: React.FC<EnhancedRequirementPreviewProp
       case 'in progress':
       case 'in_progress':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30">
             <Clock size={12} />
             In Progress
           </span>
@@ -164,35 +164,8 @@ export const EnhancedRequirementPreview: React.FC<EnhancedRequirementPreviewProp
   return (
     <div className="enhanced-requirement-preview">
       {/* Metadata Header */}
-      {requirement && (
-        <div className="mb-6 pb-4 border-b border-slate-700/50">
-          <div className="flex items-start justify-between gap-4 mb-3">
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold text-white mb-2">{requirement.title}</h1>
-              {requirement.description && (
-                <p className="text-sm text-gray-400 leading-relaxed">{requirement.description}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {requirement.status && getStatusBadge(requirement.status)}
-            {requirement.priority && getPriorityBadge(requirement.priority)}
-            {requirement.metadata?.tags && requirement.metadata.tags.length > 0 && (
-              <>
-                {requirement.metadata.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-purple-500/20 text-purple-400 border border-purple-500/30"
-                  >
-                    <Tag size={12} />
-                    {tag}
-                  </span>
-                ))}
-              </>
-            )}
-          </div>
-        </div>
+      {requirement && requirement.description && (
+        <p className="text-sm text-gray-400 leading-relaxed mb-6">{requirement.description}</p>
       )}
 
       {/* Sections */}
@@ -204,33 +177,31 @@ export const EnhancedRequirementPreview: React.FC<EnhancedRequirementPreviewProp
           return (
             <div
               key={section.id}
-              className={`requirement-section ${
-                isSubsection ? 'ml-4' : ''
-              } border border-slate-700/30 rounded-lg overflow-hidden bg-gradient-to-br from-slate-800/30 to-slate-800/10`}
+              className="requirement-section border border-slate-700/30 rounded-lg overflow-hidden bg-gradient-to-br from-slate-800/30 to-slate-800/10"
             >
               {/* Section Header */}
               <div
                 onClick={() => toggleSection(section.id)}
-                className="flex items-center gap-3 p-4 cursor-pointer hover:bg-slate-700/20 transition-colors border-b border-slate-700/20"
+                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-slate-700/20 transition-colors border-b border-slate-700/20"
               >
-                <div className="text-blue-400 flex-shrink-0">
+                <div className="text-orange-400 flex-shrink-0">
                   {section.icon}
                 </div>
                 <h2
-                  className={`flex-1 font-semibold text-white ${
-                    section.level === 1 ? 'text-xl' : section.level === 2 ? 'text-lg' : 'text-base'
+                  className={`flex-1 font-semibold text-white !m-0 ${
+                    section.level === 1 ? 'text-base' : 'text-sm'
                   }`}
                 >
                   {section.title}
                 </h2>
                 <div className="text-gray-400 flex-shrink-0">
-                  {isCollapsed ? <ChevronRight size={18} /> : <ChevronDown size={18} />}
+                  {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
                 </div>
               </div>
 
               {/* Section Content */}
               {!isCollapsed && section.content.trim() && (
-                <div className="p-4 prose prose-invert prose-slate max-w-none requirement-section-content">
+                <div className="px-3 py-2 prose prose-sm prose-invert prose-slate max-w-none requirement-section-content">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {section.content}
                   </ReactMarkdown>

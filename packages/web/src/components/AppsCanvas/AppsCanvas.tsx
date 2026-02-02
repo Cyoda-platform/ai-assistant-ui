@@ -1,6 +1,7 @@
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
 import { GitCompare } from 'lucide-react';
+import { message } from 'antd';
 import type { UIWorkflowData } from '../WorkflowCanvas/types/workflow';
 import type { PortalData, CanvasTab } from './types/apps';
 import type { AppRoot } from './types/appSchema';
@@ -518,6 +519,18 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
     const updatedData = JSON.parse(JSON.stringify(currentAppData)) as AppRoot;
 
     if (groupType === 'entities') {
+      // Check if there's already a draft entity
+      // Draft entity = entity without github_url
+      const existingDraftEntity = updatedData.app.entities.find(e =>
+        !e.github_url || e.github_url === ''
+      );
+
+      if (existingDraftEntity) {
+        message.warning('You already have a draft entity. Please Send to chat to push it to Git before creating a new one.');
+        isAddingRef.current = false;
+        return;
+      }
+
       // Add new entity
       const newEntity = {
         name: `new-entity-${updatedData.app.entities.length + 1}`,
@@ -529,8 +542,35 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
         workflows: []
       };
       updatedData.app.entities.push(newEntity);
-      console.log('✅ Entity added:', newEntity.name);
     } else if (groupType === 'workflows' && entityId) {
+      // Check if there's already a draft workflow in ANY entity
+      // Draft workflow = workflow without proper github_url
+      const isDraftWorkflow = (w: any) =>
+        !w.github_url ||
+        w.github_url === '' ||
+        w.github_url === 'https://github.com' ||
+        w.github_url === 'https://example.com';
+
+      let existingDraftWorkflow: any = null;
+      let draftEntityName: string = '';
+
+      for (const entity of updatedData.app.entities) {
+        if (entity.workflows && Array.isArray(entity.workflows)) {
+          const draft = entity.workflows.find(isDraftWorkflow);
+          if (draft) {
+            existingDraftWorkflow = draft;
+            draftEntityName = entity.name;
+            break;
+          }
+        }
+      }
+
+      if (existingDraftWorkflow) {
+        message.warning(`You already have a draft workflow "${existingDraftWorkflow.name}" in entity "${draftEntityName}". Please Send to chat to push it to Git before creating a new one.`);
+        isAddingRef.current = false;
+        return;
+      }
+
       // Add new workflow to specific entity
       console.log('🔧 Adding workflow to entity:', entityId);
 
@@ -552,8 +592,8 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
         console.log('✅ Found entity, adding workflow');
         const newWorkflow = {
           name: `new-workflow-${entity.workflows.length + 1}`,
-          cyoda_url: 'https://example.com',
-          github_url: 'https://github.com',
+          cyoda_url: '',
+          github_url: '',  // Empty URL indicates draft
           config: {
             states: {
               initial: {

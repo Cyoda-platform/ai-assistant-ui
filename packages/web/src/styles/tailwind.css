@@ -15,6 +15,17 @@ html {
   color-scheme: dark;
 }
 
+/* Override Tailwind Typography (prose) link colors to match orange theme */
+.prose a {
+  color: rgb(251 146 60) !important; /* orange-400 */
+  text-decoration: none;
+}
+
+.prose a:hover {
+  color: rgb(249 115 22) !important; /* orange-500 */
+  text-decoration: underline;
+}
+
 /* Custom scrollbar styles */
 @layer utilities {
   .scrollbar-thin {
@@ -120,8 +131,8 @@ html {
     /* Remove transition to prevent layout shifts when messages appear */
     /* transition: all 0.2s ease-in-out; */
 
-    /* Dynamic padding based on content - increased for better spacing */
-    padding: clamp(0.75rem, 1.5vw + 0.5rem, 1.25rem) clamp(1rem, 2vw + 0.75rem, 1.5rem);
+    /* Fixed padding for consistent spacing */
+    padding: 1.5rem;
 
     /* Responsive width based on content */
     width: fit-content;
@@ -691,11 +702,14 @@ html, body {
 /* Main layout containers - full viewport, no outer scrolling */
 .main-layout {
   height: 100vh;
+  height: 100dvh; /* Use dynamic viewport height for better mobile support */
   width: 100vw;
   overflow: hidden; /* No outer scrolling */
   position: fixed; /* Prevent any body scrolling */
   top: 0;
   left: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .main-content {
@@ -945,47 +959,48 @@ html, body {
 }
 
 /* Confirmation Dialog Styles - Terms & Conditions */
-.confirmation-dialog .ant-modal-content {
-  background: linear-gradient(135deg, rgb(30, 41, 59) 0%, rgb(51, 65, 85) 100%);
-  border: 1px solid rgb(71, 85, 105);
-  border-radius: 12px;
+.ant-modal.confirmation-dialog .ant-modal-content {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+  border: 1px solid #334155 !important;
+  border-radius: 12px !important;
   padding: 0;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4) !important;
 }
 
-.confirmation-dialog .ant-modal-header {
-  background: transparent;
-  border-bottom: 1px solid rgb(71, 85, 105);
+.ant-modal.confirmation-dialog .ant-modal-header {
+  background: transparent !important;
+  border-bottom: 1px solid #334155 !important;
   padding: 20px 24px 16px;
 }
 
-.confirmation-dialog .ant-modal-body {
+.ant-modal.confirmation-dialog .ant-modal-body {
   padding: 0 24px;
-  background: transparent;
+  background: transparent !important;
 }
 
-.confirmation-dialog .ant-modal-footer {
-  border-top: 1px solid rgb(71, 85, 105);
+.ant-modal.confirmation-dialog .ant-modal-footer {
+  border-top: 1px solid #334155 !important;
   padding: 16px 24px;
-  background: transparent;
+  background: transparent !important;
 }
 
-/* Force silver button styling for confirmation dialog - Maximum specificity */
+/* Force teal button styling for confirmation dialog - Maximum specificity */
 .confirmation-dialog .ant-modal-footer .ant-btn.ant-btn-primary.ant-btn-color-primary.ant-btn-variant-solid {
-  background: linear-gradient(to right, rgb(203, 213, 225), rgb(148, 163, 184)) !important;
-  background-color: rgb(203, 213, 225) !important;
-  border-color: rgb(148, 163, 184) !important;
-  color: rgb(0, 0, 0) !important;
-  box-shadow: none !important;
+  background: linear-gradient(to right, rgb(20, 184, 166), rgb(13, 148, 136)) !important;
+  background-color: rgb(20, 184, 166) !important;
+  border-color: rgb(20, 184, 166) !important;
+  color: rgb(255, 255, 255) !important;
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3) !important;
+  border-radius: 8px !important;
 }
 
 .confirmation-dialog .ant-modal-footer .ant-btn.ant-btn-primary.ant-btn-color-primary.ant-btn-variant-solid:hover,
 .confirmation-dialog .ant-modal-footer .ant-btn.ant-btn-primary.ant-btn-color-primary.ant-btn-variant-solid:focus {
-  background: linear-gradient(to right, rgb(226, 232, 240), rgb(203, 213, 225)) !important;
-  background-color: rgb(226, 232, 240) !important;
-  border-color: rgb(203, 213, 225) !important;
-  color: rgb(0, 0, 0) !important;
-  box-shadow: none !important;
+  background: linear-gradient(to right, rgb(13, 148, 136), rgb(15, 118, 110)) !important;
+  background-color: rgb(13, 148, 136) !important;
+  border-color: rgb(13, 148, 136) !important;
+  color: rgb(255, 255, 255) !important;
+  box-shadow: 0 6px 16px rgba(20, 184, 166, 0.4) !important;
 }
 
 .confirmation-dialog .ant-modal-footer .ant-btn.ant-btn-primary.ant-btn-color-primary.ant-btn-variant-solid:disabled {
@@ -999,15 +1014,16 @@ html, body {
 
 /* Additional fallback with even higher specificity */
 .ant-modal.confirmation-dialog .ant-modal-footer .ant-btn-primary {
-  background: linear-gradient(to right, rgb(203, 213, 225), rgb(148, 163, 184)) !important;
-  background-color: rgb(203, 213, 225) !important;
-  border-color: rgb(148, 163, 184) !important;
+  background: linear-gradient(to right, rgb(20, 184, 166), rgb(13, 148, 136)) !important;
+  background-color: rgb(20, 184, 166) !important;
+  border-color: rgb(20, 184, 166) !important;
+  border-radius: 8px !important;
 }
 
 .ant-modal.confirmation-dialog .ant-modal-footer .ant-btn-primary:hover {
-  background: linear-gradient(to right, rgb(226, 232, 240), rgb(203, 213, 225)) !important;
-  background-color: rgb(226, 232, 240) !important;
-  border-color: rgb(203, 213, 225) !important;
+  background: linear-gradient(to right, rgb(13, 148, 136), rgb(15, 118, 110)) !important;
+  background-color: rgb(13, 148, 136) !important;
+  border-color: rgb(13, 148, 136) !important;
 }
 
 /* Silver Accept Button - Custom styling */
@@ -1298,6 +1314,11 @@ header .ant-card .ant-card-actions a:hover {
   color: white !important;
 }
 
+/* Override global link hover color for header social icons */
+header a.rounded-lg:hover {
+  color: rgb(20 184 166) !important; /* teal-500 */
+}
+
 /* ReactFlow Canvas Styles */
 .react-flow__controls button {
   background-color: #1e293b !important;
@@ -1560,11 +1581,14 @@ header .ant-card .ant-card-actions a:hover {
 .markdown-content {
   word-break: break-word;
   overflow-wrap: break-word;
+  line-height: 1;
 }
 
 .markdown-content p {
   word-break: break-word;
   overflow-wrap: break-word;
+  line-height: 1.5;
+  margin: 0;
 }
 
 /* Code blocks - preserve formatting and allow horizontal scroll */

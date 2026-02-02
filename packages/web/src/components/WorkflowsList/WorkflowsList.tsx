@@ -72,6 +72,45 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
 
   const handleCreateWorkflow = () => {
     try {
+      // Check if there's already a draft workflow in ANY entity
+      // Draft workflow = workflow without proper github_url
+      const isDraftWorkflow = (w: any) =>
+        !w.github_url ||
+        w.github_url === '' ||
+        w.github_url === 'https://github.com' ||
+        w.github_url === 'https://example.com';
+
+      let existingDraftWorkflow: any = null;
+      let draftEntityName: string = '';
+
+      // Check all entities for draft workflows
+      for (const entity of appData.app.entities || []) {
+        if (entity.workflows && Array.isArray(entity.workflows)) {
+          const draft = entity.workflows.find(isDraftWorkflow);
+          if (draft) {
+            existingDraftWorkflow = draft;
+            draftEntityName = entity.name;
+            break;
+          }
+        }
+      }
+
+      // Also check metadata workflows (for newly created workflows)
+      const metadataWorkflows = (appData.app.metadata as any)?.workflows || [];
+      if (!existingDraftWorkflow && metadataWorkflows.length > 0) {
+        const draft = metadataWorkflows.find(isDraftWorkflow);
+        if (draft) {
+          existingDraftWorkflow = draft;
+          draftEntityName = 'metadata';
+        }
+      }
+
+      if (existingDraftWorkflow) {
+        const entityInfo = draftEntityName === 'metadata' ? '' : ` in entity "${draftEntityName}"`;
+        message.warning(`You already have a draft workflow "${existingDraftWorkflow.name}"${entityInfo}. Please Send to chat to push it to Git before creating a new one.`);
+        return;
+      }
+
       let updatedAppData = { ...appData };
 
       // Create new workflow with default configuration
@@ -234,7 +273,7 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
             <CanvasEmptyState type="workflows" />
           </div>
         ) : (
-          <div className="flex flex-wrap gap-4 h-full">
+          <div className="flex flex-wrap gap-4">
             {workflows.map((workflow: any, index: number) => {
               return (
                 <div
@@ -255,13 +294,11 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
                     <div className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5 bg-purple-400" />
                   </div>
 
-                  {getWorkflowPath(workflow) && (
-                    <p className="text-xs text-gray-400 leading-tight flex-1 overflow-hidden break-words">
-                      Workflow from {getWorkflowPath(workflow)}
-                    </p>
-                  )}
+                  <p className="text-xs text-gray-400 leading-tight flex-1 overflow-hidden break-words">
+                    {getWorkflowPath(workflow) ? `Workflow from ${getWorkflowPath(workflow)}` : (workflow.description || 'No description provided')}
+                  </p>
 
-                  <div className="flex items-center justify-end text-xs text-gray-500 gap-1">
+                  <div className="flex items-center justify-end text-xs text-gray-500 gap-1 mt-2">
                     {!getWorkflowPath(workflow) && (
                       <button
                         onClick={(e) => handleDeleteWorkflow(workflow.name, workflow.entity_name, e)}

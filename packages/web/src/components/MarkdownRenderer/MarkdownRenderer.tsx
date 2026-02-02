@@ -223,7 +223,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
           // Custom paragraph styling
           p({ children }) {
             return (
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed my-2 first:mt-0 last:mb-0">
+              <p className="text-slate-300 text-sm sm:text-base leading-relaxed my-0">
                 {children}
               </p>
             );
