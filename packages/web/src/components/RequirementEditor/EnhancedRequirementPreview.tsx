@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import MarkdownRenderer from '@/components/MarkdownRenderer/MarkdownRenderer';
 import {
   ChevronDown,
   ChevronRight,
@@ -202,9 +201,9 @@ export const EnhancedRequirementPreview: React.FC<EnhancedRequirementPreviewProp
               {/* Section Content */}
               {!isCollapsed && section.content.trim() && (
                 <div className="px-3 py-2 prose prose-sm prose-invert prose-slate max-w-none requirement-section-content">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <MarkdownRenderer>
                     {section.content}
-                  </ReactMarkdown>
+                  </MarkdownRenderer>
                 </div>
               )}
             </div>
@@ -215,9 +214,9 @@ export const EnhancedRequirementPreview: React.FC<EnhancedRequirementPreviewProp
       {/* Fallback for non-sectioned content */}
       {sections.length === 0 && (
         <div className="prose prose-invert prose-slate max-w-none">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          <MarkdownRenderer>
             {markdownText}
-          </ReactMarkdown>
+          </MarkdownRenderer>
         </div>
       )}
     </div>

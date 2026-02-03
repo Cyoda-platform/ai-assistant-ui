@@ -64,6 +64,7 @@ const TaskDashboard = forwardRef<TaskDashboardHandle, TaskDashboardProps>(({
   // Poll for updates every 20 seconds for real-time CLI output
   // This also does an initial load, so no need for a separate initial load
   useEffect(() => {
+    console.log(`[TaskDashboard] Starting polling for conversation: ${conversationId}`);
     const cleanup = taskService.pollConversationTasks(
       conversationId,
       (updatedTasks) => {
@@ -76,7 +77,10 @@ const TaskDashboard = forwardRef<TaskDashboardHandle, TaskDashboardProps>(({
       20000 // Poll every 20 seconds
     );
 
-    return cleanup;
+    return () => {
+      console.log(`[TaskDashboard] Stopping polling for conversation: ${conversationId}`);
+      cleanup();
+    };
   }, [conversationId]);
 
   // Filter tasks

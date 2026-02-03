@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FileText, Eye, Code2, Send, Loader2, ArrowLeft, Github, Copy, Check, Maximize2, Settings, Upload, Download, FileDown } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import type { Requirement } from '@/components/AppsCanvas/types/appSchema';
 import Editor, { useMonaco } from '@monaco-editor/react';
 import { message, Dropdown, Slider } from 'antd';

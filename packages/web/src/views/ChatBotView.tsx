@@ -2461,70 +2461,16 @@ const ChatBotView: React.FC = () => {
   }, []); // Empty dependency array - set up once and use functional updates to access latest state
 
   // Track task completion and send notifications when tasks panel is closed
+  // NOTE: Background polling is DISABLED - polling only happens when tasks panel is open via TaskDashboard
   const previousTaskStatusesRef = useRef<Map<string, string>>(new Map());
   const taskPollingCleanupRef = useRef<(() => void) | null>(null);
 
-  useEffect(() => {
-    if (!technicalId) return;
-
-    // Clean up previous polling if exists
-    if (taskPollingCleanupRef.current) {
-      taskPollingCleanupRef.current();
-    }
-
-    const cleanup = taskService.pollConversationTasks(
-      technicalId,
-      (tasks: BackgroundTask[]) => {
-        // Check each task for completion
-        tasks.forEach(task => {
-          const previousStatus = previousTaskStatusesRef.current.get(task.technical_id);
-          const currentStatus = task.status;
-
-          // Send notification if:
-          // 1. Task status changed to completed/failed (and we saw it before)
-          // 2. OR this is first time seeing this task and it's already completed/failed
-          const shouldNotify = !isTasksPanelOpen && (
-            // Status changed to completed/failed
-            (previousStatus && previousStatus !== currentStatus && (currentStatus === 'completed' || currentStatus === 'failed')) ||
-            // First time seeing this task and it's already completed/failed (within last 5 minutes)
-            (!previousStatus && (currentStatus === 'completed' || currentStatus === 'failed') &&
-             task.completed_at && (Date.now() - new Date(task.completed_at).getTime()) < 5 * 60 * 1000)
-          );
-
-          if (shouldNotify) {
-            // Send notification
-            const notification: HeaderNotification = {
-              id: notificationIdCounter.current++,
-              type: currentStatus === 'completed' ? 'success' : 'error',
-              title: currentStatus === 'completed' ? 'Task Completed' : 'Task Failed',
-              message: task.name || task.description || 'Background task finished',
-              timestamp: new Date().toLocaleTimeString(),
-              isRead: false,
-              taskId: task.technical_id // Add task ID for opening tasks panel
-            };
-            setHeaderNotifications(prev => [notification, ...prev]);
-            setCountNewMessages(prev => prev + 1);
-          }
-
-          // Update previous status
-          previousTaskStatusesRef.current.set(task.technical_id, currentStatus);
-        });
-      },
-      (error) => {
-        console.error('[Task Polling] Error polling tasks:', error);
-      },
-      5000 // Poll every 5 seconds for faster notifications
-    );
-
-    taskPollingCleanupRef.current = cleanup;
-
-    return () => {
-      if (taskPollingCleanupRef.current) {
-        taskPollingCleanupRef.current();
-        taskPollingCleanupRef.current = null;
-      }
-    };
-  }, [technicalId]); // Only re-run when chat changes, NOT when panel opens/closes
+  // Disabled background task polling - only TaskDashboard polls when panel is open
+  // useEffect(() => {
+  //   if (!technicalId) return;
+  //   const cleanup = taskService.pollConversationTasks(...);
+  //   return () => cleanup();
+  // }, [technicalId]);
 
   // Clear previous task statuses when switching chats
   useEffect(() => {

@@ -53,7 +53,9 @@ const TasksPanel = forwardRef<TasksPanelHandle, TasksPanelProps>(({
   // Use external width if provided (parent manages resizing)
   const panelWidth = externalWidth ?? 500;
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div
@@ -94,14 +96,14 @@ const TasksPanel = forwardRef<TasksPanelHandle, TasksPanelProps>(({
       </div>
 
       {/* Content Area - Task Dashboard */}
-      {conversationId ? (
+      {conversationId && isOpen ? (
         <TaskDashboard
           ref={taskDashboardRef}
           conversationId={conversationId}
           backgroundTaskIds={chatData?.chat_body?.background_task_ids}
           onRestartTask={onRestartTask}
         />
-      ) : (
+      ) : isOpen ? (
         <div className="flex-1 flex items-center justify-center h-full w-full">
           <div className="text-center">
             <div className="w-12 h-12 rounded-lg bg-slate-700/50 flex items-center justify-center mx-auto mb-4">
@@ -110,7 +112,7 @@ const TasksPanel = forwardRef<TasksPanelHandle, TasksPanelProps>(({
             <p className="text-slate-400">No conversation ID available</p>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 });

@@ -25,9 +25,7 @@ import {
   GitPullRequest,
   ArrowLeft
 } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeHighlight from 'rehype-highlight';
+import MarkdownRenderer from '@/components/MarkdownRenderer/MarkdownRenderer';
 import ChatBotEditorWorkflowSimple from './ChatBotEditorWorkflowSimple';
 import ChatBotEditorWorkflowNew from './ChatBotEditorWorkflowNew';
 import MermaidDiagram from '../MermaidDiagram/MermaidDiagram';
@@ -997,49 +995,9 @@ graph TD
                     <div className="flex-1 bg-slate-800/80 rounded-lg border border-slate-600 p-4 backdrop-blur-sm overflow-y-auto scrollbar-thin">
                       {markdownContent ? (
                         <div className="prose prose-invert prose-slate max-w-none prose-sm">
-                          <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            rehypePlugins={[rehypeHighlight]}
-                            components={{
-                              // Custom code block renderer to handle Mermaid diagrams
-                              code({ node, inline, className, children, ...props }) {
-                                const match = /language-(\w+)/.exec(className || '');
-                                const language = match ? match[1] : '';
-                                const codeContent = String(children).replace(/\n$/, '');
-
-                                // Handle Mermaid diagrams
-                                if (language === 'mermaid' && !inline) {
-                                  return (
-                                    <div className="my-6">
-                                      <MermaidDiagram chart={codeContent} />
-                                    </div>
-                                  );
-                                }
-
-                                // Handle other code blocks
-                                if (!inline && match) {
-                                  return (
-                                    <div className="relative group">
-                                      <pre className="bg-slate-900/50 border border-slate-600 rounded-lg p-4 overflow-x-auto">
-                                        <code className={className} {...props}>
-                                          {children}
-                                        </code>
-                                      </pre>
-                                    </div>
-                                  );
-                                }
-
-                                // Inline code
-                                return (
-                                  <code className="bg-slate-900/50 px-1 py-0.5 rounded text-sm" {...props}>
-                                    {children}
-                                  </code>
-                                );
-                              },
-                            }}
-                          >
+                          <MarkdownRenderer>
                             {markdownContent}
-                          </ReactMarkdown>
+                          </MarkdownRenderer>
                         </div>
                       ) : (
                         <div className="text-slate-500 text-sm italic">
