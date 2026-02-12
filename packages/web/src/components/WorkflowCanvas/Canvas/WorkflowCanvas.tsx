@@ -317,7 +317,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     } catch (error) {
       console.warn('Failed to load edge type from localStorage:', error);
     }
-    return 'smoothstep'; // Changed from 'default' to 'smoothstep' for cleaner routing
+    return 'default'; // Bezier is the default edge type
   });
 
   const [layoutDirection, setLayoutDirectionState] = useState<'TB' | 'LR'>(() => {
