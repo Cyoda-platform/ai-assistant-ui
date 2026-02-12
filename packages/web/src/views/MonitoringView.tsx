@@ -65,7 +65,7 @@ const MonitoringView: React.FC = () => {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [rateLimitError, setRateLimitError] = useState<string | null>(null);
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('');
-  const [selectedApplication, setSelectedApplication] = useState<string>('cyoda');
+  const [selectedApplication, setSelectedApplication] = useState<string>('');
   const [environments, setEnvironments] = useState<Environment[]>([]);
   const [loadingEnvironments, setLoadingEnvironments] = useState(true);
   const [applications, setApplications] = useState<any[]>([]);
@@ -464,7 +464,7 @@ const MonitoringView: React.FC = () => {
                   opacity: loadingApplications ? 0.6 : 1
                 }}
               >
-                <option value="cyoda" style={{ backgroundColor: '#0f172a', color: '#e2e8f0' }}>cyoda (default)</option>
+                <option value="" style={{ backgroundColor: '#0f172a', color: '#94a3b8' }}>Select application...</option>
                 {loadingApplications ? (
                   <option disabled style={{ backgroundColor: '#0f172a', color: '#94a3b8' }}>Loading applications...</option>
                 ) : applications.length === 0 ? (
