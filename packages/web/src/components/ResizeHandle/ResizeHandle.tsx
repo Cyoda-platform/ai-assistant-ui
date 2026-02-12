@@ -27,14 +27,6 @@ const ResizeHandle: React.FC<ResizeHandleProps> = ({
       className={handleClasses}
       onMouseDown={onMouseDown}
     >
-      {/* Visual indicator */}
-      <div className={styles.indicator}>
-        <GripVertical
-          size={12}
-          className={styles.icon}
-        />
-      </div>
-
       {/* Invisible wider hit area for easier grabbing */}
       <div className={styles.hitArea} />
     </div>
