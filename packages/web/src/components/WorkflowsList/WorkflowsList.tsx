@@ -302,7 +302,7 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
                     {!getWorkflowPath(workflow) && (
                       <button
                         onClick={(e) => handleDeleteWorkflow(workflow.name, workflow.entity_name, e)}
-                        className="p-1 bg-blue-500/20 hover:bg-blue-500/30 rounded transition-colors"
+                        className="p-1 rounded transition-colors"
                         title="Delete workflow"
                       >
                         <Trash2 size={14} className="text-blue-400 hover:text-blue-300" />
