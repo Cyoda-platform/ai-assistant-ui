@@ -385,94 +385,114 @@
   font-size: 14px;
 }
 
-/* Ant Design Select Customization */
-.logs-view .ant-select {
-  font-size: 13px;
-}
-
-.logs-view .ant-select-selector {
+/* Ant Design Select styling to match MonitoringView */
+.logs-select-antd .ant-select-selector {
   background-color: #0f172a !important;
   border: 1px solid #334155 !important;
-  color: white !important;
-  border-radius: 4px !important;
-  padding: 2px 8px !important;
-  min-height: 32px !important;
+  border-radius: 6px !important;
+  padding: 10px 12px !important;
+  height: 42px !important;
+  font-size: 14px !important;
+  color: #e2e8f0 !important;
 }
 
-.logs-view .ant-select-selection-placeholder {
+.logs-select-antd .ant-select-selection-placeholder {
   color: #94a3b8 !important;
+  font-size: 14px !important;
 }
 
-.logs-view .ant-select-selection-item {
-  color: white !important;
+.logs-select-antd .ant-select-selection-item {
+  color: #e2e8f0 !important;
+  font-size: 14px !important;
+  line-height: 22px !important;
 }
 
-.logs-view .ant-select-arrow {
-  color: #94a3b8 !important;
+.logs-select-antd .ant-select-arrow {
+  color: #e2e8f0 !important;
+  right: 12px !important;
 }
 
-.logs-view .ant-select-disabled .ant-select-selector {
+.logs-select-antd:hover .ant-select-selector {
+  border-color: #334155 !important;
+}
+
+.logs-select-antd.ant-select-focused .ant-select-selector {
+  border-color: #334155 !important;
+  box-shadow: none !important;
+}
+
+.logs-select-antd.ant-select-disabled .ant-select-selector {
   background-color: #334155 !important;
   opacity: 0.6;
   cursor: not-allowed !important;
 }
 
-.logs-view .ant-select:hover .ant-select-selector {
-  border-color: #0d8484 !important;
-}
-
-.logs-view .ant-select-focused .ant-select-selector {
-  border-color: #0d8484 !important;
-  box-shadow: 0 0 0 2px rgba(13, 132, 132, 0.1) !important;
-}
-
-/* Dropdown z-index fix - must be higher than all page elements */
-.ant-select-dropdown {
+/* Dropdown menu styling */
+.logs-select-dropdown {
+  background-color: #0f172a !important;
+  border: 1px solid #334155 !important;
+  border-radius: 6px !important;
   z-index: 10000 !important;
 }
 
-/* Dropdown styling */
-.ant-select-dropdown {
+.logs-select-dropdown .ant-select-item {
   background-color: #0f172a !important;
-  border: 1px solid #334155 !important;
-  border-radius: 4px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
-}
-
-.ant-select-item {
   color: #e2e8f0 !important;
-  padding: 8px 12px !important;
+  font-size: 14px !important;
+  padding: 4px 12px !important;
+  min-height: 32px !important;
+  line-height: 24px !important;
+  white-space: nowrap !important;
 }
 
-.ant-select-item-option-selected {
-  background-color: rgba(13, 132, 132, 0.3) !important;
-  color: #0d8484 !important;
-  font-weight: 600 !important;
+.logs-select-dropdown .ant-select-item-option-selected {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
 }
 
-.ant-select-item-option-active {
-  background-color: rgba(13, 132, 132, 0.15) !important;
+.logs-select-dropdown .ant-select-item-option-active {
+  background-color: #1e293b !important;
 }
 
-.ant-select-item-option:hover {
-  background-color: rgba(13, 132, 132, 0.15) !important;
+.logs-select-dropdown .rc-virtual-list-holder-inner {
+  gap: 0 !important;
 }
 
-/* Ensure filters section has proper z-index */
-.logs-filters {
-  position: relative;
-  z-index: 100;
-}
-
-/* Mobile responsive for filters */
+/* Mobile responsive for selects */
 @media (max-width: 768px) {
-  .logs-filters {
+  .logs-selects-container {
     flex-direction: column !important;
     align-items: stretch !important;
+    gap: 16px !important;
   }
 
-  .logs-filters > div {
-    width: 100% !important;
-    min-width: 100% !important;
+  /* Increase touch target size for mobile */
+  .logs-select-antd .ant-select-selector {
+    height: 48px !important;
+    padding: 12px 14px !important;
+    font-size: 16px !important;
+  }
+
+  .logs-select-antd .ant-select-selection-placeholder,
+  .logs-select-antd .ant-select-selection-item {
+    font-size: 16px !important;
+    line-height: 24px !important;
+  }
+
+  .logs-select-antd .ant-select-arrow {
+    right: 14px !important;
+  }
+
+  /* Dropdown items for mobile */
+  .logs-select-dropdown .ant-select-item {
+    padding: 4px 14px !important;
+    font-size: 16px !important;
+    min-height: 32px !important;
+    line-height: 24px !important;
+  }
+
+  /* Make dropdown full width on mobile */
+  .logs-select-dropdown {
+    max-width: calc(100vw - 40px) !important;
   }
 }
