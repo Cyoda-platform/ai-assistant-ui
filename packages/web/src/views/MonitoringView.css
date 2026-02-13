@@ -611,3 +611,23 @@
 .metric-card.expandable:hover::after {
   opacity: 1;
 }
+
+/* Custom scrollbar for metrics selector */
+.monitoring-view ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.monitoring-view ::-webkit-scrollbar-track {
+  background: #0f172a;
+  border-radius: 4px;
+}
+
+.monitoring-view ::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+.monitoring-view ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}

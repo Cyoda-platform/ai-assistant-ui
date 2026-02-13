@@ -503,7 +503,14 @@ const MonitoringView: React.FC = () => {
               </button>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+            gap: '10px',
+            maxHeight: '400px',
+            overflowY: 'auto',
+            paddingRight: '10px'
+          }}>
             {AVAILABLE_METRICS.map((metric) => (
               <label key={metric.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#e2e8f0' }}>
                 <input
