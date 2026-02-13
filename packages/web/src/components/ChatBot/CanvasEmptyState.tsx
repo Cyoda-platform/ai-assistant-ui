@@ -81,7 +81,7 @@ const CanvasEmptyState: React.FC<CanvasEmptyStateProps> = ({ type }) => {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto text-center pt-8">
+    <div className="w-full max-w-2xl mx-auto text-center -mt-32">
       <div className="relative mb-6">
         <div className={`absolute inset-0 blur-3xl ${getBgColor()} animate-pulse`}></div>
         {getIcon()}
