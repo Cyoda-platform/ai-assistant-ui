@@ -217,6 +217,49 @@
   gap: 12px;
 }
 
+/* Mobile responsive header */
+@media (max-width: 768px) {
+  .logs-header {
+    padding: 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .logs-header-left {
+    width: 100%;
+  }
+
+  .logs-header-left > div {
+    width: 100%;
+  }
+
+  .logs-header-left img {
+    height: 24px !important;
+  }
+
+  .logs-header h1 {
+    font-size: 18px !important;
+  }
+
+  .logs-connection-info {
+    font-size: 11px;
+  }
+
+  .logs-header-actions {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .action-button {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+}
+
 .action-button {
   padding: 10px 20px;
   border: 1px solid #334155;
