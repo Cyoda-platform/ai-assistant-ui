@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import LogViewer, { ElkLogResponse } from '../components/LogViewer/LogViewer';
 import privateClient from '@/clients/private';
-import { message } from 'antd';
+import { message, Select } from 'antd';
 import Logo from '@/assets/images/logo.svg';
 import './LogsView.css';
 
@@ -362,78 +362,59 @@ const LogsView: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           gap: '24px',
-          flexWrap: 'wrap'
+          flexWrap: 'wrap',
+          position: 'relative',
+          zIndex: 100
         }}>
           {/* Environment Select */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <label style={{ color: '#94a3b8', fontSize: '14px', fontWeight: '500' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 auto', minWidth: '250px' }}>
+            <label style={{ color: '#94a3b8', fontSize: '14px', fontWeight: '500', whiteSpace: 'nowrap' }}>
               🌐 Environment:
             </label>
-            <select
-              value={selectedEnvironment}
-              onChange={(e) => setSelectedEnvironment(e.target.value)}
-              style={{
-                padding: '6px 12px',
-                borderRadius: '4px',
-                border: '1px solid #334155',
+            <Select
+              value={selectedEnvironment || undefined}
+              onChange={(value) => setSelectedEnvironment(value)}
+              placeholder="Select an environment..."
+              loading={loadingEnvironments}
+              style={{ flex: 1, minWidth: '150px' }}
+              dropdownStyle={{
                 backgroundColor: '#0f172a',
-                color: 'white',
-                fontSize: '13px',
-                minWidth: '200px',
-                outline: 'none',
-                cursor: 'pointer'
+                border: '1px solid #334155',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)'
               }}
             >
-              <option value="">Select an environment...</option>
-              {loadingEnvironments ? (
-                <option disabled>Loading environments...</option>
-              ) : environments.length === 0 ? (
-                <option disabled>No environments found</option>
-              ) : (
-                environments.map((env) => (
-                  <option key={env.namespace} value={env.name}>
-                    {env.name}
-                  </option>
-                ))
-              )}
-            </select>
+              {environments.map((env) => (
+                <Select.Option key={env.namespace} value={env.name}>
+                  {env.name}
+                </Select.Option>
+              ))}
+            </Select>
           </div>
 
           {/* Application Select */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <label style={{ color: '#94a3b8', fontSize: '14px', fontWeight: '500' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 auto', minWidth: '250px' }}>
+            <label style={{ color: '#94a3b8', fontSize: '14px', fontWeight: '500', whiteSpace: 'nowrap' }}>
               🚀 Application:
             </label>
-            <select
-              value={selectedApplication}
-              onChange={(e) => setSelectedApplication(e.target.value)}
+            <Select
+              value={selectedApplication || undefined}
+              onChange={(value) => setSelectedApplication(value)}
+              placeholder="Select an application..."
               disabled={!selectedEnvironment}
-              style={{
-                padding: '6px 12px',
-                borderRadius: '4px',
+              loading={loadingApplications}
+              style={{ flex: 1, minWidth: '150px' }}
+              dropdownStyle={{
+                backgroundColor: '#0f172a',
                 border: '1px solid #334155',
-                backgroundColor: selectedEnvironment ? '#0f172a' : '#334155',
-                color: selectedEnvironment ? 'white' : '#94a3b8',
-                fontSize: '13px',
-                minWidth: '200px',
-                outline: 'none',
-                cursor: selectedEnvironment ? 'pointer' : 'not-allowed',
-                opacity: selectedEnvironment ? 1 : 0.6
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)'
               }}
             >
-              <option value="">Select an application...</option>
-              {loadingApplications ? (
-                <option disabled>Loading applications...</option>
-              ) : applications.length === 0 ? (
-                <option disabled>No applications found</option>
-              ) : (
-                applications.map((app) => (
-                  <option key={app.namespace} value={app.name}>
-                    {app.name}
-                  </option>
-                ))
-              )}
-            </select>
+              {applications.map((app) => (
+                <Select.Option key={app.namespace} value={app.name}>
+                  {app.name}
+                </Select.Option>
+              ))}
+            </Select>
           </div>
         </div>
       )}
