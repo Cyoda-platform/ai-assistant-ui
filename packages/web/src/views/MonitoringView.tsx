@@ -687,7 +687,7 @@ const MonitoringView: React.FC = () => {
           </div>
           <div className="status-row">
             <span>Application:</span>
-            <code>{selectedApplication}</code>
+            <code>{selectedApplication || 'Not selected'}</code>
           </div>
           <div className="status-row">
             <span>Metrics Selected:</span>

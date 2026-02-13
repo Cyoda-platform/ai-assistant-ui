@@ -468,10 +468,16 @@
   align-items: center;
   font-size: 12px;
   color: #a8a8a8;
+  min-height: 24px;
 }
 
 .status-row:not(:last-child) {
   margin-bottom: 8px;
+}
+
+.status-row code {
+  min-height: 20px;
+  display: inline-block;
 }
 
 .status-active {
