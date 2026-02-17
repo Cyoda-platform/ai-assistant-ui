@@ -912,7 +912,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                     <button
                       onClick={() => handleSubmitOptions()}
                       disabled={isSubmittingOptions || selectedOptions.length === 0}
-                      className="w-full px-4 py-2.5 rounded-full backdrop-blur-md bg-gradient-to-r from-teal-500/20 to-cyan-500/20 border border-teal-400/20 hover:from-teal-500/30 hover:to-cyan-500/30 hover:border-teal-400/30 disabled:bg-slate-800/40 disabled:border-slate-700/30 disabled:opacity-50 text-teal-100 hover:text-white disabled:text-slate-500 text-sm font-medium transition-all duration-200 shadow-lg shadow-teal-500/10 hover:shadow-teal-400/20 disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="w-full px-4 py-2.5 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-semibold text-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-teal-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       <Send size={16} />
                       <span>Select</span>
