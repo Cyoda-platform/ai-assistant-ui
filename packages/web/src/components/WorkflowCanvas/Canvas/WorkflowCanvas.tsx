@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import {
   ReactFlow,
   Background,
@@ -300,9 +300,29 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 }) => {
   const { screenToFlowPosition, fitView } = useReactFlow();
   const [showQuickHelp, setShowQuickHelp] = useState(false);
-  const [showJsonEditor, setShowJsonEditor] = useState(true); // Open by default
-  const [showWorkflowInfo, setShowWorkflowInfo] = useState(true); // Show workflow info panel by default
+  const [showJsonEditor, setShowJsonEditor] = useState(true); // Will be updated in useEffect
+  const [showWorkflowInfo, setShowWorkflowInfo] = useState(true); // Will be updated in useEffect
   const [showSettings, setShowSettings] = useState(false);
+
+  // Check canvas width on mount and set showJsonEditor and showWorkflowInfo accordingly
+  useEffect(() => {
+    // Try multiple selectors to find the canvas container
+    const canvasPanel =
+      document.querySelector('.resizable-panel') || // Canvas panel in ChatBotView
+      document.querySelector('[class*="canvas"]') || // Any element with "canvas" in class
+      document.querySelector('.flex.flex-col.h-full'); // ChatBotCanvas root
+
+    if (canvasPanel) {
+      const width = canvasPanel.clientWidth;
+      const shouldShow = width >= 600;
+      setShowJsonEditor(shouldShow);
+      setShowWorkflowInfo(shouldShow); // Also hide workflow info in narrow panels
+    } else {
+      const shouldShow = window.innerWidth >= 600;
+      setShowJsonEditor(shouldShow);
+      setShowWorkflowInfo(shouldShow);
+    }
+  }, []); // Run only once on mount
   const [selectedStateId, setSelectedStateId] = useState<string | null>(null);
   const [selectedTransitionId, setSelectedTransitionId] = useState<string | null>(null);
   const [selectedTransitionSection, setSelectedTransitionSection] = useState<'criterion' | 'processors' | undefined>(undefined);
