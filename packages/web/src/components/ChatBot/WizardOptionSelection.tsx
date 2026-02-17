@@ -354,10 +354,10 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
               <div key={lang} className="relative">
                 <button
                   onClick={() => handleLanguageSelect(lang)}
-                  className="w-full px-4 py-3 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-teal-300 transition-all duration-300 text-left overflow-hidden relative group"
+                  className="w-full px-4 py-3 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-teal-300 transition-all duration-300 text-center overflow-hidden relative group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-teal-500/0 via-teal-500/10 to-teal-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative pr-8">
+                  <div className="relative">
                     <p className="text-sm font-medium">{getLanguageLabel(lang)}</p>
                     <p className="text-xs text-slate-400 mt-1">{getLanguageDescription(lang)}</p>
                   </div>
@@ -401,10 +401,10 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
               <div key={type} className="relative">
                 <button
                   onClick={() => handleBranchTypeSelect(type)}
-                  className="w-full px-4 py-3 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-teal-300 transition-all duration-300 text-left overflow-hidden relative group"
+                  className="w-full px-4 py-3 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-teal-300 transition-all duration-300 text-center overflow-hidden relative group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-teal-500/0 via-teal-500/10 to-teal-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative pr-8">
+                  <div className="relative">
                     <p className="text-sm font-medium">{getBranchTypeLabel(type)}</p>
                     <p className="text-xs text-slate-400 mt-1">{getBranchTypeDescription(type)}</p>
                   </div>
@@ -490,10 +490,10 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
               <div key={type} className="relative">
                 <button
                   onClick={() => handleRepoTypeSelect(type)}
-                  className="w-full px-4 py-3 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-teal-300 transition-all duration-300 text-left overflow-hidden relative group"
+                  className="w-full px-4 py-3 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-teal-300 transition-all duration-300 text-center overflow-hidden relative group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-teal-500/0 via-teal-500/10 to-teal-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative pr-8">
+                  <div className="relative">
                     <p className="text-sm font-medium">{getRepoTypeLabel(type)}</p>
                     <p className="text-xs text-slate-400 mt-1">{getRepoTypeDescription(type)}</p>
                   </div>
