@@ -707,9 +707,58 @@ Additional notes and considerations...
               defaultLanguage="markdown"
               value={markdownText}
               onChange={handleTextChange}
-              theme="vs-dark"
-              onMount={(editor) => {
+              theme="workflow-dark"
+              onMount={(editor, monaco) => {
                 editorRef.current = editor;
+
+                // Define custom theme matching EntityEditor with orange accents for Requirements
+                monaco.editor.defineTheme('workflow-dark', {
+                  base: 'vs-dark',
+                  inherit: true,
+                  rules: [
+                    { token: '', foreground: 'E2E8F0' },
+                    { token: 'string.key.json', foreground: '93C5FD' }, // text-blue-300 (keys)
+                    { token: 'string.value.json', foreground: '4ADE80' }, // text-green-400 (string values)
+                    { token: 'number', foreground: '60A5FA' }, // text-blue-400 (numbers)
+                    { token: 'keyword.json', foreground: 'FB923C' }, // text-orange-400 (true/false/null) - Requirements accent
+                    { token: 'keyword', foreground: 'FB923C' }, // text-orange-400 - Requirements accent
+                    { token: 'comment', foreground: '64748B' },
+                  ],
+                  colors: {
+                    'editor.background': '#0E1525',
+                    'editor.foreground': '#E2E8F0',
+                    'editorLineNumber.foreground': '#475569',
+                    'editorLineNumber.activeForeground': '#93C5FD',
+                    'editorGutter.background': '#0E1525',
+                    'editor.lineHighlightBackground': '#1E293B',
+                    'editor.lineHighlightBorder': '#1E293B',
+                    'editorCursor.foreground': '#93C5FD',
+                    'editor.selectionBackground': '#1E293B',
+                    'editor.inactiveSelectionBackground': '#1E293B80',
+                    'editorMinimap.background': '#0E1525',
+                    'minimapSlider.background': '#33415540',
+                    'minimapSlider.hoverBackground': '#33415560',
+                    'minimapSlider.activeBackground': '#33415580',
+                    'editorStickyScroll.background': '#0E1525',
+                    'editorStickyScrollHover.background': '#1E293B',
+                    'scrollbar.shadow': '#00000000',
+                    'scrollbarSlider.background': '#33415580',
+                    'scrollbarSlider.hoverBackground': '#334155A0',
+                    'scrollbarSlider.activeBackground': '#334155C0',
+                    'editorBracketMatch.background': '#1E293B',
+                    'editorBracketMatch.border': '#93C5FD',
+                    'editorWidget.background': '#1E293B',
+                    'editorWidget.border': '#93C5FD',
+                    'editorSuggestWidget.background': '#1E293B',
+                    'editorSuggestWidget.border': '#93C5FD',
+                    'editorSuggestWidget.selectedBackground': '#334155',
+                    'editorHoverWidget.background': '#1E293B',
+                    'editorHoverWidget.border': '#93C5FD',
+                    'editorIndentGuide.background': '#334155',
+                    'editorIndentGuide.activeBackground': '#475569',
+                  }
+                });
+                monaco.editor.setTheme('workflow-dark');
               }}
               options={{
                 readOnly: false,
@@ -766,9 +815,58 @@ Additional notes and considerations...
                 defaultLanguage="markdown"
                 value={markdownText}
                 onChange={handleTextChange}
-                theme="vs-dark"
-                onMount={(editor) => {
+                theme="workflow-dark"
+                onMount={(editor, monaco) => {
                   splitEditorRef.current = editor;
+
+                  // Define custom theme matching EntityEditor with orange accents for Requirements
+                  monaco.editor.defineTheme('workflow-dark', {
+                    base: 'vs-dark',
+                    inherit: true,
+                    rules: [
+                      { token: '', foreground: 'E2E8F0' },
+                      { token: 'string.key.json', foreground: '93C5FD' },
+                      { token: 'string.value.json', foreground: '4ADE80' },
+                      { token: 'number', foreground: '60A5FA' },
+                      { token: 'keyword.json', foreground: 'FB923C' }, // text-orange-400 - Requirements accent
+                      { token: 'keyword', foreground: 'FB923C' }, // text-orange-400 - Requirements accent
+                      { token: 'comment', foreground: '64748B' },
+                    ],
+                    colors: {
+                      'editor.background': '#0E1525',
+                      'editor.foreground': '#E2E8F0',
+                      'editorLineNumber.foreground': '#475569',
+                      'editorLineNumber.activeForeground': '#93C5FD',
+                      'editorGutter.background': '#0E1525',
+                      'editor.lineHighlightBackground': '#1E293B',
+                      'editor.lineHighlightBorder': '#1E293B',
+                      'editorCursor.foreground': '#93C5FD',
+                      'editor.selectionBackground': '#1E293B',
+                      'editor.inactiveSelectionBackground': '#1E293B80',
+                      'editorMinimap.background': '#0E1525',
+                      'minimapSlider.background': '#33415540',
+                      'minimapSlider.hoverBackground': '#33415560',
+                      'minimapSlider.activeBackground': '#33415580',
+                      'editorStickyScroll.background': '#0E1525',
+                      'editorStickyScrollHover.background': '#1E293B',
+                      'scrollbar.shadow': '#00000000',
+                      'scrollbarSlider.background': '#33415580',
+                      'scrollbarSlider.hoverBackground': '#334155A0',
+                      'scrollbarSlider.activeBackground': '#334155C0',
+                      'editorBracketMatch.background': '#1E293B',
+                      'editorBracketMatch.border': '#93C5FD',
+                      'editorWidget.background': '#1E293B',
+                      'editorWidget.border': '#93C5FD',
+                      'editorSuggestWidget.background': '#1E293B',
+                      'editorSuggestWidget.border': '#93C5FD',
+                      'editorSuggestWidget.selectedBackground': '#334155',
+                      'editorHoverWidget.background': '#1E293B',
+                      'editorHoverWidget.border': '#93C5FD',
+                      'editorIndentGuide.background': '#334155',
+                      'editorIndentGuide.activeBackground': '#475569',
+                    }
+                  });
+                  monaco.editor.setTheme('workflow-dark');
                 }}
                 options={{
                   readOnly: false,
