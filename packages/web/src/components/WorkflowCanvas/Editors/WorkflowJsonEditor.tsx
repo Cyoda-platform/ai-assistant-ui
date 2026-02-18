@@ -40,7 +40,7 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
 
 
   // Resizing state
-  const [width, setWidth] = useState(600);
+  const [width, setWidth] = useState(450);
   const [isResizing, setIsResizing] = useState(false);
   const resizeStartX = useRef(0);
   const resizeStartWidth = useRef(0);
@@ -826,22 +826,29 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
       </div>
         {/* Header */}
         <div
-          className="flex items-center justify-between p-4 border-b-2 flex-shrink-0"
+          className="flex items-center justify-between px-4 py-3 border-b-2 flex-shrink-0"
           style={{
             borderColor: palette.ui.panelBorder,
             background: `linear-gradient(to right, ${palette.ui.panelGradientVia}30, ${palette.ui.panelGradientTo}30)`
           }}
         >
           <div className="flex items-center gap-3">
-
-
-            {/* Import from File Button - Allows importing workflow JSON from a file
-                Purpose: Quick access to import workflow configuration
-                Size: 40x40px (w-10 h-10) - matches standard icon size for panel headers
-                Alignment: Vertically centered with title text using flex items-center */}
+            <h3
+              style={{
+                margin: 0,
+                color: '#A78BFA',
+                fontSize: '15px',
+                fontWeight: 500
+              }}
+            >
+              Workflow JSON Editor
+            </h3>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {/* Import from File Button - compact version */}
             <button
               onClick={handleImportFromFile}
-              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all hover:scale-105 group"
+              className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-105 group"
               style={{
                 background: `linear-gradient(to bottom right, ${palette.ui.accentColor}, ${palette.ui.accentHover})`
               }}
@@ -853,18 +860,15 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
               }}
               title="Import workflow from JSON file"
             >
-              <Upload size={20} className="text-white group-hover:scale-110 transition-transform" />
+              <Upload size={16} className="text-white group-hover:scale-110 transition-transform" />
             </button>
 
-            {/* Send to Chat Button - Sends workflow to chat for AI assistance
-                Purpose: Quick access to send workflow to chat
-                Size: 40x40px (w-10 h-10) - matches standard icon size for panel headers
-                Alignment: Vertically centered with title text using flex items-center */}
+            {/* Send to Chat Button - compact version */}
             {onSendToChat && (
               <button
                 onClick={handleSendToChat}
                 disabled={!!error}
-                className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all hover:scale-105 group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-105 group disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
                   background: error
                     ? '#6b7280'
@@ -882,35 +886,19 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
                 }}
                 title={error ? "Fix JSON errors before sending to chat" : "Send workflow to chat"}
               >
-                <Send size={20} className="text-white group-hover:scale-110 transition-transform" />
+                <Send size={16} className="text-white group-hover:scale-110 transition-transform" />
               </button>
             )}
-            <div>
-              <h3
-                style={{
-                  margin: 0,
-                  color: '#A78BFA',
-                  fontSize: '16px',
-                  fontWeight: 500
-                }}
-              >
-                Workflow JSON Editor
-              </h3>
-              <p className="text-xs text-gray-400">
-                Edit the complete workflow configuration
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
+
             <button
               onClick={onClose}
-              className="p-2 rounded-lg transition-colors group"
+              className="w-7 h-7 rounded-lg transition-colors group flex items-center justify-center"
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = palette.ui.accentHover + '30'}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               title="Close (Esc)"
             >
               <X
-                size={20}
+                size={16}
                 className="text-gray-500 dark:text-gray-400 transition-colors"
                 onMouseEnter={(e) => (e.currentTarget as SVGElement).style.color = palette.ui.accentColor}
                 onMouseLeave={(e) => (e.currentTarget as SVGElement).style.color = ''}
@@ -952,16 +940,7 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
         )}
 
         {/* Monaco Editor */}
-        <div className="flex-1 p-4 overflow-hidden">
-          <div
-            className="h-full rounded-lg overflow-hidden border-2 transition-colors shadow-lg"
-            style={{
-              borderColor: error ? '#dc2626' : palette.ui.accentColor,
-              boxShadow: error
-                ? `0 10px 15px -3px ${hexToRgba('#dc2626', 0.2)}`
-                : `0 10px 15px -3px ${hexToRgba(palette.ui.accentColor, 0.1)}`
-            }}
-          >
+        <div className="flex-1 overflow-hidden">
             <Editor
               height="100%"
               defaultLanguage="json"
@@ -1205,23 +1184,22 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
                 },
                 suggest: { showKeywords: true, showSnippets: true },
                 quickSuggestions: { other: true, comments: false, strings: true },
-                padding: { top: 12, bottom: 12 }
+                padding: { top: 8, bottom: 8 }
               }}
             />
-          </div>
         </div>
 
         {/* Footer */}
         <div
-          className="flex items-center justify-between p-3 border-t-2 flex-shrink-0"
+          className="flex items-center justify-between px-4 py-1.5 border-t flex-shrink-0"
           style={{
-            borderColor: palette.ui.panelBorder,
-            background: `linear-gradient(to right, ${palette.ui.panelGradientVia}30, ${palette.ui.panelGradientTo}30)`
+            borderColor: palette.ui.panelBorder + '40',
+            background: `linear-gradient(to right, ${palette.ui.panelGradientVia}20, ${palette.ui.panelGradientTo}20)`
           }}
         >
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1.5">
             <div
-              className="w-2 h-2 rounded-full animate-pulse"
+              className="w-1.5 h-1.5 rounded-full animate-pulse"
               style={{ backgroundColor: palette.ui.accentColor }}
             ></div>
             <div className="text-xs text-gray-400">
