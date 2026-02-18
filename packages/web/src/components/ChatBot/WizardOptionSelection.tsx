@@ -327,7 +327,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
           </div>
 
           {/* Connector 1 */}
-          <div className={`${isNarrow ? 'hidden' : 'block'} flex-1 h-0.5 transition-all ${
+          <div className={`flex-1 h-0.5 transition-all ${
             step === 'branchType' || step === 'repoType'
               ? 'bg-gradient-to-r from-teal-500 to-teal-500/50'
               : 'bg-slate-700/30'
@@ -346,7 +346,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
           </div>
 
           {/* Connector 2 */}
-          <div className={`${isNarrow ? 'hidden' : 'block'} flex-1 h-0.5 transition-all ${
+          <div className={`flex-1 h-0.5 transition-all ${
             step === 'repoType'
               ? 'bg-gradient-to-r from-teal-500 to-teal-500/50'
               : 'bg-slate-700/30'
