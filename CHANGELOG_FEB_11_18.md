@@ -1,16 +1,26 @@
 # Changelog: February 11-18, 2026
 
+**Branch:** [cyoda-ai-studio-fixes-4-february](https://github.com/Cyoda-platform/ai-assistant-ui/commits/cyoda-ai-studio-fixes-4-february)
+
 ## Summary
 This document provides a brief overview of all commits and fixes made between February 11 and February 18, 2026 (inclusive).
 
-**Total Commits:** 29  
-**Branch:** cyoda-ai-studio-fixes-4-february
+**Total Commits:** 30
 
 ---
 
 ## February 18, 2026
 
 ### UI/UX Improvements
+
+**Simplify WorkflowJsonEditor UI for better UX** (`3f424d1`)
+- Compact header: removed subtitle "Edit the complete workflow configuration"
+- Reduced button sizes from 40x40px to 28x28px (Upload, Send, Close icons)
+- Moved action buttons to the right side in a single row for cleaner layout
+- Reduced header padding from p-4 to px-4 py-3 for more vertical space
+- Removed inner border and padding around Monaco editor for edge-to-edge editing experience
+- Reduced default panel width from 600px to 450px for less screen occupation
+- Kept minimap enabled and Live Editing indicator intact
 
 **Update bot message border radius styling** (`e968b0f`)
 - Changed border-top-left-radius to 0.375rem (less rounded) for bot messages
@@ -170,14 +180,6 @@ This document provides a brief overview of all commits and fixes made between Fe
 - Harmonized modal designs across the application
 - Consistent user experience for all modal dialogs
 
-### Documentation
-
-**Add comprehensive manual test plan with 183 test cases across 16 sections** (`8f0096d`)
-- Created detailed manual testing documentation
-- Covers 16 major sections of the application
-- 183 individual test cases for thorough quality assurance
-- Ensures comprehensive testing coverage
-
 ---
 
 ## Key Themes
@@ -203,12 +205,55 @@ This document provides a brief overview of all commits and fixes made between Fe
 - Corrected button visibility logic
 - Resolved edge type defaults and icon positioning
 
-### 5. Quality Assurance
-- Comprehensive manual test plan added
-- Better testing coverage for future releases
+---
+
+## Risk Assessment
+
+- `3f424d1` - No risk (UI layout and styling changes only, no logic affected)
+- `e968b0f` - No risk (CSS border-radius styles only)
+- `717d0dd` - Low risk (responsive changes with breakpoints, desktop unaffected)
+- `ecdb6d3` - Medium risk (ResizeObserver may not work in older browsers, layout logic changed)
+- `43832af` - No risk (text-align only)
+- `81df40f` - Low risk (Monaco theme, may affect code readability)
+- `97c861f` - No risk (button styles only)
+- `75a1007` - No risk (CSS transform for mobile only)
+- `c464086` - Medium risk (complex Canvas adaptation logic, defaultPanelStates changes may affect UX)
+- `cb4805d` - No risk (CSS for icons only)
+- `a0c1935` - No risk (scroll added, functionality unchanged)
+- `9e0a0c7` - No risk (placeholder and min-height)
+- `0bf0b00` - Low risk (major layout refactoring, may affect display)
+- `9da47ee` - No risk (CSS for mobile only)
+- `1659402` - No risk (CSS for mobile only)
+- `208d308` - Medium risk (native select replaced with Ant Design, z-index changes may affect other elements)
+- `8bb435b` - Low risk (mobile menu structure changed, may affect navigation)
+- `b273a4b` - No risk (padding only)
+- `9d923f9` - Low risk (grid layout and alignment changed, may affect UX)
+- `52b81a2` - No risk (background removal)
+- `3933c6a` - No risk (margin change)
+- `493617a` - No risk (colors only)
+- `243f41d` - No risk (icon removed, functionality preserved)
+- `d42628d` - No risk (improved button visibility condition)
+- `3f97d5f` - Medium risk (native select replaced with Ant Design, major refactoring with style and logic changes)
+- `286db5e` - Low risk (default value changed, users must explicitly select application)
+- `c418f8b` - Low risk (default edge type change may affect existing workflows)
+- `5a9370d` - No risk (icon replacement only)
+- `445f7e6` - Low risk (modal styling changes, major lock file changes)
+
+### Overall Risk Summary:
+- **High risk:** 0 commits
+- **Medium risk:** 4 commits (ecdb6d3, c464086, 208d308, 3f97d5f) - require testing
+- **Low risk:** 8 commits - minimal impact on functionality
+- **No risk:** 18 commits - visual changes only
+
+**Recommendations:**
+1. Test ResizeObserver in different browsers (ecdb6d3)
+2. Verify Canvas panel responsiveness on narrow screens (c464086)
+3. Check for z-index conflicts in LogsView (208d308)
+4. Test Ant Design Select in MonitoringView (3f97d5f)
+5. Verify default edge type in existing workflows (c418f8b)
 
 ---
 
-**Total Files Changed:** Multiple files across web package  
+**Total Files Changed:** Multiple files across web package
 **Primary Focus Areas:** Mobile responsiveness, UI/UX consistency, bug fixes, and documentation
 
