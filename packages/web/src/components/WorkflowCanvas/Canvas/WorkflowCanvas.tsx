@@ -28,76 +28,17 @@ import { useNotifications, NotificationManager } from '@/components/Notification
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useUndoRedoWorkflow } from '@/hooks/useUndoRedoWorkflow';
 
-// Helper function to detect bidirectional connections
-function hasBidirectionalConnection(
-  sourceId: string,
-  targetId: string,
-  transitions: UITransitionData[]
-): boolean {
-  // Check if there's a reverse transition
-  return transitions.some(
-    t => t.sourceStateId === targetId && t.targetStateId === sourceId
-  );
-}
+
 
 // Helper function to calculate optimal handles based on node positions
 function calculateOptimalHandles(
   sourcePos: { x: number; y: number },
-  targetPos: { x: number; y: number },
-  isBidirectional: boolean = false,
-  isReturnPath: boolean = false
+  targetPos: { x: number; y: number }
 ): { sourceHandle: string; targetHandle: string } {
   const deltaX = targetPos.x - sourcePos.x;
   const deltaY = targetPos.y - sourcePos.y;
   const absDeltaX = Math.abs(deltaX);
   const absDeltaY = Math.abs(deltaY);
-
-  // For bidirectional connections, use offset handles to avoid overlap
-  if (isBidirectional) {
-    if (absDeltaY >= absDeltaX) {
-      // Vertical bidirectional - use left/right offset handles
-      if (isReturnPath) {
-        return {
-          sourceHandle: 'bottom-left-source',
-          targetHandle: 'top-left-target'
-        };
-      } else {
-        return {
-          sourceHandle: 'bottom-right-source',
-          targetHandle: 'top-right-target'
-        };
-      }
-    } else {
-      // Horizontal bidirectional - use top/bottom offset handles
-      if (deltaX > 0) {
-        // Target is to the right
-        if (isReturnPath) {
-          return {
-            sourceHandle: 'right-bottom-source',
-            targetHandle: 'left-bottom-target'
-          };
-        } else {
-          return {
-            sourceHandle: 'right-top-source',
-            targetHandle: 'left-top-target'
-          };
-        }
-      } else {
-        // Target is to the left
-        if (isReturnPath) {
-          return {
-            sourceHandle: 'left-bottom-source',
-            targetHandle: 'right-bottom-target'
-          };
-        } else {
-          return {
-            sourceHandle: 'left-top-source',
-            targetHandle: 'right-top-target'
-          };
-        }
-      }
-    }
-  }
 
   // Standard single-direction routing
   if (absDeltaY >= absDeltaX) {
@@ -245,8 +186,6 @@ function createUITransitionData(workflow: UIWorkflowData): UITransitionData[] {
         sourceHandle: layout?.sourceHandle || null,
         targetHandle: layout?.targetHandle || null
       };
-
-
 
       transitions.push(uiTransition);
     });
@@ -420,11 +359,11 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   // Convert schema workflow to UI data
   const uiTransitions = useMemo(() => {
     return cleanedWorkflow ? createUITransitionData(cleanedWorkflow) : [];
-  }, [cleanedWorkflow, cleanedWorkflow?.updatedAt]);
+  }, [cleanedWorkflow, cleanedWorkflow?.updatedAt, cleanedWorkflow?.layout?.updatedAt]);
 
   const uiStates = useMemo(() => {
     return cleanedWorkflow ? createUIStateData(cleanedWorkflow, uiTransitions) : [];
-  }, [cleanedWorkflow, cleanedWorkflow?.updatedAt, uiTransitions]);
+  }, [cleanedWorkflow, cleanedWorkflow?.updatedAt, cleanedWorkflow?.layout?.updatedAt, uiTransitions]);
 
   // Use refs to access current values in useEffect without causing dependency issues
   const uiStatesRef = useRef(uiStates);
@@ -953,65 +892,20 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         const edgeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
         const edgeWidth = 2;
 
-        // Check if this is a bidirectional transition (there's a reverse transition)
-        const isBidirectional = hasBidirectionalConnection(
-          transition.sourceStateId,
-          transition.targetStateId,
-          currentUiTransitions
-        );
-
         // Calculate optimal handles based on node positions
         let sourceHandle: string;
         let targetHandle: string;
 
-        // For loopback transitions, use handles from layout (user selected when drawing)
+        // For loopback transitions, use handles from transition (user selected when drawing)
         if (isLoopback) {
-          // Use stored handles from layout, or fallback to defaults
+          // Use stored handles from transition, or fallback to defaults
           // Default: loopback creates a petal shape using adjacent handles (left to center)
-          sourceHandle = layout?.sourceHandle || 'top-left-source';
-          targetHandle = layout?.targetHandle || 'top-center-target';
-
-          // console.log('📖 Reading LOOPBACK handles from layout:', {
-          //   transitionId: transition.id,
-          //   layout,
-          //   sourceHandle,
-          //   targetHandle,
-          // });
-        } else if (isBidirectional) {
-          // For bidirectional transitions, use the special handles from autoLayout
-          // These ensure the two transitions don't overlap
-          sourceHandle = layout?.stateToTransitionSourceHandle || '';
-          targetHandle = layout?.transitionToStateTargetHandle || '';
-
-          // console.log('📖 Reading bidirectional handles from layout:', {
-          //   transitionId: transition.id,
-          //   sourceHandle,
-          //   targetHandle,
-          //   layout
-          // });
-
-          if (!sourceHandle || !targetHandle) {
-            const anchors = calculateOptimalAnchorPoints(
-              sourceState.position,
-              targetState.position,
-              true // isBidirectional
-            );
-            sourceHandle = sourceHandle || anchors.sourceHandle;
-            targetHandle = targetHandle || anchors.targetHandle;
-            // console.log('📖 Using calculated bidirectional anchors:', { sourceHandle, targetHandle });
-          }
+          sourceHandle = transition.sourceHandle || layout?.sourceHandle || 'top-left-source';
+          targetHandle = transition.targetHandle || layout?.targetHandle || 'top-center-target';
         } else {
-          // For regular (non-bidirectional) transitions, use sourceHandle/targetHandle
-          sourceHandle = layout?.sourceHandle || '';
-          targetHandle = layout?.targetHandle || '';
-
-          // console.log('📖 Reading regular handles from layout:', {
-          //   transitionId: transition.id,
-          //   transitionName: transition.definition.name,
-          //   layout,
-          //   sourceHandle,
-          //   targetHandle
-          // });
+          // For regular transitions, use handles from transition (updated by autoLayout)
+          sourceHandle = transition.sourceHandle || layout?.sourceHandle || '';
+          targetHandle = transition.targetHandle || layout?.targetHandle || '';
 
           if (!sourceHandle || !targetHandle) {
             const anchors = calculateOptimalAnchorPoints(
@@ -1020,13 +914,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             );
             sourceHandle = sourceHandle || anchors.sourceHandle;
             targetHandle = targetHandle || anchors.targetHandle;
-            // console.log('📖 Using calculated anchors:', { sourceHandle, targetHandle });
           }
         }
-
-        // Determine if this is a "return path" in a bidirectional pair
-        // Return path is when source > target alphabetically (to have consistent ordering)
-        const isReturnPath = isBidirectional && transition.sourceStateId > transition.targetStateId;
 
         // Create single edge from source state to target state with transition data
         const edge = {
@@ -1053,8 +942,6 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             transition: transition,
             sourceHandle: sourceHandle,
             targetHandle: targetHandle,
-            isBidirectional: isBidirectional,
-            isReturnPath: isReturnPath,
             onEdit: currentOnTransitionEdit,
             onUpdate: (updatedTransition: UITransitionData) => {
               // Handle transition update
