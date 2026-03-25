@@ -331,6 +331,342 @@
       display: none;
     }
   }
+
+  // Canvas header mobile styles
+  .flex.items-center.justify-between.p-4.border-b.border-slate-700.bg-slate-800\/50 {
+    padding: 12px 16px !important;
+    height: auto !important;
+    min-height: 56px;
+    gap: 8px;
+  }
+
+  // Canvas header left section
+  .flex.items-center.space-x-2 {
+    h3 {
+      font-size: 16px !important;
+    }
+
+    .text-xs.bg-teal-500\/20 {
+      display: none !important; // Hide "Active" badge on mobile
+    }
+  }
+
+  // Canvas tabs section - make scrollable horizontally
+  .border-b.border-slate-700.bg-slate-800\/30 {
+    .px-4.py-3.flex.items-center.gap-4 {
+      padding: 12px 16px !important;
+      gap: 12px !important;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none; // Firefox
+
+      &::-webkit-scrollbar {
+        display: none; // Chrome, Safari
+      }
+    }
+
+    // Pull button mobile
+    button.px-4.py-1\.5 {
+      padding: 8px 12px !important;
+      font-size: 11px !important;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    // Tab buttons mobile
+    .flex.items-center.gap-2 {
+      gap: 8px !important;
+      flex-shrink: 0;
+
+      button {
+        padding: 10px !important;
+        font-size: 12px !important;
+        white-space: nowrap;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 40px;
+        height: 40px;
+
+        svg {
+          width: 16px !important;
+          height: 16px !important;
+          margin: 0 !important;
+        }
+
+        span {
+          display: none; // Hide text labels on mobile, show only icons
+        }
+      }
+    }
+  }
+
+  // Canvas content area
+  .flex-1.relative.overflow-x-auto.overflow-y-auto {
+    .flex.flex-col.h-full.w-full {
+      min-width: 100% !important; // Remove min-width constraint on mobile
+    }
+  }
+
+  // Repository link mobile
+  .text-xs.text-slate-400.hover\:text-teal-400 {
+    font-size: 9px !important;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.3;
+  }
+
+  // Requirements cards mobile - make them rectangular and full width
+  .flex.flex-wrap.gap-4 {
+    flex-direction: column !important;
+    gap: 12px !important;
+
+    // Requirement card container
+    > div.bg-gradient-to-br {
+      width: 100% !important;
+      height: auto !important;
+      min-height: 90px !important;
+      padding: 14px !important;
+      display: grid !important;
+      grid-template-columns: auto 1fr auto;
+      grid-template-rows: auto auto;
+      gap: 8px 12px;
+      align-items: start;
+      position: relative !important;
+
+      // Icon + Title row (first row)
+      > div:first-child {
+        grid-column: 1 / 3;
+        grid-row: 1;
+        margin-bottom: 0 !important;
+
+        // Icon container
+        > div:first-child {
+          .p-1 {
+            margin-top: 0 !important;
+          }
+        }
+
+        // Title
+        h4 {
+          font-size: 15px !important;
+          line-height: 1.3 !important;
+        }
+
+        // Priority dot - move to top right
+        > div:last-child {
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          width: 12px !important;
+          height: 12px !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+      }
+
+      // Description (second row, spans 2 columns)
+      > p {
+        grid-column: 1 / 3;
+        grid-row: 2;
+        font-size: 11px !important;
+        line-height: 1.4 !important;
+        margin-top: 0 !important;
+        flex: none !important;
+      }
+
+      // GitHub icon / Delete button (bottom right corner)
+      > div:last-child {
+        grid-column: 3;
+        grid-row: 2;
+        justify-content: flex-end !important;
+        align-self: end;
+        margin-top: 0 !important;
+        width: auto !important;
+        min-width: 24px;
+
+        // GitHub link inside
+        a {
+          width: 24px !important;
+          height: 24px !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+
+        // Delete button inside
+        button {
+          width: 24px !important;
+          height: 24px !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 0 !important;
+        }
+      }
+    }
+  }
+}
+
+// Narrow canvas panel styles (when multiple panels are open on desktop)
+// Applied via .canvas-narrow class when panel width < 600px
+@media (min-width: 769px) {
+  .canvas-narrow {
+    // Canvas header - compact on narrow panels
+    .flex.items-center.justify-between.p-4.border-b.border-slate-700.bg-slate-800\/50 {
+      padding: 10px 12px !important;
+      gap: 6px;
+    }
+
+    // Hide "Active" badge on narrow panels
+    .text-xs.bg-teal-500\/20 {
+      display: none !important;
+    }
+
+    // Canvas tabs - compact on narrow panels
+    .border-b.border-slate-700.bg-slate-800\/30 {
+      .px-4.py-3.flex.items-center.gap-4 {
+        padding: 10px 12px !important;
+        gap: 8px !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+      }
+
+      // Tab buttons - show only icons on narrow panels
+      .flex.items-center.gap-2 {
+        gap: 6px !important;
+
+        button {
+          padding: 8px !important;
+          width: 36px;
+          height: 36px;
+          justify-content: center !important;
+
+          svg {
+            width: 14px !important;
+            height: 14px !important;
+            margin: 0 !important;
+          }
+
+          span {
+            display: none; // Hide text labels, show only icons
+          }
+        }
+      }
+    }
+
+    // Canvas content area - remove horizontal scroll
+    .flex-1.relative.overflow-x-auto.overflow-y-auto {
+      overflow-x: hidden !important;
+
+      .flex.flex-col.h-full.w-full {
+        min-width: 100% !important;
+      }
+    }
+
+    // Requirements cards - make them rectangular like mobile
+    .flex.flex-wrap.gap-4 {
+      flex-direction: column !important;
+      gap: 12px !important;
+
+      // Requirement card container - full width rectangular layout
+      > div.bg-gradient-to-br {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 90px !important;
+        padding: 14px !important;
+        display: grid !important;
+        grid-template-columns: auto 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 8px 12px;
+        align-items: start;
+        position: relative !important;
+
+        // Icon + Title row (first row)
+        > div:first-child {
+          grid-column: 1 / 3;
+          grid-row: 1;
+          margin-bottom: 0 !important;
+
+          // Icon container
+          > div:first-child {
+            .p-1 {
+              margin-top: 0 !important;
+            }
+          }
+
+          // Title
+          h4 {
+            font-size: 15px !important;
+            line-height: 1.3 !important;
+          }
+
+          // Priority dot - move to top right (keep original size)
+          > div:last-child {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+          }
+        }
+
+        // Description (second row, spans 2 columns)
+        > p {
+          grid-column: 1 / 3;
+          grid-row: 2;
+          font-size: 11px !important;
+          line-height: 1.4 !important;
+          margin-top: 0 !important;
+          flex: none !important;
+        }
+
+        // GitHub icon / Delete button (bottom right corner)
+        > div:last-child {
+          grid-column: 3;
+          grid-row: 2;
+          justify-content: flex-end !important;
+          align-self: end;
+          margin-top: 0 !important;
+          width: auto !important;
+          min-width: 24px;
+
+          // GitHub link inside
+          a {
+            width: 24px !important;
+            height: 24px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+          }
+
+          // Delete button inside
+          button {
+            width: 24px !important;
+            height: 24px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0 !important;
+          }
+        }
+      }
+    }
+
+    // Repository link - truncate on narrow panels
+    .text-xs.text-slate-400.hover\:text-teal-400 {
+      font-size: 10px !important;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
 }
 
 .hidden-below-md {

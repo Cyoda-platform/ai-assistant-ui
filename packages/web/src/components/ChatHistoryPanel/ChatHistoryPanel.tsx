@@ -260,8 +260,8 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
 
 
 
-            {/* Load More Button - Hide when loading initial chats */}
-            {!isLoading && onLoadMore && (
+            {/* Load More Button - Show only when there are more chats to load */}
+            {!isLoading && onLoadMore && hasMoreChats && (
               <div className="px-2 pb-4">
                 {isLoadingMore ? (
                   <div className="w-full px-4 py-2.5 rounded-lg bg-slate-700/50 border border-slate-600/50 text-slate-300 flex items-center justify-center space-x-2">

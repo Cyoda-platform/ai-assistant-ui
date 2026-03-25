@@ -7,6 +7,162 @@
   overflow: hidden;
 }
 
+/* Ant Design Select styling to match native select */
+.monitoring-select-antd .ant-select-selector {
+  background-color: #0f172a !important;
+  border: 1px solid #334155 !important;
+  border-radius: 6px !important;
+  padding: 10px 12px !important;
+  height: 42px !important;
+  font-size: 14px !important;
+  color: #e2e8f0 !important;
+}
+
+.monitoring-select-antd .ant-select-selection-placeholder {
+  color: #94a3b8 !important;
+  font-size: 14px !important;
+}
+
+.monitoring-select-antd .ant-select-selection-item {
+  color: #e2e8f0 !important;
+  font-size: 14px !important;
+  line-height: 22px !important;
+}
+
+.monitoring-select-antd .ant-select-arrow {
+  color: #e2e8f0 !important;
+  right: 12px !important;
+}
+
+.monitoring-select-antd:hover .ant-select-selector {
+  border-color: #334155 !important;
+}
+
+.monitoring-select-antd.ant-select-focused .ant-select-selector {
+  border-color: #334155 !important;
+  box-shadow: none !important;
+}
+
+/* Dropdown menu styling */
+.monitoring-select-dropdown {
+  background-color: #0f172a !important;
+  border: 1px solid #334155 !important;
+  border-radius: 6px !important;
+}
+
+.monitoring-select-dropdown .ant-select-item {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+  font-size: 14px !important;
+  padding: 4px 12px !important;
+  min-height: 32px !important;
+  line-height: 24px !important;
+  white-space: nowrap !important;
+}
+
+.monitoring-select-dropdown .ant-select-item-option-selected {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+.monitoring-select-dropdown .ant-select-item-option-active {
+  background-color: #1e293b !important;
+}
+
+.monitoring-select-dropdown .rc-virtual-list-holder-inner {
+  gap: 0 !important;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  /* Stack selects vertically on mobile */
+  .monitoring-view .monitoring-header {
+    padding: 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .monitoring-header-left {
+    width: 100%;
+  }
+
+  .monitoring-header-left img {
+    height: 24px !important;
+  }
+
+  .monitoring-header-left h1 {
+    font-size: 18px !important;
+  }
+
+  .monitoring-connection-info {
+    font-size: 11px;
+  }
+
+  .monitoring-header-actions {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .action-button {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  .monitoring-selects-container {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+  }
+
+  /* Increase touch target size for mobile */
+  .monitoring-select-antd .ant-select-selector {
+    height: 48px !important;
+    padding: 12px 14px !important;
+    font-size: 16px !important;
+  }
+
+  .monitoring-select-antd .ant-select-selection-placeholder,
+  .monitoring-select-antd .ant-select-selection-item {
+    font-size: 16px !important;
+    line-height: 24px !important;
+  }
+
+  .monitoring-select-antd .ant-select-arrow {
+    right: 14px !important;
+  }
+
+  /* Dropdown items for mobile - same compact size as desktop */
+  .monitoring-select-dropdown .ant-select-item {
+    padding: 4px 14px !important;
+    font-size: 16px !important;
+    min-height: 32px !important;
+    line-height: 24px !important;
+  }
+
+  /* Make dropdown full width on mobile */
+  .monitoring-select-dropdown {
+    max-width: calc(100vw - 40px) !important;
+  }
+
+  /* Adjust metrics grid for mobile */
+  .metrics-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Smaller metric cards on mobile */
+  .metric-card {
+    padding: 16px !important;
+  }
+
+  .metric-value {
+    font-size: 28px !important;
+  }
+}
+
 .monitoring-header {
   display: flex;
   justify-content: space-between;
@@ -312,10 +468,16 @@
   align-items: center;
   font-size: 12px;
   color: #a8a8a8;
+  min-height: 24px;
 }
 
 .status-row:not(:last-child) {
   margin-bottom: 8px;
+}
+
+.status-row code {
+  min-height: 20px;
+  display: inline-block;
 }
 
 .status-active {
@@ -448,4 +610,24 @@
 
 .metric-card.expandable:hover::after {
   opacity: 1;
+}
+
+/* Custom scrollbar for metrics selector */
+.monitoring-view ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.monitoring-view ::-webkit-scrollbar-track {
+  background: #0f172a;
+  border-radius: 4px;
+}
+
+.monitoring-view ::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+.monitoring-view ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }

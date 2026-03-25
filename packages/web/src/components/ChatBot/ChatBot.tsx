@@ -328,7 +328,7 @@ const ChatBot: React.FC<ChatBotProps> = ({
             </div>
           </div>
         ) : (
-          <div className="max-w-[90%] mx-auto p-6 w-full">
+          <div className="max-w-[90%] mx-auto px-1 py-6 sm:p-6 w-full">
             <div className="space-y-3">
               {messages.map((message, index) => (
                 <div

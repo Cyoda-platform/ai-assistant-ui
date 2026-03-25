@@ -190,7 +190,7 @@ export const EntitiesList: React.FC<EntitiesListProps> = ({
                     {!getGitHubUrl(entity) && (
                       <button
                         onClick={(e) => handleDeleteEntity(entity.name, entity.version, e)}
-                        className="p-1 bg-blue-500/20 hover:bg-blue-500/30 rounded transition-colors"
+                        className="p-1 rounded transition-colors"
                         title="Delete entity"
                       >
                         <Trash2 size={14} className="text-blue-400 hover:text-blue-300" />

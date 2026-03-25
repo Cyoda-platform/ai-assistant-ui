@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Bell,
@@ -18,8 +18,10 @@ import {
   Github,
   Shield,
   Menu,
-  Server
+  Server,
+  LogOut
 } from 'lucide-react';
+import { useAuth0 } from '@auth0/auth0-react';
 import AuthState from '@/components/AuthState/AuthState';
 import Logo from '@/assets/images/logo.svg';
 import LogoSmall from '@/assets/images/logo-small.svg';
@@ -87,16 +89,46 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth0();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   // Check if user is logged in (not in guest mode)
-  const { token, tokenType } = useAuthStore();
+  const authStore = useAuthStore();
+  const { token, tokenType } = authStore;
   const isLoggedIn = !!token && tokenType === 'private';
 
   // Super user mode state
   const superUserMode = useSuperUserMode();
   const isCyodaEmployee = useIsCyodaEmployee();
+
+  // User initials for avatar
+  const initials = useMemo(() => {
+    const { family_name = 'C', given_name = 'U' } = authStore;
+    const familyInitial = family_name.charAt(0).toUpperCase();
+    const givenInitial = given_name.charAt(0).toUpperCase();
+    return `${givenInitial}${familyInitial}`;
+  }, [authStore.family_name, authStore.given_name]);
+
+  // Logout handler
+  const handleLogout = () => {
+    setShowMobileMenu(false);
+    const isElectron = import.meta.env.VITE_IS_ELECTRON;
+
+    if (isElectron) {
+      authStore.logout();
+      navigate('/');
+    } else {
+      authStore.logout(() => {
+        logout({
+          logoutParams: {
+            returnTo: window.location.origin
+          }
+        });
+      });
+      navigate('/');
+    }
+  };
 
   // Use external notifications if provided, otherwise use empty array
   const notifications = externalNotifications || [];
@@ -601,16 +633,18 @@ const Header: React.FC<HeaderProps> = ({
 
               {/* Social Links - Mobile */}
               <div className="space-y-2">
+                {/* CYODA Website */}
                 <a
-                  href="https://docs.cyoda.net/"
+                  href="https://cyoda.com"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
                 >
-                  <BookOpen size={20} />
-                  <span className="text-sm font-medium">Documentation</span>
+                  <img src={LogoSmall} alt="CYODA" className="w-5 h-5" />
+                  <span className="text-sm font-medium">CYODA Website</span>
                 </a>
 
+                {/* GitHub */}
                 <a
                   href="https://github.com/Cyoda-platform"
                   target="_blank"
@@ -621,6 +655,7 @@ const Header: React.FC<HeaderProps> = ({
                   <span className="text-sm font-medium">GitHub</span>
                 </a>
 
+                {/* LinkedIn */}
                 <a
                   href="https://www.linkedin.com/company/cyoda"
                   target="_blank"
@@ -631,6 +666,18 @@ const Header: React.FC<HeaderProps> = ({
                   <span className="text-sm font-medium">LinkedIn</span>
                 </a>
 
+                {/* Documentation */}
+                <a
+                  href="https://docs.cyoda.net/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                >
+                  <BookOpen size={20} />
+                  <span className="text-sm font-medium">Documentation</span>
+                </a>
+
+                {/* Discord Community */}
                 <a
                   href="https://discord.com/invite/95rdAyBZr2"
                   target="_blank"
@@ -643,8 +690,48 @@ const Header: React.FC<HeaderProps> = ({
               </div>
 
               {/* User Profile - Mobile */}
-              <div className="border-t border-slate-700 pt-3">
-                <AuthState />
+              <div className="border-t border-slate-700 pt-3 space-y-2">
+                {isLoggedIn ? (
+                  <>
+                    {/* User Info */}
+                    <div className="flex items-center space-x-3 px-4 py-3">
+                      {authStore.picture ? (
+                        <img
+                          className="w-10 h-10 rounded-full"
+                          src={authStore.picture}
+                          alt="User avatar"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-slate-600 text-white text-sm font-medium flex items-center justify-center">
+                          {initials}
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-white">
+                          {authStore.given_name && authStore.family_name
+                            ? `${authStore.given_name} ${authStore.family_name}`
+                            : authStore.email}
+                        </div>
+                        {authStore.given_name && authStore.family_name && (
+                          <div className="text-xs text-slate-400">{authStore.email}</div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Logout Button */}
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                    >
+                      <LogOut size={20} className="text-red-400" />
+                      <span className="text-sm font-medium text-red-400">Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <div className="px-4 py-3">
+                    <AuthState />
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -2697,7 +2697,7 @@ const ChatBotView: React.FC = () => {
         {/* Canvas Sidebar Panel - Between chat history and main content */}
         {canvasVisible && (
           <div
-            className={`bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel h-full ${canvasResize.isResizing ? 'resizing' : ''}`}
+            className={`bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel h-full ${canvasResize.isResizing ? 'resizing' : ''} ${canvasResize.width < 600 ? 'canvas-narrow' : ''}`}
             style={{
               width: `${canvasResize.width}px`,
               zIndex: canvasResize.isResizing ? 30 : 11

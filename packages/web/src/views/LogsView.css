@@ -4,6 +4,26 @@
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+/* Scrollable wrapper for all content except header */
+.logs-view > *:not(.logs-header) {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Mobile: Make the entire view scrollable */
+@media (max-width: 768px) {
+  .logs-view {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .logs-view > *:not(.logs-header) {
+    overflow-y: visible;
+    overflow-x: visible;
+  }
 }
 
 /* Configuration Screen */
@@ -197,6 +217,49 @@
   gap: 12px;
 }
 
+/* Mobile responsive header */
+@media (max-width: 768px) {
+  .logs-header {
+    padding: 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .logs-header-left {
+    width: 100%;
+  }
+
+  .logs-header-left > div {
+    width: 100%;
+  }
+
+  .logs-header-left img {
+    height: 24px !important;
+  }
+
+  .logs-header h1 {
+    font-size: 18px !important;
+  }
+
+  .logs-connection-info {
+    font-size: 11px;
+  }
+
+  .logs-header-actions {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .action-button {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+}
+
 .action-button {
   padding: 10px 20px;
   border: 1px solid #334155;
@@ -320,4 +383,116 @@
   margin: 0;
   color: #94a3b8;
   font-size: 14px;
+}
+
+/* Ant Design Select styling to match MonitoringView */
+.logs-select-antd .ant-select-selector {
+  background-color: #0f172a !important;
+  border: 1px solid #334155 !important;
+  border-radius: 6px !important;
+  padding: 10px 12px !important;
+  height: 42px !important;
+  font-size: 14px !important;
+  color: #e2e8f0 !important;
+}
+
+.logs-select-antd .ant-select-selection-placeholder {
+  color: #94a3b8 !important;
+  font-size: 14px !important;
+}
+
+.logs-select-antd .ant-select-selection-item {
+  color: #e2e8f0 !important;
+  font-size: 14px !important;
+  line-height: 22px !important;
+}
+
+.logs-select-antd .ant-select-arrow {
+  color: #e2e8f0 !important;
+  right: 12px !important;
+}
+
+.logs-select-antd:hover .ant-select-selector {
+  border-color: #334155 !important;
+}
+
+.logs-select-antd.ant-select-focused .ant-select-selector {
+  border-color: #334155 !important;
+  box-shadow: none !important;
+}
+
+.logs-select-antd.ant-select-disabled .ant-select-selector {
+  background-color: #334155 !important;
+  opacity: 0.6;
+  cursor: not-allowed !important;
+}
+
+/* Dropdown menu styling */
+.logs-select-dropdown {
+  background-color: #0f172a !important;
+  border: 1px solid #334155 !important;
+  border-radius: 6px !important;
+  z-index: 10000 !important;
+}
+
+.logs-select-dropdown .ant-select-item {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+  font-size: 14px !important;
+  padding: 4px 12px !important;
+  min-height: 32px !important;
+  line-height: 24px !important;
+  white-space: nowrap !important;
+}
+
+.logs-select-dropdown .ant-select-item-option-selected {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+.logs-select-dropdown .ant-select-item-option-active {
+  background-color: #1e293b !important;
+}
+
+.logs-select-dropdown .rc-virtual-list-holder-inner {
+  gap: 0 !important;
+}
+
+/* Mobile responsive for selects */
+@media (max-width: 768px) {
+  .logs-selects-container {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+  }
+
+  /* Increase touch target size for mobile */
+  .logs-select-antd .ant-select-selector {
+    height: 48px !important;
+    padding: 12px 14px !important;
+    font-size: 16px !important;
+  }
+
+  .logs-select-antd .ant-select-selection-placeholder,
+  .logs-select-antd .ant-select-selection-item {
+    font-size: 16px !important;
+    line-height: 24px !important;
+  }
+
+  .logs-select-antd .ant-select-arrow {
+    right: 14px !important;
+  }
+
+  /* Dropdown items for mobile */
+  .logs-select-dropdown .ant-select-item {
+    padding: 4px 14px !important;
+    font-size: 16px !important;
+    min-height: 32px !important;
+    line-height: 24px !important;
+  }
+
+  /* Make dropdown full width on mobile */
+  .logs-select-dropdown {
+    max-width: calc(100vw - 40px) !important;
+  }
 }

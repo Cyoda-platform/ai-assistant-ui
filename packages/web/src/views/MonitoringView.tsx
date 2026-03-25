@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { RefreshCw, Loader2, TrendingUp, Cpu, HardDrive, Network, Activity, BarChart3, AlertCircle } from 'lucide-react';
-import { message } from 'antd';
+import { message, Select } from 'antd';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import privateClient from '@/clients/private';
@@ -8,6 +8,8 @@ import { getToken } from '@/helpers/HelperAuth';
 import dayjs from 'dayjs';
 import Logo from '@/assets/images/logo.svg';
 import './MonitoringView.css';
+
+const { Option } = Select;
 
 interface MetricData {
   metric: Record<string, string>;
@@ -65,7 +67,7 @@ const MonitoringView: React.FC = () => {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [rateLimitError, setRateLimitError] = useState<string | null>(null);
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('');
-  const [selectedApplication, setSelectedApplication] = useState<string>('cyoda');
+  const [selectedApplication, setSelectedApplication] = useState<string>('');
   const [environments, setEnvironments] = useState<Environment[]>([]);
   const [loadingEnvironments, setLoadingEnvironments] = useState(true);
   const [applications, setApplications] = useState<any[]>([]);
@@ -414,33 +416,26 @@ const MonitoringView: React.FC = () => {
         </div>
       ) : (
         <div style={{ padding: '20px', borderBottom: '1px solid #334155' }}>
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-end' }}>
+          <div className="monitoring-selects-container" style={{ display: 'flex', gap: '20px', alignItems: 'flex-end' }}>
             {/* Environment Select */}
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', marginBottom: '8px', color: '#e2e8f0', fontSize: '14px', fontWeight: '500' }}>
                 Environment
               </label>
-              <select
-                value={selectedEnvironment}
-                onChange={(e) => setSelectedEnvironment(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  backgroundColor: '#0f172a',
-                  border: '1px solid #334155',
-                  borderRadius: '6px',
-                  color: '#e2e8f0',
-                  fontSize: '14px',
-                  cursor: 'pointer'
-                }}
+              <Select
+                value={selectedEnvironment || undefined}
+                onChange={(value) => setSelectedEnvironment(value)}
+                placeholder="Select environment..."
+                className="monitoring-select-antd"
+                popupClassName="monitoring-select-dropdown"
+                style={{ width: '100%', height: '42px' }}
               >
-                <option value="" style={{ backgroundColor: '#0f172a', color: '#94a3b8' }}>Select environment...</option>
                 {environments.map((env) => (
-                  <option key={env.name} value={env.name} style={{ backgroundColor: '#0f172a', color: '#e2e8f0' }}>
+                  <Option key={env.name} value={env.name}>
                     {env.name}
-                  </option>
+                  </Option>
                 ))}
-              </select>
+              </Select>
             </div>
 
             {/* Application Select */}
@@ -448,35 +443,23 @@ const MonitoringView: React.FC = () => {
               <label style={{ display: 'block', marginBottom: '8px', color: '#e2e8f0', fontSize: '14px', fontWeight: '500' }}>
                 Application
               </label>
-              <select
-                value={selectedApplication}
-                onChange={(e) => setSelectedApplication(e.target.value)}
+              <Select
+                value={selectedApplication || undefined}
+                onChange={(value) => setSelectedApplication(value)}
+                placeholder="Select application..."
+                className="monitoring-select-antd"
+                popupClassName="monitoring-select-dropdown"
+                style={{ width: '100%', height: '42px' }}
                 disabled={loadingApplications}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  backgroundColor: '#0f172a',
-                  border: '1px solid #334155',
-                  borderRadius: '6px',
-                  color: '#e2e8f0',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                  opacity: loadingApplications ? 0.6 : 1
-                }}
+                loading={loadingApplications}
+                notFoundContent={applications.length === 0 ? 'No applications found' : null}
               >
-                <option value="cyoda" style={{ backgroundColor: '#0f172a', color: '#e2e8f0' }}>cyoda (default)</option>
-                {loadingApplications ? (
-                  <option disabled style={{ backgroundColor: '#0f172a', color: '#94a3b8' }}>Loading applications...</option>
-                ) : applications.length === 0 ? (
-                  <option disabled style={{ backgroundColor: '#0f172a', color: '#94a3b8' }}>No applications found</option>
-                ) : (
-                  applications.map((app) => (
-                    <option key={app.namespace} value={app.name} style={{ backgroundColor: '#0f172a', color: '#e2e8f0' }}>
-                      {app.name}
-                    </option>
-                  ))
-                )}
-              </select>
+                {applications.map((app) => (
+                  <Option key={app.namespace} value={app.name}>
+                    {app.name}
+                  </Option>
+                ))}
+              </Select>
             </div>
           </div>
         </div>
@@ -520,7 +503,14 @@ const MonitoringView: React.FC = () => {
               </button>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+            gap: '10px',
+            maxHeight: '400px',
+            overflowY: 'auto',
+            paddingRight: '10px'
+          }}>
             {AVAILABLE_METRICS.map((metric) => (
               <label key={metric.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#e2e8f0' }}>
                 <input
@@ -704,7 +694,7 @@ const MonitoringView: React.FC = () => {
           </div>
           <div className="status-row">
             <span>Application:</span>
-            <code>{selectedApplication}</code>
+            <code>{selectedApplication || 'Not selected'}</code>
           </div>
           <div className="status-row">
             <span>Metrics Selected:</span>

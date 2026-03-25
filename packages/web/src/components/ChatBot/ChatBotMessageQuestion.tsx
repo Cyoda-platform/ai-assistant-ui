@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import dayjs from 'dayjs';
-import { Bot, Clock, Sparkles, CheckCircle, Check, Plus, Loader2, Undo, RotateCcw, Search, Send, Info, Activity, Palette, Cloud, ArrowRight, Zap, Award, Shield } from 'lucide-react';
+import { Bot, Clock, Sparkles, CheckCircle, Check, Plus, Loader2, Undo, RotateCcw, Search, Send, Info, Activity, Palette, Cloud, ArrowRight, Zap, Award, Shield, Database, Server } from 'lucide-react';
 import MarkdownRenderer from '../MarkdownRenderer/MarkdownRenderer';
 import ResponseSeparator from './ResponseSeparator';
 import DeploymentOptionsUI from './DeploymentOptionsUI';
@@ -732,7 +732,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                     onClick={handleOpenCanvasWithPull}
                     className="px-4 py-2 rounded-full backdrop-blur-sm bg-slate-700/40 border border-amber-400/50 hover:bg-slate-600/50 hover:border-amber-400/70 text-slate-300 hover:text-slate-200 font-medium shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
                   >
-                    <Palette size={14} className="text-amber-400" />
+                    <Activity size={14} className="text-amber-400" />
                     <span className="text-sm">Open Canvas</span>
                     <div className="relative group/info">
                       <Info size={12} className="text-slate-500 cursor-help" />
@@ -749,7 +749,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                     onClick={onOpenTaskPanel}
                     className="px-4 py-2 rounded-full backdrop-blur-sm bg-slate-700/40 border border-slate-300/50 hover:bg-slate-600/50 hover:border-slate-200/70 text-slate-300 hover:text-slate-200 font-medium shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
                   >
-                    <Award size={14} className="text-slate-300" />
+                    <Database size={14} className="text-slate-300" />
                     <span className="text-sm">Open Tasks</span>
                     <div className="relative group/info">
                       <Info size={12} className="text-slate-500 cursor-help" />
@@ -766,7 +766,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                     onClick={onOpenEnvironmentPanel}
                     className="px-4 py-2 rounded-full backdrop-blur-sm bg-slate-700/40 border border-emerald-600/50 hover:bg-slate-600/50 hover:border-emerald-500/70 text-slate-300 hover:text-slate-200 font-medium shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
                   >
-                    <Shield size={14} className="text-emerald-500" />
+                    <Server size={14} className="text-emerald-500" />
                     <span className="text-sm">Open Cloud</span>
                     <div className="relative group/info">
                       <Info size={12} className="text-slate-500 cursor-help" />
@@ -912,7 +912,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                     <button
                       onClick={() => handleSubmitOptions()}
                       disabled={isSubmittingOptions || selectedOptions.length === 0}
-                      className="w-full px-4 py-2.5 rounded-full backdrop-blur-md bg-gradient-to-r from-teal-500/20 to-cyan-500/20 border border-teal-400/20 hover:from-teal-500/30 hover:to-cyan-500/30 hover:border-teal-400/30 disabled:bg-slate-800/40 disabled:border-slate-700/30 disabled:opacity-50 text-teal-100 hover:text-white disabled:text-slate-500 text-sm font-medium transition-all duration-200 shadow-lg shadow-teal-500/10 hover:shadow-teal-400/20 disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="w-full px-4 py-2.5 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-semibold text-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-teal-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       <Send size={16} />
                       <span>Select</span>

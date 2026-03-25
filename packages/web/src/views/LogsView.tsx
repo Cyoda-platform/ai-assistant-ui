@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import LogViewer, { ElkLogResponse } from '../components/LogViewer/LogViewer';
 import privateClient from '@/clients/private';
-import { message } from 'antd';
+import { message, Select } from 'antd';
 import Logo from '@/assets/images/logo.svg';
 import './LogsView.css';
 
@@ -355,85 +355,53 @@ const LogsView: React.FC = () => {
 
       {/* Environment and Application Selection */}
       {apiKey && (
-        <div className="logs-filters" style={{
-          padding: '16px 20px',
-          backgroundColor: '#1e293b',
-          borderBottom: '1px solid #334155',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '24px',
-          flexWrap: 'wrap'
-        }}>
-          {/* Environment Select */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <label style={{ color: '#94a3b8', fontSize: '14px', fontWeight: '500' }}>
-              🌐 Environment:
-            </label>
-            <select
-              value={selectedEnvironment}
-              onChange={(e) => setSelectedEnvironment(e.target.value)}
-              style={{
-                padding: '6px 12px',
-                borderRadius: '4px',
-                border: '1px solid #334155',
-                backgroundColor: '#0f172a',
-                color: 'white',
-                fontSize: '13px',
-                minWidth: '200px',
-                outline: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              <option value="">Select an environment...</option>
-              {loadingEnvironments ? (
-                <option disabled>Loading environments...</option>
-              ) : environments.length === 0 ? (
-                <option disabled>No environments found</option>
-              ) : (
-                environments.map((env) => (
-                  <option key={env.namespace} value={env.name}>
+        <div style={{ padding: '20px', borderBottom: '1px solid #334155' }}>
+          <div className="logs-selects-container" style={{ display: 'flex', gap: '20px', alignItems: 'flex-end' }}>
+            {/* Environment Select */}
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#e2e8f0', fontSize: '14px', fontWeight: '500' }}>
+                Environment
+              </label>
+              <Select
+                value={selectedEnvironment || undefined}
+                onChange={(value) => setSelectedEnvironment(value)}
+                placeholder="Select environment..."
+                loading={loadingEnvironments}
+                className="logs-select-antd"
+                popupClassName="logs-select-dropdown"
+                style={{ width: '100%', height: '42px' }}
+              >
+                {environments.map((env) => (
+                  <Select.Option key={env.namespace} value={env.name}>
                     {env.name}
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
+                  </Select.Option>
+                ))}
+              </Select>
+            </div>
 
-          {/* Application Select */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <label style={{ color: '#94a3b8', fontSize: '14px', fontWeight: '500' }}>
-              🚀 Application:
-            </label>
-            <select
-              value={selectedApplication}
-              onChange={(e) => setSelectedApplication(e.target.value)}
-              disabled={!selectedEnvironment}
-              style={{
-                padding: '6px 12px',
-                borderRadius: '4px',
-                border: '1px solid #334155',
-                backgroundColor: selectedEnvironment ? '#0f172a' : '#334155',
-                color: selectedEnvironment ? 'white' : '#94a3b8',
-                fontSize: '13px',
-                minWidth: '200px',
-                outline: 'none',
-                cursor: selectedEnvironment ? 'pointer' : 'not-allowed',
-                opacity: selectedEnvironment ? 1 : 0.6
-              }}
-            >
-              <option value="">Select an application...</option>
-              {loadingApplications ? (
-                <option disabled>Loading applications...</option>
-              ) : applications.length === 0 ? (
-                <option disabled>No applications found</option>
-              ) : (
-                applications.map((app) => (
-                  <option key={app.namespace} value={app.name}>
+            {/* Application Select */}
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#e2e8f0', fontSize: '14px', fontWeight: '500' }}>
+                Application
+              </label>
+              <Select
+                value={selectedApplication || undefined}
+                onChange={(value) => setSelectedApplication(value)}
+                placeholder="Select application..."
+                disabled={!selectedEnvironment}
+                loading={loadingApplications}
+                className="logs-select-antd"
+                popupClassName="logs-select-dropdown"
+                style={{ width: '100%', height: '42px' }}
+                notFoundContent={applications.length === 0 ? 'No applications found' : null}
+              >
+                {applications.map((app) => (
+                  <Select.Option key={app.namespace} value={app.name}>
                     {app.name}
-                  </option>
-                ))
-              )}
-            </select>
+                  </Select.Option>
+                ))}
+              </Select>
+            </div>
           </div>
         </div>
       )}

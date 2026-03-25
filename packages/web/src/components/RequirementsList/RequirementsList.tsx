@@ -185,7 +185,7 @@ Add any additional context, constraints, or considerations here.`,
                     {!getGitHubUrl(requirement) && (
                       <button
                         onClick={(e) => handleDeleteRequirement(requirement.id, e)}
-                        className="p-1 bg-blue-500/20 hover:bg-blue-500/30 rounded transition-colors"
+                        className="p-1 rounded transition-colors"
                         title="Delete requirement"
                       >
                         <Trash2 size={14} className="text-blue-400 hover:text-blue-300" />

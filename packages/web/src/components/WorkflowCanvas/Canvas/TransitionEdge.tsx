@@ -19,8 +19,6 @@ interface TransitionEdgeData {
   onLabelClick?: (transitionId: string, section?: 'criterion' | 'processors') => void;
   palette: ColorPalette;
   edgeType?: 'default' | 'straight' | 'step' | 'smoothstep';
-  isBidirectional?: boolean;
-  isReturnPath?: boolean;
 }
 
 export const TransitionEdge: React.FC<EdgeProps> = ({
@@ -40,9 +38,7 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
     onUpdate,
     onLabelClick,
     palette,
-    edgeType = 'default',
-    isBidirectional = false,
-    isReturnPath = false
+    edgeType = 'default'
   } = (data as unknown as TransitionEdgeData) || {};
 
   // Calculate edge path and label position based on edge type
@@ -86,10 +82,8 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
       break;
   }
 
-  // Apply vertical offset for bidirectional transitions to prevent label overlap
-  // Forward path (A→B where A < B): offset upward (-20px)
-  // Return path (B→A where B > A): offset downward (+20px)
-  const labelOffsetY = isBidirectional ? (isReturnPath ? 20 : -20) : 0;
+  // No label offset needed (removed bidirectional logic)
+  const labelOffsetY = 0;
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();

@@ -93,6 +93,32 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
   const [installationId, setInstallationId] = useState<string>('');
   const [expandedInfo, setExpandedInfo] = useState<string | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const [isNarrow, setIsNarrow] = useState<boolean>(false);
+
+  // Check container width to determine if we should use narrow layout
+  React.useEffect(() => {
+    const checkWidth = () => {
+      if (containerRef.current) {
+        const width = containerRef.current.offsetWidth;
+        // Use narrow layout if width is less than 500px
+        setIsNarrow(width < 500);
+      }
+    };
+
+    checkWidth();
+    window.addEventListener('resize', checkWidth);
+
+    // Use ResizeObserver for better detection of container size changes
+    const resizeObserver = new ResizeObserver(checkWidth);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => {
+      window.removeEventListener('resize', checkWidth);
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   // Extract unique languages, repo types, and branch types
   // Parse option value to extract language, repo type, and branch type
@@ -287,17 +313,17 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
     <div ref={containerRef} className="space-y-4 bg-gradient-to-br from-slate-900/50 to-slate-800/30 rounded-xl p-4 border border-slate-700/50 backdrop-blur-sm">
       {/* Progress Steps */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 flex-1">
+        <div className={`flex items-center flex-1 ${isNarrow ? 'gap-1' : 'gap-3'}`}>
           {/* Step 1 */}
           <div className="flex flex-col items-center gap-1">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
+            <div className={`${isNarrow ? 'w-7 h-7' : 'w-8 h-8'} rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
               step === 'language' || step === 'branchType' || step === 'repoType'
                 ? 'bg-teal-500/20 border border-teal-500 text-teal-300'
                 : 'bg-slate-700/50 border border-slate-600 text-slate-400'
             }`}>
               1
             </div>
-            <span className="text-xs text-slate-400">Language</span>
+            <span className={`${isNarrow ? 'text-[10px]' : 'text-xs'} text-slate-400 whitespace-nowrap`}>Language</span>
           </div>
 
           {/* Connector 1 */}
@@ -309,14 +335,14 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
 
           {/* Step 2 */}
           <div className="flex flex-col items-center gap-1">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
+            <div className={`${isNarrow ? 'w-7 h-7' : 'w-8 h-8'} rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
               step === 'branchType' || step === 'repoType'
                 ? 'bg-teal-500/20 border border-teal-500 text-teal-300'
                 : 'bg-slate-700/50 border border-slate-600 text-slate-400'
             }`}>
               2
             </div>
-            <span className="text-xs text-slate-400">Branch</span>
+            <span className={`${isNarrow ? 'text-[10px]' : 'text-xs'} text-slate-400 whitespace-nowrap`}>Branch</span>
           </div>
 
           {/* Connector 2 */}
@@ -328,14 +354,14 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
 
           {/* Step 3 */}
           <div className="flex flex-col items-center gap-1">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
+            <div className={`${isNarrow ? 'w-7 h-7' : 'w-8 h-8'} rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
               step === 'repoType'
                 ? 'bg-teal-500/20 border border-teal-500 text-teal-300'
                 : 'bg-slate-700/50 border border-slate-600 text-slate-400'
             }`}>
               3
             </div>
-            <span className="text-xs text-slate-400">Repository</span>
+            <span className={`${isNarrow ? 'text-[10px]' : 'text-xs'} text-slate-400 whitespace-nowrap`}>Repository</span>
           </div>
         </div>
       </div>
@@ -349,7 +375,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
               <HelpCircle size={16} className="text-slate-400 hover:text-teal-400 transition-colors" />
             </Tooltip>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className={`grid gap-3 ${isNarrow ? 'grid-cols-1' : 'grid-cols-2'}`}>
             {languages.map(lang => (
               <div key={lang} className="relative">
                 <button
@@ -396,7 +422,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
               <HelpCircle size={16} className="text-slate-400 hover:text-teal-400 transition-colors" />
             </Tooltip>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className={`grid gap-3 ${isNarrow ? 'grid-cols-1' : 'grid-cols-2'}`}>
             {branchTypes.map(type => (
               <div key={type} className="relative">
                 <button
@@ -485,7 +511,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
               <HelpCircle size={16} className="text-slate-400 hover:text-teal-400 transition-colors" />
             </Tooltip>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className={`grid gap-3 ${isNarrow ? 'grid-cols-1' : 'grid-cols-2'}`}>
             {repoTypes.map(type => (
               <div key={type} className="relative">
                 <button
@@ -624,11 +650,11 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
       )}
 
       {/* Action Buttons */}
-      <div className="flex gap-2 pt-2">
+      <div className={`flex gap-2 pt-2 ${isNarrow ? 'flex-col' : 'flex-row'}`}>
         {step !== 'language' && (
           <button
             onClick={handleBack}
-            className="px-4 py-2.5 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-slate-200 transition-all duration-300 flex items-center justify-center gap-1.5 text-sm font-medium"
+            className={`${isNarrow ? 'w-full' : 'w-auto'} px-4 py-2.5 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-slate-200 transition-all duration-300 flex items-center justify-center gap-1.5 text-sm font-medium`}
           >
             <ChevronLeft size={16} />
             <span>Back</span>
@@ -653,7 +679,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
             onSubmit(formattedData);
           }}
           disabled={isSubmitting || selectedOptions.length === 0}
-          className="flex-1 px-4 py-2.5 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-semibold text-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-teal-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+          className={`${isNarrow ? 'w-full' : 'flex-1'} px-4 py-2.5 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-semibold text-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-teal-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5`}
         >
           <Send size={16} />
           <span>Send</span>

@@ -705,10 +705,63 @@ const HomeView: React.FC = () => {
 
                 {/* Hero Text - Centered Layout */}
                 <div className="relative flex flex-col items-center justify-center gap-0 mb-8 max-w-6xl mx-auto px-6" style={{ marginTop: '-4vh' }}>
-                  {/* Title and Tagline on one line */}
-                  <div className="flex items-center justify-center gap-3 flex-wrap">
+                  {/* Mobile: 3 lines centered, Desktop: Title and Tagline on one line */}
+                  <div className="flex flex-col md:flex-row items-center justify-center gap-0 md:gap-3 flex-wrap text-center">
+                    {/* Mobile: Line 1 - Cyoda AI Studio */}
                     <h1
-                      className="animate-fade-in"
+                      className="animate-fade-in md:hidden"
+                      style={{
+                        fontFamily: 'Montserrat, sans-serif',
+                        fontWeight: 700,
+                        fontSize: 'clamp(36px, 5vw, 64px)',
+                        lineHeight: 1.2,
+                        animationDelay: '0.1s',
+                        margin: 0
+                      }}
+                    >
+                      <span style={{ color: '#0d9488' }}>Cyoda </span>
+                      <span style={{
+                        background: 'linear-gradient(135deg, #06b6d4 0%, #14b8a6 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text'
+                      }}>AI</span>
+                      <span style={{ color: '#0d9488' }}> Studio</span>
+                    </h1>
+
+                    {/* Mobile: Line 2 - Event-Driven */}
+                    <h2
+                      className="animate-fade-in md:hidden"
+                      style={{
+                        fontFamily: 'Montserrat, sans-serif',
+                        fontWeight: 600,
+                        fontSize: 'clamp(36px, 5vw, 64px)',
+                        lineHeight: 1.2,
+                        animationDelay: '0.2s',
+                        margin: 0
+                      }}
+                    >
+                      <span style={{ color: '#0d9488' }}>Event-Driven</span>
+                    </h2>
+
+                    {/* Mobile: Line 3 - AI Platform */}
+                    <h2
+                      className="animate-fade-in md:hidden"
+                      style={{
+                        fontFamily: 'Montserrat, sans-serif',
+                        fontWeight: 600,
+                        fontSize: 'clamp(36px, 5vw, 64px)',
+                        lineHeight: 1.2,
+                        animationDelay: '0.3s',
+                        margin: 0
+                      }}
+                    >
+                      <span style={{ color: '#0d9488' }}>AI Platform</span>
+                    </h2>
+
+                    {/* Desktop: Original layout */}
+                    <h1
+                      className="animate-fade-in hidden md:block"
                       style={{
                         fontFamily: 'Montserrat, sans-serif',
                         fontWeight: 700,
@@ -729,7 +782,7 @@ const HomeView: React.FC = () => {
                     </h1>
 
                     <h2
-                      className="animate-fade-in"
+                      className="animate-fade-in hidden md:block"
                       style={{
                         fontFamily: 'Montserrat, sans-serif',
                         fontWeight: 600,
@@ -744,8 +797,29 @@ const HomeView: React.FC = () => {
                   </div>
 
                   {/* Subtitle Section */}
+                  {/* Mobile: 4 lines */}
                   <p
-                    className="animate-fade-in text-center"
+                    className="animate-fade-in text-center md:hidden"
+                    style={{
+                      fontFamily: 'Montserrat, sans-serif',
+                      fontWeight: 400,
+                      fontSize: 'clamp(18px, 2.5vw, 26px)',
+                      color: 'rgba(255,255,255,0.8)',
+                      lineHeight: 1.6,
+                      animationDelay: '0.3s',
+                      maxWidth: '700px',
+                      margin: '1rem auto 0'
+                    }}
+                  >
+                    Build mission-critical systems<br />
+                    with declarative workflows,<br />
+                    AI-assisted development,<br />
+                    and complete event sourcing
+                  </p>
+
+                  {/* Desktop: Original layout */}
+                  <p
+                    className="animate-fade-in text-center hidden md:block"
                     style={{
                       fontFamily: 'Montserrat, sans-serif',
                       fontWeight: 400,
@@ -799,10 +873,9 @@ const HomeView: React.FC = () => {
                                 console.log('Carousel item clicked, prompt:', example.prompt); // Debug log
                                 handlePromptClick(example.prompt);
                               }}
-                              className="w-full text-left p-4 transition-all duration-500 group relative overflow-hidden cursor-pointer rounded-3xl"
+                              className="w-full text-left pt-3 px-3 pb-2 md:p-4 transition-all duration-500 group relative overflow-hidden cursor-pointer rounded-2xl md:rounded-3xl"
                               style={{
-                                background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)',
-                                backdropFilter: 'blur(20px)'
+                                background: 'transparent'
                               }}
                             >
                               {/* Hover gradient effect */}
@@ -814,9 +887,9 @@ const HomeView: React.FC = () => {
                               />
 
                               <div className="relative z-10">
-                                <div className="space-y-4">
+                                <div className="space-y-3 md:space-y-4">
                                   {/* Header Content aligned with picture position */}
-                                  <div className="flex items-center space-x-3 mb-3" style={{ marginLeft: '3%' }}>
+                                  <div className="flex items-center space-x-3 mb-2 md:mb-3" style={{ marginLeft: '3%' }}>
                                     <span
                                       className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider"
                                       style={{
@@ -832,9 +905,29 @@ const HomeView: React.FC = () => {
                                     </div>
                                   </div>
 
-                                  <div className="flex items-stretch space-x-4">
-                                    {/* Person Image positioned on the left, aligned with bottom of text area */}
-                                    <div className="flex-shrink-0" style={{ marginLeft: '3%' }}>
+                                  {/* Mobile: Image and Title in one row, Desktop: Image on left with text on right */}
+                                  <div className="flex flex-col md:flex-row md:items-stretch space-y-2 md:space-y-0 md:space-x-4">
+                                    {/* Mobile: Image and Title row */}
+                                    <div className="flex items-center space-x-3 md:hidden">
+                                      <div className="flex-shrink-0">
+                                        <div
+                                          className="w-12 h-12 p-1 rounded-lg overflow-hidden"
+                                          style={{
+                                            background: 'linear-gradient(135deg, #06b6d4 0%, #14b8a6 50%, #10b981 100%)'
+                                          }}
+                                        >
+                                          {React.cloneElement(example.icon, {
+                                            className: "w-full h-full object-cover rounded-md"
+                                          })}
+                                        </div>
+                                      </div>
+                                      <h3 className="text-base font-bold text-white group-hover:text-teal-300 transition-colors duration-300 flex-1" style={{ margin: 0 }}>
+                                        {example.title}
+                                      </h3>
+                                    </div>
+
+                                    {/* Desktop: Person Image positioned on the left */}
+                                    <div className="hidden md:block flex-shrink-0" style={{ marginLeft: '3%' }}>
                                       <div
                                         className="w-16 h-full p-1 rounded-lg overflow-hidden"
                                         style={{
@@ -849,17 +942,19 @@ const HomeView: React.FC = () => {
 
                                     {/* Text Content on the Right */}
                                     <div className="flex-1 space-y-3">
-                                      <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-teal-300 transition-colors duration-300">
+                                      {/* Desktop: Title */}
+                                      <h3 className="hidden md:block text-2xl font-bold text-white mb-3 group-hover:text-teal-300 transition-colors duration-300" style={{ margin: 0 }}>
                                         {example.title}
                                       </h3>
 
-                                      <p className="text-slate-300 text-lg leading-relaxed mb-4 group-hover:text-slate-200 transition-colors duration-300">
+                                      {/* Desktop: Description */}
+                                      <p className="hidden md:block text-slate-300 text-lg leading-relaxed mb-4 group-hover:text-slate-200 transition-colors duration-300">
                                         {example.description}
                                       </p>
 
                                       {/* Prompt Text with Copy Button */}
-                                      <div className="relative bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                                        <p className="text-slate-400 text-base leading-relaxed group-hover:text-slate-300 transition-colors duration-300 font-mono pr-12">
+                                      <div className="relative bg-slate-800/50 pt-4 pl-4 pr-3 pb-3 md:p-3 rounded-lg border border-slate-700">
+                                        <p className="text-slate-400 text-xs md:text-base leading-relaxed group-hover:text-slate-300 transition-colors duration-300 font-mono pr-12">
                                           {example.prompt}
                                         </p>
                                         <button
@@ -890,26 +985,26 @@ const HomeView: React.FC = () => {
                     {/* Elegant Navigation Buttons */}
                     <button
                       onClick={prevPrompt}
-                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 md:-translate-x-6 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
                       style={{
                         background: 'linear-gradient(135deg, #06b6d4, #14b8a6, #10b981)',
                         backdropFilter: 'blur(10px)',
                         boxShadow: '0 4px 12px rgba(6,182,212,0.3), 0 0 0 1px rgba(6,182,212,0.4)',
                       }}
                     >
-                      <ChevronRight className="text-white rotate-180 group-hover:-translate-x-0.5 transition-transform" size={20} />
+                      <ChevronRight className="text-white rotate-180 group-hover:-translate-x-0.5 transition-transform" size={18} />
                     </button>
 
                     <button
                       onClick={nextPrompt}
-                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
+                      className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 md:translate-x-6 w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 z-20 group"
                       style={{
                         background: 'linear-gradient(135deg, #06b6d4, #14b8a6, #10b981)',
                         backdropFilter: 'blur(10px)',
                         boxShadow: '0 4px 12px rgba(6,182,212,0.3), 0 0 0 1px rgba(6,182,212,0.4)',
                       }}
                     >
-                      <ChevronRight className="text-white group-hover:translate-x-0.5 transition-transform" size={20} />
+                      <ChevronRight className="text-white group-hover:translate-x-0.5 transition-transform" size={18} />
                     </button>
                   </div>
                 </div>
@@ -959,7 +1054,7 @@ const HomeView: React.FC = () => {
                       }}
                       placeholder="What would you like to build today?"
                       rows={1}
-                      className="w-full text-white placeholder-slate-400 focus:outline-none transition-all duration-200 text-lg resize-none"
+                      className="w-full text-white placeholder-slate-400 focus:outline-none transition-all duration-200 text-lg resize-none pr-16 md:pr-[120px] pl-6"
                       style={{
                         height: `${textareaHeight}px`,
                         minHeight: '64px',
@@ -968,19 +1063,20 @@ const HomeView: React.FC = () => {
                         lineHeight: '1.5',
                         background: 'transparent',
                         border: 'none',
-                        padding: '18px 120px 18px 24px',
+                        paddingTop: '18px',
+                        paddingBottom: '18px',
                         fontFamily: 'Montserrat, sans-serif'
                       }}
                       disabled={isLoading}
                     />
 
                     {/* Bottom Right Controls - Lovable Style */}
-                    <div className="absolute right-4 bottom-4 flex items-center z-10">
+                    <div className="absolute right-3 md:right-4 bottom-3 md:bottom-4 flex items-center z-10">
                       {/* Send Button */}
                       <button
                         type="submit"
                         disabled={!chatInput.trim() || isLoading}
-                        className="hover:scale-110 transition-all duration-200 flex items-center justify-center flex-shrink-0 p-3"
+                        className="hover:scale-110 transition-all duration-200 flex items-center justify-center flex-shrink-0 p-2 md:p-3"
                         style={{
                           transform: 'translateY(5%)',
                           color: chatInput.trim() ? '#14b8a6' : '#9ca3af'
@@ -988,9 +1084,12 @@ const HomeView: React.FC = () => {
                         title="Send Message (Enter)"
                       >
                         {isLoading ? (
-                          <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: chatInput.trim() ? '#14b8a633' : '#9ca3af33', borderTopColor: chatInput.trim() ? '#14b8a6' : '#9ca3af' }} />
+                          <div className="w-5 h-5 md:w-6 md:h-6 border-2 rounded-full animate-spin" style={{ borderColor: chatInput.trim() ? '#14b8a633' : '#9ca3af33', borderTopColor: chatInput.trim() ? '#14b8a6' : '#9ca3af' }} />
                         ) : (
-                          <Send size={24} style={{ color: chatInput.trim() ? '#14b8a6' : '#9ca3af' }} />
+                          <>
+                            <Send className="block md:hidden" size={20} style={{ color: chatInput.trim() ? '#14b8a6' : '#9ca3af' }} />
+                            <Send className="hidden md:block" size={24} style={{ color: chatInput.trim() ? '#14b8a6' : '#9ca3af' }} />
+                          </>
                         )}
                       </button>
                     </div>
@@ -1076,7 +1175,7 @@ const HomeView: React.FC = () => {
                             {action.icon}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm sm:text-base font-semibold text-white group-hover:text-teal-300 transition-colors duration-300 mb-1">
+                            <div className="text-xs sm:text-sm md:text-base font-semibold text-white group-hover:text-teal-300 transition-colors duration-300 mb-1">
                               {action.label}
                             </div>
                             <div className="text-xs text-slate-300 group-hover:text-slate-200 transition-colors duration-300 line-clamp-2">
@@ -1257,9 +1356,9 @@ const HomeView: React.FC = () => {
               </div>
 
               {/* Getting Started Section */}
-              <div className="max-w-5xl mx-auto px-6 mb-16 mt-12" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+              <div className="max-w-5xl mx-auto px-4 sm:px-6 mb-16 mt-12" style={{ fontFamily: 'Montserrat, sans-serif' }}>
                 <div
-                  className="rounded-2xl p-8 md:p-12 transition-all duration-300 hover:scale-[1.01] relative overflow-hidden group"
+                  className="rounded-2xl p-6 md:p-12 transition-all duration-300 hover:scale-[1.01] relative overflow-hidden group"
                   style={{
                     background: 'rgba(15, 23, 42, 0.4)',
                     backdropFilter: 'blur(8px)',
@@ -1276,22 +1375,22 @@ const HomeView: React.FC = () => {
                   />
 
                   <div className="relative z-10 text-center">
-                    <div className="inline-flex items-center space-x-3 mb-4">
+                    <div className="inline-flex items-center space-x-2 sm:space-x-3 mb-4">
                       <div
-                        className="w-12 h-12 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
+                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
                         style={{
                           background: 'linear-gradient(135deg, #14b8a6, #0d9488)',
                           boxShadow: '0 2px 8px rgba(20, 184, 166, 0.15)'
                         }}
                       >
-                        <Rocket className="text-white w-6 h-6" />
+                        <Rocket className="text-white w-5 h-5 sm:w-6 sm:h-6" />
                       </div>
-                      <h3 className="text-2xl md:text-3xl font-bold" style={{ color: '#14b8a6' }}>
+                      <h3 className="text-lg sm:text-2xl md:text-3xl font-bold" style={{ color: '#14b8a6' }}>
                         Get Started with Cyoda
                       </h3>
                     </div>
 
-                    <p className="text-slate-300 text-lg mb-6 max-w-3xl mx-auto leading-relaxed">
+                    <p className="text-slate-300 text-sm sm:text-base md:text-lg mb-6 max-w-3xl mx-auto leading-relaxed px-2">
                       Build enterprise-grade fintech applications with event-driven architecture, AI-assisted development, and complete audit trails. Start developing mission-critical systems today.
                     </p>
 
@@ -1299,7 +1398,7 @@ const HomeView: React.FC = () => {
                       href="https://docs.cyoda.net/getting-started/introduction/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-3 px-8 py-3 font-bold text-lg transition-all duration-300 transform hover:scale-105 group/btn"
+                      className="inline-flex items-center space-x-2 sm:space-x-3 px-4 sm:px-8 py-2.5 sm:py-3 font-bold text-sm sm:text-base md:text-lg transition-all duration-300 transform hover:scale-105 group/btn"
                       style={{
                         background: 'linear-gradient(135deg, #14b8a6, #0d9488)',
                         borderRadius: '12px',
@@ -1308,25 +1407,25 @@ const HomeView: React.FC = () => {
                         border: '1px solid rgba(20, 184, 166, 0.2)'
                       }}
                     >
-                      <Zap className="w-5 h-5 group-hover/btn:translate-y-[-2px] transition-transform duration-300" />
+                      <Zap className="w-4 h-4 sm:w-5 sm:h-5 group-hover/btn:translate-y-[-2px] transition-transform duration-300" />
                       <span style={{ textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>Read Getting Started Guide</span>
-                      <svg className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform duration-300" fill="none" stroke="white" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover/btn:translate-x-1 transition-transform duration-300" fill="none" stroke="white" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                       </svg>
                     </a>
 
-                    <div className="mt-6 flex items-center justify-center space-x-6 text-sm text-slate-400">
-                      <div className="flex items-center space-x-2">
-                        <CheckCircle2 className="w-4 h-4 text-teal-400" />
-                        <span>Event-Driven Design</span>
+                    <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-4 md:gap-6 text-xs sm:text-sm text-slate-400">
+                      <div className="flex items-center space-x-1.5 sm:space-x-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-400 flex-shrink-0" />
+                        <span className="whitespace-nowrap">Event-Driven Design</span>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <CheckCircle2 className="w-4 h-4 text-teal-400" />
-                        <span>AI-Assisted Development</span>
+                      <div className="flex items-center space-x-1.5 sm:space-x-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-400 flex-shrink-0" />
+                        <span className="whitespace-nowrap">AI-Assisted Development</span>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <CheckCircle2 className="w-4 h-4 text-teal-400" />
-                        <span>Complete Traceability</span>
+                      <div className="flex items-center space-x-1.5 sm:space-x-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-teal-400 flex-shrink-0" />
+                        <span className="whitespace-nowrap">Complete Traceability</span>
                       </div>
                     </div>
                   </div>
