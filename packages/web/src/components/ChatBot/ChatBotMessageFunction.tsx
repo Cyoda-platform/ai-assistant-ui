@@ -53,6 +53,7 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingApprove, setIsLoadingApprove] = useState(false);
   const [serverResponse, setServerResponse] = useState<any>(null);
+  const [withAdminRole, setWithAdminRole] = useState(false); // Admin role checkbox state
 
   // Parse token once
   const parsedToken = useMemo(() => {
@@ -105,6 +106,13 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
     return dayjs(message.last_modified).format('HH:mm');
   }, [message.last_modified]);
 
+  // Initialize withAdminRole from query_params if agent already set it
+  React.useEffect(() => {
+    if (functionData?.query_params?.withAdminRole === 'true') {
+      setWithAdminRole(true);
+    }
+  }, [functionData]);
+
   // Build the endpoint URL
   const endpointUrl = useMemo(() => {
     if (!functionData) return '';
@@ -125,14 +133,22 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
       baseUrl = `https://${cleanPrefix}-${orgId}.${host}${functionData.path}`;
     }
 
+    // Build query parameters
+    let queryParams = { ...functionData.query_params };
+
+    // For issue_technical_user, override withAdminRole with checkbox state
+    if (functionData.function === 'issue_technical_user') {
+      queryParams.withAdminRole = withAdminRole ? 'true' : 'false';
+    }
+
     // Append query parameters if present
-    if (functionData.query_params && Object.keys(functionData.query_params).length > 0) {
-      const queryString = new URLSearchParams(functionData.query_params).toString();
+    if (queryParams && Object.keys(queryParams).length > 0) {
+      const queryString = new URLSearchParams(queryParams).toString();
       baseUrl += `?${queryString}`;
     }
 
     return baseUrl;
-  }, [functionData, parsedToken]);
+  }, [functionData, parsedToken, withAdminRole]);
 
   const handleExecute = async () => {
     if (!functionData || !token) return;
@@ -261,8 +277,35 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
               {functionData.function}
             </div>
 
-            {/* Query Parameters */}
-            {functionData.query_params && Object.keys(functionData.query_params).length > 0 && (
+            {/* Admin Role Checkbox - Only for issue_technical_user */}
+            {functionData.function === 'issue_technical_user' && (
+              <div className="mb-3 p-3 bg-slate-700/30 rounded-lg border border-slate-600/50">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={withAdminRole}
+                    onChange={(e) => setWithAdminRole(e.target.checked)}
+                    className="w-4 h-4 bg-slate-900/60 border border-slate-600/50 rounded text-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-0 cursor-pointer transition-colors"
+                  />
+                  <div className="flex-1">
+                    <span className="text-sm font-medium text-slate-200 group-hover:text-white transition-colors">
+                      Issue with ADMIN role
+                    </span>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Grant M2M and ADMIN privileges to this technical user
+                    </p>
+                  </div>
+                  {withAdminRole && (
+                    <span className="text-xs font-semibold text-amber-400 bg-amber-400/10 px-2 py-1 rounded border border-amber-400/30">
+                      ADMIN
+                    </span>
+                  )}
+                </label>
+              </div>
+            )}
+
+            {/* Query Parameters (for non-issue_technical_user functions) */}
+            {functionData.function !== 'issue_technical_user' && functionData.query_params && Object.keys(functionData.query_params).length > 0 && (
               <div className="mb-3 p-2 bg-slate-700/30 rounded-lg">
                 <div className="text-slate-500 text-xs font-semibold mb-1">Query Parameters:</div>
                 <div className="space-y-1">
@@ -270,9 +313,6 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
                     <div key={key} className="flex items-center space-x-2 text-xs">
                       <span className="text-slate-400 font-mono">{key}:</span>
                       <span className="text-teal-300 font-mono">{value}</span>
-                      {key === 'withAdminRole' && value === 'true' && (
-                        <span className="text-amber-400 text-xs">(ADMIN role enabled)</span>
-                      )}
                     </div>
                   ))}
                 </div>
