@@ -14,12 +14,18 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import githubAppDataService, { type GitHubRepositoryInfo } from '@/services/githubAppDataService';
 import type { AppRoot } from '@/components/AppsCanvas/types/appSchema';
+import type { ValidationResult } from '@/components/AppsCanvas/ValidationWarningBanner';
+import type { RepositoryIntegrityResult } from '@/helpers/repositoryIntegrityParser';
+import type { FRValidationResult } from '@/helpers/frValidationParser';
 
 interface RepositoryCache {
   [conversationId: string]: {
     data: AppRoot;
     repositoryInfo: GitHubRepositoryInfo;
     lastUpdated: string;
+    validation?: ValidationResult | null;
+    integrityResult?: RepositoryIntegrityResult | null;
+    frValidation?: FRValidationResult | null;
   };
 }
 
@@ -34,10 +40,16 @@ interface RepositoryStore {
   loadRepository: (conversationId: string, repoInfo: GitHubRepositoryInfo) => Promise<AppRoot | null>;
   updateLocalData: (conversationId: string, appData: AppRoot) => void;
   clearCache: (conversationId?: string) => void;
+  setValidation: (conversationId: string, validation: ValidationResult | null) => void;
+  setIntegrityResult: (conversationId: string, integrityResult: RepositoryIntegrityResult | null) => void;
+  setFRValidation: (conversationId: string, frValidation: FRValidationResult | null) => void;
 
   // Getters
   getRepositoryData: (conversationId: string) => AppRoot | null;
   getRepositoryInfo: (conversationId: string) => GitHubRepositoryInfo | null;
+  getValidation: (conversationId: string) => ValidationResult | null;
+  getIntegrityResult: (conversationId: string) => RepositoryIntegrityResult | null;
+  getFRValidation: (conversationId: string) => FRValidationResult | null;
   isLoading: (conversationId: string) => boolean;
   getError: (conversationId: string) => string | null;
 }
@@ -173,6 +185,75 @@ export const useRepositoryStore = create<RepositoryStore>()(
         }
       },
 
+      // Set validation result for a conversation
+      setValidation: (conversationId: string, validation: ValidationResult | null) => {
+        const state = get();
+        const cached = state.cache[conversationId];
+
+        if (!cached) {
+          console.warn('⚠️ No cached repository data found for conversation:', conversationId);
+          return;
+        }
+
+        console.log('📊 Setting validation result for conversation:', conversationId, validation);
+
+        set((state) => ({
+          cache: {
+            ...state.cache,
+            [conversationId]: {
+              ...cached,
+              validation
+            }
+          }
+        }));
+      },
+
+      // Set repository integrity result for a conversation (after pull)
+      setIntegrityResult: (conversationId: string, integrityResult: RepositoryIntegrityResult | null) => {
+        const state = get();
+        const cached = state.cache[conversationId];
+
+        if (!cached) {
+          console.warn('⚠️ No cached repository data found for conversation:', conversationId);
+          return;
+        }
+
+        console.log('🔍 Setting repository integrity result for conversation:', conversationId, integrityResult);
+
+        set((state) => ({
+          cache: {
+            ...state.cache,
+            [conversationId]: {
+              ...cached,
+              integrityResult
+            }
+          }
+        }));
+      },
+
+      // Set FR validation result for a conversation (after FR consolidation)
+      setFRValidation: (conversationId: string, frValidation: FRValidationResult | null) => {
+        const state = get();
+        const cached = state.cache[conversationId];
+
+        if (!cached) {
+          console.warn('⚠️ No cached repository data found for conversation:', conversationId);
+          return;
+        }
+
+        console.log('📋 Setting FR validation result for conversation:', conversationId, frValidation);
+
+        set((state) => ({
+          cache: {
+            ...state.cache,
+            [conversationId]: {
+              ...cached,
+              frValidation
+            }
+          }
+        }));
+      },
+
       // Getters
       getRepositoryData: (conversationId: string) => {
         return get().cache[conversationId]?.data || null;
@@ -180,6 +261,18 @@ export const useRepositoryStore = create<RepositoryStore>()(
 
       getRepositoryInfo: (conversationId: string) => {
         return get().cache[conversationId]?.repositoryInfo || null;
+      },
+
+      getValidation: (conversationId: string) => {
+        return get().cache[conversationId]?.validation || null;
+      },
+
+      getIntegrityResult: (conversationId: string) => {
+        return get().cache[conversationId]?.integrityResult || null;
+      },
+
+      getFRValidation: (conversationId: string) => {
+        return get().cache[conversationId]?.frValidation || null;
       },
 
       isLoading: (conversationId: string) => {

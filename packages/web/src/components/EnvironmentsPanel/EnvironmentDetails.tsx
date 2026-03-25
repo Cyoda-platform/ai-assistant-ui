@@ -335,6 +335,11 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
     let clientId = '';
     let clientSecret = '';
 
+    // Add query params from UI function object (if any)
+    if ((func as any).query_params) {
+      Object.assign(queryParams, (func as any).query_params);
+    }
+
     if (func.parameters) {
       func.parameters.forEach(param => {
         // Use provided value or fall back to default

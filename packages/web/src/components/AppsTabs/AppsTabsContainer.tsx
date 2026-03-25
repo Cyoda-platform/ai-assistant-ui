@@ -9,6 +9,8 @@ import type { CanvasTab } from '../AppsCanvas/types/apps';
 import apiService from '@/services/apiService';
 import { useRepositoryStore } from '@/stores/repository';
 import type { GitHubRepositoryInfo } from '@/services/githubAppDataService';
+import { ValidationWarningBanner } from '../AppsCanvas/ValidationWarningBanner';
+import { PullStatusDialog } from '../AppsCanvas/PullStatusDialog';
 
 interface AppsTabsContainerProps {
   chatId?: string; // Chat ID to use as app ID
@@ -31,9 +33,21 @@ export const AppsTabsContainer: React.FC<AppsTabsContainerProps> = ({
 }) => {
   const navigate = useNavigate();
   const { tabs, activeTabId, openTab, updateTab, getActiveTab, setActiveTab, closeOtherTabs } = useAppsTabsStore();
-  const { getRepositoryData, updateLocalData } = useRepositoryStore();
+  const { getRepositoryData, updateLocalData, getValidation, setValidation, getIntegrityResult } = useRepositoryStore();
 
   const activeTab = getActiveTab();
+
+  // Get validation data from repository store
+  const validationData = chatId ? getValidation(chatId) : null;
+
+  // Get repository integrity result from store (after pull)
+  const integrityResult = chatId ? getIntegrityResult(chatId) : null;
+
+  // Track if validation banner should be shown
+  const [showValidationBanner, setShowValidationBanner] = useState(true);
+
+  // Track if pull status dialog should be shown
+  const [showPullStatusDialog, setShowPullStatusDialog] = useState(false);
 
   // DISABLED: Subscribe to repository store changes - let AppsCanvas handle fresh data loading
   // const repositoryData = useRepositoryStore((state) =>
@@ -100,6 +114,14 @@ export const AppsTabsContainer: React.FC<AppsTabsContainerProps> = ({
     console.log('🔄 AppsTabsContainer: Skipping cached data, letting AppsCanvas load fresh data');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatId, activeTab?.id]);
+
+  // Show pull status dialog when new integrity result arrives
+  useEffect(() => {
+    if (integrityResult) {
+      console.log('🔍 New repository integrity result detected, showing pull status dialog');
+      setShowPullStatusDialog(true);
+    }
+  }, [integrityResult]);
 
   // Reload app data from API when requested
   useEffect(() => {
@@ -553,8 +575,32 @@ export const AppsTabsContainer: React.FC<AppsTabsContainerProps> = ({
       {/* Content Area - no tab bar needed (one app per chat) */}
       <div className="flex-1 relative overflow-hidden">
         {activeTab ? (
-          <div key={activeTab.id} className="h-full">
-            <AppsCanvas
+          <div key={activeTab.id} className="h-full flex flex-col">
+            {/* Validation Warning Banner */}
+            {showValidationBanner && validationData && (
+              <div className="px-4 pt-4">
+                <ValidationWarningBanner
+                  validation={validationData}
+                  onDismiss={() => setShowValidationBanner(false)}
+                  onRegenerateMissing={() => {
+                    // Create message for regenerating missing items
+                    const missingItems = [];
+                    if (validationData.missingEntities.length > 0) {
+                      missingItems.push(`Entities: ${validationData.missingEntities.join(', ')}`);
+                    }
+                    if (validationData.missingWorkflows.length > 0) {
+                      missingItems.push(`Workflows: ${validationData.missingWorkflows.join(', ')}`);
+                    }
+
+                    const message = `Please generate the following missing items:\n\n${missingItems.join('\n')}`;
+                    onSendToChat?.(message);
+                    setShowValidationBanner(false);
+                  }}
+                />
+              </div>
+            )}
+            <div className="flex-1 overflow-hidden">
+              <AppsCanvas
               appData={appData}
               conversationId={chatId} // Pass conversation ID for backend persistence
               githubRepository={githubRepository} // Pass GitHub repository info for loading from GitHub
@@ -718,6 +764,7 @@ export const AppsTabsContainer: React.FC<AppsTabsContainerProps> = ({
               }}
               onSendToChat={onSendToChat}
             />
+            </div>
           </div>
         ) : (
           // Empty state when no tabs are open
@@ -734,6 +781,17 @@ export const AppsTabsContainer: React.FC<AppsTabsContainerProps> = ({
           </div>
         )}
       </div>
+
+      {/* Pull Status Dialog */}
+      <PullStatusDialog
+        visible={showPullStatusDialog}
+        integrityResult={integrityResult}
+        onClose={() => setShowPullStatusDialog(false)}
+        onViewInCanvas={() => {
+          // Dialog closes and user can see the Canvas with loaded data
+          setShowPullStatusDialog(false);
+        }}
+      />
     </div>
   );
 };

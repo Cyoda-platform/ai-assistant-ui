@@ -18,6 +18,9 @@ import Tinycon from 'tinycon';
 import eventBus from '@/plugins/eventBus';
 import { UPDATE_CHAT_LIST } from '@/helpers/HelperConstants';
 import { groupChatsByDate } from '@/helpers/HelperChatGroups';
+import { parseValidationReport } from '@/helpers/validationParser';
+import { parseRepositoryIntegrityReport } from '@/helpers/repositoryIntegrityParser';
+import { parseFRValidationReport } from '@/helpers/frValidationParser';
 import { useWorkflowExampleDetection } from '@/hooks/useWorkflowExampleDetection';
 import type { SSEChatEvent, StreamingState } from '@/types/streaming';
 import StreamingMessage from '@/components/ChatBot/StreamingMessage';
@@ -213,6 +216,9 @@ const ChatBotView: React.FC = () => {
   const [showStreamErrorNotification, setShowStreamErrorNotification] = useState(false);
   const [showStreamingBanner, setShowStreamingBanner] = useState(false);
 
+  // Client-side timeout to prevent infinite "thinking" state
+  const streamTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // Retry streaming function
   const retryStreaming = async () => {
     if (!lastUserMessage || !technicalId) return;
@@ -276,6 +282,12 @@ const ChatBotView: React.FC = () => {
   // Stop current request function
   const stopCurrentRequest = () => {
     console.log('[ChatBotView] Stopping current request');
+
+    // Clear stream timeout
+    if (streamTimeoutRef.current) {
+      clearTimeout(streamTimeoutRef.current);
+      streamTimeoutRef.current = null;
+    }
 
     // Abort streaming request if active
     if (streamAbortControllerRef.current) {
@@ -419,14 +431,15 @@ const ChatBotView: React.FC = () => {
   // Helper function to extract UI functions from message text
   const extractUIFunctions = (text: string): any[] | null => {
     try {
-      // Check for new text-based UI function format: [ui_function: issue_technical_user, env: https://...] or [ui-function: ...]
-      const textFunctionMatch = text.match(/\[ui[_-]function:\s*(\w+),\s*env:\s*(https?:\/\/[^\]]+)\]/);
+      // Check for new text-based UI function format: [ui_function: issue_technical_user, env: https://..., withAdminRole: true/false] or [ui-function: ...]
+      const textFunctionMatch = text.match(/\[ui[_-]function:\s*(\w+),\s*env:\s*(https?:\/\/[^\],]+)(?:,\s*withAdminRole:\s*(true|false))?\]/);
       if (textFunctionMatch) {
         const functionName = textFunctionMatch[1];
         const envUrl = textFunctionMatch[2];
+        const withAdminRole = textFunctionMatch[3];
 
         // Convert to UI function format
-        const uiFunction = {
+        const uiFunction: any = {
           type: 'ui_function',
           function: functionName,
           method: 'POST',
@@ -434,6 +447,11 @@ const ChatBotView: React.FC = () => {
           response_format: 'json',
           env_url: envUrl.replace('https://', '')
         };
+
+        // Add query params if withAdminRole is specified
+        if (withAdminRole !== undefined) {
+          uiFunction.query_params = { withAdminRole: withAdminRole };
+        }
 
         return [uiFunction];
       }
@@ -466,8 +484,8 @@ const ChatBotView: React.FC = () => {
 
   // Helper function to remove JSON code block from message text
   const removeJsonCodeBlock = (text: string): string => {
-    // Remove text-based UI function markers: [ui-function: ...]
-    let cleanedText = text.replace(/\[ui-function:\s*\w+,\s*env:\s*https?:\/\/[^\]]+\]/g, '').trim();
+    // Remove text-based UI function markers: [ui-function: ...] (with optional withAdminRole parameter)
+    let cleanedText = text.replace(/\[ui[_-]function:\s*\w+,\s*env:\s*https?:\/\/[^\],]+(?:,\s*withAdminRole:\s*(?:true|false))?\]/g, '').trim();
 
     // Remove the JSON code block containing background_task_ids or UI functions
     cleanedText = cleanedText.replace(/```json\s*\n[\s\S]*?\n```/g, '').trim();
@@ -823,6 +841,30 @@ const ChatBotView: React.FC = () => {
       case 'start':
         console.log('[SSE] Setting isStreaming = true');
         eventsRef.current = [eventRecord]; // Reset events ref
+
+        // Clear any existing timeout
+        if (streamTimeoutRef.current) {
+          clearTimeout(streamTimeoutRef.current);
+        }
+
+        // Set a 6-minute client-side timeout (slightly longer than backend's 5 minutes)
+        streamTimeoutRef.current = setTimeout(() => {
+          console.error('[SSE] Client-side timeout: Stream exceeded 6 minutes, clearing thinking state');
+          setStreamingState(prev => ({
+            ...prev,
+            isStreaming: false,
+            error: 'Stream timeout - please try again',
+            errorDetails: {
+              error_type: 'ClientTimeoutError',
+              context: 'No response received within 6 minutes',
+            }
+          }));
+          setShowStreamErrorNotification(true);
+          setIsLoading(false);
+          setDisabled(false);
+          isRequestInProgressRef.current = false;
+        }, 6 * 60 * 1000); // 6 minutes
+
         setStreamingState(prev => {
           const newState = {
             ...prev,
@@ -951,6 +993,12 @@ const ChatBotView: React.FC = () => {
       case 'done':
         console.log('[SSE] Stream completed. Response:', event.response);
         console.log('[SSE] Hook data:', event.hook);
+
+        // Clear timeout on done event
+        if (streamTimeoutRef.current) {
+          clearTimeout(streamTimeoutRef.current);
+          streamTimeoutRef.current = null;
+        }
 
         // Check if the done event contains error information
         if (event.error) {
@@ -1300,6 +1348,32 @@ const ChatBotView: React.FC = () => {
         console.log('[SSE] aiMessage.raw.sse_events:', aiMessage.raw.sse_events);
         console.log('[SSE] aiMessage.raw.sse_events length:', aiMessage.raw.sse_events?.length);
 
+        // Parse validation report if present
+        if (technicalId && messageText) {
+          const validationResult = parseValidationReport(messageText);
+          if (validationResult) {
+            console.log('📊 Validation report detected in AI message, updating repository store');
+            const { setValidation } = useRepositoryStore.getState();
+            setValidation(technicalId, validationResult);
+          }
+
+          // Parse repository integrity report if present (after git pull)
+          const integrityResult = parseRepositoryIntegrityReport(messageText);
+          if (integrityResult) {
+            console.log('🔍 Repository integrity report detected in AI message, updating repository store');
+            const { setIntegrityResult } = useRepositoryStore.getState();
+            setIntegrityResult(technicalId, integrityResult);
+          }
+
+          // Parse FR validation report if present (after FR consolidation)
+          const frValidationResult = parseFRValidationReport(messageText);
+          if (frValidationResult) {
+            console.log('📋 FR validation report detected in AI message, updating repository store');
+            const { setFRValidation } = useRepositoryStore.getState();
+            setFRValidation(technicalId, frValidationResult);
+          }
+        }
+
         // Create UI function messages if ui_functions exist
         const uiFunctionMessages: Message[] = [];
         if (allUIFunctions.length > 0) {
@@ -1398,6 +1472,12 @@ const ChatBotView: React.FC = () => {
           status_code: event.status_code,
           error_code: event.error_code
         });
+
+        // Clear timeout on error event
+        if (streamTimeoutRef.current) {
+          clearTimeout(streamTimeoutRef.current);
+          streamTimeoutRef.current = null;
+        }
 
         setStreamingState(prev => ({
           ...prev,

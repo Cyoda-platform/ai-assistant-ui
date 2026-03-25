@@ -101,7 +101,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
 
   // Detect if message contains UI function marker
   const hasUIFunctionMarker = useMemo(() => {
-    return /\[ui-function:\s*\w+,\s*env:\s*https?:\/\/[^\]]+\]/.test(messageText);
+    return /\[ui[_-]function:\s*\w+,\s*env:\s*https?:\/\/[^\],]+(?:,\s*withAdminRole:\s*(?:true|false))?\]/.test(messageText);
   }, [messageText]);
 
   // Helper function to extract hooks from combined hook
