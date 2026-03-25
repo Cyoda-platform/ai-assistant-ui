@@ -431,8 +431,8 @@ const ChatBotView: React.FC = () => {
   // Helper function to extract UI functions from message text
   const extractUIFunctions = (text: string): any[] | null => {
     try {
-      // Check for new text-based UI function format: [ui_function: issue_technical_user, env: https://..., withAdminRole: true/false] or [ui-function: ...]
-      const textFunctionMatch = text.match(/\[ui[_-]function:\s*(\w+),\s*env:\s*(https?:\/\/[^\],]+)(?:,\s*withAdminRole:\s*(true|false))?\]/);
+      // Check for new text-based UI function format: [ui_function: issue_technical_user, env: https://..., with_admin_role: true/false] or [ui-function: ...]
+      const textFunctionMatch = text.match(/\[ui[_-]function:\s*(\w+),\s*env:\s*(https?:\/\/[^\],]+)(?:,\s*with_admin_role:\s*(true|false))?\]/);
       if (textFunctionMatch) {
         const functionName = textFunctionMatch[1];
         const envUrl = textFunctionMatch[2];
@@ -448,9 +448,9 @@ const ChatBotView: React.FC = () => {
           env_url: envUrl.replace('https://', '')
         };
 
-        // Add query params if withAdminRole is specified
+        // Add query params if with_admin_role is specified
         if (withAdminRole !== undefined) {
-          uiFunction.query_params = { withAdminRole: withAdminRole };
+          uiFunction.query_params = { with_admin_role: withAdminRole };
         }
 
         return [uiFunction];
@@ -484,8 +484,8 @@ const ChatBotView: React.FC = () => {
 
   // Helper function to remove JSON code block from message text
   const removeJsonCodeBlock = (text: string): string => {
-    // Remove text-based UI function markers: [ui-function: ...] (with optional withAdminRole parameter)
-    let cleanedText = text.replace(/\[ui[_-]function:\s*\w+,\s*env:\s*https?:\/\/[^\],]+(?:,\s*withAdminRole:\s*(?:true|false))?\]/g, '').trim();
+    // Remove text-based UI function markers: [ui-function: ...] (with optional with_admin_role parameter)
+    let cleanedText = text.replace(/\[ui[_-]function:\s*\w+,\s*env:\s*https?:\/\/[^\],]+(?:,\s*with_admin_role:\s*(?:true|false))?\]/g, '').trim();
 
     // Remove the JSON code block containing background_task_ids or UI functions
     cleanedText = cleanedText.replace(/```json\s*\n[\s\S]*?\n```/g, '').trim();
