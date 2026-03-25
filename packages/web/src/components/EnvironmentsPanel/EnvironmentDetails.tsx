@@ -21,6 +21,7 @@ interface UIFunctionParameter {
   required: boolean;
   description?: string;
   default?: string;
+  inputType?: 'text' | 'password' | 'checkbox' | 'textarea';
 }
 
 interface UIFunction {
@@ -212,7 +213,17 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
       method: 'POST',
       path: '/api/clients',
       category: 'User Management',
-      response_format: 'json'
+      response_format: 'json',
+      parameters: [
+        {
+          name: 'withAdminRole',
+          type: 'query',
+          required: false,
+          description: 'Issue M2M user with ADMIN role',
+          default: 'false',
+          inputType: 'checkbox'
+        }
+      ]
     },
     {
       id: 'get_users',
@@ -992,7 +1003,23 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
                                     <span className="text-slate-500">- {param.description}</span>
                                   )}
                                 </label>
-                                {param.type === 'body' ? (
+                                {param.inputType === 'checkbox' ? (
+                                  <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={(parameterValues[func.id]?.[param.name] || param.default || 'false') === 'true'}
+                                      onChange={(e) => setParameterValues(prev => ({
+                                        ...prev,
+                                        [func.id]: {
+                                          ...prev[func.id],
+                                          [param.name]: e.target.checked ? 'true' : 'false'
+                                        }
+                                      }))}
+                                      className="w-4 h-4 bg-slate-900/60 border border-slate-600/50 rounded text-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:ring-offset-0 cursor-pointer transition-colors"
+                                    />
+                                    <span className="text-xs text-slate-300">Admin Role</span>
+                                  </label>
+                                ) : param.inputType === 'textarea' || param.type === 'body' ? (
                                   <textarea
                                     value={parameterValues[func.id]?.[param.name] || param.default || ''}
                                     onChange={(e) => setParameterValues(prev => ({
@@ -1008,7 +1035,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
                                   />
                                 ) : (
                                   <input
-                                    type={param.name.includes('secret') || param.name.includes('password') ? 'password' : 'text'}
+                                    type={param.inputType === 'password' || param.name.includes('secret') || param.name.includes('password') ? 'password' : 'text'}
                                     value={parameterValues[func.id]?.[param.name] || param.default || ''}
                                     onChange={(e) => setParameterValues(prev => ({
                                       ...prev,

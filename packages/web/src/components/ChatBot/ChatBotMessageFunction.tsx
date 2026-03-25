@@ -42,6 +42,7 @@ interface UIFunctionData {
   path: string;
   response_format: 'file' | 'json';
   env_url?: string; // Environment URL for targeted API calls (e.g., "client-user123-dev.cyoda.cloud")
+  query_params?: Record<string, string>; // Query parameters to append to the URL
 }
 
 const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
@@ -108,19 +109,29 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
   const endpointUrl = useMemo(() => {
     if (!functionData) return '';
 
+    let baseUrl = '';
+
     // If env_url is provided, use it directly (for multi-environment support)
     if (functionData.env_url) {
-      return `https://${functionData.env_url}${functionData.path}`;
+      baseUrl = `https://${functionData.env_url}${functionData.path}`;
+    } else {
+      // Fallback to legacy behavior using JWT token
+      if (!parsedToken) return '';
+      const envPrefix = import.meta.env.VITE_APP_CYODA_CLIENT_ENV_PREFIX || '';
+      const orgId = (parsedToken.caas_org_id || '').toLowerCase();
+      const host = import.meta.env.VITE_APP_CYODA_CLIENT_HOST || '';
+      // Remove trailing dash from envPrefix if it exists to avoid double dash
+      const cleanPrefix = envPrefix.endsWith('-') ? envPrefix.slice(0, -1) : envPrefix;
+      baseUrl = `https://${cleanPrefix}-${orgId}.${host}${functionData.path}`;
     }
 
-    // Fallback to legacy behavior using JWT token
-    if (!parsedToken) return '';
-    const envPrefix = import.meta.env.VITE_APP_CYODA_CLIENT_ENV_PREFIX || '';
-    const orgId = (parsedToken.caas_org_id || '').toLowerCase();
-    const host = import.meta.env.VITE_APP_CYODA_CLIENT_HOST || '';
-    // Remove trailing dash from envPrefix if it exists to avoid double dash
-    const cleanPrefix = envPrefix.endsWith('-') ? envPrefix.slice(0, -1) : envPrefix;
-    return `https://${cleanPrefix}-${orgId}.${host}${functionData.path}`;
+    // Append query parameters if present
+    if (functionData.query_params && Object.keys(functionData.query_params).length > 0) {
+      const queryString = new URLSearchParams(functionData.query_params).toString();
+      baseUrl += `?${queryString}`;
+    }
+
+    return baseUrl;
   }, [functionData, parsedToken]);
 
   const handleExecute = async () => {
@@ -249,6 +260,24 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
             <div className="text-slate-400 text-sm mb-3 font-mono">
               {functionData.function}
             </div>
+
+            {/* Query Parameters */}
+            {functionData.query_params && Object.keys(functionData.query_params).length > 0 && (
+              <div className="mb-3 p-2 bg-slate-700/30 rounded-lg">
+                <div className="text-slate-500 text-xs font-semibold mb-1">Query Parameters:</div>
+                <div className="space-y-1">
+                  {Object.entries(functionData.query_params).map(([key, value]) => (
+                    <div key={key} className="flex items-center space-x-2 text-xs">
+                      <span className="text-slate-400 font-mono">{key}:</span>
+                      <span className="text-teal-300 font-mono">{value}</span>
+                      {key === 'withAdminRole' && value === 'true' && (
+                        <span className="text-amber-400 text-xs">(ADMIN role enabled)</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Response Format and Execute Button */}
             <div className="flex items-center justify-between">
