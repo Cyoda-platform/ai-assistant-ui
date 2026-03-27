@@ -108,7 +108,7 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
 
   // Initialize withAdminRole from query_params if agent already set it
   React.useEffect(() => {
-    if (functionData?.query_params?.with_admin_role === 'true') {
+    if (functionData?.query_params?.withAdminRole === 'true') {
       setWithAdminRole(true);
     }
   }, [functionData]);
@@ -136,9 +136,9 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
     // Build query parameters
     let queryParams = { ...functionData.query_params };
 
-    // For issue_technical_user, override with_admin_role with checkbox state
+    // For issue_technical_user, override withAdminRole with checkbox state
     if (functionData.function === 'issue_technical_user') {
-      queryParams.with_admin_role = withAdminRole ? 'true' : 'false';
+      queryParams.withAdminRole = withAdminRole ? 'true' : 'false';
     }
 
     // Append query parameters if present

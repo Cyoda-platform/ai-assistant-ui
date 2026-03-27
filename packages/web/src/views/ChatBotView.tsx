@@ -450,7 +450,7 @@ const ChatBotView: React.FC = () => {
 
         // Add query params if with_admin_role is specified
         if (withAdminRole !== undefined) {
-          uiFunction.query_params = { withAdminRole: withAdminRole };
+          uiFunction.query_params = { with_admin_role: withAdminRole };
         }
 
         return [uiFunction];
