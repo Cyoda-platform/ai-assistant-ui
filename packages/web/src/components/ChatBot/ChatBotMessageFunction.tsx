@@ -108,7 +108,9 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
 
   // Initialize withAdminRole from query_params if agent already set it
   React.useEffect(() => {
-    if (functionData?.query_params?.withAdminRole === 'true') {
+    // Check both camelCase and snake_case formats
+    if (functionData?.query_params?.withAdminRole === 'true' ||
+        functionData?.query_params?.with_admin_role === 'true') {
       setWithAdminRole(true);
     }
   }, [functionData]);
@@ -138,6 +140,9 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
 
     // For issue_technical_user, override withAdminRole with checkbox state
     if (functionData.function === 'issue_technical_user') {
+      // Remove old snake_case parameter if it exists
+      delete queryParams.with_admin_role;
+      // Add new camelCase parameter
       queryParams.withAdminRole = withAdminRole ? 'true' : 'false';
     }
 
