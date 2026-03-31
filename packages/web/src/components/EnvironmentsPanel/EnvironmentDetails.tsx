@@ -216,7 +216,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
       response_format: 'json',
       parameters: [
         {
-          name: 'with_admin_role',
+          name: 'withAdminRole',
           type: 'query',
           required: false,
           description: 'Issue M2M user with ADMIN role',
