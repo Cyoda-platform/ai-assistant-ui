@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import {
   ReactFlow,
   Background,
@@ -19,113 +19,56 @@ import {
 } from '@xyflow/react';
 import type { Node, Edge, Connection, OnConnect, OnReconnect } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Network, Download, Upload, FileJson, Info, X, Cloud, CloudDownload, CloudUpload, Maximize2, Minimize2, Settings } from 'lucide-react';
+import { Network, Download, Upload, FileJson, Info, X, Cloud, CloudDownload, CloudUpload, Maximize2, Minimize2, Settings, ArrowLeft, Lightbulb, Undo2, Redo2, Scan } from 'lucide-react';
 import axios from 'axios';
+import privateClient from '@/clients/private';
 import { useAuthStore } from '@/stores/auth';
 import { Modal } from 'antd';
 import { useNotifications, NotificationManager } from '@/components/Notification/Notification';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useUndoRedoWorkflow } from '@/hooks/useUndoRedoWorkflow';
 
-// Helper function to detect bidirectional connections
-function hasBidirectionalConnection(
-  sourceId: string,
-  targetId: string,
-  transitions: UITransitionData[]
-): boolean {
-  // Check if there's a reverse transition
-  return transitions.some(
-    t => t.sourceStateId === targetId && t.targetStateId === sourceId
-  );
-}
+
 
 // Helper function to calculate optimal handles based on node positions
 function calculateOptimalHandles(
   sourcePos: { x: number; y: number },
-  targetPos: { x: number; y: number },
-  isBidirectional: boolean = false,
-  isReturnPath: boolean = false
+  targetPos: { x: number; y: number }
 ): { sourceHandle: string; targetHandle: string } {
   const deltaX = targetPos.x - sourcePos.x;
   const deltaY = targetPos.y - sourcePos.y;
   const absDeltaX = Math.abs(deltaX);
   const absDeltaY = Math.abs(deltaY);
 
-  // For bidirectional connections, use offset handles to avoid overlap
-  if (isBidirectional) {
-    if (absDeltaY > absDeltaX * 0.6) {
-      // Vertical bidirectional - use left/right offset handles
-      if (isReturnPath) {
-        return {
-          sourceHandle: 'bottom-left-source',
-          targetHandle: 'top-left-target'
-        };
-      } else {
-        return {
-          sourceHandle: 'bottom-right-source',
-          targetHandle: 'top-right-target'
-        };
-      }
-    } else {
-      // Horizontal bidirectional - use top/bottom offset handles
-      if (deltaX > 0) {
-        // Target is to the right
-        if (isReturnPath) {
-          return {
-            sourceHandle: 'right-center-source',
-            targetHandle: 'left-center-target'
-          };
-        } else {
-          return {
-            sourceHandle: 'right-center-source',
-            targetHandle: 'left-center-target'
-          };
-        }
-      } else {
-        // Target is to the left
-        if (isReturnPath) {
-          return {
-            sourceHandle: 'right-center-source',
-            targetHandle: 'left-center-target'
-          };
-        } else {
-          return {
-            sourceHandle: 'right-center-source',
-            targetHandle: 'left-center-target'
-          };
-        }
-      }
-    }
-  }
-
   // Standard single-direction routing
-  if (absDeltaY > absDeltaX * 0.6) {
+  if (absDeltaY >= absDeltaX) {
     // Vertical connection is dominant
     if (deltaY > 0) {
-      // Target is below source
+      // Target is below source: use bottom of source, top of target
       return {
         sourceHandle: 'bottom-center-source',
         targetHandle: 'top-center-target'
       };
     } else {
-      // Target is above source
+      // Target is above source: use top of source, bottom of target
       return {
-        sourceHandle: 'bottom-center-source',
-        targetHandle: 'top-center-target'
+        sourceHandle: 'top-center-source',
+        targetHandle: 'bottom-center-target'
       };
     }
   } else {
     // Horizontal connection is dominant
     if (deltaX > 0) {
-      // Target is to the right
+      // Target is to the right: use right of source, left of target
       return {
-        sourceHandle: 'right-center-source',
-        targetHandle: 'left-center-target'
+        sourceHandle: 'right-top-source',
+        targetHandle: 'left-top-target'
       };
     } else {
-      // Target is to the left
+      // Target is to the left: use left of source, right of target
       return {
-        sourceHandle: 'left-center-source',
-        targetHandle: 'right-center-target'
+        sourceHandle: 'left-top-source',
+        targetHandle: 'right-top-target'
       };
     }
   }
@@ -137,8 +80,8 @@ import { TransitionNode } from './TransitionNode';
 import { TransitionEdge } from './TransitionEdge';
 import { LoopbackEdge } from './LoopbackEdge';
 import { WorkflowJsonEditor } from '../Editors/WorkflowJsonEditor';
-import { generateTransitionId, generateLayoutTransitionId, migrateLayoutTransitionId, validateTransitionExists, parseLayoutTransitionId, parseTransitionId } from '../utils/transitionUtils';
-import { autoLayoutWorkflow, canAutoLayout } from '../utils/autoLayout';
+import { generateTransitionId, generateLayoutTransitionId, migrateLayoutTransitionId, validateTransitionExists, parseLayoutTransitionId, parseTransitionId, migrateLayoutTransitions } from '../utils/transitionUtils';
+import { autoLayoutWorkflow, canAutoLayout, recalculateHandlesForMovedState } from '../utils/autoLayout';
 import { useTheme } from '../hooks/useTheme';
 import { getAvailableThemes, COLOR_PALETTES } from '../themes/colorPalettes';
 
@@ -147,15 +90,19 @@ interface WorkflowCanvasProps {
   onWorkflowUpdate: (workflow: UIWorkflowData, description?: string) => void;
   onStateEdit: (stateId: string) => void;
   onTransitionEdit: (transitionId: string) => void;
+  onSendToChat?: (data: string) => void;
+  onBack?: () => void;
   darkMode: boolean;
   technicalId?: string;
   modelName?: string;
   modelVersion?: number;
+  // Optional fullscreen control - if provided, uses local state instead of navigation
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
 const nodeTypes = {
   stateNode: StateNode,
-  transitionNode: TransitionNode,
 };
 
 const edgeTypes = {
@@ -177,8 +124,19 @@ export function cleanupWorkflowState(workflow: UIWorkflowData): UIWorkflowData {
       configStateIds.has(layoutState.id)
     );
 
+    // First, migrate old layout transitions to ensure they have sourceStateId and targetStateId
+    const migratedLayoutTransitions = migrateLayoutTransitions(
+      workflow.layout.transitions || [],
+      workflow
+    );
+
     // Remove layout transitions that reference non-existent states
-    const cleanedLayoutTransitions = (workflow.layout.transitions || []).filter(layoutTransition => {
+    const cleanedLayoutTransitions = migratedLayoutTransitions.filter(layoutTransition => {
+      // Check if transition has explicit sourceStateId and targetStateId (from migration)
+      if (layoutTransition.sourceStateId && layoutTransition.targetStateId) {
+        return configStateIds.has(layoutTransition.sourceStateId) && configStateIds.has(layoutTransition.targetStateId);
+      }
+
       // Check if this is a layout transition ID (sourceState-to-targetState format)
       const layoutParsed = parseLayoutTransitionId(layoutTransition.id);
       if (layoutParsed) {
@@ -229,8 +187,6 @@ function createUITransitionData(workflow: UIWorkflowData): UITransitionData[] {
         targetHandle: layout?.targetHandle || null
       };
 
-
-
       transitions.push(uiTransition);
     });
   });
@@ -272,18 +228,43 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   onWorkflowUpdate,
   onStateEdit,
   onTransitionEdit,
+  onSendToChat,
+  onBack,
   darkMode,
   technicalId,
   modelName,
-  modelVersion
+  modelVersion,
+  isFullscreen: externalIsFullscreen,
+  onToggleFullscreen: externalOnToggleFullscreen,
 }) => {
   const { screenToFlowPosition, fitView } = useReactFlow();
   const [showQuickHelp, setShowQuickHelp] = useState(false);
-  const [showJsonEditor, setShowJsonEditor] = useState(true); // Open by default
-  const [showWorkflowInfo, setShowWorkflowInfo] = useState(true); // Show workflow info panel by default
+  const [showJsonEditor, setShowJsonEditor] = useState(true); // Will be updated in useEffect
+  const [showWorkflowInfo, setShowWorkflowInfo] = useState(true); // Will be updated in useEffect
   const [showSettings, setShowSettings] = useState(false);
+
+  // Check canvas width on mount and set showJsonEditor and showWorkflowInfo accordingly
+  useEffect(() => {
+    // Try multiple selectors to find the canvas container
+    const canvasPanel =
+      document.querySelector('.resizable-panel') || // Canvas panel in ChatBotView
+      document.querySelector('[class*="canvas"]') || // Any element with "canvas" in class
+      document.querySelector('.flex.flex-col.h-full'); // ChatBotCanvas root
+
+    if (canvasPanel) {
+      const width = canvasPanel.clientWidth;
+      const shouldShow = width >= 600;
+      setShowJsonEditor(shouldShow);
+      setShowWorkflowInfo(shouldShow); // Also hide workflow info in narrow panels
+    } else {
+      const shouldShow = window.innerWidth >= 600;
+      setShowJsonEditor(shouldShow);
+      setShowWorkflowInfo(shouldShow);
+    }
+  }, []); // Run only once on mount
   const [selectedStateId, setSelectedStateId] = useState<string | null>(null);
   const [selectedTransitionId, setSelectedTransitionId] = useState<string | null>(null);
+  const [selectedTransitionSection, setSelectedTransitionSection] = useState<'criterion' | 'processors' | undefined>(undefined);
 
   // Settings state with localStorage persistence
   const [edgeType, setEdgeTypeState] = useState<'default' | 'straight' | 'step' | 'smoothstep'>(() => {
@@ -295,10 +276,11 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     } catch (error) {
       console.warn('Failed to load edge type from localStorage:', error);
     }
-    return 'default';
+    return 'default'; // Bezier is the default edge type
   });
 
   const [layoutDirection, setLayoutDirectionState] = useState<'TB' | 'LR'>(() => {
+    // Always use global localStorage setting for direction
     try {
       const stored = localStorage.getItem('workflow-canvas-layout-direction');
       if (stored && ['TB', 'LR'].includes(stored)) {
@@ -377,11 +359,11 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   // Convert schema workflow to UI data
   const uiTransitions = useMemo(() => {
     return cleanedWorkflow ? createUITransitionData(cleanedWorkflow) : [];
-  }, [cleanedWorkflow, cleanedWorkflow?.updatedAt]);
+  }, [cleanedWorkflow, cleanedWorkflow?.updatedAt, cleanedWorkflow?.layout?.updatedAt]);
 
   const uiStates = useMemo(() => {
     return cleanedWorkflow ? createUIStateData(cleanedWorkflow, uiTransitions) : [];
-  }, [cleanedWorkflow, cleanedWorkflow?.updatedAt, uiTransitions]);
+  }, [cleanedWorkflow, cleanedWorkflow?.updatedAt, cleanedWorkflow?.layout?.updatedAt, uiTransitions]);
 
   // Use refs to access current values in useEffect without causing dependency issues
   const uiStatesRef = useRef(uiStates);
@@ -417,7 +399,29 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   const handleStateNameChangeRef = useRef(handleStateNameChange);
   handleStateNameChangeRef.current = handleStateNameChange;
 
+  // Handle sending state data to chat
+  const handleStateSendToChat = useCallback((stateData: UIStateData) => {
+    if (!onSendToChat) return;
 
+    const stateJson = JSON.stringify(stateData, null, 2);
+    onSendToChat(stateJson);
+    console.log('📤 Sent state to chat:', stateData);
+  }, [onSendToChat]);
+
+  const handleStateSendToChatRef = useRef(handleStateSendToChat);
+  handleStateSendToChatRef.current = handleStateSendToChat;
+
+  // Handle sending transition data to chat
+  const handleTransitionSendToChat = useCallback((transitionData: UITransitionData) => {
+    if (!onSendToChat) return;
+
+    const transitionJson = JSON.stringify(transitionData, null, 2);
+    onSendToChat(transitionJson);
+    console.log('📤 Sent transition to chat:', transitionData);
+  }, [onSendToChat]);
+
+  const handleTransitionSendToChatRef = useRef(handleTransitionSendToChat);
+  handleTransitionSendToChatRef.current = handleTransitionSendToChat;
 
   const handleTransitionUpdate = useCallback((updatedTransition: UITransitionData) => {
     if (!cleanedWorkflow) return;
@@ -467,12 +471,108 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   const handleTransitionUpdateRef = useRef(handleTransitionUpdate);
   handleTransitionUpdateRef.current = handleTransitionUpdate;
 
+  // Handle workflow configuration updates from JSON editor
+  const handleConfigurationUpdate = useCallback((updatedConfig: WorkflowConfiguration) => {
+    if (!cleanedWorkflow) return;
 
+    console.log('📝 Updating workflow configuration from JSON editor');
+
+    // Get current state IDs and new state IDs
+    const currentStateIds = Object.keys(cleanedWorkflow.configuration.states);
+    const newStateIds = Object.keys(updatedConfig.states);
+
+    // Check if there are new states that don't have layout positions
+    const hasNewStates = newStateIds.some(id => !cleanedWorkflow.layout.states.find(s => s.id === id));
+
+    // Preserve existing layout positions for states that still exist
+    const existingLayoutStates = cleanedWorkflow.layout.states;
+    const layoutStateMap = new Map(existingLayoutStates.map(s => [s.id, s]));
+
+    // Create updated layout states
+    const updatedLayoutStates = newStateIds.map((stateId, index) => {
+      // If state already has a layout position, keep it
+      if (layoutStateMap.has(stateId)) {
+        return layoutStateMap.get(stateId)!;
+      }
+
+      // Otherwise, auto-position the new state
+      const stateCount = newStateIds.length;
+      let position;
+
+      if (stateCount <= 4) {
+        position = { x: 100 + (index * 220), y: 200 };
+      } else if (stateCount <= 9) {
+        const row = Math.floor(index / 3);
+        const col = index % 3;
+        position = { x: 100 + (col * 220), y: 150 + (row * 170) };
+      } else {
+        const row = Math.floor(index / 3);
+        const col = index % 3;
+        position = { x: 100 + (col * 210), y: 100 + (row * 160) };
+      }
+
+      return {
+        id: stateId,
+        position,
+        properties: {}
+      };
+    });
+
+    console.log('🎨 Updated layout states:', updatedLayoutStates.map(s => ({ id: s.id, x: s.position.x, y: s.position.y })));
+
+    let updatedWorkflow: UIWorkflowData = {
+      ...cleanedWorkflow,
+      configuration: updatedConfig,
+      layout: {
+        ...cleanedWorkflow.layout,
+        states: updatedLayoutStates,
+        direction: layoutDirection, // Save current direction
+        updatedAt: new Date().toISOString()
+      },
+      updatedAt: new Date().toISOString()
+    };
+
+    // If there are new states OR workflow is not manually positioned, apply auto-layout
+    if ((hasNewStates || !cleanedWorkflow.layout.manuallyPositioned) && canAutoLayout(updatedWorkflow)) {
+      console.log('🎨 Applying auto-layout after JSON update (hasNewStates:', hasNewStates, ', manuallyPositioned:', cleanedWorkflow.layout.manuallyPositioned, ')');
+      updatedWorkflow = autoLayoutWorkflow(updatedWorkflow, { direction: layoutDirection });
+
+      // Keep manuallyPositioned as false since this is automatic layout
+      updatedWorkflow = {
+        ...updatedWorkflow,
+        layout: {
+          ...updatedWorkflow.layout,
+          manuallyPositioned: false,
+        }
+      };
+
+      // Set flag to trigger fitView after layout is applied
+      shouldFitViewRef.current = true;
+    }
+
+    onWorkflowUpdate(updatedWorkflow, 'Updated workflow configuration from JSON editor', false);
+  }, [cleanedWorkflow, onWorkflowUpdate, layoutDirection]);
 
   const [nodes, setNodes, defaultOnNodesChange] = useNodesState([]);
   const [edges, setEdges, defaultOnEdgesChange] = useEdgesState([]);
   const [isInitialized, setIsInitialized] = React.useState(false);
   const [isInitializing, setIsInitializing] = React.useState(true);
+
+  // Undo/Redo functionality - restore workflow from history
+  const handleWorkflowRestore = useCallback((restoredWorkflow: UIWorkflowData) => {
+    // Update the workflow without adding to history (undo/redo action)
+    onWorkflowUpdate(restoredWorkflow, 'Undo/Redo');
+  }, [onWorkflowUpdate]);
+
+  const { canUndo, canRedo, undo, redo, saveStateImmediate } = useUndoRedoWorkflow(
+    cleanedWorkflow,
+    handleWorkflowRestore,
+    {
+      maxHistorySize: 50,
+      debounceMs: 500,
+      enableKeyboardShortcuts: true,
+    }
+  );
 
   // Custom onNodesChange handler that updates workflow configuration when nodes are deleted
   const onNodesChange = useCallback((changes: any[]) => {
@@ -554,6 +654,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           ...cleanedWorkflow.layout,
           states: updatedLayoutStates,
           transitions: updatedLayoutTransitions,
+          direction: layoutDirection, // Save current direction
           updatedAt: new Date().toISOString()
         }
       };
@@ -570,13 +671,24 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
   // Custom onEdgesChange handler that handles transition deletion
   const onEdgesChange = useCallback((changes: any[]) => {
+    console.log('📊 onEdgesChange called with changes:', changes);
+
     // First apply the changes to React Flow's internal state
     defaultOnEdgesChange(changes);
 
     // Check if any edges were removed (e.g., via backspace key)
     const removedEdges = changes.filter(change => change.type === 'remove');
 
+    // Check for reconnect changes
+    const reconnectChanges = changes.filter(change => change.type === 'reconnect');
+    if (reconnectChanges.length > 0) {
+      console.log('🔄 Reconnect changes detected:', reconnectChanges);
+    }
+
     if (removedEdges.length > 0 && cleanedWorkflow) {
+      // Save state before deleting edges
+      saveStateImmediate();
+
       // Update workflow configuration to remove deleted transitions
       const removedEdgeIds = removedEdges.map(change => change.id);
 
@@ -584,11 +696,18 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       const updatedLayoutTransitions = [...cleanedWorkflow.layout.transitions];
 
       removedEdgeIds.forEach(edgeId => {
+        // Remove 'edge-' prefix if present
+        const transitionId = edgeId.startsWith('edge-') ? edgeId.substring(5) : edgeId;
+
+        console.log('🗑️ Deleting edge:', { edgeId, transitionId });
+
         // Parse the transition ID to find the source state and transition index
-        const parsed = parseTransitionId(edgeId);
+        const parsed = parseTransitionId(transitionId);
         if (parsed) {
           const { sourceStateId, transitionIndex } = parsed;
           const sourceState = updatedStates[sourceStateId];
+
+          console.log('🗑️ Parsed transition:', { sourceStateId, transitionIndex, sourceState: !!sourceState });
 
           if (sourceState && sourceState.transitions[transitionIndex]) {
             // Remove the transition from the source state
@@ -600,12 +719,19 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
               transitions: updatedTransitions
             };
 
+            console.log('🗑️ Removed transition from state:', { sourceStateId, newTransitionCount: updatedTransitions.length });
+
             // Remove the corresponding layout transition
-            const layoutIndex = updatedLayoutTransitions.findIndex(t => t.id === edgeId);
+            const layoutIndex = updatedLayoutTransitions.findIndex(t => t.id === transitionId);
             if (layoutIndex >= 0) {
               updatedLayoutTransitions.splice(layoutIndex, 1);
+              console.log('🗑️ Removed layout transition');
             }
+          } else {
+            console.log('❌ Could not find transition to delete:', { sourceStateId, transitionIndex });
           }
+        } else {
+          console.log('❌ Could not parse transition ID:', transitionId);
         }
       });
 
@@ -619,6 +745,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         layout: {
           ...cleanedWorkflow.layout,
           transitions: updatedLayoutTransitions,
+          direction: layoutDirection, // Save current direction
           updatedAt: new Date().toISOString()
         }
       };
@@ -629,7 +756,21 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
       onWorkflowUpdate(updatedWorkflow, description);
     }
-  }, [defaultOnEdgesChange, cleanedWorkflow, onWorkflowUpdate]);
+
+    // Handle reconnect changes (when user drags edge endpoint to different node)
+    if (reconnectChanges.length > 0 && cleanedWorkflow) {
+      console.log('🔄 Processing reconnect changes...');
+      reconnectChanges.forEach(change => {
+        console.log('🔄 Reconnect change details:', {
+          id: change.id,
+          source: change.source,
+          target: change.target,
+          sourceHandle: change.sourceHandle,
+          targetHandle: change.targetHandle
+        });
+      });
+    }
+  }, [defaultOnEdgesChange, cleanedWorkflow, onWorkflowUpdate, saveStateImmediate]);
 
   // Helper function to calculate default position for transition node
   const calculateTransitionNodePosition = useCallback((
@@ -653,50 +794,49 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   }, []);
 
   // Helper function to calculate optimal anchor points based on relative positions
+  // Logic: Select the nearest logical handles based on state positions
+  // - If A is above B: use bottom handle of A, top handle of B
+  // - If A is below B: use top handle of A, bottom handle of B
+  // - If A is left of B: use right handle of A, left handle of B
+  // - If A is right of B: use left handle of A, right handle of B
   const calculateOptimalAnchorPoints = useCallback((
     sourcePos: { x: number; y: number },
     targetPos: { x: number; y: number }
   ): { sourceHandle: string; targetHandle: string } => {
     const dx = targetPos.x - sourcePos.x;
     const dy = targetPos.y - sourcePos.y;
-    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
 
-    // Determine best anchor points based on angle
+    // Determine primary direction based on which delta is larger
+    // Vertical if vertical distance >= horizontal distance
+    const isVerticalDominant = absDy >= absDx;
+
     let sourceHandle = 'bottom-center-source';
     let targetHandle = 'top-center-target';
 
-    if (angle >= -22.5 && angle < 22.5) {
-      // Right
-      sourceHandle = 'right-center-source';
-      targetHandle = 'left-center-target';
-    } else if (angle >= 22.5 && angle < 67.5) {
-      // Bottom-right
-      sourceHandle = 'bottom-right-source';
-      targetHandle = 'top-left-target';
-    } else if (angle >= 67.5 && angle < 112.5) {
-      // Bottom
-      sourceHandle = 'bottom-center-source';
-      targetHandle = 'top-center-target';
-    } else if (angle >= 112.5 && angle < 157.5) {
-      // Bottom-left
-      sourceHandle = 'bottom-left-source';
-      targetHandle = 'top-right-target';
-    } else if (angle >= 157.5 || angle < -157.5) {
-      // Left
-      sourceHandle = 'left-center-source';
-      targetHandle = 'right-center-target';
-    } else if (angle >= -157.5 && angle < -112.5) {
-      // Top-left
-      sourceHandle = 'top-left-source';
-      targetHandle = 'bottom-right-target';
-    } else if (angle >= -112.5 && angle < -67.5) {
-      // Top
-      sourceHandle = 'top-center-source';
-      targetHandle = 'bottom-center-target';
-    } else if (angle >= -67.5 && angle < -22.5) {
-      // Top-right
-      sourceHandle = 'top-right-source';
-      targetHandle = 'bottom-left-target';
+    if (isVerticalDominant) {
+      // Vertical connection is dominant
+      if (dy > 0) {
+        // Target is below source: use bottom of source, top of target
+        sourceHandle = 'bottom-center-source';
+        targetHandle = 'top-center-target';
+      } else {
+        // Target is above source: use top of source, bottom of target
+        sourceHandle = 'top-center-source';
+        targetHandle = 'bottom-center-target';
+      }
+    } else {
+      // Horizontal connection is dominant
+      if (dx > 0) {
+        // Target is to the right: use right of source, left of target
+        sourceHandle = 'right-top-source';
+        targetHandle = 'left-top-target';
+      } else {
+        // Target is to the left: use left of source, right of target
+        sourceHandle = 'left-top-source';
+        targetHandle = 'right-top-target';
+      }
     }
 
     return { sourceHandle, targetHandle };
@@ -710,6 +850,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       const currentOnTransitionEdit = onTransitionEditRef.current;
       const currentHandleTransitionUpdate = handleTransitionUpdateRef.current;
       const currentHandleStateNameChange = handleStateNameChangeRef.current;
+      const currentHandleStateSendToChat = handleStateSendToChatRef.current;
+      const currentHandleTransitionSendToChat = handleTransitionSendToChatRef.current;
 
       // Create state nodes
       const stateNodes = currentUiStates.map((state) => ({
@@ -720,6 +862,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           label: state.name,
           state: state,
           onNameChange: currentHandleStateNameChange,
+          onSendToChat: onSendToChat ? currentHandleStateSendToChat : undefined,
           palette: palette,
         },
       }));
@@ -729,50 +872,17 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       // Get transition layout map for positions
       const transitionLayoutMap = new Map(cleanedWorkflow.layout.transitions.map(t => [t.id, t]));
 
-      // Create transition nodes
-      const transitionNodes = currentUiTransitions.map((transition) => {
+      // Create direct edges: state -> state with transition data in edge
+      const newEdges: any[] = [];
+
+      currentUiTransitions.forEach((transition) => {
         const isLoopback = transition.sourceStateId === transition.targetStateId;
 
         // Get source and target state positions
         const sourceState = currentUiStates.find(s => s.id === transition.sourceStateId);
         const targetState = currentUiStates.find(s => s.id === transition.targetStateId);
 
-        // Calculate position: use saved position from transition data if available, otherwise calculate default
-        let position = transition.position; // Now comes from UITransitionData
-        if (!position && sourceState && targetState) {
-          position = calculateTransitionNodePosition(
-            sourceState.position,
-            targetState.position,
-            isLoopback
-          );
-        }
-
-        return {
-          id: `transition-${transition.id}`,
-          type: 'transitionNode' as const,
-          position: position || { x: 0, y: 0 },
-          data: {
-            label: transition.definition.name || 'Unnamed',
-            transition: transition,
-            onEdit: currentOnTransitionEdit,
-            isLoopback,
-            palette: palette,
-          },
-        };
-      });
-
-      // Create simple edges: state -> transition -> state
-      const newEdges: any[] = [];
-      currentUiTransitions.forEach((transition) => {
-        const transitionNodeId = `transition-${transition.id}`;
-        const isLoopback = transition.sourceStateId === transition.targetStateId;
-
-        // Get node positions
-        const sourceState = currentUiStates.find(s => s.id === transition.sourceStateId);
-        const targetState = currentUiStates.find(s => s.id === transition.targetStateId);
-        const transitionNode = transitionNodes.find(n => n.id === transitionNodeId);
-
-        if (!sourceState || !targetState || !transitionNode) return;
+        if (!sourceState || !targetState) return;
 
         // Get layout for this transition (may have manual anchor point selections)
         const layout = transitionLayoutMap.get(transition.id);
@@ -782,112 +892,41 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         const edgeColor = isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
         const edgeWidth = 2;
 
-        // For state -> transition edge:
-        // Use manual selection if available, otherwise calculate optimal
-        let stateToTransitionSourceHandle = layout?.stateToTransitionSourceHandle;
-        let stateToTransitionTargetHandle = layout?.stateToTransitionTargetHandle;
+        // Calculate optimal handles based on node positions
+        let sourceHandle: string;
+        let targetHandle: string;
 
-        if (!stateToTransitionSourceHandle || !stateToTransitionTargetHandle) {
-          if (isLoopback) {
-            // For loopback: use top-right handle on state to go out to transition
-            stateToTransitionSourceHandle = 'top-right-source';
-            stateToTransitionTargetHandle = 'left-center-target';
-          } else {
+        // For loopback transitions, use handles from transition (user selected when drawing)
+        if (isLoopback) {
+          // Use stored handles from transition, or fallback to defaults
+          // Default: loopback creates a petal shape using adjacent handles (left to center)
+          sourceHandle = transition.sourceHandle || layout?.sourceHandle || 'top-left-source';
+          targetHandle = transition.targetHandle || layout?.targetHandle || 'top-center-target';
+        } else {
+          // For regular transitions, use handles from transition (updated by autoLayout)
+          sourceHandle = transition.sourceHandle || layout?.sourceHandle || '';
+          targetHandle = transition.targetHandle || layout?.targetHandle || '';
+
+          if (!sourceHandle || !targetHandle) {
             const anchors = calculateOptimalAnchorPoints(
               sourceState.position,
-              transitionNode.position
+              targetState.position
             );
-            stateToTransitionSourceHandle = stateToTransitionSourceHandle || anchors.sourceHandle;
-            stateToTransitionTargetHandle = stateToTransitionTargetHandle || anchors.targetHandle;
+            sourceHandle = sourceHandle || anchors.sourceHandle;
+            targetHandle = targetHandle || anchors.targetHandle;
           }
         }
 
-        // For transition -> state edge:
-        // Source handle (transition node side): ALWAYS calculate automatically for best appearance
-        // Target handle (state node side): Use manual selection if available, otherwise calculate
-        let transitionToStateSourceHandle: string;
-        let transitionToStateTargetHandle = layout?.transitionToStateTargetHandle;
-
-        if (isLoopback) {
-          // For loopback: use right handle on transition to come back to bottom-right of state
-          transitionToStateSourceHandle = 'right-center-source';
-          transitionToStateTargetHandle = transitionToStateTargetHandle || 'bottom-right-target';
-        } else {
-          // Always calculate optimal source handle based on node positions
-          const anchors = calculateOptimalAnchorPoints(
-            transitionNode.position,
-            targetState.position
-          );
-          transitionToStateSourceHandle = anchors.sourceHandle;
-          // Use manual target handle if available, otherwise use calculated
-          transitionToStateTargetHandle = transitionToStateTargetHandle || anchors.targetHandle;
-        }
-
-        // Edge from source state to transition node (no specific direction, no arrow)
-        // This is the "head" edge - should not be manually reconnectable
-        const edge1 = {
-          id: `edge-${transition.sourceStateId}-to-${transition.id}`,
-          type: edgeType, // Use the current edge type setting
+        // Create single edge from source state to target state with transition data
+        const edge = {
+          id: `edge-${transition.id}`,
+          type: isLoopback ? 'loopbackEdge' : 'transitionEdge',
           source: transition.sourceStateId,
-          target: transitionNodeId,
-          sourceHandle: stateToTransitionSourceHandle,
-          targetHandle: stateToTransitionTargetHandle,
-          animated: false,
-          reconnectable: false, // Disallow manual reconnection - this edge moves automatically
-          style: {
-            stroke: edgeColor,
-            strokeWidth: edgeWidth,
-            strokeDasharray: isManual ? '8 4' : 'none'
-          },
-        };
-        newEdges.push(edge1);
-
-        // Edge from transition node to target state (with arrow marker)
-        // This is the "tail" edge - users can reconnect the arrow end to any state anchor point
-        // Calculate direction based on relative positions
-        const deltaX = targetState.position.x - transitionNode.position.x;
-        const deltaY = targetState.position.y - transitionNode.position.y;
-        const absDeltaX = Math.abs(deltaX);
-        const absDeltaY = Math.abs(deltaY);
-
-        let sourcePosition, targetPosition;
-
-        // Determine primary direction based on which delta is larger
-        if (absDeltaY > absDeltaX) {
-          // Vertical direction is dominant
-          if (deltaY > 0) {
-            // Target is below transition
-            sourcePosition = Position.Bottom;
-            targetPosition = Position.Top;
-          } else {
-            // Target is above transition
-            sourcePosition = Position.Top;
-            targetPosition = Position.Bottom;
-          }
-        } else {
-          // Horizontal direction is dominant
-          if (deltaX > 0) {
-            // Target is to the right of transition
-            sourcePosition = Position.Right;
-            targetPosition = Position.Left;
-          } else {
-            // Target is to the left of transition
-            sourcePosition = Position.Left;
-            targetPosition = Position.Right;
-          }
-        }
-
-        const edge2 = {
-          id: `edge-${transition.id}-to-${transition.targetStateId}`,
-          type: edgeType, // Use the current edge type setting
-          source: transitionNodeId,
           target: transition.targetStateId,
-          sourceHandle: transitionToStateSourceHandle,
-          targetHandle: transitionToStateTargetHandle,
-          sourcePosition,
-          targetPosition,
+          sourceHandle,
+          targetHandle,
           animated: !isManual, // Only animate automated transitions
-          reconnectable: 'target', // Only allow reconnecting the target end (state node side with arrow)
+          reconnectable: true, // Allow reconnecting both ends
           style: {
             stroke: edgeColor,
             strokeWidth: edgeWidth,
@@ -899,16 +938,27 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             height: 20,
             color: edgeColor,
           },
+          data: {
+            transition: transition,
+            sourceHandle: sourceHandle,
+            targetHandle: targetHandle,
+            onEdit: currentOnTransitionEdit,
+            onUpdate: (updatedTransition: UITransitionData) => {
+              // Handle transition update
+              console.log('Transition updated:', updatedTransition);
+            },
+            onLabelClick: handleTransitionLabelClick,
+            palette: palette,
+            edgeType: edgeType, // Pass edge type to custom edge component
+          },
         };
-        newEdges.push(edge2);
+        newEdges.push(edge);
       });
 
-      // Combine state nodes and transition nodes
-      const allNodes = [...stateNodes, ...transitionNodes];
-
-      setNodes(allNodes);
+      // Only use state nodes (transitions are now rendered as edges with labels)
+      setNodes(stateNodes);
       setEdges(newEdges);
-      if (allNodes.length > 0) {
+      if (stateNodes.length > 0) {
         setIsInitialized(true);
       }
     } else {
@@ -949,9 +999,49 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     }
   }, [cleanedWorkflow?.layout?.updatedAt, nodes.length, fitView]);
 
+  // Fit view on initial load
+  const initialLoadRef = useRef(false);
+  React.useEffect(() => {
+    if (!initialLoadRef.current && isInitialized && nodes.length > 0) {
+      initialLoadRef.current = true;
+      // Use a small delay to ensure nodes are rendered before fitting view
+      const timer = setTimeout(() => {
+        fitView({
+          padding: 0.2, // 20% padding around the workflow
+          duration: 300, // Smooth animation
+          minZoom: 0.05, // Allow zooming out to 5% for very large workflows
+          maxZoom: 1.5, // Don't zoom in too much for small workflows
+        });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isInitialized, nodes.length, fitView]);
+
+  // NOTE: We don't save initial state to undo/redo history anymore
+  // This prevents the Undo button from being active when no changes have been made
+  // History will start being saved only after the first user action
+  const initialStateSavedRef = useRef(false);
+  // React.useEffect(() => {
+  //   if (isInitialized && nodes.length > 0 && edges.length >= 0 && cleanedWorkflow && !initialStateSavedRef.current) {
+  //     const timer = setTimeout(() => {
+  //       saveStateImmediate();
+  //       initialStateSavedRef.current = true;
+  //     }, 200);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [isInitialized]); // Only run when initialization completes
+
   const onConnect = useCallback(
     (params: Connection) => {
-      if (!cleanedWorkflow || !params.source || !params.target) return;
+      console.log('🔗🔗🔗 onConnect CALLED! 🔗🔗🔗', params);
+
+      if (!cleanedWorkflow || !params.source || !params.target) {
+        console.log('❌ Missing cleanedWorkflow or source/target');
+        return;
+      }
+
+      // Save state before adding connection
+      saveStateImmediate();
 
       // Determine node types
       const sourceIsTransition = params.source.startsWith('transition-');
@@ -991,9 +1081,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           // User tried to drag from a target handle, silently ignore
           return;
         }
-        // Check that source handle is from a valid position (any of the 8 positions)
+        // Check that source handle is from a valid position (any of the 10 positions)
         const sourcePosition = params.sourceHandle.replace('-source', '');
-        const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
+        const validPositions = ['top-left', 'top-center', 'top-right', 'left-top', 'left-bottom', 'right-top', 'right-bottom', 'bottom-left', 'bottom-center', 'bottom-right'];
         if (!validPositions.includes(sourcePosition)) {
           // Invalid position, silently ignore
           return;
@@ -1006,9 +1096,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           // Invalid target handle, silently ignore
           return;
         }
-        // Check that target handle is from a valid position (any of the 8 positions)
+        // Check that target handle is from a valid position (any of the 10 positions)
         const targetPosition = params.targetHandle.replace('-target', '');
-        const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
+        const validPositions = ['top-left', 'top-center', 'top-right', 'left-top', 'left-bottom', 'right-top', 'right-bottom', 'bottom-left', 'bottom-center', 'bottom-right'];
         if (!validPositions.includes(targetPosition)) {
           // Invalid position, silently ignore
           return;
@@ -1019,7 +1109,14 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       const isLoopback = params.source === params.target;
       const connectionType = isLoopback ? 'Loop-back Transition' : 'New Transition';
 
-
+      console.log('🔗 onConnect called:', {
+        source: params.source,
+        target: params.target,
+        sourceHandle: params.sourceHandle,
+        targetHandle: params.targetHandle,
+        isLoopback,
+        connectionType
+      });
 
       // Create new transition definition
       const newTransitionDef: TransitionDefinition = {
@@ -1062,12 +1159,192 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
       const transitionLayout = {
         id: transitionId,
+        sourceStateId: params.source,
+        targetStateId: params.target,
         position: transitionNodePosition,
-        // Keep legacy fields for backward compatibility
-        sourceHandle: params.sourceHandle || (isLoopback ? 'top-right' : null),
-        targetHandle: params.targetHandle || (isLoopback ? 'right-center' : null),
+        // For loopback, store the actual handles user selected
+        // For regular transitions, these are null (handled by edge routing)
+        sourceHandle: isLoopback ? params.sourceHandle : null,
+        targetHandle: isLoopback ? params.targetHandle : null,
         labelPosition: isLoopback ? { x: 80, y: -80 } : { x: 0, y: 0 }
       };
+
+      console.log('📍 Created transitionLayout:', transitionLayout);
+
+      if (existingTransitionIndex >= 0) {
+        updatedLayoutTransitions[existingTransitionIndex] = transitionLayout;
+      } else {
+        updatedLayoutTransitions.push(transitionLayout);
+      }
+
+      console.log('✅ Updated layout transitions:', updatedLayoutTransitions);
+
+      const updatedWorkflow: UIWorkflowData = {
+        ...cleanedWorkflow,
+        configuration: {
+          ...cleanedWorkflow.configuration,
+          states: updatedStates
+        },
+        layout: {
+          ...cleanedWorkflow.layout,
+          transitions: updatedLayoutTransitions,
+          direction: layoutDirection, // Save current direction
+          updatedAt: new Date().toISOString()
+        }
+      };
+
+      const description = isLoopback
+        ? `Added loop-back transition to ${params.source}`
+        : `Connected ${params.source} to ${params.target}`;
+
+      onWorkflowUpdate(updatedWorkflow, description);
+    },
+    [cleanedWorkflow, onWorkflowUpdate, saveStateImmediate]
+  );
+
+  // Validate connections - only allow State → State connections
+  const isValidConnection = useCallback((connection: Connection) => {
+    // Only allow State → State connections (creating new transitions)
+    // All nodes are states now (transitions are edges)
+
+    // Validate handles
+    // Check that source handle ends with -source (silently reject if not)
+    if (connection.sourceHandle) {
+      if (!connection.sourceHandle.endsWith('-source')) {
+        // User is trying to drag from a target handle, silently reject
+        return false;
+      }
+      // Allow all 10 positions for source handles
+      const sourcePosition = connection.sourceHandle.replace('-source', '');
+      const validPositions = ['top-left', 'top-center', 'top-right', 'left-top', 'left-bottom', 'right-top', 'right-bottom', 'bottom-left', 'bottom-center', 'bottom-right'];
+      if (!validPositions.includes(sourcePosition)) {
+        return false;
+      }
+    }
+
+    // Check that target handle ends with -target
+    if (connection.targetHandle) {
+      if (!connection.targetHandle.endsWith('-target')) {
+        // Invalid target handle, silently reject
+        return false;
+      }
+      // Allow all 10 positions for target handles
+      const targetPosition = connection.targetHandle.replace('-target', '');
+      const validPositions = ['top-left', 'top-center', 'top-right', 'left-top', 'left-bottom', 'right-top', 'right-bottom', 'bottom-left', 'bottom-center', 'bottom-right'];
+      if (!validPositions.includes(targetPosition)) {
+        return false;
+      }
+    }
+
+    return true;
+  }, []);
+
+  const onReconnect: OnReconnect = useCallback(
+    (oldEdge: Edge, newConnection: Connection) => {
+      console.log('🔄🔄🔄 onReconnect CALLED! 🔄🔄🔄');
+
+      if (!cleanedWorkflow) {
+        console.log('❌ No cleanedWorkflow');
+        return;
+      }
+
+      // Save state before reconnecting
+      saveStateImmediate();
+
+      // Extract transition ID from edge (format: edge-{transitionId})
+      const transitionId = oldEdge.id.replace('edge-', '');
+
+      // Parse to get source state and transition index
+      const parsed = parseTransitionId(transitionId);
+      if (!parsed) {
+        console.log('❌ Could not parse transition ID:', transitionId);
+        return;
+      }
+
+      const { sourceStateId: oldSourceStateId, transitionIndex } = parsed;
+
+      // Check if source or target changed
+      const sourceChanged = oldEdge.source !== newConnection.source;
+      const targetChanged = oldEdge.target !== newConnection.target;
+
+      console.log('🔄 onReconnect called:', {
+        transitionId,
+        oldEdge: { source: oldEdge.source, target: oldEdge.target, sourceHandle: oldEdge.sourceHandle, targetHandle: oldEdge.targetHandle },
+        newConnection: { source: newConnection.source, target: newConnection.target, sourceHandle: newConnection.sourceHandle, targetHandle: newConnection.targetHandle },
+        sourceChanged,
+        targetChanged,
+        parsed
+      });
+
+      const updatedStates = { ...cleanedWorkflow.configuration.states };
+      const oldSourceState = updatedStates[oldSourceStateId];
+
+      if (!oldSourceState || !oldSourceState.transitions[transitionIndex]) return;
+
+      const transitionDef = oldSourceState.transitions[transitionIndex];
+
+      if (sourceChanged) {
+        // Moving transition to a different source state
+        const newSourceStateId = newConnection.source!;
+
+        // Remove from old source state
+        updatedStates[oldSourceStateId] = {
+          ...oldSourceState,
+          transitions: oldSourceState.transitions.filter((_, idx) => idx !== transitionIndex)
+        };
+
+        // Add to new source state
+        const newSourceState = updatedStates[newSourceStateId];
+        if (newSourceState) {
+          updatedStates[newSourceStateId] = {
+            ...newSourceState,
+            transitions: [...newSourceState.transitions, {
+              ...transitionDef,
+              next: newConnection.target! // Update target as well if changed
+            }]
+          };
+        }
+      } else if (targetChanged) {
+        // Only changing target state
+        const newTargetStateId = newConnection.target!;
+        const updatedTransitions = [...oldSourceState.transitions];
+        updatedTransitions[transitionIndex] = {
+          ...updatedTransitions[transitionIndex],
+          next: newTargetStateId
+        };
+
+        updatedStates[oldSourceStateId] = {
+          ...oldSourceState,
+          transitions: updatedTransitions
+        };
+      }
+
+      // Save the anchor point selection
+      const updatedLayoutTransitions = [...(cleanedWorkflow.layout.transitions || [])];
+      const existingTransitionIndex = updatedLayoutTransitions.findIndex(t => t.id === transitionId);
+
+      let transitionLayout = existingTransitionIndex >= 0
+        ? { ...updatedLayoutTransitions[existingTransitionIndex] }
+        : { id: transitionId };
+
+      console.log('📍 Before saving handles:', {
+        transitionLayout,
+        newConnection: { sourceHandle: newConnection.sourceHandle, targetHandle: newConnection.targetHandle }
+      });
+
+      // Save handles if changed
+      // Note: newConnection.sourceHandle is the handle on the SOURCE STATE
+      // newConnection.targetHandle is the handle on the TARGET STATE
+      if (newConnection.sourceHandle) {
+        console.log('💾 Saving sourceHandle:', newConnection.sourceHandle);
+        transitionLayout.sourceHandle = newConnection.sourceHandle;
+      }
+      if (newConnection.targetHandle) {
+        console.log('💾 Saving targetHandle:', newConnection.targetHandle);
+        transitionLayout.targetHandle = newConnection.targetHandle;
+      }
+
+      console.log('📍 After saving handles:', transitionLayout);
 
       if (existingTransitionIndex >= 0) {
         updatedLayoutTransitions[existingTransitionIndex] = transitionLayout;
@@ -1084,287 +1361,28 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         layout: {
           ...cleanedWorkflow.layout,
           transitions: updatedLayoutTransitions,
+          direction: layoutDirection, // Save current direction
           updatedAt: new Date().toISOString()
         }
       };
 
-      const description = isLoopback
-        ? `Added loop-back transition to ${params.source}`
-        : `Connected ${params.source} to ${params.target}`;
+      console.log('✅ Updated workflow transitions:', updatedLayoutTransitions);
 
-      onWorkflowUpdate(updatedWorkflow, description);
+      const message = sourceChanged
+        ? `Reconnected transition source to ${newConnection.source}`
+        : `Reconnected transition target to ${newConnection.target}`;
+      onWorkflowUpdate(updatedWorkflow, message);
     },
-    [cleanedWorkflow, onWorkflowUpdate]
+    [cleanedWorkflow, onWorkflowUpdate, saveStateImmediate]
   );
 
-  // Validate connections to prevent invalid handle combinations
-  const isValidConnection = useCallback((connection: Connection) => {
-    // Determine node types
-    const sourceIsTransition = connection.source?.startsWith('transition-');
-    const targetIsTransition = connection.target?.startsWith('transition-');
-    const sourceIsState = !sourceIsTransition;
-    const targetIsState = !targetIsTransition;
-
-    // Block Transition → Transition connections (doesn't make sense)
-    if (sourceIsTransition && targetIsTransition) {
-      return false;
-    }
-
-    // Block State → Transition connections (transitions are auto-created)
-    if (sourceIsState && targetIsTransition) {
-      return false;
-    }
-
-    // Allow State → State connections (creating new transitions)
-    // Allow Transition → State connections (reconnecting transition target)
-    if ((sourceIsState && targetIsState) || (sourceIsTransition && targetIsState)) {
-      // Validate handles
-
-      // Check that source handle ends with -source (silently reject if not)
-      if (connection.sourceHandle) {
-        if (!connection.sourceHandle.endsWith('-source')) {
-          // User is trying to drag from a target handle, silently reject
-          return false;
-        }
-        // Allow all 8 positions for source handles
-        const sourcePosition = connection.sourceHandle.replace('-source', '');
-        const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
-        if (!validPositions.includes(sourcePosition)) {
-          return false;
-        }
-      }
-
-      // Check that target handle ends with -target
-      if (connection.targetHandle) {
-        if (!connection.targetHandle.endsWith('-target')) {
-          // Invalid target handle, silently reject
-          return false;
-        }
-        // Allow all 8 positions for target handles
-        const targetPosition = connection.targetHandle.replace('-target', '');
-        const validPositions = ['top-left', 'top-center', 'top-right', 'left-center', 'right-center', 'bottom-left', 'bottom-center', 'bottom-right'];
-        if (!validPositions.includes(targetPosition)) {
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-    return false;
-  }, []);
-
-  const onReconnect: OnReconnect = useCallback(
-    (oldEdge: Edge, newConnection: Connection) => {
-      if (!cleanedWorkflow) return;
-
-      // Determine what type of edge this is
-      const isStateToTransition = oldEdge.id.includes('-to-') && oldEdge.target.startsWith('transition-');
-      const isTransitionToState = oldEdge.id.includes('-to-') && oldEdge.source.startsWith('transition-');
-
-      if (isStateToTransition) {
-        // Reconnecting the source state of a transition
-        // This means changing which state the transition comes from
-
-        // Extract transition ID from edge
-        const transitionNodeId = oldEdge.target;
-        const transitionId = transitionNodeId.replace('transition-', '');
-
-        // Parse to get old source state and transition index
-        const parsed = parseTransitionId(transitionId);
-        if (!parsed) return;
-
-        const { sourceStateId: oldSourceStateId, transitionIndex } = parsed;
-        const newSourceStateId = newConnection.source!;
-
-        // Get the transition definition
-        const oldSourceState = cleanedWorkflow.configuration.states[oldSourceStateId];
-        if (!oldSourceState || !oldSourceState.transitions[transitionIndex]) return;
-
-        const transitionDef = oldSourceState.transitions[transitionIndex];
-
-        // Remove from old source state
-        const updatedStates = { ...cleanedWorkflow.configuration.states };
-        updatedStates[oldSourceStateId] = {
-          ...oldSourceState,
-          transitions: oldSourceState.transitions.filter((_, idx) => idx !== transitionIndex)
-        };
-
-        // Add to new source state
-        const newSourceState = updatedStates[newSourceStateId];
-        if (newSourceState) {
-          updatedStates[newSourceStateId] = {
-            ...newSourceState,
-            transitions: [...newSourceState.transitions, transitionDef]
-          };
-        }
-
-        const updatedWorkflow: UIWorkflowData = {
-          ...cleanedWorkflow,
-          configuration: {
-            ...cleanedWorkflow.configuration,
-            states: updatedStates
-          },
-          layout: {
-            ...cleanedWorkflow.layout,
-            updatedAt: new Date().toISOString()
-          }
-        };
-
-        onWorkflowUpdate(updatedWorkflow, `Reconnected transition source from ${oldSourceStateId} to ${newSourceStateId}`);
-
-      } else if (isTransitionToState) {
-        // Reconnecting the target state of a transition
-        // This means changing which state the transition goes to
-
-
-        // Extract transition ID from edge
-        const transitionNodeId = oldEdge.source;
-        const transitionId = transitionNodeId.replace('transition-', '');
-
-        // Parse to get source state and transition index
-        const parsed = parseTransitionId(transitionId);
-        if (!parsed) return;
-
-        const { sourceStateId, transitionIndex } = parsed;
-        const newTargetStateId = newConnection.target!;
-
-        // Update the transition's target
-        const updatedStates = { ...cleanedWorkflow.configuration.states };
-        const sourceState = updatedStates[sourceStateId];
-
-        if (sourceState && sourceState.transitions[transitionIndex]) {
-          const updatedTransitions = [...sourceState.transitions];
-          updatedTransitions[transitionIndex] = {
-            ...updatedTransitions[transitionIndex],
-            next: newTargetStateId
-          };
-
-          updatedStates[sourceStateId] = {
-            ...sourceState,
-            transitions: updatedTransitions
-          };
-        }
-
-        // Save the anchor point selection for the target handle only
-        // Source handle (transition node side) is always calculated automatically
-        const updatedLayoutTransitions = [...(cleanedWorkflow.layout.transitions || [])];
-        const existingTransitionIndex = updatedLayoutTransitions.findIndex(t => t.id === transitionId);
-
-        let transitionLayout = existingTransitionIndex >= 0
-          ? { ...updatedLayoutTransitions[existingTransitionIndex] }
-          : { id: transitionId };
-
-        // Only save the target handle (state node side with arrow) - user's manual selection
-        // Do NOT save source handle - it's always calculated automatically for best appearance
-        if (newConnection.targetHandle) {
-          transitionLayout.transitionToStateTargetHandle = newConnection.targetHandle;
-        }
-
-        // Clear any previously saved source handle since we now always calculate it
-        transitionLayout.transitionToStateSourceHandle = null;
-
-        if (existingTransitionIndex >= 0) {
-          updatedLayoutTransitions[existingTransitionIndex] = transitionLayout;
-        } else {
-          updatedLayoutTransitions.push(transitionLayout);
-        }
-
-
-        const updatedWorkflow: UIWorkflowData = {
-          ...cleanedWorkflow,
-          configuration: {
-            ...cleanedWorkflow.configuration,
-            states: updatedStates
-          },
-          layout: {
-            ...cleanedWorkflow.layout,
-            transitions: updatedLayoutTransitions,
-            updatedAt: new Date().toISOString()
-          }
-        };
-
-        onWorkflowUpdate(updatedWorkflow, `Reconnected transition target to ${newTargetStateId}`);
-
-      } else {
-        // Just reconnecting to a different anchor point on the same nodes
-        // OR reconnecting to the same node/handle (which means no change)
-
-        const sourceChanged = oldEdge.source !== newConnection.source;
-        const targetChanged = oldEdge.target !== newConnection.target;
-        const sourceHandleChanged = oldEdge.sourceHandle !== newConnection.sourceHandle;
-        const targetHandleChanged = oldEdge.targetHandle !== newConnection.targetHandle;
-
-        if (!sourceChanged && !targetChanged && !sourceHandleChanged && !targetHandleChanged) {
-          return;
-        }
-
-        // Save the manual anchor point selection to the layout
-        // Determine which edge this is (state→transition or transition→state)
-        const isStateToTransition = oldEdge.id.includes('-to-') && oldEdge.target.startsWith('transition-');
-        const isTransitionToState = oldEdge.id.includes('-to-') && oldEdge.source.startsWith('transition-');
-
-        // Extract transition ID
-        let transitionId: string;
-        if (isStateToTransition) {
-          // Edge ID format: edge-{sourceStateId}-to-{transitionId}
-          const parts = oldEdge.id.split('-to-');
-          transitionId = parts[1];
-        } else if (isTransitionToState) {
-          // Edge ID format: edge-{transitionId}-to-{targetStateId}
-          const parts = oldEdge.id.split('-to-');
-          transitionId = parts[0].replace('edge-', '');
-        } else {
-          return;
-        }
-
-        // Update the transition layout with manual anchor point selections
-        const updatedLayoutTransitions = [...(cleanedWorkflow.layout.transitions || [])];
-        const existingTransitionIndex = updatedLayoutTransitions.findIndex(t => t.id === transitionId);
-
-        let transitionLayout = existingTransitionIndex >= 0
-          ? { ...updatedLayoutTransitions[existingTransitionIndex] }
-          : { id: transitionId };
-
-        // Save the manual anchor point selections
-        if (isStateToTransition) {
-          // State→Transition edge: This should not happen since we made it non-reconnectable
-          // But if it does, save both handles for state→transition edge
-          if (sourceHandleChanged) {
-            transitionLayout.stateToTransitionSourceHandle = newConnection.sourceHandle || null;
-          }
-          if (targetHandleChanged) {
-            transitionLayout.stateToTransitionTargetHandle = newConnection.targetHandle || null;
-          }
-        } else if (isTransitionToState) {
-          // Transition→State edge: Only save target handle (state node side)
-          // Source handle (transition node side) is always calculated automatically
-          if (targetHandleChanged) {
-            transitionLayout.transitionToStateTargetHandle = newConnection.targetHandle || null;
-          }
-          // Clear any previously saved source handle
-          transitionLayout.transitionToStateSourceHandle = null;
-        }
-
-        if (existingTransitionIndex >= 0) {
-          updatedLayoutTransitions[existingTransitionIndex] = transitionLayout;
-        } else {
-          updatedLayoutTransitions.push(transitionLayout);
-        }
-
-        const updatedWorkflow: UIWorkflowData = {
-          ...cleanedWorkflow,
-          layout: {
-            ...cleanedWorkflow.layout,
-            transitions: updatedLayoutTransitions,
-            updatedAt: new Date().toISOString()
-          }
-        };
-
-        onWorkflowUpdate(updatedWorkflow, 'Reconnected edge to different anchor point');
-      }
+  // Save state before drag starts
+  const onNodeDragStart = useCallback(
+    (_event: React.MouseEvent, _node: Node) => {
+      // Save current state before any changes
+      saveStateImmediate();
     },
-    [cleanedWorkflow, onWorkflowUpdate]
+    [saveStateImmediate]
   );
 
   const onNodeDragStop = useCallback(
@@ -1385,40 +1403,54 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
         // If transition doesn't exist in layout, add it
         if (!updatedLayoutTransitions.find(t => t.id === transitionId)) {
-          updatedLayoutTransitions.push({
-            id: transitionId,
-            position: node.position
-          });
+          // Parse transition ID to get source state and find target state
+          const parsed = parseTransitionId(transitionId);
+          if (parsed && cleanedWorkflow.configuration.states[parsed.sourceStateId]) {
+            const sourceState = cleanedWorkflow.configuration.states[parsed.sourceStateId];
+            const transitionDef = sourceState.transitions[parsed.transitionIndex];
+
+            updatedLayoutTransitions.push({
+              id: transitionId,
+              sourceStateId: parsed.sourceStateId,
+              targetStateId: transitionDef?.next || '',
+              position: node.position,
+            });
+          }
         }
 
         const updatedWorkflow: UIWorkflowData = {
           ...cleanedWorkflow,
           layout: {
             ...cleanedWorkflow.layout,
-            states: cleanedWorkflow.layout.states,
             transitions: updatedLayoutTransitions,
+            direction: layoutDirection, // Save current direction
+            manuallyPositioned: true, // User manually moved a transition node
             updatedAt: new Date().toISOString()
           }
         };
 
-        onWorkflowUpdate(updatedWorkflow, `Moved transition: ${transitionId}`);
+        onWorkflowUpdate(updatedWorkflow, `Moved transition label: ${transitionId}`);
       } else {
-        // Update state position in layout
+        // State node - update state position in layout
         const updatedLayoutStates = cleanedWorkflow.layout.states.map((state) =>
           state.id === node.id
             ? { ...state, position: node.position }
             : state
         );
 
-        const updatedWorkflow: UIWorkflowData = {
+        let updatedWorkflow: UIWorkflowData = {
           ...cleanedWorkflow,
           layout: {
             ...cleanedWorkflow.layout,
             states: updatedLayoutStates,
-            transitions: cleanedWorkflow.layout.transitions,
+            direction: layoutDirection, // Save current direction
+            manuallyPositioned: true, // User manually moved a state node
             updatedAt: new Date().toISOString()
           }
         };
+
+        // Recalculate handles for transitions connected to the moved state
+        updatedWorkflow = recalculateHandlesForMovedState(updatedWorkflow, node.id);
 
         onWorkflowUpdate(updatedWorkflow, `Moved state: ${node.id}`);
       }
@@ -1430,7 +1462,17 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   const handleAutoLayout = useCallback(() => {
     if (!cleanedWorkflow || !canAutoLayout(cleanedWorkflow)) return;
 
-    const layoutedWorkflow = autoLayoutWorkflow(cleanedWorkflow, { direction: layoutDirection });
+    let layoutedWorkflow = autoLayoutWorkflow(cleanedWorkflow, { direction: layoutDirection });
+
+    // Reset manuallyPositioned flag since we're applying auto-layout
+    // This allows future global direction changes to affect this workflow
+    layoutedWorkflow = {
+      ...layoutedWorkflow,
+      layout: {
+        ...layoutedWorkflow.layout,
+        manuallyPositioned: false,
+      }
+    };
 
     // Set flag to trigger fitView after layout is applied
     shouldFitViewRef.current = true;
@@ -1440,12 +1482,28 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     onWorkflowUpdate(layoutedWorkflow, 'Applied auto-layout');
   }, [cleanedWorkflow, onWorkflowUpdate, layoutDirection]);
 
-  // Auto-apply layout when layout direction changes
+  // Auto-apply layout when direction changes, but only for non-manually-positioned workflows
   const previousLayoutDirectionRef = useRef(layoutDirection);
   React.useEffect(() => {
-    // Only auto-apply if the direction actually changed (not on initial mount)
-    if (previousLayoutDirectionRef.current !== layoutDirection && cleanedWorkflow && canAutoLayout(cleanedWorkflow)) {
-      const layoutedWorkflow = autoLayoutWorkflow(cleanedWorkflow, { direction: layoutDirection });
+    // Only auto-apply if:
+    // 1. Direction actually changed (not on initial mount)
+    // 2. Workflow exists and can be auto-laid out
+    // 3. Workflow has NOT been manually positioned by user
+    if (previousLayoutDirectionRef.current !== layoutDirection &&
+        cleanedWorkflow &&
+        canAutoLayout(cleanedWorkflow) &&
+        !cleanedWorkflow.layout.manuallyPositioned) {
+
+      let layoutedWorkflow = autoLayoutWorkflow(cleanedWorkflow, { direction: layoutDirection });
+
+      // Keep manuallyPositioned as false since this is automatic layout
+      layoutedWorkflow = {
+        ...layoutedWorkflow,
+        layout: {
+          ...layoutedWorkflow.layout,
+          manuallyPositioned: false,
+        }
+      };
 
       // Set flag to trigger fitView after layout is applied
       shouldFitViewRef.current = true;
@@ -1477,85 +1535,27 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
   // Handle node click to navigate in JSON editor
   const handleNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
-    if (node.id.startsWith('transition-')) {
-      // Extract transition ID and select it
-      const transitionId = node.id.replace('transition-', '');
-      setSelectedTransitionId(transitionId);
-      setSelectedStateId(null);
-    } else {
-      // State node
-      setSelectedStateId(node.id);
-      setSelectedTransitionId(null);
-    }
-  }, []);
-
-  // Handle edge click to navigate in JSON editor
-  // Navigate to the source state of the transition
-  const handleEdgeClick = useCallback((_event: React.MouseEvent, edge: Edge) => {
-    // Extract source state from edge
-    const sourceStateId = edge.source;
-    setSelectedStateId(sourceStateId);
+    // Only state nodes now (transitions are edges)
+    setSelectedStateId(node.id);
     setSelectedTransitionId(null);
   }, []);
 
-  // Handle workflow JSON save
-  const handleWorkflowJsonSave = useCallback((config: WorkflowConfiguration) => {
-    if (!cleanedWorkflow) return;
+  // Handle edge click to navigate in JSON editor
+  const handleEdgeClick = useCallback((_event: React.MouseEvent, edge: Edge) => {
+    // Extract transition ID from edge (format: edge-{transitionId})
+    const transitionId = edge.id.replace('edge-', '');
+    setSelectedTransitionId(transitionId);
+    setSelectedStateId(null);
+  }, []);
 
-    // Create layout states for any new states
-    const existingStateIds = cleanedWorkflow.layout.states.map(s => s.id);
-    const newStateIds = Object.keys(config.states).filter(id => !existingStateIds.includes(id));
-    const configStateIds = Object.keys(config.states);
+  // Handle transition label click to navigate in JSON editor
+  const handleTransitionLabelClick = useCallback((transitionId: string, section?: 'criterion' | 'processors') => {
+    setSelectedTransitionId(transitionId);
+    setSelectedStateId(null);
+    setSelectedTransitionSection(section);
+  }, []);
 
-    // Detect if this is a major change that should trigger auto-layout:
-    // 1. Workflow name changed (indicates a completely different workflow)
-    // 2. More than 50% of states are new
-    // 3. More than 50% of old states were removed
-    const isWorkflowNameChanged = config.name !== cleanedWorkflow.configuration.name;
-    const newStatesRatio = newStateIds.length / Math.max(configStateIds.length, 1);
-    const removedStatesCount = existingStateIds.filter(id => !config.states[id]).length;
-    const removedStatesRatio = removedStatesCount / Math.max(existingStateIds.length, 1);
-    const shouldAutoLayout = isWorkflowNameChanged || newStatesRatio > 0.5 || removedStatesRatio > 0.5;
 
-    const newLayoutStates = newStateIds.map((stateId, index) => ({
-      id: stateId,
-      position: {
-        x: 100 + (index % 3) * 250,
-        y: 100 + Math.floor(index / 3) * 150
-      },
-      properties: {}
-    }));
-
-    // Keep existing layout states that still exist in the new config
-    // IMPORTANT: Preserve existing positions to avoid repositioning on edit
-    const updatedLayoutStates = cleanedWorkflow.layout.states
-      .filter(s => config.states[s.id])
-      .concat(newLayoutStates);
-
-    const now = new Date().toISOString();
-    const updatedWorkflow: UIWorkflowData = {
-      ...cleanedWorkflow,
-      configuration: config,
-      layout: {
-        ...cleanedWorkflow.layout,
-        states: updatedLayoutStates,
-        transitions: cleanedWorkflow.layout.transitions, // Preserve existing transition layouts
-        version: cleanedWorkflow.layout.version + 1,
-        updatedAt: now
-      },
-      updatedAt: now
-    };
-
-    // Apply auto-layout if this is a major change (new workflow pasted)
-    // Otherwise preserve user's manual positioning
-    if (shouldAutoLayout) {
-      const layoutedWorkflow = autoLayoutWorkflow(updatedWorkflow);
-      shouldFitViewRef.current = true; // Trigger fitView after auto-layout
-      onWorkflowUpdate(layoutedWorkflow, 'Updated workflow JSON with auto-layout');
-    } else {
-      onWorkflowUpdate(updatedWorkflow, 'Updated workflow JSON');
-    }
-  }, [cleanedWorkflow, onWorkflowUpdate]);
 
   // Export workflow JSON
   const handleExportJSON = useCallback(() => {
@@ -1603,11 +1603,35 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
       try {
         const text = await file.text();
-        const config = JSON.parse(text) as WorkflowConfiguration;
+        const parsed = JSON.parse(text);
 
-        // Validate required fields
-        if (!config.version || !config.name || !config.initialState || !config.states) {
-          alert('Invalid workflow JSON: missing required fields (version, name, initialState, states)');
+        let config: WorkflowConfiguration;
+
+        // Check if this is a wrapper format (has workflows array)
+        if (parsed.workflows && Array.isArray(parsed.workflows)) {
+          // Extract the first workflow from the array
+          if (parsed.workflows.length === 0) {
+            alert('Invalid workflow JSON: workflows array is empty');
+            return;
+          }
+
+          config = parsed.workflows[0] as WorkflowConfiguration;
+
+          // Show notification if there are multiple workflows
+          if (parsed.workflows.length > 1) {
+            showWarning(
+              'Multiple Workflows Found',
+              `This file contains ${parsed.workflows.length} workflows. Only the first workflow will be displayed in the canvas.`
+            );
+          }
+        } else {
+          // Individual workflow format
+          config = parsed as WorkflowConfiguration;
+        }
+
+        // Validate required fields (version is optional)
+        if (!config.name || typeof config.name !== 'string' || config.name.trim() === '' || !config.initialState || typeof config.initialState !== 'string' || config.initialState.trim() === '' || !config.states) {
+          alert('Invalid workflow JSON: missing required fields (name, initialState, states)');
           return;
         }
 
@@ -1621,8 +1645,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         const layoutStates = stateIds.map((stateId, index) => ({
           id: stateId,
           position: {
-            x: 100 + (index % 3) * 250,
-            y: 100 + Math.floor(index / 3) * 150
+            x: 100 + (index % 3) * 210,
+            y: 100 + Math.floor(index / 3) * 160
           },
           properties: {}
         }));
@@ -1651,7 +1675,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
       }
     };
     input.click();
-  }, [cleanedWorkflow, onWorkflowUpdate]);
+  }, [cleanedWorkflow, onWorkflowUpdate, showWarning]);
 
   // Export workflow to environment (POST to import endpoint)
   const handleExportToEnvironment = useCallback(async () => {
@@ -1681,9 +1705,12 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         importMode: 'REPLACE'
       };
 
-      const response = await axios.post(url, payload, {
+      // Use privateClient to benefit from refresh token interceptor
+      const response = await privateClient({
+        method: 'post',
+        url: url,
+        data: payload,
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -1734,10 +1761,10 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           // First, export to get the current workflow from environment
           const exportUrl = buildEnvironmentUrl(`/model/${modelName}/${modelVersion}/workflow/export`);
 
-          const exportResponse = await axios.get(exportUrl, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
+          // Use privateClient to benefit from refresh token interceptor
+          const exportResponse = await privateClient({
+            method: 'get',
+            url: exportUrl,
           });
 
 
@@ -1754,11 +1781,11 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           // Use the first workflow
           const config = workflows[0] as WorkflowConfiguration;
 
-          // Validate required fields
-          if (!config.version || !config.name || !config.initialState || !config.states) {
+          // Validate required fields (version is optional)
+          if (!config.name || !config.initialState || !config.states) {
             showError(
               'Invalid Workflow Data',
-              'The workflow data from environment is missing required fields'
+              'The workflow data from environment is missing required fields (name, initialState, states)'
             );
             return;
           }
@@ -1768,8 +1795,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           const layoutStates = stateIds.map((stateId, index) => ({
             id: stateId,
             position: {
-              x: 100 + (index % 3) * 250,
-              y: 100 + Math.floor(index / 3) * 150
+              x: 100 + (index % 3) * 210,
+              y: 100 + Math.floor(index / 3) * 160
             },
             properties: {}
           }));
@@ -1892,6 +1919,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           ...currentWorkflow.layout,
           states: updatedLayoutStates,
           transitions: currentWorkflow.layout.transitions, // Explicitly preserve transitions
+          direction: layoutDirection, // Save current direction
           updatedAt: new Date().toISOString()
         }
       };
@@ -1915,9 +1943,17 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   const location = useLocation();
 
   // Check if we're currently in fullscreen mode (on /workflows page)
-  const isInFullscreenMode = location.pathname === '/workflows';
+  // Use external fullscreen state if provided, otherwise use navigation-based detection
+  const isInFullscreenMode = externalIsFullscreen !== undefined ? externalIsFullscreen : location.pathname === '/workflows';
 
   const handleToggleFullscreen = useCallback(() => {
+    // If external handler is provided, use it (local state-based fullscreen)
+    if (externalOnToggleFullscreen) {
+      externalOnToggleFullscreen();
+      return;
+    }
+
+    // Otherwise, use navigation-based fullscreen (legacy behavior)
     if (!modelName || !modelVersion) {
       showWarning(
         'Cannot Open Fullscreen',
@@ -1927,24 +1963,23 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
     }
 
     if (isInFullscreenMode) {
-      // Exit fullscreen - go to home page with canvas=true parameter
-      // This signals HomeView to open the canvas panel
-      navigate('/?canvas=true');
+      // Exit fullscreen - check for returnUrl in query params first
+      const searchParams = new URLSearchParams(location.search);
+      const returnUrl = searchParams.get('returnUrl');
+      if (returnUrl) {
+        navigate(returnUrl);
+      } else if (window.history.length > 1) {
+        navigate(-1);
+      } else {
+        navigate('/?canvas=true');
+      }
     } else {
       // Enter fullscreen - navigate to workflows page with query parameters
-      navigate(`/workflows?model=${encodeURIComponent(modelName)}&version=${encodeURIComponent(modelVersion)}`);
+      // Include current URL as returnUrl so we can come back to the chat
+      const returnUrl = encodeURIComponent(location.pathname + location.search);
+      navigate(`/workflows?model=${encodeURIComponent(modelName)}&version=${encodeURIComponent(modelVersion)}&returnUrl=${returnUrl}`);
     }
-  }, [modelName, modelVersion, navigate, showWarning, isInFullscreenMode]);
-
-  // Handler to fit the entire workflow in view
-  const handleFitView = useCallback(() => {
-    fitView({
-      padding: 0.2, // 20% padding around the workflow
-      duration: 300, // Smooth animation
-      minZoom: 0.05, // Allow zooming out to 5% for very large workflows
-      maxZoom: 1.5, // Don't zoom in too much for small workflows
-    });
-  }, [fitView]);
+  }, [modelName, modelVersion, navigate, showWarning, isInFullscreenMode, location.pathname, location.search, externalOnToggleFullscreen]);
 
   if (!cleanedWorkflow) {
     return (
@@ -1979,6 +2014,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         onConnect={onConnect}
         onReconnect={onReconnect}
         isValidConnection={isValidConnection}
+        onNodeDragStart={onNodeDragStart}
         onNodeDragStop={onNodeDragStop}
         onNodeClick={handleNodeClick}
         onEdgeClick={handleEdgeClick}
@@ -2012,7 +2048,64 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         }}
       >
         <Background />
-        <Controls>
+        <Controls showZoom={false} showInteractive={false} showFitView={false}>
+          {onBack && (
+            <ControlButton
+              onClick={onBack}
+              title="Back to workflows list"
+              className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 border-2"
+              style={{
+                borderColor: '#6b7280'
+              }}
+              data-testid="back-button"
+            >
+              <ArrowLeft size={16} className="text-white" />
+            </ControlButton>
+          )}
+
+          {/* Undo/Redo buttons */}
+          <ControlButton
+            onClick={canUndo ? undo : undefined}
+            title={`Undo (${navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? 'Cmd' : 'Ctrl'}+Z)`}
+            data-testid="undo-button"
+            style={{
+              opacity: canUndo ? 1 : 0.4,
+              cursor: canUndo ? 'pointer' : 'not-allowed',
+            }}
+          >
+            <Undo2 size={16} strokeWidth={2} />
+          </ControlButton>
+
+          <ControlButton
+            onClick={canRedo ? redo : undefined}
+            title={`Redo (${navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? 'Cmd+Shift+Z' : 'Ctrl+Y'})`}
+            data-testid="redo-button"
+            style={{
+              opacity: canRedo ? 1 : 0.4,
+              cursor: canRedo ? 'pointer' : 'not-allowed',
+            }}
+          >
+            <Redo2 size={16} strokeWidth={2} />
+          </ControlButton>
+
+          {/* Fit View button */}
+          <ControlButton
+            onClick={() => fitView({ padding: 0.2, duration: 300 })}
+            title="Fit view"
+            data-testid="fit-view-button"
+          >
+            <Scan size={16} strokeWidth={2} />
+          </ControlButton>
+
+          <ControlButton
+            onClick={handleAutoLayout}
+            disabled={!canAutoLayout(cleanedWorkflow)}
+            title="Auto-arrange states using hierarchical layout"
+            data-testid="auto-layout-button"
+          >
+            <Network size={16} />
+          </ControlButton>
+
           <ControlButton
             onClick={handleToggleWorkflowInfo}
             title="Toggle workflow info"
@@ -2051,38 +2144,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           >
             <Upload size={16} />
           </ControlButton>
-          <ControlButton
-            onClick={handleExportToEnvironment}
-            title="Export workflow to environment (entity1/v1)"
-            data-testid="export-env-button"
-            className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30"
-          >
-            <CloudUpload size={16} className="text-blue-600 dark:text-blue-400" />
-          </ControlButton>
-          <ControlButton
-            onClick={handleImportFromEnvironment}
-            title="Import workflow from environment (entity1/v1)"
-            data-testid="import-env-button"
-            className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30"
-          >
-            <CloudDownload size={16} className="text-blue-600 dark:text-blue-400" />
-          </ControlButton>
-          <ControlButton
-            onClick={handleAutoLayout}
-            disabled={!canAutoLayout(cleanedWorkflow)}
-            title="Auto-arrange states using hierarchical layout"
-            data-testid="auto-layout-button"
-          >
-            <Network size={16} />
-          </ControlButton>
-          <ControlButton
-            onClick={handleFitView}
-            title="Fit entire workflow in view (works for very large workflows)"
-            data-testid="fit-view-button"
-            className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30"
-          >
-            <Maximize2 size={16} className="text-green-600 dark:text-green-400" />
-          </ControlButton>
+
           <ControlButton
             onClick={handleToggleSettings}
             title="Canvas Settings"
@@ -2098,26 +2160,31 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           <ControlButton
             onClick={handleToggleQuickHelp}
             title="Toggle Quick Help"
-            className={showQuickHelp ? 'bg-gradient-to-br from-pink-100 to-fuchsia-100 dark:from-pink-900 dark:to-fuchsia-900 border-2 border-pink-400' : ''}
+            className={showQuickHelp ? 'border-2' : ''}
+            style={showQuickHelp ? {
+              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
+              borderColor: palette.ui.accentColor
+            } : {}}
             data-testid="quick-help-button"
           >
-            <span className="text-sm font-bold">?</span>
+            <Lightbulb size={16} />
           </ControlButton>
           {/* Only show fullscreen button if model name and version are available */}
           {modelName && modelVersion && (
             <ControlButton
               onClick={handleToggleFullscreen}
               title={isInFullscreenMode ? "Exit fullscreen" : "Open in fullscreen"}
-              className={isInFullscreenMode
-                ? "bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/30 dark:to-red-900/30"
-                : "bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/30 dark:to-indigo-900/30"
-              }
+              className={isInFullscreenMode ? 'border-2' : ''}
+              style={isInFullscreenMode ? {
+                background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
+                borderColor: palette.ui.accentColor
+              } : {}}
               data-testid="fullscreen-button"
             >
               {isInFullscreenMode ? (
-                <Minimize2 size={16} className="text-orange-600 dark:text-orange-400" />
+                <Minimize2 size={16} />
               ) : (
-                <Maximize2 size={16} className="text-purple-600 dark:text-purple-400" />
+                <Maximize2 size={16} />
               )}
             </ControlButton>
           )}
@@ -2145,6 +2212,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           }}
           className="dark"
           style={{
+            width: 150,
+            height: 120,
             backgroundColor: palette.ui.panelGradientFrom,
             borderColor: palette.ui.panelBorder
           }}
@@ -2221,9 +2290,11 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             <div className="p-4 space-y-4">
               <div className="flex items-center justify-between mb-3">
                 <h3
-                  className="font-semibold text-transparent bg-clip-text text-sm"
                   style={{
-                    backgroundImage: `linear-gradient(to right, ${palette.ui.panelTitleFrom}, ${palette.ui.panelTitleTo})`
+                    margin: 0,
+                    color: '#A78BFA',
+                    fontSize: '16px',
+                    fontWeight: 500
                   }}
                 >
                   ⚙️ Canvas Settings
@@ -2250,10 +2321,15 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                 <select
                   value={edgeType}
                   onChange={(e) => setEdgeType(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2"
+                  className="w-full px-3 py-2 pr-10 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 appearance-none"
                   style={{
                     borderColor: palette.ui.panelBorder,
-                    borderWidth: '1px'
+                    borderWidth: '1px',
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e5e7eb' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 8px center',
+                    paddingRight: '32px',
+                    accentColor: palette.ui.accentColor
                   }}
                   onFocus={(e) => e.currentTarget.style.boxShadow = `0 0 0 2px ${palette.ui.accentColor}40`}
                   onBlur={(e) => e.currentTarget.style.boxShadow = 'none'}
@@ -2272,10 +2348,15 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                 <select
                   value={layoutDirection}
                   onChange={(e) => setLayoutDirection(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2"
+                  className="w-full px-3 py-2 pr-10 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 appearance-none"
                   style={{
                     borderColor: palette.ui.panelBorder,
-                    borderWidth: '1px'
+                    borderWidth: '1px',
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e5e7eb' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 8px center',
+                    paddingRight: '32px',
+                    accentColor: palette.ui.accentColor
                   }}
                   onFocus={(e) => e.currentTarget.style.boxShadow = `0 0 0 2px ${palette.ui.accentColor}40`}
                   onBlur={(e) => e.currentTarget.style.boxShadow = 'none'}
@@ -2292,10 +2373,15 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                 <select
                   value={theme}
                   onChange={(e) => setTheme(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2"
+                  className="w-full px-3 py-2 pr-10 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 appearance-none"
                   style={{
                     borderColor: palette.ui.panelBorder,
-                    borderWidth: '1px'
+                    borderWidth: '1px',
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e5e7eb' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 8px center',
+                    paddingRight: '32px',
+                    accentColor: palette.ui.accentColor
                   }}
                   onFocus={(e) => e.currentTarget.style.boxShadow = `0 0 0 2px ${palette.ui.accentColor}40`}
                   onBlur={(e) => e.currentTarget.style.boxShadow = 'none'}
@@ -2346,7 +2432,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         {showQuickHelp && (
           <Panel
             position="top-right"
-            className="rounded-2xl shadow-2xl border-2 backdrop-blur-md w-72 max-h-[50vh]"
+            className="rounded-2xl shadow-2xl border-2 backdrop-blur-md w-72 max-h-[50vh] overflow-hidden"
             style={{
               background: `linear-gradient(to bottom right, ${palette.ui.panelGradientFrom}, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
               borderColor: palette.ui.panelBorder
@@ -2354,125 +2440,154 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             data-testid="quick-help-panel"
           >
             <div
-              className="p-3 overflow-y-auto max-h-[50vh] text-xs text-gray-300 space-y-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border"
+              className="p-4 pr-3 overflow-y-auto max-h-[50vh] text-xs text-gray-300 space-y-6"
               style={{
-                ['--scrollbar-track' as any]: palette.ui.panelBorder + '30',
-                ['--scrollbar-thumb' as any]: palette.ui.accentColor,
-                ['--scrollbar-border' as any]: palette.ui.panelBorder
-              }}
+                scrollbarWidth: 'thin',
+                scrollbarColor: `${palette.ui.accentColor} transparent`,
+              } as React.CSSProperties}
             >
+              <style>{`
+                [data-testid="quick-help-panel"] > div::-webkit-scrollbar {
+                  width: 6px;
+                }
+                [data-testid="quick-help-panel"] > div::-webkit-scrollbar-track {
+                  background: transparent;
+                }
+                [data-testid="quick-help-panel"] > div::-webkit-scrollbar-thumb {
+                  background: ${palette.ui.accentColor}60 !important;
+                  border-radius: 3px;
+                }
+                [data-testid="quick-help-panel"] > div::-webkit-scrollbar-thumb:hover {
+                  background: ${palette.ui.accentColor}cc !important;
+                }
+              `}</style>
               <div
-                className="font-semibold text-transparent bg-clip-text mb-2 text-xs"
                 style={{
-                  backgroundImage: `linear-gradient(to right, ${palette.ui.panelTitleFrom}, ${palette.ui.panelTitleTo})`
+                  color: '#A78BFA',
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  marginBottom: '16px'
                 }}
               >
                 ✨ Quick Help
               </div>
 
               {/* Canvas Interactions */}
-              <div className="space-y-1">
-                <div className="font-semibold text-gray-200 text-[10px]">Canvas Interactions</div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">•</span>
-                  <span>Double-click canvas to add new state</span>
+              <div className="space-y-3">
+                <div className="text-xs font-semibold uppercase text-gray-400 opacity-60 tracking-wide">Canvas Interactions</div>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Double-click canvas</span> Add new state</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-pink-500 mt-0.5">•</span>
-                  <span>Drag states to rearrange layout</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Drag states</span> Rearrange layout</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">•</span>
-                  <span>Drag from state handles (dots) to connect</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Drag from handles</span> Connect states</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-pink-500 mt-0.5">•</span>
-                  <span>Click state/transition → jump to JSON</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Click state/transition</span> Jump to JSON</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">•</span>
-                  <span>Double-click transition → open editor</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Double-click transition</span> Open editor</span>
                 </div>
               </div>
 
               {/* Toolbar Buttons */}
-              <div className="space-y-1 pt-2 border-t border-pink-200 dark:border-pink-800">
-                <div className="font-semibold text-gray-800 dark:text-gray-200 text-[10px]">Toolbar Buttons</div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-0.5">ℹ️</span>
-                  <span><strong>Info</strong> - Toggle workflow information panel</span>
+              <div className="space-y-3 pt-4 border-t border-pink-200 dark:border-pink-800">
+                <div className="text-xs font-semibold uppercase text-gray-400 opacity-60 tracking-wide">Toolbar Buttons</div>
+
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-pink-500 mt-0.5 flex-shrink-0">↶</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Undo</span> Revert last change</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">{'{}'}</span>
-                  <span><strong>JSON Editor</strong> - Edit workflow configuration as JSON</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">↷</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Redo</span> Restore undone change</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-pink-500 mt-0.5">↓</span>
-                  <span><strong>Download</strong> - Export workflow to JSON file</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-blue-500 mt-0.5 flex-shrink-0">⊡</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Fit View</span> Center and fit workflow</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">↑</span>
-                  <span><strong>Upload</strong> - Import workflow from JSON file</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-yellow-500 mt-0.5 flex-shrink-0">⚡</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Auto-arrange</span> Layout states hierarchically</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-0.5">☁↑</span>
-                  <span><strong>Cloud Export</strong> - Export to environment API</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-blue-500 mt-0.5 flex-shrink-0">ℹ️</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Info</span> Workflow information panel</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-blue-500 mt-0.5">☁↓</span>
-                  <span><strong>Cloud Import</strong> - Import from environment API</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">{'{}'}</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">JSON Editor</span> Edit workflow as JSON</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-pink-500 mt-0.5">⚡</span>
-                  <span><strong>Auto-arrange</strong> - Automatically layout states hierarchically</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-pink-500 mt-0.5 flex-shrink-0">↓</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Download</span> Export to JSON file</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-fuchsia-500 mt-0.5">?</span>
-                  <span><strong>Quick Help</strong> - Toggle this help panel</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">↑</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Upload</span> Import from JSON file</span>
+                </div>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-purple-500 mt-0.5 flex-shrink-0">⚙️</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Settings</span> Canvas preferences</span>
+                </div>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-yellow-500 mt-0.5 flex-shrink-0">💡</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Quick Help</span> Toggle this panel</span>
                 </div>
                 {modelName && modelVersion && (
-                  <div className="flex items-start space-x-2">
-                    <span className="text-purple-500 mt-0.5">{isInFullscreenMode ? '⤓' : '⤢'}</span>
-                    <span><strong>Fullscreen</strong> - {isInFullscreenMode ? 'Exit fullscreen mode' : 'Open in fullscreen mode'}</span>
+                  <div className="flex items-start space-x-3 py-0.5">
+                    <span className="text-purple-500 mt-0.5 flex-shrink-0">{isInFullscreenMode ? '⤓' : '⤢'}</span>
+                    <span className="text-gray-300"><span className="text-white font-bold">Fullscreen</span> {isInFullscreenMode ? 'Exit fullscreen' : 'Enter fullscreen'}</span>
                   </div>
                 )}
               </div>
 
               {/* Keyboard Shortcuts */}
-              <div className="space-y-2 pt-2 border-t border-pink-200 dark:border-pink-800">
-                <div className="font-semibold text-gray-800 dark:text-gray-200 text-xs">Keyboard Shortcuts</div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">•</span>
-                  <span><strong>Delete/Backspace</strong> - Delete selected state/transition</span>
+              <div className="space-y-3 pt-4 border-t border-pink-200 dark:border-pink-800">
+                <div className="text-xs font-semibold uppercase text-gray-400 opacity-60 tracking-wide">Keyboard Shortcuts</div>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">{navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? 'Cmd' : 'Ctrl'} + Z</span> Undo last change</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-pink-500 mt-0.5">•</span>
-                  <span><strong>Ctrl/Cmd + Z</strong> - Undo (via JSON editor)</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">{navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? 'Cmd + Shift + Z' : 'Ctrl + Y'}</span> Redo change</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">•</span>
-                  <span><strong>Mouse Wheel</strong> - Zoom in/out</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Delete / Backspace</span> Delete selected item</span>
+                </div>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300"><span className="text-white font-bold">Mouse Wheel</span> Zoom in/out</span>
                 </div>
               </div>
 
               {/* Tips */}
-              <div className="space-y-2 pt-2 border-t border-pink-200 dark:border-pink-800">
-                <div className="font-semibold text-gray-800 dark:text-gray-200 text-xs">💡 Tips</div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">•</span>
-                  <span>Use JSON editor for bulk changes</span>
+              <div className="space-y-3 pt-4 border-t border-pink-200 dark:border-pink-800">
+                <div className="text-xs font-semibold uppercase text-gray-400 opacity-60 tracking-wide">Tips</div>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300">Use JSON editor for bulk changes</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-pink-500 mt-0.5">•</span>
-                  <span>Auto-arrange after pasting JSON</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300">Auto-arrange after pasting JSON</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-lime-500 mt-0.5">•</span>
-                  <span>Right-click tabs to edit name/version</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300">Right-click tabs to edit name/version</span>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-pink-500 mt-0.5">•</span>
-                  <span>All 8 handles on states are usable</span>
+                <div className="flex items-start space-x-3 py-0.5">
+                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-300">All 8 handles on states are usable</span>
                 </div>
               </div>
             </div>
@@ -2487,10 +2602,12 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           workflow={cleanedWorkflow.configuration}
           isOpen={showJsonEditor}
           onClose={() => setShowJsonEditor(false)}
-          onSave={handleWorkflowJsonSave}
+          onUpdate={handleConfigurationUpdate}
           selectedStateId={selectedStateId}
           selectedTransitionId={selectedTransitionId}
+          selectedTransitionSection={selectedTransitionSection}
           technicalId={technicalId}
+          onSendToChat={onSendToChat}
           palette={palette}
         />
       )}

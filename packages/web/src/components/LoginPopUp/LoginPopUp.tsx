@@ -64,12 +64,35 @@ const LoginPopUp: React.FC = () => {
       centered
       width={520}
       footer={null}
+      keyboard={true}
+      maskClosable={true}
       closeIcon={
-        <X className="w-5 h-5 text-gray-400 hover:text-gray-300 transition-colors" />
+        <span className="text-slate-400 hover:text-teal-400 transition-colors">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2L2 14M2 2L14 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </span>
       }
+      styles={{
+        content: {
+          background: 'linear-gradient(135deg, rgb(30, 41, 59) 0%, rgb(51, 65, 85) 100%)',
+          border: '1px solid rgb(71, 85, 105)',
+          borderRadius: '20px',
+          padding: 0,
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+          overflow: 'hidden',
+        },
+        body: {
+          padding: 0,
+        },
+        mask: {
+          backdropFilter: 'blur(8px)',
+          backgroundColor: 'rgba(15, 23, 42, 0.4)',
+        }
+      }}
     >
       {isGuestUser ? (
-        <div className="relative">
+        <div className="relative p-10">
           {/* Icon and Title */}
           <div className="text-center mb-6 pt-2">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 mb-4 shadow-lg">
@@ -151,7 +174,7 @@ const LoginPopUp: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="py-6">
+        <div className="p-10">
           <div className="text-center mb-6">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 mb-4 shadow-lg">
               <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,16 +189,16 @@ const LoginPopUp: React.FC = () => {
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="flex flex-col gap-3">
             <button
               onClick={handleLogin}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition-all duration-200"
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 !text-white font-semibold py-3 px-6 rounded-lg shadow-lg transition-all duration-200"
             >
               Log in
             </button>
             <button
               onClick={handleCancel}
-              className="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-3 px-6 rounded-lg transition-all duration-200"
+              className="w-full bg-gray-800 hover:bg-gray-700 !text-white font-medium py-3 px-6 rounded-lg transition-all duration-200"
             >
               Cancel
             </button>

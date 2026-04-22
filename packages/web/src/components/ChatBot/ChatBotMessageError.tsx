@@ -15,16 +15,18 @@ interface ChatBotMessageErrorProps {
 }
 
 const ChatBotMessageError: React.FC<ChatBotMessageErrorProps> = ({ message }) => {
-  const containerInfo = useTextResponsiveContainer(message.text);
-  const date = message.last_modified 
+  const containerInfo = useTextResponsiveContainer(message.text, {
+    baseClass: 'text-responsive-container bot-message'
+  });
+  const date = message.last_modified
     ? dayjs(message.last_modified).format('DD/MM/YYYY HH:mm:ss')
     : dayjs().format('DD/MM/YYYY HH:mm:ss');
 
   return (
-    <div className="w-full flex justify-start mb-6">
-      <div className="max-w-[85%]">
+    <div className="w-full flex justify-start mb-6 px-4 md:px-6 lg:px-8">
+      <div className="max-w-6xl w-full">
         {/* Error Badge */}
-        <div className="flex items-center space-x-2 mb-2 ml-12">
+        <div className="flex items-center space-x-2 mb-2 ml-14">
           <span className="inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
             <AlertCircle size={10} />
             <span>ERROR</span>
@@ -35,8 +37,8 @@ const ChatBotMessageError: React.FC<ChatBotMessageErrorProps> = ({ message }) =>
         {/* Error Message Bubble */}
         <div className="flex items-start space-x-3">
           {/* Error Icon Avatar */}
-          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-red-500 to-red-600 flex items-center justify-center flex-shrink-0 shadow-lg">
-            <AlertCircle size={20} className="text-white" />
+          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-red-500 to-red-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+            <AlertCircle size={24} className="text-white" />
           </div>
 
           {/* Error Content */}

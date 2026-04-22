@@ -33,7 +33,7 @@ The new workflow canvas from `workflow-canvas-main` has been fully integrated in
 ### **1. Run the Application**
 
 ```bash
-cd /home/kseniia/IdeaProjects/ai-assistant-ui-new/packages/web
+cd ai-assistant-ui-new/packages/web
 npm run dev
 ```
 
@@ -155,7 +155,7 @@ packages/web/src/components/
 
 **Solution:**
 ```bash
-cd /home/kseniia/IdeaProjects/ai-assistant-ui-new/packages/web
+cd ai-assistant-ui-new/packages/web
 npm install
 npm run dev
 ```

@@ -1,4 +1,3 @@
-import '@ant-design/v5-patch-for-react-19';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
@@ -14,8 +13,31 @@ import App from './App';
 import { router } from './router';
 import i18n, { loadLocaleMessages } from './plugins/i18n';
 
-// Load translations and then render the app
-loadLocaleMessages('en').then(() => {
+// Clean up any existing service workers and caches
+async function cleanupServiceWorkers() {
+  // Unregister any existing service workers
+  if ('serviceWorker' in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (const registration of registrations) {
+      console.log('🧹 Unregistering service worker:', registration.scope);
+      await registration.unregister();
+    }
+
+    // Clear all caches
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      for (const cacheName of cacheNames) {
+        console.log('🧹 Deleting cache:', cacheName);
+        await caches.delete(cacheName);
+      }
+    }
+  }
+
+  return Promise.resolve();
+}
+
+// Load translations, clean up service workers, and then render the app
+Promise.all([loadLocaleMessages('en'), cleanupServiceWorkers()]).then(() => {
   const root = ReactDOM.createRoot(document.getElementById('app')!);
 
   root.render(

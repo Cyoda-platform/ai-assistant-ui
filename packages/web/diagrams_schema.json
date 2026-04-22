@@ -1,0 +1,201 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Diagrams Configuration Schema",
+  "description": "Schema for configuring diagrams in canvas environments",
+  "type": "object",
+  "required": ["version", "environments"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Configuration version",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "environments": {
+      "type": "array",
+      "description": "List of environment diagram configurations",
+      "items": {
+        "type": "object",
+        "required": ["environmentId", "environmentName", "diagrams"],
+        "properties": {
+          "environmentId": {
+            "type": "string",
+            "description": "Unique environment identifier"
+          },
+          "environmentName": {
+            "type": "string",
+            "description": "Human-readable environment name"
+          },
+          "diagrams": {
+            "type": "array",
+            "description": "List of diagrams for this environment",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": ["id", "name", "library", "diagramType", "content"],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Unique diagram identifier"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Diagram name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Diagram description"
+                    },
+                    "library": {
+                      "type": "string",
+                      "const": "mermaid",
+                      "description": "Diagram library"
+                    },
+                    "diagramType": {
+                      "type": "string",
+                      "enum": [
+                        "flowchart",
+                        "sequence",
+                        "class",
+                        "state",
+                        "er",
+                        "gantt",
+                        "pie",
+                        "journey",
+                        "gitgraph",
+                        "mindmap",
+                        "timeline",
+                        "quadrant",
+                        "requirement",
+                        "c4"
+                      ],
+                      "description": "Mermaid diagram type"
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Mermaid diagram syntax"
+                    },
+                    "theme": {
+                      "type": "string",
+                      "enum": ["default", "dark", "forest", "neutral"],
+                      "description": "Diagram theme"
+                    },
+                    "width": {
+                      "type": "number",
+                      "description": "Diagram width in pixels"
+                    },
+                    "height": {
+                      "type": "number",
+                      "description": "Diagram height in pixels"
+                    },
+                    "position": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number"
+                        },
+                        "y": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["x", "y"]
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": ["id", "name", "library", "nodes", "edges"],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "library": {
+                      "type": "string",
+                      "const": "reactflow"
+                    },
+                    "nodes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "edges": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "layout": {
+                      "type": "string",
+                      "enum": ["horizontal", "vertical", "dagre", "elk"]
+                    },
+                    "position": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number"
+                        },
+                        "y": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["x", "y"]
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": ["id", "name", "library", "chartType", "data"],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "library": {
+                      "type": "string",
+                      "const": "chartjs"
+                    },
+                    "chartType": {
+                      "type": "string",
+                      "enum": ["line", "bar", "pie", "doughnut", "radar", "polarArea"]
+                    },
+                    "data": {
+                      "type": "object"
+                    },
+                    "options": {
+                      "type": "object"
+                    },
+                    "position": {
+                      "type": "object",
+                      "properties": {
+                        "x": {
+                          "type": "number"
+                        },
+                        "y": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["x", "y"]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

@@ -6,11 +6,16 @@ import { isInIframe } from '@/helpers/HelperIframe';
 
 // Import views
 import HomeView from '@/views/HomeView';
+import FintechHomeView from '@/views/FintechHomeView';
 import NewChatView from '@/views/NewChatView';
 import DashboardView from '@/views/DashboardView';
 import ChatBotView from '@/views/ChatBotView';
 import CanvasDemoView from '@/views/CanvasDemoView';
 import WorkflowTabsView from '@/views/WorkflowTabsView';
+import EnvironmentsPage from '@/pages/EnvironmentsPage';
+import TestContextMenu from '@/components/ChatHistoryPanel/TestContextMenu';
+import LogsView from '@/views/LogsView';
+import MonitoringView from '@/views/MonitoringView';
 
 // Import layouts
 import LayoutDefault from '@/layouts/LayoutDefault';
@@ -59,6 +64,10 @@ const routes = [
     children: [
       {
         index: true,
+        element: <FintechHomeView />,
+      },
+      {
+        path: "home",
         element: <HomeView />,
       },
       {
@@ -80,6 +89,22 @@ const routes = [
       {
         path: "workflows",
         element: <WorkflowTabsView />,
+      },
+      {
+        path: "environments",
+        element: <EnvironmentsPage />,
+      },
+      {
+        path: "test-context-menu",
+        element: <TestContextMenu />,
+      },
+      {
+        path: "logs",
+        element: <LogsView />,
+      },
+      {
+        path: "monitoring",
+        element: <MonitoringView />,
       },
     ],
   },

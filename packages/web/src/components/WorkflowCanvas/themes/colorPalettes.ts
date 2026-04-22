@@ -1,5 +1,5 @@
 // ABOUTME: This file defines color palettes for the workflow canvas
-// Supports multiple themes: bluey-orange (default), greeny-pink, and cyberpunk
+// Supports multiple themes: blue-violet (default), greeny-pink, and cyberpunk
 
 export type ThemeName = 'bluey-orange' | 'greeny-pink' | 'cyberpunk';
 
@@ -31,66 +31,66 @@ export interface ColorPalette {
 
 export const COLOR_PALETTES: Record<ThemeName, ColorPalette> = {
   'bluey-orange': {
-    name: 'Bluey Orange',
-    description: 'Professional blue and orange palette',
+    name: 'Blue Violet',
+    description: 'Professional blue and violet palette',
     colors: {
-      stateInitial: '#6366f1',    // Indigo-500
-      stateFinal: '#8b5cf6',      // Violet-500
-      stateNormal: '#0ea5e9',     // Sky-500
-      transitionManual: '#f59e0b', // Amber-500
-      transitionAutomated: '#8b5cf6', // Violet-500
+      stateInitial: '#6366f1',    // Indigo-500 (Created - bright indigo)
+      stateFinal: '#64748b',      // Steel Gray (Archived - gray)
+      stateNormal: '#3b82f6',     // Blue-500 (Activate - professional blue)
+      transitionManual: '#a855f7', // Purple-500 (Manual transitions - purple)
+      transitionAutomated: '#7c3aed', // Violet-600 (Automated transitions - darker violet)
     },
     ui: {
-      panelBorder: '#7c3aed',     // Purple-600
+      panelBorder: '#7c3aed',     // Violet-600
       panelGradientFrom: '#1e1b4b', // Indigo-950
-      panelGradientVia: '#5b21b6',  // Violet-900
-      panelGradientTo: '#4c1d95',   // Purple-900
-      panelTitleFrom: '#a78bfa',    // Violet-400
-      panelTitleTo: '#818cf8',      // Indigo-400
-      accentColor: '#8b5cf6',       // Violet-500
-      accentHover: '#7c3aed',       // Violet-600
+      panelGradientVia: '#3730a3',  // Indigo-800
+      panelGradientTo: '#7c3aed',   // Violet-600
+      panelTitleFrom: '#c4b5fd',    // Violet-300
+      panelTitleTo: '#a78bfa',      // Violet-400
+      accentColor: '#7c3aed',       // Violet-600
+      accentHover: '#a855f7',       // Purple-500
     }
   },
   'greeny-pink': {
     name: 'Greeny Pink',
     description: 'Fresh green and vibrant pink palette',
     colors: {
-      stateInitial: '#ec4899',    // Pink-500
-      stateFinal: '#a855f7',      // Purple-500
-      stateNormal: '#10b981',     // Emerald-500
-      transitionManual: '#ec4899', // Pink-500
-      transitionAutomated: '#10b981', // Emerald-500
+      stateInitial: '#ff69b4',    // Hot Pink (Created - brighter)
+      stateFinal: '#64748b',      // Steel Gray-Blue (Archived - gray)
+      stateNormal: '#ec4899',     // Vibrant Pink (Activate - darker than Created)
+      transitionManual: '#22c55e', // Green-500 (Manual transitions - neon green)
+      transitionAutomated: '#84cc16', // Lime-500 (Automated transitions - neon yellow-green)
     },
     ui: {
-      panelBorder: '#ec4899',     // Pink-500
+      panelBorder: '#ec4899',     // Vibrant Pink
       panelGradientFrom: '#831843', // Pink-950
       panelGradientVia: '#9d174d',  // Pink-900
-      panelGradientTo: '#be185d',   // Pink-800
+      panelGradientTo: '#ec4899',   // Vibrant Pink
       panelTitleFrom: '#f9a8d4',    // Pink-300
       panelTitleTo: '#f472b6',      // Pink-400
-      accentColor: '#ec4899',       // Pink-500
-      accentHover: '#db2777',       // Pink-600
+      accentColor: '#ec4899',       // Vibrant Pink
+      accentHover: '#f472b6',       // Light Pink
     }
   },
   'cyberpunk': {
     name: 'Cyberpunk Neon',
     description: 'Vibrant neon lime/emerald for a futuristic look',
     colors: {
-      stateInitial: '#84cc16',    // Lime-500
-      stateFinal: '#10b981',      // Emerald-500
-      stateNormal: '#22c55e',     // Green-500
-      transitionManual: '#a3e635', // Lime-400
-      transitionAutomated: '#34d399', // Emerald-400
+      stateInitial: '#00cc77',    // Darker Neon Emerald Green (Created)
+      stateFinal: '#64748b',      // Gray (Archived)
+      stateNormal: '#00bb66',     // Even darker Neon Emerald (Activate)
+      transitionManual: '#99dd00', // Muted Neon Lime/Salad (Manual transitions)
+      transitionAutomated: '#88cc00', // Slightly darker Muted Neon Lime/Salad (Automated transitions)
     },
     ui: {
-      panelBorder: '#365314',     // Lime-950 border
-      panelGradientFrom: '#111827', // Gray-900
-      panelGradientVia: '#1a2e05',  // Lime-950/30
-      panelGradientTo: '#022c22',   // Emerald-950/30
-      panelTitleFrom: '#a3e635',    // Lime-400
-      panelTitleTo: '#34d399',      // Emerald-400
-      accentColor: '#84cc16',       // Lime-500
-      accentHover: '#65a30d',       // Lime-600
+      panelBorder: '#00ff88',     // Neon Emerald Green
+      panelGradientFrom: '#0a3a2a', // Dark Green
+      panelGradientVia: '#0d5a3d',  // Medium Green
+      panelGradientTo: '#00ff88',   // Neon Emerald Green
+      panelTitleFrom: '#00ff88',    // Neon Emerald Green
+      panelTitleTo: '#00dd77',      // Slightly darker Neon Emerald
+      accentColor: '#00ff88',       // Neon Emerald Green
+      accentHover: '#00dd77',       // Slightly darker neon green
     }
   }
 };

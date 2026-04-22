@@ -30,19 +30,25 @@
   }
 
   .ant-modal-close {
+    top: 20px;
+
     .ant-modal-close-x {
-      width: 20px;
-      height: 20px;
-      background-color: var(--bg-dialog-close-color);
-      border-radius: 3px;
+      width: auto;
+      height: auto;
+      padding: 0;
+      background: transparent;
+      border-radius: 0;
       color: #FFFFFF;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.3s;
+      transition: none;
+      box-shadow: none;
 
       &:hover {
-        opacity: 0.8;
+        background: transparent;
+        box-shadow: none;
+        transform: none;
       }
     }
   }
@@ -70,20 +76,22 @@
 
   &.ant-btn-primary {
     color: #fff;
-    background-color: var(--color-primary);
-    border-color: var(--color-primary);
+    background: linear-gradient(to right, #14b8a6, #0d9488) !important;
+    border-color: transparent;
     transition: all 0.5s;
     font-family: 'PingFang SC', Arial, sans-serif;
     box-shadow: none;
 
     &:disabled {
-      background: linear-gradient(0deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), #0D8484;
+      background: linear-gradient(to right, #14b8a6, #0d9488) !important;
+      opacity: 0.6;
       border-color: transparent;
+      color: #fff;
     }
 
     &:hover:not(:disabled) {
-      background: linear-gradient(0deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.4)), #0D8484;
-      border-color: var(--color-primary-ligter);
+      background: linear-gradient(to right, #0d9488, #0f766e) !important;
+      border-color: transparent;
       color: #fff;
     }
   }
@@ -97,26 +105,26 @@
 // Notification overrides (replacing el-notification)
 .ant-notification {
   .ant-notification-notice {
-    background-color: var(--bg-dialog-color);
-    border: 1px solid var(--accent-border);
+    background-color: #0F172A !important; // slate-900 - matches chat background
+    border: 1px solid var(--accent-border) !important;
     border-radius: 8px;
 
     .ant-notification-notice-content {
-      color: var(--text-color-regular);
+      color: #FFFFFF;
     }
 
     .ant-notification-notice-message {
-      color: var(--text-color-regular);
+      color: #FFFFFF;
       font-weight: 600;
     }
 
     .ant-notification-notice-description {
-      color: var(--text-color-regular);
+      color: #FFFFFF;
     }
 
     &.ant-notification-notice-success {
       .ant-notification-notice-icon {
-        color: var(--text-color-regular);
+        color: #FFFFFF;
       }
     }
   }
@@ -125,10 +133,10 @@
 // Message overrides
 .ant-message {
   .ant-message-notice-content {
-    background-color: var(--bg-dialog-color);
-    border: 1px solid var(--accent-border);
+    background-color: #0F172A !important; // slate-900 - matches chat background
+    border: 1px solid var(--accent-border) !important;
     border-radius: 8px;
-    color: var(--text-color-regular);
+    color: #FFFFFF;
   }
 }
 

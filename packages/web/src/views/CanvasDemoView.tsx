@@ -147,7 +147,7 @@ function CanvasDemoView() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="h-screen flex flex-col bg-slate-900 text-white">
       {/* Header */}
       <header className="border-b border-slate-700 bg-slate-800/80 backdrop-blur-md sticky top-0 z-40">
         <div className="flex items-center justify-between px-6 py-3">
@@ -276,7 +276,7 @@ function CanvasDemoView() {
         </div>
       </header>
 
-      <div className="flex h-[calc(100vh-73px)]">
+      <div className="flex flex-1 overflow-hidden">
         {/* Enhanced Left Sidebar */}
         <div className="w-64 bg-slate-800/90 backdrop-blur-sm border-r border-slate-700 flex flex-col">
           {/* Quick Actions */}

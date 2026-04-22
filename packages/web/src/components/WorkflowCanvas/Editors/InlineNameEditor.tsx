@@ -11,6 +11,7 @@ interface InlineNameEditorProps {
   className?: string;
   inputClassName?: string;
   disabled?: boolean;
+  showIconOnHover?: boolean;
 }
 
 export const InlineNameEditor: React.FC<InlineNameEditorProps> = ({
@@ -19,7 +20,8 @@ export const InlineNameEditor: React.FC<InlineNameEditorProps> = ({
   onSave,
   className = "",
   inputClassName = "",
-  disabled = false
+  disabled = false,
+  showIconOnHover = false
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);
@@ -85,7 +87,7 @@ export const InlineNameEditor: React.FC<InlineNameEditorProps> = ({
           onClick={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
           placeholder={placeholder}
-          className={`flex-1 px-3 py-2 text-lg font-medium border border-blue-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-gray-800 text-white ${inputClassName}`}
+          className={`flex-1 px-3 py-2 text-sm font-medium border border-blue-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-gray-800 text-white ${inputClassName}`}
         />
         <button
           type="button"
@@ -109,17 +111,19 @@ export const InlineNameEditor: React.FC<InlineNameEditorProps> = ({
 
   return (
     <div className={`flex items-center space-x-2 group ${className}`} onDoubleClick={handleStartEdit}>
-      <span className="flex-1 text-sm font-medium text-white truncate">
+      <span className={`flex-1 font-medium text-white truncate ${inputClassName}`}>
         {value || placeholder}
       </span>
       {!disabled && (
         <button
           type="button"
           onClick={handleStartEdit}
-          className="opacity-0 group-hover:opacity-100 p-1 text-gray-500 hover:text-gray-300 transition-all duration-200"
+          className={`p-0.5 text-gray-500 hover:text-gray-300 transition-all duration-200 ${
+            showIconOnHover ? 'opacity-0 group-hover:opacity-100' : ''
+          }`}
           title="Edit name"
         >
-          <Edit2 size={16} />
+          <Edit2 size={11} />
         </button>
       )}
     </div>

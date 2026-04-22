@@ -4,20 +4,20 @@ This directory contains the color theme system for the workflow canvas.
 
 ## Available Themes
 
-### 1. **Bluey Orange** (Default)
-Professional blue and orange palette with modern, clean colors.
+### 1. **Blue Violet** (Default)
+Professional blue and violet palette with modern, clean colors.
 
 **Colors:**
 - Initial State: `#6366f1` (Indigo-500)
-- Final State: `#8b5cf6` (Violet-500)
-- Normal State: `#0ea5e9` (Sky-500)
-- Manual Transitions: `#f59e0b` (Amber-500)
-- Automated Transitions: `#8b5cf6` (Violet-500)
+- Final State: `#64748b` (Steel Gray)
+- Normal State: `#3b82f6` (Blue-500)
+- Manual Transitions: `#a855f7` (Purple-500)
+- Automated Transitions: `#7c3aed` (Violet-600)
 
 **UI Elements:**
-- Panel borders and accents use purple/violet tones
-- Gradient backgrounds from indigo-950 through violet-900 to purple-900
-- Title gradients from violet-400 to indigo-400
+- Panel borders and accents use violet/purple tones
+- Gradient backgrounds from indigo-950 through indigo-800 to violet-600
+- Title gradients from violet-300 to violet-400
 
 ### 2. **Greeny Pink**
 Fresh green and vibrant pink palette for an energetic look.

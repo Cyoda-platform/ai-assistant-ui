@@ -1,0 +1,13 @@
+{
+  "app": {
+    "name": "Example App",
+    "description": "An example application",
+    "version": "1.0.0",
+    "author": "John Doe",
+    "license": "MIT",
+    "repository": "https://github.com/johndoe/example-app",
+    "requirement": "Example app configuration",
+    "entities": [],
+    "environments": []
+  }
+}

@@ -30,10 +30,10 @@ const ConfirmationDialog: React.FC = () => {
       open={visible}
       title={
         <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20">
-            <SafetyOutlined className="text-blue-600 dark:text-blue-400 text-base" />
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-teal-500/20 border border-teal-500/30">
+            <SafetyOutlined className="text-teal-400 text-base" />
           </div>
-          <div className="text-base font-semibold text-gray-900 dark:text-gray-100">
+          <div className="text-base font-semibold text-slate-100">
             Terms & Conditions
           </div>
         </div>
@@ -52,7 +52,7 @@ const ConfirmationDialog: React.FC = () => {
         paddingBottom: 0
       }}
       footer={
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3 px-1">
           <Button
             key="accept"
             type="primary"
@@ -60,20 +60,27 @@ const ConfirmationDialog: React.FC = () => {
             disabled={!checkbox}
             onClick={onClickAccept}
             className="min-w-[120px] h-10 font-medium"
+            style={{
+              background: !checkbox ? undefined : 'linear-gradient(to right, rgb(20, 184, 166), rgb(13, 148, 136))',
+              borderColor: !checkbox ? undefined : 'rgb(20, 184, 166)',
+              borderRadius: '8px',
+              color: '#ffffff'
+            }}
           >
             I Accept
           </Button>
         </div>
       }
     >
-      <div className="py-2">
-        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-3">
+      <div className="py-3 px-1">
+        <p className="text-sm text-slate-200 leading-relaxed mb-4">
           By using this service, you confirm that you have read and agree to our{' '}
           <a
             target="_blank"
             href="https://www.cyoda.com/terms-of-service"
             rel="noopener noreferrer"
-            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium underline decoration-1 underline-offset-2 transition-colors"
+            className="inline-block px-2 py-1 font-medium bg-gradient-to-r from-teal-500/80 to-cyan-500/80 hover:from-teal-400 hover:to-cyan-400 rounded-md border border-teal-500/50 hover:border-teal-400 transition-all duration-200 text-xs"
+            style={{ color: '#ffffff' }}
           >
             Terms & Conditions
           </a>
@@ -82,20 +89,21 @@ const ConfirmationDialog: React.FC = () => {
             target="_blank"
             href="https://www.cyoda.com/privacy-policy"
             rel="noopener noreferrer"
-            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium underline decoration-1 underline-offset-2 transition-colors"
+            className="inline-block px-2 py-1 font-medium bg-gradient-to-r from-teal-500/80 to-cyan-500/80 hover:from-teal-400 hover:to-cyan-400 rounded-md border border-teal-500/50 hover:border-teal-400 transition-all duration-200 text-xs"
+            style={{ color: '#ffffff' }}
           >
             Privacy Policy
           </a>.
         </p>
 
-        <div className="flex items-start gap-2">
+        <div className="flex items-start gap-3">
           <Checkbox
             checked={checkbox}
             onChange={(e) => setCheckbox(e.target.checked)}
-            className="mt-0.5"
+            className="mt-0.5 [&_.ant-checkbox-inner]:bg-slate-700 [&_.ant-checkbox-inner]:border-slate-500 [&_.ant-checkbox-checked_.ant-checkbox-inner]:bg-teal-500 [&_.ant-checkbox-checked_.ant-checkbox-inner]:border-teal-500"
           />
           <label
-            className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none flex-1"
+            className="text-sm text-slate-200 cursor-pointer select-none flex-1 leading-relaxed"
             onClick={() => setCheckbox(!checkbox)}
           >
             I have read and agree to the Terms & Conditions and Privacy Policy

@@ -1,0 +1,86 @@
+.query-templates-panel {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.query-templates-toggle {
+  width: 100%;
+  padding: 12px;
+  background: #1e293b;
+  color: #cbd5e1;
+  border: none;
+  border-bottom: 1px solid #334155;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.query-templates-toggle:hover {
+  background: #334155;
+  color: #e2e8f0;
+}
+
+.query-templates-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+  padding: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.query-template-item {
+  padding: 12px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.query-template-item:hover {
+  background: #1e293b;
+  border-color: #0d8484;
+  box-shadow: 0 0 0 2px rgba(13, 132, 132, 0.1);
+}
+
+.template-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #0d8484;
+}
+
+.template-description {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+/* Scrollbar styling */
+.query-templates-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.query-templates-list::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+.query-templates-list::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+
+.query-templates-list::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+

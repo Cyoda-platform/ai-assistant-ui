@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyoda Environment - Side Panel Redesign</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #1a1a2e;
+            color: #e0e6ed;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Demo backdrop */
+        .demo-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0a0a15;
+            z-index: 0;
+        }
+
+        /* Side Panel */
+        .side-panel {
+            position: fixed;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 480px;
+            background: linear-gradient(135deg, #0f1729 0%, #1a1f3a 100%);
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .panel-header {
+            background: rgba(10, 15, 30, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .panel-title h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.4rem 0.9rem;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+            color: #0a0e27;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 217, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #e0e6ed;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .panel-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .panel-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .panel-content::-webkit-scrollbar-thumb {
+            background: rgba(0, 217, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .panel-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 217, 255, 0.5);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.75rem;
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            color: #00ff88;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #6b7280;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .info-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(0, 217, 255, 0.2);
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: #8b92a7;
+            margin-bottom: 0.4rem;
+            font-weight: 500;
+        }
+
+        .info-value {
+            font-size: 0.875rem;
+            color: #e0e6ed;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.2), rgba(0, 255, 136, 0.2));
+            border-radius: 8px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.05), rgba(0, 255, 136, 0.05));
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.1), rgba(0, 255, 136, 0.1));
+            border-color: rgba(0, 217, 255, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 217, 255, 0.2);
+        }
+
+        .feature-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .feature-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-description {
+            color: #8b92a7;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: #00d9ff;
+        }
+
+        .feature-list li::before {
+            content: "●";
+            color: #00ff88;
+        }
+
+        .api-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .api-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .api-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(0, 217, 255, 0.3);
+        }
+
+        .api-info {
+            flex: 1;
+        }
+
+        .api-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .api-endpoint {
+            font-size: 0.875rem;
+            color: #8b92a7;
+            font-family: 'Courier New', monospace;
+        }
+
+        .api-method {
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 1rem;
+        }
+
+        .method-get {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .method-post {
+            background: rgba(0, 217, 255, 0.2);
+            color: #00d9ff;
+        }
+
+        .method-delete {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #8b92a7;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e0e6ed;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(0, 217, 255, 0.3);
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: #8b92a7;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .tab:hover {
+            color: #e0e6ed;
+        }
+
+        .tab.active {
+            color: #00d9ff;
+            border-bottom-color: #00d9ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div style="display: flex; align-items: center;">
+            <div class="logo">CYODA</div>
+            <span class="beta-badge">BETA</span>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-secondary">← Back</button>
+            <button class="btn btn-primary">View Logs</button>
+            <button class="btn btn-secondary">✕</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>dev Environment</h1>
+                <div class="status-badge">
+                    <span class="status-dot"></span>
+                    Active
+                </div>
+            </div>
+            <button class="btn btn-primary">🔄 Refresh</button>
+        </div>
+
+        <!-- Environment Details -->
+        <div class="grid grid-3">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Namespace</div>
+                    <button class="copy-btn">📋</button>
+                </div>
+                <div class="card-value">client-05e11da2107844fc944ee5b872fcb6b6-dev</div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Organization ID</div>
+                    <button class="copy-btn">📋</button>
+                </div>
+                <div class="card-value">05e11da2107844fc944ee5b872fcb6b6</div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Client URL</div>
+                    <button class="copy-btn">📋</button>
+                </div>
+                <div class="card-value" style="font-size: 0.9rem;">client-05e11da...dev.kube3.cyoda.org</div>
+            </div>
+        </div>
+
+        <!-- User Applications -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    <div class="section-icon">📦</div>
+                    User Applications
+                </div>
+                <button class="btn btn-secondary">+ Deploy App</button>
+            </div>
+            <div class="empty-state">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📦</div>
+                <div style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; color: #e0e6ed;">No user applications deployed</div>
+                <div>Deploy your first application to get started</div>
+            </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="grid grid-2">
+            <!-- System Logs -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon">📊</div>
+                    <button class="btn btn-primary btn-sm">Open →</button>
+                </div>
+                <div class="feature-title">View System Logs</div>
+                <div class="feature-description">Real-time log analysis & monitoring</div>
+                <ul class="feature-list">
+                    <li>Advanced Search</li>
+                    <li>Query DSL</li>
+                    <li>Level Filtering</li>
+                    <li>Export JSON</li>
+                </ul>
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.875rem; color: #8b92a7;">
+                    Access comprehensive logging with Elasticsearch integration
+                </div>
+            </div>
+
+            <!-- Metrics & Dashboards -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon">📈</div>
+                    <button class="btn btn-primary btn-sm">Open →</button>
+                </div>
+                <div class="feature-title">Metrics & Dashboards</div>
+                <div class="feature-description">Real-time performance monitoring</div>
+                <ul class="feature-list">
+                    <li>CPU & Memory</li>
+                    <li>Network Traffic</li>
+                    <li>Pod Metrics</li>
+                    <li>Custom Dashboards</li>
+                </ul>
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1); font-size: 0.875rem; color: #8b92a7;">
+                    Grafana dashboards with real-time Kubernetes metrics
+                </div>
+            </div>
+        </div>
+
+        <!-- API Functions -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    <div class="section-icon">⚡</div>
+                    API Functions
+                </div>
+            </div>
+
+            <div class="tab-container">
+                <button class="tab active">All APIs</button>
+                <button class="tab">User Management</button>
+                <button class="tab">Machine Users</button>
+                <button class="tab">Custom</button>
+            </div>
+
+            <div class="api-list">
+                <div class="api-item">
+                    <div class="api-info">
+                        <div class="api-name">Issue Technical User</div>
+                        <div class="api-endpoint">POST /api/clients</div>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span class="api-method method-post">POST</span>
+                        <button class="btn btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.875rem;">Execute</button>
+                    </div>
+                </div>
+
+                <div class="api-item">
+                    <div class="api-info">
+                        <div class="api-name">Get Users</div>
+                        <div class="api-endpoint">GET /api/clients</div>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span class="api-method method-get">GET</span>
+                        <button class="btn btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.875rem;">Execute</button>
+                    </div>
+                </div>
+
+                <div class="api-item">
+                    <div class="api-info">
+                        <div class="api-name">Delete User</div>
+                        <div class="api-endpoint">DELETE /api/clients/{userId}</div>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span class="api-method method-delete">DELETE</span>
+                        <button class="btn btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.875rem;">Execute</button>
+                    </div>
+                </div>
+
+                <div class="api-item">
+                    <div class="api-info">
+                        <div class="api-name">Get Machine Users</div>
+                        <div class="api-endpoint">GET /api/clients</div>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span class="api-method method-get">GET</span>
+                        <button class="btn btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.875rem;">Execute</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Redeploy Section -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    <div class="section-icon">🔄</div>
+                    Redeploy
+                </div>
+            </div>
+            <div class="card">
+                <div style="margin-bottom: 1rem; color: #8b92a7;">Copy this message to request environment redeployment:</div>
+                <div style="background: rgba(0, 0, 0, 0.3); padding: 1rem; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 0.875rem; display: flex; justify-content: space-between; align-items: center;">
+                    <code>Please, redeploy my cyoda environment: https://client-05e11da2107844fc944ee5b872fcb6b6-dev.kube3.cyoda.org</code>
+                    <button class="copy-btn">📋</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add interactivity
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                btn.textContent = '✓';
+                setTimeout(() => btn.textContent = '📋', 2000);
+            });
+        });
+
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+            });
+        });
+
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('click', () => {
+                console.log('Feature card clicked');
+            });
+        });
+    </script>
+</body>
+</html>

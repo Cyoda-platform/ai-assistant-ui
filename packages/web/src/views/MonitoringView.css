@@ -1,0 +1,633 @@
+.monitoring-view {
+  height: 100vh;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #e8e8e8;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Ant Design Select styling to match native select */
+.monitoring-select-antd .ant-select-selector {
+  background-color: #0f172a !important;
+  border: 1px solid #334155 !important;
+  border-radius: 6px !important;
+  padding: 10px 12px !important;
+  height: 42px !important;
+  font-size: 14px !important;
+  color: #e2e8f0 !important;
+}
+
+.monitoring-select-antd .ant-select-selection-placeholder {
+  color: #94a3b8 !important;
+  font-size: 14px !important;
+}
+
+.monitoring-select-antd .ant-select-selection-item {
+  color: #e2e8f0 !important;
+  font-size: 14px !important;
+  line-height: 22px !important;
+}
+
+.monitoring-select-antd .ant-select-arrow {
+  color: #e2e8f0 !important;
+  right: 12px !important;
+}
+
+.monitoring-select-antd:hover .ant-select-selector {
+  border-color: #334155 !important;
+}
+
+.monitoring-select-antd.ant-select-focused .ant-select-selector {
+  border-color: #334155 !important;
+  box-shadow: none !important;
+}
+
+/* Dropdown menu styling */
+.monitoring-select-dropdown {
+  background-color: #0f172a !important;
+  border: 1px solid #334155 !important;
+  border-radius: 6px !important;
+}
+
+.monitoring-select-dropdown .ant-select-item {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+  font-size: 14px !important;
+  padding: 4px 12px !important;
+  min-height: 32px !important;
+  line-height: 24px !important;
+  white-space: nowrap !important;
+}
+
+.monitoring-select-dropdown .ant-select-item-option-selected {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+.monitoring-select-dropdown .ant-select-item-option-active {
+  background-color: #1e293b !important;
+}
+
+.monitoring-select-dropdown .rc-virtual-list-holder-inner {
+  gap: 0 !important;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  /* Stack selects vertically on mobile */
+  .monitoring-view .monitoring-header {
+    padding: 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .monitoring-header-left {
+    width: 100%;
+  }
+
+  .monitoring-header-left img {
+    height: 24px !important;
+  }
+
+  .monitoring-header-left h1 {
+    font-size: 18px !important;
+  }
+
+  .monitoring-connection-info {
+    font-size: 11px;
+  }
+
+  .monitoring-header-actions {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .action-button {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+
+  .monitoring-selects-container {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+  }
+
+  /* Increase touch target size for mobile */
+  .monitoring-select-antd .ant-select-selector {
+    height: 48px !important;
+    padding: 12px 14px !important;
+    font-size: 16px !important;
+  }
+
+  .monitoring-select-antd .ant-select-selection-placeholder,
+  .monitoring-select-antd .ant-select-selection-item {
+    font-size: 16px !important;
+    line-height: 24px !important;
+  }
+
+  .monitoring-select-antd .ant-select-arrow {
+    right: 14px !important;
+  }
+
+  /* Dropdown items for mobile - same compact size as desktop */
+  .monitoring-select-dropdown .ant-select-item {
+    padding: 4px 14px !important;
+    font-size: 16px !important;
+    min-height: 32px !important;
+    line-height: 24px !important;
+  }
+
+  /* Make dropdown full width on mobile */
+  .monitoring-select-dropdown {
+    max-width: calc(100vw - 40px) !important;
+  }
+
+  /* Adjust metrics grid for mobile */
+  .metrics-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Smaller metric cards on mobile */
+  .metric-card {
+    padding: 16px !important;
+  }
+
+  .metric-value {
+    font-size: 28px !important;
+  }
+}
+
+.monitoring-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #334155;
+  flex-shrink: 0;
+}
+
+.monitoring-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.monitoring-header-left h1 {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #e8e8e8;
+}
+
+.monitoring-connection-info {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+  color: #a8a8a8;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.connection-status::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: #52c41a;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.namespace-badge {
+  background: rgba(255, 152, 0, 0.2);
+  color: #ff9800;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.monitoring-header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.action-button {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #0d8484 0%, #109f9f 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #109f9f 0%, #14b8a6 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 132, 132, 0.4);
+}
+
+.action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.monitoring-error {
+  background: rgba(255, 77, 79, 0.1);
+  border: 1px solid rgba(255, 77, 79, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #ff4d4f;
+}
+
+.retry-button {
+  padding: 6px 16px;
+  background: rgba(255, 77, 79, 0.2);
+  color: #ff4d4f;
+  border: 1px solid rgba(255, 77, 79, 0.4);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.retry-button:hover {
+  background: rgba(255, 77, 79, 0.3);
+}
+
+.monitoring-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: #a8a8a8;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #334155;
+  border-top-color: #0d8484;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.monitoring-content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.last-update {
+  font-size: 12px;
+  color: #a8a8a8;
+  margin-bottom: 20px;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.metric-card {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.3s;
+}
+
+.metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.metric-card.cpu {
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.metric-card.cpu:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+}
+
+.metric-card.memory {
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.metric-card.memory:hover {
+  border-color: #22c55e;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.3);
+}
+
+.metric-card.pods {
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.metric-card.pods:hover {
+  border-color: #a855f7;
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.3);
+}
+
+.metric-card.network {
+  border-color: rgba(234, 179, 8, 0.3);
+}
+
+.metric-card.network:hover {
+  border-color: #eab308;
+  box-shadow: 0 8px 24px rgba(234, 179, 8, 0.3);
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.metric-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e8e8e8;
+}
+
+.metric-card.cpu .metric-title svg {
+  color: #3b82f6;
+}
+
+.metric-card.memory .metric-title svg {
+  color: #22c55e;
+}
+
+.metric-card.pods .metric-title svg {
+  color: #a855f7;
+}
+
+.metric-card.network .metric-title svg {
+  color: #eab308;
+}
+
+.metric-value {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.metric-card.cpu .metric-value {
+  color: #3b82f6;
+}
+
+.metric-card.memory .metric-value {
+  color: #22c55e;
+}
+
+.metric-card.pods .metric-value {
+  color: #a855f7;
+}
+
+.metric-card.network .metric-value {
+  color: #eab308;
+}
+
+.metric-description {
+  font-size: 12px;
+  color: #a8a8a8;
+}
+
+.metrics-info {
+  background: rgba(13, 132, 132, 0.1);
+  border: 1px solid rgba(13, 132, 132, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.info-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0d8484;
+  margin: 0 0 12px 0;
+}
+
+.metrics-info ul {
+  margin: 0;
+  padding-left: 24px;
+  color: #a8a8a8;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.metrics-info code {
+  background: rgba(13, 132, 132, 0.15);
+  color: #0d8484;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+}
+
+.query-status {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.status-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+  color: #a8a8a8;
+  min-height: 24px;
+}
+
+.status-row:not(:last-child) {
+  margin-bottom: 8px;
+}
+
+.status-row code {
+  min-height: 20px;
+  display: inline-block;
+}
+
+.status-active {
+  color: #52c41a;
+  font-weight: 600;
+}
+
+.status-error {
+  color: #ff4d4f;
+  font-weight: 600;
+}
+
+.query-status code {
+  background: rgba(13, 132, 132, 0.15);
+  color: #0d8484;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 12px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Modal Styles for Expanded Graph */
+.graph-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.graph-modal-content {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  margin: auto;
+  min-height: 0;
+}
+
+.graph-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #334155;
+}
+
+.graph-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #e8e8e8;
+}
+
+.graph-modal-close {
+  background: none;
+  border: none;
+  color: #a8a8a8;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.graph-modal-close:hover {
+  background: #334155;
+  color: #e8e8e8;
+}
+
+.graph-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.metric-card.expandable {
+  cursor: pointer;
+  position: relative;
+}
+
+.metric-card.expandable::after {
+  content: '⛶';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 16px;
+  color: #0d8484;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.metric-card.expandable:hover::after {
+  opacity: 1;
+}
+
+/* Custom scrollbar for metrics selector */
+.monitoring-view ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.monitoring-view ::-webkit-scrollbar-track {
+  background: #0f172a;
+  border-radius: 4px;
+}
+
+.monitoring-view ::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+.monitoring-view ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}

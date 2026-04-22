@@ -3,14 +3,14 @@
 
 /**
  * CENTRALIZED TRANSITION ID SYSTEM
- * 
+ *
  * This system uses a single, consistent format for transition IDs:
  * Format: "sourceStateId-transitionIndex"
- * 
+ *
  * Where:
  * - sourceStateId: The ID of the source state
  * - transitionIndex: The 0-based index of the transition in the source state's transitions array
- * 
+ *
  * Examples:
  * - "start-0" = First transition from "start" state
  * - "processing-1" = Second transition from "processing" state
@@ -38,13 +38,13 @@ export function parseTransitionId(transitionId: string): { sourceStateId: string
     const sourceStateId = transitionId.substring(0, lastHyphenIndex);
     const indexStr = transitionId.substring(lastHyphenIndex + 1);
     const transitionIndex = parseInt(indexStr, 10);
-    
+
     // Validate that we have a valid state ID and numeric index
     if (sourceStateId && !isNaN(transitionIndex) && transitionIndex >= 0) {
       return { sourceStateId, transitionIndex };
     }
   }
-  
+
   return null;
 }
 
@@ -69,13 +69,13 @@ export function parseLayoutTransitionId(layoutTransitionId: string): { sourceSta
   if (toIndex !== -1) {
     const sourceStateId = layoutTransitionId.substring(0, toIndex);
     const targetStateId = layoutTransitionId.substring(toIndex + 4); // +4 for '-to-'
-    
+
     // Basic validation - state IDs shouldn't be empty
     if (sourceStateId && targetStateId) {
       return { sourceStateId, targetStateId };
     }
   }
-  
+
   return null;
 }
 
@@ -127,14 +127,14 @@ export function getTransitionDefinition(transitionId: string, workflowStates: Re
   if (!parsed) {
     return null;
   }
-  
+
   const { sourceStateId, transitionIndex } = parsed;
   const sourceState = workflowStates[sourceStateId];
-  
+
   if (sourceState && sourceState.transitions && Array.isArray(sourceState.transitions)) {
     return sourceState.transitions[transitionIndex] || null;
   }
-  
+
   return null;
 }
 
@@ -150,12 +150,12 @@ export function findTransitionId(sourceStateId: string, targetStateId: string, w
   if (!sourceState || !sourceState.transitions || !Array.isArray(sourceState.transitions)) {
     return null;
   }
-  
+
   const transitionIndex = sourceState.transitions.findIndex((transition: any) => transition.next === targetStateId);
   if (transitionIndex >= 0) {
     return generateTransitionId(sourceStateId, transitionIndex);
   }
-  
+
   return null;
 }
 
@@ -170,7 +170,61 @@ export function migrateLayoutTransitionId(layoutTransitionId: string, workflowSt
   if (!parsed) {
     return null;
   }
-  
+
   const { sourceStateId, targetStateId } = parsed;
   return findTransitionId(sourceStateId, targetStateId, workflowStates);
+}
+
+/**
+ * Migrates layout transitions to ensure they have sourceStateId and targetStateId
+ * This handles old data that may not have these fields populated
+ * @param transitions The layout transitions array
+ * @param workflow The workflow object containing configuration
+ * @returns The migrated transitions array with sourceStateId and targetStateId populated
+ */
+export function migrateLayoutTransitions(transitions: any[], workflow: any): any[] {
+  if (!transitions || !Array.isArray(transitions)) {
+    return [];
+  }
+
+  return transitions.map((transition) => {
+    // If both IDs are already present, return as-is
+    if (transition.sourceStateId && transition.targetStateId) {
+      return transition;
+    }
+
+    // Try to recover the IDs from the transition ID
+    const transitionId = transition.id;
+
+    // First, try parsing as canonical format (sourceStateId-transitionIndex)
+    const parsed = parseTransitionId(transitionId);
+    if (parsed) {
+      const { sourceStateId, transitionIndex } = parsed;
+      const sourceState = workflow?.configuration?.states?.[sourceStateId];
+
+      if (sourceState && sourceState.transitions && sourceState.transitions[transitionIndex]) {
+        const targetStateId = sourceState.transitions[transitionIndex].next;
+
+        return {
+          ...transition,
+          sourceStateId,
+          targetStateId,
+        };
+      }
+    }
+
+    // Second, try parsing as layout format (sourceState-to-targetState)
+    const layoutParsed = parseLayoutTransitionId(transitionId);
+    if (layoutParsed) {
+      return {
+        ...transition,
+        sourceStateId: layoutParsed.sourceStateId,
+        targetStateId: layoutParsed.targetStateId,
+      };
+    }
+
+    // If we can't parse the ID, return the transition as-is
+    // (it may have the IDs already, or they may be unrecoverable)
+    return transition;
+  });
 }

@@ -1,0 +1,139 @@
+.logs-access-card {
+  position: relative;
+  background: linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%);
+  border-radius: 16px;
+  padding: 32px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #434343;
+  overflow: hidden;
+  max-width: 500px;
+}
+
+.logs-access-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(24, 144, 255, 0.3);
+  border-color: #1890ff;
+}
+
+.logs-access-card:hover .logs-card-glow {
+  opacity: 1;
+}
+
+.logs-access-card:active {
+  transform: translateY(-2px);
+}
+
+.logs-card-glow {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(24, 144, 255, 0.15) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.logs-card-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.logs-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #1890ff 0%, #0958d9 100%);
+  border-radius: 16px;
+  color: white;
+  box-shadow: 0 8px 24px rgba(24, 144, 255, 0.3);
+  transition: all 0.3s;
+}
+
+.logs-access-card:hover .logs-card-icon {
+  transform: scale(1.05) rotate(-5deg);
+  box-shadow: 0 12px 32px rgba(24, 144, 255, 0.5);
+}
+
+.logs-card-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #e8e8e8;
+  letter-spacing: -0.5px;
+}
+
+.logs-card-description {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #a8a8a8;
+}
+
+.logs-card-features {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.logs-feature-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #0d1117;
+  border: 1px solid #434343;
+  border-radius: 20px;
+  font-size: 12px;
+  color: #e8e8e8;
+  transition: all 0.2s;
+}
+
+.logs-access-card:hover .logs-feature-badge {
+  border-color: #1890ff;
+  background: rgba(24, 144, 255, 0.1);
+}
+
+.badge-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.logs-card-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: rgba(24, 144, 255, 0.1);
+  border: 1px solid rgba(24, 144, 255, 0.3);
+  border-radius: 12px;
+  margin-top: 8px;
+  transition: all 0.3s;
+}
+
+.logs-access-card:hover .logs-card-action {
+  background: rgba(24, 144, 255, 0.2);
+  border-color: #1890ff;
+}
+
+.action-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.action-arrow {
+  color: #1890ff;
+  transition: transform 0.3s;
+}
+
+.logs-access-card:hover .action-arrow {
+  transform: translateX(4px);
+}

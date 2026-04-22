@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Bell,
@@ -17,11 +17,15 @@ import {
   BookOpen,
   Github,
   Shield,
-  Menu
+  Menu,
+  Server,
+  LogOut
 } from 'lucide-react';
+import { useAuth0 } from '@auth0/auth0-react';
 import AuthState from '@/components/AuthState/AuthState';
 import Logo from '@/assets/images/logo.svg';
-import { useSuperUserMode, useIsCyodaEmployee } from '@/stores/auth';
+import LogoSmall from '@/assets/images/logo-small.svg';
+import { useSuperUserMode, useIsCyodaEmployee, useAuthStore } from '@/stores/auth';
 
 interface Notification {
   id: number;
@@ -31,43 +35,100 @@ interface Notification {
   timestamp: string;
   isRead: boolean;
   messageId?: string; // ID of the related message for navigation
+  taskId?: string; // ID of the related task for opening tasks panel
 }
 
 interface HeaderProps {
   onToggleCanvas?: () => void;
   onToggleChatHistory?: () => void;
   onToggleEntities?: () => void;
+  onToggleEnvironments?: () => void;
+  onToggleTasks?: () => void;
   canvasVisible?: boolean;
   chatHistoryVisible?: boolean;
   entitiesVisible?: boolean;
+  environmentsVisible?: boolean;
+  tasksVisible?: boolean;
   showActions?: boolean;
   notifications?: Notification[];
   onMarkNotificationAsRead?: (id: number) => void;
   onMarkAllNotificationsAsRead?: () => void;
-  onNotificationClick?: (notificationId: number, messageId?: string) => void;
+  onNotificationClick?: (notificationId: number, messageId?: string, taskId?: string) => void;
+  isArchivedChat?: boolean; // Disable canvas for archived chats
+  showCanvasButton?: boolean; // Show canvas button only on chat pages
+  showRepositoryConfigPrompt?: boolean; // Whether to show repository config prompt
+  onConfigureRepository?: () => void; // Handler for configure new repository action
+  onUseExistingRepository?: () => void; // Handler for use existing repository action
+  onCloseRepositoryConfigPrompt?: () => void; // Handler for closing the prompt
+  isLoadingCanvasToggle?: boolean; // Whether canvas toggle is loading
 }
 
 const Header: React.FC<HeaderProps> = ({
   onToggleCanvas,
   onToggleChatHistory,
   onToggleEntities,
+  onToggleEnvironments,
+  onToggleTasks,
   canvasVisible = false,
   chatHistoryVisible = true,
   entitiesVisible = false,
+  environmentsVisible = false,
+  tasksVisible = false,
   showActions = false,
   notifications: externalNotifications,
   onMarkNotificationAsRead: externalMarkAsRead,
   onMarkAllNotificationsAsRead: externalMarkAllAsRead,
-  onNotificationClick: externalNotificationClick
+  onNotificationClick: externalNotificationClick,
+  isArchivedChat = false,
+  showCanvasButton = true, // Default to true for backward compatibility
+  showRepositoryConfigPrompt = false,
+  onConfigureRepository,
+  onUseExistingRepository,
+  onCloseRepositoryConfigPrompt,
+  isLoadingCanvasToggle = false
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth0();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  // Check if user is logged in (not in guest mode)
+  const authStore = useAuthStore();
+  const { token, tokenType } = authStore;
+  const isLoggedIn = !!token && tokenType === 'private';
 
   // Super user mode state
   const superUserMode = useSuperUserMode();
   const isCyodaEmployee = useIsCyodaEmployee();
+
+  // User initials for avatar
+  const initials = useMemo(() => {
+    const { family_name = 'C', given_name = 'U' } = authStore;
+    const familyInitial = family_name.charAt(0).toUpperCase();
+    const givenInitial = given_name.charAt(0).toUpperCase();
+    return `${givenInitial}${familyInitial}`;
+  }, [authStore.family_name, authStore.given_name]);
+
+  // Logout handler
+  const handleLogout = () => {
+    setShowMobileMenu(false);
+    const isElectron = import.meta.env.VITE_IS_ELECTRON;
+
+    if (isElectron) {
+      authStore.logout();
+      navigate('/');
+    } else {
+      authStore.logout(() => {
+        logout({
+          logoutParams: {
+            returnTo: window.location.origin
+          }
+        });
+      });
+      navigate('/');
+    }
+  };
 
   // Use external notifications if provided, otherwise use empty array
   const notifications = externalNotifications || [];
@@ -136,7 +197,7 @@ const Header: React.FC<HeaderProps> = ({
               }}
             >
               <img src={Logo} alt="CYODA" className="h-6 sm:h-7 md:h-8" />
-              <span className="text-xs bg-slate-700 px-2 py-1 rounded-full text-slate-300 font-medium">ALPHA</span>
+              <span className="text-xs bg-slate-700 px-2 py-1 rounded-full text-slate-300 font-medium">BETA</span>
             </a>
 
             {/* Super User Mode Badge - Hidden on mobile */}
@@ -150,8 +211,6 @@ const Header: React.FC<HeaderProps> = ({
 
           {/* Right Section - Desktop */}
           <div className="hidden md:flex items-center space-x-3">
-            <div className="w-px h-6 bg-slate-600 mx-2"></div>
-
             {/* Action Buttons - Only show on chat page */}
             {showActions && (
               <div className="flex items-center gap-2">
@@ -171,77 +230,167 @@ const Header: React.FC<HeaderProps> = ({
                   </button>
                 )}
 
-                {/* Canvas Button */}
-                {onToggleCanvas && (
+                {/* Canvas Button - Only show on chat pages */}
+                {onToggleCanvas && showCanvasButton && (
+                  <div className="relative">
+                    <button
+                      onClick={onToggleCanvas}
+                      disabled={isArchivedChat || isLoadingCanvasToggle}
+                      className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                        isArchivedChat || isLoadingCanvasToggle
+                          ? 'text-slate-600 cursor-not-allowed opacity-50'
+                          : canvasVisible
+                          ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                      }`}
+                      title={isArchivedChat ? 'Canvas not available for archived chats' : isLoadingCanvasToggle ? 'Loading...' : `${canvasVisible ? 'Close' : 'Open'} Canvas`}
+                    >
+                      {isLoadingCanvasToggle ? (
+                        <div className="w-4 h-4 border-2 border-teal-500/30 border-t-teal-500 rounded-full animate-spin" />
+                      ) : (
+                        <Activity size={18} />
+                      )}
+                      <span className="text-sm font-medium hidden md:inline">Canvas</span>
+                    </button>
+
+                    {/* Repository Config Info Block */}
+                    {showRepositoryConfigPrompt && (
+                      <div className="absolute top-full right-0 mt-2 w-80 z-50 animate-slideDown">
+                        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-teal-500/30 rounded-xl shadow-2xl overflow-hidden backdrop-blur-sm">
+                          {/* Glow effect */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-transparent pointer-events-none"></div>
+
+                          {/* Close button */}
+                          <button
+                            onClick={onCloseRepositoryConfigPrompt}
+                            className="absolute top-3 right-3 w-6 h-6 rounded-full bg-slate-700/50 hover:bg-slate-600 flex items-center justify-center transition-colors z-10"
+                            title="Close"
+                          >
+                            <X size={14} className="text-slate-300" />
+                          </button>
+
+                          <div className="relative p-4">
+                            {/* Icon and Title */}
+                            <div className="flex items-start space-x-3 mb-3">
+                              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center">
+                                <Github size={20} className="text-teal-400" />
+                              </div>
+                              <div className="flex-1 pr-6">
+                                <h3 className="text-sm font-semibold text-slate-100 mb-1">
+                                  Repository Not Configured
+                                </h3>
+                                <p className="text-xs text-slate-400 leading-relaxed">
+                                  Canvas requires a GitHub repository branch to be configured for this conversation.
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-4 mt-3">
+                              <button
+                                onClick={onConfigureRepository}
+                                className="px-3 py-1 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white text-xs font-medium rounded-md transition-all duration-200 shadow-md shadow-teal-500/20 hover:shadow-teal-500/30 flex items-center space-x-1.5"
+                              >
+                                <Github size={12} />
+                                <span>New Branch</span>
+                              </button>
+
+                              <button
+                                onClick={onUseExistingRepository}
+                                className="px-3 py-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-xs font-medium rounded-md transition-all duration-200 shadow-md shadow-blue-600/20 hover:shadow-blue-600/30 flex items-center space-x-1.5"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2v0a2 2 0 01-2-2v-2a2 2 0 00-2-2H8z" />
+                                </svg>
+                                <span>Existing Branch</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Cloud Button - Only show for logged in users */}
+                {onToggleEnvironments && isLoggedIn && (
                   <button
-                    onClick={onToggleCanvas}
+                    onClick={onToggleEnvironments}
                     className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
-                      canvasVisible
+                      environmentsVisible
                         ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
                         : 'text-slate-400 hover:text-white hover:bg-slate-700'
                     }`}
-                    title={`${canvasVisible ? 'Close' : 'Open'} Canvas`}
+                    title={`${environmentsVisible ? 'Hide' : 'Show'} Cloud`}
                   >
-                    <Activity size={18} />
-                    <span className="text-sm font-medium hidden md:inline">Canvas</span>
+                    <Server size={18} />
+                    <span className="text-sm font-medium hidden md:inline">Cloud</span>
                   </button>
                 )}
 
-                {/* Entities Button - Only show on chat details page */}
-                {onToggleEntities && (
+                {/* Tasks Button - Only show on chat details page */}
+                {onToggleTasks && (
                   <button
-                    onClick={onToggleEntities}
+                    onClick={onToggleTasks}
                     className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
-                      entitiesVisible
+                      tasksVisible
                         ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
                         : 'text-slate-400 hover:text-white hover:bg-slate-700'
                     }`}
-                    title={`${entitiesVisible ? 'Hide' : 'Show'} Entities`}
+                    title={`${tasksVisible ? 'Hide' : 'Show'} Tasks`}
                   >
                     <Database size={18} />
-                    <span className="text-sm font-medium hidden md:inline">Entities</span>
+                    <span className="text-sm font-medium hidden md:inline">Tasks</span>
                   </button>
                 )}
               </div>
             )}
 
-            {/* Social Media Buttons - Hidden on mobile and tablet */}
-            <div className="hidden lg:flex items-center space-x-2">
-              {/* Documentation */}
-              <a
-                href="https://docs.cyoda.net/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-teal-600/20 hover:border-teal-500/50 border border-transparent transition-all duration-200"
-                title="View Documentation"
-              >
-                <BookOpen size={18} />
-              </a>
-
-              {/* GitHub */}
-              <a
-                href="https://github.com/Cyoda-platform"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-600/20 hover:border-slate-500/50 border border-transparent transition-all duration-200"
-                title="View on GitHub"
-              >
-                <Github size={18} />
-              </a>
-
-              {/* LinkedIn */}
-              <a
-                href="https://www.linkedin.com/company/cyoda"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-blue-600/20 hover:border-blue-500/50 border border-transparent transition-all duration-200"
-                title="Follow us on LinkedIn"
-              >
-                <Linkedin size={18} />
-              </a>
-            </div>
-
             <div className="hidden lg:block w-px h-6 bg-slate-600"></div>
+
+            {/* CYODA Website - Hidden on mobile */}
+            <a
+              href="https://cyoda.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden lg:block p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
+              title="Visit cyoda.com"
+            >
+              <img src={LogoSmall} alt="CYODA" className="w-[18px] h-[18px] group-hover:scale-110 group-hover:brightness-125 transition-all duration-200" />
+            </a>
+
+            {/* GitHub */}
+            <a
+              href="https://github.com/Cyoda-platform"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden lg:block p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
+              title="View on GitHub"
+            >
+              <Github size={18} className="group-hover:scale-110 transition-transform duration-200" />
+            </a>
+
+            {/* LinkedIn */}
+            <a
+              href="https://www.linkedin.com/company/cyoda"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden lg:block p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
+              title="Follow us on LinkedIn"
+            >
+              <Linkedin size={18} className="group-hover:scale-110 transition-transform duration-200" />
+            </a>
+
+            {/* Documentation */}
+            <a
+              href="https://docs.cyoda.net/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden lg:block p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
+              title="View Documentation"
+            >
+              <BookOpen size={18} className="group-hover:scale-110 transition-transform duration-200" />
+            </a>
 
             {/* Discord - Hidden on mobile */}
             <a
@@ -324,7 +473,7 @@ const Header: React.FC<HeaderProps> = ({
                             e.stopPropagation();
                             // Use external notification click handler if provided, otherwise just mark as read
                             if (externalNotificationClick) {
-                              externalNotificationClick(notification.id, notification.messageId);
+                              externalNotificationClick(notification.id, notification.messageId, notification.taskId);
                             } else {
                               markNotificationAsRead(notification.id);
                             }
@@ -415,37 +564,65 @@ const Header: React.FC<HeaderProps> = ({
                     </button>
                   )}
 
-                  {onToggleCanvas && (
+                  {onToggleCanvas && showCanvasButton && (
                     <button
                       onClick={() => {
-                        onToggleCanvas();
-                        setShowMobileMenu(false);
+                        if (!isArchivedChat && !isLoadingCanvasToggle) {
+                          onToggleCanvas();
+                          setShowMobileMenu(false);
+                        }
                       }}
+                      disabled={isArchivedChat || isLoadingCanvasToggle}
                       className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
-                        canvasVisible
+                        isArchivedChat || isLoadingCanvasToggle
+                          ? 'text-slate-600 cursor-not-allowed opacity-50'
+                          : canvasVisible
                           ? 'bg-teal-500/20 text-teal-400'
                           : 'text-slate-400 hover:text-white hover:bg-slate-700'
                       }`}
                     >
-                      <Activity size={20} />
-                      <span className="text-sm font-medium">{canvasVisible ? 'Close' : 'Open'} Canvas</span>
+                      {isLoadingCanvasToggle ? (
+                        <div className="w-5 h-5 border-2 border-teal-500/30 border-t-teal-500 rounded-full animate-spin" />
+                      ) : (
+                        <Activity size={20} />
+                      )}
+                      <span className="text-sm font-medium">
+                        {isLoadingCanvasToggle ? 'Loading...' : isArchivedChat ? 'Canvas (Archived)' : canvasVisible ? 'Close Canvas' : 'Open Canvas'}
+                      </span>
                     </button>
                   )}
 
-                  {onToggleEntities && (
+                  {onToggleEnvironments && isLoggedIn && (
                     <button
                       onClick={() => {
-                        onToggleEntities();
+                        onToggleEnvironments();
                         setShowMobileMenu(false);
                       }}
                       className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
-                        entitiesVisible
+                        environmentsVisible
+                          ? 'bg-teal-500/20 text-teal-400'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                      }`}
+                    >
+                      <Server size={20} />
+                      <span className="text-sm font-medium">{environmentsVisible ? 'Hide' : 'Show'} Cloud</span>
+                    </button>
+                  )}
+
+                  {onToggleTasks && (
+                    <button
+                      onClick={() => {
+                        onToggleTasks();
+                        setShowMobileMenu(false);
+                      }}
+                      className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
+                        tasksVisible
                           ? 'bg-teal-500/20 text-teal-400'
                           : 'text-slate-400 hover:text-white hover:bg-slate-700'
                       }`}
                     >
                       <Database size={20} />
-                      <span className="text-sm font-medium">{entitiesVisible ? 'Hide' : 'Show'} Entities</span>
+                      <span className="text-sm font-medium">{tasksVisible ? 'Hide' : 'Show'} Tasks</span>
                     </button>
                   )}
                 </div>
@@ -456,16 +633,18 @@ const Header: React.FC<HeaderProps> = ({
 
               {/* Social Links - Mobile */}
               <div className="space-y-2">
+                {/* CYODA Website */}
                 <a
-                  href="https://docs.cyoda.net/"
+                  href="https://cyoda.com"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
                 >
-                  <BookOpen size={20} />
-                  <span className="text-sm font-medium">Documentation</span>
+                  <img src={LogoSmall} alt="CYODA" className="w-5 h-5" />
+                  <span className="text-sm font-medium">CYODA Website</span>
                 </a>
 
+                {/* GitHub */}
                 <a
                   href="https://github.com/Cyoda-platform"
                   target="_blank"
@@ -476,6 +655,7 @@ const Header: React.FC<HeaderProps> = ({
                   <span className="text-sm font-medium">GitHub</span>
                 </a>
 
+                {/* LinkedIn */}
                 <a
                   href="https://www.linkedin.com/company/cyoda"
                   target="_blank"
@@ -486,6 +666,18 @@ const Header: React.FC<HeaderProps> = ({
                   <span className="text-sm font-medium">LinkedIn</span>
                 </a>
 
+                {/* Documentation */}
+                <a
+                  href="https://docs.cyoda.net/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                >
+                  <BookOpen size={20} />
+                  <span className="text-sm font-medium">Documentation</span>
+                </a>
+
+                {/* Discord Community */}
                 <a
                   href="https://discord.com/invite/95rdAyBZr2"
                   target="_blank"
@@ -498,8 +690,48 @@ const Header: React.FC<HeaderProps> = ({
               </div>
 
               {/* User Profile - Mobile */}
-              <div className="border-t border-slate-700 pt-3">
-                <AuthState />
+              <div className="border-t border-slate-700 pt-3 space-y-2">
+                {isLoggedIn ? (
+                  <>
+                    {/* User Info */}
+                    <div className="flex items-center space-x-3 px-4 py-3">
+                      {authStore.picture ? (
+                        <img
+                          className="w-10 h-10 rounded-full"
+                          src={authStore.picture}
+                          alt="User avatar"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-slate-600 text-white text-sm font-medium flex items-center justify-center">
+                          {initials}
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-white">
+                          {authStore.given_name && authStore.family_name
+                            ? `${authStore.given_name} ${authStore.family_name}`
+                            : authStore.email}
+                        </div>
+                        {authStore.given_name && authStore.family_name && (
+                          <div className="text-xs text-slate-400">{authStore.email}</div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Logout Button */}
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                    >
+                      <LogOut size={20} className="text-red-400" />
+                      <span className="text-sm font-medium text-red-400">Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <div className="px-4 py-3">
+                    <AuthState />
+                  </div>
+                )}
               </div>
             </div>
           </div>

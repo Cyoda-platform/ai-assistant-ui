@@ -1,43 +1,46 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { X, Save, Sparkles, Upload } from 'lucide-react';
+import { X, Upload, Send } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import type { WorkflowConfiguration } from '../types/workflow';
-import { WorkflowAIAssistant } from './WorkflowAIAssistant';
 import type { ColorPalette } from '../themes/colorPalettes';
+import { parseTransitionId } from '../utils/transitionUtils';
 
 interface WorkflowJsonEditorProps {
   workflow: WorkflowConfiguration;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (config: WorkflowConfiguration) => void;
+  onUpdate?: (config: WorkflowConfiguration) => void;
   selectedStateId?: string | null;
   selectedTransitionId?: string | null;
+  selectedTransitionSection?: 'criterion' | 'processors';
   technicalId?: string;
   palette: ColorPalette;
+  onSendToChat?: (data: string) => void;
 }
 
 export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
   workflow,
   isOpen,
   onClose,
-  onSave,
+  onUpdate,
   selectedStateId,
   selectedTransitionId,
+  selectedTransitionSection,
   technicalId,
   palette,
+  onSendToChat,
 }) => {
   const [jsonText, setJsonText] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{ message: string; type: 'info' | 'warning' } | null>(null);
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const notificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // AI Assistant state
-  const [showAIAssistant, setShowAIAssistant] = useState(false);
-  const [selectedText, setSelectedText] = useState<string>('');
 
   // Resizing state
-  const [width, setWidth] = useState(600);
+  const [width, setWidth] = useState(450);
   const [isResizing, setIsResizing] = useState(false);
   const resizeStartX = useRef(0);
   const resizeStartWidth = useRef(0);
@@ -45,11 +48,11 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
   // Workflow schema for validation
   const workflowSchema = {
     type: 'object',
-    required: ['version', 'name', 'initialState', 'states'],
+    required: ['name', 'initialState', 'states'],
     properties: {
       version: {
         type: 'string',
-        description: 'Workflow version'
+        description: 'Workflow version (optional)'
       },
       name: {
         type: 'string',
@@ -195,24 +198,6 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
-  // Handle AI Assistant hotkey (Cmd/Ctrl + K)
-  useEffect(() => {
-    const handleAIHotkey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k' && isOpen) {
-        e.preventDefault();
-        // Get selected text from editor if available
-        if (editorRef.current) {
-          const selection = editorRef.current.getSelection();
-          const selectedContent = editorRef.current.getModel()?.getValueInRange(selection);
-          setSelectedText(selectedContent || '');
-        }
-        setShowAIAssistant(true);
-      }
-    };
-
-    document.addEventListener('keydown', handleAIHotkey);
-    return () => document.removeEventListener('keydown', handleAIHotkey);
-  }, [isOpen]);
 
   // Handle AI suggestion application
   const handleApplySuggestion = useCallback((suggestion: string) => {
@@ -222,37 +207,29 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
       const formattedJson = JSON.stringify(parsed, null, 2);
 
       // If we have selected text, try to replace it intelligently
-      if (editorRef.current && selectedText) {
+      if (editorRef.current) {
         const selection = editorRef.current.getSelection();
-        editorRef.current.executeEdits('ai-suggestion', [{
-          range: selection,
-          text: formattedJson
-        }]);
-        // Trigger save after a short delay to allow editor to update
-        setTimeout(() => {
-          const currentValue = editorRef.current?.getValue();
-          if (currentValue) {
-            try {
-              const updatedParsed = JSON.parse(currentValue);
-              onSave(updatedParsed);
-            } catch (e) {
-              console.error('Failed to save after partial edit:', e);
-            }
-          }
-        }, 100);
+        const selectedText = editorRef.current.getModel()?.getValueInRange(selection);
+
+        if (selectedText && selectedText.trim()) {
+          editorRef.current.executeEdits('ai-suggestion', [{
+            range: selection,
+            text: formattedJson
+          }]);
+        } else {
+          // Otherwise, replace the entire content
+          setJsonText(formattedJson);
+        }
       } else {
-        // Otherwise, replace the entire content and save immediately
+        // No editor ref, just update the text
         setJsonText(formattedJson);
-        // Trigger save immediately for full replacement
-        onSave(parsed);
       }
 
-      setShowAIAssistant(false);
     } catch (err) {
       console.error('Failed to apply AI suggestion:', err);
       alert('The AI suggestion is not valid JSON. Please review and apply manually.');
     }
-  }, [selectedText, onSave]);
+  }, []);
 
   // Navigate to selected state or transition in JSON
   useEffect(() => {
@@ -269,12 +246,18 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
       let targetLine: number | null = null;
 
       if (selectedTransitionId) {
+        console.log('🔍 Searching for transition:', {
+          selectedTransitionId,
+          selectedTransitionSection
+        });
         // Parse transition ID to get state and transition index
-        // Format: "stateId-transition-index"
-        const parts = selectedTransitionId.split('-transition-');
-        if (parts.length === 2) {
-          const stateId = parts[0];
-          const transitionIndex = parseInt(parts[1], 10);
+        // Format: "sourceStateId-transitionIndex"
+        const parsed = parseTransitionId(selectedTransitionId);
+        console.log('📋 Parsed transition ID:', parsed);
+        if (parsed) {
+          const stateId = parsed.sourceStateId;
+          const transitionIndex = parsed.transitionIndex;
+          console.log('🎯 Looking for state:', stateId, 'transition index:', transitionIndex);
 
           try {
             // First find the state definition as a key
@@ -325,35 +308,151 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
                 if (transitionsAfterState.length > 0) {
                   const transitionsLineNumber = transitionsAfterState[0].range.startLineNumber;
 
-                  // Find all "name" fields after the transitions array
-                  const nameMatches = model.findMatches(
-                    '"name"\\s*:',
-                    false,
-                    true, // isRegex
-                    false,
-                    null,
-                    true
-                  );
-
-                  // Filter to get name fields after transitions line
-                  const namesAfterTransitions = nameMatches.filter(
-                    m => m.range.startLineNumber > transitionsLineNumber
-                  );
-
                   // Find the next state to limit our search
                   const nextStateMatch = stateKeyMatches.find(
                     m => m.range.startLineNumber > stateLineNumber + 1
                   );
                   const searchEndLine = nextStateMatch ? nextStateMatch.range.startLineNumber : model.getLineCount();
 
-                  // Filter to only names within this state's scope
-                  const namesInScope = namesAfterTransitions.filter(
-                    m => m.range.startLineNumber < searchEndLine
-                  );
+                  console.log('🔍 Search boundaries:', {
+                    transitionsLineNumber,
+                    searchEndLine,
+                    stateId,
+                    transitionIndex
+                  });
 
-                  // Get the nth occurrence based on transitionIndex
-                  if (namesInScope.length > transitionIndex) {
-                    targetLine = namesInScope[transitionIndex].range.startLineNumber;
+                  // Strategy: Find the N-th transition object by looking for opening braces
+                  // after "transitions": [ and counting them carefully
+
+                  // Get all lines between transitions line and search end
+                  const lines: string[] = [];
+                  for (let i = transitionsLineNumber; i <= searchEndLine; i++) {
+                    lines.push(model.getLineContent(i));
+                  }
+
+                  // Find transition objects by counting braces
+                  let braceDepth = 0;
+                  let transitionCount = 0;
+                  let transitionStartLine = -1;
+                  let transitionEndLine = -1;
+                  let inTransitionsArray = false;
+
+                  for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    const actualLineNumber = transitionsLineNumber + i;
+
+                    // Check if we're entering the transitions array
+                    if (line.includes('"transitions"') && line.includes('[')) {
+                      inTransitionsArray = true;
+                      console.log('📍 Found transitions array at line', actualLineNumber);
+                      continue;
+                    }
+
+                    if (!inTransitionsArray) continue;
+
+                    // Count braces to track transition objects
+                    for (let j = 0; j < line.length; j++) {
+                      const char = line[j];
+
+                      if (char === '{') {
+                        if (braceDepth === 0) {
+                          // This is the start of a transition object
+                          if (transitionCount === transitionIndex) {
+                            transitionStartLine = actualLineNumber;
+                            console.log('🎯 Found transition', transitionIndex, 'start at line', transitionStartLine);
+                          }
+                          transitionCount++;
+                        }
+                        braceDepth++;
+                      } else if (char === '}') {
+                        braceDepth--;
+                        if (braceDepth === 0 && transitionStartLine !== -1 && transitionEndLine === -1) {
+                          // This is the end of our target transition
+                          transitionEndLine = actualLineNumber;
+                          console.log('🎯 Found transition', transitionIndex, 'end at line', transitionEndLine);
+                          break;
+                        }
+                      }
+                    }
+
+                    if (transitionEndLine !== -1) break;
+                  }
+
+                  // Now search for the field within the transition boundaries
+                  if (transitionStartLine !== -1 && transitionEndLine !== -1) {
+                    let searchField = 'name';
+                    if (selectedTransitionSection === 'criterion') {
+                      searchField = 'criterion';
+                    } else if (selectedTransitionSection === 'processors') {
+                      searchField = 'processors';
+                    }
+
+                    console.log('🔎 Searching for field:', searchField, 'between lines', transitionStartLine, '-', transitionEndLine);
+
+                    const fieldPattern = `"${searchField}"\\s*:`;
+                    const fieldMatches = model.findMatches(
+                      fieldPattern,
+                      false,
+                      true,
+                      false,
+                      null,
+                      true
+                    );
+
+                    // Find the field within the transition boundaries
+                    const fieldInTransition = fieldMatches.find(
+                      m => m.range.startLineNumber >= transitionStartLine &&
+                           m.range.startLineNumber <= transitionEndLine
+                    );
+
+                    if (fieldInTransition) {
+                      targetLine = fieldInTransition.range.startLineNumber;
+                      console.log('✅ Found target line:', targetLine);
+
+                      // For criterion and processors, find the end of the block to highlight the whole section
+                      if (selectedTransitionSection === 'criterion' || selectedTransitionSection === 'processors') {
+                        // Find the end of this block by counting braces
+                        let blockEndLine = targetLine;
+                        const startLine = targetLine;
+
+                        // Check if the value is an object or array
+                        const fieldLine = model.getLineContent(targetLine);
+                        const hasOpenBrace = fieldLine.includes('{');
+                        const hasOpenBracket = fieldLine.includes('[');
+
+                        if (hasOpenBrace || hasOpenBracket) {
+                          let depth = 0;
+                          let foundStart = false;
+
+                          for (let i = targetLine; i <= transitionEndLine; i++) {
+                            const line = model.getLineContent(i);
+
+                            for (let j = 0; j < line.length; j++) {
+                              const char = line[j];
+                              if (char === '{' || char === '[') {
+                                depth++;
+                                foundStart = true;
+                              } else if (char === '}' || char === ']') {
+                                depth--;
+                                if (foundStart && depth === 0) {
+                                  blockEndLine = i;
+                                  console.log('📦 Block spans from line', startLine, 'to', blockEndLine);
+                                  // Store the range for multi-line highlighting
+                                  (window as any).__highlightRange = { start: startLine, end: blockEndLine };
+                                  break;
+                                }
+                              }
+                            }
+
+                            if (depth === 0 && foundStart) break;
+                          }
+                        }
+                      }
+                    } else {
+                      console.log('❌ Field not found in transition boundaries');
+                    }
+                  } else {
+                    console.log('❌ Could not find transition boundaries');
                   }
                 }
               }
@@ -406,21 +505,29 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
       }
 
       if (targetLine !== null) {
+        // Check if we have a range to highlight (for criterion/processors)
+        const highlightRange = (window as any).__highlightRange;
+        const startLine = highlightRange?.start || targetLine;
+        const endLine = highlightRange?.end || targetLine;
+
+        // Clear the temporary range
+        delete (window as any).__highlightRange;
+
         // Reveal and select the line
-        editor.revealLineInCenter(targetLine);
+        editor.revealLineInCenter(startLine);
         editor.setPosition({
-          lineNumber: targetLine,
+          lineNumber: startLine,
           column: 1
         });
 
-        // Highlight the line temporarily
+        // Highlight the line(s) temporarily
         const decorations = editor.deltaDecorations([], [
           {
             range: new monaco.Range(
-              targetLine,
+              startLine,
               1,
-              targetLine,
-              model.getLineMaxColumn(targetLine)
+              endLine,
+              model.getLineMaxColumn(endLine)
             ),
             options: {
               isWholeLine: true,
@@ -438,7 +545,7 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
     } catch (err) {
       console.error('Error navigating to selection:', err);
     }
-  }, [selectedStateId, selectedTransitionId, isOpen]);
+  }, [selectedStateId, selectedTransitionId, selectedTransitionSection, isOpen]);
 
   const handleTextChange = useCallback((value: string | undefined) => {
     if (value === undefined) return;
@@ -450,42 +557,74 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
     }
 
     try {
-      const parsed = JSON.parse(value) as WorkflowConfiguration;
+      const parsed = JSON.parse(value);
+
+      let configToValidate: WorkflowConfiguration;
+      let isWrapperFormat = false;
+
+      // Check if this is a wrapper format (has workflows array)
+      if (parsed.workflows && Array.isArray(parsed.workflows)) {
+        isWrapperFormat = true;
+        // Wrapper format - validate the first workflow
+        if (parsed.workflows.length === 0) {
+          setError('Workflows array cannot be empty - at least one workflow is required');
+          return;
+        }
+        configToValidate = parsed.workflows[0] as WorkflowConfiguration;
+
+        // Show notification for wrapper format
+        if (notificationTimeoutRef.current) {
+          clearTimeout(notificationTimeoutRef.current);
+        }
+        setNotification({
+          message: `Wrapper format detected. Displaying first workflow (${parsed.workflows.length} total).`,
+          type: 'info'
+        });
+        // Auto-dismiss notification after 5 seconds
+        notificationTimeoutRef.current = setTimeout(() => {
+          setNotification(null);
+        }, 5000);
+      } else {
+        // Individual workflow format
+        configToValidate = parsed as WorkflowConfiguration;
+        setNotification(null);
+      }
 
       // Validate required fields with specific error messages
-      if (!parsed.version || typeof parsed.version !== 'string' || parsed.version.trim() === '') {
-        setError('Field "version" is required and must be a non-empty string');
+      // version is optional - if provided, it must be a non-empty string
+      if (configToValidate.version !== undefined && (typeof configToValidate.version !== 'string' || configToValidate.version.trim() === '')) {
+        setError('Field "version" must be a non-empty string if provided');
         return;
       }
 
-      if (!parsed.name || typeof parsed.name !== 'string' || parsed.name.trim() === '') {
+      if (!configToValidate.name || typeof configToValidate.name !== 'string' || configToValidate.name.trim() === '') {
         setError('Field "name" is required and must be a non-empty string');
         return;
       }
 
-      if (!parsed.initialState || typeof parsed.initialState !== 'string' || parsed.initialState.trim() === '') {
+      if (!configToValidate.initialState || typeof configToValidate.initialState !== 'string' || configToValidate.initialState.trim() === '') {
         setError('Field "initialState" is required and must be a non-empty string');
         return;
       }
 
-      if (!parsed.states || typeof parsed.states !== 'object') {
+      if (!configToValidate.states || typeof configToValidate.states !== 'object') {
         setError('Field "states" is required and must be an object');
         return;
       }
 
-      if (Object.keys(parsed.states).length === 0) {
+      if (Object.keys(configToValidate.states).length === 0) {
         setError('States object cannot be empty - at least one state is required');
         return;
       }
 
       // Validate that initialState exists in states
-      if (!parsed.states[parsed.initialState]) {
-        setError(`Initial state "${parsed.initialState}" does not exist in states object`);
+      if (!configToValidate.states[configToValidate.initialState]) {
+        setError(`Initial state "${configToValidate.initialState}" does not exist in states object`);
         return;
       }
 
       // Validate each state has transitions array
-      for (const [stateCode, state] of Object.entries(parsed.states)) {
+      for (const [stateCode, state] of Object.entries(configToValidate.states)) {
         if (!state.transitions || !Array.isArray(state.transitions)) {
           setError(`State "${stateCode}" must have a "transitions" array`);
           return;
@@ -511,14 +650,17 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
 
       setError(null);
 
-      // Debounce auto-save (500ms delay)
+      // Auto-save after 1 second of no changes
       saveTimeoutRef.current = setTimeout(() => {
-        onSave(parsed);
-      }, 500);
+        if (onUpdate) {
+          console.log('💾 Auto-saving workflow configuration from JSON editor');
+          onUpdate(configToValidate);
+        }
+      }, 1000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid JSON');
     }
-  }, [onSave]);
+  }, [onUpdate]);
 
   // Resize handlers
   const handleResizeStart = useCallback((e: React.MouseEvent) => {
@@ -562,6 +704,10 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
     };
   }, [isResizing]);
 
+
+
+
+
   // Import from file handler
   const handleImportFromFile = useCallback(() => {
     const input = document.createElement('input');
@@ -575,9 +721,9 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
         const text = await file.text();
         const config = JSON.parse(text) as WorkflowConfiguration;
 
-        // Validate required fields
-        if (!config.version || !config.name || !config.initialState || !config.states) {
-          alert('Invalid workflow JSON: missing required fields (version, name, initialState, states)');
+        // Validate required fields (version is optional)
+        if (!config.name || !config.initialState || !config.states) {
+          alert('Invalid workflow JSON: missing required fields (name, initialState, states)');
           return;
         }
 
@@ -589,17 +735,21 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
         // Update the editor with the imported JSON
         const formattedJson = JSON.stringify(config, null, 2);
         setJsonText(formattedJson);
-
-        // Trigger save after a short delay to allow the editor to update
-        setTimeout(() => {
-          onSave(config);
-        }, 100);
       } catch (error) {
         alert(`Error importing workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     };
     input.click();
-  }, [onSave]);
+  }, []);
+
+  // Send to chat handler
+  const handleSendToChat = useCallback(() => {
+    if (!onSendToChat) return;
+
+    // Send only the configuration node wrapped in markdown code block
+    const message = `\`\`\`json\n${jsonText}\n\`\`\``;
+    onSendToChat(message);
+  }, [onSendToChat, jsonText]);
 
   if (!isOpen) return null;
 
@@ -614,6 +764,28 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
   return (
     <>
       <style>{`
+        @keyframes slideIn {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+
+        @keyframes slideOut {
+          from {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+        }
+
         .highlighted-line {
           background-color: ${hexToRgba(palette.ui.accentColor, 0.2)} !important;
           animation: highlight-fade 2s ease-out;
@@ -633,35 +805,50 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
           borderColor: palette.ui.panelBorder
         }}
       >
-      {/* Left Resize Handle */}
+      {/* Left Resize Handle - only captures events when directly over it */}
       <div
-        className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:w-1.5 transition-all z-20 group"
+        className="absolute top-0 bottom-0 cursor-ew-resize transition-all group hover:bg-opacity-50"
         onMouseDown={handleResizeStart}
         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = palette.ui.accentColor}
         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
         title="Drag to resize"
+        style={{
+          left: '0px',   // Position at the panel edge
+          width: '4px',  // Very narrow to minimize blocking
+          zIndex: 1,     // Very low z-index
+          pointerEvents: 'auto'
+        }}
       >
         <div
           className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 rounded-r opacity-0 group-hover:opacity-100 transition-opacity"
-          style={{ backgroundColor: palette.ui.accentHover }}
+          style={{ backgroundColor: palette.ui.accentHover, pointerEvents: 'none' }}
         />
       </div>
         {/* Header */}
         <div
-          className="flex items-center justify-between p-4 border-b-2 flex-shrink-0"
+          className="flex items-center justify-between px-4 py-3 border-b-2 flex-shrink-0"
           style={{
             borderColor: palette.ui.panelBorder,
             background: `linear-gradient(to right, ${palette.ui.panelGradientVia}30, ${palette.ui.panelGradientTo}30)`
           }}
         >
           <div className="flex items-center gap-3">
-            {/* Import from File Button - Allows importing workflow JSON from a file
-                Purpose: Quick access to import workflow configuration
-                Size: 40x40px (w-10 h-10) - matches standard icon size for panel headers
-                Alignment: Vertically centered with title text using flex items-center */}
+            <h3
+              style={{
+                margin: 0,
+                color: '#A78BFA',
+                fontSize: '15px',
+                fontWeight: 500
+              }}
+            >
+              Workflow JSON Editor
+            </h3>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {/* Import from File Button - compact version */}
             <button
               onClick={handleImportFromFile}
-              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all hover:scale-105 group"
+              className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-105 group"
               style={{
                 background: `linear-gradient(to bottom right, ${palette.ui.accentColor}, ${palette.ui.accentHover})`
               }}
@@ -673,54 +860,45 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
               }}
               title="Import workflow from JSON file"
             >
-              <Upload size={20} className="text-white group-hover:scale-110 transition-transform" />
+              <Upload size={16} className="text-white group-hover:scale-110 transition-transform" />
             </button>
-            <div>
-              <h3
-                className="text-lg font-bold text-transparent bg-clip-text"
+
+            {/* Send to Chat Button - compact version */}
+            {onSendToChat && (
+              <button
+                onClick={handleSendToChat}
+                disabled={!!error}
+                className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-105 group disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
-                  backgroundImage: `linear-gradient(to right, ${palette.ui.panelTitleFrom}, ${palette.ui.panelTitleTo})`
+                  background: error
+                    ? '#6b7280'
+                    : `linear-gradient(to bottom right, #14b8a6, #0d9488)`
                 }}
+                onMouseEnter={(e) => {
+                  if (!error) {
+                    e.currentTarget.style.background = `linear-gradient(to bottom right, #0d9488, #0f766e)`;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!error) {
+                    e.currentTarget.style.background = `linear-gradient(to bottom right, #14b8a6, #0d9488)`;
+                  }
+                }}
+                title={error ? "Fix JSON errors before sending to chat" : "Send workflow to chat"}
               >
-                Workflow JSON Editor
-              </h3>
-              <p className="text-xs text-gray-400">
-                Edit the complete workflow configuration
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {/* AI Assistant Button */}
-            <button
-              onClick={() => {
-                // Get selected text from editor if available
-                if (editorRef.current) {
-                  const selection = editorRef.current.getSelection();
-                  const selectedContent = editorRef.current.getModel()?.getValueInRange(selection);
-                  setSelectedText(selectedContent || '');
-                }
-                setShowAIAssistant(true);
-              }}
-              className="group relative px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
-              title="Ask AI Assistant (⌘K / Ctrl+K)"
-            >
-              <Sparkles size={16} className="text-white animate-pulse" />
-              <span className="text-white font-medium text-sm">Ask AI</span>
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span>
-              </span>
-            </button>
+                <Send size={16} className="text-white group-hover:scale-110 transition-transform" />
+              </button>
+            )}
 
             <button
               onClick={onClose}
-              className="p-2 rounded-lg transition-colors group"
+              className="w-7 h-7 rounded-lg transition-colors group flex items-center justify-center"
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = palette.ui.accentHover + '30'}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               title="Close (Esc)"
             >
               <X
-                size={20}
+                size={16}
                 className="text-gray-500 dark:text-gray-400 transition-colors"
                 onMouseEnter={(e) => (e.currentTarget as SVGElement).style.color = palette.ui.accentColor}
                 onMouseLeave={(e) => (e.currentTarget as SVGElement).style.color = ''}
@@ -744,17 +922,25 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
           </div>
         )}
 
-        {/* Monaco Editor */}
-        <div className="flex-1 p-4 overflow-hidden">
+        {/* Notification Message */}
+        {notification && (
           <div
-            className="h-full rounded-lg overflow-hidden border-2 transition-colors shadow-lg"
+            className="mx-4 mt-3 p-2.5 border rounded-lg flex-shrink-0 animate-pulse"
             style={{
-              borderColor: error ? '#dc2626' : palette.ui.accentColor,
-              boxShadow: error
-                ? `0 10px 15px -3px ${hexToRgba('#dc2626', 0.2)}`
-                : `0 10px 15px -3px ${hexToRgba(palette.ui.accentColor, 0.1)}`
+              backgroundColor: notification.type === 'warning'
+                ? hexToRgba('#f59e0b', 0.1)
+                : hexToRgba('#3b82f6', 0.1),
+              borderColor: notification.type === 'warning' ? '#f59e0b' : '#3b82f6'
             }}
           >
+            <p className="text-xs font-medium" style={{ color: notification.type === 'warning' ? '#fcd34d' : '#93c5fd' }}>
+              ℹ️ {notification.message}
+            </p>
+          </div>
+        )}
+
+        {/* Monaco Editor */}
+        <div className="flex-1 overflow-hidden">
             <Editor
               height="100%"
               defaultLanguage="json"
@@ -763,6 +949,78 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
               onMount={(editor, monaco) => {
                 editorRef.current = editor;
                 monacoRef.current = monaco;
+
+                // Define custom theme matching the Tree Preview colors
+                monaco.editor.defineTheme('workflow-dark', {
+                  base: 'vs-dark', // Critical for correct scrollbars and menus
+                  inherit: true,
+                  rules: [
+                    { token: '', foreground: 'E2E8F0' }, // Default text color
+                    { token: 'string.key.json', foreground: '93C5FD' }, // JSON keys - text-blue-300
+                    { token: 'string.value.json', foreground: '4ADE80' }, // JSON string values - text-green-400
+                    { token: 'number', foreground: '60A5FA' }, // Numbers - text-blue-400
+                    { token: 'keyword.json', foreground: 'C084FC' }, // Keywords (true/false/null) - text-purple-400
+                    { token: 'keyword', foreground: 'C084FC' }, // Keywords - text-purple-400
+                    { token: 'comment', foreground: '64748B' }, // Comments - muted gray
+                  ],
+                  colors: {
+                    // Main editor background - deep dark blue matching app
+                    'editor.background': '#0E1525',
+                    'editor.foreground': '#E2E8F0',
+
+                    // Line numbers and gutter
+                    'editorLineNumber.foreground': '#475569',
+                    'editorLineNumber.activeForeground': '#93C5FD',
+                    'editorGutter.background': '#0E1525',
+
+                    // Current line highlight
+                    'editor.lineHighlightBackground': '#1E293B',
+                    'editor.lineHighlightBorder': '#1E293B',
+
+                    // Cursor - light blue
+                    'editorCursor.foreground': '#93C5FD',
+
+                    // Selection
+                    'editor.selectionBackground': '#1E293B',
+                    'editor.inactiveSelectionBackground': '#1E293B80',
+
+                    // Minimap - CRITICAL: must match editor background to avoid white bars
+                    'editorMinimap.background': '#0E1525',
+                    'minimapSlider.background': '#33415540',
+                    'minimapSlider.hoverBackground': '#33415560',
+                    'minimapSlider.activeBackground': '#33415580',
+
+                    // Sticky scroll - CRITICAL: must match editor background
+                    'editorStickyScroll.background': '#0E1525',
+                    'editorStickyScrollHover.background': '#1E293B',
+
+                    // Scrollbars
+                    'scrollbar.shadow': '#00000000',
+                    'scrollbarSlider.background': '#33415580',
+                    'scrollbarSlider.hoverBackground': '#334155A0',
+                    'scrollbarSlider.activeBackground': '#334155C0',
+
+                    // Bracket matching
+                    'editorBracketMatch.background': '#1E293B',
+                    'editorBracketMatch.border': '#93C5FD',
+
+                    // Widget backgrounds (autocomplete, hover, etc.)
+                    'editorWidget.background': '#1E293B',
+                    'editorWidget.border': '#93C5FD',
+                    'editorSuggestWidget.background': '#1E293B',
+                    'editorSuggestWidget.border': '#93C5FD',
+                    'editorSuggestWidget.selectedBackground': '#334155',
+                    'editorHoverWidget.background': '#1E293B',
+                    'editorHoverWidget.border': '#93C5FD',
+
+                    // Indentation guides
+                    'editorIndentGuide.background': '#334155',
+                    'editorIndentGuide.activeBackground': '#475569',
+                  }
+                });
+
+                // Set the custom theme
+                monaco.editor.setTheme('workflow-dark');
 
                 // Configure JSON schema validation
                 monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
@@ -904,7 +1162,7 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
                   }
                 });
               }}
-              theme="vs-dark"
+              theme="workflow-dark"
               options={{
                 minimap: { enabled: true },
                 fontSize: 13,
@@ -918,48 +1176,40 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
                 wordWrap: 'on',
                 folding: true,
                 bracketPairColorization: { enabled: true },
-                guides: { bracketPairs: true, indentation: true },
+                guides: {
+                  indentation: true,
+                  highlightActiveIndentation: true,
+                  bracketPairs: true,
+                  bracketPairsHorizontal: 'active',
+                },
                 suggest: { showKeywords: true, showSnippets: true },
                 quickSuggestions: { other: true, comments: false, strings: true },
-                padding: { top: 12, bottom: 12 }
+                padding: { top: 8, bottom: 8 }
               }}
             />
-          </div>
         </div>
 
         {/* Footer */}
         <div
-          className="flex items-center justify-between p-3 border-t-2 flex-shrink-0"
+          className="flex items-center justify-between px-4 py-1.5 border-t flex-shrink-0"
           style={{
-            borderColor: palette.ui.panelBorder,
-            background: `linear-gradient(to right, ${palette.ui.panelGradientVia}30, ${palette.ui.panelGradientTo}30)`
+            borderColor: palette.ui.panelBorder + '40',
+            background: `linear-gradient(to right, ${palette.ui.panelGradientVia}20, ${palette.ui.panelGradientTo}20)`
           }}
         >
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1.5">
             <div
-              className="w-2 h-2 rounded-full animate-pulse"
+              className="w-1.5 h-1.5 rounded-full animate-pulse"
               style={{ backgroundColor: palette.ui.accentColor }}
             ></div>
             <div className="text-xs text-gray-400">
               <strong>Live Editing:</strong> Changes apply automatically
             </div>
           </div>
-          <div className="text-xs text-gray-400">
-            Press <kbd className="px-2 py-0.5 bg-gray-700 rounded text-xs">⌘K</kbd> or <kbd className="px-2 py-0.5 bg-gray-700 rounded text-xs">Ctrl+K</kbd> for AI help
-          </div>
         </div>
       </div>
-
-      {/* AI Assistant Modal */}
-      <WorkflowAIAssistant
-        isOpen={showAIAssistant}
-        onClose={() => setShowAIAssistant(false)}
-        currentWorkflow={jsonText}
-        selectedText={selectedText}
-        onApplySuggestion={handleApplySuggestion}
-        technicalId={technicalId}
-      />
     </>
   );
 };
 
+export default WorkflowJsonEditor;

@@ -4,9 +4,11 @@ import { useWorkflowTabsStore } from '@/stores/workflowTabs';
 import ChatBotEditorWorkflowNew from '../ChatBot/ChatBotEditorWorkflowNew';
 import { Modal, Form, Input, InputNumber, Button } from 'antd';
 import { FileCode2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const WorkflowTabsContainer: React.FC = () => {
-  const { tabs, activeTabId, openTab, updateTab, getActiveTab } = useWorkflowTabsStore();
+  const { tabs, activeTabId, openTab, updateTab, getActiveTab, closeTab } = useWorkflowTabsStore();
+  const navigate = useNavigate();
 
   const activeTab = getActiveTab();
 
@@ -49,6 +51,16 @@ export const WorkflowTabsContainer: React.FC = () => {
               onUpdate={(data) => handleWorkflowUpdate(activeTab.id, data)}
               modelName={activeTab.modelName}
               modelVersion={activeTab.modelVersion}
+              onBack={() => {
+                // Close the current tab
+                if (activeTab) {
+                  closeTab(activeTab.id);
+                }
+                // If no more tabs, navigate back to home
+                if (tabs.length <= 1) {
+                  navigate('/?canvas=true');
+                }
+              }}
             />
           </div>
         ) : (

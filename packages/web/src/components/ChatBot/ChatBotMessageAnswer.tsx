@@ -11,6 +11,7 @@ interface Message {
   last_modified?: string;
   file?: File;
   files?: File[];
+  isCanvasQA?: boolean; // Mark Canvas QA messages for pink styling
 }
 
 interface ChatBotMessageAnswerProps {
@@ -78,8 +79,8 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
   };
 
   return (
-    <div className="flex justify-end mb-2 animate-fade-in-up">
-      <div className="flex items-start space-x-2 max-w-[85%]">
+    <div className="flex justify-end mb-6 animate-fade-in-up px-4 md:px-6 lg:px-8">
+      <div className="flex items-start space-x-2 max-w-6xl w-full">
         {/* Message Content Container */}
         <div className="flex flex-col items-end space-y-1.5 flex-1">
           {/* User Badge */}
@@ -87,18 +88,18 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
             {date && (
               <div className="flex items-center space-x-1 text-xs text-slate-500">
                 <Clock size={10} />
-                <span className="text-[10px]">{date}</span>
+                <span className="text-xs">{date}</span>
               </div>
             )}
-            <div className="flex items-center space-x-1 bg-slate-800/50 backdrop-blur-sm px-2 py-0.5 rounded-full border border-slate-600">
-              <span className="text-[10px] font-medium text-slate-300">{userName}</span>
-              <User size={10} className="text-teal-400" />
+            <div className="flex items-center space-x-1 bg-slate-800/50 backdrop-blur-sm px-3 py-1 rounded-full border border-slate-600 shrink-0">
+              <span className="text-xs font-medium text-slate-300 whitespace-nowrap max-w-[150px] truncate">{userName}</span>
+              <User size={10} className="text-teal-400 flex-shrink-0" />
             </div>
           </div>
 
           {/* Message Bubble - Right aligned user message */}
-          <div className={`${containerInfo.className} relative group`}>
-            <div className="text-sm pr-6">
+          <div className={`${containerInfo.className} relative group ${message.isCanvasQA ? 'canvas-qa-answer' : ''}`}>
+            <div className="text-sm pr-6 sm:pr-6 md:pr-8">
               <MarkdownRenderer>
                 {messageText}
               </MarkdownRenderer>
@@ -118,16 +119,16 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
             {/* Copy Button - Inside message container, top right */}
             <button
               onClick={handleCopy}
-              className="absolute top-1.5 right-1.5 w-5 h-5 rounded bg-teal-600/30 hover:bg-teal-600/50 text-slate-300 hover:text-white transition-all duration-200 flex items-center justify-center border border-teal-500/30"
+              className="absolute top-1.5 right-1.5 w-6 h-6 rounded text-slate-300 hover:text-white transition-all duration-200 flex items-center justify-center"
               title="Copy message"
             >
-              {copied ? <Check size={10} className="text-green-400" /> : <Copy size={10} />}
+              {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
             </button>
           </div>
         </div>
 
         {/* User Avatar */}
-        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 shadow-md overflow-hidden border border-teal-500/30">
+        <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-md overflow-hidden border border-teal-500/30">
           {userAvatar ? (
             <img
               src={userAvatar}
@@ -135,7 +136,7 @@ const ChatBotMessageAnswer: React.FC<ChatBotMessageAnswerProps> = ({ message }) 
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center text-white text-[10px] font-semibold">
+            <div className="w-full h-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center text-white text-sm font-semibold">
               {userInitials}
             </div>
           )}

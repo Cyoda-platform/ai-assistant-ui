@@ -10,4 +10,5 @@ export interface Auth {
   email: string;
   isCyodaEmployee: boolean;
   superUserMode: boolean;
+  selectedUserId: string;
 }

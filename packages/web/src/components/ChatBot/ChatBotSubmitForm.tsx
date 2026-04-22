@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Form, Input, message } from 'antd';
-import { Send, Paperclip } from 'lucide-react';
+import { Send, Paperclip, X, Github } from 'lucide-react';
 import FileSubmitPreview from '@/components/FileSubmitPreview/FileSubmitPreview';
 import HelperUpload from '@/helpers/HelperUpload';
 
@@ -9,37 +9,168 @@ const { TextArea } = Input;
 interface ChatBotSubmitFormProps {
   layout?: 'default' | 'canvas';
   disabled: boolean;
-  onAnswer: (data: { answer: string; files?: File[] }) => void;
+  onAnswer: (data: { answer: string; files?: File[]; mode?: 'workflow' | 'qa' }) => void;
+  showCanvasButton?: boolean; // Show Canvas button when canvas is open
+  activeCanvasTab?: 'apps' | 'data' | 'workflow' | 'requirement' | 'code'; // Active tab in canvas
+  isAIThinking?: boolean; // Whether AI is currently thinking/processing
+  onStopRequest?: () => void; // Callback to stop current request
+  onSetTextareaContent?: (callback: (content: string) => void) => void; // Expose method to set textarea content
+  hasRepository?: boolean; // Whether repository is configured
+  onRecheckRepository?: () => Promise<boolean>; // Callback to recheck repository configuration
+  onShowRepositoryConfigModal?: () => void; // Callback to show repository configuration modal
 }
 
 const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
   layout = 'default',
   disabled,
-  onAnswer
+  onAnswer,
+  showCanvasButton = false,
+  activeCanvasTab,
+  isAIThinking = false,
+  onStopRequest,
+  onSetTextareaContent,
+  hasRepository = false,
+  onRecheckRepository,
+  onShowRepositoryConfigModal
 }) => {
   const [form] = Form.useForm();
   const [answer, setAnswer] = useState('');
   const [currentFiles, setCurrentFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [textareaHeight, setTextareaHeight] = useState(60);
+  const [isCollapsed, setIsCollapsed] = useState(false); // Track if canvas content is collapsed
+  const [canvasContent, setCanvasContent] = useState(''); // Store the canvas content separately
+  const [userPrefix, setUserPrefix] = useState(''); // Text before canvas content
+  const [userSuffix, setUserSuffix] = useState(''); // Text after canvas content
+  const [isFocused, setIsFocused] = useState(false); // Track textarea focus state
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   let dragCounter = 0;
 
-  const onClickTextAnswer = async () => {
-    if (!answer.trim() && currentFiles.length === 0) return;
+  // Helper to detect content type and format it
+  const formatContent = (content: string): { formatted: string; type: 'json' | 'markdown' | 'text' } => {
+    // Try to parse as JSON
+    try {
+      const parsed = JSON.parse(content);
+      return {
+        formatted: `\`\`\`json\n${JSON.stringify(parsed, null, 2)}\n\`\`\``,
+        type: 'json'
+      };
+    } catch {
+      // Check if it looks like markdown (has markdown headers, lists, etc.)
+      if (content.match(/^#{1,6}\s/m) || content.match(/^[-*+]\s/m) || content.match(/^\d+\.\s/m)) {
+        return {
+          formatted: `\`\`\`markdown\n${content}\n\`\`\``,
+          type: 'markdown'
+        };
+      }
+      // Plain text
+      return {
+        formatted: content,
+        type: 'text'
+      };
+    }
+  };
+
+  // Create the textarea content setter callback
+  const setTextareaContentCallback = useCallback((content: string, options?: { collapse?: boolean }) => {
+    // Ensure content is a string
+    const contentStr = typeof content === 'string' ? content : String(content);
+    const shouldCollapse = options?.collapse ?? true; // Default to collapse for canvas
+
+    if (shouldCollapse) {
+      // Canvas mode: collapse content with [...] placeholder
+      setCanvasContent(contentStr);
+      setAnswer('[...]');
+      setIsCollapsed(true);
+      setUserPrefix('');
+      setUserSuffix('');
+      setTextareaHeight(60); // Keep default height for collapsed view
+    } else {
+      // Options mode: show full content directly
+      setAnswer(contentStr);
+      setCanvasContent('');
+      setIsCollapsed(false);
+      setUserPrefix('');
+      setUserSuffix('');
+    }
+
+    // Focus and adjust
+    setTimeout(() => {
+      if (!shouldCollapse) {
+        adjustTextareaHeight();
+      }
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.setSelectionRange(textareaRef.current.value.length, textareaRef.current.value.length);
+      }
+    }, 0);
+  }, []);
+
+  // Register the callback with parent
+  useEffect(() => {
+    if (onSetTextareaContent) {
+      onSetTextareaContent(setTextareaContentCallback);
+    }
+  }, [onSetTextareaContent, setTextareaContentCallback]);
+
+  const onClickTextAnswer = async (mode: 'workflow' | 'qa' = 'workflow') => {
+    // Validation: require message text
+    if (!answer.trim()) {
+      if (currentFiles.length > 0) {
+        // Files attached but no message
+        message.error('Please add a message along with your file(s)');
+      }
+      return;
+    }
+
+    // Build final answer with formatted canvas content
+    let finalAnswer = answer;
+    if (canvasContent) {
+      const { formatted } = formatContent(canvasContent);
+
+      if (isCollapsed) {
+        // If collapsed, replace [...] with formatted content
+        finalAnswer = answer.replace('[...]', formatted);
+      } else {
+        // If expanded, the answer already contains the full content
+        // Just use it as-is (user may have edited it)
+        finalAnswer = answer;
+      }
+    }
 
     onAnswer({
-      answer: answer,
-      files: currentFiles.length > 0 ? currentFiles : undefined
+      answer: finalAnswer,
+      files: currentFiles.length > 0 ? currentFiles : undefined,
+      mode: mode
     });
 
     setAnswer('');
+    setCanvasContent('');
+    setUserPrefix('');
+    setUserSuffix('');
     setCurrentFiles([]);
+    setTextareaHeight(60); // Reset to default height
+    setIsCollapsed(false); // Reset collapsed state
     form.resetFields();
   };
 
-  const onClickAttachFile = () => {
+  const handleFileAttach = async () => {
+    // Check if repository is configured
+    if (!hasRepository) {
+      // Recheck repository configuration before showing modal
+      if (onRecheckRepository) {
+        const hasRepo = await onRecheckRepository();
+        if (hasRepo) {
+          // Repository is now configured, proceed with file attach
+          fileInputRef.current?.click();
+          return;
+        }
+      }
+      // Repository still not configured, show modal
+      onShowRepositoryConfigModal?.();
+      return;
+    }
     fileInputRef.current?.click();
   };
 
@@ -111,11 +242,123 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      onClickTextAnswer();
+  // Enhanced auto-resize textarea based on content
+  const adjustTextareaHeight = useCallback(() => {
+    if (textareaRef.current) {
+      const textarea = textareaRef.current;
+
+      // Store current scroll position to maintain it
+      const scrollTop = textarea.scrollTop;
+
+      // Temporarily set height to auto to get accurate scrollHeight
+      textarea.style.height = '48px'; // Set to minHeight first to get accurate scrollHeight
+
+      // Calculate optimal height based on content
+      const scrollHeight = textarea.scrollHeight;
+      const lineHeight = 24; // Approximate line height in pixels
+      const padding = 32; // Top and bottom padding combined
+      const minLines = 2; // Minimum 2 lines
+      const maxLines = 12; // Maximum 12 lines for better UX
+
+      const minHeight = (minLines * lineHeight) + padding;
+      const maxHeight = (maxLines * lineHeight) + padding;
+
+      // Calculate new height with smooth increments
+      let newHeight = Math.max(minHeight, Math.min(maxHeight, scrollHeight));
+
+      // Round to nearest line height for smoother appearance
+      const extraHeight = newHeight - padding;
+      const roundedLines = Math.round(extraHeight / lineHeight);
+      newHeight = (roundedLines * lineHeight) + padding;
+
+      // Apply the new height with smooth transition
+      setTextareaHeight(newHeight);
+      textarea.style.height = `${newHeight}px`;
+
+      // Restore scroll position
+      textarea.scrollTop = scrollTop;
     }
+  }, []);
+
+  // Debounced resize function for better performance
+  const debouncedResize = useCallback(() => {
+    const timeoutId = setTimeout(() => {
+      adjustTextareaHeight();
+    }, 10); // Small delay for better performance
+
+    return () => clearTimeout(timeoutId);
+  }, [adjustTextareaHeight]);
+
+  // Auto-resize when content changes
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [answer, adjustTextareaHeight]);
+
+  // Enhanced paste handler with better timing
+  const handlePaste = (event: React.ClipboardEvent) => {
+    // Allow the paste to happen first, then adjust height
+    requestAnimationFrame(() => {
+      adjustTextareaHeight();
+    });
+  };
+
+  // Enhanced keyboard handling with better UX
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      if (event.shiftKey) {
+        // Shift+Enter: Add new line and resize
+        // Let the default behavior happen, then resize
+        setTimeout(() => {
+          adjustTextareaHeight();
+        }, 0);
+      } else {
+        // Enter: Submit message (only if not disabled)
+        event.preventDefault();
+        if (!disabled && (answer.trim() || currentFiles.length > 0)) {
+          onClickTextAnswer('workflow');
+        }
+      }
+    } else if (event.key === 'Escape') {
+      // Escape: Clear input or collapse canvas content
+      if (canvasContent && !isCollapsed) {
+        // Collapsing - extract user text around canvas content and replace with [...]
+        const canvasIndex = answer.indexOf(canvasContent);
+        if (canvasIndex !== -1) {
+          const prefix = answer.substring(0, canvasIndex);
+          const suffix = answer.substring(canvasIndex + canvasContent.length);
+          setUserPrefix(prefix);
+          setUserSuffix(suffix);
+          setAnswer(prefix + '[...]' + suffix);
+        } else {
+          // Fallback if canvas content not found
+          setAnswer('[...]');
+          setUserPrefix('');
+          setUserSuffix('');
+        }
+        setIsCollapsed(true);
+        setTextareaHeight(60);
+      } else if (answer.trim()) {
+        setAnswer('');
+        setTextareaHeight(60);
+      }
+    }
+  };
+
+  // Enhanced input change handler
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setAnswer(value);
+
+    // If input is completely cleared, also clear canvas content
+    if (!value.trim()) {
+      setCanvasContent('');
+      setIsCollapsed(false);
+      setUserPrefix('');
+      setUserSuffix('');
+    }
+
+    // Trigger resize with slight delay for better performance
+    debouncedResize();
   };
 
   const placeholderText = layout === 'canvas' ? 'Type here' : 'Ask Cyoda AI Assistant...';
@@ -151,56 +394,151 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
             </div>
           )}
 
-          <div className="relative">
+          {/* Expand/Collapse button - positioned above textarea */}
+          {canvasContent && (
+            <div className="mb-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (isCollapsed) {
+                    // Expanding - extract user text around [...] and replace with canvas content
+                    const collapsedMarker = '[...]';
+                    const markerIndex = answer.indexOf(collapsedMarker);
+                    if (markerIndex !== -1) {
+                      const prefix = answer.substring(0, markerIndex);
+                      const suffix = answer.substring(markerIndex + collapsedMarker.length);
+                      setUserPrefix(prefix);
+                      setUserSuffix(suffix);
+                      setAnswer(prefix + canvasContent + suffix);
+                    } else {
+                      // Fallback if marker not found
+                      setAnswer(canvasContent);
+                    }
+                    setIsCollapsed(false);
+                    // Auto-adjust height after expanding
+                    requestAnimationFrame(() => {
+                      adjustTextareaHeight();
+                    });
+                  } else {
+                    // Collapsing - extract user text around canvas content and replace with [...]
+                    const canvasIndex = answer.indexOf(canvasContent);
+                    if (canvasIndex !== -1) {
+                      const prefix = answer.substring(0, canvasIndex);
+                      const suffix = answer.substring(canvasIndex + canvasContent.length);
+                      setUserPrefix(prefix);
+                      setUserSuffix(suffix);
+                      setAnswer(prefix + '[...]' + suffix);
+                    } else {
+                      // Fallback if canvas content not found (user may have edited it)
+                      // In this case, just collapse without preserving user text
+                      setAnswer('[...]');
+                      setUserPrefix('');
+                      setUserSuffix('');
+                    }
+                    setIsCollapsed(true);
+                    setTextareaHeight(48); // Use new minimum height
+                  }
+                }}
+                className="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 text-slate-300 hover:text-white rounded-lg text-xs font-medium transition-all duration-200 flex items-center space-x-2"
+                title={isCollapsed ? "Click to expand canvas content" : "Click to collapse canvas content"}
+              >
+                <svg
+                  className="w-3 h-3 text-slate-400"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  {isCollapsed ? (
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  ) : (
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                  )}
+                </svg>
+                <span>Canvas Content</span>
+                <span className="text-slate-500">•</span>
+                <span className="text-slate-400">{isCollapsed ? 'Collapsed' : 'Expanded'}</span>
+              </button>
+            </div>
+          )}
+
+          <div className={`relative overflow-hidden rounded-2xl border-2 transition-all duration-300 ${isFocused ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-600'}`}>
             <textarea
               ref={textareaRef}
               value={answer}
-              onChange={(e) => {
-                setAnswer(e.target.value);
-                // Auto-resize on change without causing jump
-                const target = e.target as HTMLTextAreaElement;
-                // Temporarily set height to auto to get the correct scrollHeight
-                const currentHeight = target.style.height;
-                target.style.height = 'auto';
-                const newHeight = Math.min(Math.max(target.scrollHeight, 60), 150);
-                target.style.height = currentHeight; // Restore immediately
-                setTextareaHeight(newHeight);
-              }}
+              onChange={handleInputChange}
+              onPaste={handlePaste}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
               placeholder={placeholderText}
               onKeyDown={handleKeyDown}
-              disabled={disabled}
               rows={1}
-              className="w-full bg-slate-800/80 backdrop-blur-sm border-2 border-slate-600 rounded-2xl px-6 pr-24 py-4 pb-12 text-white placeholder-slate-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-colors duration-200 resize-none text-lg"
+              className="w-full bg-slate-800/80 backdrop-blur-sm text-white placeholder-slate-400 focus:outline-none resize-none text-lg"
               style={{
                 height: `${textareaHeight}px`,
-                minHeight: '60px',
-                maxHeight: '150px',
-                overflowY: textareaHeight >= 150 ? 'auto' : 'hidden'
+                minHeight: '64px',
+                maxHeight: '300px',
+                overflowY: textareaHeight >= 300 ? 'auto' : 'hidden',
+                lineHeight: '1.5',
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'rgb(148 163 184) transparent',
+                padding: '18px 80px 18px 24px'
               }}
             />
 
             {/* Bottom Right Controls - Lovable Style */}
-            <div className="absolute right-5 bottom-6 flex items-center gap-2">
+            <div className="absolute right-4 bottom-4 flex items-center" style={{ gap: '0.25rem' }}>
               {/* Attach File Button */}
               <button
                 type="button"
-                onClick={onClickAttachFile}
+                onClick={handleFileAttach}
                 disabled={disabled}
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-1.5 rounded-lg hover:scale-110 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ transform: 'translateY(5%)' }}
                 title="Attach file"
               >
-                <Paperclip size={18} />
+                <Paperclip
+                  size={20}
+                  className="text-slate-400 hover:text-slate-300 transition-colors duration-200"
+                  strokeWidth={2}
+                />
               </button>
 
-              {/* Send Button */}
-              <button
-                type="submit"
-                disabled={disabled || (!answer.trim() && currentFiles.length === 0)}
-                className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:opacity-50 text-white p-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-teal-500/25 disabled:cursor-not-allowed"
-                title="Send Message (Enter)"
-              >
-                <Send size={18} />
-              </button>
+              {/* Conditional Button - Send or Stop based on AI thinking state */}
+              {isAIThinking && onStopRequest ? (
+                /* Stop Button when AI is thinking - Spinner only */
+                <button
+                  type="button"
+                  onClick={onStopRequest}
+                  className="p-1.5 rounded-lg hover:scale-110 transition-all duration-200 flex items-center justify-center"
+                  style={{ transform: 'translateY(5%)' }}
+                  title="Stop AI request"
+                >
+                  {/* Circular preloader */}
+                  <div className="w-5 h-5 border-2 border-slate-600 border-t-teal-500 rounded-full animate-spin"></div>
+                </button>
+              ) : (
+                /* Send Button when not thinking - Icon only with color change */
+                <button
+                  type="button"
+                  onClick={() => onClickTextAnswer('workflow')}
+                  disabled={disabled || (!(typeof answer === 'string' && answer.trim()) && currentFiles.length === 0)}
+                  className="p-1.5 rounded-lg transition-all duration-200 flex items-center justify-center group hover:scale-110 disabled:cursor-not-allowed"
+                  style={{
+                    transform: 'translateY(5%)'
+                  }}
+                  title="Send message (Enter)"
+                >
+                  <Send
+                    size={20}
+                    className="transition-all duration-200"
+                    strokeWidth={2}
+                    style={{
+                      color: disabled || (!(typeof answer === 'string' && answer.trim()) && currentFiles.length === 0)
+                        ? '#0D8484' // темная бирюзовая - как логотип CYODA
+                        : '#14b8a6' // teal-500 - яркая бирюзовая когда активна
+                    }}
+                  />
+                </button>
+              )}
             </div>
 
             <input
@@ -216,6 +554,8 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
 
         </div>
       </Form>
+
+
     </div>
   );
 };

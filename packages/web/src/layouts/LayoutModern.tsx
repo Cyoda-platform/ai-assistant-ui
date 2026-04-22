@@ -142,7 +142,7 @@ const LayoutModern: React.FC<LayoutModernProps> = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="h-screen flex flex-col bg-slate-900 text-white">
       {/* Header */}
       <header className="border-b border-slate-700 bg-slate-800/80 backdrop-blur-md sticky top-0 z-40">
         <div className="flex items-center justify-between px-6 py-3">
@@ -271,7 +271,7 @@ const LayoutModern: React.FC<LayoutModernProps> = ({ children }) => {
         </div>
       </header>
 
-      <div className="flex h-[calc(100vh-73px)]">
+      <div className="flex flex-1 overflow-hidden">
         {/* Enhanced Left Sidebar */}
         <div className="w-64 bg-slate-800/90 backdrop-blur-sm border-r border-slate-700 flex flex-col">
           {/* Quick Actions */}
@@ -493,7 +493,13 @@ const example = 'Hello World';
               <button
                 type="submit"
                 disabled={!chatInput.trim()}
-                className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:from-slate-600 disabled:to-slate-700 text-white p-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed"
+                className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 disabled:from-slate-600 disabled:to-slate-700 text-white p-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
+                style={{
+                  transform: 'translateY(15%)',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(15%) scale(1.05)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(15%) scale(1)'}
                 title="Send Message"
               >
                 <Send size={20} />
@@ -521,12 +527,6 @@ const example = 'Hello World';
           isOpen={isEntityDataOpen}
           onClose={() => setIsEntityDataOpen(false)}
           chatData={null} // TODO: Pass actual chat data from props or context
-          onRefresh={() => {
-            // TODO: Implement refresh functionality
-          }}
-          onRollbackChat={() => {
-            // TODO: Implement rollback functionality
-          }}
         />
       </div>
 

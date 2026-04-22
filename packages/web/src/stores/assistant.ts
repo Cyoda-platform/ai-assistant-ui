@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 import privateClient from "@/clients/private";
 import type { CreateChatRequest, CreateChatResponse, ChatResponse, ChatData } from "@/types/chat";
+import type { SSEChatEvent } from "@/types/streaming";
 import HelperStorage from "../helpers/HelperStorage";
 import { useAuthStore } from "./auth";
+import streamingService from "@/services/streamingService";
 
 const helperStorage = new HelperStorage();
 
@@ -13,6 +15,10 @@ interface AssistantStore {
   guestChatsExist: boolean;
   isLoadingChats: boolean;
   isTransferringChats: boolean;
+  pointInTime: string | null;
+  nextPointInTime: string | null;
+  hasMoreChats: boolean;
+  isLoadingMoreChats: boolean;
 
   // Getters
   isExistChats: boolean;
@@ -25,7 +31,9 @@ interface AssistantStore {
   postTextQuestions: (technical_id: string, data: any) => Promise<any>;
   postQuestions: (technical_id: string, data: any) => Promise<any>;
   postWorkflowQuestions: (data: any) => Promise<any>;
-  getChats: () => Promise<any>;
+  postCanvasQuestion: (data: any) => Promise<any>;
+  getChats: (reset?: boolean) => Promise<any>;
+  loadMoreChats: () => Promise<any>;
   getChatById: (technical_id: string, params?: any) => Promise<any>;
   deleteChatById: (technical_id: string) => Promise<any>;
   renameChatById: (technical_id: string, data: any) => Promise<any>;
@@ -34,6 +42,25 @@ interface AssistantStore {
   putNotification: (technical_id: string, data: any) => Promise<any>;
   setGuestChatsExist: (value: boolean) => boolean;
   setIsTransferringChats: (value: boolean) => void;
+
+  // Streaming Actions
+  streamChatMessage: (
+    conversationId: string,
+    message: string,
+    onEvent: (event: SSEChatEvent) => void,
+    onError?: (error: Error) => void,
+    onComplete?: () => void,
+    files?: File[],
+    adkSessionId?: string
+  ) => Promise<AbortController>;
+
+  retryChatMessage: (
+    conversationId: string,
+    message: string,
+    onEvent: (event: SSEChatEvent) => void,
+    onError?: (error: Error) => void,
+    onComplete?: () => void
+  ) => Promise<AbortController>;
 }
 
 // Check if we're in the middle of an Auth0 login flow
@@ -53,6 +80,10 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
   guestChatsExist: helperStorage.get('assistant:guestChatsExist', false),
   isLoadingChats: false,
   isTransferringChats: isInLoginFlow(), // Start as true if we're in login flow
+  pointInTime: null,
+  nextPointInTime: null,
+  hasMoreChats: false,
+  isLoadingMoreChats: false,
 
   // Getters
   get isExistChats() {
@@ -90,7 +121,11 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
     return privateClient.post(`/v1/chats/workflow-questions`, data);
   },
 
-  async getChats() {
+  postCanvasQuestion(data: any) {
+    return privateClient.post(`/v1/chats/canvas-questions`, data);
+  },
+
+  async getChats(reset = false, pointInTime?: string) {
     // Prevent concurrent calls
     const state = get();
     if (state.isLoadingChats) {
@@ -108,14 +143,39 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
       const authState = useAuthStore.getState();
       const isSuperMode = authState.superUserMode && authState.isCyodaEmployee;
 
+      // Reset pagination if requested
+      if (reset) {
+        set({ chatList: null, pointInTime: null, nextPointInTime: null, hasMoreChats: false });
+      }
+
       // Build query params
       const params: any = {};
       if (isSuperMode) {
         params.super = 'true';
+        // Add selectedUserId if available
+        if (authState.selectedUserId) {
+          params.target_user_id = authState.selectedUserId;
+        }
       }
 
+      // Use provided point_in_time for pagination (Cyoda's point-in-time snapshot)
+      if (pointInTime) {
+        params.point_in_time = pointInTime;
+      }
+
+      console.log('📋 Loading chats with point_in_time:', pointInTime || 'none (first page)');
       const response = await privateClient.get<ChatResponse>(`/v1/chats`, { params });
-      set({ chatList: response.data.chats, chatListReady: true });
+
+      // Update state with pagination info
+      set({
+        chatList: response.data.chats,
+        chatListReady: true,
+        pointInTime: response.data.point_in_time || null,
+        nextPointInTime: response.data.next_point_in_time || null,
+        hasMoreChats: response.data.has_more || false
+      });
+
+      console.log('📋 Loaded chats. Next point_in_time:', response.data.next_point_in_time, 'Has more:', response.data.has_more);
       return response;
     } catch (error: any) {
       console.error('❌ Failed to fetch chats:', error.message || error);
@@ -123,6 +183,40 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
       throw error;
     } finally {
       set({ isLoadingChats: false });
+    }
+  },
+
+  async loadMoreChats() {
+    const state = get();
+
+    // Check if we have a next point_in_time to load
+    if (!state.nextPointInTime) {
+      console.log('📋 No next point_in_time available');
+      return;
+    }
+
+    set({ isLoadingMoreChats: true });
+    try {
+      console.log('📋 Loading more chats with point_in_time:', state.nextPointInTime);
+
+      // Use same getChats function with nextPointInTime
+      const response = await this.getChats(false, state.nextPointInTime);
+
+      // Append new chats to existing list instead of replacing
+      const currentChats = state.chatList || [];
+      const newChats = response?.data.chats || [];
+
+      set({
+        chatList: [...currentChats, ...newChats]
+      });
+
+      console.log(`✅ Loaded ${newChats.length} more chats. Total: ${currentChats.length + newChats.length}`);
+      return response;
+    } catch (error: any) {
+      console.error('❌ Failed to load more chats:', error.message || error);
+      throw error;
+    } finally {
+      set({ isLoadingMoreChats: false });
     }
   },
 
@@ -140,6 +234,10 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
         ...(config.params || {}),
         super: 'true'
       };
+      // Add selectedUserId if available
+      if (authState.selectedUserId) {
+        config.params.target_user_id = authState.selectedUserId;
+      }
     }
 
     return privateClient.get(`/v1/chats/${technical_id}`, config);
@@ -173,5 +271,51 @@ export const useAssistantStore = create<AssistantStore>((set, get) => ({
 
   setIsTransferringChats(value: boolean) {
     set({ isTransferringChats: value });
+  },
+
+  // Streaming Actions
+  async streamChatMessage(
+    conversationId: string,
+    message: string,
+    onEvent: (event: SSEChatEvent) => void,
+    onError?: (error: Error) => void,
+    onComplete?: () => void,
+    files?: File[],
+    adkSessionId?: string
+  ) {
+    const authState = useAuthStore.getState();
+    const token = authState.token || '';
+
+    return streamingService.streamChatMessage(
+      conversationId,
+      message,
+      token,
+      onEvent,
+      onError,
+      onComplete,
+      files,
+      adkSessionId
+    );
+  },
+
+  // Retry streaming method
+  async retryChatMessage(
+    conversationId: string,
+    message: string,
+    onEvent: (event: SSEChatEvent) => void,
+    onError?: (error: Error) => void,
+    onComplete?: () => void
+  ) {
+    const authState = useAuthStore.getState();
+    const token = authState.token || '';
+
+    return streamingService.retryChatMessage(
+      conversationId,
+      message,
+      token,
+      onEvent,
+      onError,
+      onComplete
+    );
   }
 }));

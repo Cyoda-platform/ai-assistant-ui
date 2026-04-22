@@ -1,0 +1,102 @@
+{
+  "version": "1.0.0",
+  "environments": [
+    {
+      "environmentId": "production",
+      "environmentName": "Production",
+      "diagrams": [
+        {
+          "id": "prod-architecture",
+          "name": "System Architecture",
+          "description": "Production system architecture overview",
+          "library": "mermaid",
+          "diagramType": "flowchart",
+          "theme": "dark",
+          "content": "graph TB\n    A[Load Balancer] --> B[Web Server 1]\n    A --> C[Web Server 2]\n    B --> D[Application Server]\n    C --> D\n    D --> E[Database Primary]\n    D --> F[Cache Redis]\n    E --> G[Database Replica]",
+          "position": {
+            "x": 100,
+            "y": 100
+          }
+        },
+        {
+          "id": "prod-sequence",
+          "name": "Request Flow",
+          "description": "API request sequence diagram",
+          "library": "mermaid",
+          "diagramType": "sequence",
+          "theme": "dark",
+          "content": "sequenceDiagram\n    participant Client\n    participant API\n    participant Auth\n    participant DB\n    \n    Client->>API: HTTP Request\n    API->>Auth: Validate Token\n    Auth-->>API: Token Valid\n    API->>DB: Query Data\n    DB-->>API: Return Data\n    API-->>Client: HTTP Response",
+          "position": {
+            "x": 600,
+            "y": 100
+          }
+        }
+      ]
+    },
+    {
+      "environmentId": "staging",
+      "environmentName": "Staging",
+      "diagrams": [
+        {
+          "id": "staging-workflow",
+          "name": "Testing Workflow",
+          "description": "QA testing process",
+          "library": "mermaid",
+          "diagramType": "flowchart",
+          "theme": "dark",
+          "content": "graph TD\n    A[New Feature] --> B[Unit Tests]\n    B --> C[Integration Tests]\n    C --> D{All Tests Pass?}\n    D -->|Yes| E[Deploy to Staging]\n    D -->|No| F[Fix Issues]\n    F --> B",
+          "position": {
+            "x": 100,
+            "y": 100
+          }
+        },
+        {
+          "id": "staging-state",
+          "name": "Feature State Machine",
+          "description": "Feature lifecycle states",
+          "library": "mermaid",
+          "diagramType": "state",
+          "theme": "dark",
+          "content": "stateDiagram-v2\n    [*] --> Draft\n    Draft --> InReview: Submit\n    InReview --> Draft: Request Changes\n    InReview --> Testing: Approve\n    Testing --> InReview: Failed\n    Testing --> Staging: Passed\n    Staging --> Production: Deploy\n    Production --> [*]",
+          "position": {
+            "x": 600,
+            "y": 100
+          }
+        }
+      ]
+    },
+    {
+      "environmentId": "development",
+      "environmentName": "Development",
+      "diagrams": [
+        {
+          "id": "dev-er",
+          "name": "Database Schema",
+          "description": "Entity relationship diagram",
+          "library": "mermaid",
+          "diagramType": "er",
+          "theme": "dark",
+          "content": "erDiagram\n    USER ||--o{ ORDER : places\n    USER {\n        string id PK\n        string name\n        string email\n    }\n    ORDER ||--|{ ORDER_ITEM : contains\n    ORDER {\n        string id PK\n        string user_id FK\n        decimal total\n    }\n    PRODUCT ||--o{ ORDER_ITEM : ordered_in\n    PRODUCT {\n        string id PK\n        string name\n        decimal price\n    }",
+          "position": {
+            "x": 100,
+            "y": 100
+          }
+        },
+        {
+          "id": "dev-class",
+          "name": "Class Diagram",
+          "description": "Core application classes",
+          "library": "mermaid",
+          "diagramType": "class",
+          "theme": "dark",
+          "content": "classDiagram\n    class User {\n        +String id\n        +String name\n        +String email\n        +login()\n        +logout()\n    }\n    class Order {\n        +String id\n        +User user\n        +calculateTotal()\n        +submit()\n    }\n    User \"1\" --> \"*\" Order",
+          "position": {
+            "x": 600,
+            "y": 100
+          }
+        }
+      ]
+    }
+  ]
+}
+

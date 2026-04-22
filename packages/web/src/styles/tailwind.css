@@ -15,6 +15,17 @@ html {
   color-scheme: dark;
 }
 
+/* Override Tailwind Typography (prose) link colors to match orange theme */
+.prose a {
+  color: rgb(251 146 60) !important; /* orange-400 */
+  text-decoration: none;
+}
+
+.prose a:hover {
+  color: rgb(249 115 22) !important; /* orange-500 */
+  text-decoration: underline;
+}
+
 /* Custom scrollbar styles */
 @layer utilities {
   .scrollbar-thin {
@@ -49,6 +60,52 @@ html {
   }
 }
 
+  /* Canvas QA message styles - Pink/Purple theme */
+  .canvas-qa-question {
+    background: linear-gradient(135deg, rgb(126 34 206 / 0.15), rgb(168 85 247 / 0.1)) !important;
+    border-color: rgb(168 85 247 / 0.3) !important;
+  }
+
+  .canvas-qa-answer {
+    background: linear-gradient(135deg, rgb(168 85 247 / 0.2), rgb(192 132 252 / 0.15)) !important;
+    border-color: rgb(192 132 252 / 0.4) !important;
+  }
+
+  /* Shimmer animation for Send to Chat button */
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 3s infinite;
+  }
+
+  /* Logo circular border animation */
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Logo hover effects - keep everything exactly the same */
+
+  /* Hide specific night-themed elements on hover */
+  .logo-container:hover .night-border-glow {
+    opacity: 0 !important;
+  }
+
+  .logo-container:hover .night-inner-glow {
+    opacity: 0 !important;
+  }
+
 /* Glassmorphism effects */
 @layer components {
   .glass {
@@ -69,13 +126,13 @@ html {
     backdrop-filter: blur(4px);
     border: 1px solid rgb(51 65 85);
     border-radius: 1rem;
-    border-top-right-radius: 0.375rem;
+    border-top-left-radius: 0.375rem;
     box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
     /* Remove transition to prevent layout shifts when messages appear */
     /* transition: all 0.2s ease-in-out; */
 
-    /* Dynamic padding based on content - reduced */
-    padding: clamp(0.375rem, 1vw + 0.2rem, 0.75rem) clamp(0.5rem, 1.5vw + 0.375rem, 1rem);
+    /* Fixed padding for consistent spacing */
+    padding: 1.5rem;
 
     /* Responsive width based on content */
     width: fit-content;
@@ -98,12 +155,12 @@ html {
 
   /* Size variants for different text lengths */
   .text-responsive-container.compact {
-    padding: clamp(0.3rem, 0.75vw + 0.15rem, 0.5rem) clamp(0.4rem, 1vw + 0.3rem, 0.75rem);
+    padding: clamp(0.6rem, 1vw + 0.4rem, 1rem) clamp(0.8rem, 1.5vw + 0.6rem, 1.25rem);
     min-width: 80px;
   }
 
   .text-responsive-container.comfortable {
-    padding: clamp(0.5rem, 1.5vw + 0.375rem, 1rem) clamp(0.75rem, 2vw + 0.5rem, 1.5rem);
+    padding: clamp(0.75rem, 1.5vw + 0.5rem, 1.25rem) clamp(1rem, 2vw + 0.75rem, 1.5rem);
     min-width: 150px;
   }
 
@@ -113,6 +170,11 @@ html {
       padding: 0.75rem 1rem;
       min-width: 0;
       width: 100%;
+    }
+
+    /* Ensure adequate padding for user messages with copy button on mobile */
+    .text-responsive-container.user-message {
+      padding-right: 2.5rem; /* Increased from 1rem to make room for copy button */
     }
   }
 
@@ -173,8 +235,8 @@ html {
     color: rgb(241 245 249); /* slate-100 */
     margin-left: auto;
     margin-bottom: 0;
-    border-top-left-radius: 0.375rem; /* rounded-tl-md */
-    border-top-right-radius: 1rem; /* rounded-tr-2xl */
+    border-top-left-radius: 1rem; /* rounded-tl-2xl */
+    border-top-right-radius: 0.375rem; /* rounded-tr-md */
     border-bottom-left-radius: 1rem;
     border-bottom-right-radius: 1rem;
     overflow: visible; /* Prevent scroll bars in message containers */
@@ -191,8 +253,8 @@ html {
     border-color: rgb(51 65 85);
     color: rgb(203 213 225); /* slate-300 */
     margin-right: auto;
-    border-top-left-radius: 1rem;
-    border-top-right-radius: 0.375rem; /* rounded-tr-md */
+    border-top-left-radius: 0.375rem; /* rounded-tl-md */
+    border-top-right-radius: 1rem;
     border-bottom-left-radius: 1rem;
     border-bottom-right-radius: 1rem;
     overflow: visible; /* Prevent scroll bars in message containers */
@@ -225,6 +287,140 @@ html {
   }
 }
 
+/* Responsive Design Utilities - Comprehensive Breakpoint System */
+@layer utilities {
+  /* Mobile-first responsive utilities */
+
+  /* Mobile viewport height fix for iOS Safari */
+  @supports (height: 100svh) {
+    html, body, #app {
+      height: 100svh;
+    }
+  }
+
+  /* Touch-friendly minimum sizes for mobile */
+  @media (max-width: 640px) {
+    /* Minimum touch target size of 44x44px */
+    button:not(.btn-sm),
+    a:not(.text-link),
+    [role="button"] {
+      min-width: 44px;
+      min-height: 44px;
+    }
+
+    /* Constrain panel widths on mobile */
+    .resizable-panel {
+      max-width: 100vw !important;
+      min-width: 0 !important;
+    }
+
+    /* Stack layouts vertically on mobile */
+    .responsive-stack {
+      flex-direction: column !important;
+    }
+  }
+
+  /* Tablet optimizations (641px - 1024px) */
+  @media (min-width: 641px) and (max-width: 1024px) {
+    /* Optimize panel widths for tablets */
+    .resizable-panel {
+      /* Removed max-width constraint to allow free resizing */
+      min-width: 280px;
+    }
+
+    /* Better spacing for tablet viewports */
+    .responsive-container {
+      padding: 1.5rem;
+    }
+  }
+
+  /* Desktop optimizations (1025px+) */
+  @media (min-width: 1025px) {
+    /* Optimal reading widths for large screens */
+    .content-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Allow wider panels on desktop */
+    .resizable-panel {
+      /* Removed max-width constraint to allow free resizing */
+      min-width: 320px;
+    }
+  }
+
+  /* Large monitor optimizations (1920px+) */
+  @media (min-width: 1920px) {
+    /* Prevent excessive line length on large displays */
+    .content-container {
+      max-width: 1600px;
+    }
+
+    /* Scale up spacing proportionally */
+    .responsive-container {
+      padding: 3rem;
+    }
+  }
+
+  /* Ultra-wide optimizations (2560px+) */
+  @media (min-width: 2560px) {
+    .content-container {
+      max-width: 2000px;
+    }
+  }
+
+  /* Responsive typography scale */
+  .text-responsive-xs {
+    font-size: clamp(0.625rem, 0.5vw + 0.5rem, 0.75rem);
+  }
+
+  .text-responsive-sm {
+    font-size: clamp(0.75rem, 0.6vw + 0.6rem, 0.875rem);
+  }
+
+  .text-responsive-base {
+    font-size: clamp(0.875rem, 0.8vw + 0.7rem, 1rem);
+  }
+
+  .text-responsive-lg {
+    font-size: clamp(1rem, 1vw + 0.8rem, 1.125rem);
+  }
+
+  .text-responsive-xl {
+    font-size: clamp(1.125rem, 1.2vw + 0.9rem, 1.25rem);
+  }
+
+  .text-responsive-2xl {
+    font-size: clamp(1.25rem, 1.5vw + 1rem, 1.5rem);
+  }
+
+  .text-responsive-3xl {
+    font-size: clamp(1.5rem, 2vw + 1.2rem, 1.875rem);
+  }
+
+  .text-responsive-4xl {
+    font-size: clamp(1.875rem, 2.5vw + 1.5rem, 2.25rem);
+  }
+
+  /* Responsive spacing utilities */
+  .spacing-responsive-sm {
+    padding: clamp(0.5rem, 1vw, 1rem);
+  }
+
+  .spacing-responsive-md {
+    padding: clamp(1rem, 2vw, 2rem);
+  }
+
+  .spacing-responsive-lg {
+    padding: clamp(1.5rem, 3vw, 3rem);
+  }
+
+  /* Responsive grid gap utilities */
+  .gap-responsive {
+    gap: clamp(0.5rem, 1.5vw, 1.5rem);
+  }
+}
+
 /* Animation keyframes */
 @keyframes fadeInUp {
   from {
@@ -245,6 +441,17 @@ html {
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -289,6 +496,10 @@ html {
 
 .animate-slide-in-left {
   animation: slideInLeft 0.3s ease-out;
+}
+
+.animate-slideInDown {
+  animation: slideInDown 0.3s ease-out;
 }
 
 .animate-scale-in {
@@ -491,11 +702,14 @@ html, body {
 /* Main layout containers - full viewport, no outer scrolling */
 .main-layout {
   height: 100vh;
+  height: 100dvh; /* Use dynamic viewport height for better mobile support */
   width: 100vw;
   overflow: hidden; /* No outer scrolling */
   position: fixed; /* Prevent any body scrolling */
   top: 0;
   left: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .main-content {
@@ -581,16 +795,8 @@ html, body {
   animation: fadeInScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Fashionable Login Modal Styles - matching workflow editor design */
-.fashionable-login-modal .ant-modal-content {
-  overflow: hidden;
-  border-radius: 1rem; /* rounded-2xl */
-  padding: 32px;
-  background: rgb(17, 24, 39); /* bg-gray-900 */
-  border: 2px solid rgb(107, 33, 168); /* border-2 border-purple-800 */
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* shadow-2xl */
-  animation: slideInFromBottom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
+/* Fashionable Login Modal Styles - matching ErrorModal design */
+/* Most styles are now inline in the component */
 
 @keyframes slideInFromBottom {
   from {
@@ -666,19 +872,14 @@ html, body {
 }
 
 .fashionable-login-modal .ant-modal-close {
-  top: 20px;
-  right: 20px;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  top: 24px;
+  right: 24px;
+  width: auto;
+  height: auto;
 }
 
 .fashionable-login-modal .ant-modal-close:hover {
-  background-color: rgba(71, 85, 105, 0.3);
+  background-color: transparent;
 }
 
 /* Remove icon pulse animation - keeping it simple */
@@ -711,6 +912,302 @@ html, body {
   to {
     opacity: 1;
   }
+}
+
+/* Repository Config Modal Styles */
+.repository-config-modal .ant-modal-content {
+  background: linear-gradient(135deg, rgb(30, 41, 59) 0%, rgb(51, 65, 85) 100%);
+  border: 1px solid rgb(71, 85, 105);
+  border-radius: 16px;
+  padding: 0;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.repository-config-modal .ant-modal-header {
+  background: transparent;
+  border-bottom: 1px solid rgb(71, 85, 105);
+  padding: 24px 24px 16px;
+}
+
+.repository-config-modal .ant-modal-title {
+  color: rgb(226, 232, 240);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.repository-config-modal .ant-modal-body {
+  padding: 0 24px 24px;
+}
+
+.repository-config-modal .ant-modal-footer {
+  border-top: 1px solid rgb(71, 85, 105);
+  padding: 16px 24px;
+  background: transparent;
+}
+
+/* Confirmation Dialog Styles - Terms & Conditions */
+.ant-modal.confirmation-dialog .ant-modal-content {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+  border: 1px solid #334155 !important;
+  border-radius: 12px !important;
+  padding: 0;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4) !important;
+}
+
+.ant-modal.confirmation-dialog .ant-modal-header {
+  background: transparent !important;
+  border-bottom: 1px solid #334155 !important;
+  padding: 20px 24px 16px;
+}
+
+.ant-modal.confirmation-dialog .ant-modal-body {
+  padding: 0 24px;
+  background: transparent !important;
+}
+
+.ant-modal.confirmation-dialog .ant-modal-footer {
+  border-top: 1px solid #334155 !important;
+  padding: 16px 24px;
+  background: transparent !important;
+}
+
+/* Force teal button styling for confirmation dialog - Maximum specificity */
+.confirmation-dialog .ant-modal-footer .ant-btn.ant-btn-primary.ant-btn-color-primary.ant-btn-variant-solid {
+  background: linear-gradient(to right, rgb(20, 184, 166), rgb(13, 148, 136)) !important;
+  background-color: rgb(20, 184, 166) !important;
+  border-color: rgb(20, 184, 166) !important;
+  color: rgb(255, 255, 255) !important;
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3) !important;
+  border-radius: 8px !important;
+}
+
+.confirmation-dialog .ant-modal-footer .ant-btn.ant-btn-primary.ant-btn-color-primary.ant-btn-variant-solid:hover,
+.confirmation-dialog .ant-modal-footer .ant-btn.ant-btn-primary.ant-btn-color-primary.ant-btn-variant-solid:focus {
+  background: linear-gradient(to right, rgb(13, 148, 136), rgb(15, 118, 110)) !important;
+  background-color: rgb(13, 148, 136) !important;
+  border-color: rgb(13, 148, 136) !important;
+  color: rgb(255, 255, 255) !important;
+  box-shadow: 0 6px 16px rgba(20, 184, 166, 0.4) !important;
+}
+
+.confirmation-dialog .ant-modal-footer .ant-btn.ant-btn-primary.ant-btn-color-primary.ant-btn-variant-solid:disabled {
+  background: linear-gradient(to right, rgb(71, 85, 105), rgb(51, 65, 85)) !important;
+  background-color: rgb(71, 85, 105) !important;
+  border-color: rgb(71, 85, 105) !important;
+  color: rgb(148, 163, 184) !important;
+  opacity: 0.6 !important;
+  box-shadow: none !important;
+}
+
+/* Additional fallback with even higher specificity */
+.ant-modal.confirmation-dialog .ant-modal-footer .ant-btn-primary {
+  background: linear-gradient(to right, rgb(20, 184, 166), rgb(13, 148, 136)) !important;
+  background-color: rgb(20, 184, 166) !important;
+  border-color: rgb(20, 184, 166) !important;
+  border-radius: 8px !important;
+}
+
+.ant-modal.confirmation-dialog .ant-modal-footer .ant-btn-primary:hover {
+  background: linear-gradient(to right, rgb(13, 148, 136), rgb(15, 118, 110)) !important;
+  background-color: rgb(13, 148, 136) !important;
+  border-color: rgb(13, 148, 136) !important;
+}
+
+/* Silver Accept Button - Custom styling */
+.silver-accept-button.ant-btn {
+  background: linear-gradient(to right, rgb(203, 213, 225), rgb(148, 163, 184)) !important;
+  background-color: rgb(203, 213, 225) !important;
+  border-color: rgb(148, 163, 184) !important;
+  color: rgb(0, 0, 0) !important;
+  box-shadow: none !important;
+}
+
+.silver-accept-button.ant-btn:hover,
+.silver-accept-button.ant-btn:focus {
+  background: linear-gradient(to right, rgb(226, 232, 240), rgb(203, 213, 225)) !important;
+  background-color: rgb(226, 232, 240) !important;
+  border-color: rgb(203, 213, 225) !important;
+  color: rgb(0, 0, 0) !important;
+  box-shadow: none !important;
+}
+
+.silver-accept-button.ant-btn:disabled {
+  background: linear-gradient(to right, rgb(71, 85, 105), rgb(51, 65, 85)) !important;
+  background-color: rgb(71, 85, 105) !important;
+  border-color: rgb(71, 85, 105) !important;
+  color: rgb(148, 163, 184) !important;
+  opacity: 0.6 !important;
+  box-shadow: none !important;
+}
+
+/* Terms & Conditions and Privacy Policy Button Styling */
+.terms-conditions-button,
+.privacy-policy-button {
+  color: rgb(0, 0, 0) !important;
+  text-decoration: none !important;
+}
+
+.terms-conditions-button:hover,
+.privacy-policy-button:hover,
+.terms-conditions-button:focus,
+.privacy-policy-button:focus,
+.terms-conditions-button:visited,
+.privacy-policy-button:visited {
+  color: rgb(0, 0, 0) !important;
+  text-decoration: none !important;
+}
+
+/* Enhanced Canvas Modal Styles - for workflow/entity/requirement creation */
+.canvas-modal .ant-modal-content {
+  overflow: hidden;
+  border-radius: 1rem; /* rounded-2xl */
+  padding: 0;
+  background: rgba(17, 24, 39, 0.95); /* bg-gray-900 with transparency */
+  backdrop-filter: blur(16px);
+  border: 2px solid rgb(20, 184, 166); /* border-2 border-teal-500 */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(20, 184, 166, 0.1); /* shadow-2xl + teal glow */
+  animation: slideInFromBottom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.canvas-modal .ant-modal-header {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(51, 65, 85, 0.6) 100%);
+  border-bottom: 1px solid rgba(71, 85, 105, 0.6);
+  padding: 24px 32px 20px;
+  margin: 0;
+  border-radius: 1rem 1rem 0 0;
+}
+
+.canvas-modal .ant-modal-title {
+  color: rgb(226, 232, 240);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.canvas-modal .ant-modal-body {
+  padding: 32px;
+  background: transparent;
+  color: rgb(226, 232, 240);
+}
+
+.canvas-modal .ant-modal-footer {
+  border-top: 1px solid rgba(71, 85, 105, 0.6);
+  padding: 20px 32px 24px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(51, 65, 85, 0.4) 100%);
+  border-radius: 0 0 1rem 1rem;
+}
+
+.canvas-modal .ant-modal-close {
+  top: 20px;
+  right: 20px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  color: rgb(148, 163, 184);
+}
+
+.canvas-modal .ant-modal-close:hover {
+  background-color: rgba(20, 184, 166, 0.1);
+  color: rgb(20, 184, 166);
+}
+
+/* Canvas Modal Input Styling */
+.canvas-modal .ant-input,
+.canvas-modal .ant-input-affix-wrapper,
+.canvas-modal .ant-select .ant-select-selector {
+  background: rgba(30, 41, 59, 0.8) !important;
+  border: 1px solid rgba(71, 85, 105, 0.8) !important;
+  border-radius: 8px !important;
+  color: rgb(226, 232, 240) !important;
+  transition: all 0.2s ease !important;
+}
+
+.canvas-modal .ant-input:hover,
+.canvas-modal .ant-input-affix-wrapper:hover,
+.canvas-modal .ant-select .ant-select-selector:hover {
+  border-color: rgba(20, 184, 166, 0.6) !important;
+  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.1) !important;
+}
+
+.canvas-modal .ant-input:focus,
+.canvas-modal .ant-input-affix-wrapper:focus,
+.canvas-modal .ant-input-focused .ant-select-selector {
+  border-color: rgb(20, 184, 166) !important;
+  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2) !important;
+}
+
+.canvas-modal .ant-input::placeholder {
+  color: rgba(148, 163, 184, 0.7) !important;
+}
+
+/* Canvas Modal Button Styling */
+.canvas-modal .ant-btn-primary {
+  background: linear-gradient(135deg, rgb(20, 184, 166) 0%, rgb(13, 132, 132) 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3) !important;
+  transition: all 0.2s ease !important;
+}
+
+.canvas-modal .ant-btn-primary:hover {
+  background: linear-gradient(135deg, rgb(13, 132, 132) 0%, rgb(17, 94, 89) 100%) !important;
+  box-shadow: 0 6px 16px rgba(20, 184, 166, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+.canvas-modal .ant-btn-default {
+  background: rgba(51, 65, 85, 0.6) !important;
+  border: 1px solid rgba(71, 85, 105, 0.8) !important;
+  color: rgb(148, 163, 184) !important;
+  transition: all 0.2s ease !important;
+}
+
+.canvas-modal .ant-btn-default:hover {
+  background: rgba(71, 85, 105, 0.8) !important;
+  border-color: rgba(148, 163, 184, 0.8) !important;
+  color: rgb(226, 232, 240) !important;
+}
+
+.repository-config-modal .ant-btn-primary {
+  background: rgb(20, 184, 166);
+  border-color: rgb(20, 184, 166);
+  color: white;
+  font-weight: 500;
+}
+
+.repository-config-modal .ant-btn-primary:hover {
+  background: rgb(13, 148, 136);
+  border-color: rgb(13, 148, 136);
+}
+
+.repository-config-modal .ant-btn-default {
+  background: rgb(51, 65, 85);
+  border-color: rgb(71, 85, 105);
+  color: rgb(226, 232, 240);
+}
+
+.repository-config-modal .ant-btn-default:hover {
+  background: rgb(71, 85, 105);
+  border-color: rgb(100, 116, 139);
+}
+
+/* Slide down animation for repository config info block */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out;
 }
 
 /* Ensure proper flex behavior */
@@ -804,6 +1301,11 @@ header .ant-card .ant-card-actions a:hover {
   color: white !important;
 }
 
+/* Override global link hover color for header social icons */
+header a.rounded-lg:hover {
+  color: rgb(20 184 166) !important; /* teal-500 */
+}
+
 /* ReactFlow Canvas Styles */
 .react-flow__controls button {
   background-color: #1e293b !important;
@@ -814,4 +1316,296 @@ header .ant-card .ant-card-actions a:hover {
 .react-flow__controls button:hover {
   background-color: #334155 !important;
   color: white !important;
+}
+
+/* Fix for Lucide icons - force stroke rendering, remove fill */
+.react-flow__controls button svg.lucide {
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+.react-flow__controls button svg.lucide path {
+  fill: none !important;
+  stroke: currentColor !important;
+}
+
+.react-flow__controls button svg.lucide circle,
+.react-flow__controls button svg.lucide rect,
+.react-flow__controls button svg.lucide line,
+.react-flow__controls button svg.lucide polyline,
+.react-flow__controls button svg.lucide polygon {
+  fill: none !important;
+  stroke: currentColor !important;
+}
+
+/* Remove default disabled state dots/circles */
+.react-flow__controls button:disabled {
+  background-color: #0f172a !important;
+  color: #64748b !important;
+  opacity: 0.5;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.react-flow__controls button:disabled::before,
+.react-flow__controls button:disabled::after {
+  content: none !important;
+  display: none !important;
+}
+
+.react-flow__controls button:disabled > *:not(svg) {
+  display: none !important;
+}
+
+.react-flow__controls button:disabled:hover {
+  background-color: #0f172a !important;
+  color: #64748b !important;
+}
+
+/* ReactFlow MiniMap Dark Theme */
+.react-flow__minimap {
+  background-color: #1e293b !important;
+  border: none !important;
+}
+
+.react-flow__minimap-svg {
+  background-color: #1e293b !important;
+}
+
+.react-flow__minimap-mask {
+  fill: rgba(15, 23, 42, 0.8) !important;
+}
+
+.react-flow__minimap-node {
+  stroke: none !important;
+}
+
+/* Landing Page Optimizations for 1920x1080 and larger screens */
+@media (min-width: 1920px) {
+  /* Keep base font size reasonable - don't scale up */
+  html {
+    font-size: 16px !important; /* Prevent base font size from scaling */
+  }
+
+  /* Increase max-widths for landing page content */
+  .max-w-full.sm\:max-w-2xl.md\:max-w-3xl.lg\:max-w-4xl.xl\:max-w-5xl.\32xl\:max-w-6xl {
+    max-width: 80rem !important; /* Moderate increase from 72rem (6xl) */
+  }
+
+  /* Increase padding for main container */
+  .p-3.sm\:p-4.md\:p-4.lg\:p-5.xl\:p-6 {
+    padding: 2rem !important; /* Moderate increase from 1.5rem (p-6) */
+  }
+
+  /* Increase margins between sections */
+  .mb-3.sm\:mb-4.md\:mb-4.lg\:mb-5.xl\:mb-6 {
+    margin-bottom: 2rem !important; /* Moderate increase from 1.5rem (mb-6) */
+  }
+
+  /* Increase font sizes for headings */
+  .text-xl.sm\:text-2xl.md\:text-2xl.lg\:text-3xl.xl\:text-4xl {
+    font-size: 2.5rem !important; /* Moderate increase from 2.25rem (4xl) */
+    line-height: 1.2 !important;
+  }
+
+  /* Increase subtitle font size */
+  .text-sm.sm\:text-base.md\:text-base.lg\:text-lg {
+    font-size: 1.25rem !important; /* Moderate increase from 1.125rem (lg) */
+    line-height: 1.75rem !important;
+  }
+
+  /* Increase card text sizes */
+  .text-xs.sm\:text-sm.md\:text-sm {
+    font-size: 0.9375rem !important; /* Slight increase from 0.875rem (sm) */
+  }
+
+  /* Increase card title sizes */
+  .text-sm.sm\:text-base.md\:text-base {
+    font-size: 1.0625rem !important; /* Slight increase from 1rem (base) */
+    font-weight: 600 !important;
+  }
+
+  /* Increase icon sizes moderately */
+  .w-8.h-8.sm\:w-9.sm\:h-9.md\:w-10.md\:h-10,
+  .w-2.h-2.sm\:w-2\.5.sm\:h-2\.5.md\:w-3.md\:h-3 {
+    width: 2.75rem !important; /* Moderate increase */
+    height: 2.75rem !important;
+  }
+
+  /* Increase gap between cards */
+  .gap-3.sm\:gap-3.md\:gap-4.lg\:gap-4 {
+    gap: 1.25rem !important; /* Moderate increase from 1rem (gap-4) */
+  }
+
+  /* Increase textarea size moderately - only for landing page */
+  textarea.w-full:not(.bg-slate-800\/80):not(.bg-slate-800\/60):not(.bg-gray-900) {
+    min-height: 80px !important; /* Moderate increase from 70px */
+    font-size: 1rem !important; /* Keep standard text size */
+    padding: 1rem 1.5rem !important; /* Moderate padding */
+  }
+
+  /* Don't override button sizes - they should use their component-specific styles */
+  /* Removed global button overrides to prevent oversized buttons */
+
+  /* Increase quick start button sizes */
+  .text-left.p-2.sm\:p-2\.5.md\:p-3.lg\:p-3 {
+    padding: 1rem !important; /* Moderate increase from 0.75rem (p-3) */
+  }
+
+  /* Increase spacing in feature cards */
+  .space-x-2.sm\:space-x-2\.5.md\:space-x-3 > * + * {
+    margin-left: 1rem !important; /* Moderate spacing */
+  }
+
+  /* Scale up the entire landing page layout */
+  .min-h-full.flex.flex-col {
+    padding: 1.5rem !important; /* Moderate padding */
+  }
+}
+
+/* Additional optimizations for standard desktop (1024px - 1919px) */
+@media (min-width: 1024px) and (max-width: 1919px) {
+  /* Keep sizes reasonable for standard desktop screens */
+  .max-w-full.sm\:max-w-2xl.md\:max-w-3xl.lg\:max-w-4xl.xl\:max-w-5xl.\32xl\:max-w-6xl {
+    max-width: 72rem !important; /* Standard 6xl */
+  }
+
+  .text-xl.sm\:text-2xl.md\:text-2xl.lg\:text-3xl.xl\:text-4xl {
+    font-size: 2.25rem !important; /* Standard 4xl */
+  }
+
+  .p-3.sm\:p-4.md\:p-4.lg\:p-5.xl\:p-6 {
+    padding: 1.5rem !important; /* Standard p-6 */
+  }
+
+  textarea.w-full {
+    min-height: 70px !important; /* Standard height */
+    font-size: 1rem !important; /* Standard font size */
+  }
+}
+
+/* Beautiful Canvas Action Buttons */
+.canvas-action-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease-out;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgb(71, 85, 105);
+  color: rgb(148, 163, 184);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(4px);
+  transform: scale(1);
+}
+
+.canvas-action-button:hover {
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transform: scale(1.05);
+}
+
+.canvas-action-button:active {
+  transform: scale(0.95);
+}
+
+.canvas-action-button.analyze:hover {
+  background: linear-gradient(to right, rgb(13, 148, 136), rgb(20, 184, 166));
+  box-shadow: 0 10px 15px -3px rgba(20, 184, 166, 0.25), 0 4px 6px -2px rgba(20, 184, 166, 0.1);
+}
+
+.canvas-action-button.analyze.active {
+  background: linear-gradient(to right, rgb(13, 148, 136), rgb(20, 184, 166));
+  box-shadow: 0 10px 15px -3px rgba(20, 184, 166, 0.4), 0 4px 6px -2px rgba(20, 184, 166, 0.2);
+  color: white;
+}
+
+.canvas-action-button.pull:hover {
+  background: linear-gradient(to right, rgb(147, 51, 234), rgb(168, 85, 247));
+  box-shadow: 0 10px 15px -3px rgba(147, 51, 234, 0.25), 0 4px 6px -2px rgba(147, 51, 234, 0.1);
+}
+
+.canvas-action-button.pull.active {
+  background: linear-gradient(to right, rgb(147, 51, 234), rgb(168, 85, 247));
+  box-shadow: 0 10px 15px -3px rgba(147, 51, 234, 0.4), 0 4px 6px -2px rgba(147, 51, 234, 0.2);
+  color: white;
+}
+
+/* Button loading spinner */
+.canvas-button-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid white;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Button text animations */
+.canvas-button-text {
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+/* Elegant Clean Icon Styling */
+.glass-light {
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  transition: all 0.3s ease;
+}
+
+.glass-light:hover {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(20, 184, 166, 0.5);
+  box-shadow: 0 8px 32px rgba(20, 184, 166, 0.1);
+}
+
+/* Markdown content - ensure long strings break properly */
+.markdown-content {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  line-height: 1;
+}
+
+.markdown-content p {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Code blocks - preserve formatting and allow horizontal scroll */
+.markdown-content pre {
+  width: 100%;
+  overflow-x: auto;
+  white-space: pre;
+  word-break: normal;
+  word-wrap: normal;
+}
+
+.markdown-content code {
+  word-break: normal;
+  word-wrap: normal;
+}
+
+/* Custom scrollbar for Environment Panel */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(20, 184, 166, 0.3);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(20, 184, 166, 0.5);
 }

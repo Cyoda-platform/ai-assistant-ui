@@ -138,24 +138,16 @@ const AuthStateAvatar: React.FC = () => {
                 </button>
               </div>
             )}
-
-            <button
-              onClick={onClickSettings}
-              className="w-full flex items-center space-x-3 px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors rounded-md text-sm"
-            >
-              <Settings className="w-4 h-4" />
-              <span>{t('side_bar.links.settings')}</span>
-            </button>
           </div>
 
           {/* Footer Actions */}
           <div className="border-t border-slate-600 bg-slate-700/30">
             <button
               onClick={onClickLogout}
-              className="w-full flex items-center space-x-3 px-4 py-3 text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors text-sm"
+              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-slate-700/50 transition-colors"
             >
-              <LogOut className="w-4 h-4" />
-              <span>{t('side_bar.logout')}</span>
+              <LogOut className="w-4 h-4 text-red-400" />
+              <span className="font-semibold text-sm text-red-400">Logout</span>
             </button>
           </div>
         </div>

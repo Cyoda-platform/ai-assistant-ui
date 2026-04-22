@@ -1,4 +1,5 @@
 import { fileURLToPath, URL } from 'node:url'
+import path from 'node:path'
 
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -15,7 +16,9 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      'react': path.resolve('../../node_modules/react'),
+      'react-dom': path.resolve('../../node_modules/react-dom'),
     },
   },
   define: {
@@ -25,11 +28,40 @@ export default defineConfig({
     include: ['monaco-editor'],
   },
   build: {
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks: {
           'monaco-editor': ['monaco-editor']
         }
+      }
+    }
+  },
+  esbuild: {
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        timeout: 0, // Disable timeout for SSE streams
+        proxyTimeout: 0, // Disable proxy timeout
+        configure: (proxy, _options) => {
+          // Configure http-proxy for SSE support
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            // Set no timeout on the proxy request
+            proxyReq.setTimeout(0);
+            // Disable buffering for SSE
+            if (req.url?.includes('/stream')) {
+              proxyReq.setHeader('X-Accel-Buffering', 'no');
+            }
+          });
+          proxy.on('proxyRes', (proxyRes, req, _res) => {
+            // Disable timeout on the response
+            proxyRes.setTimeout(0);
+          });
+        },
       }
     }
   }
