@@ -5,14 +5,14 @@
   "examples": {
     "items": {
       "clickable": [
-        "What is CYODA and how does it work?",
-        "Build a complete customer management system with CRUD operations for customers, orders, and products",
-        "Create a simple task management app with Python",
-        "Generate a Java application for inventory tracking with real-time stock updates and alerts",
-        "Add a Customer entity with id, name, email, and phone fields",
-        "Create REST endpoints for Product entity with GET, POST, PUT, DELETE operations"
+        "Model a trade settlement lifecycle",
+        "Create a KYC onboarding workflow",
+        "Add an entity with lifecycle states",
+        "Connect a Java processor",
+        "Explain this workflow",
+        "Generate a Python service stub"
       ],
-      "readonly": "+100 different application types"
+      "readonly": "+100 different workflow types"
     },
     "title": "Try one of these examples"
   },
@@ -23,12 +23,12 @@
     }
   },
   "new_chat": {
-    "h1": "BUILD WITH CYODA AI",
-    "h2": "Create complete applications with entities, workflows, and REST APIs using intelligent code generation",
+    "h1": "Cyoda Cloud Workbench",
+    "h2": "Model entity lifecycles, generate workflows, connect processors, and inspect history on hosted Cyoda.",
     "input": {
-      "placeholder": "Build a customer management system, create entities, or deploy your environment..."
+      "placeholder": "Describe the entity, workflow, or service you want to build."
     },
-    "title": "What would you like to build today?"
+    "title": "Start a Cyoda Cloud session"
   },
   "side_bar": {
     "create_new": "Add new request",

@@ -175,12 +175,12 @@ const Header: React.FC<HeaderProps> = ({
     if (location.pathname.startsWith('/chat/')) {
       return 'Chat Session';
     }
-    return 'CYODA AI Assistant';
+    return 'Cyoda Cloud';
   };
 
   return (
     <>
-      <header className="border-b border-slate-700 bg-slate-800/80 backdrop-blur-md sticky top-0 z-40">
+      <header className="border-b border-slate-200 bg-white sticky top-0 z-40">
         <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 py-3">
           {/* Left Section - Logo */}
           <div className="flex items-center space-x-2 sm:space-x-4 md:space-x-6">
@@ -196,15 +196,15 @@ const Header: React.FC<HeaderProps> = ({
                 navigate('/');
               }}
             >
-              <img src={Logo} alt="CYODA" className="h-6 sm:h-7 md:h-8" />
-              <span className="text-xs bg-slate-700 px-2 py-1 rounded-full text-slate-300 font-medium">BETA</span>
+              <img src={Logo} alt="Cyoda Cloud" className="h-6 sm:h-7 md:h-8" />
+              <span className="text-xs bg-slate-100 px-2 py-1 rounded-full text-slate-500 font-medium">BETA</span>
             </a>
 
             {/* Super User Mode Badge - Hidden on mobile */}
             {superUserMode && isCyodaEmployee && (
-              <div className="hidden sm:flex items-center space-x-2 bg-teal-500/20 border border-teal-500/50 px-3 py-1 rounded-full">
-                <Shield size={14} className="text-teal-400" />
-                <span className="text-xs text-teal-400 font-semibold">SUPER USER</span>
+              <div className="hidden sm:flex items-center space-x-2 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
+                <Shield size={14} className="text-blue-600" />
+                <span className="text-xs text-blue-600 font-semibold">SUPER USER</span>
               </div>
             )}
           </div>
@@ -220,8 +220,8 @@ const Header: React.FC<HeaderProps> = ({
                     onClick={onToggleChatHistory}
                     className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
                       chatHistoryVisible
-                        ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                        : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
                     }`}
                     title={`${chatHistoryVisible ? 'Hide' : 'Show'} History`}
                   >
@@ -238,15 +238,15 @@ const Header: React.FC<HeaderProps> = ({
                       disabled={isArchivedChat || isLoadingCanvasToggle}
                       className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
                         isArchivedChat || isLoadingCanvasToggle
-                          ? 'text-slate-600 cursor-not-allowed opacity-50'
+                          ? 'text-slate-400 cursor-not-allowed opacity-50'
                           : canvasVisible
-                          ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
-                          : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
                       }`}
                       title={isArchivedChat ? 'Canvas not available for archived chats' : isLoadingCanvasToggle ? 'Loading...' : `${canvasVisible ? 'Close' : 'Open'} Canvas`}
                     >
                       {isLoadingCanvasToggle ? (
-                        <div className="w-4 h-4 border-2 border-teal-500/30 border-t-teal-500 rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
                       ) : (
                         <Activity size={18} />
                       )}
@@ -256,30 +256,27 @@ const Header: React.FC<HeaderProps> = ({
                     {/* Repository Config Info Block */}
                     {showRepositoryConfigPrompt && (
                       <div className="absolute top-full right-0 mt-2 w-80 z-50 animate-slideDown">
-                        <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-teal-500/30 rounded-xl shadow-2xl overflow-hidden backdrop-blur-sm">
-                          {/* Glow effect */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-transparent pointer-events-none"></div>
-
+                        <div className="bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
                           {/* Close button */}
                           <button
                             onClick={onCloseRepositoryConfigPrompt}
-                            className="absolute top-3 right-3 w-6 h-6 rounded-full bg-slate-700/50 hover:bg-slate-600 flex items-center justify-center transition-colors z-10"
+                            className="absolute top-3 right-3 w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors z-10"
                             title="Close"
                           >
-                            <X size={14} className="text-slate-300" />
+                            <X size={14} className="text-slate-500" />
                           </button>
 
                           <div className="relative p-4">
                             {/* Icon and Title */}
                             <div className="flex items-start space-x-3 mb-3">
-                              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center">
-                                <Github size={20} className="text-teal-400" />
+                              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                                <Github size={20} className="text-blue-600" />
                               </div>
                               <div className="flex-1 pr-6">
-                                <h3 className="text-sm font-semibold text-slate-100 mb-1">
+                                <h3 className="text-sm font-semibold text-slate-900 mb-1">
                                   Repository Not Configured
                                 </h3>
-                                <p className="text-xs text-slate-400 leading-relaxed">
+                                <p className="text-xs text-slate-500 leading-relaxed">
                                   Canvas requires a GitHub repository branch to be configured for this conversation.
                                 </p>
                               </div>
@@ -289,7 +286,7 @@ const Header: React.FC<HeaderProps> = ({
                             <div className="flex gap-4 mt-3">
                               <button
                                 onClick={onConfigureRepository}
-                                className="px-3 py-1 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white text-xs font-medium rounded-md transition-all duration-200 shadow-md shadow-teal-500/20 hover:shadow-teal-500/30 flex items-center space-x-1.5"
+                                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors flex items-center space-x-1.5"
                               >
                                 <Github size={12} />
                                 <span>New Branch</span>
@@ -297,7 +294,7 @@ const Header: React.FC<HeaderProps> = ({
 
                               <button
                                 onClick={onUseExistingRepository}
-                                className="px-3 py-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-xs font-medium rounded-md transition-all duration-200 shadow-md shadow-blue-600/20 hover:shadow-blue-600/30 flex items-center space-x-1.5"
+                                className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-md transition-colors flex items-center space-x-1.5"
                               >
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2v0a2 2 0 01-2-2v-2a2 2 0 00-2-2H8z" />
@@ -318,8 +315,8 @@ const Header: React.FC<HeaderProps> = ({
                     onClick={onToggleEnvironments}
                     className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
                       environmentsVisible
-                        ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                        : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
                     }`}
                     title={`${environmentsVisible ? 'Hide' : 'Show'} Cloud`}
                   >
@@ -334,8 +331,8 @@ const Header: React.FC<HeaderProps> = ({
                     onClick={onToggleTasks}
                     className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
                       tasksVisible
-                        ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                        : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
                     }`}
                     title={`${tasksVisible ? 'Hide' : 'Show'} Tasks`}
                   >
@@ -346,25 +343,25 @@ const Header: React.FC<HeaderProps> = ({
               </div>
             )}
 
-            <div className="hidden lg:block w-px h-6 bg-slate-600"></div>
+            <div className="hidden lg:block w-px h-6 bg-slate-200"></div>
 
-            {/* CYODA Website - Hidden on mobile */}
+            {/* Cyoda Website - Hidden on mobile */}
             <a
               href="https://cyoda.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden lg:block p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
+              className="hidden lg:block p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-all duration-200 group"
               title="Visit cyoda.com"
             >
-              <img src={LogoSmall} alt="CYODA" className="w-[18px] h-[18px] group-hover:scale-110 group-hover:brightness-125 transition-all duration-200" />
+              <img src={LogoSmall} alt="Cyoda" className="w-[18px] h-[18px] group-hover:scale-110 transition-all duration-200" />
             </a>
 
             {/* GitHub */}
             <a
-              href="https://github.com/Cyoda-platform"
+              href="https://github.com/Cyoda-platform/cyoda-go"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden lg:block p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
+              className="hidden lg:block p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-all duration-200 group"
               title="View on GitHub"
             >
               <Github size={18} className="group-hover:scale-110 transition-transform duration-200" />
@@ -375,7 +372,7 @@ const Header: React.FC<HeaderProps> = ({
               href="https://www.linkedin.com/company/cyoda"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden lg:block p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
+              className="hidden lg:block p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-all duration-200 group"
               title="Follow us on LinkedIn"
             >
               <Linkedin size={18} className="group-hover:scale-110 transition-transform duration-200" />
@@ -386,7 +383,7 @@ const Header: React.FC<HeaderProps> = ({
               href="https://docs.cyoda.net/"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden lg:block p-2 rounded-lg text-slate-400 hover:text-teal-400 transition-all duration-200 group"
+              className="hidden lg:block p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-all duration-200 group"
               title="View Documentation"
             >
               <BookOpen size={18} className="group-hover:scale-110 transition-transform duration-200" />
@@ -397,7 +394,7 @@ const Header: React.FC<HeaderProps> = ({
               href="https://discord.com/invite/95rdAyBZr2"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden lg:block relative p-2 rounded-lg text-slate-400 hover:text-white hover:bg-indigo-600 transition-all duration-200 group"
+              className="hidden lg:block relative p-2 rounded-lg text-slate-500 hover:text-white hover:bg-indigo-500 transition-all duration-200 group"
               title="Join our Discord Community"
             >
               <svg
@@ -428,7 +425,7 @@ const Header: React.FC<HeaderProps> = ({
                 onClick={() => {
                   setShowNotifications(!showNotifications);
                 }}
-                className="relative p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                className="relative p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors"
                 title="Notifications"
               >
                 <Bell size={20} />
@@ -445,14 +442,14 @@ const Header: React.FC<HeaderProps> = ({
               {/* Notifications Dropdown */}
               {showNotifications && (
                 <div
-                  className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-[10000]"
+                  className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white border border-slate-200 rounded-lg shadow-lg z-[10000]"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex items-center justify-between p-4 border-b border-slate-700">
-                    <h3 className="font-medium text-white">Notifications</h3>
+                  <div className="flex items-center justify-between p-4 border-b border-slate-200">
+                    <h3 className="font-medium text-slate-900">Notifications</h3>
                     <button
                       onClick={() => setShowNotifications(false)}
-                      className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                      className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
                     >
                       <X size={16} />
                     </button>
@@ -466,8 +463,8 @@ const Header: React.FC<HeaderProps> = ({
                       notifications.map((notification) => (
                         <div
                           key={notification.id}
-                          className={`p-4 border-b border-slate-700 hover:bg-slate-700/50 transition-colors cursor-pointer ${
-                            !notification.isRead ? 'bg-slate-700/30' : ''
+                          className={`p-4 border-b border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer ${
+                            !notification.isRead ? 'bg-blue-50/50' : ''
                           }`}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -484,12 +481,12 @@ const Header: React.FC<HeaderProps> = ({
                           <div className="flex items-start space-x-3">
                             {getNotificationIcon(notification.type)}
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-white">{notification.title}</p>
-                              <p className="text-sm text-slate-400 mt-1">{notification.message}</p>
-                              <p className="text-xs text-slate-500 mt-2">{notification.timestamp}</p>
+                              <p className="text-sm font-medium text-slate-900">{notification.title}</p>
+                              <p className="text-sm text-slate-500 mt-1">{notification.message}</p>
+                              <p className="text-xs text-slate-400 mt-2">{notification.timestamp}</p>
                             </div>
                             {!notification.isRead && (
-                              <div className="w-2 h-2 bg-teal-400 rounded-full"></div>
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                             )}
                           </div>
                         </div>
@@ -498,13 +495,13 @@ const Header: React.FC<HeaderProps> = ({
                   </div>
                   {notifications.length > 0 && (
                     <div
-                      className="p-3 border-t border-slate-700 cursor-pointer hover:bg-slate-700/50 transition-colors"
+                      className="p-3 border-t border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         markAllAsRead();
                       }}
                     >
-                      <span className="text-sm text-teal-400 hover:text-teal-300 transition-colors">
+                      <span className="text-sm text-blue-600 hover:text-blue-700 transition-colors">
                         Mark all as read
                       </span>
                     </div>
@@ -524,7 +521,7 @@ const Header: React.FC<HeaderProps> = ({
               onClick={() => {
                 setShowMobileMenu(!showMobileMenu);
               }}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+              className="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors"
               title="Menu"
             >
               {showMobileMenu ? <X size={24} /> : <Menu size={24} />}
@@ -534,13 +531,13 @@ const Header: React.FC<HeaderProps> = ({
 
         {/* Mobile Menu Dropdown */}
         {showMobileMenu && (
-          <div className="md:hidden border-t border-slate-700 bg-slate-800/95 backdrop-blur-sm">
+          <div className="md:hidden border-t border-slate-200 bg-white">
             <div className="px-3 py-4 space-y-3">
               {/* Super User Mode Badge - Mobile */}
               {superUserMode && isCyodaEmployee && (
-                <div className="flex items-center space-x-2 bg-teal-500/20 border border-teal-500/50 px-3 py-2 rounded-lg">
-                  <Shield size={14} className="text-teal-400" />
-                  <span className="text-xs text-teal-400 font-semibold">SUPER USER MODE</span>
+                <div className="flex items-center space-x-2 bg-blue-50 border border-blue-200 px-3 py-2 rounded-lg">
+                  <Shield size={14} className="text-blue-600" />
+                  <span className="text-xs text-blue-600 font-semibold">SUPER USER MODE</span>
                 </div>
               )}
 
@@ -555,8 +552,8 @@ const Header: React.FC<HeaderProps> = ({
                       }}
                       className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
                         chatHistoryVisible
-                          ? 'bg-teal-500/20 text-teal-400'
-                          : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : 'text-slate-700 hover:text-slate-950 hover:bg-slate-50'
                       }`}
                     >
                       <History size={20} />
@@ -575,14 +572,14 @@ const Header: React.FC<HeaderProps> = ({
                       disabled={isArchivedChat || isLoadingCanvasToggle}
                       className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
                         isArchivedChat || isLoadingCanvasToggle
-                          ? 'text-slate-600 cursor-not-allowed opacity-50'
+                          ? 'text-slate-400 cursor-not-allowed opacity-50'
                           : canvasVisible
-                          ? 'bg-teal-500/20 text-teal-400'
-                          : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : 'text-slate-700 hover:text-slate-950 hover:bg-slate-50'
                       }`}
                     >
                       {isLoadingCanvasToggle ? (
-                        <div className="w-5 h-5 border-2 border-teal-500/30 border-t-teal-500 rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
                       ) : (
                         <Activity size={20} />
                       )}
@@ -600,8 +597,8 @@ const Header: React.FC<HeaderProps> = ({
                       }}
                       className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
                         environmentsVisible
-                          ? 'bg-teal-500/20 text-teal-400'
-                          : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : 'text-slate-700 hover:text-slate-950 hover:bg-slate-50'
                       }`}
                     >
                       <Server size={20} />
@@ -617,8 +614,8 @@ const Header: React.FC<HeaderProps> = ({
                       }}
                       className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
                         tasksVisible
-                          ? 'bg-teal-500/20 text-teal-400'
-                          : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : 'text-slate-700 hover:text-slate-950 hover:bg-slate-50'
                       }`}
                     >
                       <Database size={20} />
@@ -629,27 +626,27 @@ const Header: React.FC<HeaderProps> = ({
               )}
 
               {/* Divider */}
-              <div className="border-t border-slate-700 my-3"></div>
+              <div className="border-t border-slate-200 my-3"></div>
 
               {/* Social Links - Mobile */}
               <div className="space-y-2">
-                {/* CYODA Website */}
+                {/* Cyoda Website */}
                 <a
                   href="https://cyoda.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
                 >
-                  <img src={LogoSmall} alt="CYODA" className="w-5 h-5" />
-                  <span className="text-sm font-medium">CYODA Website</span>
+                  <img src={LogoSmall} alt="Cyoda" className="w-5 h-5" />
+                  <span className="text-sm font-medium">Cyoda Website</span>
                 </a>
 
                 {/* GitHub */}
                 <a
-                  href="https://github.com/Cyoda-platform"
+                  href="https://github.com/Cyoda-platform/cyoda-go"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
                 >
                   <Github size={20} />
                   <span className="text-sm font-medium">GitHub</span>
@@ -660,7 +657,7 @@ const Header: React.FC<HeaderProps> = ({
                   href="https://www.linkedin.com/company/cyoda"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
                 >
                   <Linkedin size={20} />
                   <span className="text-sm font-medium">LinkedIn</span>
@@ -671,7 +668,7 @@ const Header: React.FC<HeaderProps> = ({
                   href="https://docs.cyoda.net/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
                 >
                   <BookOpen size={20} />
                   <span className="text-sm font-medium">Documentation</span>
@@ -682,7 +679,7 @@ const Header: React.FC<HeaderProps> = ({
                   href="https://discord.com/invite/95rdAyBZr2"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                  className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
                 >
                   <MessageCircle size={20} />
                   <span className="text-sm font-medium">Discord Community</span>
@@ -690,7 +687,7 @@ const Header: React.FC<HeaderProps> = ({
               </div>
 
               {/* User Profile - Mobile */}
-              <div className="border-t border-slate-700 pt-3 space-y-2">
+              <div className="border-t border-slate-200 pt-3 space-y-2">
                 {isLoggedIn ? (
                   <>
                     {/* User Info */}
@@ -702,18 +699,18 @@ const Header: React.FC<HeaderProps> = ({
                           alt="User avatar"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-slate-600 text-white text-sm font-medium flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-slate-200 text-slate-700 text-sm font-medium flex items-center justify-center">
                           {initials}
                         </div>
                       )}
                       <div className="flex-1">
-                        <div className="text-sm font-medium text-white">
+                        <div className="text-sm font-medium text-slate-900">
                           {authStore.given_name && authStore.family_name
                             ? `${authStore.given_name} ${authStore.family_name}`
                             : authStore.email}
                         </div>
                         {authStore.given_name && authStore.family_name && (
-                          <div className="text-xs text-slate-400">{authStore.email}</div>
+                          <div className="text-xs text-slate-500">{authStore.email}</div>
                         )}
                       </div>
                     </div>
@@ -721,10 +718,10 @@ const Header: React.FC<HeaderProps> = ({
                     {/* Logout Button */}
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                      className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
                     >
-                      <LogOut size={20} className="text-red-400" />
-                      <span className="text-sm font-medium text-red-400">Logout</span>
+                      <LogOut size={20} className="text-red-500" />
+                      <span className="text-sm font-medium text-red-500">Logout</span>
                     </button>
                   </>
                 ) : (

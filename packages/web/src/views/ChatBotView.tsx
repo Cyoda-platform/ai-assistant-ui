@@ -116,7 +116,7 @@ const ChatBotView: React.FC = () => {
   const [headerNotifications, setHeaderNotifications] = useState<HeaderNotification[]>([]);
   const notificationIdCounter = useRef(1);
   const [countNewMessages, setCountNewMessages] = useState(0);
-  const originalTitle = useRef('Cyoda AI Studio: Solve.Build. Deploy');
+  const originalTitle = useRef('Cyoda Cloud');
   const [isLoadingRollback, setIsLoadingRollback] = useState(false);
   const [showRepositoryConfigPrompt, setShowRepositoryConfigPrompt] = useState(false);
   const [isLoadingCanvasToggle, setIsLoadingCanvasToggle] = useState(false);

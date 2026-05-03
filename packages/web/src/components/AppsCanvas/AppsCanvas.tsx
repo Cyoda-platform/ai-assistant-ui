@@ -490,7 +490,7 @@ export const AppsCanvas: React.FC<AppsCanvasProps> = ({
       loadedConversationIdRef.current = conversationId;
       hasInitialLoadRef.current = true;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [conversationId, appData, githubRepository]);
 
   // Update current app data when prop changes

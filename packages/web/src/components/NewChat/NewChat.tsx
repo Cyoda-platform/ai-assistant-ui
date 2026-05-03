@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Input, Form, Row, Col } from 'antd';
+import { Button, Input, Form } from 'antd';
 import { SendOutlined } from '@ant-design/icons';
 import { useAssistantStore } from '@/stores/assistant';
 import { useAuthStore } from '@/stores/auth';
-import { isInIframe } from '@/helpers/HelperIframe';
 import eventBus from '@/plugins/eventBus';
 import { UPDATE_CHAT_LIST } from '@/helpers/HelperConstants';
 
@@ -12,7 +11,7 @@ const { TextArea } = Input;
 
 interface CreateChatResponse {
   technical_id: string;
-  initialMessage?: string; // Optional initial message to send after creation
+  initialMessage?: string;
 }
 
 interface NewChatProps {
@@ -28,14 +27,11 @@ const NewChat: React.FC<NewChatProps> = ({ onCreated }) => {
   const year = new Date().getFullYear();
 
   useEffect(() => {
-    // Check for URL parameters on mount
     const params = new URLSearchParams(window.location.search);
     if (params.has('name')) {
       const name = params.get('name');
       form.setFieldsValue({ name });
       handleSubmit({ name, description: '' });
-
-      // Clean up URL
       const url = new URL(window.location.href);
       url.searchParams.delete('name');
       window.history.replaceState({}, '', url);
@@ -44,46 +40,33 @@ const NewChat: React.FC<NewChatProps> = ({ onCreated }) => {
 
   const handleSubmit = async (values: { name: string; description: string }) => {
     setIsLoading(true);
-
-    // Store the full message to be sent after chat creation
     const initialMessage = values.name;
-
-    // Generate temporary ID and navigate immediately
-    // Pass initialMessage so it's available when we navigate to the real chat
     const tempId = `temp-${Date.now()}`;
     onCreated({ technical_id: tempId, initialMessage });
 
     try {
-      // Step 1: Create chat with proper name (not the message)
-      // Use first 50 chars of message as chat name
       const chatName = values.name.substring(0, 50) + (values.name.length > 50 ? '...' : '');
-
       const { data } = await assistantStore.postChats({
         name: chatName,
         description: values.description || ''
-      });
+      } as any);
 
-      if (!authStore.isLoggedIn) {
+      if (!(authStore as any).isLoggedIn) {
         assistantStore.setGuestChatsExist(true);
       }
 
-      // Navigate to real chat ID (will replace the temp one)
-      // Pass the initial message so ChatBotView can send it via streaming
       onCreated({
         technical_id: data.technical_id,
-        initialMessage: initialMessage // Pass message to be sent after navigation
+        initialMessage
       });
       eventBus.$emit(UPDATE_CHAT_LIST);
     } catch (error) {
       console.error('Error creating chat:', error);
-      // On error, the user is already on the temp chat page
-      // The ChatBotView will handle showing an error state
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Get clickable examples from translations
   const getClickableExamples = () => {
     try {
       const examples = t('examples.items.clickable', { returnObjects: true });
@@ -96,18 +79,18 @@ const NewChat: React.FC<NewChatProps> = ({ onCreated }) => {
   const clickableExamples = getClickableExamples();
 
   return (
-    <div className="new-chat">
-      <div className="new-chat__content">
-        <div className="new-chat__header">
-          <h1 className="new-chat__title">{t('new_chat.h1')}</h1>
-          <h2 className="new-chat__subtitle">{t('new_chat.h2')}</h2>
-          <p className="new-chat__question">{t('new_chat.title')}</p>
+    <div className="new-chat bg-white min-h-full">
+      <div className="new-chat__content max-w-2xl mx-auto px-6 py-12">
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold text-slate-900 mb-2">{t('new_chat.h1')}</h1>
+          <p className="text-sm text-slate-600 leading-relaxed">{t('new_chat.h2')}</p>
+          <p className="text-xs text-slate-500 mt-1">{t('new_chat.title')}</p>
         </div>
 
         <Form
           form={form}
           onFinish={handleSubmit}
-          className="new-chat__form"
+          className="new-chat__form mb-6"
         >
           <Form.Item
             name="name"
@@ -116,7 +99,7 @@ const NewChat: React.FC<NewChatProps> = ({ onCreated }) => {
             <TextArea
               placeholder={t('new_chat.input.placeholder')}
               autoSize={{ minRows: 3, maxRows: 6 }}
-              className="new-chat__textarea"
+              className="new-chat__textarea rounded-lg border-slate-200"
             />
           </Form.Item>
 
@@ -126,7 +109,7 @@ const NewChat: React.FC<NewChatProps> = ({ onCreated }) => {
               htmlType="submit"
               loading={isLoading}
               icon={<SendOutlined />}
-              className="new-chat__submit-btn"
+              className="new-chat__submit-btn bg-blue-600 hover:bg-blue-700 border-blue-600"
             >
               Send
             </Button>
@@ -135,34 +118,33 @@ const NewChat: React.FC<NewChatProps> = ({ onCreated }) => {
 
         {clickableExamples.length > 0 && (
           <div className="new-chat__examples">
-            <h3>{t('examples.title')}</h3>
-            <Row gutter={[16, 16]}>
+            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-3">{t('examples.title')}</p>
+            <div className="flex flex-wrap gap-2 mb-4">
               {clickableExamples.map((example, index) => (
-                <Col xs={24} sm={12} md={8} key={index}>
-                  <Button
-                    type="default"
-                    className="new-chat__example-btn"
-                    onClick={() => {
-                      form.setFieldsValue({ name: example });
-                      handleSubmit({ name: example, description: '' });
-                    }}
-                  >
-                    {example}
-                  </Button>
-                </Col>
+                <button
+                  key={index}
+                  type="button"
+                  className="text-sm px-3 py-1.5 bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 transition-colors"
+                  onClick={() => {
+                    form.setFieldsValue({ name: example });
+                    handleSubmit({ name: example, description: '' });
+                  }}
+                >
+                  {example}
+                </button>
               ))}
-            </Row>
-            <p className="new-chat__examples-more">
+            </div>
+            <p className="new-chat__examples-more text-xs text-slate-400 mt-2">
               {t('examples.items.readonly')}
             </p>
           </div>
         )}
       </div>
 
-      <div className="new-chat__footer">
-        <p>
+      <div className="new-chat__footer border-t border-slate-200 px-6 py-4">
+        <p className="text-xs text-slate-400">
           Copyright © {year}{' '}
-          <a target="_blank" href="https://www.cyoda.com/" rel="noopener noreferrer">
+          <a target="_blank" href="https://www.cyoda.com/" rel="noopener noreferrer" className="hover:text-slate-600 transition-colors">
             CYODA Ltd.
           </a>
         </p>

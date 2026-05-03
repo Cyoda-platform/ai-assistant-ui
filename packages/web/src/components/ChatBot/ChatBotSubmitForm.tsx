@@ -361,7 +361,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
     debouncedResize();
   };
 
-  const placeholderText = layout === 'canvas' ? 'Type here' : 'Ask Cyoda AI Assistant...';
+  const placeholderText = layout === 'canvas' ? 'Type here' : 'Ask the AI assistant...';
 
   return (
     <div

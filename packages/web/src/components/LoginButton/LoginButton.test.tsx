@@ -1,14 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import LoginButton from './LoginButton';
 
 // Mock Auth0
 const mockLoginWithRedirect = vi.fn();
+const mockNavigate = vi.fn();
 
 vi.mock('@auth0/auth0-react', () => ({
   useAuth0: () => ({
     loginWithRedirect: mockLoginWithRedirect,
+    isAuthenticated: false,
+    isLoading: false,
   }),
+}));
+
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => mockNavigate,
 }));
 
 // Mock HelperStorage
@@ -71,7 +78,7 @@ describe('LoginButton', () => {
       const button = screen.getByRole('button', { name: /Log in/i });
       fireEvent.click(button);
 
-      expect(mockSet).toHaveBeenCalledWith('login-redirect-url', '/');
+      expect(mockSet).toHaveBeenCalledWith('login-redirect-url', '/home');
       expect(mockSet).toHaveBeenCalledBefore(mockLoginWithRedirect);
     });
 
@@ -82,6 +89,9 @@ describe('LoginButton', () => {
       fireEvent.click(button);
 
       expect(mockLoginWithRedirect).toHaveBeenCalledWith({
+        appState: {
+          returnTo: '/home',
+        },
         authorizationParams: {
           prompt: 'login',
         },
@@ -103,7 +113,7 @@ describe('LoginButton', () => {
   });
 
   describe('storage behavior', () => {
-    it('should store "/" as redirect URL', () => {
+    it('should store "/home" as redirect URL', () => {
       render(<LoginButton />);
 
       const button = screen.getByRole('button', { name: /Log in/i });
@@ -111,7 +121,7 @@ describe('LoginButton', () => {
 
       expect(mockSet).toHaveBeenCalledWith(
         expect.any(String),
-        '/'
+        '/home'
       );
     });
 
@@ -146,7 +156,7 @@ describe('LoginButton', () => {
   });
 
   describe('error handling', () => {
-    it('should not throw error if loginWithRedirect fails', () => {
+    it('should not throw error if loginWithRedirect fails', async () => {
       mockLoginWithRedirect.mockImplementationOnce(() => {
         throw new Error('Auth0 error');
       });
@@ -157,7 +167,11 @@ describe('LoginButton', () => {
 
       expect(() => {
         fireEvent.click(button);
-      }).toThrow('Auth0 error');
+      }).not.toThrow();
+
+      await waitFor(() => {
+        expect(mockLoginWithRedirect).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });

@@ -1,42 +1,30 @@
 <!DOCTYPE html>
-<html lang="" class="theme-dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96"/>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
     <link rel="shortcut icon" href="/favicon.ico"/>
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
-    <meta name="apple-mobile-web-app-title" content="MyWebSite"/>
+    <meta name="apple-mobile-web-app-title" content="Cyoda Cloud"/>
     <link rel="manifest" href="/site.webmanifest"/>
     <link rel="stylesheet" href="/loader.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyoda AI Studio: Solve.Build. Deploy</title>
-    <meta name="description" content="Whether you're a developer, CEO, CTO, or designer - if you have a problem to solve, CYODA is with you. Join our community and build apps together.">
-    <!-- Google Fonts - Montserrat & Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Force dark mode - light mode not supported -->
-    <style>
-        /* Hardcode dark theme styles before any other CSS loads */
-        html, body {
-            background-color: #11101C !important;
-            color: #e2e8f0 !important;
-        }
-    </style>
-    <script>
-        // Hardcode dark theme before any other scripts load
-        (function() {
-            document.documentElement.classList.add('theme-dark');
-            document.documentElement.classList.remove('theme-light');
-            // Store dark theme preference
-            try {
-                localStorage.setItem('app:theme', 'dark');
-            } catch (e) {
-                console.warn('Could not set theme in localStorage:', e);
-            }
-        })();
-    </script>
+    <title>Cyoda Cloud — hosted Cyoda runtime</title>
+    <meta name="description" content="Cyoda Cloud is the hosted Cyoda runtime for developers building event-driven, stateful systems with lifecycle workflows and traceable history. Free to try in live beta.">
+    <link rel="canonical" href="https://cyoda.net/"/>
+    <!-- Open Graph -->
+    <meta property="og:title" content="Cyoda Cloud — hosted Cyoda runtime"/>
+    <meta property="og:description" content="Build event-driven, stateful systems with lifecycle workflows and traceable history on hosted Cyoda. Free to try in live beta."/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:url" content="https://cyoda.net/"/>
+    <!-- TODO: create og-card.png (1200×630) consistent with light visual system -->
+    <meta property="og:image" content="https://cyoda.net/og-card.png"/>
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="Cyoda Cloud — hosted Cyoda runtime"/>
+    <meta name="twitter:description" content="Build event-driven, stateful systems with lifecycle workflows and traceable history on hosted Cyoda. Free to try in live beta."/>
+    <meta name="twitter:image" content="https://cyoda.net/og-card.png"/>
     <!-- Google Tag Manager -->
     <script>
         (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -56,8 +44,7 @@
 <!-- End Google Tag Manager (noscript) -->
 <div id="app">
     <div class="loader-app">
-        <img class="only-theme-light" src="/logo.gif"/>
-        <img class="only-theme-dark" src="/logo-dark.gif"/>
+        <img src="/cyoda.svg" alt="Cyoda Cloud" style="height:40px;opacity:0.7"/>
     </div>
 </div>
 <script type="module" src="/src/main.tsx"></script>

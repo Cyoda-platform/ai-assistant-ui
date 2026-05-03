@@ -1,5 +1,5 @@
 html {
-  font-family: "Roboto", Arial, sans-serif;
+  font-family: "Inter", Arial, sans-serif;
 }
 
 h1 {
@@ -32,4 +32,27 @@ a {
 pre code {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+/* ── Public landing page — explicit light-theme text ──────────────────────
+   Sets dark text on the wrapper so all descendants default to readable colour.
+   No button rule here: Tailwind's utility classes (text-white, text-slate-900
+   etc.) in @layer utilities are overridden by unlayered author CSS regardless
+   of specificity. Removing the button rule lets text-white win on blue CTAs.
+   FAQ and Sign-in buttons use inline `style` on the element itself instead.
+*/
+.cyoda-cloud-page {
+  color: #0f172a; /* slate-900 */
+
+  /* FAQ question row — !important beats Tailwind layers and inline inheritance */
+  .faq-question {
+    color: #0f172a !important;
+    font-weight: 600;
+  }
+
+  /* FAQ answer text */
+  .faq-answer {
+    color: #334155; /* slate-700 */
+    line-height: 1.75;
+  }
 }

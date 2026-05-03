@@ -1,3 +1,33 @@
+# Changelog: May 2026
+
+## Cyoda Cloud rebrand — public web surface
+
+Rebranded the public web app from Cyoda AI Assistant UI to Cyoda Cloud. Updated landing page, metadata, manifest, navigation, fonts, theme behaviour, and public copy for the hosted Cyoda runtime live beta.
+
+**Changes:**
+- Public product name changed to Cyoda Cloud
+- Repository described as Cyoda Cloud UI monorepo
+- Free-to-try live beta wording throughout
+- Removal of forced dark mode; public landing page renders in light theme by default
+- Replacement of animated GIF logo loader with static SVG
+- Metadata and manifest cleanup: correct title, OG tags, Twitter card, canonical URL
+- MyWebSite / MySite placeholder strings removed from manifest and HTML
+- Font system updated: self-hosted Inter (UI/prose) and JetBrains Mono (code), replacing Roboto Google Fonts import
+- Google Fonts network requests removed for the public page
+- SEO files added: robots.txt, sitemap.xml, llms.txt
+- FAQPage JSON-LD structured data added to landing page
+- Landing page rebuilt with developer-first copy, 14 FAQ items, and correct security/hosting facts
+- Route-level lazy loading added for Monaco/editor-heavy routes
+- prefers-reduced-motion support added
+
+**Out of scope for this change:**
+- No WorkflowCanvas or PortalCanvas changes
+- No new workflow editor integration
+- No desktop app rebrand
+- No paid plans, SLA, or production-readiness claims
+
+---
+
 # Changelog: February 11-18, 2026
 
 **Branch:** [cyoda-ai-studio-fixes-4-february](https://github.com/Cyoda-platform/ai-assistant-ui/commits/cyoda-ai-studio-fixes-4-february)

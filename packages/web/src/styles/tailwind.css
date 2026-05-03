@@ -1,17 +1,8 @@
 @import "tailwindcss";
 @import "highlight.js/styles/github-dark.css";
 
-/* Force dark mode globally - light mode not supported */
-:root {
-  color-scheme: dark;
-}
-
-html {
-  color-scheme: dark !important;
-}
-
-/* Ensure all elements inherit dark color scheme */
-* {
+/* Dark color-scheme scoped to product routes only (not the public marketing page) */
+html:not(.marketing-page) {
   color-scheme: dark;
 }
 
@@ -291,9 +282,11 @@ html {
 @layer utilities {
   /* Mobile-first responsive utilities */
 
-  /* Mobile viewport height fix for iOS Safari */
+  /* Mobile viewport height fix for iOS Safari — product routes only */
   @supports (height: 100svh) {
-    html, body, #app {
+    html:not(.marketing-page),
+    html:not(.marketing-page) body,
+    html:not(.marketing-page) #app {
       height: 100svh;
     }
   }
@@ -655,48 +648,62 @@ body.resizing-active * {
   cursor: col-resize !important;
 }
 
-/* Scrollbar Management - No outer scrollbar needed */
-html, body {
-  overflow: hidden; /* Prevent any outer scrolling */
+/* Product shell scroll lock — applied only when NOT on the marketing page */
+html:not(.marketing-page),
+html:not(.marketing-page) body {
+  overflow: hidden;
   height: 100%;
   margin: 0;
   padding: 0;
 }
 
-#app {
+html:not(.marketing-page) #app {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
 }
 
-/* Consistent scrollbar styling across the app */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgb(71 85 105) rgb(30 41 59); /* slate-600 slate-800 */
+/* Marketing page: normal document scrolling */
+html.marketing-page,
+html.marketing-page body {
+  overflow: visible;
+  height: auto;
 }
 
-*::-webkit-scrollbar {
+html.marketing-page #app {
+  height: auto;
+  overflow: visible;
+  width: 100%;
+}
+
+/* Dark scrollbar styling — scoped to product/dark-theme routes only */
+.theme-dark * {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(71 85 105) rgb(30 41 59);
+}
+
+.theme-dark *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-*::-webkit-scrollbar-track {
-  background: rgb(30 41 59); /* slate-800 */
+.theme-dark *::-webkit-scrollbar-track {
+  background: rgb(30 41 59);
   border-radius: 4px;
 }
 
-*::-webkit-scrollbar-thumb {
-  background: rgb(71 85 105); /* slate-600 */
+.theme-dark *::-webkit-scrollbar-thumb {
+  background: rgb(71 85 105);
   border-radius: 4px;
-  border: 1px solid rgb(30 41 59); /* slate-800 */
+  border: 1px solid rgb(30 41 59);
 }
 
-*::-webkit-scrollbar-thumb:hover {
-  background: rgb(100 116 139); /* slate-500 */
+.theme-dark *::-webkit-scrollbar-thumb:hover {
+  background: rgb(100 116 139);
 }
 
-*::-webkit-scrollbar-corner {
-  background: rgb(30 41 59); /* slate-800 */
+.theme-dark *::-webkit-scrollbar-corner {
+  background: rgb(30 41 59);
 }
 
 /* Main layout containers - full viewport, no outer scrolling */
@@ -1608,4 +1615,13 @@ header a.rounded-lg:hover {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(20, 184, 166, 0.5);
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

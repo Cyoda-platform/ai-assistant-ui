@@ -102,6 +102,11 @@
   }
 }
 
+/* Apply light variables at root level so light theme renders without any class */
+:root {
+  @include light-theme;
+}
+
 .theme-light {
   @include light-theme;
   @include scollbar;

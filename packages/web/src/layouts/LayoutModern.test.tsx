@@ -33,11 +33,11 @@ describe('LayoutModern', () => {
       expect(screen.getByTestId('test-child')).toBeInTheDocument();
     });
 
-    it('should render header with CYODA branding', () => {
+    it('should render header with Cyoda Cloud branding', () => {
       render(<LayoutModern><div>Test</div></LayoutModern>);
 
-      expect(screen.getByText('CYODA')).toBeInTheDocument();
-      expect(screen.getByText('ALPHA')).toBeInTheDocument();
+      expect(screen.getByText('Cyoda Cloud')).toBeInTheDocument();
+      expect(screen.getByText('BETA')).toBeInTheDocument();
     });
 
     it('should render navigation sidebar', () => {
@@ -50,7 +50,7 @@ describe('LayoutModern', () => {
     it('should render chat input', () => {
       render(<LayoutModern><div>Test</div></LayoutModern>);
 
-      expect(screen.getByPlaceholderText(/Ask Cyoda AI Assistant/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/Ask the AI assistant/i)).toBeInTheDocument();
     });
 
     it('should not render canvas by default', () => {
@@ -275,7 +275,7 @@ describe('LayoutModern', () => {
       const user = userEvent.setup();
       render(<LayoutModern><div>Test</div></LayoutModern>);
 
-      const input = screen.getByPlaceholderText(/Ask Cyoda AI Assistant/i) as HTMLInputElement;
+      const input = screen.getByPlaceholderText(/Ask the AI assistant/i) as HTMLInputElement;
 
       await user.type(input, 'Hello AI');
 
@@ -285,7 +285,7 @@ describe('LayoutModern', () => {
     it('should clear chat input on submit', async () => {
       render(<LayoutModern><div>Test</div></LayoutModern>);
 
-      const input = screen.getByPlaceholderText(/Ask Cyoda AI Assistant/i) as HTMLInputElement;
+      const input = screen.getByPlaceholderText(/Ask the AI assistant/i) as HTMLInputElement;
       const form = input.closest('form');
 
       fireEvent.change(input, { target: { value: 'Test message' } });
@@ -301,7 +301,7 @@ describe('LayoutModern', () => {
     it('should not submit empty chat input', async () => {
       render(<LayoutModern><div>Test</div></LayoutModern>);
 
-      const input = screen.getByPlaceholderText(/Ask Cyoda AI Assistant/i) as HTMLInputElement;
+      const input = screen.getByPlaceholderText(/Ask the AI assistant/i) as HTMLInputElement;
       const submitButton = screen.getByTitle('Send Message');
 
       expect(input.value).toBe('');
@@ -311,7 +311,7 @@ describe('LayoutModern', () => {
     it('should enable submit button when input has text', async () => {
       render(<LayoutModern><div>Test</div></LayoutModern>);
 
-      const input = screen.getByPlaceholderText(/Ask Cyoda AI Assistant/i);
+      const input = screen.getByPlaceholderText(/Ask the AI assistant/i);
       const submitButton = screen.getByTitle('Send Message');
 
       fireEvent.change(input, { target: { value: 'Test' } });
@@ -364,7 +364,7 @@ describe('LayoutModern', () => {
     it('should focus chat input with Ctrl+K', async () => {
       render(<LayoutModern><div>Test</div></LayoutModern>);
 
-      const input = screen.getByPlaceholderText(/Ask Cyoda AI Assistant/i);
+      const input = screen.getByPlaceholderText(/Ask the AI assistant/i);
 
       // Press Ctrl+K
       fireEvent.keyDown(document, { key: 'k', ctrlKey: true });
@@ -377,7 +377,7 @@ describe('LayoutModern', () => {
     it('should work with Meta key (Mac)', async () => {
       render(<LayoutModern><div>Test</div></LayoutModern>);
 
-      const input = screen.getByPlaceholderText(/Ask Cyoda AI Assistant/i);
+      const input = screen.getByPlaceholderText(/Ask the AI assistant/i);
 
       // Press Cmd+K (Meta+K on Mac)
       fireEvent.keyDown(document, { key: 'k', metaKey: true });

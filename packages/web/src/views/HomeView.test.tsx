@@ -10,21 +10,37 @@ vi.mock('react-i18next', () => ({
 
 vi.mock('@/stores/assistant', () => ({
   useAssistantStore: vi.fn(() => ({
-    chats: [],
-    isLoading: false,
+    chatList: [],
+    chatListReady: false,
+    isLoadingChats: false,
+    isLoadingMoreChats: false,
+    hasMoreChats: false,
+    isTransferringChats: false,
     fetchChats: vi.fn(),
     createChat: vi.fn(),
-    getChats: vi.fn().mockResolvedValue([])
+    getChats: vi.fn().mockResolvedValue([]),
+    loadMoreChats: vi.fn(),
+    deleteChatById: vi.fn(),
+    postChats: vi.fn().mockResolvedValue({ data: { technical_id: 'test-id' } })
   }))
 }));
 
 vi.mock('@/stores/auth', () => ({
   useAuthStore: () => ({
     tokenType: 'private',
+    token: 'test-token',
     isAuthenticated: true,
     user: { email: 'test@example.com' }
   }),
-  useSuperUserMode: () => ({ isSuperUser: false, toggleSuperUser: vi.fn() })
+  useSuperUserMode: () => false
+}));
+
+vi.mock('@/plugins/eventBus', () => ({
+  default: { $on: vi.fn(), $off: vi.fn(), $emit: vi.fn() }
+}));
+
+vi.mock('@/helpers/HelperChatGroups', () => ({
+  groupChatsByDate: vi.fn(() => [])
 }));
 
 vi.mock('@/components/Header/Header', () => ({
@@ -47,17 +63,17 @@ vi.mock('@/hooks/useResizablePanel', () => ({
   })
 }));
 
-vi.mock('@/components/ResizeHandle/ResizeHandle', () => ({
-  default: () => <div data-testid="resize-handle">ResizeHandle</div>
-}));
-
-vi.mock('@/components/LoadingSpinner/LoadingSpinner', () => ({
-  default: () => <div data-testid="loading">Loading</div>
-}));
+const localStorageMock = {
+  getItem: vi.fn(() => null),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+};
 
 describe('HomeView', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    Object.defineProperty(window, 'localStorage', { value: localStorageMock, writable: true });
   });
 
   it('should render without crashing', () => {
@@ -67,5 +83,15 @@ describe('HomeView', () => {
       </BrowserRouter>
     );
     expect(container).toBeTruthy();
+  });
+
+  it('should not contain old AI Studio branding', () => {
+    const { container } = render(
+      <BrowserRouter>
+        <HomeView />
+      </BrowserRouter>
+    );
+    expect(container.textContent).not.toContain('Cyoda AI Studio');
+    expect(container.textContent).not.toContain('BUILD WITH CYODA AI');
   });
 });

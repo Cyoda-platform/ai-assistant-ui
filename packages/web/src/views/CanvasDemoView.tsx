@@ -595,7 +595,7 @@ const example = 'Hello World';
                   type="text"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
-                  placeholder="Ask Cyoda AI Assistant... (Ctrl+K to focus)"
+                  placeholder="Ask the AI assistant... (Ctrl+K to focus)"
                   className="w-full bg-slate-800/80 backdrop-blur-sm border border-slate-600 rounded-xl px-4 py-4 text-white placeholder-slate-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-200 pr-12"
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-slate-500 font-mono">

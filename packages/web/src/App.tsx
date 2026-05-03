@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 
@@ -21,6 +21,8 @@ import { useDetectTheme } from './helpers/HelperTheme';
 import { useNavigationGuards } from './router';
 import { initializeCleanState } from './utils/clearTestData';
 
+const APP_ENTRY_ROUTE = '/home';
+
 const App: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -30,7 +32,7 @@ const App: React.FC = () => {
   const authStore = useAuthStore();
   const assistantStore = useAssistantStore();
   const detectTheme = useDetectTheme();
-  const helperStorage = new HelperStorage();
+  const helperStorage = useMemo(() => new HelperStorage(), []);
   const { handleFirstVisit } = useNavigationGuards();
 
   // Debug Auth0 state changes
@@ -60,13 +62,27 @@ const App: React.FC = () => {
     initializeCleanState();
   }, []);
 
-  // Handle theme changes - always enforce dark mode
+  // Apply stored theme preference (light by default on fresh browser)
   useEffect(() => {
     const root = document.documentElement;
+    const stored = localStorage.getItem('app:theme');
     root.classList.remove('theme-dark', 'theme-light');
-    // Always apply dark theme - light mode not supported
-    root.classList.add('theme-dark');
+    if (stored === 'dark') {
+      root.classList.add('theme-dark');
+    } else if (stored === 'light') {
+      root.classList.add('theme-light');
+    }
+    // No stored preference: no class applied, defaults to light via CSS root variables
   }, []);
+
+  // Toggle marketing-page class on <html> for route-scoped layout/scroll/colour-scheme
+  useEffect(() => {
+    const isMarketing = location.pathname === '/';
+    document.documentElement.classList.toggle('marketing-page', isMarketing);
+    return () => {
+      document.documentElement.classList.remove('marketing-page');
+    };
+  }, [location.pathname]);
 
   // Handle authentication state changes
   useEffect(() => {
@@ -148,7 +164,8 @@ const App: React.FC = () => {
 
         assistantStore.setGuestChatsExist(false);
 
-        const returnTo = helperStorage.get(LOGIN_REDIRECT_URL, '/');
+        const storedReturnTo = helperStorage.get<string>(LOGIN_REDIRECT_URL, APP_ENTRY_ROUTE);
+        const returnTo = !storedReturnTo || storedReturnTo === '/' ? APP_ENTRY_ROUTE : storedReturnTo;
         helperStorage.removeItem(LOGIN_REDIRECT_URL);
 
         // Navigate to return URL
@@ -159,7 +176,24 @@ const App: React.FC = () => {
     };
 
     handleAuth();
-  }, [isAuthenticated, user, getAccessTokenSilently, navigate]);
+  }, [assistantStore, helperStorage, isAuthenticated, user, getAccessTokenSilently, navigate]);
+
+  // Authenticated users who open the public root should enter the product shell.
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const isAuth0Callback = params.get('auth0') === 'true';
+
+    if (
+      auth0Loading ||
+      !isAuthenticated ||
+      location.pathname !== '/' ||
+      isAuth0Callback
+    ) {
+      return;
+    }
+
+    navigate(APP_ENTRY_ROUTE, { replace: true });
+  }, [auth0Loading, isAuthenticated, location.pathname, location.search, navigate]);
 
   // Handle navigation guards on route changes
   useEffect(() => {

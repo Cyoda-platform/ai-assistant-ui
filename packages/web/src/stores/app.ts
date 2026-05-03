@@ -7,14 +7,14 @@ interface AppStore {
   // State
   isSidebarHidden: boolean;
   isCanvasHidden: boolean;
-  theme: string; // Always 'dark' - light mode not supported
+  theme: string;
   consentDialog: boolean;
   workflowLayout: 'horizontal' | 'vertical';
 
   // Actions
   toggleSidebar: (value?: boolean) => void;
   toggleCanvas: () => void;
-  setTheme: (theme: string) => void; // Kept for compatibility but always sets 'dark'
+  setTheme: (theme: string) => void;
   setConsentDialog: (value: boolean) => void;
   setWorkflowLayout: (layout: 'horizontal' | 'vertical') => void;
 }
@@ -23,7 +23,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   // Initial state from storage
   isSidebarHidden: helperStorage.get('app:isSidebarHidden', false),
   isCanvasHidden: helperStorage.get('app:isCanvasHidden', false),
-  theme: 'dark', // Always dark mode - light mode not supported
+  theme: helperStorage.get('app:theme', 'light') as string,
   consentDialog: helperStorage.get('app:consentDialog', true),
   workflowLayout: helperStorage.get('app:workflowLayout', 'vertical') as 'horizontal' | 'vertical',
 
@@ -45,9 +45,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   setTheme(theme: string) {
-    // Always enforce dark mode - light mode not supported
-    set({ theme: 'dark' });
-    helperStorage.set("app:theme", 'dark');
+    set({ theme });
+    helperStorage.set("app:theme", theme);
   },
 
   setConsentDialog(value: boolean) {
