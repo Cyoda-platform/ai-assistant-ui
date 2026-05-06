@@ -249,6 +249,17 @@ const FintechHomeView: React.FC = () => {
   const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0();
   const navigate = useNavigate();
 
+  // During Auth0 callback or while auth state resolves, show a neutral loading
+  // screen instead of the marketing page to avoid a visible flash.
+  if (isLoading || isAuthenticated) {
+    return (
+      <div className="fixed inset-0 bg-white flex flex-col items-center justify-center z-50">
+        <img src="/cyoda.svg" alt="Cyoda" className="h-8 mb-4" />
+        <p className="text-sm text-slate-500">Opening Cyoda Cloud…</p>
+      </div>
+    );
+  }
+
   const handleOpenCyodaCloud = async (
     event?: React.MouseEvent<HTMLElement>,
     source = 'unknown CTA'

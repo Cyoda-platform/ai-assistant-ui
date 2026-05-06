@@ -52,9 +52,9 @@ const StreamErrorNotification: React.FC<StreamErrorNotificationProps> = ({
       return <WifiOff size={20} className="text-orange-400" />;
     }
     if (isADKError) {
-      return <AlertTriangle size={20} className="text-purple-400" />;
+      return <AlertTriangle size={20} className="text-red-500" />;
     }
-    return <AlertTriangle size={20} className="text-pink-400" />;
+    return <AlertTriangle size={20} className="text-red-500" />;
   };
 
   const getErrorTitle = () => {
@@ -78,20 +78,20 @@ const StreamErrorNotification: React.FC<StreamErrorNotificationProps> = ({
       return 'The request took too long to complete. This can happen with complex queries or during high server load.';
     }
     if (errorDetails?.error_type === 'NetworkError') {
-      return 'A network error occurred while communicating with CYODA AI. Please check your connection and try again.';
+      return 'A network error occurred while communicating with the assistant. Please check your connection and try again.';
     }
     if (isADKError) {
       return 'An error occurred while processing your request with the AI agent. The system encountered an issue during execution.';
     }
     if (isConnectionError) {
-      return 'Your connection to CYODA AI was interrupted. This can happen due to network issues or server timeouts.';
+      return 'Your connection to the assistant was interrupted. This can happen due to network issues or server timeouts.';
     }
-    return 'An error occurred while streaming your response from CYODA AI.';
+    return 'An error occurred while streaming your response from the assistant.';
   };
 
   return (
     <div className="fixed top-4 right-4 z-50 w-full max-w-md sm:max-w-lg animate-slideInRight">
-      <div className="bg-slate-800/95 backdrop-blur-sm border border-slate-600/50 rounded-lg shadow-xl p-4 mx-4 sm:mx-0">
+      <div className="bg-white border border-slate-200 rounded-lg shadow-lg p-4 mx-4 sm:mx-0">
         <div className="flex items-start space-x-3">
           {/* Icon */}
           <div className="flex-shrink-0 mt-0.5">
@@ -103,12 +103,12 @@ const StreamErrorNotification: React.FC<StreamErrorNotificationProps> = ({
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-start justify-between mb-3">
-                  <h4 className="text-white font-medium text-sm">
+                  <h4 className="text-slate-900 font-medium text-sm">
                     {getErrorTitle()}
                   </h4>
                   <button
                     onClick={onDismiss}
-                    className="flex-shrink-0 ml-2 p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors"
+                    className="flex-shrink-0 ml-2 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                     title="Dismiss notification"
                   >
                     <X size={16} />
@@ -120,14 +120,14 @@ const StreamErrorNotification: React.FC<StreamErrorNotificationProps> = ({
                   <button
                     onClick={onRetry}
                     disabled={isRetrying}
-                    className="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:from-slate-600 disabled:to-slate-700 disabled:opacity-50 text-white rounded-lg transition-all duration-200 text-sm font-medium shadow-lg hover:shadow-teal-500/25 disabled:shadow-none w-full justify-center"
+                    className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:opacity-50 text-white rounded-lg transition-all duration-200 text-sm font-medium shadow-sm disabled:shadow-none w-full justify-center"
                   >
                     <RefreshCw size={14} className={isRetrying ? 'animate-spin' : ''} />
                     <span>{isRetrying ? 'Retrying...' : 'Retry Message'}</span>
                   </button>
                 </div>
 
-                <p className="text-slate-300 text-sm mb-2 leading-relaxed">
+                <p className="text-slate-700 text-sm mb-2 leading-relaxed">
                   {getErrorMessage()}
                 </p>
 
@@ -139,7 +139,7 @@ const StreamErrorNotification: React.FC<StreamErrorNotificationProps> = ({
                 <div className="mb-4">
                   <button
                     onClick={() => setShowDetails(!showDetails)}
-                    className="inline-flex items-center space-x-1 text-slate-400 hover:text-slate-300 text-sm transition-colors p-2 -ml-2 rounded-md hover:bg-slate-700/30 font-medium"
+                    className="inline-flex items-center space-x-1 text-slate-500 hover:text-slate-700 text-sm transition-colors p-2 -ml-2 rounded-md hover:bg-slate-100 font-medium"
                   >
                     {showDetails ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     <span>{showDetails ? 'Hide Details' : 'Show Details'}</span>
@@ -148,60 +148,60 @@ const StreamErrorNotification: React.FC<StreamErrorNotificationProps> = ({
 
                 {/* Collapsible error details */}
                 {showDetails && (
-                  <div className="mb-4 p-3 bg-slate-900/50 rounded-lg text-xs space-y-2 border border-slate-700/50">
+                  <div className="mb-4 p-3 bg-slate-50 rounded-lg text-xs space-y-2 border border-slate-200">
                     {/* Always show the raw error message */}
                     <div className="flex flex-col sm:flex-row sm:items-start gap-1">
                       <span className="text-slate-400 font-medium min-w-0 sm:min-w-[80px]">Error:</span>
-                      <span className="text-slate-300 break-all">{error}</span>
+                      <span className="text-slate-700 break-all">{error}</span>
                     </div>
 
                     {/* Show error details if available */}
                     {errorDetails?.error_type && (
                       <div className="flex flex-col sm:flex-row sm:items-center gap-1">
                         <span className="text-slate-400 font-medium min-w-0 sm:min-w-[80px]">Type:</span>
-                        <span className="text-slate-300 break-all">{errorDetails.error_type}</span>
+                        <span className="text-slate-700 break-all">{errorDetails.error_type}</span>
                       </div>
                     )}
                     {errorDetails?.context && (
                       <div className="flex flex-col sm:flex-row sm:items-center gap-1">
                         <span className="text-slate-400 font-medium min-w-0 sm:min-w-[80px]">Context:</span>
-                        <span className="text-slate-300 break-all">{errorDetails.context}</span>
+                        <span className="text-slate-700 break-all">{errorDetails.context}</span>
                       </div>
                     )}
                     {errorDetails?.status_code && (
                       <div className="flex flex-col sm:flex-row sm:items-center gap-1">
                         <span className="text-slate-400 font-medium min-w-0 sm:min-w-[80px]">Status:</span>
-                        <span className="text-slate-300">{errorDetails.status_code}</span>
+                        <span className="text-slate-700">{errorDetails.status_code}</span>
                       </div>
                     )}
                     {errorDetails?.error_code && (
                       <div className="flex flex-col sm:flex-row sm:items-center gap-1">
                         <span className="text-slate-400 font-medium min-w-0 sm:min-w-[80px]">Code:</span>
-                        <span className="text-slate-300">{errorDetails.error_code}</span>
+                        <span className="text-slate-700">{errorDetails.error_code}</span>
                       </div>
                     )}
 
                     {/* Show processing state if available */}
                     {errorDetails?.error_context && (
-                      <div className="mt-3 pt-3 border-t border-slate-700/50">
+                      <div className="mt-3 pt-3 border-t border-slate-200">
                         <div className="text-slate-400 font-medium mb-2">Processing State:</div>
                         <div className="space-y-1 ml-2">
                           <div className="flex flex-col sm:flex-row sm:items-center gap-1">
                             <span className="text-slate-400 min-w-0 sm:min-w-[120px]">Events Processed:</span>
-                            <span className="text-slate-300">{errorDetails.error_context.events_processed ? 'Yes' : 'No'}</span>
+                            <span className="text-slate-700">{errorDetails.error_context.events_processed ? 'Yes' : 'No'}</span>
                           </div>
                           <div className="flex flex-col sm:flex-row sm:items-center gap-1">
                             <span className="text-slate-400 min-w-0 sm:min-w-[120px]">Response Length:</span>
-                            <span className="text-slate-300">{errorDetails.error_context.response_length} chars</span>
+                            <span className="text-slate-700">{errorDetails.error_context.response_length} chars</span>
                           </div>
                           <div className="flex flex-col sm:flex-row sm:items-center gap-1">
                             <span className="text-slate-400 min-w-0 sm:min-w-[120px]">Event Count:</span>
-                            <span className="text-slate-300">{errorDetails.error_context.event_count}</span>
+                            <span className="text-slate-700">{errorDetails.error_context.event_count}</span>
                           </div>
                           {errorDetails.error_context.session_id && (
                             <div className="flex flex-col sm:flex-row sm:items-start gap-1">
                               <span className="text-slate-400 min-w-0 sm:min-w-[120px]">Session:</span>
-                              <span className="text-slate-300 font-mono text-xs break-all">{errorDetails.error_context.session_id}</span>
+                              <span className="text-slate-700 font-mono text-xs break-all">{errorDetails.error_context.session_id}</span>
                             </div>
                           )}
                         </div>
@@ -209,10 +209,10 @@ const StreamErrorNotification: React.FC<StreamErrorNotificationProps> = ({
                     )}
 
                     {/* Show timestamp */}
-                    <div className="mt-3 pt-3 border-t border-slate-700/50">
+                    <div className="mt-3 pt-3 border-t border-slate-200">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-1">
                         <span className="text-slate-400 font-medium min-w-0 sm:min-w-[80px]">Time:</span>
-                        <span className="text-slate-300">{new Date().toLocaleString()}</span>
+                        <span className="text-slate-700">{new Date().toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
@@ -226,7 +226,7 @@ const StreamErrorNotification: React.FC<StreamErrorNotificationProps> = ({
 
         {/* Connection status indicator */}
         {isConnectionError && (
-          <div className="mt-3 pt-3 border-t border-slate-700/50">
+          <div className="mt-3 pt-3 border-t border-slate-200">
             <div className="flex items-center space-x-2 text-xs text-slate-400">
               <Wifi size={12} />
               <span>Check your internet connection and try again</span>

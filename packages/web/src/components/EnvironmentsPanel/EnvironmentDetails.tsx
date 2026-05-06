@@ -538,26 +538,26 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
   const redeployMessage = `Please, redeploy my cyoda environment: ${environmentUrl}`;
 
   return (
-    <div className="h-full flex flex-col bg-slate-800/95">
+    <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="border-b border-slate-700 bg-slate-800/50">
+      <div className="border-b border-slate-200 bg-white">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-2">
             <button
               onClick={onBack}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+              className="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
               title="Back to environments"
             >
               <ArrowLeft size={16} />
             </button>
-            <div className="h-6 w-px bg-slate-700"></div>
-            <Server size={18} className="text-teal-400" />
-            <h3 className="font-semibold text-white !mb-0 leading-none">{environmentName}</h3>
+            <div className="h-6 w-px bg-slate-200"></div>
+            <Server size={18} className="text-blue-600" />
+            <h3 className="font-semibold text-slate-900 !mb-0 leading-none">{environmentName}</h3>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => window.open(`/logs?env_name=${encodeURIComponent(environmentName)}`, '_blank')}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-teal-300 hover:from-teal-500/30 hover:to-cyan-500/30 transition-all duration-200"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
               title="View logs for this environment"
             >
               <Activity size={12} />
@@ -566,7 +566,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
             {onClose && (
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                className="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                 title="Close Cloud panel"
               >
                 <X size={16} />
@@ -581,11 +581,11 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
         {/* Environment Details */}
         <section className="space-y-3">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Environment Details</h3>
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Environment Details</h3>
             <button
               onClick={fetchEnvironmentInfo}
               disabled={isLoadingEnvInfo}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gradient-to-r from-teal-500/15 to-cyan-500/15 text-teal-400 border border-teal-500/25 hover:from-teal-500/25 hover:to-cyan-500/25 hover:border-teal-400/40 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md hover:shadow-teal-500/10"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 hover:text-slate-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="Refresh environment info"
             >
               <RefreshCw size={12} className={isLoadingEnvInfo ? 'animate-spin' : ''} />
@@ -594,34 +594,34 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
           </div>
 
           {isLoadingEnvInfo ? (
-            <div className="bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-600/50 rounded-xl p-4 flex items-center justify-center">
-              <Loader2 size={16} className="animate-spin text-teal-400 mr-2" />
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-center">
+              <Loader2 size={16} className="animate-spin text-blue-500 mr-2" />
               <span className="text-sm text-slate-400">Loading environment details...</span>
             </div>
           ) : environmentInfo ? (
-            <div className="bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-600/50 rounded-xl p-4 space-y-3.5">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3.5">
               <div>
-                <label className="text-xs text-slate-400 font-medium mb-1.5 block">Namespace</label>
+                <label className="text-xs text-slate-500 font-medium mb-1.5 block">Namespace</label>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 text-sm text-teal-300 bg-slate-900/60 px-3 py-2.5 rounded-lg border border-slate-600/50 font-mono truncate min-w-0">
+                  <code className="flex-1 text-sm text-blue-700 bg-slate-100 px-3 py-2.5 rounded-lg border border-slate-200 font-mono truncate min-w-0">
                     {environmentInfo.namespace}
                   </code>
                   <button
                     onClick={() => copyToClipboard(environmentInfo.namespace, 'Namespace')}
-                    className="p-2 rounded-lg hover:bg-teal-500/10 border border-transparent hover:border-teal-500/30 transition-all duration-200 group"
+                    className="p-2 rounded-lg hover:bg-blue-50 border border-transparent hover:border-blue-200 transition-all duration-200 group"
                     title="Copy namespace"
                   >
                     {copiedField === 'Namespace' ? (
                       <CheckCircle2 size={16} className="text-green-400" />
                     ) : (
-                      <Copy size={16} className="text-slate-400 group-hover:text-teal-400 transition-colors" />
+                      <Copy size={16} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
                     )}
                   </button>
                 </div>
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 font-medium mb-1.5 block">Status</label>
+                <label className="text-xs text-slate-500 font-medium mb-1.5 block">Status</label>
                 <div className="flex items-center gap-2">
                   <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
                     environmentInfo.status === 'Active' || environmentInfo.status === 'active'
@@ -638,12 +638,12 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
                   <button
                     onClick={refreshEnvironmentStatus}
                     disabled={refreshingEnvStatus}
-                    className="p-2 rounded-lg hover:bg-teal-500/10 border border-transparent hover:border-teal-500/30 transition-all duration-200 disabled:opacity-50 group"
+                    className="p-2 rounded-lg hover:bg-blue-50 border border-transparent hover:border-blue-200 transition-colors disabled:opacity-50 group"
                     title="Refresh status"
                   >
                     <RefreshCw
                       size={14}
-                      className={refreshingEnvStatus ? 'animate-spin text-teal-400' : 'text-slate-400 group-hover:text-teal-400 transition-colors'}
+                      className={refreshingEnvStatus ? 'animate-spin text-blue-600' : 'text-slate-400 group-hover:text-blue-600 transition-colors'}
                     />
                   </button>
                 </div>
@@ -651,55 +651,55 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
 
               {environmentInfo.created_at && (
                 <div>
-                  <label className="text-xs text-slate-400 font-medium mb-1.5 block">Created</label>
-                  <p className="text-sm text-slate-300">
+                  <label className="text-xs text-slate-500 font-medium mb-1.5 block">Created</label>
+                  <p className="text-sm text-slate-700">
                     {new Date(environmentInfo.created_at).toLocaleDateString()} {new Date(environmentInfo.created_at).toLocaleTimeString()}
                   </p>
                 </div>
               )}
 
               <div>
-                <label className="text-xs text-slate-400 font-medium mb-1.5 block">Client Environment URL</label>
+                <label className="text-xs text-slate-500 font-medium mb-1.5 block">Client Environment URL</label>
                 <div className="flex items-center gap-2 min-w-0">
-                  <code className="flex-1 text-sm text-teal-300 bg-slate-900/60 px-3 py-2.5 rounded-lg border border-slate-600/50 font-mono truncate min-w-0">
+                  <code className="flex-1 text-sm text-blue-700 bg-slate-100 px-3 py-2.5 rounded-lg border border-slate-200 font-mono truncate min-w-0">
                     {environmentUrl || 'Not available'}
                   </code>
                   <button
                     onClick={() => copyToClipboard(environmentUrl, 'Environment URL')}
-                    className="p-2 rounded-lg hover:bg-teal-500/10 border border-transparent hover:border-teal-500/30 transition-all duration-200 group"
+                    className="p-2 rounded-lg hover:bg-blue-50 border border-transparent hover:border-blue-200 transition-all duration-200 group"
                     title="Copy URL"
                   >
                     {copiedField === 'Environment URL' ? (
                       <CheckCircle2 size={16} className="text-green-400" />
                     ) : (
-                      <Copy size={16} className="text-slate-400 group-hover:text-teal-400 transition-colors" />
+                      <Copy size={16} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
                     )}
                   </button>
                 </div>
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 font-medium mb-1.5 block">Organization ID</label>
+                <label className="text-xs text-slate-500 font-medium mb-1.5 block">Organization ID</label>
                 <div className="flex items-center gap-2 min-w-0">
-                  <code className="flex-1 text-sm text-teal-300 bg-slate-900/60 px-3 py-2.5 rounded-lg border border-slate-600/50 font-mono truncate min-w-0">
+                  <code className="flex-1 text-sm text-blue-700 bg-slate-100 px-3 py-2.5 rounded-lg border border-slate-200 font-mono truncate min-w-0">
                     {orgId || 'Not available'}
                   </code>
                   <button
                     onClick={() => copyToClipboard(orgId, 'Organization ID')}
-                    className="p-2 rounded-lg hover:bg-teal-500/10 border border-transparent hover:border-teal-500/30 transition-all duration-200 group"
+                    className="p-2 rounded-lg hover:bg-blue-50 border border-transparent hover:border-blue-200 transition-all duration-200 group"
                     title="Copy Org ID"
                   >
                     {copiedField === 'Organization ID' ? (
                       <CheckCircle2 size={16} className="text-green-400" />
                     ) : (
-                      <Copy size={16} className="text-slate-400 group-hover:text-teal-400 transition-colors" />
+                      <Copy size={16} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
                     )}
                   </button>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-600/50 rounded-xl p-4">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
               <p className="text-sm text-slate-400">Unable to load environment details</p>
             </div>
           )}
@@ -708,11 +708,11 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
         {/* User Applications */}
         <section className="space-y-3">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">User Applications</h3>
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">User Applications</h3>
             <button
               onClick={fetchUserApps}
               disabled={isLoadingApps}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gradient-to-r from-teal-500/15 to-cyan-500/15 text-teal-400 border border-teal-500/25 hover:from-teal-500/25 hover:to-cyan-500/25 hover:border-teal-400/40 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md hover:shadow-teal-500/10"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 hover:text-slate-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="Refresh applications"
             >
               <RefreshCw size={12} className={isLoadingApps ? 'animate-spin' : ''} />
@@ -721,12 +721,12 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
           </div>
 
           {isLoadingApps ? (
-            <div className="bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-600/50 rounded-xl p-4 flex items-center justify-center">
-              <Loader2 size={16} className="animate-spin text-teal-400 mr-2" />
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-center">
+              <Loader2 size={16} className="animate-spin text-blue-500 mr-2" />
               <span className="text-sm text-slate-400">Loading applications...</span>
             </div>
           ) : userApps.length === 0 ? (
-            <div className="bg-gradient-to-br from-slate-700/30 to-slate-800/30 border border-slate-600/40 rounded-xl p-6 text-center">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 text-center">
               <Package size={48} className="mx-auto mb-3 text-slate-600" />
               <p className="text-sm text-slate-400 mb-1">No user applications deployed</p>
               <p className="text-xs text-slate-500">Deploy an application to get started</p>
@@ -736,27 +736,27 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
               {userApps.map((app) => {
                 const appUrl = `https://${app.namespace}.${import.meta.env.VITE_APP_CYODA_CLIENT_HOST || 'cyoda.cloud'}`;
                 return (
-                  <div key={app.app_name} className="bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-600/50 rounded-lg p-3 hover:border-teal-500/40 transition-all">
+                  <div key={app.app_name} className="bg-white border border-slate-200 rounded-lg p-3 hover:border-blue-300 hover:bg-slate-50 transition-all">
                     <div className="flex items-start gap-3">
-                      <Package size={16} className="text-blue-400 mt-0.5 flex-shrink-0" />
+                      <Package size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <h5 className="text-sm font-medium text-white mb-0.5">{app.app_name}</h5>
-                        <p className="text-xs text-slate-400 truncate mb-2">{app.namespace}</p>
+                        <h5 className="text-sm font-medium text-slate-900 mb-0.5">{app.app_name}</h5>
+                        <p className="text-xs text-slate-500 truncate mb-2">{app.namespace}</p>
 
                         {/* App URL with Copy Button */}
                         <div className="flex items-center gap-2 mb-2 min-w-0">
-                          <code className="flex-1 text-xs text-teal-300 bg-slate-900/60 px-2 py-1 rounded-lg border border-slate-600/50 font-mono truncate min-w-0">
+                          <code className="flex-1 text-xs text-blue-700 bg-slate-100 px-2 py-1 rounded-lg border border-slate-200 font-mono truncate min-w-0">
                             {appUrl}
                           </code>
                           <button
                             onClick={() => copyToClipboard(appUrl, `${app.app_name} URL`)}
-                            className="p-1.5 rounded-lg hover:bg-teal-500/10 border border-transparent hover:border-teal-500/30 transition-all duration-200 group flex-shrink-0"
+                            className="p-1.5 rounded-lg hover:bg-blue-50 border border-transparent hover:border-blue-200 transition-all duration-200 group flex-shrink-0"
                             title="Copy URL"
                           >
                             {copiedField === `${app.app_name} URL` ? (
-                              <CheckCircle2 size={14} className="text-green-400" />
+                              <CheckCircle2 size={14} className="text-green-500" />
                             ) : (
-                              <Copy size={14} className="text-slate-400 group-hover:text-teal-400 transition-colors" />
+                              <Copy size={14} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
                             )}
                           </button>
                         </div>
@@ -764,20 +764,20 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
                         <div className="flex items-center gap-2">
                           <span className={`text-xs px-2 py-0.5 rounded-lg border font-semibold ${
                             app.status === 'Active' || app.status === 'active'
-                              ? 'bg-green-500/10 text-green-400 border-green-500/30'
-                              : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'
+                              ? 'bg-green-50 text-green-700 border-green-200'
+                              : 'bg-yellow-50 text-yellow-700 border-yellow-200'
                           }`}>
                             {app.status}
                           </span>
                           <button
                             onClick={() => refreshAppStatus(app.app_name)}
                             disabled={refreshingAppStatus === app.app_name}
-                            className="p-1 rounded-lg hover:bg-teal-500/10 border border-transparent hover:border-teal-500/30 transition-all duration-200 disabled:opacity-50 group"
+                            className="p-1 rounded-lg hover:bg-slate-100 border border-transparent hover:border-slate-200 transition-all duration-200 disabled:opacity-50 group"
                             title="Refresh status"
                           >
                             <RefreshCw
                               size={12}
-                              className={refreshingAppStatus === app.app_name ? 'animate-spin text-teal-400' : 'text-slate-400 group-hover:text-teal-400 transition-colors'}
+                              className={refreshingAppStatus === app.app_name ? 'animate-spin text-blue-500' : 'text-slate-400 group-hover:text-blue-600 transition-colors'}
                             />
                           </button>
                           {app.created_at && (
@@ -800,23 +800,23 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
 
         {/* Redeploy Environment */}
         <section className="space-y-3">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Redeploy</h3>
+          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Redeploy</h3>
 
-          <div className="bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-600/50 rounded-xl p-4">
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
             <p className="text-xs text-slate-400 mb-2.5">Copy this message to request environment redeployment:</p>
             <div className="flex items-start gap-2">
-              <code className="flex-1 text-xs text-slate-300 bg-slate-900/60 px-3 py-2.5 rounded-lg border border-slate-600/50 font-mono break-all min-w-0">
+              <code className="flex-1 text-xs text-slate-700 bg-slate-100 px-3 py-2.5 rounded-lg border border-slate-200 font-mono break-all min-w-0">
                 {redeployMessage}
               </code>
               <button
                 onClick={() => copyToClipboard(redeployMessage, 'Redeploy Message')}
-                className="p-2 rounded-lg hover:bg-teal-500/10 border border-transparent hover:border-teal-500/30 transition-all duration-200 group flex-shrink-0"
+                className="p-2 rounded-lg hover:bg-blue-50 border border-transparent hover:border-blue-200 transition-all duration-200 group flex-shrink-0"
                 title="Copy message"
               >
                 {copiedField === 'Redeploy Message' ? (
                   <CheckCircle2 size={16} className="text-green-400" />
                 ) : (
-                  <Copy size={16} className="text-slate-400 group-hover:text-teal-400 transition-colors" />
+                  <Copy size={16} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
                 )}
               </button>
             </div>
@@ -825,28 +825,25 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
 
         {/* Logs Access */}
         <section className="space-y-3">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Environment Logs</h3>
+          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Environment Logs</h3>
 
           <div
             onClick={() => window.open(`/logs?env_name=${encodeURIComponent(environmentName)}`, '_blank')}
-            className="relative bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-teal-500/10 border border-purple-500/30 hover:border-purple-400/50 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-purple-500/10 group overflow-hidden"
+            className="bg-slate-50 border border-slate-200 hover:border-blue-300 hover:bg-white rounded-xl p-5 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm group"
           >
-            {/* Animated Background Glow */}
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 via-blue-500/0 to-teal-500/0 group-hover:from-purple-500/5 group-hover:via-blue-500/5 group-hover:to-teal-500/5 transition-all duration-500"></div>
-
-            <div className="relative">
+            <div>
               {/* Icon and Title */}
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-lg group-hover:scale-110 transition-transform">
-                    <FileText size={20} className="text-purple-400" />
+                  <div className="p-2.5 bg-blue-50 rounded-lg group-hover:scale-110 transition-transform">
+                    <FileText size={20} className="text-blue-600" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-white mb-0.5">View System Logs</h4>
-                    <p className="text-xs text-slate-400">Real-time log analysis & monitoring</p>
+                    <h4 className="text-sm font-semibold text-slate-900 mb-0.5">View System Logs</h4>
+                    <p className="text-xs text-slate-500">Real-time log analysis & monitoring</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 text-purple-400 group-hover:translate-x-0.5 transition-transform">
+                <div className="flex items-center gap-1 text-blue-600 group-hover:translate-x-0.5 transition-transform">
                   <span className="text-xs font-medium">Open</span>
                   <ArrowLeft size={14} className="transform rotate-180" />
                 </div>
@@ -855,25 +852,25 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
               {/* Features */}
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-1 h-1 rounded-full bg-teal-400"></div>
-                  <span className="text-xs text-slate-300">Advanced Search</span>
+                  <div className="w-1 h-1 rounded-full bg-teal-500"></div>
+                  <span className="text-xs text-slate-600">Advanced Search</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <div className="w-1 h-1 rounded-full bg-blue-400"></div>
-                  <span className="text-xs text-slate-300">Query DSL</span>
+                  <div className="w-1 h-1 rounded-full bg-blue-500"></div>
+                  <span className="text-xs text-slate-600">Query DSL</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <div className="w-1 h-1 rounded-full bg-purple-400"></div>
-                  <span className="text-xs text-slate-300">Level Filtering</span>
+                  <div className="w-1 h-1 rounded-full bg-purple-500"></div>
+                  <span className="text-xs text-slate-600">Level Filtering</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <div className="w-1 h-1 rounded-full bg-pink-400"></div>
-                  <span className="text-xs text-slate-300">Export JSON</span>
+                  <div className="w-1 h-1 rounded-full bg-pink-500"></div>
+                  <span className="text-xs text-slate-600">Export JSON</span>
                 </div>
               </div>
 
               {/* Description */}
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-xs text-slate-500 leading-relaxed">
                 Access comprehensive logging with Elasticsearch integration
               </p>
             </div>
@@ -882,28 +879,25 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
 
         {/* Metrics & Monitoring */}
         <section className="space-y-3">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Metrics & Dashboards</h3>
+          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Metrics & Dashboards</h3>
 
           <div
             onClick={() => window.open(`/monitoring?env_name=${encodeURIComponent(environmentName)}`, '_blank')}
-            className="relative bg-gradient-to-br from-orange-500/10 via-amber-500/10 to-yellow-500/10 border border-orange-500/30 hover:border-orange-400/50 rounded-xl p-5 cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-orange-500/10 group overflow-hidden"
+            className="bg-slate-50 border border-slate-200 hover:border-orange-300 hover:bg-white rounded-xl p-5 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm group"
           >
-            {/* Animated Background Glow */}
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/0 via-amber-500/0 to-yellow-500/0 group-hover:from-orange-500/5 group-hover:via-amber-500/5 group-hover:to-yellow-500/5 transition-all duration-500"></div>
-
-            <div className="relative">
+            <div>
               {/* Icon and Title */}
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-gradient-to-br from-orange-500/20 to-amber-500/20 rounded-lg group-hover:scale-110 transition-transform">
-                    <BarChart3 size={20} className="text-orange-400" />
+                  <div className="p-2.5 bg-orange-50 rounded-lg group-hover:scale-110 transition-transform">
+                    <BarChart3 size={20} className="text-orange-500" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-white mb-0.5">Metrics & Dashboards</h4>
-                    <p className="text-xs text-slate-400">Real-time performance monitoring</p>
+                    <h4 className="text-sm font-semibold text-slate-900 mb-0.5">Metrics & Dashboards</h4>
+                    <p className="text-xs text-slate-500">Real-time performance monitoring</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 text-orange-400 group-hover:translate-x-0.5 transition-transform">
+                <div className="flex items-center gap-1 text-orange-600 group-hover:translate-x-0.5 transition-transform">
                   <span className="text-xs font-medium">Open</span>
                   <ArrowLeft size={14} className="transform rotate-180" />
                 </div>
@@ -913,24 +907,24 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <div className="flex items-center gap-1.5">
                   <div className="w-1 h-1 rounded-full bg-orange-400"></div>
-                  <span className="text-xs text-slate-300">CPU & Memory</span>
+                  <span className="text-xs text-slate-600">CPU & Memory</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-1 h-1 rounded-full bg-amber-400"></div>
-                  <span className="text-xs text-slate-300">Network Traffic</span>
+                  <span className="text-xs text-slate-600">Network Traffic</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-1 h-1 rounded-full bg-yellow-400"></div>
-                  <span className="text-xs text-slate-300">Pod Metrics</span>
+                  <span className="text-xs text-slate-600">Pod Metrics</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-1 h-1 rounded-full bg-orange-300"></div>
-                  <span className="text-xs text-slate-300">Custom Dashboards</span>
+                  <span className="text-xs text-slate-600">Custom Dashboards</span>
                 </div>
               </div>
 
               {/* Description */}
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-xs text-slate-500 leading-relaxed">
                 Grafana dashboards with real-time Kubernetes metrics
               </p>
             </div>
@@ -941,12 +935,12 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
         <section className="space-y-3">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Code2 size={16} className="text-teal-400" />
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">API Functions</h3>
+              <Code2 size={16} className="text-blue-600" />
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">API Functions</h3>
             </div>
             <button
               onClick={() => setIsApiFunctionsExpanded(!isApiFunctionsExpanded)}
-              className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-teal-500/15 to-cyan-500/15 hover:from-teal-500/25 hover:to-cyan-500/25 text-teal-400 border border-teal-500/25 hover:border-teal-400/40 transition-all duration-200 font-medium flex items-center gap-1.5 hover:shadow-md hover:shadow-teal-500/10 text-xs"
+              className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 hover:border-slate-300 transition-all duration-200 font-medium flex items-center gap-1.5 text-xs"
               title={isApiFunctionsExpanded ? 'Collapse API functions' : 'Expand API functions'}
             >
               {isApiFunctionsExpanded ? (
@@ -971,20 +965,20 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
               const hasResponse = !!functionResponses[func.id];
 
               return (
-                <div key={func.id} className="bg-gradient-to-br from-slate-700/40 to-slate-800/40 border border-slate-600/50 rounded-lg p-3 hover:border-teal-500/40 transition-all">
+                <div key={func.id} className="bg-white border border-slate-200 rounded-lg p-3 hover:border-blue-300 hover:bg-slate-50 transition-all">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <Icon size={16} className="text-teal-400 mt-0.5 flex-shrink-0" />
+                      <Icon size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <h5 className="text-sm font-medium text-white mb-1">{func.name}</h5>
-                        <p className="text-xs text-slate-400 mb-2">{func.description}</p>
+                        <h5 className="text-sm font-medium text-slate-900 mb-1">{func.name}</h5>
+                        <p className="text-xs text-slate-500 mb-2">{func.description}</p>
                         <div className="flex items-center gap-2 flex-wrap mb-2">
                           <span className={`text-xs px-2 py-0.5 rounded-lg font-semibold ${
-                            func.method === 'GET' ? 'bg-blue-500/20 text-blue-400' :
-                            func.method === 'POST' ? 'bg-green-500/20 text-green-400' :
-                            func.method === 'PUT' ? 'bg-yellow-500/20 text-yellow-400' :
-                            func.method === 'DELETE' ? 'bg-red-500/20 text-red-400' :
-                            'bg-purple-500/20 text-purple-400'
+                            func.method === 'GET' ? 'bg-blue-50 text-blue-700' :
+                            func.method === 'POST' ? 'bg-green-50 text-green-700' :
+                            func.method === 'PUT' ? 'bg-yellow-50 text-yellow-700' :
+                            func.method === 'DELETE' ? 'bg-red-50 text-red-700' :
+                            'bg-purple-50 text-purple-700'
                           }`}>
                             {func.method}
                           </span>
@@ -996,11 +990,11 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
                           <div className="space-y-2 mt-3">
                             {func.parameters.map((param) => (
                               <div key={param.name} className="space-y-1.5">
-                                <label className="text-xs text-slate-400 flex items-center gap-1">
+                                <label className="text-xs text-slate-600 flex items-center gap-1">
                                   {param.name}
-                                  {param.required && <span className="text-red-400">*</span>}
+                                  {param.required && <span className="text-red-500">*</span>}
                                   {param.description && (
-                                    <span className="text-slate-500">- {param.description}</span>
+                                    <span className="text-slate-400">- {param.description}</span>
                                   )}
                                 </label>
                                 {param.inputType === 'checkbox' ? (
@@ -1015,9 +1009,9 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
                                           [param.name]: e.target.checked ? 'true' : 'false'
                                         }
                                       }))}
-                                      className="w-4 h-4 bg-slate-900/60 border border-slate-600/50 rounded text-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:ring-offset-0 cursor-pointer transition-colors"
+                                      className="w-4 h-4 border border-slate-300 rounded text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-0 cursor-pointer transition-colors"
                                     />
-                                    <span className="text-xs text-slate-300">Admin Role</span>
+                                    <span className="text-xs text-slate-700">Admin Role</span>
                                   </label>
                                 ) : param.inputType === 'textarea' || param.type === 'body' ? (
                                   <textarea
@@ -1030,7 +1024,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
                                       }
                                     }))}
                                     placeholder={param.default || '{"key": "value"}'}
-                                    className="w-full px-2.5 py-1.5 text-xs bg-slate-900/60 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/50 font-mono transition-colors"
+                                    className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 font-mono transition-colors"
                                     rows={4}
                                   />
                                 ) : (
@@ -1045,7 +1039,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
                                       }
                                     }))}
                                     placeholder={param.default || `Enter ${param.name}`}
-                                    className="w-full px-2.5 py-1.5 text-xs bg-slate-900/60 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/50 transition-colors"
+                                    className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-colors"
                                   />
                                 )}
                               </div>
@@ -1060,7 +1054,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
                       <button
                         onClick={() => executeFunction(func)}
                         disabled={isExecuting}
-                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-teal-300 border border-teal-500/30 hover:from-teal-500/30 hover:to-cyan-500/30 hover:border-teal-400/50 hover:shadow-md hover:shadow-teal-500/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                         title="Execute function"
                       >
                         {isExecuting ? (
@@ -1074,7 +1068,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
                       {hasResponse && (
                         <button
                           onClick={() => showResponseModal(func)}
-                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-blue-500/20 to-indigo-500/20 text-blue-300 border border-blue-500/30 hover:from-blue-500/30 hover:to-indigo-500/30 hover:border-blue-400/50 hover:shadow-md hover:shadow-blue-500/20 transition-all duration-200 font-medium"
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 hover:border-indigo-300 transition-all duration-200 font-medium"
                           title="View response"
                         >
                           <CheckCircle2 size={14} />

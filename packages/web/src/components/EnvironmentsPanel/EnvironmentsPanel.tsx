@@ -96,20 +96,20 @@ const EnvironmentsPanel: React.FC<EnvironmentsPanelProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-500/20 text-green-400 border-green-500/30';
+        return 'bg-green-50 text-green-700 border-green-200';
       case 'inactive':
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+        return 'bg-slate-100 text-slate-600 border-slate-200';
       case 'maintenance':
-        return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
       default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+        return 'bg-slate-100 text-slate-600 border-slate-200';
     }
   };
 
   // If an environment is selected, show details view
   if (selectedEnvironment) {
     return (
-      <div className="h-full bg-slate-800/95 backdrop-blur-sm border-r border-slate-600 flex flex-col relative resizable-panel">
+      <div className="h-full bg-white border-r border-slate-200 flex flex-col relative resizable-panel">
         <EnvironmentDetails
           environmentName={selectedEnvironment}
           onBack={() => setSelectedEnvironment(null)}
@@ -125,14 +125,14 @@ const EnvironmentsPanel: React.FC<EnvironmentsPanelProps> = ({
   }
 
   return (
-    <div className={`h-full bg-slate-800/95 backdrop-blur-sm flex flex-col relative ${isFullscreen ? '' : 'border-r border-slate-600 resizable-panel'}`}>
+    <div className={`h-full bg-white flex flex-col relative ${isFullscreen ? '' : 'border-r border-slate-200 resizable-panel'}`}>
       {/* Header with Action Buttons */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50">
+      <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white">
         <div className="flex items-center space-x-2">
-          <Server size={18} className="text-teal-400" />
-          <h3 className="font-semibold text-white translate-y-[20%]">Cloud</h3>
+          <Server size={18} className="text-blue-600" />
+          <h3 className="font-semibold text-slate-900 translate-y-[20%]">Cloud</h3>
           {isFullscreen && (
-            <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">Fullscreen</span>
+            <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">Fullscreen</span>
           )}
         </div>
         <div className="flex items-center space-x-2">
@@ -143,7 +143,7 @@ const EnvironmentsPanel: React.FC<EnvironmentsPanelProps> = ({
               fetchEnvironments();
             }}
             disabled={isLoading}
-            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             title="Refresh environments"
           >
             <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
@@ -159,7 +159,7 @@ const EnvironmentsPanel: React.FC<EnvironmentsPanelProps> = ({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+              className="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
               title="Open Fullscreen"
             >
               <Maximize2 size={16} />
@@ -176,7 +176,7 @@ const EnvironmentsPanel: React.FC<EnvironmentsPanelProps> = ({
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+              className="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
               title={isFullscreen ? 'Exit Fullscreen' : 'Close Panel'}
             >
               {isFullscreen ? <Minimize2 size={16} /> : <X size={16} />}
@@ -190,17 +190,17 @@ const EnvironmentsPanel: React.FC<EnvironmentsPanelProps> = ({
         {/* Loading State */}
         {isLoading ? (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-center text-slate-400">
-              <Loader2 size={48} className="mx-auto mb-3 animate-spin text-teal-400" />
+            <div className="text-center text-slate-500">
+              <Loader2 size={48} className="mx-auto mb-3 animate-spin text-blue-500" />
               <p className="text-sm">Loading environments...</p>
             </div>
           </div>
         ) : environments.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-center text-slate-400">
-              <Server size={48} className="mx-auto mb-3 opacity-30" />
+            <div className="text-center text-slate-500">
+              <Server size={48} className="mx-auto mb-3 text-slate-300" />
               <p className="text-sm">No environments found</p>
-              <p className="text-xs mt-1">Please, ask in the chat to deploy Cyoda environment</p>
+              <p className="text-xs mt-1 text-slate-400">Please, ask in the chat to deploy Cyoda environment</p>
             </div>
           </div>
         ) : (
@@ -209,23 +209,23 @@ const EnvironmentsPanel: React.FC<EnvironmentsPanelProps> = ({
               <div
                 key={env.name}
                 onClick={() => setSelectedEnvironment(env.name)}
-                className="group relative p-4 rounded-lg bg-gradient-to-br from-slate-700/50 to-slate-800/50 border border-teal-500/50 hover:border-teal-500 cursor-pointer transition-all"
+                className="group relative p-4 rounded-lg bg-white border border-slate-200 hover:border-blue-300 hover:bg-slate-50 cursor-pointer transition-all"
                 title="Click to view details"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-2">
-                      <Server size={16} className="text-teal-400" />
-                      <h4 className="font-semibold truncate text-white">
+                      <Server size={16} className="text-blue-600" />
+                      <h4 className="font-semibold truncate text-slate-900">
                         {env.name}
                       </h4>
                       <span className={`px-2 py-0.5 rounded-full text-xs border ${getStatusColor(env.status)}`}>
                         {env.status}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 truncate mb-1">{env.namespace}</p>
+                    <p className="text-xs text-slate-500 truncate mb-1">{env.namespace}</p>
                     {env.created_at && (
-                      <p className="text-xs text-slate-500">Created: {new Date(env.created_at).toLocaleDateString()}</p>
+                      <p className="text-xs text-slate-400">Created: {new Date(env.created_at).toLocaleDateString()}</p>
                     )}
                   </div>
                 </div>

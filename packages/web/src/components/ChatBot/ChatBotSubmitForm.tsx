@@ -361,7 +361,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
     debouncedResize();
   };
 
-  const placeholderText = layout === 'canvas' ? 'Type here' : 'Ask the AI assistant...';
+  const placeholderText = layout === 'canvas' ? 'Type here' : 'Ask the assistant…';
 
   return (
     <div
@@ -369,13 +369,13 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}
-      className={`relative ${isDragging ? 'bg-teal-500 bg-opacity-10 border-2 border-dashed border-teal-500' : ''}`}
+      className={`relative ${isDragging ? 'bg-blue-50 border-2 border-dashed border-blue-400' : ''}`}
     >
       {isDragging && (
-        <div className="absolute inset-0 flex items-center justify-center bg-slate-800 bg-opacity-90 backdrop-blur-sm rounded-xl z-10">
+        <div className="absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-xl z-10 border-2 border-dashed border-blue-400">
           <div className="text-center">
-            <Paperclip size={32} className="text-teal-400 mx-auto mb-2" />
-            <span className="text-teal-400 font-medium">Drop file here</span>
+            <Paperclip size={32} className="text-blue-500 mx-auto mb-2" />
+            <span className="text-blue-600 font-medium">Drop file here</span>
           </div>
         </div>
       )}
@@ -383,7 +383,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
       <Form form={form} onFinish={onClickTextAnswer}>
         <div className="space-y-3">
           {currentFiles.length > 0 && (
-            <div className="flex flex-wrap gap-2 p-3 bg-slate-800/50 rounded-lg border border-slate-600">
+            <div className="flex flex-wrap gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
               {currentFiles.map((file, index) => (
                 <FileSubmitPreview
                   key={`${file.name}-${index}`}
@@ -439,7 +439,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
                     setTextareaHeight(48); // Use new minimum height
                   }
                 }}
-                className="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 border border-slate-600 text-slate-300 hover:text-white rounded-lg text-xs font-medium transition-all duration-200 flex items-center space-x-2"
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 hover:text-slate-900 rounded-lg text-xs font-medium transition-all duration-200 flex items-center space-x-2"
                 title={isCollapsed ? "Click to expand canvas content" : "Click to collapse canvas content"}
               >
                 <svg
@@ -460,7 +460,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
             </div>
           )}
 
-          <div className={`relative overflow-hidden rounded-2xl border-2 transition-all duration-300 ${isFocused ? 'border-emerald-500 ring-2 ring-emerald-500/20' : 'border-slate-600'}`}>
+          <div className={`relative overflow-hidden rounded-2xl border-2 transition-all duration-300 ${isFocused ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-300'}`}>
             <textarea
               ref={textareaRef}
               value={answer}
@@ -471,7 +471,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
               placeholder={placeholderText}
               onKeyDown={handleKeyDown}
               rows={1}
-              className="w-full bg-slate-800/80 backdrop-blur-sm text-white placeholder-slate-400 focus:outline-none resize-none text-lg"
+              className="w-full bg-white text-slate-900 placeholder-slate-400 focus:outline-none resize-none text-lg"
               style={{
                 height: `${textareaHeight}px`,
                 minHeight: '64px',
@@ -497,7 +497,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
               >
                 <Paperclip
                   size={20}
-                  className="text-slate-400 hover:text-slate-300 transition-colors duration-200"
+                  className="text-slate-400 hover:text-blue-600 transition-colors duration-200"
                   strokeWidth={2}
                 />
               </button>
@@ -513,7 +513,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
                   title="Stop AI request"
                 >
                   {/* Circular preloader */}
-                  <div className="w-5 h-5 border-2 border-slate-600 border-t-teal-500 rounded-full animate-spin"></div>
+                  <div className="w-5 h-5 border-2 border-slate-200 border-t-blue-500 rounded-full animate-spin"></div>
                 </button>
               ) : (
                 /* Send Button when not thinking - Icon only with color change */
@@ -533,8 +533,8 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
                     strokeWidth={2}
                     style={{
                       color: disabled || (!(typeof answer === 'string' && answer.trim()) && currentFiles.length === 0)
-                        ? '#0D8484' // темная бирюзовая - как логотип CYODA
-                        : '#14b8a6' // teal-500 - яркая бирюзовая когда активна
+                        ? '#94a3b8' // slate-400 when inactive
+                        : '#2563eb' // blue-600 when active
                     }}
                   />
                 </button>

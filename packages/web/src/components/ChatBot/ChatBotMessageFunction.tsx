@@ -253,9 +253,9 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
         <div className="flex-1">
           {/* Function Badge */}
           <div className="flex items-center space-x-2 mb-2">
-            <div className="flex items-center space-x-1.5 bg-purple-500/20 backdrop-blur-sm px-3 py-1 rounded-full border border-purple-500/30">
-              <Zap size={12} className="text-purple-400" />
-              <span className="text-xs font-medium text-purple-300">UI FUNCTION</span>
+            <div className="flex items-center space-x-1.5 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+              <Zap size={12} className="text-blue-500" />
+              <span className="text-xs font-medium text-blue-700">UI Function</span>
             </div>
             {date && (
               <div className="flex items-center space-x-1 text-xs text-slate-500">
@@ -266,13 +266,13 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
           </div>
 
           {/* Action Block */}
-          <div className={`bg-slate-800/50 backdrop-blur-sm border border-slate-600 rounded-3xl shadow-lg relative group px-4 py-3 ${message.approve ? 'pb-12' : ''}`}>
+          <div className={`bg-white border border-slate-200 rounded-2xl shadow-sm relative group px-4 py-3 ${message.approve ? 'pb-12' : ''}`}>
             {/* Method and Path */}
             <div className="flex items-center space-x-3 mb-3">
               <span className={`${getMethodColor(functionData.method)} text-white text-xs font-bold px-3 py-1 rounded-md min-w-[70px] text-center`}>
                 {functionData.method}
               </span>
-              <span className="text-white font-mono text-sm flex-1 truncate" title={functionData.path}>
+              <span className="text-slate-900 font-mono text-sm flex-1 truncate" title={functionData.path}>
                 {functionData.path}
               </span>
             </div>
@@ -284,13 +284,13 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
 
             {/* Admin Role Checkbox - Only for issue_technical_user */}
             {functionData.function === 'issue_technical_user' && (
-              <div className="mb-3 p-3 bg-slate-700/30 rounded-lg border border-slate-600/50">
+              <div className="mb-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <input
                     type="checkbox"
                     checked={withAdminRole}
                     onChange={(e) => setWithAdminRole(e.target.checked)}
-                    className="w-4 h-4 bg-slate-900/60 border border-slate-600/50 rounded text-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-0 cursor-pointer transition-colors"
+                    className="w-4 h-4 border border-slate-300 rounded text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-0 cursor-pointer transition-colors"
                   />
                   <div className="flex-1">
                     <span className="text-sm font-medium text-slate-200 group-hover:text-white transition-colors">
@@ -311,7 +311,7 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
 
             {/* Query Parameters (for non-issue_technical_user functions) */}
             {functionData.function !== 'issue_technical_user' && functionData.query_params && Object.keys(functionData.query_params).length > 0 && (
-              <div className="mb-3 p-2 bg-slate-700/30 rounded-lg">
+              <div className="mb-3 p-2 bg-slate-50 rounded-lg border border-slate-100">
                 <div className="text-slate-500 text-xs font-semibold mb-1">Query Parameters:</div>
                 <div className="space-y-1">
                   {Object.entries(functionData.query_params).map(([key, value]) => (
@@ -328,12 +328,12 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
             <div className="flex items-center justify-between">
               <div className="text-slate-400 text-sm">
                 <span className="text-slate-500 font-semibold">Response format:</span>{' '}
-                <span className="text-slate-300">{functionData.response_format}</span>
+                <span className="text-slate-700">{functionData.response_format}</span>
               </div>
               <button
                 onClick={handleExecute}
                 disabled={isLoading}
-                className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-purple-500/25 disabled:cursor-not-allowed flex items-center space-x-2"
+                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-sm disabled:cursor-not-allowed flex items-center space-x-2"
               >
                 {isLoading ? (
                   <>
@@ -350,15 +350,15 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
             </div>
 
             {/* Info Message */}
-            <div className="mt-3 flex items-start space-x-2 text-xs text-slate-500 bg-slate-700/30 p-2 rounded-md">
+            <div className="mt-3 flex items-start space-x-2 text-xs text-slate-500 bg-slate-50 border border-slate-100 p-2 rounded-md">
               <Info size={14} className="flex-shrink-0 mt-0.5" />
               <span>The response might contain sensitive user environment information and will not be persisted.</span>
             </div>
 
             {/* Server Response */}
             {serverResponse && (
-              <div className="mt-4 pt-4 border-t border-slate-600">
-                <h4 className="text-white font-semibold mb-2 flex items-center space-x-2">
+              <div className="mt-4 pt-4 border-t border-slate-200">
+                <h4 className="text-slate-900 font-semibold mb-2 flex items-center space-x-2">
                   <Download size={16} />
                   <span>Response:</span>
                 </h4>

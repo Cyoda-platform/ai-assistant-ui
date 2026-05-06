@@ -704,9 +704,9 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
           <div className="flex-1 min-w-0">
           {/* AI Badge */}
           <div className="flex items-center gap-2 mb-2">
-            <div className="flex items-center space-x-1.5 bg-slate-800/50 backdrop-blur-sm px-3 py-1 rounded-full border border-slate-600">
-              <span className="text-xs font-medium text-slate-300">
-                {message.isCanvasQA ? 'CANVAS AI' : 'CYODA AI'}
+            <div className="flex items-center space-x-1.5 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+              <span className="text-xs font-medium text-slate-600">
+                {message.isCanvasQA ? 'Canvas AI' : 'Assistant'}
               </span>
             </div>
             {date && (
@@ -718,7 +718,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
           </div>
 
           {/* Message Bubble - Modern design */}
-          <div className={`rounded-3xl bg-slate-800/40 p-6 border border-slate-700/30 relative ${
+          <div className={`rounded-2xl bg-white p-6 border border-slate-200 shadow-sm relative ${
             (message.approve || canvasAnalysisHook || (message.isCanvasQA && (hasRollback || message.id))) && !canvasOpenHook ? 'pb-12' : ''
           } ${
             message.isCanvasQA ? 'canvas-qa-question' : ''
@@ -730,13 +730,13 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                 {(canvasOpenHook || hasSaveFileToRepository || codeChangesHook) && onOpenCanvas && (
                   <button
                     onClick={handleOpenCanvasWithPull}
-                    className="px-4 py-2 rounded-full backdrop-blur-sm bg-slate-700/40 border border-amber-400/50 hover:bg-slate-600/50 hover:border-amber-400/70 text-slate-300 hover:text-slate-200 font-medium shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
+                    className="px-4 py-2 rounded-full bg-white border border-amber-300 hover:bg-amber-50 hover:border-amber-400 text-slate-700 hover:text-slate-900 font-medium shadow-sm hover:shadow hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
                   >
-                    <Activity size={14} className="text-amber-400" />
+                    <Activity size={14} className="text-amber-500" />
                     <span className="text-sm">Open Canvas</span>
                     <div className="relative group/info">
-                      <Info size={12} className="text-slate-500 cursor-help" />
-                      <div className="absolute top-full right-0 mt-2 hidden group-hover/info:block w-48 p-2.5 bg-slate-900/95 backdrop-blur-sm text-slate-300 text-xs rounded-lg shadow-xl border border-slate-700 z-40 pointer-events-none">
+                      <Info size={12} className="text-slate-400 cursor-help" />
+                      <div className="absolute top-full right-0 mt-2 hidden group-hover/info:block w-48 p-2.5 bg-white text-slate-700 text-xs rounded-lg shadow-lg border border-slate-200 z-40 pointer-events-none">
                         View saved files, edit content, and generate artifacts
                       </div>
                     </div>
@@ -747,13 +747,13 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                 {(hasBackgroundCodeGeneration || hasDeploymentTools) && onOpenTaskPanel && (
                   <button
                     onClick={onOpenTaskPanel}
-                    className="px-4 py-2 rounded-full backdrop-blur-sm bg-slate-700/40 border border-slate-300/50 hover:bg-slate-600/50 hover:border-slate-200/70 text-slate-300 hover:text-slate-200 font-medium shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
+                    className="px-4 py-2 rounded-full bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400 text-slate-700 hover:text-slate-900 font-medium shadow-sm hover:shadow hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
                   >
-                    <Database size={14} className="text-slate-300" />
+                    <Database size={14} className="text-slate-500" />
                     <span className="text-sm">Open Tasks</span>
                     <div className="relative group/info">
-                      <Info size={12} className="text-slate-500 cursor-help" />
-                      <div className="absolute top-full right-0 mt-2 hidden group-hover/info:block w-48 p-2.5 bg-slate-900/95 backdrop-blur-sm text-slate-300 text-xs rounded-lg shadow-xl border border-slate-700 z-40 pointer-events-none">
+                      <Info size={12} className="text-slate-400 cursor-help" />
+                      <div className="absolute top-full right-0 mt-2 hidden group-hover/info:block w-48 p-2.5 bg-white text-slate-700 text-xs rounded-lg shadow-lg border border-slate-200 z-40 pointer-events-none">
                         Track progress and monitor real-time status
                       </div>
                     </div>
@@ -764,13 +764,13 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                 {hasEnvironmentTools && onOpenEnvironmentPanel && (
                   <button
                     onClick={onOpenEnvironmentPanel}
-                    className="px-4 py-2 rounded-full backdrop-blur-sm bg-slate-700/40 border border-emerald-600/50 hover:bg-slate-600/50 hover:border-emerald-500/70 text-slate-300 hover:text-slate-200 font-medium shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
+                    className="px-4 py-2 rounded-full bg-white border border-emerald-300 hover:bg-emerald-50 hover:border-emerald-400 text-slate-700 hover:text-slate-900 font-medium shadow-sm hover:shadow hover:scale-[1.02] transition-all duration-200 flex items-center space-x-2"
                   >
-                    <Server size={14} className="text-emerald-500" />
+                    <Server size={14} className="text-emerald-600" />
                     <span className="text-sm">Open Cloud</span>
                     <div className="relative group/info">
-                      <Info size={12} className="text-slate-500 cursor-help" />
-                      <div className="absolute top-full right-0 mt-2 hidden group-hover/info:block w-48 p-2.5 bg-slate-900/95 backdrop-blur-sm text-slate-300 text-xs rounded-lg shadow-xl border border-slate-700 z-40 pointer-events-none">
+                      <Info size={12} className="text-slate-400 cursor-help" />
+                      <div className="absolute top-full right-0 mt-2 hidden group-hover/info:block w-48 p-2.5 bg-white text-slate-700 text-xs rounded-lg shadow-lg border border-slate-200 z-40 pointer-events-none">
                         Monitor environments and manage credentials
                       </div>
                     </div>
@@ -802,7 +802,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                   <div className="mt-4 flex justify-center">
                     <button
                       onClick={() => setIsExpanded(!isExpanded)}
-                      className="group px-6 py-2.5 rounded-full bg-gradient-to-r from-slate-700/50 to-slate-800/50 hover:from-slate-600/60 hover:to-slate-700/60 border border-slate-600/50 hover:border-slate-500/70 text-slate-300 hover:text-slate-100 font-medium text-sm transition-all duration-300 shadow-lg hover:shadow-slate-500/20 hover:shadow-xl hover:scale-105 active:scale-95 flex items-center space-x-2.5"
+                      className="group px-6 py-2.5 rounded-full bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 text-slate-600 hover:text-slate-900 font-medium text-sm transition-all duration-200 shadow-sm hover:shadow hover:scale-105 active:scale-95 flex items-center space-x-2.5"
                     >
                       <svg
                         className={`w-4 h-4 transition-all duration-300 ${isExpanded ? 'rotate-180' : ''} group-hover:scale-110`}
@@ -885,20 +885,20 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                           onClick={() => handleToggleOption(option.value)}
                           className={`group/option px-4 py-3 rounded-2xl border transition-all duration-200 text-left relative ${
                             selectedOptions.includes(option.value)
-                              ? 'border-amber-400/70 bg-teal-500/15 shadow-lg shadow-amber-400/10'
-                              : 'border-slate-500/40 bg-slate-800/20 hover:border-slate-400/60 hover:bg-slate-800/40'
+                              ? 'border-blue-400 bg-blue-50 shadow-sm'
+                              : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
                           }`}
                         >
                           <div className="flex items-center justify-between">
                             <div className={`text-sm font-medium ${
-                              selectedOptions.includes(option.value) ? 'text-teal-300' : 'text-slate-300'
+                              selectedOptions.includes(option.value) ? 'text-blue-700' : 'text-slate-700'
                             }`}>
                               {option.label}
                             </div>
                             {option.description && (
                               <div className="relative ml-2">
-                                <Info size={14} className={selectedOptions.includes(option.value) ? 'text-teal-400' : 'text-slate-400 group-hover/option:text-slate-300'} />
-                                <div className="absolute bottom-full right-0 mb-2 hidden group-hover/option:block w-48 p-2 bg-slate-900 text-slate-300 text-xs rounded-lg shadow-xl border border-slate-700 z-10">
+                                <Info size={14} className={selectedOptions.includes(option.value) ? 'text-blue-500' : 'text-slate-400 group-hover/option:text-slate-600'} />
+                                <div className="absolute bottom-full right-0 mb-2 hidden group-hover/option:block w-48 p-2 bg-white text-slate-700 text-xs rounded-lg shadow-lg border border-slate-200 z-10">
                                   {option.description}
                                 </div>
                               </div>
@@ -948,7 +948,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                 />
                 <div className="space-y-3">
                   <div>
-                    <div className="text-sm font-medium text-slate-300">
+                    <div className="text-sm font-medium text-slate-700">
                       {backgroundTaskHook.data?.task_name}
                     </div>
                     {backgroundTaskHook.data?.task_description && (
@@ -963,7 +963,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                       console.log('[View Tasks Button] onOpenTaskPanel function:', onOpenTaskPanel);
                       onOpenTaskPanel?.();
                     }}
-                    className="w-full px-4 py-2 rounded-full bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/50 text-teal-300 text-sm font-medium transition-all duration-200"
+                    className="w-full px-4 py-2 rounded-full bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-sm font-medium transition-all duration-200"
                   >
                     📊 View Tasks
                   </button>
@@ -985,7 +985,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                 <div className="flex items-center space-x-3">
                   <div className="text-2xl">🎨</div>
                   <div className="flex-1">
-                    <div className="text-sm font-medium text-slate-300">
+                    <div className="text-sm font-medium text-slate-700">
                       Opening Canvas Tab
                     </div>
                     <div className="text-xs text-slate-400 mt-1">
@@ -1007,7 +1007,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                   <div className="flex items-center space-x-3 flex-1 min-w-[200px]">
                     <div className="text-2xl flex-shrink-0">📝</div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-slate-300">
+                      <div className="text-sm font-medium text-slate-700">
                         Changes Committed
                       </div>
                       <div className="text-xs text-slate-400 mt-1 break-words">
@@ -1018,7 +1018,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                   <button
                     onClick={handleOpenCanvasWithPull}
                     type="button"
-                    className="px-4 py-2 rounded-full bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/50 text-teal-300 text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0"
+                    className="px-4 py-2 rounded-full bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0"
                   >
                     🎨 Open Canvas
                   </button>
@@ -1048,8 +1048,8 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                           onClick={() => setBranchChoice(choice.value)}
                           className={`flex-1 px-3 py-2 rounded-2xl border-2 transition-colors ${
                             branchChoice === choice.value
-                              ? 'border-teal-500/60 bg-teal-500/10 text-teal-300'
-                              : 'border-slate-600/50 bg-slate-800/30 text-slate-300 hover:border-slate-500'
+                              ? 'border-blue-400 bg-blue-50 text-blue-700'
+                              : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                           }`}
                         >
                           <div className="text-xs font-medium">{choice.label}</div>
@@ -1074,8 +1074,8 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                         onClick={() => setRepositoryType(choice.value)}
                         className={`flex-1 px-3 py-2 rounded-2xl border-2 transition-colors ${
                           repositoryType === choice.value
-                            ? 'border-teal-500/60 bg-teal-500/10 text-teal-300'
-                            : 'border-slate-600/50 bg-slate-800/30 text-slate-300 hover:border-slate-500'
+                            ? 'border-blue-400 bg-blue-50 text-blue-700'
+                            : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                         }`}
                       >
                         <div className="text-xs font-medium">{choice.label}</div>
@@ -1099,8 +1099,8 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                         onClick={() => setLanguage(choice.value)}
                         className={`flex-1 px-3 py-2 rounded-2xl border-2 transition-colors ${
                           language === choice.value
-                            ? 'border-teal-500/60 bg-teal-500/10 text-teal-300'
-                            : 'border-slate-600/50 bg-slate-800/30 text-slate-300 hover:border-slate-500'
+                            ? 'border-blue-400 bg-blue-50 text-blue-700'
+                            : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                         }`}
                       >
                         <div className="text-xs font-medium">{choice.label}</div>
@@ -1116,7 +1116,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                 <button
                   onClick={handleSubmitRepoConfig}
                   disabled={isSubmittingConfig}
-                  className="w-full px-4 py-2.5 rounded-full backdrop-blur-md bg-gradient-to-r from-teal-500/20 to-cyan-500/20 border border-teal-400/20 hover:from-teal-500/30 hover:to-cyan-500/30 hover:border-teal-400/30 disabled:bg-slate-800/40 disabled:border-slate-700/30 disabled:opacity-50 text-teal-100 hover:text-white disabled:text-slate-500 text-sm font-medium transition-all duration-200 shadow-lg shadow-teal-500/10 hover:shadow-teal-400/20 disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 border border-blue-600 disabled:bg-slate-200 disabled:border-slate-200 disabled:opacity-50 text-white disabled:text-slate-400 text-sm font-medium transition-all duration-200 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   <Send size={16} />
                   <span>Select</span>

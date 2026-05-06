@@ -15,7 +15,7 @@ const ChatLoader: React.FC<ChatLoaderProps> = ({
   agentName,
   toolName,
   toolArgs,
-  message = 'AI is thinking...'
+  message = 'Assistant is thinking…'
 }) => {
   // Use responsive container for the message text
   const containerInfo = useTextResponsiveContainer(message);
@@ -23,7 +23,7 @@ const ChatLoader: React.FC<ChatLoaderProps> = ({
   // Format agent name for display
   const displayAgentName = agentName
     ? agentName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-    : 'CYODA AI';
+    : 'Assistant';
 
   // Format tool name for display
   const displayToolName = toolName
@@ -41,16 +41,16 @@ const ChatLoader: React.FC<ChatLoaderProps> = ({
         <div className="flex-1">
           {/* AI Badge with Agent Name and Thinking Animation */}
           <div className="flex items-center space-x-2 flex-wrap mb-2">
-            <div className="flex items-center space-x-1.5 bg-slate-800/50 backdrop-blur-sm px-3 py-1 rounded-full border border-slate-600">
-              <Sparkles size={12} className="text-purple-400 animate-pulse" />
-              <span className="text-xs font-medium text-slate-300">{displayAgentName}</span>
+            <div className="flex items-center space-x-1.5 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+              <Sparkles size={12} className="text-blue-500" />
+              <span className="text-xs font-medium text-slate-700">{displayAgentName}</span>
             </div>
 
             {/* Tool Indicator */}
             {toolName && (
-              <div className="flex items-center space-x-1.5 bg-teal-900/30 backdrop-blur-sm px-3 py-1 rounded-full border border-teal-600/50 animate-pulse">
-                <Wrench size={12} className="text-teal-400" />
-                <span className="text-xs font-medium text-teal-300">{displayToolName}</span>
+              <div className="flex items-center space-x-1.5 bg-teal-50 px-3 py-1 rounded-full border border-teal-200">
+                <Wrench size={12} className="text-teal-600" />
+                <span className="text-xs font-medium text-teal-700">{displayToolName}</span>
               </div>
             )}
 
@@ -60,13 +60,13 @@ const ChatLoader: React.FC<ChatLoaderProps> = ({
 
           {/* Tool Arguments */}
           {toolArgs && Object.keys(toolArgs).length > 0 && (
-            <div className="mb-2 bg-slate-800/30 backdrop-blur-sm rounded-lg px-3 py-2 border border-slate-700/50">
-              <div className="text-xs text-slate-400 mb-1">Tool Arguments:</div>
-              <div className="text-xs text-slate-300 font-mono">
+            <div className="mb-2 bg-slate-50 rounded-lg px-3 py-2 border border-slate-200">
+              <div className="text-xs text-slate-500 mb-1">Tool Arguments:</div>
+              <div className="text-xs text-slate-700 font-mono">
                 {Object.entries(toolArgs).map(([key, value]) => (
                   <div key={key} className="flex items-start space-x-2">
-                    <span className="text-teal-400">{key}:</span>
-                    <span className="text-slate-300 break-all">
+                    <span className="text-blue-600">{key}:</span>
+                    <span className="text-slate-700 break-all">
                       {typeof value === 'object' ? JSON.stringify(value) : String(value)}
                     </span>
                   </div>
@@ -79,7 +79,7 @@ const ChatLoader: React.FC<ChatLoaderProps> = ({
           <div className={containerInfo.className}>
             <div className="flex items-center space-x-3">
               <ThinkingAnimation />
-              <span className="text-sm text-slate-400">{message}</span>
+              <span className="text-sm text-slate-500">{message}</span>
             </div>
           </div>
         </div>

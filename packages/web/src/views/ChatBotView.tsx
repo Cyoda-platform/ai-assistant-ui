@@ -2619,7 +2619,7 @@ const ChatBotView: React.FC = () => {
   }, [chatData]);
 
   return (
-    <div className="main-layout bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-white">
+    <div className="main-layout bg-slate-50 text-slate-900">
       <Header
         showActions={true}
         onToggleCanvas={onToggleCanvas}

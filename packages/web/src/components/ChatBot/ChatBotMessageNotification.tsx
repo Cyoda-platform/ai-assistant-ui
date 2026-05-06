@@ -259,21 +259,21 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
         <div className="flex-1">
           {/* Notification Badge */}
           <div className="flex items-center space-x-2 mb-2">
-            <div className="flex items-center space-x-1.5 bg-slate-800/50 backdrop-blur-sm px-3 py-1 rounded-full border border-slate-600">
+            <div className="flex items-center space-x-1.5 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
               {isCodeChanges ? (
                 <>
-                  <RefreshCw size={12} className="text-cyan-400" />
-                  <span className="text-xs font-medium text-slate-300">CODE CHANGES</span>
+                  <RefreshCw size={12} className="text-blue-500" />
+                  <span className="text-xs font-medium text-slate-600">Code Changes</span>
                 </>
               ) : isBackgroundTask ? (
                 <>
-                  <Activity size={12} className="text-teal-400" />
-                  <span className="text-xs font-medium text-slate-300">BACKGROUND TASK</span>
+                  <Activity size={12} className="text-teal-600" />
+                  <span className="text-xs font-medium text-slate-600">Background Task</span>
                 </>
               ) : (
                 <>
-                  <Sparkles size={12} className="text-pink-400" />
-                  <span className="text-xs font-medium text-slate-300">CYODA NOTIFICATION</span>
+                  <Sparkles size={12} className="text-blue-500" />
+                  <span className="text-xs font-medium text-slate-600">Notification</span>
                 </>
               )}
             </div>
@@ -286,7 +286,7 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
           </div>
 
           {/* Message Bubble */}
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-3xl rounded-tl-md shadow-lg hover:shadow-xl hover:border-slate-600 transition-all duration-200 px-4 py-3">
+          <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-md shadow-sm hover:shadow hover:border-slate-300 transition-all duration-200 px-4 py-3">
             <div className="space-y-4">
               {/* Display the actual message content */}
               <MarkdownRenderer>
@@ -300,7 +300,7 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
                   <button
                     onClick={handleRefreshCanvas}
                     disabled={isAnalyzing}
-                    className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-teal-500/20 hover:from-cyan-500/30 hover:to-teal-500/30 border border-cyan-500/50 hover:border-cyan-500 rounded-lg text-cyan-300 hover:text-cyan-200 transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center space-x-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 rounded-lg text-blue-700 hover:text-blue-800 transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isAnalyzing ? (
                       <>
@@ -324,7 +324,7 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
                       console.log('🎯 View Task Progress button clicked');
                       onOpenTaskPanel();
                     }}
-                    className="flex items-center space-x-2 px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/50 hover:border-emerald-500 rounded-lg text-emerald-300 hover:text-emerald-200 transition-all duration-200 group"
+                    className="flex items-center space-x-2 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 hover:border-emerald-300 rounded-lg text-emerald-700 hover:text-emerald-800 transition-all duration-200 group"
                   >
                     <Activity size={16} />
                     <span className="font-medium">View Task Progress</span>
@@ -342,7 +342,7 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
                 hookType="option_selection"
                 label={optionSelectionHooks.length === 1 ? (optionSelectionHooks[0].data?.question || 'Options') : 'Options'}
               />
-              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-3xl shadow-lg p-4 space-y-4">
+              <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4 space-y-4">
                 {/* Render all hooks' options in a single container */}
                 {optionSelectionHooks.map((optHook, index) => {
                   const hookKey = `hook-${index}`;
@@ -353,7 +353,7 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
                     <div key={hookKey} className="space-y-3">
                       {/* Question label for each hook (only if multiple hooks) */}
                       {optionSelectionHooks.length > 1 && (
-                        <div className="text-sm font-medium text-slate-300">
+                        <div className="text-sm font-medium text-slate-700">
                           {optHook.data?.question || `Question ${index + 1}`}
                         </div>
                       )}
@@ -374,16 +374,16 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
                               onClick={() => handleToggleOption(hookKey, option.value, optHook.data?.selection_type || 'single')}
                               className={`px-4 py-3 rounded-xl border-2 transition-all duration-200 text-left ${
                                 currentSelected.includes(option.value)
-                                  ? 'border-teal-500 bg-teal-500/20 text-teal-300'
-                                  : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500'
+                                  ? 'border-blue-400 bg-blue-50 text-blue-700'
+                                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                               }`}
                             >
                               <div className="flex items-start space-x-3">
                                 {/* Checkbox/Radio indicator */}
                                 <div className={`mt-0.5 w-5 h-5 rounded-${optHook.data?.selection_type === 'single' ? 'full' : 'md'} border-2 flex items-center justify-center ${
                                   currentSelected.includes(option.value)
-                                    ? 'border-teal-500 bg-teal-500'
-                                    : 'border-slate-500'
+                                    ? 'border-blue-500 bg-blue-500'
+                                    : 'border-slate-300'
                                 }`}>
                                   {currentSelected.includes(option.value) && (
                                     <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -404,7 +404,7 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
 
                       {/* Separator between hook sections (if multiple hooks) */}
                       {optionSelectionHooks.length > 1 && index < optionSelectionHooks.length - 1 && (
-                        <div className="border-t border-slate-700/50 pt-3"></div>
+                        <div className="border-t border-slate-200 pt-3"></div>
                       )}
                     </div>
                   );
