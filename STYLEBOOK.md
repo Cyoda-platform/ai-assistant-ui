@@ -8,6 +8,22 @@ Both repos share the same brand colour palette and typographic direction. cyodal
 
 ---
 
+## Design Direction
+
+**Primary reference: `cyodalight-website` (light theme)**
+
+The AI Assistant UI (`cyoda-cloud-workbench-ui-2` branch) follows the **light theme** established by `cyodalight-website`. This means:
+
+- **White/light backgrounds** as the default (`#ffffff`, `#f8fafc`, `#f1f5f9`)
+- **Dark text** on light surfaces (`#0f172a`, `#1e293b`)
+- **Teal as the primary accent** (`#4FB8B0`) for interactive elements, buttons, and highlights
+- **No forced dark mode** — `theme-dark` is not applied globally
+- Light surfaces with coloured accents follow the cyodalight pattern, not the dark gradient backgrounds of cyoda-launchpad
+
+`cyoda-launchpad` is used as a reference for **component patterns and Tailwind token naming** only — its dark colour scheme is not adopted.
+
+---
+
 ## 1. Design Philosophy
 
 - **Dark-optional, light-first.** Both repos ship with a light mode as the default. cyoda-launchpad exposes a full `.dark` override for all CSS custom properties. cyodalight-website is light-only.
