@@ -164,7 +164,7 @@ const Header: React.FC<HeaderProps> = ({
       case 'success': return <CheckCircle2 size={16} className="text-green-400" />;
       case 'warning': return <AlertCircle size={16} className="text-yellow-400" />;
       case 'error': return <AlertCircle size={16} className="text-red-400" />;
-      default: return <Info size={16} className="text-blue-400" />;
+      default: return <Info size={16} className="text-teal-500" />;
     }
   };
 
@@ -202,9 +202,9 @@ const Header: React.FC<HeaderProps> = ({
 
             {/* Super User Mode Badge - Hidden on mobile */}
             {superUserMode && isCyodaEmployee && (
-              <div className="hidden sm:flex items-center space-x-2 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
-                <Shield size={14} className="text-blue-600" />
-                <span className="text-xs text-blue-600 font-semibold">SUPER USER</span>
+              <div className="hidden sm:flex items-center space-x-2 bg-teal-50 border border-teal-200 px-3 py-1 rounded-full">
+                <Shield size={14} className="text-teal-600" />
+                <span className="text-xs text-teal-600 font-semibold">SUPER USER</span>
               </div>
             )}
           </div>
@@ -220,7 +220,7 @@ const Header: React.FC<HeaderProps> = ({
                     onClick={onToggleChatHistory}
                     className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
                       chatHistoryVisible
-                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                        ? 'bg-teal-50 text-teal-700 border border-teal-200'
                         : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
                     }`}
                     title={`${chatHistoryVisible ? 'Hide' : 'Show'} History`}
@@ -240,13 +240,13 @@ const Header: React.FC<HeaderProps> = ({
                         isArchivedChat || isLoadingCanvasToggle
                           ? 'text-slate-400 cursor-not-allowed opacity-50'
                           : canvasVisible
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          ? 'bg-teal-50 text-teal-700 border border-teal-200'
                           : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
                       }`}
                       title={isArchivedChat ? 'Canvas not available for archived chats' : isLoadingCanvasToggle ? 'Loading...' : `${canvasVisible ? 'Close' : 'Open'} Canvas`}
                     >
                       {isLoadingCanvasToggle ? (
-                        <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-teal-200 border-t-teal-600 rounded-full animate-spin" />
                       ) : (
                         <Activity size={18} />
                       )}
@@ -269,8 +269,8 @@ const Header: React.FC<HeaderProps> = ({
                           <div className="relative p-4">
                             {/* Icon and Title */}
                             <div className="flex items-start space-x-3 mb-3">
-                              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
-                                <Github size={20} className="text-blue-600" />
+                              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center">
+                                <Github size={20} className="text-teal-600" />
                               </div>
                               <div className="flex-1 pr-6">
                                 <h3 className="text-sm font-semibold text-slate-900 mb-1">
@@ -286,7 +286,7 @@ const Header: React.FC<HeaderProps> = ({
                             <div className="flex gap-4 mt-3">
                               <button
                                 onClick={onConfigureRepository}
-                                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors flex items-center space-x-1.5"
+                                className="px-3 py-1 bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium rounded-md transition-colors flex items-center space-x-1.5"
                               >
                                 <Github size={12} />
                                 <span>New Branch</span>
@@ -315,7 +315,7 @@ const Header: React.FC<HeaderProps> = ({
                     onClick={onToggleEnvironments}
                     className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
                       environmentsVisible
-                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                        ? 'bg-teal-50 text-teal-700 border border-teal-200'
                         : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
                     }`}
                     title={`${environmentsVisible ? 'Hide' : 'Show'} Cloud`}
@@ -331,7 +331,7 @@ const Header: React.FC<HeaderProps> = ({
                     onClick={onToggleTasks}
                     className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
                       tasksVisible
-                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                        ? 'bg-teal-50 text-teal-700 border border-teal-200'
                         : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
                     }`}
                     title={`${tasksVisible ? 'Hide' : 'Show'} Tasks`}
@@ -394,7 +394,7 @@ const Header: React.FC<HeaderProps> = ({
               href="https://discord.com/invite/95rdAyBZr2"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden lg:block relative p-2 rounded-lg text-slate-500 hover:text-white hover:bg-indigo-500 transition-all duration-200 group"
+              className="hidden lg:block relative p-2 rounded-lg text-slate-500 hover:text-white hover:bg-teal-600 transition-all duration-200 group"
               title="Join our Discord Community"
             >
               <svg
@@ -464,7 +464,7 @@ const Header: React.FC<HeaderProps> = ({
                         <div
                           key={notification.id}
                           className={`p-4 border-b border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer ${
-                            !notification.isRead ? 'bg-blue-50/50' : ''
+                            !notification.isRead ? 'bg-teal-50/50' : ''
                           }`}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -486,7 +486,7 @@ const Header: React.FC<HeaderProps> = ({
                               <p className="text-xs text-slate-400 mt-2">{notification.timestamp}</p>
                             </div>
                             {!notification.isRead && (
-                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
                             )}
                           </div>
                         </div>
@@ -501,7 +501,7 @@ const Header: React.FC<HeaderProps> = ({
                         markAllAsRead();
                       }}
                     >
-                      <span className="text-sm text-blue-600 hover:text-blue-700 transition-colors">
+                      <span className="text-sm text-teal-600 hover:text-teal-700 transition-colors">
                         Mark all as read
                       </span>
                     </div>
@@ -535,9 +535,9 @@ const Header: React.FC<HeaderProps> = ({
             <div className="px-3 py-4 space-y-3">
               {/* Super User Mode Badge - Mobile */}
               {superUserMode && isCyodaEmployee && (
-                <div className="flex items-center space-x-2 bg-blue-50 border border-blue-200 px-3 py-2 rounded-lg">
-                  <Shield size={14} className="text-blue-600" />
-                  <span className="text-xs text-blue-600 font-semibold">SUPER USER MODE</span>
+                <div className="flex items-center space-x-2 bg-teal-50 border border-teal-200 px-3 py-2 rounded-lg">
+                  <Shield size={14} className="text-teal-600" />
+                  <span className="text-xs text-teal-600 font-semibold">SUPER USER MODE</span>
                 </div>
               )}
 
@@ -552,7 +552,7 @@ const Header: React.FC<HeaderProps> = ({
                       }}
                       className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
                         chatHistoryVisible
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          ? 'bg-teal-50 text-teal-700 border border-teal-200'
                           : 'text-slate-700 hover:text-slate-950 hover:bg-slate-50'
                       }`}
                     >
@@ -574,12 +574,12 @@ const Header: React.FC<HeaderProps> = ({
                         isArchivedChat || isLoadingCanvasToggle
                           ? 'text-slate-400 cursor-not-allowed opacity-50'
                           : canvasVisible
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          ? 'bg-teal-50 text-teal-700 border border-teal-200'
                           : 'text-slate-700 hover:text-slate-950 hover:bg-slate-50'
                       }`}
                     >
                       {isLoadingCanvasToggle ? (
-                        <div className="w-5 h-5 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-teal-200 border-t-teal-600 rounded-full animate-spin" />
                       ) : (
                         <Activity size={20} />
                       )}
@@ -597,7 +597,7 @@ const Header: React.FC<HeaderProps> = ({
                       }}
                       className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
                         environmentsVisible
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          ? 'bg-teal-50 text-teal-700 border border-teal-200'
                           : 'text-slate-700 hover:text-slate-950 hover:bg-slate-50'
                       }`}
                     >
@@ -614,7 +614,7 @@ const Header: React.FC<HeaderProps> = ({
                       }}
                       className={`w-full px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
                         tasksVisible
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          ? 'bg-teal-50 text-teal-700 border border-teal-200'
                           : 'text-slate-700 hover:text-slate-950 hover:bg-slate-50'
                       }`}
                     >
