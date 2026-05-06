@@ -97,8 +97,8 @@ const StreamingMessage: React.FC<StreamingMessageProps> = ({
           </div>
 
           {/* Message Content */}
-          <div className="rounded-2xl bg-white px-4 py-3 border border-slate-200 shadow-sm">
-            <div className="prose prose-sm max-w-none">
+          <div className="rounded-2xl bg-slate-800 px-4 py-3 border border-slate-700 shadow-sm">
+            <div className="prose prose-invert prose-sm max-w-none">
               {content ? (
                 <div className="relative">
                   {/* Show typing animation while streaming, full content when complete */}
