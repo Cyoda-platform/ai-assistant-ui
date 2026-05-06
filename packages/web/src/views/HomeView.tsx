@@ -217,8 +217,8 @@ const HomeView: React.FC = () => {
         } as any);
       }
 
-      if (response?.data?.technical_id) {
-        const realId = response.data.technical_id;
+      if (response?.data?.technical_id || response?.data?.chat_id) {
+        const realId = response.data.technical_id || response.data.chat_id;
         assistantStore.getChats(true).catch(error => {
           console.error('Failed to refresh chat list:', error);
         });
