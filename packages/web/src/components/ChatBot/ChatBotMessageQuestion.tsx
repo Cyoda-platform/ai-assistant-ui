@@ -885,14 +885,12 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                           onClick={() => handleToggleOption(option.value)}
                           className={`group/option px-4 py-3 rounded-2xl border transition-all duration-200 text-left relative ${
                             selectedOptions.includes(option.value)
-                              ? 'border-blue-400 bg-blue-50 shadow-sm'
+                              ? 'border-blue-200 bg-blue-50'
                               : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
                           }`}
                         >
                           <div className="flex items-center justify-between">
-                            <div className={`text-sm font-medium ${
-                              selectedOptions.includes(option.value) ? 'text-blue-700' : 'text-slate-700'
-                            }`}>
+                            <div className="text-sm font-medium text-slate-700">
                               {option.label}
                             </div>
                             {option.description && (
@@ -912,7 +910,7 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                     <button
                       onClick={() => handleSubmitOptions()}
                       disabled={isSubmittingOptions || selectedOptions.length === 0}
-                      className="w-full px-4 py-2.5 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-semibold text-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-teal-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="w-full px-4 py-2.5 rounded-lg bg-teal-50 border border-teal-500 text-teal-700 hover:bg-teal-100 font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       <Send size={16} />
                       <span>Select</span>
@@ -1046,9 +1044,9 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                         <button
                           key={choice.value}
                           onClick={() => setBranchChoice(choice.value)}
-                          className={`flex-1 px-3 py-2 rounded-2xl border-2 transition-colors ${
+                          className={`flex-1 px-3 py-2 rounded-2xl border transition-colors ${
                             branchChoice === choice.value
-                              ? 'border-blue-400 bg-blue-50 text-blue-700'
+                              ? 'border-blue-200 bg-blue-50 text-slate-700'
                               : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                           }`}
                         >
@@ -1072,9 +1070,9 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                       <button
                         key={choice.value}
                         onClick={() => setRepositoryType(choice.value)}
-                        className={`flex-1 px-3 py-2 rounded-2xl border-2 transition-colors ${
+                        className={`flex-1 px-3 py-2 rounded-2xl border transition-colors ${
                           repositoryType === choice.value
-                            ? 'border-blue-400 bg-blue-50 text-blue-700'
+                            ? 'border-blue-200 bg-blue-50 text-slate-700'
                             : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                         }`}
                       >
@@ -1097,9 +1095,9 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                       <button
                         key={choice.value}
                         onClick={() => setLanguage(choice.value)}
-                        className={`flex-1 px-3 py-2 rounded-2xl border-2 transition-colors ${
+                        className={`flex-1 px-3 py-2 rounded-2xl border transition-colors ${
                           language === choice.value
-                            ? 'border-blue-400 bg-blue-50 text-blue-700'
+                            ? 'border-blue-200 bg-blue-50 text-slate-700'
                             : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                         }`}
                       >

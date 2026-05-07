@@ -48,7 +48,7 @@ const HierarchicalOptionSelection: React.FC<HierarchicalOptionSelectionProps> = 
         <div key={language} className="space-y-3">
           {/* Language Header */}
           <div className="px-2 py-2 bg-slate-100 rounded-lg border border-slate-200">
-            <h3 className="text-sm font-semibold text-teal-700 uppercase tracking-wider">
+            <h3 className="text-sm font-semibold text-blue-700 uppercase tracking-wider">
               {language.charAt(0).toUpperCase() + language.slice(1)}
             </h3>
           </div>
@@ -69,17 +69,17 @@ const HierarchicalOptionSelection: React.FC<HierarchicalOptionSelectionProps> = 
                     <button
                       key={option.value}
                       onClick={() => onToggleOption(option.value)}
-                      className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 text-left ${
+                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-200 text-left ${
                         selectedOptions.includes(option.value)
-                          ? 'border-teal-500 bg-teal-50 text-teal-700'
-                          : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50'
+                          ? 'border-blue-200 bg-blue-50 text-slate-700'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50'
                       }`}
                     >
                       <div className="flex items-start space-x-3">
                         {/* Radio/Checkbox */}
                         <div className={`mt-0.5 w-5 h-5 rounded-${selectionType === 'single' ? 'full' : 'md'} border-2 flex items-center justify-center flex-shrink-0 ${
                           selectedOptions.includes(option.value)
-                            ? 'border-teal-500 bg-teal-500'
+                            ? 'border-blue-500 bg-blue-500'
                             : 'border-slate-300'
                         }`}>
                           {selectedOptions.includes(option.value) && (

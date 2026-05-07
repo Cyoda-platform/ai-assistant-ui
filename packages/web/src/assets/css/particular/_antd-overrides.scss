@@ -1,5 +1,22 @@
 // Ant Design component overrides to match the existing design system
 
+// Ensure white text on colored action buttons — Tailwind text-white is in @layer utilities
+// which loses to unlayered CSS (antd reset sets body color that cascades). This rule is
+// unlayered so it wins.
+button[class*="bg-blue-6"],
+button[class*="bg-blue-7"],
+button[class*="bg-teal-6"],
+button[class*="bg-teal-7"],
+a[class*="bg-blue-6"],
+a[class*="bg-teal-6"] {
+  color: #ffffff;
+}
+
+// Outlined teal buttons (bg-white + border-teal-500)
+button[class*="border-teal-5"] {
+  color: #0f766e;
+}
+
 // Restore Inter as body font — antd/dist/reset.css overrides tailwind.css body declaration
 body,
 .ant-modal,

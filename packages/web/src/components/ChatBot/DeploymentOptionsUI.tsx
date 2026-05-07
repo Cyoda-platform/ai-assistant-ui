@@ -77,8 +77,8 @@ const DeploymentOptionsUI: React.FC<DeploymentOptionsUIProps> = ({
             key={option.value}
             className={`flex items-start space-x-3 p-3 rounded-2xl border cursor-pointer transition-all duration-200 ${
               selectedOption === option.value
-                ? 'border-teal-500 bg-teal-50'
-                : 'border-slate-200 bg-white hover:border-teal-400 hover:bg-teal-50'
+                ? 'border-blue-200 bg-blue-50'
+                : 'border-slate-200 bg-white hover:border-blue-200 hover:bg-blue-50'
             }`}
           >
             <input
@@ -87,7 +87,7 @@ const DeploymentOptionsUI: React.FC<DeploymentOptionsUIProps> = ({
               value={option.value}
               checked={selectedOption === option.value}
               onChange={() => handleSelectOption(option.value)}
-              className="mt-1 w-4 h-4 text-teal-500 cursor-pointer"
+              className="mt-1 w-4 h-4 text-blue-500 cursor-pointer"
               disabled={isSubmitting}
             />
             <div className="flex-1 min-w-0">
@@ -107,7 +107,7 @@ const DeploymentOptionsUI: React.FC<DeploymentOptionsUIProps> = ({
         <button
           onClick={handleSubmit}
           disabled={!selectedOption || isSubmitting}
-          className="flex items-center space-x-2 px-4 py-2.5 rounded-full bg-teal-600 hover:bg-teal-700 disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm font-medium transition-colors disabled:cursor-not-allowed"
+          className="flex items-center space-x-2 px-4 py-2.5 rounded-full bg-teal-50 border border-teal-500 text-teal-700 hover:bg-teal-100 disabled:border-slate-200 disabled:text-slate-400 text-sm font-medium transition-colors disabled:cursor-not-allowed"
         >
           <Send size={16} />
           <span>Select</span>

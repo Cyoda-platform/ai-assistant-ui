@@ -460,7 +460,7 @@ const ChatBotSubmitForm: React.FC<ChatBotSubmitFormProps> = ({
             </div>
           )}
 
-          <div className={`relative overflow-hidden rounded-2xl border-2 transition-all duration-300 ${isFocused ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-300'}`}>
+          <div className={`relative overflow-hidden rounded-2xl border transition-all duration-300 ${isFocused ? 'border-blue-400 ring-1 ring-blue-400/20' : 'border-slate-300'}`}>
             <textarea
               ref={textareaRef}
               value={answer}

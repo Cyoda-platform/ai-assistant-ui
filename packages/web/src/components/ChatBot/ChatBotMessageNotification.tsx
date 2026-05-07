@@ -372,9 +372,9 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
                             <button
                               key={option.value}
                               onClick={() => handleToggleOption(hookKey, option.value, optHook.data?.selection_type || 'single')}
-                              className={`px-4 py-3 rounded-xl border-2 transition-all duration-200 text-left ${
+                              className={`px-4 py-3 rounded-xl border transition-all duration-200 text-left ${
                                 currentSelected.includes(option.value)
-                                  ? 'border-blue-400 bg-blue-50 text-blue-700'
+                                  ? 'border-blue-200 bg-blue-50 text-slate-600'
                                   : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                               }`}
                             >
@@ -438,7 +438,7 @@ const ChatBotMessageNotification: React.FC<ChatBotMessageNotificationProps> = ({
                     console.log('✅ All options selected, placed in textarea:', messageText);
                   }}
                   disabled={Object.values(isSubmittingOptions).some(Boolean) || optionSelectionHooks.some((_, index) => (selectedOptions[`hook-${index}`] || []).length === 0)}
-                  className="w-full px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  className="w-full px-6 py-3 rounded-xl bg-teal-50 border border-teal-500 text-teal-700 hover:bg-teal-100 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
                   <Send size={18} />
                   <span>Select</span>
