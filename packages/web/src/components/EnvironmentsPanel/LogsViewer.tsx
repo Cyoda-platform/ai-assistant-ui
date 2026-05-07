@@ -237,40 +237,40 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
   const getLevelColor = (level?: string) => {
     switch (level?.toUpperCase()) {
       case 'ERROR':
-        return 'text-red-400 bg-red-500/10';
+        return 'text-red-600 bg-red-50 border border-red-200';
       case 'WARN':
       case 'WARNING':
-        return 'text-yellow-400 bg-yellow-500/10';
+        return 'text-amber-600 bg-amber-50 border border-amber-200';
       case 'INFO':
-        return 'text-blue-400 bg-blue-500/10';
+        return 'text-blue-600 bg-blue-50 border border-blue-200';
       case 'DEBUG':
-        return 'text-purple-400 bg-purple-500/10';
+        return 'text-purple-600 bg-purple-50 border border-purple-200';
       default:
-        return 'text-slate-400 bg-slate-500/10';
+        return 'text-slate-600 bg-slate-100 border border-slate-200';
     }
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-800/95">
+    <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-700">
+      <div className="flex items-center justify-between p-4 border-b border-slate-200">
         <div className="flex items-center space-x-2">
-          <h3 className="font-semibold text-white">Environment Logs</h3>
-          <span className="text-xs bg-teal-500/20 text-teal-300 px-2 py-1 rounded-full">
+          <h3 className="font-semibold text-slate-900">Environment Logs</h3>
+          <span className="text-xs bg-teal-50 text-teal-700 border border-teal-200 px-2 py-1 rounded-full">
             {totalHits} entries
           </span>
         </div>
         <button
           onClick={onClose}
-          className="p-1.5 rounded hover:bg-slate-700 transition-colors"
+          className="p-1.5 rounded hover:bg-slate-100 transition-colors"
           title="Close logs viewer"
         >
-          <X size={18} className="text-slate-400" />
+          <X size={18} className="text-slate-500" />
         </button>
       </div>
 
       {/* Search and Filters */}
-      <div className="p-4 border-b border-slate-700 space-y-3">
+      <div className="p-4 border-b border-slate-200 space-y-3">
         {/* Search Bar */}
         <div className="flex items-center space-x-2">
           <div className="flex-1 relative">
@@ -281,13 +281,13 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && fetchLogs()}
               placeholder="Search logs... (press Enter to search)"
-              className="w-full pl-10 pr-3 py-2 bg-slate-900/50 border border-slate-600 rounded text-white text-sm placeholder-slate-500 focus:outline-none focus:border-teal-500"
+              className="w-full pl-10 pr-3 py-2 bg-white border border-slate-300 rounded text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-teal-500"
             />
           </div>
           <button
             onClick={fetchLogs}
             disabled={loading}
-            className="px-4 py-2 bg-teal-500/20 text-teal-400 rounded hover:bg-teal-500/30 transition-colors disabled:opacity-50 flex items-center space-x-2"
+            className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded transition-colors disabled:opacity-50 flex items-center space-x-2"
           >
             {loading ? (
               <Loader2 size={16} className="animate-spin" />
@@ -301,11 +301,11 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
         {/* Filters Row */}
         <div className="flex items-center space-x-2 flex-wrap gap-2">
           <div className="flex items-center space-x-2">
-            <Filter size={14} className="text-slate-400" />
+            <Filter size={14} className="text-slate-500" />
             <select
               value={quickFilter}
               onChange={(e) => setQuickFilter(e.target.value)}
-              className="px-3 py-1.5 bg-slate-900/50 border border-slate-600 rounded text-white text-sm focus:outline-none focus:border-teal-500"
+              className="px-3 py-1.5 bg-white border border-slate-300 rounded text-slate-900 text-sm focus:outline-none focus:border-teal-500"
             >
               <option value="all">All Levels</option>
               <option value="error">Error</option>
@@ -318,7 +318,7 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
           <select
             value={pageSize}
             onChange={(e) => setPageSize(Number(e.target.value))}
-            className="px-3 py-1.5 bg-slate-900/50 border border-slate-600 rounded text-white text-sm focus:outline-none focus:border-teal-500"
+            className="px-3 py-1.5 bg-white border border-slate-300 rounded text-slate-900 text-sm focus:outline-none focus:border-teal-500"
           >
             <option value={20}>20 entries</option>
             <option value={50}>50 entries</option>
@@ -330,8 +330,8 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
             onClick={() => setShowAdvanced(!showAdvanced)}
             className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
               showAdvanced
-                ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
           >
             Advanced Query
@@ -340,7 +340,7 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
           <button
             onClick={exportLogs}
             disabled={logs.length === 0}
-            className="ml-auto px-3 py-1.5 bg-blue-500/20 text-blue-400 rounded hover:bg-blue-500/30 transition-colors disabled:opacity-50 flex items-center space-x-1.5"
+            className="ml-auto px-3 py-1.5 bg-white text-slate-600 border border-slate-200 rounded hover:bg-slate-50 transition-colors disabled:opacity-50 flex items-center space-x-1.5"
           >
             <Download size={14} />
             <span className="text-sm">Export</span>
@@ -350,7 +350,7 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
         {/* Advanced Query Editor */}
         {showAdvanced && (
           <div className="space-y-2">
-            <label className="text-xs text-slate-400">Elasticsearch Query DSL (JSON)</label>
+            <label className="text-xs text-slate-600 font-medium">Elasticsearch Query DSL (JSON)</label>
             <TextArea
               value={advancedQuery}
               onChange={(e) => setAdvancedQuery(e.target.value)}
@@ -366,15 +366,15 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
         {loading && (
           <div className="flex items-center justify-center py-12">
-            <Loader2 size={32} className="animate-spin text-teal-400" />
+            <Loader2 size={32} className="animate-spin text-teal-600" />
           </div>
         )}
 
         {!loading && logs.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-            <AlertCircle size={48} className="mb-3 opacity-30" />
-            <p className="text-sm">No logs found</p>
-            <p className="text-xs mt-1">Try adjusting your search criteria</p>
+            <AlertCircle size={48} className="mb-3 text-slate-300" />
+            <p className="text-sm text-slate-600">No logs found</p>
+            <p className="text-xs mt-1 text-slate-400">Try adjusting your search criteria</p>
           </div>
         )}
 
@@ -382,7 +382,7 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
           <div
             key={log._id}
             onClick={() => setSelectedLog(log)}
-            className="p-3 bg-slate-700/50 hover:bg-slate-700/70 rounded-lg cursor-pointer transition-colors border border-slate-600 hover:border-teal-500/50"
+            className="p-3 bg-white hover:bg-slate-50 rounded-lg cursor-pointer transition-colors border border-slate-200 hover:border-teal-300"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
@@ -396,12 +396,12 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
                     </span>
                   )}
                   {log._source.logger && (
-                    <span className="text-xs text-slate-400 truncate">
+                    <span className="text-xs text-slate-500 truncate">
                       {log._source.logger}
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-white line-clamp-2">
+                <p className="text-sm text-slate-900 line-clamp-2">
                   {log._source.message || JSON.stringify(log._source)}
                 </p>
               </div>
@@ -424,7 +424,7 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
           <div className="space-y-3">
             <div>
               <label className="text-xs text-slate-500 font-medium">Timestamp</label>
-              <p className="text-sm text-slate-300 mt-1">
+              <p className="text-sm text-slate-700 mt-1 font-mono">
                 {dayjs(selectedLog._source['@timestamp']).format('YYYY-MM-DD HH:mm:ss.SSS Z')}
               </p>
             </div>
@@ -441,7 +441,7 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
             {selectedLog._source.logger && (
               <div>
                 <label className="text-xs text-slate-500 font-medium">Logger</label>
-                <p className="text-sm text-slate-300 mt-1 font-mono">
+                <p className="text-sm text-slate-700 mt-1 font-mono">
                   {selectedLog._source.logger}
                 </p>
               </div>
@@ -450,7 +450,7 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
             {selectedLog._source.message && (
               <div>
                 <label className="text-xs text-slate-500 font-medium">Message</label>
-                <pre className="text-sm text-slate-300 mt-1 bg-slate-900 p-3 rounded overflow-auto max-h-64 whitespace-pre-wrap">
+                <pre className="text-sm text-slate-800 mt-1 bg-slate-50 border border-slate-200 p-3 rounded overflow-auto max-h-64 whitespace-pre-wrap font-mono">
                   {selectedLog._source.message}
                 </pre>
               </div>
@@ -458,7 +458,7 @@ const LogsViewer: React.FC<LogsViewerProps> = ({ apiKey, onClose }) => {
 
             <div>
               <label className="text-xs text-slate-500 font-medium">Full Log Entry (JSON)</label>
-              <pre className="text-xs text-slate-300 mt-1 bg-slate-900 p-3 rounded overflow-auto max-h-96 font-mono">
+              <pre className="text-xs text-slate-800 mt-1 bg-slate-50 border border-slate-200 p-3 rounded overflow-auto max-h-96 font-mono">
                 {JSON.stringify(selectedLog._source, null, 2)}
               </pre>
             </div>

@@ -1,19 +1,17 @@
 .logs-view {
   width: 100%;
   height: 100vh;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: #f8fafc;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-/* Scrollable wrapper for all content except header */
 .logs-view > *:not(.logs-header) {
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-/* Mobile: Make the entire view scrollable */
 @media (max-width: 768px) {
   .logs-view {
     overflow-y: auto;
@@ -33,7 +31,7 @@
   align-items: center;
   min-height: 100vh;
   padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f8fafc;
 }
 
 .logs-config-card {
@@ -42,25 +40,26 @@
   padding: 40px;
   max-width: 600px;
   width: 100%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e2e8f0;
 }
 
 .logs-config-card h2 {
   margin: 0 0 10px 0;
-  color: #262626;
+  color: #0f172a;
   font-size: 28px;
 }
 
 .config-description {
-  color: #8c8c8c;
+  color: #64748b;
   margin-bottom: 30px;
   font-size: 14px;
 }
 
 .config-error {
-  background: #fff1f0;
-  border: 1px solid #ffa39e;
-  color: #cf1322;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
   padding: 12px 16px;
   border-radius: 6px;
   margin-bottom: 20px;
@@ -81,7 +80,7 @@
 
 .form-group label {
   font-weight: 600;
-  color: #262626;
+  color: #1e293b;
   font-size: 14px;
   display: flex;
   flex-direction: column;
@@ -90,56 +89,53 @@
 
 .label-hint {
   font-weight: 400;
-  color: #8c8c8c;
+  color: #64748b;
   font-size: 12px;
 }
 
 .config-input {
   padding: 12px 16px;
-  border: 1px solid #d9d9d9;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 14px;
   transition: all 0.2s;
-  font-family: 'Courier New', monospace;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  background: #ffffff;
+  color: #0f172a;
 }
 
 .config-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
 }
 
 .config-button {
   padding: 14px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #0d9488;
   color: white;
   border: none;
   border-radius: 6px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: background 0.15s;
   margin-top: 10px;
 }
 
 .config-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-}
-
-.config-button:active {
-  transform: translateY(0);
+  background: #0f766e;
 }
 
 .config-examples {
   margin-top: 30px;
   padding-top: 24px;
-  border-top: 1px solid #e8e8e8;
+  border-top: 1px solid #e2e8f0;
 }
 
 .config-examples h3 {
   font-size: 14px;
-  color: #8c8c8c;
+  color: #64748b;
   margin: 0 0 12px 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -154,30 +150,30 @@
 }
 
 .example-item strong {
-  color: #595959;
+  color: #374151;
 }
 
 .example-item code {
-  background: #f5f5f5;
+  background: #f1f5f9;
   padding: 6px 10px;
   border-radius: 4px;
-  font-family: 'Courier New', monospace;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
   font-size: 12px;
-  color: #262626;
-  border: 1px solid #e8e8e8;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
 }
 
 /* Main Logs View */
 .logs-header {
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  background: #ffffff;
   padding: 20px 24px;
-  border-bottom: 1px solid #0d8484;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
 }
 
 .logs-header-left {
@@ -190,10 +186,7 @@
 .logs-header h1 {
   margin: 0;
   font-size: 24px;
-  background: linear-gradient(135deg, #0d8484 0%, #109f9f 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #0f172a;
   font-weight: 700;
 }
 
@@ -204,12 +197,12 @@
 }
 
 .connection-status {
-  color: #0d8484;
+  color: #0d9488;
   font-weight: 500;
 }
 
 .connection-index {
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .logs-header-actions {
@@ -217,7 +210,6 @@
   gap: 12px;
 }
 
-/* Mobile responsive header */
 @media (max-width: 768px) {
   .logs-header {
     padding: 16px;
@@ -226,25 +218,11 @@
     gap: 12px;
   }
 
-  .logs-header-left {
-    width: 100%;
-  }
-
-  .logs-header-left > div {
-    width: 100%;
-  }
-
-  .logs-header-left img {
-    height: 24px !important;
-  }
-
-  .logs-header h1 {
-    font-size: 18px !important;
-  }
-
-  .logs-connection-info {
-    font-size: 11px;
-  }
+  .logs-header-left { width: 100%; }
+  .logs-header-left > div { width: 100%; }
+  .logs-header-left img { height: 24px !important; }
+  .logs-header h1 { font-size: 18px !important; }
+  .logs-connection-info { font-size: 11px; }
 
   .logs-header-actions {
     width: 100%;
@@ -262,23 +240,23 @@
 
 .action-button {
   padding: 10px 20px;
-  border: 1px solid #334155;
+  border: 1px solid #e2e8f0;
   border-radius: 6px;
-  background: #0f172a;
-  color: #e2e8f0;
+  background: #ffffff;
+  color: #374151;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
 .action-button:hover {
-  border-color: #0d8484;
-  color: #0d8484;
-  background: rgba(13, 132, 132, 0.1);
+  border-color: #0d9488;
+  color: #0d9488;
+  background: #f0fdfa;
 }
 
 .action-button:disabled {
@@ -287,24 +265,23 @@
 }
 
 .action-button.primary {
-  background: linear-gradient(135deg, #0d8484 0%, #109f9f 100%);
+  background: #0d9488;
   color: white;
   border: none;
 }
 
 .action-button.primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(13, 132, 132, 0.4);
+  background: #0f766e;
 }
 
 .action-button.secondary {
-  background: #0f172a;
+  background: #ffffff;
 }
 
 .logs-error {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid #ef4444;
-  color: #fca5a5;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
   padding: 16px 24px;
   margin: 20px 24px;
   border-radius: 6px;
@@ -315,17 +292,17 @@
 
 .retry-button {
   padding: 6px 16px;
-  background: #0f172a;
-  border: 1px solid #ef4444;
-  color: #fca5a5;
+  background: #ffffff;
+  border: 1px solid #fecaca;
+  color: #dc2626;
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .retry-button:hover {
-  background: #ef4444;
+  background: #dc2626;
   color: #ffffff;
 }
 
@@ -336,14 +313,14 @@
   justify-content: center;
   padding: 60px 20px;
   gap: 16px;
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #334155;
-  border-top-color: #0d8484;
+  border: 4px solid #e2e8f0;
+  border-top-color: #0d9488;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -365,7 +342,7 @@
   justify-content: center;
   padding: 80px 20px;
   gap: 16px;
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .empty-icon {
@@ -375,69 +352,70 @@
 
 .logs-empty h3 {
   margin: 0;
-  color: #e2e8f0;
+  color: #0f172a;
   font-size: 20px;
 }
 
 .logs-empty p {
   margin: 0;
-  color: #94a3b8;
+  color: #64748b;
   font-size: 14px;
 }
 
-/* Ant Design Select styling to match MonitoringView */
+/* Ant Design Select — light theme */
 .logs-select-antd .ant-select-selector {
-  background-color: #0f172a !important;
-  border: 1px solid #334155 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #d1d5db !important;
   border-radius: 6px !important;
   padding: 10px 12px !important;
   height: 42px !important;
   font-size: 14px !important;
-  color: #e2e8f0 !important;
+  color: #0f172a !important;
 }
 
 .logs-select-antd .ant-select-selection-placeholder {
-  color: #94a3b8 !important;
+  color: #9ca3af !important;
   font-size: 14px !important;
 }
 
 .logs-select-antd .ant-select-selection-item {
-  color: #e2e8f0 !important;
+  color: #0f172a !important;
   font-size: 14px !important;
   line-height: 22px !important;
 }
 
 .logs-select-antd .ant-select-arrow {
-  color: #e2e8f0 !important;
+  color: #6b7280 !important;
   right: 12px !important;
 }
 
 .logs-select-antd:hover .ant-select-selector {
-  border-color: #334155 !important;
+  border-color: #9ca3af !important;
 }
 
 .logs-select-antd.ant-select-focused .ant-select-selector {
-  border-color: #334155 !important;
-  box-shadow: none !important;
+  border-color: #0d9488 !important;
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.15) !important;
 }
 
 .logs-select-antd.ant-select-disabled .ant-select-selector {
-  background-color: #334155 !important;
+  background-color: #f1f5f9 !important;
   opacity: 0.6;
   cursor: not-allowed !important;
 }
 
-/* Dropdown menu styling */
+/* Dropdown */
 .logs-select-dropdown {
-  background-color: #0f172a !important;
-  border: 1px solid #334155 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
   border-radius: 6px !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08) !important;
   z-index: 10000 !important;
 }
 
 .logs-select-dropdown .ant-select-item {
-  background-color: #0f172a !important;
-  color: #e2e8f0 !important;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
   font-size: 14px !important;
   padding: 4px 12px !important;
   min-height: 32px !important;
@@ -446,19 +424,18 @@
 }
 
 .logs-select-dropdown .ant-select-item-option-selected {
-  background-color: #1e293b !important;
-  color: #e2e8f0 !important;
+  background-color: #f0fdfa !important;
+  color: #0f172a !important;
 }
 
 .logs-select-dropdown .ant-select-item-option-active {
-  background-color: #1e293b !important;
+  background-color: #f8fafc !important;
 }
 
 .logs-select-dropdown .rc-virtual-list-holder-inner {
   gap: 0 !important;
 }
 
-/* Mobile responsive for selects */
 @media (max-width: 768px) {
   .logs-selects-container {
     flex-direction: column !important;
@@ -466,7 +443,6 @@
     gap: 16px !important;
   }
 
-  /* Increase touch target size for mobile */
   .logs-select-antd .ant-select-selector {
     height: 48px !important;
     padding: 12px 14px !important;
@@ -483,7 +459,6 @@
     right: 14px !important;
   }
 
-  /* Dropdown items for mobile */
   .logs-select-dropdown .ant-select-item {
     padding: 4px 14px !important;
     font-size: 16px !important;
@@ -491,7 +466,6 @@
     line-height: 24px !important;
   }
 
-  /* Make dropdown full width on mobile */
   .logs-select-dropdown {
     max-width: calc(100vw - 40px) !important;
   }

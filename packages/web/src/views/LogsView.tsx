@@ -312,18 +312,18 @@ const LogsView: React.FC = () => {
       {!apiKey && (
         <div className="logs-environments" style={{
           padding: '20px',
-          backgroundColor: '#1e293b',
-          borderBottom: '1px solid #334155',
+          backgroundColor: '#f8fafc',
+          borderBottom: '1px solid #e2e8f0',
         }}>
-          <h3 style={{ color: '#e2e8f0', marginBottom: '16px', fontSize: '16px', fontWeight: '600' }}>
+          <h3 style={{ color: '#0f172a', marginBottom: '16px', fontSize: '16px', fontWeight: '600' }}>
             Available Environments
           </h3>
           {loadingEnvironments ? (
-            <div style={{ color: '#94a3b8', textAlign: 'center', padding: '20px' }}>
+            <div style={{ color: '#64748b', textAlign: 'center', padding: '20px' }}>
               Loading environments...
             </div>
           ) : environments.length === 0 ? (
-            <div style={{ color: '#94a3b8', textAlign: 'center', padding: '20px' }}>
+            <div style={{ color: '#64748b', textAlign: 'center', padding: '20px' }}>
               No environments found. Please create an environment first.
             </div>
           ) : (
@@ -334,16 +334,16 @@ const LogsView: React.FC = () => {
                   onClick={() => setSelectedEnvironment(env.name)}
                   style={{
                     padding: '12px',
-                    backgroundColor: selectedEnvironment === env.name ? '#0d8484' : '#0f172a',
-                    border: selectedEnvironment === env.name ? '2px solid #0d8484' : '1px solid #334155',
+                    backgroundColor: selectedEnvironment === env.name ? '#f0fdfa' : '#ffffff',
+                    border: selectedEnvironment === env.name ? '2px solid #0d9488' : '1px solid #e2e8f0',
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    color: selectedEnvironment === env.name ? 'white' : '#e2e8f0',
+                    transition: 'all 0.15s',
+                    color: selectedEnvironment === env.name ? '#0d9488' : '#1e293b',
                   }}
                 >
                   <div style={{ fontWeight: '600', marginBottom: '4px' }}>{env.name}</div>
-                  <div style={{ fontSize: '12px', color: selectedEnvironment === env.name ? '#e0e7ff' : '#94a3b8' }}>
+                  <div style={{ fontSize: '12px', color: selectedEnvironment === env.name ? '#0d9488' : '#64748b' }}>
                     {env.status}
                   </div>
                 </div>
@@ -355,11 +355,11 @@ const LogsView: React.FC = () => {
 
       {/* Environment and Application Selection */}
       {apiKey && (
-        <div style={{ padding: '20px', borderBottom: '1px solid #334155' }}>
+        <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0' }}>
           <div className="logs-selects-container" style={{ display: 'flex', gap: '20px', alignItems: 'flex-end' }}>
             {/* Environment Select */}
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#e2e8f0', fontSize: '14px', fontWeight: '500' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#1e293b', fontSize: '14px', fontWeight: '500' }}>
                 Environment
               </label>
               <Select
@@ -381,7 +381,7 @@ const LogsView: React.FC = () => {
 
             {/* Application Select */}
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#e2e8f0', fontSize: '14px', fontWeight: '500' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#1e293b', fontSize: '14px', fontWeight: '500' }}>
                 Application
               </label>
               <Select
@@ -410,23 +410,22 @@ const LogsView: React.FC = () => {
       {apiKey && !selectedEnvironment && (
         <div style={{
           padding: '32px 24px',
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)',
-          borderBottom: '2px solid #3b82f6',
+          background: '#ffffff',
+          borderBottom: '1px solid #e2e8f0',
           display: 'flex',
           flexDirection: 'column',
           gap: '20px',
-          color: '#e0e7ff'
         }}>
           <div style={{ textAlign: 'center' }}>
             <h2 style={{
               fontSize: '24px',
               fontWeight: '700',
               marginBottom: '12px',
-              color: 'white'
+              color: '#0f172a'
             }}>
-              📊 Environment Logs Viewer
+              Environment Logs Viewer
             </h2>
-            <p style={{ fontSize: '16px', color: '#cbd5e1', marginBottom: '0' }}>
+            <p style={{ fontSize: '16px', color: '#475569', marginBottom: '0' }}>
               View and analyze logs from your deployed environments and applications
             </p>
           </div>
@@ -437,45 +436,41 @@ const LogsView: React.FC = () => {
             gap: '16px',
             marginTop: '8px'
           }}>
-            {/* Your Applications Card */}
             <div style={{
               padding: '20px',
-              backgroundColor: 'rgba(16, 185, 129, 0.1)',
-              border: '2px solid rgba(16, 185, 129, 0.3)',
+              backgroundColor: '#f0fdfa',
+              border: '1px solid #99f6e4',
               borderRadius: '12px'
             }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>✅</div>
               <h3 style={{
-                fontSize: '18px',
+                fontSize: '16px',
                 fontWeight: '600',
                 marginBottom: '8px',
-                color: '#10b981'
+                color: '#0d9488'
               }}>
                 Your Applications
               </h3>
-              <p style={{ fontSize: '14px', color: '#d1d5db', lineHeight: '1.5', margin: 0 }}>
-                Select an environment above to freely view logs from all your deployed applications
+              <p style={{ fontSize: '14px', color: '#334155', lineHeight: '1.6', margin: 0 }}>
+                Select an environment above to view logs from all your deployed applications.
               </p>
             </div>
 
-            {/* CYODA Access Card */}
             <div style={{
               padding: '20px',
-              backgroundColor: 'rgba(59, 130, 246, 0.1)',
-              border: '2px solid rgba(59, 130, 246, 0.3)',
+              backgroundColor: '#eff6ff',
+              border: '1px solid #bfdbfe',
               borderRadius: '12px'
             }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>💬</div>
               <h3 style={{
-                fontSize: '18px',
+                fontSize: '16px',
                 fontWeight: '600',
                 marginBottom: '8px',
-                color: '#60a5fa'
+                color: '#1d4ed8'
               }}>
                 Need a CYODA Environment?
               </h3>
-              <p style={{ fontSize: '14px', color: '#d1d5db', lineHeight: '1.5', marginBottom: '12px' }}>
-                Get access to CYODA environments and platform logs by joining our community
+              <p style={{ fontSize: '14px', color: '#334155', lineHeight: '1.6', marginBottom: '12px' }}>
+                Get access to CYODA environments and platform logs by joining our community.
               </p>
               <a
                 href="https://discord.com/invite/95rdAyBZr2"
@@ -484,16 +479,16 @@ const LogsView: React.FC = () => {
                 style={{
                   display: 'inline-block',
                   padding: '8px 16px',
-                  backgroundColor: '#3b82f6',
+                  backgroundColor: '#2563eb',
                   color: 'white',
                   borderRadius: '6px',
                   textDecoration: 'none',
                   fontWeight: '600',
                   fontSize: '14px',
-                  transition: 'background-color 0.2s'
+                  transition: 'background-color 0.15s'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
               >
                 Join Discord Community
               </a>
@@ -506,25 +501,18 @@ const LogsView: React.FC = () => {
       {apiKey && selectedEnvironment && !selectedApplication && (
         <div style={{
           padding: '20px 24px',
-          backgroundColor: '#0f172a',
-          borderBottom: '2px solid #3b82f6',
+          backgroundColor: '#f8fafc',
+          borderBottom: '1px solid #e2e8f0',
           display: 'flex',
           alignItems: 'center',
           gap: '16px',
-          color: '#e0e7ff'
         }}>
-          <div style={{
-            fontSize: '48px',
-            flexShrink: 0
-          }}>
-            {applications.length === 0 && !loadingApplications ? '💬' : '📱'}
-          </div>
           <div style={{ flex: 1 }}>
             <h3 style={{
-              fontSize: '18px',
+              fontSize: '16px',
               fontWeight: '600',
               marginBottom: '8px',
-              color: '#60a5fa'
+              color: '#0f172a'
             }}>
               {applications.length === 0 && !loadingApplications
                 ? 'No Applications Found'
@@ -532,8 +520,8 @@ const LogsView: React.FC = () => {
             </h3>
             <p style={{
               fontSize: '14px',
-              color: '#cbd5e1',
-              lineHeight: '1.5',
+              color: '#475569',
+              lineHeight: '1.6',
               margin: 0
             }}>
               {applications.length === 0 && !loadingApplications ? (
@@ -543,15 +531,11 @@ const LogsView: React.FC = () => {
                     href="https://discord.com/invite/95rdAyBZr2"
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{
-                      color: '#60a5fa',
-                      textDecoration: 'underline',
-                      fontWeight: '600'
-                    }}
+                    style={{ color: '#0d9488', textDecoration: 'underline', fontWeight: '600' }}
                   >
                     Reach out on Discord
                   </a>
-                  {' '}for assistance!
+                  {' '}for assistance.
                 </>
               ) : (
                 'Choose an application from the dropdown above to view its logs.'
