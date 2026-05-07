@@ -2,19 +2,21 @@ html {
   font-family: "Inter", Arial, sans-serif;
 }
 
-h1 {
-  font-size: 40px;
-  font-weight: normal;
-}
+@layer base {
+  h1 {
+    font-size: 40px;
+    font-weight: normal;
+  }
 
-h2 {
-  font-size: 24px;
-  font-weight: normal;
-}
+  h2 {
+    font-size: 24px;
+    font-weight: normal;
+  }
 
-h4 {
-  font-size: 16px;
-  font-weight: normal;
+  h4 {
+    font-size: 16px;
+    font-weight: normal;
+  }
 }
 
 .color-green {
