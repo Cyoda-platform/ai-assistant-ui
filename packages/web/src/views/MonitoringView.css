@@ -2,6 +2,7 @@
   height: 100vh;
   background: #f8fafc;
   color: #0f172a;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   display: flex;
   flex-direction: column;
   overflow: hidden;
