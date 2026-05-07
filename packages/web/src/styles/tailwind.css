@@ -936,21 +936,21 @@ html.marketing-page #app {
 
 /* Repository Config Modal Styles */
 .repository-config-modal .ant-modal-content {
-  background: linear-gradient(135deg, rgb(30, 41, 59) 0%, rgb(51, 65, 85) 100%);
-  border: 1px solid rgb(71, 85, 105);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
   padding: 0;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
 }
 
 .repository-config-modal .ant-modal-header {
   background: transparent;
-  border-bottom: 1px solid rgb(71, 85, 105);
+  border-bottom: 1px solid #e2e8f0;
   padding: 24px 24px 16px;
 }
 
 .repository-config-modal .ant-modal-title {
-  color: rgb(226, 232, 240);
+  color: #0f172a;
   font-size: 18px;
   font-weight: 600;
 }
@@ -960,23 +960,23 @@ html.marketing-page #app {
 }
 
 .repository-config-modal .ant-modal-footer {
-  border-top: 1px solid rgb(71, 85, 105);
+  border-top: 1px solid #e2e8f0;
   padding: 16px 24px;
   background: transparent;
 }
 
 /* Confirmation Dialog Styles - Terms & Conditions */
 .ant-modal.confirmation-dialog .ant-modal-content {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
-  border: 1px solid #334155 !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
   border-radius: 12px !important;
   padding: 0;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08) !important;
 }
 
 .ant-modal.confirmation-dialog .ant-modal-header {
   background: transparent !important;
-  border-bottom: 1px solid #334155 !important;
+  border-bottom: 1px solid #e2e8f0 !important;
   padding: 20px 24px 16px;
 }
 
@@ -986,51 +986,29 @@ html.marketing-page #app {
 }
 
 .ant-modal.confirmation-dialog .ant-modal-footer {
-  border-top: 1px solid #334155 !important;
+  border-top: 1px solid #e2e8f0 !important;
   padding: 16px 24px;
   background: transparent !important;
 }
 
-/* Force teal button styling for confirmation dialog - Maximum specificity */
-.confirmation-dialog .ant-modal-footer .ant-btn.ant-btn-primary.ant-btn-color-primary.ant-btn-variant-solid {
-  background: linear-gradient(to right, rgb(20, 184, 166), rgb(13, 148, 136)) !important;
-  background-color: rgb(20, 184, 166) !important;
-  border-color: rgb(20, 184, 166) !important;
-  color: rgb(255, 255, 255) !important;
-  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3) !important;
-  border-radius: 8px !important;
-}
-
-.confirmation-dialog .ant-modal-footer .ant-btn.ant-btn-primary.ant-btn-color-primary.ant-btn-variant-solid:hover,
-.confirmation-dialog .ant-modal-footer .ant-btn.ant-btn-primary.ant-btn-color-primary.ant-btn-variant-solid:focus {
-  background: linear-gradient(to right, rgb(13, 148, 136), rgb(15, 118, 110)) !important;
-  background-color: rgb(13, 148, 136) !important;
-  border-color: rgb(13, 148, 136) !important;
-  color: rgb(255, 255, 255) !important;
-  box-shadow: 0 6px 16px rgba(20, 184, 166, 0.4) !important;
-}
-
-.confirmation-dialog .ant-modal-footer .ant-btn.ant-btn-primary.ant-btn-color-primary.ant-btn-variant-solid:disabled {
-  background: linear-gradient(to right, rgb(71, 85, 105), rgb(51, 65, 85)) !important;
-  background-color: rgb(71, 85, 105) !important;
-  border-color: rgb(71, 85, 105) !important;
-  color: rgb(148, 163, 184) !important;
-  opacity: 0.6 !important;
-  box-shadow: none !important;
-}
-
-/* Additional fallback with even higher specificity */
+/* Teal button for confirmation dialog */
 .ant-modal.confirmation-dialog .ant-modal-footer .ant-btn-primary {
-  background: linear-gradient(to right, rgb(20, 184, 166), rgb(13, 148, 136)) !important;
-  background-color: rgb(20, 184, 166) !important;
-  border-color: rgb(20, 184, 166) !important;
+  background: #0d9488 !important;
+  border-color: #0d9488 !important;
+  color: #ffffff !important;
   border-radius: 8px !important;
 }
 
 .ant-modal.confirmation-dialog .ant-modal-footer .ant-btn-primary:hover {
-  background: linear-gradient(to right, rgb(13, 148, 136), rgb(15, 118, 110)) !important;
-  background-color: rgb(13, 148, 136) !important;
-  border-color: rgb(13, 148, 136) !important;
+  background: #0f766e !important;
+  border-color: #0f766e !important;
+}
+
+.ant-modal.confirmation-dialog .ant-modal-footer .ant-btn-primary:disabled {
+  background: #e2e8f0 !important;
+  border-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  opacity: 0.8 !important;
 }
 
 /* Silver Accept Button - Custom styling */
@@ -1052,11 +1030,11 @@ html.marketing-page #app {
 }
 
 .silver-accept-button.ant-btn:disabled {
-  background: linear-gradient(to right, rgb(71, 85, 105), rgb(51, 65, 85)) !important;
-  background-color: rgb(71, 85, 105) !important;
-  border-color: rgb(71, 85, 105) !important;
-  color: rgb(148, 163, 184) !important;
-  opacity: 0.6 !important;
+  background: #e2e8f0 !important;
+  background-color: #e2e8f0 !important;
+  border-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  opacity: 0.7 !important;
   box-shadow: none !important;
 }
 
@@ -1077,118 +1055,115 @@ html.marketing-page #app {
   text-decoration: none !important;
 }
 
-/* Enhanced Canvas Modal Styles - for workflow/entity/requirement creation */
+/* Canvas Modal Styles - light theme */
 .canvas-modal .ant-modal-content {
   overflow: hidden;
-  border-radius: 1rem; /* rounded-2xl */
+  border-radius: 12px;
   padding: 0;
-  background: rgba(17, 24, 39, 0.95); /* bg-gray-900 with transparency */
-  backdrop-filter: blur(16px);
-  border: 2px solid rgb(20, 184, 166); /* border-2 border-teal-500 */
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(20, 184, 166, 0.1); /* shadow-2xl + teal glow */
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
   animation: slideInFromBottom 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .canvas-modal .ant-modal-header {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(51, 65, 85, 0.6) 100%);
-  border-bottom: 1px solid rgba(71, 85, 105, 0.6);
-  padding: 24px 32px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 20px 24px 16px;
   margin: 0;
-  border-radius: 1rem 1rem 0 0;
+  border-radius: 12px 12px 0 0;
 }
 
 .canvas-modal .ant-modal-title {
-  color: rgb(226, 232, 240);
+  color: #0f172a;
   font-size: 18px;
   font-weight: 600;
   margin: 0;
 }
 
 .canvas-modal .ant-modal-body {
-  padding: 32px;
+  padding: 24px;
   background: transparent;
-  color: rgb(226, 232, 240);
+  color: #1e293b;
 }
 
 .canvas-modal .ant-modal-footer {
-  border-top: 1px solid rgba(71, 85, 105, 0.6);
-  padding: 20px 32px 24px;
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(51, 65, 85, 0.4) 100%);
-  border-radius: 0 0 1rem 1rem;
+  border-top: 1px solid #e2e8f0;
+  padding: 16px 24px;
+  background: #f8fafc;
+  border-radius: 0 0 12px 12px;
 }
 
 .canvas-modal .ant-modal-close {
-  top: 20px;
-  right: 20px;
-  width: 36px;
-  height: 36px;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  color: rgb(148, 163, 184);
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  color: #64748b;
 }
 
 .canvas-modal .ant-modal-close:hover {
-  background-color: rgba(20, 184, 166, 0.1);
-  color: rgb(20, 184, 166);
+  background-color: #f1f5f9;
+  color: #0d9488;
 }
 
 /* Canvas Modal Input Styling */
 .canvas-modal .ant-input,
 .canvas-modal .ant-input-affix-wrapper,
 .canvas-modal .ant-select .ant-select-selector {
-  background: rgba(30, 41, 59, 0.8) !important;
-  border: 1px solid rgba(71, 85, 105, 0.8) !important;
+  background: #ffffff !important;
+  border: 1px solid #d1d5db !important;
   border-radius: 8px !important;
-  color: rgb(226, 232, 240) !important;
-  transition: all 0.2s ease !important;
+  color: #0f172a !important;
+  transition: all 0.15s ease !important;
 }
 
 .canvas-modal .ant-input:hover,
 .canvas-modal .ant-input-affix-wrapper:hover,
 .canvas-modal .ant-select .ant-select-selector:hover {
-  border-color: rgba(20, 184, 166, 0.6) !important;
-  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.1) !important;
+  border-color: #9ca3af !important;
 }
 
 .canvas-modal .ant-input:focus,
 .canvas-modal .ant-input-affix-wrapper:focus,
 .canvas-modal .ant-input-focused .ant-select-selector {
-  border-color: rgb(20, 184, 166) !important;
-  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2) !important;
+  border-color: #0d9488 !important;
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.15) !important;
 }
 
 .canvas-modal .ant-input::placeholder {
-  color: rgba(148, 163, 184, 0.7) !important;
+  color: #9ca3af !important;
 }
 
 /* Canvas Modal Button Styling */
 .canvas-modal .ant-btn-primary {
-  background: linear-gradient(135deg, rgb(20, 184, 166) 0%, rgb(13, 132, 132) 100%) !important;
-  border: none !important;
-  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3) !important;
-  transition: all 0.2s ease !important;
+  background: #0d9488 !important;
+  border-color: #0d9488 !important;
+  color: #ffffff !important;
+  transition: background 0.15s ease !important;
 }
 
 .canvas-modal .ant-btn-primary:hover {
-  background: linear-gradient(135deg, rgb(13, 132, 132) 0%, rgb(17, 94, 89) 100%) !important;
-  box-shadow: 0 6px 16px rgba(20, 184, 166, 0.4) !important;
-  transform: translateY(-1px) !important;
+  background: #0f766e !important;
+  border-color: #0f766e !important;
 }
 
 .canvas-modal .ant-btn-default {
-  background: rgba(51, 65, 85, 0.6) !important;
-  border: 1px solid rgba(71, 85, 105, 0.8) !important;
-  color: rgb(148, 163, 184) !important;
-  transition: all 0.2s ease !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #374151 !important;
+  transition: all 0.15s ease !important;
 }
 
 .canvas-modal .ant-btn-default:hover {
-  background: rgba(71, 85, 105, 0.8) !important;
-  border-color: rgba(148, 163, 184, 0.8) !important;
-  color: rgb(226, 232, 240) !important;
+  background: #f8fafc !important;
+  border-color: #9ca3af !important;
+  color: #0f172a !important;
 }
 
 .repository-config-modal .ant-btn-primary {
