@@ -4,31 +4,34 @@
 }
 
 .chat-context-menu-overlay .ant-dropdown-menu {
-  background: rgba(30, 41, 59, 0.95) !important;
-  backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(71, 85, 105, 0.5) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2) !important;
-  padding: 0 !important;
-  min-width: 280px !important;
+  background: #ffffff !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08), 0 1px 4px rgba(15, 23, 42, 0.04) !important;
+  padding: 4px !important;
+  min-width: 200px !important;
 }
 
 .chat-context-menu-overlay .ant-dropdown-menu-item {
-  color: rgb(148, 163, 184) !important;
-  padding: 8px 16px !important;
+  color: #334155 !important;
+  padding: 8px 12px !important;
   margin: 0 !important;
-  border-radius: 0 !important;
-  transition: all 0.2s ease !important;
+  border-radius: 6px !important;
+  transition: background 0.15s ease !important;
 }
 
 .chat-context-menu-overlay .ant-dropdown-menu-item:hover {
-  background: rgba(71, 85, 105, 0.3) !important;
-  color: rgb(226, 232, 240) !important;
+  background: #F8FAFC !important;
+  color: #0F172A !important;
+}
+
+.chat-context-menu-overlay .ant-dropdown-menu-item-danger {
+  color: #DC2626 !important;
 }
 
 .chat-context-menu-overlay .ant-dropdown-menu-item-danger:hover {
-  background: rgba(239, 68, 68, 0.1) !important;
-  color: rgb(248, 113, 113) !important;
+  background: #FEF2F2 !important;
+  color: #B91C1C !important;
 }
 
 .chat-context-menu-overlay .ant-dropdown-menu-item-group-title {
@@ -41,17 +44,7 @@
   margin: 0 !important;
 }
 
-.chat-context-menu-overlay .ant-dropdown-menu-item:first-child {
-  border-top-left-radius: 12px !important;
-  border-top-right-radius: 12px !important;
-}
-
-.chat-context-menu-overlay .ant-dropdown-menu-item:last-child {
-  border-bottom-left-radius: 12px !important;
-  border-bottom-right-radius: 12px !important;
-}
-
-/* Line clamp utility for description */
+/* Line clamp utility */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -59,57 +52,29 @@
   overflow: hidden;
 }
 
-/* Smooth hover effects for chat items */
-.chat-item-hover {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.chat-item-hover:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Menu button styles */
+/* Menu button */
 .menu-button {
   z-index: 10;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.15s ease;
   opacity: 0;
 }
 
-/* Show menu button when the group wrapper is hovered */
 .group:hover .menu-button {
   opacity: 1;
 }
 
-/* Show hover state on chat item when menu button is hovered */
-.group:has(.menu-button:hover) > a {
-  background-color: rgba(51, 65, 85, 0.4) !important;
-  border-color: rgba(100, 116, 139, 0.3) !important;
-  color: rgb(203, 213, 225) !important;
-}
-
-.menu-button:hover {
-  /* No additional effects */
-}
-
-.menu-button:active {
-  /* No additional effects */
-}
-
-/* Ensure menu button is visible on focus for accessibility */
 .menu-button:focus {
   opacity: 1 !important;
   outline: none;
 }
 
-/* Show menu button on mobile/touch devices */
 @media (hover: none) {
   .menu-button {
     opacity: 0.7 !important;
   }
 }
 
-/* Override global link hover color for New Chat button */
+/* Keep New Chat button text white on hover */
 .resizable-panel a.no-underline:hover {
-  color: #14b8a6 !important; /* teal-500 */
+  color: #ffffff !important;
 }

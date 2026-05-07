@@ -113,14 +113,14 @@ const TaskDashboard = forwardRef<TaskDashboardHandle, TaskDashboardProps>(({
     return (
       <div className="flex items-center justify-center h-full w-full">
         <div className="text-center space-y-4">
-          <Activity size={48} className="text-slate-600 mx-auto" />
+          <Activity size={48} className="text-slate-400 mx-auto" />
           <div>
-            <p className="text-slate-300 font-medium mb-1">No tasks found</p>
+            <p className="text-slate-900 font-medium mb-1">No tasks found</p>
             <p className="text-slate-500 text-sm">{error}</p>
           </div>
           <button
             onClick={() => loadTasks()}
-            className="px-4 py-2 bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/50 hover:border-teal-500 text-teal-300 hover:text-teal-200 rounded-lg text-sm transition-all duration-200"
+            className="px-4 py-2 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-700 rounded-lg text-sm transition-colors"
           >
             Retry
           </button>
@@ -146,7 +146,7 @@ const TaskDashboard = forwardRef<TaskDashboardHandle, TaskDashboardProps>(({
   return (
     <div className="flex flex-col h-full min-h-0">
       {/* Header with filters */}
-      <div className="px-4 py-3 border-b border-slate-700/50">
+      <div className="px-4 py-3 border-b border-slate-200">
         {/* Filter buttons */}
         <div className="flex items-center gap-1.5">
           {[
@@ -160,13 +160,13 @@ const TaskDashboard = forwardRef<TaskDashboardHandle, TaskDashboardProps>(({
               onClick={() => setFilterStatus(filter.key)}
               className={`group relative px-3 py-1.5 rounded-md text-xs font-medium transition-all border ${
                 filterStatus === filter.key
-                  ? 'bg-teal-500/20 text-teal-200 border-teal-500/40'
-                  : 'text-slate-400 hover:text-teal-300 hover:bg-slate-700/50 border-transparent'
+                  ? 'bg-teal-50 text-teal-700 border-teal-200'
+                  : 'text-slate-500 hover:text-teal-700 hover:bg-slate-50 border-transparent'
               }`}
             >
               <span>{filter.label}</span>
               <span className={`ml-1.5 ${
-                filterStatus === filter.key ? 'text-teal-300' : 'text-slate-500'
+                filterStatus === filter.key ? 'text-teal-600' : 'text-slate-400'
               }`}>
                 {filter.count}
               </span>
@@ -202,8 +202,8 @@ const TaskDashboard = forwardRef<TaskDashboardHandle, TaskDashboardProps>(({
 
       {/* Footer stats */}
       {tasks.length > 0 && (
-        <div className="p-3 border-t border-slate-700 bg-slate-800/50">
-          <div className="flex items-center justify-between text-xs text-slate-400">
+        <div className="p-3 border-t border-slate-200 bg-slate-50">
+          <div className="flex items-center justify-between text-xs text-slate-500">
             <span>Total: {tasks.length} tasks</span>
             <span>
               {statusCounts.active > 0 && `${statusCounts.active} running`}

@@ -45,9 +45,9 @@ const CLIOutputViewer: React.FC<CLIOutputViewerProps> = ({
 
   if (!output) {
     return (
-      <div className="bg-slate-900/50 border border-slate-700/50 rounded p-3 text-center">
-        <Terminal size={16} className="text-slate-500 mx-auto mb-2" />
-        <p className="text-slate-400 text-xs">
+      <div className="bg-slate-50 border border-slate-200 rounded p-3 text-center">
+        <Terminal size={16} className="text-slate-400 mx-auto mb-2" />
+        <p className="text-slate-500 text-xs">
           {isRunning ? 'Waiting for output...' : 'No output available'}
         </p>
       </div>
@@ -59,11 +59,11 @@ const CLIOutputViewer: React.FC<CLIOutputViewerProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Terminal size={14} className="text-teal-400" />
-          <span className="text-slate-400 text-xs font-medium">CLI Output</span>
+          <Terminal size={14} className="text-teal-600" />
+          <span className="text-slate-600 text-xs font-medium">CLI Output</span>
           {isRunning && (
-            <span className="inline-flex items-center space-x-1 text-xs text-amber-400">
-              <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse" />
+            <span className="inline-flex items-center space-x-1 text-xs text-amber-600">
+              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
               <span>Streaming...</span>
             </span>
           )}
@@ -71,14 +71,14 @@ const CLIOutputViewer: React.FC<CLIOutputViewerProps> = ({
         <div className="flex items-center space-x-2">
           <button
             onClick={handleCopy}
-            className="p-1.5 hover:bg-slate-700/50 rounded transition-colors text-slate-400 hover:text-teal-300"
+            className="p-1.5 hover:bg-slate-100 rounded transition-colors text-slate-500 hover:text-teal-600"
             title="Copy output"
           >
             <Copy size={14} />
           </button>
           <button
             onClick={handleDownload}
-            className="p-1.5 hover:bg-slate-700/50 rounded transition-colors text-slate-400 hover:text-teal-300"
+            className="p-1.5 hover:bg-slate-100 rounded transition-colors text-slate-500 hover:text-teal-600"
             title="Download output"
           >
             <Download size={14} />
@@ -99,7 +99,7 @@ const CLIOutputViewer: React.FC<CLIOutputViewerProps> = ({
 
       {/* Copy Feedback */}
       {copied && (
-        <div className="text-xs text-green-400 text-center">
+        <div className="text-xs text-green-600 text-center">
           ✓ Copied to clipboard
         </div>
       )}

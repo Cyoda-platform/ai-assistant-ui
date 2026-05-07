@@ -243,16 +243,16 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="flex flex-col h-full bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-slate-700/50 bg-slate-900/50 backdrop-blur-sm">
+      <div className="flex items-center justify-between px-6 py-3 border-b border-slate-200 bg-white">
         <div className="flex items-center space-x-6">
-          <div className="p-2 bg-purple-500/10 rounded-lg">
-            <Activity size={20} className="text-purple-400" />
+          <div className="p-2 bg-purple-50 rounded-lg">
+            <Activity size={20} className="text-purple-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-white text-lg">Workflows</h3>
-            <p className="text-xs text-gray-400">
+            <h3 className="font-semibold text-slate-900 text-lg">Workflows</h3>
+            <p className="text-xs text-slate-500">
               {workflows.length === 0 ? 'No workflows yet' : `${workflows.length} ${workflows.length === 1 ? 'workflow' : 'workflows'}`}
             </p>
           </div>
@@ -279,33 +279,33 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
                 <div
                   key={`${workflow.name}-${index}`}
                   onClick={() => onWorkflowClick(`workflow-${workflow.name.toLowerCase()}`, workflow)}
-                  className="bg-gradient-to-br from-slate-800 to-slate-800/50 border border-slate-700/50 rounded-xl p-3 hover:border-purple-500/50 cursor-pointer group h-48 flex flex-col flex-shrink-0"
+                  className="bg-white border border-slate-200 rounded-xl p-3 hover:border-purple-400 hover:shadow-sm cursor-pointer group h-48 flex flex-col flex-shrink-0"
                   style={{ width: '220px' }}
                 >
                   <div className="flex items-start justify-between gap-2 mb-2 min-w-0">
                     <div className="flex items-start space-x-2 min-w-0 flex-1">
-                      <div className="p-1 bg-purple-500/10 rounded group-hover:bg-purple-500/20 transition-colors flex-shrink-0 mt-0.5">
-                        <Activity size={14} className="text-purple-400 group-hover:text-purple-300 transition-colors" />
+                      <div className="p-1 bg-purple-50 rounded group-hover:bg-purple-100 transition-colors flex-shrink-0 mt-0.5">
+                        <Activity size={14} className="text-purple-600 group-hover:text-purple-700 transition-colors" />
                       </div>
-                      <h4 className="font-semibold text-white group-hover:text-purple-300 transition-colors text-sm break-words leading-tight min-w-0 overflow-hidden">
+                      <h4 className="font-semibold text-slate-900 group-hover:text-purple-700 transition-colors text-sm break-words leading-tight min-w-0 overflow-hidden">
                         {workflow.name}
                       </h4>
                     </div>
                     <div className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5 bg-purple-400" />
                   </div>
 
-                  <p className="text-xs text-gray-400 leading-tight flex-1 overflow-hidden break-words">
+                  <p className="text-xs text-slate-500 leading-tight flex-1 overflow-hidden break-words">
                     {getWorkflowPath(workflow) ? `Workflow from ${getWorkflowPath(workflow)}` : (workflow.description || 'No description provided')}
                   </p>
 
-                  <div className="flex items-center justify-end text-xs text-gray-500 gap-1 mt-2">
+                  <div className="flex items-center justify-end text-xs text-slate-400 gap-1 mt-2">
                     {!getWorkflowPath(workflow) && (
                       <button
                         onClick={(e) => handleDeleteWorkflow(workflow.name, workflow.entity_name, e)}
                         className="p-1 rounded transition-colors"
                         title="Delete workflow"
                       >
-                        <Trash2 size={14} className="text-blue-400 hover:text-blue-300" />
+                        <Trash2 size={14} className="text-slate-400 hover:text-red-500" />
                       </button>
                     )}
                     {getGitHubUrl(workflow) && (
@@ -313,11 +313,11 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
                         href={getGitHubUrl(workflow)!}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-1 bg-green-500/20 hover:bg-green-500/30 rounded transition-colors"
+                        className="p-1 bg-green-50 hover:bg-green-100 rounded transition-colors"
                         title="View on GitHub"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Github size={14} className="text-green-400 hover:text-green-300" />
+                        <Github size={14} className="text-green-600" />
                       </a>
                     )}
                   </div>

@@ -42,25 +42,25 @@ class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-white flex items-center justify-center p-6">
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
           <div className="max-w-md w-full">
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-8 text-center">
-              <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <AlertTriangle size={32} className="text-red-400" />
+            <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-sm">
+              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <AlertTriangle size={32} className="text-red-600" />
               </div>
-              
-              <h1 className="text-2xl font-bold text-white mb-4">
+
+              <h1 className="text-2xl font-bold text-slate-900 mb-4">
                 Oops! Something went wrong
               </h1>
-              
-              <p className="text-slate-400 mb-6 leading-relaxed">
+
+              <p className="text-slate-600 mb-6 leading-relaxed">
                 We encountered an unexpected error. This has been logged and our team will look into it.
               </p>
 
               {process.env.NODE_ENV === 'development' && this.state.error && (
-                <div className="bg-slate-900/50 border border-slate-600 rounded-lg p-4 mb-6 text-left">
-                  <h3 className="text-sm font-medium text-red-400 mb-2">Error Details:</h3>
-                  <pre className="text-xs text-slate-300 overflow-auto max-h-32">
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-6 text-left">
+                  <h3 className="text-sm font-medium text-red-600 mb-2">Error Details:</h3>
+                  <pre className="text-xs text-slate-700 overflow-auto max-h-32">
                     {this.state.error.toString()}
                   </pre>
                 </div>
@@ -69,15 +69,15 @@ class ErrorBoundary extends Component<Props, State> {
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={this.handleReload}
-                  className="flex-1 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  className="flex-1 bg-teal-600 hover:bg-teal-700 text-white px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
                 >
                   <RefreshCw size={16} />
                   <span>Try Again</span>
                 </button>
-                
+
                 <button
                   onClick={this.handleGoHome}
-                  className="flex-1 bg-slate-700 hover:bg-slate-600 text-white px-4 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2"
+                  className="flex-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
                 >
                   <Home size={16} />
                   <span>Go Home</span>

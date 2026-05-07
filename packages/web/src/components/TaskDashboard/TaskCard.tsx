@@ -159,8 +159,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
         <div className="flex items-start space-x-3 flex-1 min-w-0">
           <div className="mt-0.5 flex-shrink-0">{getStatusIcon()}</div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-white font-medium text-sm truncate">{task.name}</h4>
-            <p className="text-slate-400 text-xs mt-1 line-clamp-2">{task.description}</p>
+            <h4 className="text-slate-900 font-medium text-sm truncate">{task.name}</h4>
+            <p className="text-slate-500 text-xs mt-1 line-clamp-2">{task.description}</p>
           </div>
         </div>
         <div className="flex items-center space-x-2 ml-2 flex-shrink-0">
@@ -168,7 +168,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
           {canRestart && (
             <button
               onClick={handleRestartTask}
-              className="text-teal-400 hover:text-teal-300 hover:bg-teal-500/10 p-1.5 rounded transition-colors"
+              className="text-teal-600 hover:text-teal-700 hover:bg-teal-50 p-1.5 rounded transition-colors"
               title="Restart task with same request"
             >
               <RotateCcw size={16} />
@@ -179,7 +179,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
             <button
               onClick={() => setShowCancelModal(true)}
               disabled={isCancelling}
-              className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1.5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="Cancel task"
             >
               {isCancelling ? (
@@ -191,7 +191,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
           )}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-slate-400 hover:text-teal-300 transition-colors"
+            className="text-slate-500 hover:text-teal-600 transition-colors"
           >
             {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </button>
@@ -200,11 +200,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
 
       {/* Progress Bar */}
       <div className="mb-3">
-        <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+        <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
           <span>{task.progress}%</span>
           <span>{task.statistics.status_message}</span>
         </div>
-        <div className="w-full bg-slate-700/50 rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
           <div
             className={`h-full transition-all duration-300 ${getProgressBarColor()} ${
               task.status === 'running' ? 'animate-pulse' : ''
@@ -215,7 +215,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
       </div>
 
       {/* Stats */}
-      <div className="flex items-center justify-between text-xs text-slate-400">
+      <div className="flex items-center justify-between text-xs text-slate-500">
         {task.language && (
           <div className="flex items-center space-x-1">
             <Code size={12} />
@@ -226,18 +226,18 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
 
       {/* Expanded Details */}
       {isExpanded && (
-        <div className="mt-4 pt-4 border-t border-slate-600/30 space-y-3 min-w-0">
+        <div className="mt-4 pt-4 border-t border-slate-200 space-y-3 min-w-0">
           {/* Branch Info */}
           {task.branch_name && (
             <div className="flex items-center space-x-2 text-xs min-w-0">
               <GitBranch size={14} className="text-teal-400/70 flex-shrink-0" />
-              <span className="text-slate-300 truncate">{task.branch_name}</span>
+              <span className="text-slate-700 truncate">{task.branch_name}</span>
               {task.repository_url && task.repository_url.startsWith('http') && (
                 <a
                   href={task.repository_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-teal-400 hover:text-teal-300 flex items-center space-x-1"
+                  className="text-teal-600 hover:text-teal-700 flex items-center space-x-1"
                   title="Open on GitHub"
                 >
                   <ExternalLink size={12} />
@@ -250,7 +250,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
           {task.build_job_id && (
             <div className="text-xs">
               <span className="text-slate-400">Job ID: </span>
-              <span className="text-slate-300 font-mono">{task.build_job_id}</span>
+              <span className="text-slate-700 font-mono">{task.build_job_id}</span>
             </div>
           )}
 
@@ -264,7 +264,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
 
           {/* Deployment Information */}
           {(task.build_id || task.namespace || task.env_url) && (
-            <div className="bg-slate-700/30 border border-slate-600/30 rounded p-3 space-y-2">
+            <div className="bg-slate-50 border border-slate-200 rounded p-3 space-y-2">
               <p className="text-slate-400 text-xs font-medium flex items-center space-x-1">
                 <Server size={12} />
                 <span>Deployment Info</span>
@@ -274,11 +274,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <span className="text-slate-500 text-xs">Build ID:</span>
-                    <div className="text-slate-300 font-mono text-xs truncate">{task.build_id}</div>
+                    <div className="text-slate-700 font-mono text-xs truncate">{task.build_id}</div>
                   </div>
                   <button
                     onClick={() => copyToClipboard(task.build_id!, 'build_id')}
-                    className="text-slate-400 hover:text-teal-300 transition-colors flex-shrink-0"
+                    className="text-slate-400 hover:text-teal-600 transition-colors flex-shrink-0"
                     title="Copy Build ID"
                   >
                     <Copy size={12} />
@@ -290,11 +290,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <span className="text-slate-500 text-xs">Namespace:</span>
-                    <div className="text-slate-300 font-mono text-xs truncate">{task.namespace}</div>
+                    <div className="text-slate-700 font-mono text-xs truncate">{task.namespace}</div>
                   </div>
                   <button
                     onClick={() => copyToClipboard(task.namespace!, 'namespace')}
-                    className="text-slate-400 hover:text-teal-300 transition-colors flex-shrink-0"
+                    className="text-slate-400 hover:text-teal-600 transition-colors flex-shrink-0"
                     title="Copy Namespace"
                   >
                     <Copy size={12} />
@@ -310,7 +310,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
                       href={task.env_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-teal-400 hover:text-teal-300 font-mono text-xs truncate flex items-center space-x-1"
+                      className="text-teal-600 hover:text-teal-700 font-mono text-xs truncate flex items-center space-x-1"
                       title="Open environment"
                     >
                       <LinkIcon size={12} />
@@ -319,7 +319,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
                   </div>
                   <button
                     onClick={() => copyToClipboard(task.env_url!, 'env_url')}
-                    className="text-slate-400 hover:text-teal-300 transition-colors flex-shrink-0"
+                    className="text-slate-400 hover:text-teal-600 transition-colors flex-shrink-0"
                     title="Copy URL"
                   >
                     <Copy size={12} />
@@ -353,18 +353,18 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
           {task.progress_messages.length > 0 && (
             <div className="space-y-2">
               <p className="text-slate-400 text-xs font-medium">Progress Log:</p>
-              <div className="bg-slate-800/50 rounded p-2 max-h-96 overflow-y-auto space-y-2">
+              <div className="bg-slate-50 rounded p-2 max-h-96 overflow-y-auto space-y-2">
                 {task.progress_messages.slice().reverse().map((msg, idx) => {
                   const reversedIdx = task.progress_messages.length - 1 - idx;
                   const isExpanded = expandedMessages.has(reversedIdx);
                   const hasDiff = msg.metadata?.diff && (msg.metadata.diff.added?.length > 0 || msg.metadata.diff.modified?.length > 0 || msg.metadata.diff.deleted?.length > 0);
 
                   return (
-                    <div key={idx} className="text-xs border-b border-slate-700/30 pb-2 last:border-b-0">
+                    <div key={idx} className="text-xs border-b border-slate-200 pb-2 last:border-b-0">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <span className="text-slate-500">{msg.timestamp}</span>
-                          <span className="text-slate-300 ml-2">{msg.message}</span>
+                          <span className="text-slate-400">{msg.timestamp}</span>
+                          <span className="text-slate-700 ml-2">{msg.message}</span>
                         </div>
                         {hasDiff && (
                           <button
@@ -393,13 +393,13 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
 
                       {/* Expanded file list */}
                       {isExpanded && hasDiff && (
-                        <div className="mt-2 ml-2 bg-slate-900/50 rounded p-2 space-y-1 max-h-48 overflow-y-auto overflow-x-auto">
+                        <div className="mt-2 ml-2 bg-slate-100 rounded p-2 space-y-1 max-h-48 overflow-y-auto overflow-x-auto">
                           {msg.metadata.diff?.added && msg.metadata.diff.added.length > 0 && (
                             <div>
                               <p className="text-green-400 text-xs font-medium mb-1">Added:</p>
                               <div className="space-y-0.5 ml-2">
                                 {msg.metadata.diff.added.map((file: string, fileIdx: number) => (
-                                  <div key={fileIdx} className="text-slate-300 font-mono text-xs whitespace-nowrap">+ {file}</div>
+                                  <div key={fileIdx} className="text-slate-700 font-mono text-xs whitespace-nowrap">+ {file}</div>
                                 ))}
                               </div>
                             </div>
@@ -409,7 +409,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
                               <p className="text-blue-400 text-xs font-medium mb-1">Modified:</p>
                               <div className="space-y-0.5 ml-2">
                                 {msg.metadata.diff.modified.map((file: string, fileIdx: number) => (
-                                  <div key={fileIdx} className="text-slate-300 font-mono text-xs whitespace-nowrap">~ {file}</div>
+                                  <div key={fileIdx} className="text-slate-700 font-mono text-xs whitespace-nowrap">~ {file}</div>
                                 ))}
                               </div>
                             </div>
@@ -419,7 +419,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
                               <p className="text-red-400 text-xs font-medium mb-1">Deleted:</p>
                               <div className="space-y-0.5 ml-2">
                                 {msg.metadata.diff.deleted.map((file: string, fileIdx: number) => (
-                                  <div key={fileIdx} className="text-slate-300 font-mono text-xs whitespace-nowrap">- {file}</div>
+                                  <div key={fileIdx} className="text-slate-700 font-mono text-xs whitespace-nowrap">- {file}</div>
                                 ))}
                               </div>
                             </div>
@@ -455,33 +455,33 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onTaskUpdate, onRestartTask }
       {/* Cancel Confirmation Modal */}
       {showCancelModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-800 rounded-xl shadow-2xl border border-slate-700 max-w-md w-full mx-4 overflow-hidden">
+          <div className="bg-white rounded-xl shadow-lg border border-slate-200 max-w-md w-full mx-4 overflow-hidden">
             {/* Header */}
-            <div className="flex items-center space-x-3 p-6 border-b border-slate-700">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-500/20">
-                <AlertTriangle size={24} className="text-red-400" />
+            <div className="flex items-center space-x-3 p-6 border-b border-slate-200">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-50">
+                <AlertTriangle size={24} className="text-red-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white">Cancel Task</h3>
-                <p className="text-sm text-slate-400">This action cannot be undone</p>
+                <h3 className="text-lg font-semibold text-slate-900">Cancel Task</h3>
+                <p className="text-sm text-slate-500">This action cannot be undone</p>
               </div>
             </div>
             {/* Body */}
             <div className="p-6">
-              <p className="text-slate-300 mb-2">
+              <p className="text-slate-700 mb-2">
                 Are you sure you want to cancel this task?
               </p>
-              <div className="mt-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700">
-                <p className="text-sm text-slate-400 mb-1">Task name:</p>
-                <p className="text-white font-medium truncate">{task.name}</p>
+              <div className="mt-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                <p className="text-sm text-slate-500 mb-1">Task name:</p>
+                <p className="text-slate-900 font-medium truncate">{task.name}</p>
               </div>
             </div>
             {/* Footer */}
-            <div className="flex items-center justify-end space-x-3 p-6 border-t border-slate-700 bg-slate-900/30">
+            <div className="flex items-center justify-end space-x-3 p-6 border-t border-slate-200 bg-slate-50">
               <button
                 onClick={() => setShowCancelModal(false)}
                 disabled={isCancelling}
-                className="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Keep Running
               </button>

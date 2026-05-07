@@ -43,7 +43,7 @@ const ChatContextMenu: React.FC<ChatContextMenuProps> = ({
         </div>
       ),
       onClick: (e) => handleMenuClick(e.domEvent, 'rename'),
-      className: 'hover:bg-slate-700/50'
+      className: 'hover:bg-slate-50'
     },
     {
       key: 'delete',
@@ -74,12 +74,11 @@ const ChatContextMenu: React.FC<ChatContextMenuProps> = ({
       placement="bottomLeft"
       overlayClassName="chat-context-menu-overlay"
       overlayStyle={{
-        minWidth: '280px',
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2)',
-        border: '1px solid rgb(71 85 105 / 0.5)',
-        borderRadius: '12px',
-        backgroundColor: 'rgb(30 41 59 / 0.95)',
-        backdropFilter: 'blur(12px)'
+        minWidth: '200px',
+        boxShadow: '0 4px 16px rgba(15, 23, 42, 0.08), 0 1px 4px rgba(15, 23, 42, 0.04)',
+        border: '1px solid #E2E8F0',
+        borderRadius: '10px',
+        backgroundColor: '#ffffff',
       }}
     >
       <button
@@ -90,7 +89,7 @@ const ChatContextMenu: React.FC<ChatContextMenuProps> = ({
           e.stopPropagation();
         }}
       >
-        <MoreVertical size={14} className="text-slate-400 hover:text-slate-200" />
+        <MoreVertical size={14} className="text-slate-400 hover:text-slate-700" />
       </button>
     </Dropdown>
   );

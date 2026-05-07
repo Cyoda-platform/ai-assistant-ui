@@ -427,7 +427,7 @@ Additional notes and considerations...
             <head>
               <title>${requirement?.title || 'Requirement'}</title>
               <style>
-                body { font-family: Arial, sans-serif; padding: 20mm; color: black; }
+                body { font-family: Inter, Arial, sans-serif; padding: 20mm; color: black; }
                 h1 { font-size: 24px; margin-top: 20px; margin-bottom: 10px; }
                 h2 { font-size: 20px; margin-top: 16px; margin-bottom: 8px; }
                 h3 { font-size: 16px; margin-top: 12px; margin-bottom: 6px; }

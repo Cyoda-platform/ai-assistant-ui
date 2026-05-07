@@ -95,7 +95,7 @@ const AuthStateAvatar: React.FC = () => {
       ) : (
         <div
           onClick={onToggleCard}
-          className="w-8 h-8 rounded-full cursor-pointer bg-slate-600 text-white text-sm font-medium flex items-center justify-center hover:ring-2 hover:ring-teal-400 transition-all"
+          className="w-8 h-8 rounded-full cursor-pointer bg-teal-600 text-white text-sm font-medium flex items-center justify-center hover:ring-2 hover:ring-teal-400 transition-all"
         >
           {initials}
         </div>
@@ -104,11 +104,11 @@ const AuthStateAvatar: React.FC = () => {
       {visibleCard && (
         <div
           ref={cardRef}
-          className="absolute right-0 top-10 min-w-72 z-[9999] bg-slate-800/95 backdrop-blur-sm border border-slate-600 rounded-lg shadow-xl overflow-hidden"
+          className="absolute right-0 top-10 min-w-72 z-[9999] bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden"
         >
           {/* Header */}
-          <div className="px-4 py-3 border-b border-slate-600 bg-slate-700/50">
-            <span className="text-slate-200 font-semibold text-sm">{email}</span>
+          <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
+            <span className="text-slate-900 font-semibold text-sm">{email}</span>
           </div>
 
           {/* Content */}
@@ -120,8 +120,8 @@ const AuthStateAvatar: React.FC = () => {
                   onClick={onToggleSuperUserMode}
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${
                     superUserMode
-                      ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+                      ? 'bg-teal-50 text-teal-700 hover:bg-teal-100'
+                      : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
                   }`}
                 >
                   <div className="flex items-center space-x-3">
@@ -129,7 +129,7 @@ const AuthStateAvatar: React.FC = () => {
                     <span>Super User Mode</span>
                   </div>
                   <div className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                    superUserMode ? 'bg-teal-500' : 'bg-slate-600'
+                    superUserMode ? 'bg-teal-500' : 'bg-slate-300'
                   }`}>
                     <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
                       superUserMode ? 'translate-x-5' : 'translate-x-1'
@@ -141,13 +141,13 @@ const AuthStateAvatar: React.FC = () => {
           </div>
 
           {/* Footer Actions */}
-          <div className="border-t border-slate-600 bg-slate-700/30">
+          <div className="border-t border-slate-200 bg-slate-50">
             <button
               onClick={onClickLogout}
-              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-slate-700/50 transition-colors"
+              className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-50 transition-colors"
             >
-              <LogOut className="w-4 h-4 text-red-400" />
-              <span className="font-semibold text-sm text-red-400">Logout</span>
+              <LogOut className="w-4 h-4 text-red-600" />
+              <span className="font-semibold text-sm text-red-600">Logout</span>
             </button>
           </div>
         </div>

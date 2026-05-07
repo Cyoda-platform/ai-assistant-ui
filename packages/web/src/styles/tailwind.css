@@ -5,9 +5,9 @@ body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-/* Dark color-scheme scoped to product routes only (not the public marketing page) */
+/* Light color-scheme for product routes */
 html:not(.marketing-page) {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 /* Override Tailwind Typography (prose) link colors to match orange theme */
@@ -25,7 +25,7 @@ html:not(.marketing-page) {
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: rgb(71 85 105) rgb(30 41 59);
+    scrollbar-color: rgb(203 213 225) transparent;
   }
 
   .scrollbar-thin::-webkit-scrollbar {
@@ -33,26 +33,50 @@ html:not(.marketing-page) {
   }
 
   .scrollbar-thin::-webkit-scrollbar-track {
-    background: rgb(30 41 59);
+    background: transparent;
     border-radius: 3px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: rgb(71 85 105);
+    background: rgb(203 213 225);
     border-radius: 3px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: rgb(100 116 139);
+    background: rgb(148 163 184);
   }
 
   .scrollbar-thumb-slate-600::-webkit-scrollbar-thumb {
-    background: rgb(71 85 105);
+    background: rgb(203 213 225);
   }
 
   .scrollbar-track-slate-800::-webkit-scrollbar-track {
-    background: rgb(30 41 59);
+    background: transparent;
   }
+}
+
+/* Global light scrollbars for all scrollable elements */
+html:not(.marketing-page) ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+html:not(.marketing-page) ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html:not(.marketing-page) ::-webkit-scrollbar-thumb {
+  background: rgb(203 213 225);
+  border-radius: 3px;
+}
+
+html:not(.marketing-page) ::-webkit-scrollbar-thumb:hover {
+  background: rgb(148 163 184);
+}
+
+html:not(.marketing-page) * {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225) transparent;
 }
 
   /* Canvas QA message styles - Pink/Purple theme */
@@ -215,7 +239,7 @@ html:not(.marketing-page) {
 
   /* Code block optimization */
   .text-responsive-container.code {
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-family: 'JetBrains Mono', 'Monaco', 'Menlo', monospace;
     padding: 1rem 1.25rem;
     background-color: rgb(15 23 42 / 0.8);
     border: 1px solid rgb(30 41 59);

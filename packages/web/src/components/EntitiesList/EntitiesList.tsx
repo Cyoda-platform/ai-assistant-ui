@@ -128,16 +128,16 @@ export const EntitiesList: React.FC<EntitiesListProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="flex flex-col h-full bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-slate-700/50 bg-slate-900/50 backdrop-blur-sm">
+      <div className="flex items-center justify-between px-6 py-3 border-b border-slate-200 bg-white">
         <div className="flex items-center space-x-6">
-          <div className="p-2 bg-teal-500/10 rounded-lg">
-            <Database size={20} className="text-teal-400" />
+          <div className="p-2 bg-teal-50 rounded-lg">
+            <Database size={20} className="text-teal-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-white text-lg">Data Entities</h3>
-            <p className="text-xs text-gray-400">
+            <h3 className="font-semibold text-slate-900 text-lg">Data Entities</h3>
+            <p className="text-xs text-slate-500">
               {entities.length === 0 ? 'No entities yet' : `${entities.length} ${entities.length === 1 ? 'entity' : 'entities'}`}
             </p>
           </div>
@@ -167,33 +167,33 @@ export const EntitiesList: React.FC<EntitiesListProps> = ({
                 <div
                   key={`${entity.name}-${entity.version}`}
                   onClick={() => onEntityClick(entityId)}
-                  className="bg-gradient-to-br from-slate-800 to-slate-800/50 border border-slate-700/50 rounded-xl p-3 hover:border-teal-500/50 cursor-pointer group h-48 flex flex-col flex-shrink-0"
+                  className="bg-white border border-slate-200 rounded-xl p-3 hover:border-teal-400 hover:shadow-sm cursor-pointer group h-48 flex flex-col flex-shrink-0"
                   style={{ width: '220px' }}
                 >
                   <div className="flex items-start justify-between gap-2 mb-2 min-w-0">
                     <div className="flex items-start space-x-2 min-w-0 flex-1">
-                      <div className="p-1 bg-teal-500/10 rounded group-hover:bg-teal-500/20 transition-colors flex-shrink-0 mt-0.5">
-                        <Database size={14} className="text-teal-400 group-hover:text-teal-300 transition-colors" />
+                      <div className="p-1 bg-teal-50 rounded group-hover:bg-teal-100 transition-colors flex-shrink-0 mt-0.5">
+                        <Database size={14} className="text-teal-600 group-hover:text-teal-700 transition-colors" />
                       </div>
-                      <h4 className="font-semibold text-white group-hover:text-teal-300 transition-colors text-sm break-words leading-tight min-w-0 overflow-hidden">
+                      <h4 className="font-semibold text-slate-900 group-hover:text-teal-700 transition-colors text-sm break-words leading-tight min-w-0 overflow-hidden">
                         {entity.name}
                       </h4>
                     </div>
                     <div className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5 bg-teal-400" />
                   </div>
 
-                  <p className="text-xs text-gray-400 leading-tight flex-1 overflow-hidden break-words">
+                  <p className="text-xs text-slate-500 leading-tight flex-1 overflow-hidden break-words">
                     {entity.description || 'No description provided'}
                   </p>
 
-                  <div className="flex items-center justify-end text-xs text-gray-500 gap-1 mt-2">
+                  <div className="flex items-center justify-end text-xs text-slate-400 gap-1 mt-2">
                     {!getGitHubUrl(entity) && (
                       <button
                         onClick={(e) => handleDeleteEntity(entity.name, entity.version, e)}
                         className="p-1 rounded transition-colors"
                         title="Delete entity"
                       >
-                        <Trash2 size={14} className="text-blue-400 hover:text-blue-300" />
+                        <Trash2 size={14} className="text-slate-400 hover:text-red-500" />
                       </button>
                     )}
                     {getGitHubUrl(entity) && (
@@ -201,11 +201,11 @@ export const EntitiesList: React.FC<EntitiesListProps> = ({
                         href={getGitHubUrl(entity)!}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-1 bg-green-500/20 hover:bg-green-500/30 rounded transition-colors"
+                        className="p-1 bg-green-50 hover:bg-green-100 rounded transition-colors"
                         title="View on GitHub"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Github size={14} className="text-green-400 hover:text-green-300" />
+                        <Github size={14} className="text-green-600" />
                       </a>
                     )}
                   </div>

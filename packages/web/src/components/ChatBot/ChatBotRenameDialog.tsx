@@ -116,19 +116,22 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
 
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
-      <div className="bg-slate-800 rounded-lg shadow-xl border border-slate-700 max-w-md w-full mx-4 overflow-hidden">
+      <div
+        className="bg-white rounded-lg shadow-lg border border-slate-200 max-w-md w-full mx-4 overflow-hidden"
+        style={{ colorScheme: 'light' }}
+      >
         {/* Header */}
-        <div className="flex items-center space-x-2.5 px-5 py-4 border-b border-slate-700">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-teal-500/20">
-            <Edit size={16} className="text-teal-400" />
+        <div className="flex items-center space-x-2.5 px-5 py-4 border-b border-slate-200">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-teal-50">
+            <Edit size={16} className="text-teal-600" />
           </div>
-          <h3 className="font-semibold text-white">Rename Chat</h3>
+          <h3 className="font-semibold" style={{ color: '#0f172a' }}>Rename Chat</h3>
         </div>
 
         {/* Body */}
         <div className="px-5 py-4">
           <div className="space-y-2">
-            <label className="block text-xs font-medium text-slate-400">
+            <label className="block text-xs font-medium" style={{ color: '#334155' }}>
               Chat Name
             </label>
             <textarea
@@ -145,12 +148,15 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
               autoFocus
               disabled={loading}
               rows={1}
-              className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed resize-none overflow-hidden whitespace-pre-wrap break-words"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed resize-none overflow-hidden whitespace-pre-wrap break-words"
               style={{
                 minHeight: '36px',
                 maxHeight: '100px',
                 height: 'auto',
-                wordBreak: 'break-word'
+                wordBreak: 'break-word',
+                colorScheme: 'light',
+                backgroundColor: '#ffffff',
+                color: '#0f172a',
               }}
               onInput={(e) => {
                 const target = e.target as HTMLTextAreaElement;
@@ -160,7 +166,7 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
             />
             <div className="flex items-center justify-between">
               {error ? (
-                <p className="text-xs text-red-400">{error}</p>
+                <p className="text-xs text-red-600">{error}</p>
               ) : (
                 <p className="text-xs text-slate-500">Maximum 100 characters</p>
               )}
@@ -170,19 +176,20 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-slate-700 bg-slate-900/30">
+        <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-slate-200 bg-slate-50">
           <button
             onClick={handleCancel}
             disabled={loading}
-            className="px-3 py-1.5 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: '#ffffff', color: '#374151', border: '1px solid #9ca3af' }}
           >
             Cancel
           </button>
           <button
             onClick={handleOk}
             disabled={loading}
-            className="px-3 py-1.5 rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ color: '#14b8a6' }}
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: '#0d9488', color: '#ffffff', border: 'none' }}
           >
             {loading ? 'Renaming...' : 'Rename'}
           </button>

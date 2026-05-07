@@ -496,13 +496,13 @@ gantt
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-800/95 backdrop-blur-sm overflow-hidden">
+    <div className="flex flex-col h-full bg-white overflow-hidden">
       {/* Canvas Header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800/50" style={{ height: '65px' }}>
+      <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white" style={{ height: '65px' }}>
         <div className="flex items-center space-x-2">
-          <Activity size={18} className="text-teal-400" />
-          <h3 className="font-semibold text-white translate-y-[20%]">Canvas</h3>
-          <span className="text-xs bg-teal-500/20 text-teal-300 px-2 py-1 rounded-full">Active</span>
+          <Activity size={18} className="text-teal-600" />
+          <h3 className="font-semibold text-slate-900 translate-y-[20%]">Canvas</h3>
+          <span className="text-xs bg-teal-50 text-teal-700 px-2 py-1 rounded-full">Active</span>
 
           {/* GitHub Repository Link */}
           {githubRepository && (
@@ -510,17 +510,17 @@ gantt
               href={`https://github.com/${githubRepository.owner}/${githubRepository.repositoryName}/tree/${githubRepository.branch}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 bg-teal-900/60 backdrop-blur-sm px-2 py-1 rounded-md border border-teal-700/50 hover:bg-teal-800/60 hover:border-teal-600/50 transition-all duration-200 group text-xs"
+              className="flex items-center gap-1.5 bg-teal-50 px-2 py-1 rounded-md border border-teal-200 hover:bg-teal-100 hover:border-teal-300 transition-all duration-200 group text-xs"
               title={`Open ${githubRepository.owner}/${githubRepository.repositoryName} (${githubRepository.branch}) on GitHub`}
             >
-              <svg className="w-3 h-3 text-teal-300 group-hover:text-teal-200 transition-colors" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-3 h-3 text-teal-600 group-hover:text-teal-700 transition-colors" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z" clipRule="evenodd" />
               </svg>
-              <span className="text-teal-200 group-hover:text-teal-100 transition-colors font-medium">
+              <span className="text-teal-700 group-hover:text-teal-800 transition-colors font-medium">
                 {githubRepository.owner}/{githubRepository.repositoryName}
               </span>
-              <span className="text-teal-400 group-hover:text-teal-300 transition-colors">({githubRepository.branch})</span>
-              <svg className="w-2.5 h-2.5 text-teal-400 group-hover:text-teal-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span className="text-teal-500 group-hover:text-teal-600 transition-colors">({githubRepository.branch})</span>
+              <svg className="w-2.5 h-2.5 text-teal-500 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
             </a>
@@ -529,7 +529,7 @@ gantt
         <div className="flex items-center space-x-2">
           <button
             onClick={onToggleCanvas}
-            className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+            className="p-1.5 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
             title="Close Canvas"
           >
             <X size={16} />
@@ -538,9 +538,9 @@ gantt
       </div>
 
       {/* Canvas Tabs - Single tier (no Application wrapper) */}
-      <div className="border-b border-slate-700 bg-slate-800/30">
+      <div className="border-b border-slate-200 bg-slate-50">
         {/* Resource Tabs - Reordered: Pull button left, resource tabs right */}
-        <div className="px-4 py-3 flex items-center gap-4 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+        <div className="px-4 py-3 flex items-center gap-4 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
           {/* Pull button - Left aligned */}
           <button
             onClick={handlePull}
@@ -570,8 +570,8 @@ gantt
               onClick={() => handleTabChange('requirement')}
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 ${
                 activeTab === 'requirement'
-                  ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                  ? 'bg-teal-50 text-teal-700 hover:bg-teal-100'
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
               }`}
             >
               <FileText size={13} />
@@ -581,8 +581,8 @@ gantt
               onClick={() => handleTabChange('data')}
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 ${
                 activeTab === 'data'
-                  ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                  ? 'bg-teal-50 text-teal-700 hover:bg-teal-100'
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
               }`}
             >
               <Database size={13} />
@@ -592,8 +592,8 @@ gantt
               onClick={() => handleTabChange('workflow')}
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 ${
                 activeTab === 'workflow'
-                  ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                  ? 'bg-teal-50 text-teal-700 hover:bg-teal-100'
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
               }`}
             >
               <Activity size={13} />
@@ -603,8 +603,8 @@ gantt
               onClick={() => handleTabChange('code')}
               className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-1.5 ${
                 activeTab === 'code'
-                  ? 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                  ? 'bg-teal-50 text-teal-700 hover:bg-teal-100'
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
               }`}
             >
               <Code size={13} />
@@ -615,7 +615,7 @@ gantt
       </div>
 
       {/* Canvas Content */}
-      <div className="flex-1 relative overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+      <div className="flex-1 relative overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
         <div className="flex flex-col h-full w-full" style={{ minWidth: '800px' }}>
           {activeTab === 'data' ? (
           navigationContext?.targetId ? (
@@ -942,17 +942,17 @@ gantt
                 {(markdownMode === 'edit' || markdownMode === 'split') && (
                   <div className={`flex flex-col ${markdownMode === 'split' ? 'flex-1' : 'w-full'}`}>
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-sm font-semibold text-slate-200 flex items-center space-x-2">
-                        <FileText size={16} className="text-teal-400" />
+                      <h4 className="text-sm font-semibold text-slate-700 flex items-center space-x-2">
+                        <FileText size={16} className="text-teal-600" />
                         <span>Editor</span>
                       </h4>
                     </div>
-                    <div className="flex-1 bg-slate-800/80 rounded-lg border border-slate-600 p-4 backdrop-blur-sm flex flex-col">
+                    <div className="flex-1 bg-white rounded-lg border border-slate-200 p-4 flex flex-col">
                       <textarea
                         ref={textareaRef}
                         value={markdownContent}
                         onChange={(e) => setMarkdownContent(e.target.value)}
-                        className="flex-1 w-full bg-transparent text-slate-300 placeholder-slate-500 resize-none focus:outline-none font-mono text-sm leading-relaxed scrollbar-thin"
+                        className="flex-1 w-full bg-transparent text-slate-900 placeholder-slate-400 resize-none focus:outline-none font-mono text-sm leading-relaxed scrollbar-thin"
                         placeholder="# Start writing your markdown here...
 
 ## Features
@@ -987,14 +987,14 @@ graph TD
                 {(markdownMode === 'preview' || markdownMode === 'split') && (
                   <div className={`flex flex-col ${markdownMode === 'split' ? 'flex-1' : 'w-full'}`}>
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-sm font-semibold text-slate-200 flex items-center space-x-2">
-                        <Eye size={16} className="text-teal-400" />
+                      <h4 className="text-sm font-semibold text-slate-700 flex items-center space-x-2">
+                        <Eye size={16} className="text-teal-600" />
                         <span>Preview</span>
                       </h4>
                     </div>
-                    <div className="flex-1 bg-slate-800/80 rounded-lg border border-slate-600 p-4 backdrop-blur-sm overflow-y-auto scrollbar-thin">
+                    <div className="flex-1 bg-white rounded-lg border border-slate-200 p-4 overflow-y-auto scrollbar-thin">
                       {markdownContent ? (
-                        <div className="prose prose-invert prose-slate max-w-none prose-sm">
+                        <div className="prose prose-slate max-w-none prose-sm">
                           <MarkdownRenderer>
                             {markdownContent}
                           </MarkdownRenderer>
@@ -1010,11 +1010,11 @@ graph TD
               </div>
 
               {/* Action Bar */}
-              <div className="flex items-center justify-between pt-4 border-t border-slate-600 mt-4">
+              <div className="flex items-center justify-between pt-4 border-t border-slate-200 mt-4">
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={handleFileAttach}
-                    className="p-1.5 rounded-md hover:bg-slate-700 transition-colors text-slate-400 hover:text-white relative"
+                    className="p-1.5 rounded-md hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700 relative"
                     title="Attach File"
                   >
                     <PaperclipIcon size={14} />
@@ -1034,11 +1034,11 @@ graph TD
                   {attachedFiles.length > 0 && (
                     <div className="flex items-center space-x-1">
                       {attachedFiles.map((file, index) => (
-                        <div key={index} className="flex items-center space-x-1 bg-slate-700 px-2 py-1 rounded text-xs">
-                          <span className="text-slate-300">{file.name}</span>
+                        <div key={index} className="flex items-center space-x-1 bg-slate-100 px-2 py-1 rounded text-xs">
+                          <span className="text-slate-700">{file.name}</span>
                           <button
                             onClick={() => handleRemoveFile(index)}
-                            className="text-slate-400 hover:text-white"
+                            className="text-slate-400 hover:text-slate-700"
                           >
                             ×
                           </button>
@@ -1053,7 +1053,7 @@ graph TD
                 <button
                   onClick={handleMarkdownSubmit}
                   disabled={!markdownContent.trim()}
-                  className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 disabled:from-slate-600 disabled:to-slate-700 text-white px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none disabled:cursor-not-allowed flex items-center space-x-2"
+                  className="bg-teal-600 hover:bg-teal-700 disabled:bg-slate-200 disabled:text-slate-400 text-white px-4 py-2 rounded-lg transition-colors disabled:cursor-not-allowed flex items-center space-x-2"
                 >
                   <Send size={16} />
                   <span>Send</span>

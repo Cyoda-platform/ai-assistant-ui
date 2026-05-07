@@ -133,23 +133,23 @@ export const EnvironmentsList: React.FC<EnvironmentsListProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="flex flex-col h-full bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between p-5 border-b border-slate-700/50 bg-slate-900/50 backdrop-blur-sm">
+      <div className="flex items-center justify-between p-5 border-b border-slate-200 bg-white">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-green-500/10 rounded-lg">
-            <Server size={20} className="text-green-400" />
+          <div className="p-2 bg-green-50 rounded-lg">
+            <Server size={20} className="text-green-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-white text-lg">Environments</h3>
-            <p className="text-xs text-gray-400">
+            <h3 className="font-semibold text-slate-900 text-lg">Environments</h3>
+            <p className="text-xs text-slate-500">
               {environments.length === 0 ? 'No environments yet' : `${environments.length} ${environments.length === 1 ? 'environment' : 'environments'}`}
             </p>
           </div>
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white rounded-lg transition-all duration-200 text-sm font-medium shadow-lg shadow-green-500/20 hover:shadow-green-500/40 hover:scale-105 group"
+          className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium group"
           title="Keyboard shortcut: Ctrl+Shift+E (Cmd+Shift+E on Mac)"
         >
           <Plus size={16} />
@@ -164,21 +164,20 @@ export const EnvironmentsList: React.FC<EnvironmentsListProps> = ({
       <div className="flex-1 overflow-y-auto p-6 flex items-center justify-center">
         {environments.length === 0 ? (
           <div className="w-full max-w-2xl mx-auto text-center">
-            <div className="relative mb-6">
-              <div className="absolute inset-0 blur-3xl bg-green-400/10 animate-pulse"></div>
-              <Server size={80} className="mx-auto text-green-400/80 relative" />
+            <div className="mb-6">
+              <Server size={64} className="mx-auto text-slate-300" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-3">
+            <h2 className="text-2xl font-semibold text-slate-900 mb-3">
               Configure Your Deployment Environments
             </h2>
-            <p className="text-gray-400 mb-2 leading-relaxed">
+            <p className="text-slate-600 mb-2 leading-relaxed">
               Environments define where your application runs and how it's accessed.
             </p>
-            <p className="text-gray-500 text-sm mb-8">
-              Create environments like <span className="text-green-400 font-medium">Production</span>, <span className="text-green-400 font-medium">Staging</span>, or <span className="text-green-400 font-medium">Development</span>.
+            <p className="text-slate-500 text-sm mb-8">
+              Create environments like <span className="text-green-600 font-medium">Production</span>, <span className="text-green-600 font-medium">Staging</span>, or <span className="text-green-600 font-medium">Development</span>.
             </p>
-            <p className="text-gray-600 text-xs mt-4">
-              💡 Tip: Use the "Add Environment" button above to create your first environment
+            <p className="text-slate-400 text-xs mt-4">
+              Use the "Add Environment" button above to create your first environment.
             </p>
           </div>
         ) : (
@@ -191,46 +190,42 @@ export const EnvironmentsList: React.FC<EnvironmentsListProps> = ({
                 <div
                   key={environmentId}
                   onClick={() => onEnvironmentClick(environmentId)}
-                  className="bg-gradient-to-br from-slate-800 to-slate-800/50 border border-slate-700/50 rounded-xl p-5 hover:border-green-500/50 hover:shadow-xl hover:shadow-green-500/10 transition-all duration-300 cursor-pointer group hover:scale-105 hover:-translate-y-1"
-                  style={{
-                    animationDelay: `${index * 50}ms`,
-                    animation: 'fadeInUp 0.5s ease-out forwards',
-                  }}
+                  className="bg-white border border-slate-200 rounded-xl p-5 hover:border-green-400 hover:shadow-sm transition-all duration-200 cursor-pointer group"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-green-500/10 rounded-lg group-hover:bg-green-500/20 transition-colors">
-                        <Server size={18} className="text-green-400 group-hover:text-green-300 transition-colors" />
+                      <div className="p-2 bg-green-50 rounded-lg group-hover:bg-green-100 transition-colors">
+                        <Server size={18} className="text-green-600 group-hover:text-green-700 transition-colors" />
                       </div>
-                      <h4 className="font-semibold text-white group-hover:text-green-300 transition-colors text-lg">
+                      <h4 className="font-semibold text-slate-900 group-hover:text-green-700 transition-colors text-lg">
                         {environment.name}
                       </h4>
                     </div>
                     <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                      environment.status === 'active' 
-                        ? 'bg-green-500/20 text-green-300' 
+                      environment.status === 'active'
+                        ? 'bg-green-50 text-green-700'
                         : environment.status === 'inactive'
-                        ? 'bg-gray-500/20 text-gray-300'
-                        : 'bg-yellow-500/20 text-yellow-300'
+                        ? 'bg-slate-100 text-slate-600'
+                        : 'bg-amber-50 text-amber-700'
                     }`}>
                       {environment.status}
                     </span>
                   </div>
 
                   <div className="flex items-center space-x-2 mb-4">
-                    <Globe size={14} className="text-gray-500" />
-                    <p className="text-sm text-gray-400 truncate">
+                    <Globe size={14} className="text-slate-400" />
+                    <p className="text-sm text-slate-500 truncate">
                       {environment.url}
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-slate-700/50">
+                  <div className="flex items-center justify-between text-xs text-slate-400 pt-3 border-t border-slate-200">
                     <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                       <span>Ready</span>
                     </div>
-                    <div className="p-1 bg-green-500/10 rounded" title="Environment URL">
-                      <ExternalLink size={12} className="text-green-400" />
+                    <div className="p-1 bg-green-50 rounded" title="Environment URL">
+                      <ExternalLink size={12} className="text-green-600" />
                     </div>
                   </div>
                 </div>
@@ -248,8 +243,8 @@ export const EnvironmentsList: React.FC<EnvironmentsListProps> = ({
               <Server size={20} className="text-green-400" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white">Create New Environment</h3>
-              <p className="text-xs text-gray-400 font-normal">Configure deployment environment</p>
+              <h3 className="text-lg font-semibold text-slate-900">Create New Environment</h3>
+              <p className="text-xs text-slate-500 font-normal">Configure deployment environment</p>
             </div>
           </div>
         }
@@ -268,14 +263,14 @@ export const EnvironmentsList: React.FC<EnvironmentsListProps> = ({
           disabled: !newEnvironmentName.trim() || !newEnvironmentUrl.trim()
         }}
         cancelButtonProps={{
-          className: 'border-slate-600 text-gray-300 hover:border-slate-500 hover:text-white'
+          className: 'border-slate-300 text-slate-600 hover:border-slate-400'
         }}
         width={700}
         centered
       >
         <div className="space-y-5 py-6">
           <div>
-            <label className="block text-sm font-semibold text-gray-200 mb-2">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
               Environment Name <span className="text-red-400">*</span>
             </label>
             <Input
@@ -286,13 +281,13 @@ export const EnvironmentsList: React.FC<EnvironmentsListProps> = ({
               disabled={isCreating}
               className="rounded-lg"
             />
-            <p className="text-xs text-gray-500 mt-1.5">
+            <p className="text-xs text-slate-500 mt-1.5">
               💡 Use a descriptive name for the environment
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-200 mb-2">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
               Environment URL <span className="text-red-400">*</span>
             </label>
             <Input
@@ -303,13 +298,13 @@ export const EnvironmentsList: React.FC<EnvironmentsListProps> = ({
               disabled={isCreating}
               className="rounded-lg"
             />
-            <p className="text-xs text-gray-500 mt-1.5">
+            <p className="text-xs text-slate-500 mt-1.5">
               The base URL where this environment is accessible
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-200 mb-2">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
               Status <span className="text-red-400">*</span>
             </label>
             <Select
@@ -323,7 +318,7 @@ export const EnvironmentsList: React.FC<EnvironmentsListProps> = ({
               <Select.Option value="inactive">Inactive</Select.Option>
               <Select.Option value="maintenance">Maintenance</Select.Option>
             </Select>
-            <p className="text-xs text-gray-500 mt-1.5">
+            <p className="text-xs text-slate-500 mt-1.5">
               Current operational status of the environment
             </p>
           </div>

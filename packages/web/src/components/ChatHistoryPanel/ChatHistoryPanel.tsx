@@ -300,23 +300,26 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg shadow-xl border border-slate-200 max-w-md w-full mx-4 overflow-hidden">
+          <div
+            className="bg-white rounded-lg shadow-xl border border-slate-200 max-w-md w-full mx-4 overflow-hidden"
+            style={{ colorScheme: 'light' }}
+          >
             {/* Header */}
             <div className="flex items-center space-x-2.5 px-5 py-4 border-b border-slate-200">
               <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-50">
                 <AlertTriangle size={16} className="text-red-500" />
               </div>
-              <h3 className="font-semibold text-slate-900">Delete Chat</h3>
+              <h3 className="font-semibold" style={{ color: '#0f172a' }}>Delete Chat</h3>
             </div>
 
             {/* Body */}
             <div className="px-5 py-4 space-y-3">
-              <p className="text-sm text-slate-700">
+              <p className="text-sm" style={{ color: '#334155' }}>
                 Are you sure you want to delete this chat? This action cannot be undone.
               </p>
               {chatToDelete?.name && (
                 <div className="text-center py-2">
-                  <p className="text-base text-slate-900 font-medium italic">"{chatToDelete.name}"</p>
+                  <p className="text-base font-medium italic" style={{ color: '#0f172a' }}>"{chatToDelete.name}"</p>
                 </div>
               )}
             </div>
@@ -325,13 +328,15 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
             <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-slate-200 bg-slate-50">
               <button
                 onClick={handleCancelDelete}
-                className="px-3 py-1.5 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors"
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{ backgroundColor: '#ffffff', color: '#374151', border: '1px solid #9ca3af' }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
-                className="px-3 py-1.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{ backgroundColor: '#dc2626', color: '#ffffff', border: 'none' }}
               >
                 Delete Chat
               </button>
