@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "highlight.js/styles/github-dark.css";
 
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
 /* Dark color-scheme scoped to product routes only (not the public marketing page) */
 html:not(.marketing-page) {
   color-scheme: dark;
