@@ -7,7 +7,7 @@
 - **cyodalight-website** — маркетинговый сайт Cyoda, light-first тема
 
 Подробный style guide: `/Users/Victoria/PycharmProjects/ai-assistant-ui-victoria/STYLEBOOK.md`  
-Дополнительный ориентир: `/Users/Victoria/Downloads/cyoda-cloud-style-guide.md`
+Cyoda Cloud style guide (в репо): `/Users/Victoria/PycharmProjects/ai-assistant-ui-victoria/cyoda-cloud-style-guide.md`
 
 ## Ветки
 
