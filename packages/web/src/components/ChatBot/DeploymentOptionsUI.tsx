@@ -58,15 +58,15 @@ const DeploymentOptionsUI: React.FC<DeploymentOptionsUIProps> = ({
   return (
     <div className="space-y-3">
       {/* Question */}
-      <div className="text-xs font-medium text-slate-300">
+      <div className="text-xs font-medium text-slate-700">
         {question}
       </div>
 
       {/* Warning Message */}
       {warning && (
-        <div className="flex items-start space-x-2 p-3 bg-amber-900/20 border border-amber-700/30 rounded-2xl">
-          <AlertCircle size={16} className="text-amber-400 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-amber-200">{warning}</p>
+        <div className="flex items-start space-x-2 p-3 bg-amber-50 border border-amber-200 rounded-2xl">
+          <AlertCircle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-amber-800">{warning}</p>
         </div>
       )}
 
@@ -77,8 +77,8 @@ const DeploymentOptionsUI: React.FC<DeploymentOptionsUIProps> = ({
             key={option.value}
             className={`flex items-start space-x-3 p-3 rounded-2xl border cursor-pointer transition-all duration-200 ${
               selectedOption === option.value
-                ? 'border-teal-500/70 bg-teal-500/15 shadow-lg shadow-teal-500/10'
-                : 'border-slate-700/40 bg-slate-800/20 hover:border-teal-500/40 hover:bg-slate-800/40'
+                ? 'border-teal-500 bg-teal-50'
+                : 'border-slate-200 bg-white hover:border-teal-400 hover:bg-teal-50'
             }`}
           >
             <input
@@ -91,7 +91,7 @@ const DeploymentOptionsUI: React.FC<DeploymentOptionsUIProps> = ({
               disabled={isSubmitting}
             />
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-slate-200">
+              <div className="text-sm font-medium text-slate-900">
                 {option.label}
               </div>
               <div className="text-xs text-slate-400 mt-0.5">
@@ -107,7 +107,7 @@ const DeploymentOptionsUI: React.FC<DeploymentOptionsUIProps> = ({
         <button
           onClick={handleSubmit}
           disabled={!selectedOption || isSubmitting}
-          className="flex items-center space-x-2 px-4 py-2.5 rounded-full backdrop-blur-md bg-slate-700/40 border border-slate-600/50 hover:bg-slate-600/50 hover:border-slate-500/60 disabled:bg-slate-800/40 disabled:border-slate-700/30 disabled:opacity-50 text-slate-200 hover:text-white disabled:text-slate-500 text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-slate-500/20 disabled:shadow-none disabled:cursor-not-allowed"
+          className="flex items-center space-x-2 px-4 py-2.5 rounded-full bg-teal-600 hover:bg-teal-700 disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm font-medium transition-colors disabled:cursor-not-allowed"
         >
           <Send size={16} />
           <span>Select</span>
@@ -116,7 +116,7 @@ const DeploymentOptionsUI: React.FC<DeploymentOptionsUIProps> = ({
         <button
           onClick={handleOpenEnvironment}
           disabled={isSubmitting}
-          className="flex items-center space-x-2 px-4 py-2.5 rounded-full backdrop-blur-md bg-slate-700/30 border border-slate-600/40 hover:bg-slate-700/40 hover:border-slate-600/50 disabled:bg-slate-800/20 disabled:border-slate-700/20 disabled:cursor-not-allowed text-slate-300 hover:text-slate-200 disabled:text-slate-600 text-sm font-medium transition-all duration-200"
+          className="flex items-center space-x-2 px-4 py-2.5 rounded-full bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 disabled:cursor-not-allowed text-slate-600 disabled:text-slate-400 text-sm font-medium transition-colors"
         >
           <Cloud size={16} />
           <span>Open Env Window</span>

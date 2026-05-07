@@ -224,7 +224,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, id }) => {
         {/* Diagram Container */}
         <div
           ref={elementRef}
-          className="mermaid-diagram flex justify-center items-center min-h-[200px] overflow-auto bg-slate-900/30 border border-slate-600/50 rounded-lg p-6"
+          className="mermaid-diagram flex justify-center items-center min-h-[200px] overflow-auto bg-slate-50 border border-slate-200 rounded-lg p-6"
           style={{
             maxHeight: 'none',
           }}
@@ -234,7 +234,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, id }) => {
         <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <button
             onClick={handleCopy}
-            className="p-1.5 bg-slate-800/80 backdrop-blur-sm border border-slate-600 rounded-md text-slate-300 hover:text-white hover:bg-slate-700/80 transition-all duration-200"
+            className="p-1.5 bg-white border border-slate-200 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors"
             title="Copy diagram source"
           >
             {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
@@ -242,7 +242,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, id }) => {
 
           <button
             onClick={handleDownload}
-            className="p-1.5 bg-slate-800/80 backdrop-blur-sm border border-slate-600 rounded-md text-slate-300 hover:text-white hover:bg-slate-700/80 transition-all duration-200"
+            className="p-1.5 bg-white border border-slate-200 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors"
             title="Download as SVG"
           >
             <Download size={14} />
@@ -250,7 +250,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, id }) => {
 
           <button
             onClick={toggleFullscreen}
-            className="p-1.5 bg-slate-800/80 backdrop-blur-sm border border-slate-600 rounded-md text-slate-300 hover:text-white hover:bg-slate-700/80 transition-all duration-200"
+            className="p-1.5 bg-white border border-slate-200 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors"
             title="View fullscreen"
           >
             <Maximize2 size={14} />
@@ -264,10 +264,10 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, id }) => {
           <div className="relative max-w-7xl max-h-full w-full h-full flex flex-col">
             {/* Header */}
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-white">Mermaid Diagram</h3>
+              <h3 className="text-lg font-semibold text-slate-900">Mermaid Diagram</h3>
               <button
                 onClick={toggleFullscreen}
-                className="p-2 text-slate-400 hover:text-white transition-colors"
+                className="p-2 text-slate-500 hover:text-slate-700 transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -276,7 +276,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, id }) => {
             </div>
 
             {/* Diagram */}
-            <div className="flex-1 bg-slate-900/50 border border-slate-600 rounded-lg p-6 overflow-auto">
+            <div className="flex-1 bg-slate-50 border border-slate-200 rounded-lg p-6 overflow-auto">
               <div className="flex justify-center items-center h-full">
                 <div dangerouslySetInnerHTML={{ __html: svgContent }} />
               </div>

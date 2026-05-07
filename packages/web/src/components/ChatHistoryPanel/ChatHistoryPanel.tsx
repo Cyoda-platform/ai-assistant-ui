@@ -165,8 +165,10 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
               window.open('/', '_blank');
             }
           }}
-          className="flex items-center justify-center gap-2 cursor-pointer px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors no-underline"
-          style={{ color: '#ffffff' }}
+          className="flex items-center justify-center gap-2 cursor-pointer px-4 py-2.5 rounded-lg text-white font-semibold text-sm no-underline"
+          style={{ color: '#ffffff', backgroundColor: '#0d9488' }}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#0f766e')}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#0d9488')}
         >
           <Home size={19} className="flex-shrink-0" style={{ color: '#ffffff' }} />
           <span style={{ color: '#ffffff' }}>New Chat</span>

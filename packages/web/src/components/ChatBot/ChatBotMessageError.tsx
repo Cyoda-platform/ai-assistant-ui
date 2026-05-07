@@ -27,7 +27,7 @@ const ChatBotMessageError: React.FC<ChatBotMessageErrorProps> = ({ message }) =>
       <div className="max-w-6xl w-full">
         {/* Error Badge */}
         <div className="flex items-center space-x-2 mb-2 ml-14">
-          <span className="inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
+          <span className="inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600 border border-red-200">
             <AlertCircle size={10} />
             <span>ERROR</span>
           </span>
@@ -45,7 +45,7 @@ const ChatBotMessageError: React.FC<ChatBotMessageErrorProps> = ({ message }) =>
           <div className={`${containerInfo.className} rounded-tl-md`}>
             <div className="flex items-start">
               <div className="flex-1 min-w-0">
-                <p className="text-base text-red-100 leading-relaxed whitespace-pre-wrap break-words">
+                <p className="text-base text-red-700 leading-relaxed whitespace-pre-wrap break-words">
                   {message.text}
                 </p>
               </div>

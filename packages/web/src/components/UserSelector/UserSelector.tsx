@@ -48,9 +48,9 @@ const UserSelector: React.FC<UserSelectorProps> = ({ onUserSelected }) => {
   return (
     <div className="flex items-center space-x-2">
       {/* Display current selected user */}
-      <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-slate-700/50 border border-slate-600/50">
-        <Users size={16} className="text-teal-400" />
-        <span className="text-sm text-slate-300">
+      <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200">
+        <Users size={16} className="text-teal-600" />
+        <span className="text-sm text-slate-700">
           {inputValue ? `User: ${inputValue}` : 'Select User'}
         </span>
       </div>
@@ -59,7 +59,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({ onUserSelected }) => {
       {inputValue && (
         <button
           onClick={handleClear}
-          className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+          className="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           title="Clear selected user"
         >
           <X size={16} />
@@ -69,7 +69,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({ onUserSelected }) => {
       {/* Edit button */}
       <button
         onClick={handleOpenDialog}
-        className="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+        className="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
       >
         Change
       </button>
@@ -77,23 +77,25 @@ const UserSelector: React.FC<UserSelectorProps> = ({ onUserSelected }) => {
       {/* Modal Dialog */}
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-slate-800 rounded-lg shadow-xl p-6 w-96 border border-slate-700">
-            <h3 className="text-lg font-semibold text-white mb-4">Select User ID</h3>
-            
+          <div className="bg-white rounded-lg shadow-lg p-6 w-96 border border-slate-200" style={{ colorScheme: 'light' }}>
+            <h3 className="text-lg font-semibold mb-4" style={{ color: '#0f172a' }}>Select User ID</h3>
+
             <input
               type="text"
               value={tempValue}
               onChange={(e) => setTempValue(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Enter user ID"
-              className="w-full px-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-slate-400 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 mb-4"
+              className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 mb-4"
+              style={{ backgroundColor: '#ffffff', color: '#0f172a' }}
               autoFocus
             />
 
             <div className="flex justify-end space-x-3">
               <button
                 onClick={handleCancel}
-                className="px-4 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{ backgroundColor: '#ffffff', color: '#374151', border: '1px solid #9ca3af' }}
               >
                 Cancel
               </button>

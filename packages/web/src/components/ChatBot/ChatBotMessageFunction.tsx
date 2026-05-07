@@ -293,7 +293,7 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
                     className="w-4 h-4 border border-slate-300 rounded text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-0 cursor-pointer transition-colors"
                   />
                   <div className="flex-1">
-                    <span className="text-sm font-medium text-slate-200 group-hover:text-white transition-colors">
+                    <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900 transition-colors">
                       Issue with ADMIN role
                     </span>
                     <p className="text-xs text-slate-400 mt-0.5">
@@ -317,7 +317,7 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
                   {Object.entries(functionData.query_params).map(([key, value]) => (
                     <div key={key} className="flex items-center space-x-2 text-xs">
                       <span className="text-slate-400 font-mono">{key}:</span>
-                      <span className="text-teal-300 font-mono">{value}</span>
+                      <span className="text-teal-700 font-mono">{value}</span>
                     </div>
                   ))}
                 </div>
@@ -362,7 +362,7 @@ const ChatBotMessageFunction: React.FC<ChatBotMessageFunctionProps> = ({
                   <Download size={16} />
                   <span>Response:</span>
                 </h4>
-                <pre className="bg-slate-900/50 p-3 rounded-lg text-slate-300 text-xs overflow-x-auto max-h-60 overflow-y-auto">
+                <pre className="bg-slate-50 border border-slate-200 p-3 rounded-lg text-slate-800 text-xs overflow-x-auto max-h-60 overflow-y-auto">
                   {JSON.stringify(serverResponse, null, 2)}
                 </pre>
               </div>

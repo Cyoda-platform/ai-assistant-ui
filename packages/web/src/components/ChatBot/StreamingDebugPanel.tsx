@@ -73,23 +73,23 @@ const StreamingDebugPanel: React.FC<StreamingDebugPanelProps> = ({
   const getEventColor = (type: string) => {
     switch (type) {
       case 'start':
-        return 'text-slate-400';
+        return 'text-slate-500';
       case 'agent':
-        return 'text-teal-400';
+        return 'text-teal-600';
       case 'tool_call':
-        return 'text-slate-400';
+        return 'text-slate-500';
       case 'tool_response':
-        return 'text-teal-400';
+        return 'text-teal-600';
       case 'agent_transfer':
-        return 'text-cyan-400';
+        return 'text-cyan-600';
       case 'content':
-        return 'text-slate-400';
+        return 'text-slate-500';
       case 'done':
-        return 'text-teal-400';
+        return 'text-teal-600';
       case 'error':
-        return 'text-red-400';
+        return 'text-red-600';
       default:
-        return 'text-slate-400';
+        return 'text-slate-500';
     }
   };
 
@@ -97,23 +97,23 @@ const StreamingDebugPanel: React.FC<StreamingDebugPanelProps> = ({
   const getEventBadgeStyles = (type: string) => {
     switch (type) {
       case 'start':
-        return 'bg-slate-700/40 text-slate-400 border border-slate-600/40';
+        return 'bg-slate-100 text-slate-600 border border-slate-200';
       case 'agent':
-        return 'bg-teal-500/15 text-teal-400 border border-teal-500/25';
+        return 'bg-teal-50 text-teal-700 border border-teal-200';
       case 'tool_call':
-        return 'bg-slate-700/40 text-slate-400 border border-slate-600/40';
+        return 'bg-slate-100 text-slate-600 border border-slate-200';
       case 'tool_response':
-        return 'bg-teal-500/15 text-teal-400 border border-teal-500/25';
+        return 'bg-teal-50 text-teal-700 border border-teal-200';
       case 'agent_transfer':
-        return 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/25';
+        return 'bg-cyan-50 text-cyan-700 border border-cyan-200';
       case 'content':
-        return 'bg-slate-700/40 text-slate-400 border border-slate-600/40';
+        return 'bg-slate-100 text-slate-600 border border-slate-200';
       case 'done':
-        return 'bg-teal-500/15 text-teal-400 border border-teal-500/25';
+        return 'bg-teal-50 text-teal-700 border border-teal-200';
       case 'error':
-        return 'bg-red-500/15 text-red-400 border border-red-500/25';
+        return 'bg-red-50 text-red-600 border border-red-200';
       default:
-        return 'bg-slate-700/40 text-slate-400 border border-slate-600/40';
+        return 'bg-slate-100 text-slate-600 border border-slate-200';
     }
   };
 
@@ -121,23 +121,23 @@ const StreamingDebugPanel: React.FC<StreamingDebugPanelProps> = ({
   const getEventBorderColor = (type: string) => {
     switch (type) {
       case 'start':
-        return 'border-l-slate-600/40';
+        return 'border-l-slate-300';
       case 'agent':
-        return 'border-l-teal-500/40';
+        return 'border-l-teal-400';
       case 'tool_call':
-        return 'border-l-slate-600/40';
+        return 'border-l-slate-300';
       case 'tool_response':
-        return 'border-l-teal-500/40';
+        return 'border-l-teal-400';
       case 'agent_transfer':
-        return 'border-l-cyan-500/40';
+        return 'border-l-cyan-400';
       case 'content':
-        return 'border-l-slate-600/40';
+        return 'border-l-slate-300';
       case 'done':
-        return 'border-l-teal-500/40';
+        return 'border-l-teal-400';
       case 'error':
-        return 'border-l-red-500/40';
+        return 'border-l-red-300';
       default:
-        return 'border-l-slate-600/40';
+        return 'border-l-slate-300';
     }
   };
 
@@ -207,19 +207,19 @@ const StreamingDebugPanel: React.FC<StreamingDebugPanelProps> = ({
       {/* Toggle Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center space-x-2 text-xs text-slate-500 hover:text-slate-400 transition-colors group"
+        className="flex items-center space-x-2 text-xs text-slate-500 hover:text-slate-700 transition-colors group"
       >
         {isExpanded ? (
-          <ChevronDown size={14} className="group-hover:text-slate-400" />
+          <ChevronDown size={14} className="group-hover:text-slate-700" />
         ) : (
-          <ChevronRight size={14} className="group-hover:text-slate-400" />
+          <ChevronRight size={14} className="group-hover:text-slate-700" />
         )}
-        <Clock size={12} className="group-hover:text-slate-400" />
+        <Clock size={12} className="group-hover:text-slate-700" />
         <span>
           {isExpanded ? 'Hide' : 'Show'} processing details ({events.length} events)
         </span>
         {isComplete && (
-          <span className="flex items-center space-x-1 text-teal-400 ml-2">
+          <span className="flex items-center space-x-1 text-teal-600 ml-2">
             <CheckCircle size={12} />
             <span className="font-medium">Done</span>
           </span>
@@ -228,19 +228,19 @@ const StreamingDebugPanel: React.FC<StreamingDebugPanelProps> = ({
 
       {/* Expanded Panel */}
       {isExpanded && (
-        <div className="mt-3 bg-slate-800/40 backdrop-blur-sm rounded-lg border border-slate-700/30 overflow-hidden">
+        <div className="mt-3 bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
           {/* Header with Status */}
-          <div className="px-4 py-3 bg-slate-800/30 border-b border-slate-700/30">
+          <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-300">Processing Timeline</span>
+              <span className="text-sm font-medium text-slate-700">Processing Timeline</span>
               {isComplete ? (
-                <span className="flex items-center space-x-1.5 text-xs font-medium text-teal-400 bg-teal-500/10 px-2.5 py-1 rounded-full">
+                <span className="flex items-center space-x-1.5 text-xs font-medium text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
                   <CheckCircle size={14} />
                   <span>Processing Complete</span>
                 </span>
               ) : (
-                <span className="flex items-center space-x-1.5 text-xs font-medium text-slate-400 bg-slate-700/30 px-2.5 py-1 rounded-full">
-                  <Clock size={14} className="animate-pulse" />
+                <span className="flex items-center space-x-1.5 text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full">
+                  <Clock size={14} />
                   <span>Processing...</span>
                 </span>
               )}
@@ -249,30 +249,23 @@ const StreamingDebugPanel: React.FC<StreamingDebugPanelProps> = ({
 
           {/* Stats Grid - Show when complete */}
           {isComplete && (
-            <div className="px-4 py-3 bg-slate-800/20 border-b border-slate-700/30">
+            <div className="px-4 py-3 bg-white border-b border-slate-200">
               <div className="grid grid-cols-4 gap-3">
-                {/* Total Events */}
-                <div className="bg-slate-800/40 rounded-lg px-3 py-2 border border-slate-700/30">
+                <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-200">
                   <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">Events</div>
-                  <div className="text-lg font-semibold text-slate-300">{events.length}</div>
+                  <div className="text-lg font-semibold text-slate-900">{events.length}</div>
                 </div>
-
-                {/* Duration */}
-                <div className="bg-slate-800/40 rounded-lg px-3 py-2 border border-slate-700/30">
+                <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-200">
                   <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">Duration</div>
-                  <div className="text-lg font-semibold text-slate-300">{stats.duration}<span className="text-xs text-slate-500 ml-0.5">s</span></div>
+                  <div className="text-lg font-semibold text-slate-900">{stats.duration}<span className="text-xs text-slate-500 ml-0.5">s</span></div>
                 </div>
-
-                {/* Agents */}
-                <div className="bg-slate-800/40 rounded-lg px-3 py-2 border border-slate-700/30">
+                <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-200">
                   <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">Agents</div>
-                  <div className="text-lg font-semibold text-teal-400">{stats.agents.length}</div>
+                  <div className="text-lg font-semibold text-teal-600">{stats.agents.length}</div>
                 </div>
-
-                {/* Tools */}
-                <div className="bg-slate-800/40 rounded-lg px-3 py-2 border border-slate-700/30">
+                <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-200">
                   <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">Tools</div>
-                  <div className="text-lg font-semibold text-slate-400">{stats.tools.length}</div>
+                  <div className="text-lg font-semibold text-slate-700">{stats.tools.length}</div>
                 </div>
               </div>
 
@@ -287,7 +280,7 @@ const StreamingDebugPanel: React.FC<StreamingDebugPanelProps> = ({
                     >
                       {getEventIcon(type, 12)}
                       <span className="uppercase tracking-wide text-[10px]">{type}</span>
-                      <span className="bg-slate-900/60 rounded px-1.5 py-0.5 text-[10px] font-semibold">×{count}</span>
+                      <span className="bg-slate-200 rounded px-1.5 py-0.5 text-[10px] font-semibold">×{count}</span>
                     </div>
                   ))}
                 </div>
@@ -297,9 +290,8 @@ const StreamingDebugPanel: React.FC<StreamingDebugPanelProps> = ({
 
           {/* Agents & Tools Section - Show when complete */}
           {isComplete && (stats.agents.length > 0 || stats.tools.length > 0) && (
-            <div className="px-4 py-3 bg-slate-800/20 border-b border-slate-700/30">
+            <div className="px-4 py-3 bg-white border-b border-slate-200">
               <div className="grid grid-cols-2 gap-3">
-                {/* Agents Used */}
                 {stats.agents.length > 0 && (
                   <div>
                     <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-2">Agents Used</div>
@@ -307,12 +299,12 @@ const StreamingDebugPanel: React.FC<StreamingDebugPanelProps> = ({
                       {stats.agents.map(agent => (
                         <div
                           key={agent}
-                          className="flex items-center space-x-2 bg-teal-500/10 border border-teal-500/20 rounded-lg px-2.5 py-1.5"
+                          className="flex items-center space-x-2 bg-teal-50 border border-teal-200 rounded-lg px-2.5 py-1.5"
                         >
-                          <div className="flex-shrink-0 w-6 h-6 bg-teal-500/20 rounded-md flex items-center justify-center border border-teal-500/30">
-                            <Bot size={12} className="text-teal-400" />
+                          <div className="flex-shrink-0 w-6 h-6 bg-teal-100 rounded-md flex items-center justify-center border border-teal-200">
+                            <Bot size={12} className="text-teal-600" />
                           </div>
-                          <span className="text-xs font-medium text-teal-300">
+                          <span className="text-xs font-medium text-teal-700">
                             {agent.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                           </span>
                         </div>
@@ -321,7 +313,6 @@ const StreamingDebugPanel: React.FC<StreamingDebugPanelProps> = ({
                   </div>
                 )}
 
-                {/* Tools Used */}
                 {stats.tools.length > 0 && (
                   <div>
                     <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-2">Tools Used</div>
@@ -329,12 +320,12 @@ const StreamingDebugPanel: React.FC<StreamingDebugPanelProps> = ({
                       {stats.tools.map(tool => (
                         <div
                           key={tool}
-                          className="flex items-center space-x-2 bg-slate-700/30 border border-slate-600/30 rounded-lg px-2.5 py-1.5"
+                          className="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5"
                         >
-                          <div className="flex-shrink-0 w-6 h-6 bg-slate-700/40 rounded-md flex items-center justify-center border border-slate-600/40">
-                            <Wrench size={12} className="text-slate-400" />
+                          <div className="flex-shrink-0 w-6 h-6 bg-slate-100 rounded-md flex items-center justify-center border border-slate-200">
+                            <Wrench size={12} className="text-slate-500" />
                           </div>
-                          <span className="text-xs font-medium text-slate-400">
+                          <span className="text-xs font-medium text-slate-700">
                             {tool.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                           </span>
                         </div>
@@ -349,7 +340,7 @@ const StreamingDebugPanel: React.FC<StreamingDebugPanelProps> = ({
           {/* Timeline Events */}
           <div className="relative px-4 py-3 max-h-80 overflow-y-auto">
             {/* Vertical Timeline Line */}
-            <div className="absolute left-8 top-3 bottom-3 w-0.5 bg-gradient-to-b from-slate-600/40 via-teal-500/30 to-slate-600/40" />
+            <div className="absolute left-8 top-3 bottom-3 w-0.5 bg-gradient-to-b from-slate-200 via-teal-300 to-slate-200" />
 
             <div className="space-y-2">
               {events.map((event, index) => {
@@ -358,10 +349,10 @@ const StreamingDebugPanel: React.FC<StreamingDebugPanelProps> = ({
                 return (
                   <div
                     key={eventKey}
-                    className={`relative pl-9 pr-4 py-3 bg-slate-800/30 hover:bg-slate-700/30 rounded-lg border-l-3 ${getEventBorderColor(event.type)} transition-all hover:translate-x-0.5 group`}
+                    className={`relative pl-9 pr-4 py-3 bg-slate-50 hover:bg-slate-100 rounded-lg border-l-2 ${getEventBorderColor(event.type)} transition-colors group`}
                   >
                     {/* Timeline Dot */}
-                    <div className={`absolute left-[22px] top-4 w-2.5 h-2.5 rounded-full border-2 border-slate-900 ${getEventBadgeStyles(event.type)}`} />
+                    <div className={`absolute left-[22px] top-4 w-2.5 h-2.5 rounded-full border-2 border-white ${getEventBadgeStyles(event.type)}`} />
 
                     {/* Event Info */}
                     <div className="flex-1 min-w-0">
@@ -370,24 +361,24 @@ const StreamingDebugPanel: React.FC<StreamingDebugPanelProps> = ({
                           {getEventIcon(event.type, 10)}
                           <span>{event.type}</span>
                         </span>
-                        <span className="text-[10px] text-slate-500 font-mono">
+                        <span className="text-[10px] text-slate-400 font-mono">
                           {formatTime(event.timestamp)}
                         </span>
                         {event.id && (
-                          <span className="text-[10px] text-slate-600 font-mono">#{event.id}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">#{event.id}</span>
                         )}
                       </div>
-                      <div className="text-xs text-slate-400 leading-relaxed break-words mb-2">
+                      <div className="text-xs text-slate-600 leading-relaxed break-words mb-2">
                         {formatEventData(event)}
                       </div>
 
                       {/* Full Event Data (Collapsible) */}
                       {Object.keys(eventData).length > 0 && (
                         <details className="mt-1">
-                          <summary className="text-[10px] text-slate-500 cursor-pointer hover:text-slate-400 uppercase tracking-wider font-medium select-none marker:text-slate-500">
+                          <summary className="text-[10px] text-slate-500 cursor-pointer hover:text-slate-700 uppercase tracking-wider font-medium select-none">
                             View raw data
                           </summary>
-                          <pre className="mt-2 text-[10px] text-teal-400 bg-slate-950/50 rounded-md p-2.5 overflow-x-auto border border-slate-800">
+                          <pre className="mt-2 text-[10px] text-slate-700 bg-slate-100 rounded-md p-2.5 overflow-x-auto border border-slate-200">
                             {JSON.stringify(eventData, null, 2)}
                           </pre>
                         </details>

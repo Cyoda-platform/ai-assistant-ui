@@ -83,14 +83,14 @@ const DashboardView: React.FC = () => {
 
       {/* Enhanced Progress Cards */}
       <div className="space-y-4">
-        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-slate-600 transition-all duration-200">
+        <div className="bg-white border border-slate-200 rounded-xl p-6 hover:border-slate-300 transition-all duration-200">
           <div className="flex items-start space-x-4">
             <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center flex-shrink-0">
               <CheckCircle2 size={16} className="text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-white mb-2">API Integration Complete</h3>
-              <p className="text-slate-300 leading-relaxed">
+              <h3 className="font-semibold text-slate-900 mb-2">API Integration Complete</h3>
+              <p className="text-slate-600 leading-relaxed">
                 Successfully integrated with external APIs. Perfect time to test these integrations!
               </p>
               <p className="text-sm text-slate-400 mt-2">
@@ -100,19 +100,19 @@ const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-slate-600 transition-all duration-200">
+        <div className="bg-white border border-slate-200 rounded-xl p-6 hover:border-slate-300 transition-all duration-200">
           <div className="flex items-start space-x-4">
             <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
               <Info size={16} className="text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-white mb-3">Learn More</h3>
+              <h3 className="font-semibold text-slate-900 mb-3">Learn More</h3>
               <div className="space-y-2">
-                <a href="#" className="flex items-center space-x-2 text-teal-400 hover:text-teal-300 transition-colors group">
+                <a href="#" className="flex items-center space-x-2 text-teal-600 hover:text-teal-700 transition-colors group">
                   <span>What's an Entity Database?</span>
                   <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                 </a>
-                <a href="#" className="flex items-center space-x-2 text-teal-400 hover:text-teal-300 transition-colors group">
+                <a href="#" className="flex items-center space-x-2 text-teal-600 hover:text-teal-700 transition-colors group">
                   <span>Entity Workflows for Event-Driven Architectures</span>
                   <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                 </a>
@@ -121,19 +121,19 @@ const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-slate-600 transition-all duration-200">
+        <div className="bg-white border border-slate-200 rounded-xl p-6 hover:border-slate-300 transition-all duration-200">
           <div className="flex items-start space-x-4">
             <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center flex-shrink-0">
               <Zap size={16} className="text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-white mb-2">Prototype Development</h3>
-              <p className="text-slate-300 leading-relaxed mb-3">
+              <h3 className="font-semibold text-slate-900 mb-2">Prototype Development</h3>
+              <p className="text-slate-600 leading-relaxed mb-3">
                 Let's make this prototype work smoothly together! 🎯
               </p>
               <div className="flex items-center space-x-2 text-sm">
-                <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
-                <span className="text-orange-400 font-medium">Ready in ~10 minutes</span>
+                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                <span className="text-orange-600 font-medium">Ready in ~10 minutes</span>
               </div>
             </div>
           </div>
@@ -143,18 +143,18 @@ const DashboardView: React.FC = () => {
       {/* Enhanced Status Updates */}
       <div className="mt-8">
         <h2 className="text-xl font-semibold mb-4 flex items-center space-x-2">
-          <Bell className="text-teal-400" size={20} />
+          <Bell className="text-teal-600" size={20} />
           <span>Recent Updates</span>
         </h2>
 
         <div className="space-y-3">
           {notifications.map((notification) => (
-            <div key={notification.id} className="bg-slate-800/30 backdrop-blur-sm border border-slate-700 rounded-lg p-4 hover:border-slate-600 transition-all duration-200">
+            <div key={notification.id} className="bg-white border border-slate-200 rounded-lg p-4 hover:border-slate-300 transition-all duration-200">
               <div className="flex items-start space-x-3">
                 {getNotificationIcon(notification.type)}
                 <div className="flex-1">
-                  <h4 className="font-medium text-white">{notification.title}</h4>
-                  <p className="text-slate-300 text-sm mt-1">{notification.message}</p>
+                  <h4 className="font-medium text-slate-900">{notification.title}</h4>
+                  <p className="text-slate-600 text-sm mt-1">{notification.message}</p>
                   <span className="text-xs text-slate-500 mt-2 block">{notification.timestamp}</span>
                 </div>
                 {!notification.isRead && (

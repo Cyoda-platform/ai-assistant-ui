@@ -130,20 +130,20 @@ const MetricsViewer: React.FC<MetricsViewerProps> = ({
   }, [namespace]);
 
   return (
-    <div className="h-full flex flex-col bg-slate-800/95">
+    <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-700">
+      <div className="flex items-center justify-between p-4 border-b border-slate-200">
         <div className="flex items-center space-x-3">
           <button
             onClick={onBack}
-            className="p-1.5 rounded hover:bg-slate-700 transition-colors"
+            className="p-1.5 rounded hover:bg-slate-100 transition-colors"
             title="Back to environment"
           >
-            <ArrowLeft size={18} className="text-slate-400" />
+            <ArrowLeft size={18} className="text-slate-500" />
           </button>
-          <Activity size={18} className="text-orange-400" />
-          <h3 className="font-semibold text-white">Environment Metrics</h3>
-          <span className="text-xs bg-orange-500/20 text-orange-300 px-2 py-1 rounded-full">
+          <Activity size={18} className="text-orange-500" />
+          <h3 className="font-semibold text-slate-900">Environment Metrics</h3>
+          <span className="text-xs bg-orange-50 text-orange-700 px-2 py-1 rounded-full">
             {namespace}
           </span>
         </div>

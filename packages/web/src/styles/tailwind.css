@@ -141,12 +141,12 @@ html:not(.marketing-page) * {
 
   /* Text-responsive container that adapts to content size */
   .text-responsive-container {
-    background-color: rgb(30 41 59 / 0.5);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgb(51 65 85);
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #1e293b;
     border-radius: 1rem;
     border-top-left-radius: 0.375rem;
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
     /* Remove transition to prevent layout shifts when messages appear */
     /* transition: all 0.2s ease-in-out; */
 
@@ -168,8 +168,8 @@ html:not(.marketing-page) * {
   }
 
   .text-responsive-container:hover {
-    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
-    border-color: rgb(71 85 105);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -1px rgb(0 0 0 / 0.04);
+    border-color: #cbd5e1;
   }
 
   /* Size variants for different text lengths */
@@ -249,34 +249,34 @@ html:not(.marketing-page) * {
 
   /* User message variant - right-aligned with different styling */
   .text-responsive-container.user-message {
-    background-color: rgb(20 184 166 / 0.2); /* teal-500/20 */
-    border-color: rgb(20 184 166 / 0.3); /* teal-500/30 */
-    color: rgb(241 245 249); /* slate-100 */
+    background-color: #eff6ff; /* blue-50 */
+    border-color: #bfdbfe; /* blue-200 */
+    color: #0f172a; /* slate-900 */
     margin-left: auto;
     margin-bottom: 0;
-    border-top-left-radius: 1rem; /* rounded-tl-2xl */
-    border-top-right-radius: 0.375rem; /* rounded-tr-md */
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 0.375rem;
     border-bottom-left-radius: 1rem;
     border-bottom-right-radius: 1rem;
-    overflow: visible; /* Prevent scroll bars in message containers */
+    overflow: visible;
   }
 
   .text-responsive-container.user-message:hover {
-    background-color: rgb(20 184 166 / 0.25);
-    border-color: rgb(20 184 166 / 0.4);
+    background-color: #dbeafe; /* blue-100 */
+    border-color: #93c5fd; /* blue-300 */
   }
 
   /* Bot/system message variant - left-aligned with default styling */
   .text-responsive-container.bot-message {
-    background-color: rgb(30 41 59 / 0.5);
-    border-color: rgb(51 65 85);
-    color: rgb(203 213 225); /* slate-300 */
+    background-color: #ffffff;
+    border-color: #e2e8f0;
+    color: #1e293b; /* slate-800 */
     margin-right: auto;
-    border-top-left-radius: 0.375rem; /* rounded-tl-md */
+    border-top-left-radius: 0.375rem;
     border-top-right-radius: 1rem;
     border-bottom-left-radius: 1rem;
     border-bottom-right-radius: 1rem;
-    overflow: visible; /* Prevent scroll bars in message containers */
+    overflow: visible;
   }
 
   .btn-glass {
@@ -555,22 +555,7 @@ html:not(.marketing-page) * {
   display: none;
 }
 
-/* Enhanced Markdown Styles */
-.prose pre {
-  background-color: rgb(15 23 42 / 0.8) !important;
-  border: 1px solid rgb(51 65 85) !important;
-  border-radius: 0.5rem !important;
-  padding: 1rem !important;
-  overflow-x: auto;
-}
-
-.prose code {
-  background-color: rgb(15 23 42 / 0.8) !important;
-  color: rgb(226 232 240) !important;
-  padding: 0.125rem 0.25rem !important;
-  border-radius: 0.25rem !important;
-  font-size: 0.9em !important;
-}
+/* Enhanced Markdown Styles — prose overrides removed; MarkdownRenderer.css handles styling */
 
 .prose-base {
   font-size: 1rem !important;

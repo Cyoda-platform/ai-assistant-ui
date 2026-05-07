@@ -11,7 +11,7 @@ const Tooltip: React.FC<{ text: string; children: React.ReactNode }> = ({ text, 
         {children}
       </div>
       {show && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 border border-teal-500/50 rounded text-xs text-slate-200 whitespace-nowrap z-50 shadow-lg pointer-events-none">
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-white border border-slate-200 rounded text-xs text-slate-700 whitespace-nowrap z-50 shadow-md pointer-events-none">
           {text}
         </div>
       )}
@@ -310,7 +310,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
   };
 
   return (
-    <div ref={containerRef} className="space-y-4 bg-gradient-to-br from-slate-900/50 to-slate-800/30 rounded-xl p-4 border border-slate-700/50 backdrop-blur-sm">
+    <div ref={containerRef} className="space-y-4 bg-slate-50 rounded-xl p-4 border border-slate-200">
       {/* Progress Steps */}
       <div className="flex items-center justify-between">
         <div className={`flex items-center flex-1 ${isNarrow ? 'gap-1' : 'gap-3'}`}>
@@ -318,50 +318,50 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
           <div className="flex flex-col items-center gap-1">
             <div className={`${isNarrow ? 'w-7 h-7' : 'w-8 h-8'} rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
               step === 'language' || step === 'branchType' || step === 'repoType'
-                ? 'bg-teal-500/20 border border-teal-500 text-teal-300'
-                : 'bg-slate-700/50 border border-slate-600 text-slate-400'
+                ? 'bg-teal-50 border border-teal-500 text-teal-700'
+                : 'bg-slate-100 border border-slate-300 text-slate-400'
             }`}>
               1
             </div>
-            <span className={`${isNarrow ? 'text-[10px]' : 'text-xs'} text-slate-400 whitespace-nowrap`}>Language</span>
+            <span className={`${isNarrow ? 'text-[10px]' : 'text-xs'} text-slate-500 whitespace-nowrap`}>Language</span>
           </div>
 
           {/* Connector 1 */}
           <div className={`flex-1 h-0.5 transition-all ${
             step === 'branchType' || step === 'repoType'
               ? 'bg-gradient-to-r from-teal-500 to-teal-500/50'
-              : 'bg-slate-700/30'
+              : 'bg-slate-200'
           }`}></div>
 
           {/* Step 2 */}
           <div className="flex flex-col items-center gap-1">
             <div className={`${isNarrow ? 'w-7 h-7' : 'w-8 h-8'} rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
               step === 'branchType' || step === 'repoType'
-                ? 'bg-teal-500/20 border border-teal-500 text-teal-300'
-                : 'bg-slate-700/50 border border-slate-600 text-slate-400'
+                ? 'bg-teal-50 border border-teal-500 text-teal-700'
+                : 'bg-slate-100 border border-slate-300 text-slate-400'
             }`}>
               2
             </div>
-            <span className={`${isNarrow ? 'text-[10px]' : 'text-xs'} text-slate-400 whitespace-nowrap`}>Branch</span>
+            <span className={`${isNarrow ? 'text-[10px]' : 'text-xs'} text-slate-500 whitespace-nowrap`}>Branch</span>
           </div>
 
           {/* Connector 2 */}
           <div className={`flex-1 h-0.5 transition-all ${
             step === 'repoType'
               ? 'bg-gradient-to-r from-teal-500 to-teal-500/50'
-              : 'bg-slate-700/30'
+              : 'bg-slate-200'
           }`}></div>
 
           {/* Step 3 */}
           <div className="flex flex-col items-center gap-1">
             <div className={`${isNarrow ? 'w-7 h-7' : 'w-8 h-8'} rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
               step === 'repoType'
-                ? 'bg-teal-500/20 border border-teal-500 text-teal-300'
-                : 'bg-slate-700/50 border border-slate-600 text-slate-400'
+                ? 'bg-teal-50 border border-teal-500 text-teal-700'
+                : 'bg-slate-100 border border-slate-300 text-slate-400'
             }`}>
               3
             </div>
-            <span className={`${isNarrow ? 'text-[10px]' : 'text-xs'} text-slate-400 whitespace-nowrap`}>Repository</span>
+            <span className={`${isNarrow ? 'text-[10px]' : 'text-xs'} text-slate-500 whitespace-nowrap`}>Repository</span>
           </div>
         </div>
       </div>
@@ -370,9 +370,9 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
       {step === 'language' && (
         <div className="space-y-3 animate-fadeIn">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-slate-200">Choose your language</h3>
+            <h3 className="text-sm font-semibold text-slate-800">Choose your language</h3>
             <Tooltip text="Select the primary programming language for your project">
-              <HelpCircle size={16} className="text-slate-400 hover:text-teal-400 transition-colors" />
+              <HelpCircle size={16} className="text-slate-400 hover:text-teal-600 transition-colors" />
             </Tooltip>
           </div>
           <div className={`grid gap-3 ${isNarrow ? 'grid-cols-1' : 'grid-cols-2'}`}>
@@ -380,26 +380,26 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
               <div key={lang} className="relative">
                 <button
                   onClick={() => handleLanguageSelect(lang)}
-                  className="w-full px-4 py-3 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-teal-300 transition-all duration-300 text-center overflow-hidden relative group"
+                  className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white hover:bg-teal-50 hover:border-teal-300 text-slate-700 hover:text-teal-700 transition-colors text-center relative group"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-teal-500/0 via-teal-500/10 to-teal-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div></div>
                   <div className="relative">
                     <p className="text-sm font-medium">{getLanguageLabel(lang)}</p>
-                    <p className="text-xs text-slate-400 mt-1">{getLanguageDescription(lang)}</p>
+                    <p className="text-xs text-slate-500 mt-1">{getLanguageDescription(lang)}</p>
                   </div>
                 </button>
                 <div
-                  className="absolute top-2 right-2 p-1 rounded-full hover:bg-teal-500/20 transition-colors cursor-help group"
+                  className="absolute top-2 right-2 p-1 rounded-full hover:bg-teal-50 transition-colors cursor-help group"
                   onMouseEnter={() => setExpandedInfo(`lang-${lang}`)}
                   onMouseLeave={() => setExpandedInfo(null)}
                 >
-                  <HelpCircle size={16} className="text-slate-400 group-hover:text-teal-400" />
+                  <HelpCircle size={16} className="text-slate-400 group-hover:text-teal-600" />
                   {expandedInfo === `lang-${lang}` && (
                     <div className="absolute top-full right-0 mt-2 z-50 animate-slideDown" data-info-box>
-                      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-teal-500/50 rounded-lg p-3 shadow-lg w-56">
+                      <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-md w-56">
                         <div className="flex gap-2">
-                          <div className="text-teal-400 text-lg flex-shrink-0">💡</div>
-                          <p className="text-xs text-slate-200 leading-relaxed">
+                          <div className="text-teal-600 text-lg flex-shrink-0">💡</div>
+                          <p className="text-xs text-slate-700 leading-relaxed">
                             {getLanguageDescription(lang)}
                           </p>
                         </div>
@@ -417,9 +417,9 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
       {step === 'branchType' && selectedLanguage && (
         <div className="space-y-3 animate-fadeIn">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-slate-200">Choose branch strategy</h3>
+            <h3 className="text-sm font-semibold text-slate-800">Choose branch strategy</h3>
             <Tooltip text="Decide whether to create a new branch or use an existing one">
-              <HelpCircle size={16} className="text-slate-400 hover:text-teal-400 transition-colors" />
+              <HelpCircle size={16} className="text-slate-400 hover:text-teal-600 transition-colors" />
             </Tooltip>
           </div>
           <div className={`grid gap-3 ${isNarrow ? 'grid-cols-1' : 'grid-cols-2'}`}>
@@ -427,26 +427,26 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
               <div key={type} className="relative">
                 <button
                   onClick={() => handleBranchTypeSelect(type)}
-                  className="w-full px-4 py-3 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-teal-300 transition-all duration-300 text-center overflow-hidden relative group"
+                  className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white hover:bg-teal-50 hover:border-teal-300 text-slate-700 hover:text-teal-700 transition-colors text-center relative group"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-teal-500/0 via-teal-500/10 to-teal-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div></div>
                   <div className="relative">
                     <p className="text-sm font-medium">{getBranchTypeLabel(type)}</p>
-                    <p className="text-xs text-slate-400 mt-1">{getBranchTypeDescription(type)}</p>
+                    <p className="text-xs text-slate-500 mt-1">{getBranchTypeDescription(type)}</p>
                   </div>
                 </button>
                 <div
-                  className="absolute top-2 right-2 p-1 rounded-full hover:bg-teal-500/20 transition-colors cursor-help group"
+                  className="absolute top-2 right-2 p-1 rounded-full hover:bg-teal-50 transition-colors cursor-help group"
                   onMouseEnter={() => setExpandedInfo(`branch-${type}`)}
                   onMouseLeave={() => setExpandedInfo(null)}
                 >
-                  <HelpCircle size={16} className="text-slate-400 group-hover:text-teal-400" />
+                  <HelpCircle size={16} className="text-slate-400 group-hover:text-teal-600" />
                   {expandedInfo === `branch-${type}` && (
                     <div className="absolute top-full right-0 mt-2 z-50 animate-slideDown" data-info-box>
-                      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-teal-500/50 rounded-lg p-3 shadow-lg w-56">
+                      <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-md w-56">
                         <div className="flex gap-2">
-                          <div className="text-teal-400 text-lg flex-shrink-0">💡</div>
-                          <p className="text-xs text-slate-200 leading-relaxed">
+                          <div className="text-teal-600 text-lg flex-shrink-0">💡</div>
+                          <p className="text-xs text-slate-700 leading-relaxed">
                             {getBranchTypeDescription(type)}
                           </p>
                         </div>
@@ -460,13 +460,13 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
 
           {/* Branch Name Input - for existing branch */}
           {selectedBranchType === 'existing' && (
-            <div className="mt-4 p-3 bg-gradient-to-br from-slate-800/50 to-slate-900/30 rounded-lg border border-teal-500/30 animate-slideDown">
+            <div className="mt-4 p-3 bg-teal-50 rounded-lg border border-teal-200 animate-slideDown">
               <div className="flex items-center gap-2 mb-2">
-                <label className="text-xs font-semibold text-teal-300 uppercase tracking-wide">
-                  📝 Branch Name
+                <label className="text-xs font-semibold text-teal-700 uppercase tracking-wide">
+                  Branch Name
                 </label>
                 <Tooltip text="Enter the exact name of your existing branch (e.g., main, develop, feature/my-feature)">
-                  <HelpCircle size={14} className="text-slate-400 hover:text-teal-400 transition-colors" />
+                  <HelpCircle size={14} className="text-slate-400 hover:text-teal-600 transition-colors" />
                 </Tooltip>
               </div>
               <input
@@ -474,7 +474,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
                 value={branchName}
                 onChange={(e) => setBranchName(e.target.value)}
                 placeholder="e.g., main, develop, feature/xyz"
-                className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600/50 rounded-lg text-slate-200 placeholder-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/30 focus:outline-none text-sm transition-all duration-200"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/30 focus:outline-none text-sm transition-colors"
               />
             </div>
           )}
@@ -486,13 +486,13 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
         <div className="space-y-3 animate-fadeIn">
           {/* Show branch name if existing branch was selected */}
           {selectedBranchType === 'existing' && (
-            <div className="p-3 bg-gradient-to-br from-slate-800/50 to-slate-900/30 rounded-lg border border-teal-500/30">
+            <div className="p-3 bg-teal-50 rounded-lg border border-teal-200">
               <div className="flex items-center gap-2 mb-2">
-                <label className="text-xs font-semibold text-teal-300 uppercase tracking-wide">
-                  📝 Branch Name
+                <label className="text-xs font-semibold text-teal-700 uppercase tracking-wide">
+                  Branch Name
                 </label>
                 <Tooltip text="Enter the exact name of your existing branch (e.g., main, develop, feature/my-feature)">
-                  <HelpCircle size={14} className="text-slate-400 hover:text-teal-400 transition-colors" />
+                  <HelpCircle size={14} className="text-slate-400 hover:text-teal-600 transition-colors" />
                 </Tooltip>
               </div>
               <input
@@ -500,15 +500,15 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
                 value={branchName}
                 onChange={(e) => setBranchName(e.target.value)}
                 placeholder="e.g., main, develop, feature/xyz"
-                className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600/50 rounded-lg text-slate-200 placeholder-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/30 focus:outline-none text-sm transition-all duration-200"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/30 focus:outline-none text-sm transition-colors"
               />
             </div>
           )}
 
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-slate-200">Choose repository type</h3>
+            <h3 className="text-sm font-semibold text-slate-800">Choose repository type</h3>
             <Tooltip text="Select whether your repository is public or private">
-              <HelpCircle size={16} className="text-slate-400 hover:text-teal-400 transition-colors" />
+              <HelpCircle size={16} className="text-slate-400 hover:text-teal-600 transition-colors" />
             </Tooltip>
           </div>
           <div className={`grid gap-3 ${isNarrow ? 'grid-cols-1' : 'grid-cols-2'}`}>
@@ -516,26 +516,26 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
               <div key={type} className="relative">
                 <button
                   onClick={() => handleRepoTypeSelect(type)}
-                  className="w-full px-4 py-3 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-teal-300 transition-all duration-300 text-center overflow-hidden relative group"
+                  className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white hover:bg-teal-50 hover:border-teal-300 text-slate-700 hover:text-teal-700 transition-colors text-center relative group"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-teal-500/0 via-teal-500/10 to-teal-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div></div>
                   <div className="relative">
                     <p className="text-sm font-medium">{getRepoTypeLabel(type)}</p>
-                    <p className="text-xs text-slate-400 mt-1">{getRepoTypeDescription(type)}</p>
+                    <p className="text-xs text-slate-500 mt-1">{getRepoTypeDescription(type)}</p>
                   </div>
                 </button>
                 <div
-                  className="absolute top-2 right-2 p-1 rounded-full hover:bg-teal-500/20 transition-colors cursor-help group"
+                  className="absolute top-2 right-2 p-1 rounded-full hover:bg-teal-50 transition-colors cursor-help group"
                   onMouseEnter={() => setExpandedInfo(`repo-${type}`)}
                   onMouseLeave={() => setExpandedInfo(null)}
                 >
-                  <HelpCircle size={16} className="text-slate-400 group-hover:text-teal-400" />
+                  <HelpCircle size={16} className="text-slate-400 group-hover:text-teal-600" />
                   {expandedInfo === `repo-${type}` && (
                     <div className="absolute top-full right-0 mt-2 z-50 animate-slideDown" data-info-box>
-                      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-teal-500/50 rounded-lg p-3 shadow-lg w-56">
+                      <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-md w-56">
                         <div className="flex gap-2">
-                          <div className="text-teal-400 text-lg flex-shrink-0">💡</div>
-                          <p className="text-xs text-slate-200 leading-relaxed">
+                          <div className="text-teal-600 text-lg flex-shrink-0">💡</div>
+                          <p className="text-xs text-slate-700 leading-relaxed">
                             {getRepoTypeDescription(type)}
                           </p>
                         </div>
@@ -549,17 +549,17 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
 
           {/* Additional fields for private repo + existing branch */}
           {selectedRepoType === 'private' && selectedBranchType === 'existing' && (
-            <div className="space-y-3 p-3 bg-gradient-to-br from-slate-800/50 to-slate-900/30 rounded-lg border border-teal-500/30 animate-slideDown">
-              <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-teal-500/50 rounded-lg p-3 shadow-lg">
+            <div className="space-y-3 p-3 bg-teal-50 rounded-lg border border-teal-200 animate-slideDown">
+              <div className="bg-white border border-teal-200 rounded-lg p-3">
                 <div className="flex gap-3">
-                  <div className="text-teal-400 text-xl flex-shrink-0">🔐</div>
+                  <div className="text-teal-600 text-xl flex-shrink-0">🔐</div>
                   <div className="flex-1">
-                    <p className="text-xs font-semibold text-teal-300 mb-2">Private Repository Credentials</p>
-                    <p className="text-xs text-slate-200 leading-relaxed mb-3">
+                    <p className="text-xs font-semibold text-teal-700 mb-2">Private Repository Credentials</p>
+                    <p className="text-xs text-slate-700 leading-relaxed mb-3">
                       To connect, I need your <strong>Repo URL</strong> and <strong>GitHub App Installation ID</strong>.
                     </p>
-                    <p className="text-xs text-slate-300 leading-relaxed">
-                      Don't have the Installation ID? Go to <a href="https://github.com/apps/cyoda-ai-assistant" target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300 underline">github.com/apps/cyoda-ai-assistant</a>, click Install, and copy the ID from the URL.
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Don't have the Installation ID? Go to <a href="https://github.com/apps/cyoda-ai-assistant" target="_blank" rel="noopener noreferrer" className="text-teal-600 hover:text-teal-700 underline">github.com/apps/cyoda-ai-assistant</a>, click Install, and copy the ID from the URL.
                     </p>
                   </div>
                 </div>
@@ -567,11 +567,11 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
 
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <label className="text-xs font-semibold text-teal-300 uppercase tracking-wide">
-                    🔗 Repository URL
+                  <label className="text-xs font-semibold text-teal-700 uppercase tracking-wide">
+                    Repository URL
                   </label>
                   <Tooltip text="Your GitHub repository URL (e.g., https://github.com/username/repo-name)">
-                    <HelpCircle size={14} className="text-slate-400 hover:text-teal-400 transition-colors" />
+                    <HelpCircle size={14} className="text-slate-400 hover:text-teal-600 transition-colors" />
                   </Tooltip>
                 </div>
                 <input
@@ -579,17 +579,17 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
                   value={repoUrl}
                   onChange={(e) => setRepoUrl(e.target.value)}
                   placeholder="https://github.com/user/repo"
-                  className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600/50 rounded-lg text-slate-200 placeholder-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/30 focus:outline-none text-sm transition-all duration-200"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/30 focus:outline-none text-sm transition-colors"
                 />
               </div>
 
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <label className="text-xs font-semibold text-teal-300 uppercase tracking-wide">
-                    🔑 Installation ID
+                  <label className="text-xs font-semibold text-teal-700 uppercase tracking-wide">
+                    Installation ID
                   </label>
                   <Tooltip text="Go to https://github.com/apps/cyoda-ai-assistant, click Install, and copy the ID from the URL (e.g., 12345678)">
-                    <HelpCircle size={14} className="text-slate-400 hover:text-teal-400 transition-colors" />
+                    <HelpCircle size={14} className="text-slate-400 hover:text-teal-600 transition-colors" />
                   </Tooltip>
                 </div>
                 <input
@@ -597,7 +597,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
                   value={installationId}
                   onChange={(e) => setInstallationId(e.target.value)}
                   placeholder="12345678"
-                  className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600/50 rounded-lg text-slate-200 placeholder-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/30 focus:outline-none text-sm transition-all duration-200"
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/30 focus:outline-none text-sm transition-colors"
                 />
               </div>
             </div>
@@ -607,8 +607,8 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
 
       {/* Summary Box - Show all recorded information */}
       {(selectedLanguage || selectedBranchType || selectedRepoType || branchName || repoUrl || installationId) && (
-        <div className="p-3 bg-gradient-to-r from-teal-500/10 to-cyan-500/10 border border-teal-500/40 rounded-lg animate-slideDown">
-          <div className="text-xs text-teal-300 space-y-1">
+        <div className="p-3 bg-teal-50 border border-teal-200 rounded-lg animate-slideDown">
+          <div className="text-xs text-teal-800 space-y-1">
             {selectedLanguage && (
               <div className="flex items-start gap-2">
                 <span className="text-sm">✓</span>
@@ -654,7 +654,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
         {step !== 'language' && (
           <button
             onClick={handleBack}
-            className={`${isNarrow ? 'w-full' : 'w-auto'} px-4 py-2.5 rounded-lg border border-slate-600/60 bg-slate-800/40 hover:bg-slate-800/80 text-slate-300 hover:text-slate-200 transition-all duration-300 flex items-center justify-center gap-1.5 text-sm font-medium`}
+            className={`${isNarrow ? 'w-full' : 'w-auto'} px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors flex items-center justify-center gap-1.5 text-sm font-medium`}
           >
             <ChevronLeft size={16} />
             <span>Back</span>
@@ -679,7 +679,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
             onSubmit(formattedData);
           }}
           disabled={isSubmitting || selectedOptions.length === 0}
-          className={`${isNarrow ? 'w-full' : 'flex-1'} px-4 py-2.5 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-semibold text-sm transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-teal-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5`}
+          className={`${isNarrow ? 'w-full' : 'flex-1'} px-4 py-2.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5`}
         >
           <Send size={16} />
           <span>Send</span>

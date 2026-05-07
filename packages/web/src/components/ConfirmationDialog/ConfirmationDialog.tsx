@@ -30,10 +30,10 @@ const ConfirmationDialog: React.FC = () => {
       open={visible}
       title={
         <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-teal-500/20 border border-teal-500/30">
-            <SafetyOutlined className="text-teal-400 text-base" />
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-teal-50 border border-teal-200">
+            <SafetyOutlined className="text-teal-600 text-base" />
           </div>
-          <div className="text-base font-semibold text-slate-100">
+          <div className="text-base font-semibold text-slate-900">
             Terms & Conditions
           </div>
         </div>
@@ -73,14 +73,13 @@ const ConfirmationDialog: React.FC = () => {
       }
     >
       <div className="py-3 px-1">
-        <p className="text-sm text-slate-200 leading-relaxed mb-4">
+        <p className="text-sm text-slate-700 leading-relaxed mb-4">
           By using this service, you confirm that you have read and agree to our{' '}
           <a
             target="_blank"
             href="https://www.cyoda.com/terms-of-service"
             rel="noopener noreferrer"
-            className="inline-block px-2 py-1 font-medium bg-gradient-to-r from-teal-500/80 to-cyan-500/80 hover:from-teal-400 hover:to-cyan-400 rounded-md border border-teal-500/50 hover:border-teal-400 transition-all duration-200 text-xs"
-            style={{ color: '#ffffff' }}
+            className="inline-block px-2 py-1 font-medium bg-teal-50 hover:bg-teal-100 rounded-md border border-teal-200 transition-colors text-xs text-teal-700"
           >
             Terms & Conditions
           </a>
@@ -89,8 +88,7 @@ const ConfirmationDialog: React.FC = () => {
             target="_blank"
             href="https://www.cyoda.com/privacy-policy"
             rel="noopener noreferrer"
-            className="inline-block px-2 py-1 font-medium bg-gradient-to-r from-teal-500/80 to-cyan-500/80 hover:from-teal-400 hover:to-cyan-400 rounded-md border border-teal-500/50 hover:border-teal-400 transition-all duration-200 text-xs"
-            style={{ color: '#ffffff' }}
+            className="inline-block px-2 py-1 font-medium bg-teal-50 hover:bg-teal-100 rounded-md border border-teal-200 transition-colors text-xs text-teal-700"
           >
             Privacy Policy
           </a>.
@@ -100,10 +98,10 @@ const ConfirmationDialog: React.FC = () => {
           <Checkbox
             checked={checkbox}
             onChange={(e) => setCheckbox(e.target.checked)}
-            className="mt-0.5 [&_.ant-checkbox-inner]:bg-slate-700 [&_.ant-checkbox-inner]:border-slate-500 [&_.ant-checkbox-checked_.ant-checkbox-inner]:bg-teal-500 [&_.ant-checkbox-checked_.ant-checkbox-inner]:border-teal-500"
+            className="mt-0.5 [&_.ant-checkbox-checked_.ant-checkbox-inner]:bg-teal-600 [&_.ant-checkbox-checked_.ant-checkbox-inner]:border-teal-600"
           />
           <label
-            className="text-sm text-slate-200 cursor-pointer select-none flex-1 leading-relaxed"
+            className="text-sm text-slate-700 cursor-pointer select-none flex-1 leading-relaxed"
             onClick={() => setCheckbox(!checkbox)}
           >
             I have read and agree to the Terms & Conditions and Privacy Policy

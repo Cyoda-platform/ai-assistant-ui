@@ -61,14 +61,14 @@ const CanvasWithProceedUI: React.FC<CanvasWithProceedUIProps> = ({
   };
 
   return (
-    <div className="space-y-4 p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50">
+    <div className="space-y-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
       {/* Canvas Section */}
       <div className="space-y-3">
-        <div className="text-sm font-medium text-slate-300">
-          📐 Canvas Design
+        <div className="text-sm font-medium text-slate-700">
+          Canvas Design
         </div>
-        <div className="p-3 bg-slate-900/50 rounded-lg border border-slate-700/30 space-y-2">
-          <div className="text-xs text-slate-400">
+        <div className="p-3 bg-white rounded-lg border border-slate-200 space-y-2">
+          <div className="text-xs text-slate-600">
             {canvasData.message || 'Open Canvas to design your requirements, entities, and workflows visually.'}
           </div>
           <button
@@ -94,28 +94,25 @@ const CanvasWithProceedUI: React.FC<CanvasWithProceedUIProps> = ({
           </button>
           {canvasData.repository_name && (
             <div className="text-xs text-slate-500 mt-2">
-              Repository: <span className="text-slate-400">{canvasData.repository_name}</span>
+              Repository: <span className="text-slate-600">{canvasData.repository_name}</span>
             </div>
           )}
         </div>
       </div>
 
       {/* Divider */}
-      <div className="h-px bg-slate-700/30" />
+      <div className="h-px bg-slate-200" />
 
       {/* Proceed Section */}
       <div className="space-y-3">
-        <div className="text-sm font-medium text-slate-300">
+        <div className="text-sm font-medium text-slate-700">
           {question}
         </div>
         <button
           onClick={handleProceed}
           disabled={isSubmitting || isOpeningCanvas}
           type="button"
-          style={{
-            background: `linear-gradient(135deg, ${BRAND_COLORS.pink} 0%, #f472b6 100%)`,
-          }}
-          className="w-full px-6 py-3 rounded-xl hover:opacity-90 text-white font-medium transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+          className="w-full px-6 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
         >
           {isSubmitting ? (
             <>
