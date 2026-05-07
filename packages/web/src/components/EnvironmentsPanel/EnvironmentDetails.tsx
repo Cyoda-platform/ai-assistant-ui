@@ -525,7 +525,7 @@ const EnvironmentDetails: React.FC<EnvironmentDetailsProps> = ({ environmentName
       width: 700,
       content: (
         <div className="mt-4">
-          <pre className="bg-slate-900 text-slate-300 p-4 rounded-lg overflow-auto max-h-96 text-xs">
+          <pre className="bg-slate-50 border border-slate-200 text-slate-800 p-4 rounded-lg overflow-auto max-h-96 text-xs font-mono">
             {JSON.stringify(response, null, 2)}
           </pre>
         </div>

@@ -18,26 +18,26 @@ const ErrorModal: React.FC<ErrorModalProps> = ({
   const getIcon = () => {
     switch (type) {
       case 'error':
-        return <MessageCircle size={48} className="text-teal-400" />;
+        return <MessageCircle size={48} className="text-teal-600" />;
       case 'warning':
         return <Sparkles size={48} className="text-blue-400" />;
       case 'network':
         return <Cloud size={48} className="text-slate-400" />;
       default:
-        return <Info size={48} className="text-teal-400" />;
+        return <Info size={48} className="text-teal-600" />;
     }
   };
 
   const getIconBgColor = () => {
     switch (type) {
       case 'error':
-        return 'bg-teal-500/10';
+        return 'bg-teal-50';
       case 'warning':
-        return 'bg-blue-500/10';
+        return 'bg-blue-50';
       case 'network':
-        return 'bg-slate-500/10';
+        return 'bg-slate-100';
       default:
-        return 'bg-teal-500/10';
+        return 'bg-teal-50';
     }
   };
 
@@ -53,7 +53,7 @@ const ErrorModal: React.FC<ErrorModalProps> = ({
       maskClosable={true}
       className="helper-errors beautiful-modal"
       closeIcon={
-        <span className="text-slate-400 hover:text-teal-400 transition-colors">
+        <span className="text-slate-400 hover:text-slate-600 transition-colors">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M14 2L2 14M2 2L14 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -61,32 +61,32 @@ const ErrorModal: React.FC<ErrorModalProps> = ({
       }
       styles={{
         content: {
-          background: 'linear-gradient(135deg, rgb(30, 41, 59) 0%, rgb(51, 65, 85) 100%)',
-          border: '1px solid rgb(71, 85, 105)',
-          borderRadius: '20px',
+          background: '#ffffff',
+          border: '1px solid #e2e8f0',
+          borderRadius: '16px',
           padding: 0,
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+          boxShadow: '0 4px 24px rgba(15, 23, 42, 0.08)',
         },
         body: {
           padding: 0,
         },
         mask: {
-          backdropFilter: 'blur(8px)',
-          backgroundColor: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(4px)',
+          backgroundColor: 'rgba(15, 23, 42, 0.15)',
         }
       }}
     >
       <div className="p-10">
-        {/* Icon with gentle animation */}
+        {/* Icon */}
         <div className="flex justify-center mb-6">
-          <div className={`w-24 h-24 rounded-full ${getIconBgColor()} flex items-center justify-center backdrop-blur-sm border border-slate-600/30 shadow-lg animate-gentle-pulse`}>
+          <div className={`w-24 h-24 rounded-full ${getIconBgColor()} flex items-center justify-center border border-slate-200 shadow-sm`}>
             {getIcon()}
           </div>
         </div>
 
         {/* Message */}
         <div className="text-center mb-8">
-          <p className="text-xl text-slate-100 leading-relaxed whitespace-pre-wrap font-light">
+          <p className="text-xl text-slate-700 leading-relaxed whitespace-pre-wrap font-light">
             {message}
           </p>
         </div>
@@ -95,7 +95,7 @@ const ErrorModal: React.FC<ErrorModalProps> = ({
         <div className="flex justify-center">
           <button
             onClick={onClose}
-            className="px-10 py-3.5 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-teal-500/30 min-w-[140px] transform hover:scale-105"
+            className="px-10 py-3.5 bg-teal-600 hover:bg-teal-700 rounded-xl font-semibold transition-colors min-w-[140px]"
             style={{ color: '#ffffff' }}
           >
             Got it

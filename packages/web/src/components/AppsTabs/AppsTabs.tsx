@@ -115,11 +115,11 @@ export const AppsTabs: React.FC<AppTabsProps> = () => {
   ];
 
   return (
-    <div className="flex items-center bg-gray-900 border-b border-gray-700 overflow-x-auto min-h-[48px]">
+    <div className="flex items-center bg-white border-b border-slate-200 overflow-x-auto min-h-[48px]">
       {/* Tabs */}
       <div className="flex items-center flex-1 overflow-x-auto min-h-[48px]">
         {tabs.length === 0 && (
-          <div className="px-4 py-2.5 text-sm text-gray-500">
+          <div className="px-4 py-2.5 text-sm text-slate-500">
             No apps open
           </div>
         )}
@@ -136,28 +136,28 @@ export const AppsTabs: React.FC<AppTabsProps> = () => {
                 onClick={() => handleTabClick(tab.id)}
                 className={`
                   group flex items-center gap-2 px-4 py-2.5 cursor-pointer
-                  border-r border-gray-700 min-w-[180px] max-w-[240px]
+                  border-r border-slate-200 min-w-[180px] max-w-[240px]
                   transition-colors relative
                   ${isActive
-                    ? 'bg-gray-800 text-white'
-                    : 'bg-gray-900 text-gray-400 hover:bg-gray-800 hover:text-gray-300'
+                    ? 'bg-slate-50 text-slate-900'
+                    : 'bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-700'
                   }
                 `}
               >
                 {/* Active indicator */}
                 {isActive && (
-                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-500" />
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-teal-600" />
                 )}
 
                 {/* Icon */}
-                <FileCode2 size={16} className={isActive ? 'text-blue-400' : 'text-gray-500'} />
+                <FileCode2 size={16} className={isActive ? 'text-teal-600' : 'text-slate-400'} />
 
                 {/* Tab content */}
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium truncate">
                     {tab.displayName}
                   </div>
-                  <div className="text-xs text-gray-500 truncate">
+                  <div className="text-xs text-slate-400 truncate">
                     {tab.modelName} v{tab.modelVersion}
                   </div>
                 </div>
@@ -171,7 +171,7 @@ export const AppsTabs: React.FC<AppTabsProps> = () => {
                 <button
                   onClick={(e) => handleCloseTab(e, tab.id)}
                   className={`
-                    p-1 rounded hover:bg-gray-700 transition-colors
+                    p-1 rounded hover:bg-slate-100 transition-colors
                     ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
                   `}
                   title="Close tab"
@@ -205,22 +205,22 @@ export const AppsTabs: React.FC<AppTabsProps> = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
               Model Name <span className="text-pink-400">*</span>
             </label>
             <Input
               value={editModelName}
               onChange={(e) => setEditModelName(e.target.value)}
               placeholder="e.g., user-registration"
-              className="bg-gray-800 border-gray-700 text-white"
+              className="bg-white border-slate-300 text-slate-900"
             />
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               Entity model name (alphanumeric, hyphens, underscores)
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white mb-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
               Model Version <span className="text-pink-400">*</span>
             </label>
             <Input
@@ -229,9 +229,9 @@ export const AppsTabs: React.FC<AppTabsProps> = () => {
               value={editModelVersion}
               onChange={(e) => setEditModelVersion(parseInt(e.target.value) || 1)}
               placeholder="1"
-              className="bg-gray-800 border-gray-700 text-white"
+              className="bg-white border-slate-300 text-slate-900"
             />
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               Version number (must be at least 1)
             </p>
           </div>

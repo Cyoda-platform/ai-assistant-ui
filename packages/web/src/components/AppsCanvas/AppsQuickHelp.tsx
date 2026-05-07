@@ -10,13 +10,13 @@ export const AppsQuickHelp: React.FC<AppsQuickHelpProps> = ({ isOpen, onClose })
   if (!isOpen) return null;
 
   return (
-    <div className="absolute top-4 right-4 bg-slate-800/95 rounded-lg shadow-2xl border border-slate-700 z-50 w-96">
+    <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg border border-slate-200 z-50 w-96">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-700">
-        <h3 className="text-lg font-semibold text-white">Quick Help</h3>
+      <div className="flex items-center justify-between p-4 border-b border-slate-200">
+        <h3 className="text-lg font-semibold text-slate-900">Quick Help</h3>
         <button
           onClick={onClose}
-          className="p-1 rounded hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+          className="p-1 rounded hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-colors"
         >
           <X size={18} />
         </button>
@@ -26,51 +26,51 @@ export const AppsQuickHelp: React.FC<AppsQuickHelpProps> = ({ isOpen, onClose })
       <div className="p-4 space-y-4 max-h-[600px] overflow-y-auto">
         {/* Mouse Controls */}
         <div className="space-y-2">
-          <div className="flex items-center space-x-2 text-teal-400">
+          <div className="flex items-center space-x-2 text-teal-600">
             <Mouse size={18} />
             <h4 className="font-semibold">Mouse Controls</h4>
           </div>
-          <div className="space-y-1 text-sm text-slate-300 ml-6">
-            <p><span className="text-white font-medium">Click & Drag Node:</span> Move nodes</p>
-            <p><span className="text-white font-medium">Click & Drag Edge:</span> Reconnect to different anchor</p>
-            <p><span className="text-white font-medium">Drag from Anchor:</span> Create new connection</p>
-            <p><span className="text-white font-medium">Click & Drag Canvas:</span> Pan view</p>
-            <p><span className="text-white font-medium">Scroll Wheel:</span> Zoom in/out</p>
-            <p><span className="text-white font-medium">Click Node:</span> View details</p>
+          <div className="space-y-1 text-sm text-slate-600 ml-6">
+            <p><span className="text-slate-900 font-medium">Click & Drag Node:</span> Move nodes</p>
+            <p><span className="text-slate-900 font-medium">Click & Drag Edge:</span> Reconnect to different anchor</p>
+            <p><span className="text-slate-900 font-medium">Drag from Anchor:</span> Create new connection</p>
+            <p><span className="text-slate-900 font-medium">Click & Drag Canvas:</span> Pan view</p>
+            <p><span className="text-slate-900 font-medium">Scroll Wheel:</span> Zoom in/out</p>
+            <p><span className="text-slate-900 font-medium">Click Node:</span> View details</p>
           </div>
         </div>
 
         {/* Keyboard Shortcuts */}
         <div className="space-y-2">
-          <div className="flex items-center space-x-2 text-teal-400">
+          <div className="flex items-center space-x-2 text-teal-600">
             <Keyboard size={18} />
             <h4 className="font-semibold">Keyboard Shortcuts</h4>
           </div>
-          <div className="space-y-1 text-sm text-slate-300 ml-6">
-            <p><kbd className="px-2 py-1 bg-slate-700 rounded text-xs">Cmd/Ctrl + S</kbd> Save changes (JSON editor)</p>
-            <p><kbd className="px-2 py-1 bg-slate-700 rounded text-xs">Escape</kbd> Close panels/editor</p>
-            <p><kbd className="px-2 py-1 bg-slate-700 rounded text-xs">Backspace/Delete</kbd> Delete selected nodes</p>
-            <p><kbd className="px-2 py-1 bg-slate-700 rounded text-xs">+</kbd> Zoom in</p>
-            <p><kbd className="px-2 py-1 bg-slate-700 rounded text-xs">-</kbd> Zoom out</p>
+          <div className="space-y-1 text-sm text-slate-600 ml-6">
+            <p><kbd className="px-2 py-1 bg-slate-100 border border-slate-200 rounded text-xs text-slate-700">Cmd/Ctrl + S</kbd> Save changes (JSON editor)</p>
+            <p><kbd className="px-2 py-1 bg-slate-100 border border-slate-200 rounded text-xs text-slate-700">Escape</kbd> Close panels/editor</p>
+            <p><kbd className="px-2 py-1 bg-slate-100 border border-slate-200 rounded text-xs text-slate-700">Backspace/Delete</kbd> Delete selected nodes</p>
+            <p><kbd className="px-2 py-1 bg-slate-100 border border-slate-200 rounded text-xs text-slate-700">+</kbd> Zoom in</p>
+            <p><kbd className="px-2 py-1 bg-slate-100 border border-slate-200 rounded text-xs text-slate-700">-</kbd> Zoom out</p>
           </div>
         </div>
 
         {/* Navigation */}
         <div className="space-y-2">
-          <div className="flex items-center space-x-2 text-teal-400">
+          <div className="flex items-center space-x-2 text-teal-600">
             <Move size={18} />
             <h4 className="font-semibold">Navigation</h4>
           </div>
-          <div className="space-y-1 text-sm text-slate-300 ml-6">
-            <p><span className="text-white font-medium">Fit View:</span> Use controls to fit all nodes</p>
-            <p><span className="text-white font-medium">Minimap:</span> Click to jump to area</p>
-            <p><span className="text-white font-medium">Zoom:</span> 5% to 400% range</p>
+          <div className="space-y-1 text-sm text-slate-600 ml-6">
+            <p><span className="text-slate-900 font-medium">Fit View:</span> Use controls to fit all nodes</p>
+            <p><span className="text-slate-900 font-medium">Minimap:</span> Click to jump to area</p>
+            <p><span className="text-slate-900 font-medium">Zoom:</span> 5% to 400% range</p>
           </div>
         </div>
 
         {/* Node Types */}
         <div className="space-y-2">
-          <div className="flex items-center space-x-2 text-teal-400">
+          <div className="flex items-center space-x-2 text-teal-600">
             <ZoomIn size={18} />
             <h4 className="font-semibold">Node Types</h4>
           </div>
@@ -96,8 +96,8 @@ export const AppsQuickHelp: React.FC<AppsQuickHelpProps> = ({ isOpen, onClose })
 
         {/* Features */}
         <div className="space-y-2">
-          <h4 className="font-semibold text-teal-400">Features</h4>
-          <div className="space-y-1 text-sm text-slate-300 ml-6">
+          <h4 className="font-semibold text-teal-600">Features</h4>
+          <div className="space-y-1 text-sm text-slate-600 ml-6">
             <p>• Drag and drop nodes to rearrange</p>
             <p>• 8 anchor points per node for flexible connections</p>
             <p>• Auto horizontal/vertical alignment</p>
@@ -116,29 +116,29 @@ export const AppsQuickHelp: React.FC<AppsQuickHelpProps> = ({ isOpen, onClose })
 
         {/* Alignment */}
         <div className="space-y-2">
-          <h4 className="font-semibold text-teal-400">Auto-Alignment</h4>
-          <div className="space-y-1 text-sm text-slate-300 ml-6">
-            <p><span className="text-white font-medium">Horizontal:</span> Distributes nodes left-to-right</p>
-            <p><span className="text-white font-medium">Vertical:</span> Distributes nodes top-to-bottom</p>
-            <p><span className="text-white font-medium">Snap to Grid:</span> Aligns to 15px grid automatically</p>
+          <h4 className="font-semibold text-teal-600">Auto-Alignment</h4>
+          <div className="space-y-1 text-sm text-slate-600 ml-6">
+            <p><span className="text-slate-900 font-medium">Horizontal:</span> Distributes nodes left-to-right</p>
+            <p><span className="text-slate-900 font-medium">Vertical:</span> Distributes nodes top-to-bottom</p>
+            <p><span className="text-slate-900 font-medium">Snap to Grid:</span> Aligns to 15px grid automatically</p>
           </div>
         </div>
 
         {/* Edge Management */}
         <div className="space-y-2">
-          <h4 className="font-semibold text-teal-400">Edge Management</h4>
-          <div className="space-y-1 text-sm text-slate-300 ml-6">
-            <p><span className="text-white font-medium">Smart Anchors:</span> Auto-selects best anchor points</p>
-            <p><span className="text-white font-medium">Reconnect:</span> Drag edge ends to different anchors</p>
-            <p><span className="text-white font-medium">Create:</span> Drag from any anchor point to connect</p>
-            <p><span className="text-white font-medium">8 Points:</span> Top, Right, Bottom, Left per node</p>
+          <h4 className="font-semibold text-teal-600">Edge Management</h4>
+          <div className="space-y-1 text-sm text-slate-600 ml-6">
+            <p><span className="text-slate-900 font-medium">Smart Anchors:</span> Auto-selects best anchor points</p>
+            <p><span className="text-slate-900 font-medium">Reconnect:</span> Drag edge ends to different anchors</p>
+            <p><span className="text-slate-900 font-medium">Create:</span> Drag from any anchor point to connect</p>
+            <p><span className="text-slate-900 font-medium">8 Points:</span> Top, Right, Bottom, Left per node</p>
           </div>
         </div>
 
         {/* Tips */}
-        <div className="pt-4 border-t border-slate-700">
-          <h4 className="font-semibold text-teal-400 mb-2">Tips</h4>
-          <div className="space-y-1 text-xs text-slate-400">
+        <div className="pt-4 border-t border-slate-200">
+          <h4 className="font-semibold text-teal-600 mb-2">Tips</h4>
+          <div className="space-y-1 text-xs text-slate-500">
             <p>💡 Edges auto-connect to optimal anchor points</p>
             <p>💡 Drag edge ends to reconnect to different anchors</p>
             <p>💡 Parent nodes connect bottom → child top by default</p>

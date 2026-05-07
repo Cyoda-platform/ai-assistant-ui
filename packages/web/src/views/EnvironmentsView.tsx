@@ -91,19 +91,19 @@ const EnvironmentsView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="min-h-screen bg-slate-50">
       {/* Header with Tabs */}
-      <div className="border-b border-slate-700 bg-slate-900/95 backdrop-blur-sm sticky top-0 z-10">
+      <div className="border-b border-slate-200 bg-white sticky top-0 z-10">
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="flex items-center space-x-1 py-3">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2 ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2 ${
                   activeTab === tab.id
-                    ? 'bg-teal-500 text-white'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    ? 'bg-teal-600 text-white'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 }`}
               >
                 {tab.icon && <span>{tab.icon}</span>}
@@ -121,12 +121,12 @@ const EnvironmentsView: React.FC = () => {
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-lg bg-teal-500/20 flex items-center justify-center">
-                  <Database className="text-teal-400" size={20} />
+                <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center">
+                  <Database className="text-teal-600" size={20} />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-white">Production</h1>
-                  <p className="text-sm text-slate-400">Environment Configuration</p>
+                  <h1 className="text-2xl font-bold text-slate-900">Production</h1>
+                  <p className="text-sm text-slate-500">Environment Configuration</p>
                 </div>
               </div>
 
@@ -140,7 +140,7 @@ const EnvironmentsView: React.FC = () => {
                 </button>
                 <button
                   onClick={handleHideDashboard}
-                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition-all flex items-center space-x-2"
+                  className="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2"
                 >
                   <EyeOff size={16} />
                   <span>Hide Dashboard</span>
@@ -159,56 +159,56 @@ const EnvironmentsView: React.FC = () => {
           {/* Charts Grid */}
           <div className="grid grid-cols-2 gap-6">
             {/* CPU Usage Chart */}
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-2">CPU Usage</h3>
-              <p className="text-sm text-slate-400 mb-6">Production CPU utilization over time</p>
+            <div className="bg-white border border-slate-200 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">CPU Usage</h3>
+              <p className="text-sm text-slate-500 mb-6">Production CPU utilization over time</p>
               <div className="h-64 relative">
                 <AreaChart data={cpuData} color="#ef4444" thresholdColor="#f59e0b" showThreshold />
               </div>
               <div className="flex items-center justify-center space-x-6 mt-4 text-xs">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 rounded-full bg-gradient-to-b from-red-400 to-red-600"></div>
-                  <span className="text-slate-400">cpu</span>
+                  <span className="text-slate-500">cpu</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-0.5 bg-orange-400"></div>
-                  <span className="text-slate-400">threshold</span>
+                  <span className="text-slate-500">threshold</span>
                 </div>
               </div>
             </div>
 
             {/* Memory Usage Chart */}
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-2">Memory Usage (GB)</h3>
-              <p className="text-sm text-slate-400 mb-6">Production memory consumption</p>
+            <div className="bg-white border border-slate-200 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Memory Usage (GB)</h3>
+              <p className="text-sm text-slate-500 mb-6">Production memory consumption</p>
               <div className="h-64 relative">
                 <LineChart data={memoryData} color="#10b981" />
               </div>
               <div className="flex items-center justify-center space-x-6 mt-4 text-xs">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 rounded-full bg-gray-500"></div>
-                  <span className="text-slate-400">total</span>
+                  <span className="text-slate-500">total</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
-                  <span className="text-slate-400">used</span>
+                  <span className="text-slate-500">used</span>
                 </div>
               </div>
             </div>
 
             {/* API Response Time Chart */}
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-2">API Response Time (ms)</h3>
-              <p className="text-sm text-slate-400 mb-6">Response time percentiles</p>
+            <div className="bg-white border border-slate-200 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">API Response Time (ms)</h3>
+              <p className="text-sm text-slate-500 mb-6">Response time percentiles</p>
               <div className="h-64 relative">
                 <BarChart data={apiResponseData} color="#ef4444" />
               </div>
             </div>
 
             {/* Request Volume Chart */}
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-2">Request Volume</h3>
-              <p className="text-sm text-slate-400 mb-6">Total requests and errors per day</p>
+            <div className="bg-white border border-slate-200 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">Request Volume</h3>
+              <p className="text-sm text-slate-500 mb-6">Total requests and errors per day</p>
               <div className="h-64 relative">
                 <AreaChart data={requestVolumeData} color="#3b82f6" />
               </div>
@@ -219,7 +219,7 @@ const EnvironmentsView: React.FC = () => {
 
       {!dashboardVisible && (
         <div className="max-w-[1400px] mx-auto px-6 py-8">
-          <div className="text-center text-slate-400">
+          <div className="text-center text-slate-500">
             <p className="mb-4">Dashboard is hidden</p>
             <button
               onClick={handleHideDashboard}

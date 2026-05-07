@@ -169,65 +169,65 @@ const MetricsViewer: React.FC<MetricsViewerProps> = ({
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* CPU Usage */}
-          <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
+          <div className="bg-white rounded-lg p-4 border border-slate-200">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <Cpu size={18} className="text-blue-400" />
-                <h4 className="text-sm font-semibold text-white">CPU Usage</h4>
+                <h4 className="text-sm font-semibold text-slate-900">CPU Usage</h4>
               </div>
               {loading && <Loader2 size={14} className="animate-spin text-slate-400" />}
             </div>
             <div className="text-3xl font-bold text-blue-400">{cpuUsage}</div>
-            <div className="text-xs text-slate-400 mt-1">Average across all containers</div>
+            <div className="text-xs text-slate-500 mt-1">Average across all containers</div>
           </div>
 
           {/* Memory Usage */}
-          <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
+          <div className="bg-white rounded-lg p-4 border border-slate-200">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <HardDrive size={18} className="text-green-400" />
-                <h4 className="text-sm font-semibold text-white">Memory Usage</h4>
+                <h4 className="text-sm font-semibold text-slate-900">Memory Usage</h4>
               </div>
               {loading && <Loader2 size={14} className="animate-spin text-slate-400" />}
             </div>
             <div className="text-3xl font-bold text-green-400">{memoryUsage}</div>
-            <div className="text-xs text-slate-400 mt-1">Total memory consumption</div>
+            <div className="text-xs text-slate-500 mt-1">Total memory consumption</div>
           </div>
 
           {/* Pod Count */}
-          <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
+          <div className="bg-white rounded-lg p-4 border border-slate-200">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <TrendingUp size={18} className="text-purple-400" />
-                <h4 className="text-sm font-semibold text-white">Running Pods</h4>
+                <h4 className="text-sm font-semibold text-slate-900">Running Pods</h4>
               </div>
               {loading && <Loader2 size={14} className="animate-spin text-slate-400" />}
             </div>
             <div className="text-3xl font-bold text-purple-400">{podCount}</div>
-            <div className="text-xs text-slate-400 mt-1">Active pods in namespace</div>
+            <div className="text-xs text-slate-500 mt-1">Active pods in namespace</div>
           </div>
 
           {/* Network Traffic */}
-          <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
+          <div className="bg-white rounded-lg p-4 border border-slate-200">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <Network size={18} className="text-yellow-400" />
-                <h4 className="text-sm font-semibold text-white">Network In</h4>
+                <h4 className="text-sm font-semibold text-slate-900">Network In</h4>
               </div>
               {loading && <Loader2 size={14} className="animate-spin text-slate-400" />}
             </div>
             <div className="text-3xl font-bold text-yellow-400">{networkIn}</div>
-            <div className="text-xs text-slate-400 mt-1">Incoming traffic rate</div>
+            <div className="text-xs text-slate-500 mt-1">Incoming traffic rate</div>
           </div>
         </div>
 
         {/* Info Box */}
-        <div className="mt-6 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-          <div className="text-xs text-blue-300">
-            <p className="font-semibold mb-2">📊 Metrics Information</p>
+        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="text-xs text-blue-700">
+            <p className="font-semibold mb-2">Metrics Information</p>
             <ul className="space-y-1 ml-4 list-disc">
               <li>Metrics are updated every 30 seconds automatically</li>
-              <li>All data is filtered to your namespace: <code className="bg-blue-900/30 px-1 rounded">{namespace}</code></li>
+              <li>All data is filtered to your namespace: <code className="bg-blue-100 px-1 rounded">{namespace}</code></li>
               <li>Click "Refresh" to update manually</li>
               <li>CPU usage is averaged over the last 5 minutes</li>
             </ul>
@@ -235,15 +235,15 @@ const MetricsViewer: React.FC<MetricsViewerProps> = ({
         </div>
 
         {/* Query Status */}
-        <div className="mt-4 p-3 bg-slate-700/30 rounded border border-slate-600">
-          <div className="text-xs text-slate-400">
+        <div className="mt-4 p-3 bg-slate-50 rounded border border-slate-200">
+          <div className="text-xs text-slate-600">
             <div className="flex items-center justify-between">
               <span>Grafana Token:</span>
-              <span className="text-green-400">✓ Active</span>
+              <span className="text-green-600">✓ Active</span>
             </div>
             <div className="flex items-center justify-between mt-1">
               <span>Namespace Filter:</span>
-              <code className="text-teal-400">{namespace}</code>
+              <code className="text-teal-600">{namespace}</code>
             </div>
           </div>
         </div>

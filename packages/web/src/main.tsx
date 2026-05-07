@@ -58,12 +58,12 @@ Promise.all([loadLocaleMessages('en'), cleanupServiceWorkers()]).then(() => {
         <I18nextProvider i18n={i18n}>
           <ConfigProvider
             theme={{
-              algorithm: theme.darkAlgorithm,
+              algorithm: theme.defaultAlgorithm,
               token: {
-                colorPrimary: '#14b8a6', // teal-500
-                colorBgBase: '#1e293b', // slate-800
-                colorTextBase: '#e2e8f0', // slate-200
-                colorBorder: '#475569', // slate-600
+                colorPrimary: '#0d9488', // teal-600
+                colorBgBase: '#ffffff',
+                colorTextBase: '#0f172a',
+                colorBorder: '#e2e8f0',
                 borderRadius: 8,
               }
             }}

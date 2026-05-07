@@ -574,7 +574,7 @@ Additional notes and considerations...
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <Loader2 size={64} className="mx-auto mb-4 text-orange-400 animate-spin" />
-          <h2 className="text-xl font-semibold text-gray-300 mb-2">
+          <h2 className="text-xl font-semibold text-slate-700 mb-2">
             Loading Requirements...
           </h2>
         </div>
@@ -583,15 +583,15 @@ Additional notes and considerations...
   }
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="h-full flex flex-col bg-white">
       {/* Compact Header */}
-      <div className="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur-sm px-4 py-2.5 flex items-center justify-between gap-4">
+      <div className="border-b border-slate-200 bg-white px-4 py-2.5 flex items-center justify-between gap-4">
         {/* Left: Title and Path */}
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <h3 className="text-sm font-semibold text-white truncate !m-0">{requirement?.title || 'Requirement'}</h3>
+          <h3 className="text-sm font-semibold text-slate-900 truncate !m-0">{requirement?.title || 'Requirement'}</h3>
 
           {requirement && (requirement.metadata?.filePath || getGitHubUrl(requirement)) && (
-            <div className="flex items-center gap-1.5 text-xs text-gray-400 min-w-0">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 min-w-0">
               {getGitHubUrl(requirement) ? (
                 <a
                   href={getGitHubUrl(requirement)!}
@@ -607,7 +607,7 @@ Additional notes and considerations...
                   <span className="truncate">{requirement.metadata?.filePath}</span>
                 </a>
               ) : (
-                <div className="flex items-center gap-1 text-gray-500 font-mono truncate">
+                <div className="flex items-center gap-1 text-slate-400 font-mono truncate">
                   <Github size={12} className="flex-shrink-0" />
                   <span className="truncate">Not saved</span>
                 </div>
@@ -618,13 +618,13 @@ Additional notes and considerations...
 
         {/* Right: Controls */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <div className="flex items-center gap-0.5 bg-slate-800/50 rounded border border-slate-600/50 p-0.5">
+          <div className="flex items-center gap-0.5 bg-slate-100 rounded border border-slate-200 p-0.5">
             <button
               onClick={() => setViewMode('markdown')}
               className={`p-1.5 rounded transition-all ${
                 viewMode === 'markdown'
-                  ? 'bg-orange-600/30 text-orange-400'
-                  : 'text-gray-400 hover:text-gray-300'
+                  ? 'bg-orange-100 text-orange-600'
+                  : 'text-slate-500 hover:text-slate-700'
               }`}
               title="Edit mode"
             >
@@ -634,8 +634,8 @@ Additional notes and considerations...
               onClick={() => setViewMode('split')}
               className={`p-1.5 rounded transition-all ${
                 viewMode === 'split'
-                  ? 'bg-orange-600/30 text-orange-400'
-                  : 'text-gray-400 hover:text-gray-300'
+                  ? 'bg-orange-100 text-orange-600'
+                  : 'text-slate-500 hover:text-slate-700'
               }`}
               title="Split view"
             >
@@ -645,8 +645,8 @@ Additional notes and considerations...
               onClick={() => setViewMode('preview')}
               className={`p-1.5 rounded transition-all ${
                 viewMode === 'preview'
-                  ? 'bg-orange-600/30 text-orange-400'
-                  : 'text-gray-400 hover:text-gray-300'
+                  ? 'bg-orange-100 text-orange-600'
+                  : 'text-slate-500 hover:text-slate-700'
               }`}
               title="Preview mode"
             >
@@ -656,7 +656,7 @@ Additional notes and considerations...
 
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="p-1.5 rounded bg-slate-700/50 text-gray-400 hover:text-gray-300 border border-slate-600/50 transition-all"
+            className="p-1.5 rounded bg-white text-slate-500 hover:text-slate-700 border border-slate-200 transition-colors"
             title="Upload file (supports: .md, .txt, .html, .json, .xml, .csv, .rtf)"
           >
             <Upload size={16} />
@@ -664,7 +664,7 @@ Additional notes and considerations...
 
           <Dropdown menu={downloadMenu} trigger={['click']} overlayClassName="editor-settings-dropdown">
             <button
-              className="p-1.5 rounded bg-slate-700/50 text-gray-400 hover:text-gray-300 border border-slate-600/50 transition-all"
+              className="p-1.5 rounded bg-white text-slate-500 hover:text-slate-700 border border-slate-200 transition-colors"
               title="Download"
             >
               <Download size={16} />
@@ -673,7 +673,7 @@ Additional notes and considerations...
 
           <Dropdown menu={settingsMenu} trigger={['click']} overlayClassName="editor-settings-dropdown">
             <button
-              className="p-1.5 rounded bg-slate-700/50 text-gray-400 hover:text-gray-300 border border-slate-600/50 transition-all"
+              className="p-1.5 rounded bg-white text-slate-500 hover:text-slate-700 border border-slate-200 transition-colors"
               title="Editor settings"
             >
               <Settings size={16} />
@@ -682,7 +682,7 @@ Additional notes and considerations...
 
           <button
             onClick={handleCopyToClipboard}
-            className="p-1.5 rounded bg-slate-700/50 text-gray-400 hover:text-gray-300 border border-slate-600/50 transition-all"
+            className="p-1.5 rounded bg-white text-slate-500 hover:text-slate-700 border border-slate-200 transition-colors"
             title="Copy to clipboard"
           >
             {isCopied ? <Check size={16} className="text-orange-400" /> : <Copy size={16} />}
@@ -800,7 +800,7 @@ Additional notes and considerations...
           </div>
         ) : viewMode === 'preview' ? (
           // Preview Only Mode
-          <div className="h-full overflow-auto bg-slate-900/30 requirement-preview-split">
+          <div className="h-full overflow-auto bg-white requirement-preview-split">
             <EnhancedRequirementPreview
               markdownText={markdownText}
               requirement={requirement}
@@ -809,7 +809,7 @@ Additional notes and considerations...
         ) : (
           // Split View - Editor on left, preview on right
           <div className="h-full flex">
-            <div className="w-1/2 border-r border-slate-700/50 requirement-editor-split">
+            <div className="w-1/2 border-r border-slate-200 requirement-editor-split">
               <Editor
                 height="100%"
                 defaultLanguage="markdown"
@@ -917,12 +917,12 @@ Additional notes and considerations...
       </div>
 
       {/* Footer with Send Button - Fixed at bottom */}
-      <div className="border-t border-gray-700 bg-gray-800/50 p-4 flex items-center justify-between flex-shrink-0">
+      <div className="border-t border-slate-200 bg-white p-4 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center space-x-2">
           {onBack && (
             <button
               onClick={onBack}
-              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 whitespace-nowrap"
+              className="px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center space-x-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 whitespace-nowrap"
               title="Go back to requirements list"
             >
               <ArrowLeft size={12} />

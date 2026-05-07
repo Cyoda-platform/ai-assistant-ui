@@ -170,7 +170,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart, id }) => {
             // Improve text rendering
             const textElements = svgElement.querySelectorAll('text');
             textElements.forEach((text) => {
-              text.style.fontFamily = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+              text.style.fontFamily = "'Inter', system-ui, -apple-system, sans-serif";
             });
           }
         }

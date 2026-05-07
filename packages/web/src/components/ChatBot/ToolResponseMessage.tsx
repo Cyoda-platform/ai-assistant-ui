@@ -46,9 +46,9 @@ const ToolResponseMessage: React.FC<ToolResponseMessageProps> = ({
         <div className="flex-1 min-w-0">
           {/* Tool Badge */}
           <div className="flex items-center space-x-2 flex-wrap mb-2">
-            <div className="flex items-center space-x-1.5 bg-orange-500/20 backdrop-blur-sm px-3 py-1 rounded-full border border-orange-500/30">
-              <Wrench size={12} className={isComplete ? "text-orange-400" : "text-orange-400 animate-pulse"} />
-              <span className="text-xs font-medium text-orange-300">{displayToolName}</span>
+            <div className="flex items-center space-x-1.5 bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
+              <Wrench size={12} className="text-orange-600" />
+              <span className="text-xs font-medium text-orange-700">{displayToolName}</span>
             </div>
             {!isComplete && (
               <span className="text-xs text-slate-500 italic">streaming...</span>
@@ -56,12 +56,12 @@ const ToolResponseMessage: React.FC<ToolResponseMessageProps> = ({
           </div>
 
           {/* Tool Response Content */}
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg p-4 shadow-lg">
-            <div className="text-slate-200 text-sm leading-relaxed">
+          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+            <div className="text-slate-700 text-sm leading-relaxed">
               {content ? (
                 <MarkdownRenderer content={content} />
               ) : (
-                <span className="text-slate-500 italic">Processing...</span>
+                <span className="text-slate-400 italic">Processing...</span>
               )}
             </div>
 

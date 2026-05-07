@@ -467,7 +467,7 @@ const MonitoringView: React.FC = () => {
 
       {/* Metric Selector */}
       {showMetricSelector && (
-        <div style={{ padding: '20px', borderBottom: '1px solid #334155', backgroundColor: '#1e293b' }}>
+        <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', backgroundColor: '#ffffff' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
             <h3 style={{ color: '#e2e8f0', margin: 0 }}>Select Metrics to Display</h3>
             <div style={{ display: 'flex', gap: '10px' }}>
@@ -633,7 +633,7 @@ const MonitoringView: React.FC = () => {
                         <XAxis dataKey="time" stroke="#94a3b8" style={{ fontSize: '12px' }} />
                         <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} />
                         <Tooltip
-                          contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '4px' }}
+                          contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '4px' }}
                           labelStyle={{ color: '#e2e8f0' }}
                         />
                         <Line
@@ -760,7 +760,7 @@ const MonitoringView: React.FC = () => {
                           <XAxis dataKey="time" stroke="#a8a8a8" />
                           <YAxis stroke="#a8a8a8" />
                           <Tooltip
-                            contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '4px' }}
+                            contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '4px' }}
                             labelStyle={{ color: '#e2e8f0' }}
                           />
                           <Line

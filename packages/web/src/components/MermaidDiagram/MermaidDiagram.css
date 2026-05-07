@@ -9,7 +9,7 @@
 
 /* SVG styling */
 .mermaid-diagram svg {
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 /* Node styling */

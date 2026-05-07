@@ -571,7 +571,7 @@ export const AppsTabsContainer: React.FC<AppsTabsContainerProps> = ({
   }, [updateTab]);
 
   return (
-    <div className="flex flex-col h-full bg-gray-900">
+    <div className="flex flex-col h-full bg-white">
       {/* Content Area - no tab bar needed (one app per chat) */}
       <div className="flex-1 relative overflow-hidden">
         {activeTab ? (

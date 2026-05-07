@@ -47,8 +47,8 @@ const HierarchicalOptionSelection: React.FC<HierarchicalOptionSelectionProps> = 
       {languages.map(language => (
         <div key={language} className="space-y-3">
           {/* Language Header */}
-          <div className="px-2 py-2 bg-slate-700/40 rounded-lg border border-slate-600/50">
-            <h3 className="text-sm font-semibold text-teal-300 uppercase tracking-wider">
+          <div className="px-2 py-2 bg-slate-100 rounded-lg border border-slate-200">
+            <h3 className="text-sm font-semibold text-teal-700 uppercase tracking-wider">
               {language.charAt(0).toUpperCase() + language.slice(1)}
             </h3>
           </div>
@@ -58,7 +58,7 @@ const HierarchicalOptionSelection: React.FC<HierarchicalOptionSelectionProps> = 
             {Object.keys(hierarchicalOptions[language]).sort().map(repoType => (
               <div key={repoType} className="space-y-2">
                 {/* Repo Type Label */}
-                <div className="flex items-center space-x-2 text-xs font-medium text-slate-400 uppercase tracking-wider">
+                <div className="flex items-center space-x-2 text-xs font-medium text-slate-500 uppercase tracking-wider">
                   <ChevronRight size={14} />
                   <span>{repoType === 'public' ? '🌐 Public' : '🔒 Private'} Repository</span>
                 </div>
@@ -71,8 +71,8 @@ const HierarchicalOptionSelection: React.FC<HierarchicalOptionSelectionProps> = 
                       onClick={() => onToggleOption(option.value)}
                       className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 text-left ${
                         selectedOptions.includes(option.value)
-                          ? 'border-teal-500 bg-teal-500/20 text-teal-300'
-                          : 'border-slate-600 bg-slate-800/50 text-slate-400 hover:border-slate-500 hover:bg-slate-800/70'
+                          ? 'border-teal-500 bg-teal-50 text-teal-700'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50'
                       }`}
                     >
                       <div className="flex items-start space-x-3">
@@ -80,7 +80,7 @@ const HierarchicalOptionSelection: React.FC<HierarchicalOptionSelectionProps> = 
                         <div className={`mt-0.5 w-5 h-5 rounded-${selectionType === 'single' ? 'full' : 'md'} border-2 flex items-center justify-center flex-shrink-0 ${
                           selectedOptions.includes(option.value)
                             ? 'border-teal-500 bg-teal-500'
-                            : 'border-slate-500'
+                            : 'border-slate-300'
                         }`}>
                           {selectedOptions.includes(option.value) && (
                             <div className="w-2 h-2 bg-white rounded-full"></div>
