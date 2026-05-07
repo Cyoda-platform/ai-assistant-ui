@@ -1,19 +1,18 @@
-/* Always dark mode - light mode not supported */
 html, body {
     margin: 0;
-    background: #11101C;
+    background: #ffffff;
 }
 
 .loader-app .only-theme-light {
-    display: none !important;
-}
-
-.loader-app .only-theme-dark {
     display: inline-block !important;
 }
 
+.loader-app .only-theme-dark {
+    display: none !important;
+}
+
 .loader-app {
-    background: #11101C;
+    background: #ffffff;
     width: 100%;
     height: 100vh;
     display: flex;
