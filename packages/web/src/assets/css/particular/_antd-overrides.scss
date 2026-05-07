@@ -129,29 +129,48 @@ body,
   }
 }
 
-// Notification overrides (replacing el-notification)
+// Notification overrides
 .ant-notification {
   .ant-notification-notice {
-    background-color: #0F172A !important; // slate-900 - matches chat background
-    border: 1px solid var(--accent-border) !important;
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
     border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
 
     .ant-notification-notice-content {
-      color: #FFFFFF;
+      color: #0f172a;
     }
 
     .ant-notification-notice-message {
-      color: #FFFFFF;
+      color: #0f172a;
       font-weight: 600;
     }
 
     .ant-notification-notice-description {
-      color: #FFFFFF;
+      color: #475569;
     }
 
     &.ant-notification-notice-success {
       .ant-notification-notice-icon {
-        color: #FFFFFF;
+        color: #16a34a;
+      }
+    }
+
+    &.ant-notification-notice-error {
+      .ant-notification-notice-icon {
+        color: #dc2626;
+      }
+    }
+
+    &.ant-notification-notice-warning {
+      .ant-notification-notice-icon {
+        color: #d97706;
+      }
+    }
+
+    &.ant-notification-notice-info {
+      .ant-notification-notice-icon {
+        color: #0d9488;
       }
     }
   }
@@ -160,10 +179,11 @@ body,
 // Message overrides
 .ant-message {
   .ant-message-notice-content {
-    background-color: #0F172A !important; // slate-900 - matches chat background
-    border: 1px solid var(--accent-border) !important;
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
     border-radius: 8px;
-    color: #FFFFFF;
+    color: #0f172a;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
   }
 }
 
