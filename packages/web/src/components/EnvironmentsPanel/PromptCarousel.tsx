@@ -119,12 +119,12 @@ const PromptCarousel: React.FC<PromptCarouselProps> = ({ environmentName, onProm
       {/* Header with Expand/Collapse Button */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <MessageSquare size={16} className="text-teal-400" />
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Try These Prompts</h3>
+          <MessageSquare size={16} className="text-teal-600" />
+          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Try These Prompts</h3>
         </div>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-teal-500/15 to-cyan-500/15 hover:from-teal-500/25 hover:to-cyan-500/25 text-teal-400 border border-teal-500/25 hover:border-teal-400/40 transition-all duration-200 font-medium flex items-center gap-1.5 hover:shadow-md hover:shadow-teal-500/10 text-xs"
+          className="px-2.5 py-1.5 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200 hover:border-teal-300 transition-all duration-200 font-medium flex items-center gap-1.5 text-xs"
           title={isExpanded ? 'Collapse prompts' : 'Expand prompts'}
         >
           {isExpanded ? (
@@ -149,13 +149,13 @@ const PromptCarousel: React.FC<PromptCarouselProps> = ({ environmentName, onProm
             return (
               <div
                 key={idx}
-                className="rounded-lg p-3 border border-slate-600 cursor-pointer group hover:border-teal-500/40 transition-all"
+                className="rounded-lg p-3 border border-slate-200 bg-white cursor-pointer group hover:border-teal-300 hover:bg-teal-50 transition-all"
                 onClick={() => copyPrompt(prompt.prompt)}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2.5 flex-1 min-w-0">
-                    <IconComponent size={16} className="text-teal-400 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm font-medium text-white leading-relaxed">
+                    <IconComponent size={16} className="text-teal-600 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm font-medium text-slate-700 leading-relaxed">
                       {prompt.prompt}
                     </p>
                   </div>
@@ -164,13 +164,13 @@ const PromptCarousel: React.FC<PromptCarouselProps> = ({ environmentName, onProm
                       e.stopPropagation();
                       copyPrompt(prompt.prompt);
                     }}
-                    className="p-1.5 rounded-lg hover:bg-teal-500/10 border border-transparent hover:border-teal-500/30 transition-all duration-200 group flex-shrink-0"
+                    className="p-1.5 rounded-lg hover:bg-teal-100 border border-transparent hover:border-teal-200 transition-all duration-200 group flex-shrink-0"
                     title="Copy prompt"
                   >
                     {copiedPrompt === prompt.prompt ? (
-                      <CheckCircle2 size={16} className="text-green-400" />
+                      <CheckCircle2 size={16} className="text-green-600" />
                     ) : (
-                      <Copy size={16} className="text-slate-400 group-hover:text-teal-400 transition-colors" />
+                      <Copy size={16} className="text-slate-400 group-hover:text-teal-600 transition-colors" />
                     )}
                   </button>
                 </div>

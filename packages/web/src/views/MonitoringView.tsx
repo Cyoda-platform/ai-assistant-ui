@@ -411,15 +411,15 @@ const MonitoringView: React.FC = () => {
 
       {/* Environment and Application Selection */}
       {loadingEnvironments ? (
-        <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>
+        <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
           Loading environments...
         </div>
       ) : (
-        <div style={{ padding: '20px', borderBottom: '1px solid #334155' }}>
+        <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', backgroundColor: '#ffffff' }}>
           <div className="monitoring-selects-container" style={{ display: 'flex', gap: '20px', alignItems: 'flex-end' }}>
             {/* Environment Select */}
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#e2e8f0', fontSize: '14px', fontWeight: '500' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#374151', fontSize: '14px', fontWeight: '500' }}>
                 Environment
               </label>
               <Select
@@ -440,7 +440,7 @@ const MonitoringView: React.FC = () => {
 
             {/* Application Select */}
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#e2e8f0', fontSize: '14px', fontWeight: '500' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#374151', fontSize: '14px', fontWeight: '500' }}>
                 Application
               </label>
               <Select
@@ -467,15 +467,15 @@ const MonitoringView: React.FC = () => {
 
       {/* Metric Selector */}
       {showMetricSelector && (
-        <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', backgroundColor: '#ffffff' }}>
+        <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-            <h3 style={{ color: '#e2e8f0', margin: 0 }}>Select Metrics to Display</h3>
+            <h3 style={{ color: '#1e293b', margin: 0 }}>Select Metrics to Display</h3>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 onClick={() => setSelectedMetrics(AVAILABLE_METRICS.map(m => m.id))}
                 style={{
                   padding: '6px 12px',
-                  backgroundColor: '#0d8484',
+                  backgroundColor: '#0d9488',
                   color: '#fff',
                   border: 'none',
                   borderRadius: '4px',
@@ -490,9 +490,9 @@ const MonitoringView: React.FC = () => {
                 onClick={() => setSelectedMetrics([])}
                 style={{
                   padding: '6px 12px',
-                  backgroundColor: '#475569',
-                  color: '#fff',
-                  border: 'none',
+                  backgroundColor: '#f1f5f9',
+                  color: '#374151',
+                  border: '1px solid #e2e8f0',
                   borderRadius: '4px',
                   cursor: 'pointer',
                   fontSize: '12px',
@@ -512,7 +512,7 @@ const MonitoringView: React.FC = () => {
             paddingRight: '10px'
           }}>
             {AVAILABLE_METRICS.map((metric) => (
-              <label key={metric.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#e2e8f0' }}>
+              <label key={metric.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#374151' }}>
                 <input
                   type="checkbox"
                   checked={selectedMetrics.includes(metric.id)}
@@ -629,12 +629,12 @@ const MonitoringView: React.FC = () => {
                   <div style={{ flex: 1, minHeight: '150px', marginBottom: '10px' }} key={`chart-${metricId}-${history.length}`}>
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={chartData} key={`linechart-${metricId}-${history.length}`}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                         <XAxis dataKey="time" stroke="#94a3b8" style={{ fontSize: '12px' }} />
                         <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} />
                         <Tooltip
                           contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '4px' }}
-                          labelStyle={{ color: '#e2e8f0' }}
+                          labelStyle={{ color: '#374151' }}
                         />
                         <Line
                           type="monotone"
@@ -653,7 +653,7 @@ const MonitoringView: React.FC = () => {
                   {history.length > 0 ? `${history.length} data points` : 'No data yet'}
                 </div>
                 {history.length > 1 && (
-                  <div style={{ marginTop: '10px', fontSize: '12px', color: '#94a3b8' }}>
+                  <div style={{ marginTop: '10px', fontSize: '12px', color: '#64748b' }}>
                     <div>Min: {Math.min(...history.map(h => parseFloat(h.value))).toFixed(2)}</div>
                     <div>Max: {Math.max(...history.map(h => parseFloat(h.value))).toFixed(2)}</div>
                   </div>
@@ -742,7 +742,7 @@ const MonitoringView: React.FC = () => {
                       <Icon size={24} style={{ color: '#0d8484' }} />
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <span>{metric.label}</span>
-                        <span style={{ fontSize: '12px', color: '#a8a8a8', fontWeight: 'normal' }}>Timezone: {tzStr}</span>
+                        <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 'normal' }}>Timezone: {tzStr}</span>
                       </div>
                     </div>
                     <button
@@ -756,12 +756,12 @@ const MonitoringView: React.FC = () => {
                     <div style={{ width: '100%', height: '400px' }} key={`modal-chart-${expandedMetric}-${history.length}`}>
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={chartData} key={`modal-linechart-${expandedMetric}-${history.length}`}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                          <XAxis dataKey="time" stroke="#a8a8a8" />
-                          <YAxis stroke="#a8a8a8" />
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                          <XAxis dataKey="time" stroke="#94a3b8" />
+                          <YAxis stroke="#94a3b8" />
                           <Tooltip
                             contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '4px' }}
-                            labelStyle={{ color: '#e2e8f0' }}
+                            labelStyle={{ color: '#374151' }}
                           />
                           <Line
                             type="monotone"
@@ -774,7 +774,7 @@ const MonitoringView: React.FC = () => {
                       </ResponsiveContainer>
                     </div>
                   </div>
-                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #434343', textAlign: 'center', color: '#a8a8a8', fontSize: '14px' }}>
+                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e2e8f0', textAlign: 'center', color: '#64748b', fontSize: '14px' }}>
                     <p style={{ margin: 0 }}>Current Value: <strong style={{ color: '#0d8484' }}>{value}</strong></p>
                   </div>
                 </>
