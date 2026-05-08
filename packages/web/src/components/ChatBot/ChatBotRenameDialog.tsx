@@ -118,7 +118,7 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
       <div
         className="bg-white rounded-lg shadow-lg border border-slate-200 max-w-md w-full mx-4 overflow-hidden"
-        style={{ colorScheme: 'light' }}
+        style={{ colorScheme: 'light', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}
       >
         {/* Header */}
         <div className="flex items-center space-x-2.5 px-5 py-4 border-b border-slate-200">
@@ -180,7 +180,7 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
           <button
             onClick={handleCancel}
             disabled={loading}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="appearance-none px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ backgroundColor: '#ffffff', color: '#374151', border: '1px solid #9ca3af' }}
           >
             Cancel
@@ -188,7 +188,7 @@ const ChatBotRenameDialog: React.FC<ChatBotRenameDialogProps> = ({
           <button
             onClick={handleOk}
             disabled={loading}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="appearance-none px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ backgroundColor: '#0d9488', color: '#ffffff', border: 'none' }}
           >
             {loading ? 'Renaming...' : 'Rename'}

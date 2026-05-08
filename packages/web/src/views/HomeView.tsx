@@ -419,17 +419,40 @@ const HomeView: React.FC = () => {
             <div className="w-full flex-1 flex flex-col min-w-0 max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl mx-auto">
 
               {/* Hero */}
-              <div className="mt-10 mb-8">
+              <div style={{ marginTop: '40px', marginBottom: '32px' }}>
                 <h1
-                  className="text-4xl md:text-5xl tracking-tight leading-tight"
-                  style={{ color: 'hsl(215,28%,14%)', fontWeight: 700, marginBottom: '16px' }}
+                  style={{
+                    fontSize: 'clamp(2rem, 4vw, 3rem)',
+                    fontWeight: 700,
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1.2,
+                    marginBottom: '20px',
+                    color: 'hsl(215,28%,14%)',
+                    maxWidth: '50rem',
+                    whiteSpace: 'nowrap'
+                  }}
                 >
                   Cyoda Cloud Workbench
                 </h1>
-                <p className="text-lg max-w-2xl leading-relaxed" style={{ color: 'hsl(215,18%,38%)', marginBottom: 0 }}>
+                <p
+                  style={{
+                    fontSize: '1.125rem',
+                    lineHeight: 1.6,
+                    marginBottom: '8px',
+                    color: 'hsl(215,18%,38%)',
+                    maxWidth: '42rem'
+                  }}
+                >
                   Model entity lifecycles, generate workflows, connect processors, and inspect history on hosted Cyoda.
                 </p>
-                <p className="text-base max-w-2xl leading-relaxed" style={{ color: 'hsl(215,18%,38%)', marginTop: '8px', marginBottom: 0 }}>
+                <p
+                  style={{
+                    fontSize: '1.125rem',
+                    lineHeight: 1.6,
+                    color: 'hsl(215,18%,38%)',
+                    maxWidth: '42rem'
+                  }}
+                >
                   Use the assistant to draft models and services, then refine them in Canvas with Requirements, Entities, Workflows, and Code.
                 </p>
               </div>
@@ -438,7 +461,7 @@ const HomeView: React.FC = () => {
               <div className="mb-6">
                 <form onSubmit={handleChatSubmit}>
                   <div
-                    className="relative bg-white rounded-xl border border-slate-200 shadow-sm focus-within:border-blue-300 focus-within:shadow-md transition-shadow"
+                    className="relative bg-white rounded-xl border border-slate-200 shadow-sm focus-within:border-blue-400 focus-within:shadow-md transition-shadow"
                     onDragEnter={handleDragEnter}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
@@ -486,7 +509,10 @@ const HomeView: React.FC = () => {
                       <button
                         type="button"
                         onClick={handleFileAttach}
-                        className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                        className="p-2 rounded-lg transition-colors duration-200"
+                        style={{ color: '#94a3b8' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = '#2563eb'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
                         title="Attach file"
                       >
                         <Paperclip size={16} />
@@ -494,7 +520,8 @@ const HomeView: React.FC = () => {
                       <button
                         type="submit"
                         disabled={!chatInput.trim() || isLoading}
-                        className="p-2 rounded-lg transition-colors hover:bg-slate-100 disabled:cursor-not-allowed"
+                        className="p-1.5 rounded-lg transition-all duration-200 flex items-center justify-center group hover:scale-110 disabled:cursor-not-allowed"
+                        style={{ transform: 'translateY(5%)' }}
                         title="Send (Enter)"
                       >
                         {isLoading ? (
@@ -502,6 +529,8 @@ const HomeView: React.FC = () => {
                         ) : (
                           <Send
                             size={16}
+                            strokeWidth={2}
+                            className="transition-all duration-200"
                             style={{ color: !chatInput.trim() ? '#94a3b8' : '#2563eb' }}
                           />
                         )}
@@ -559,7 +588,7 @@ const HomeView: React.FC = () => {
                     <button
                       key={example}
                       onClick={() => handlePromptClick(example)}
-                      className="text-sm px-3 py-1.5 bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 transition-colors"
+                      className="text-sm px-3 py-1.5 bg-white border border-slate-200 rounded-full text-slate-600 hover:border-blue-400 hover:text-blue-600 transition-colors"
                     >
                       {example}
                     </button>
@@ -572,41 +601,37 @@ const HomeView: React.FC = () => {
                 <div className="mb-8">
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">Workspace</p>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <button
-                      onClick={() => navigate('/new-chat')}
-                      className="flex flex-col items-start p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-200 hover:bg-blue-50/40 transition-colors text-left group"
-                    >
-                      <Activity size={18} className="text-slate-400 group-hover:text-blue-600 mb-2 transition-colors" />
-                      <span className="text-sm font-semibold text-slate-900">Canvas</span>
-                      <span className="text-xs text-slate-500 mt-0.5 leading-relaxed">Model requirements, entities, workflows, and code.</span>
-                    </button>
+                    <div className="flex flex-col items-start p-4 bg-white border border-slate-200 rounded-xl text-left">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Activity size={18} style={{ color: '#3b82f6' }} className="flex-shrink-0" />
+                        <span className="text-sm font-semibold text-slate-900">Canvas</span>
+                      </div>
+                      <span className="text-xs text-slate-500 leading-relaxed">Model requirements, entities, workflows, and code.</span>
+                    </div>
 
-                    <button
-                      onClick={() => setIsEnvironmentsOpen(!isEnvironmentsOpen)}
-                      className="flex flex-col items-start p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-200 hover:bg-blue-50/40 transition-colors text-left group"
-                    >
-                      <Server size={18} className="text-slate-400 group-hover:text-blue-600 mb-2 transition-colors" />
-                      <span className="text-sm font-semibold text-slate-900">Cloud</span>
-                      <span className="text-xs text-slate-500 mt-0.5 leading-relaxed">View environments, runtime status, and deployed applications.</span>
-                    </button>
+                    <div className="flex flex-col items-start p-4 bg-white border border-slate-200 rounded-xl text-left">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Server size={18} style={{ color: '#3b82f6' }} className="flex-shrink-0" />
+                        <span className="text-sm font-semibold text-slate-900">Cloud</span>
+                      </div>
+                      <span className="text-xs text-slate-500 leading-relaxed">View environments, runtime status, and deployed applications.</span>
+                    </div>
 
-                    <button
-                      onClick={() => setIsChatHistoryOpen(!isChatHistoryOpen)}
-                      className="flex flex-col items-start p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-200 hover:bg-blue-50/40 transition-colors text-left group"
-                    >
-                      <History size={18} className="text-slate-400 group-hover:text-blue-600 mb-2 transition-colors" />
-                      <span className="text-sm font-semibold text-slate-900">History</span>
-                      <span className="text-xs text-slate-500 mt-0.5 leading-relaxed">Resume recent conversations and modelling sessions.</span>
-                    </button>
+                    <div className="flex flex-col items-start p-4 bg-white border border-slate-200 rounded-xl text-left">
+                      <div className="flex items-center gap-2 mb-2">
+                        <History size={18} style={{ color: '#3b82f6' }} className="flex-shrink-0" />
+                        <span className="text-sm font-semibold text-slate-900">History</span>
+                      </div>
+                      <span className="text-xs text-slate-500 leading-relaxed">Resume recent conversations and modelling sessions.</span>
+                    </div>
 
-                    <button
-                      onClick={() => navigate('/workflows')}
-                      className="flex flex-col items-start p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-200 hover:bg-blue-50/40 transition-colors text-left group"
-                    >
-                      <Database size={18} className="text-slate-400 group-hover:text-blue-600 mb-2 transition-colors" />
-                      <span className="text-sm font-semibold text-slate-900">Tasks</span>
-                      <span className="text-xs text-slate-500 mt-0.5 leading-relaxed">Track background jobs and long-running operations.</span>
-                    </button>
+                    <div className="flex flex-col items-start p-4 bg-white border border-slate-200 rounded-xl text-left">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Database size={18} style={{ color: '#3b82f6' }} className="flex-shrink-0" />
+                        <span className="text-sm font-semibold text-slate-900">Tasks</span>
+                      </div>
+                      <span className="text-xs text-slate-500 leading-relaxed">Track background jobs and long-running operations.</span>
+                    </div>
                   </div>
                 </div>
               )}

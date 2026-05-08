@@ -907,14 +907,19 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                     </div>
 
                     {/* Select Button - places message in textarea for user to review and send */}
-                    <button
-                      onClick={() => handleSubmitOptions()}
-                      disabled={isSubmittingOptions || selectedOptions.length === 0}
-                      className="w-full px-4 py-2.5 rounded-lg bg-teal-50 border border-teal-500 text-teal-700 hover:bg-teal-100 font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      <Send size={16} />
-                      <span>Select</span>
-                    </button>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => handleSubmitOptions()}
+                        disabled={isSubmittingOptions || selectedOptions.length === 0}
+                        className="px-6 py-2.5 rounded-lg text-white font-medium text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 w-auto"
+                        style={{ color: '#ffffff', backgroundColor: '#0d9488' }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#0f766e')}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#0d9488')}
+                      >
+                        <Send size={16} />
+                        <span>Select</span>
+                      </button>
+                    </div>
                   </>
                 )}
               </div>
@@ -1111,14 +1116,19 @@ const ChatBotMessageQuestion: React.FC<ChatBotMessageQuestionProps> = ({
                 </div>
 
                 {/* Select Button - places message in textarea for user to review and send */}
-                <button
-                  onClick={handleSubmitRepoConfig}
-                  disabled={isSubmittingConfig}
-                  className="w-full px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 border border-blue-600 disabled:bg-slate-200 disabled:border-slate-200 disabled:opacity-50 text-white disabled:text-slate-400 text-sm font-medium transition-all duration-200 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  <Send size={16} />
-                  <span>Select</span>
-                </button>
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleSubmitRepoConfig}
+                    disabled={isSubmittingConfig}
+                    className="px-6 py-2.5 rounded-lg text-white font-medium text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 w-auto"
+                    style={{ color: '#ffffff', backgroundColor: '#0d9488' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#0f766e')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#0d9488')}
+                  >
+                    <Send size={16} />
+                    <span>Select</span>
+                  </button>
+                </div>
               </div>
               </>
             )}

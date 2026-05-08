@@ -281,21 +281,6 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
         </div>
       </nav>
 
-      {/* Footer - Copyright */}
-      <div className="p-4 border-t border-slate-200">
-        <p className="text-xs text-slate-400 text-center">
-          © 2026{' '}
-          <a
-            href="https://cyoda.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-slate-500 hover:text-slate-700 transition-colors"
-          >
-            CYODA Ltd.
-          </a>
-        </p>
-      </div>
-
       {/* Resize Handle */}
       <ResizeHandle onMouseDown={onResizeMouseDown} isResizing={isResizing} position="right" />
 
@@ -304,7 +289,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
           <div
             className="bg-white rounded-lg shadow-xl border border-slate-200 max-w-md w-full mx-4 overflow-hidden"
-            style={{ colorScheme: 'light' }}
+            style={{ colorScheme: 'light', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}
           >
             {/* Header */}
             <div className="flex items-center space-x-2.5 px-5 py-4 border-b border-slate-200">
@@ -330,14 +315,14 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
             <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-slate-200 bg-slate-50">
               <button
                 onClick={handleCancelDelete}
-                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="appearance-none px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 style={{ backgroundColor: '#ffffff', color: '#374151', border: '1px solid #9ca3af' }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
-                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="appearance-none px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 style={{ backgroundColor: '#dc2626', color: '#ffffff', border: 'none' }}
               >
                 Delete Chat

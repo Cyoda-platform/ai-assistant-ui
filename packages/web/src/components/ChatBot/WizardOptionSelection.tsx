@@ -327,7 +327,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
           </div>
 
           {/* Connector 1 */}
-          <div className={`flex-1 h-0.5 transition-all ${
+          <div className={`flex-1 h-px transition-all ${
             step === 'branchType' || step === 'repoType'
               ? 'bg-gradient-to-r from-teal-500 to-teal-500/50'
               : 'bg-slate-200'
@@ -346,7 +346,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
           </div>
 
           {/* Connector 2 */}
-          <div className={`flex-1 h-0.5 transition-all ${
+          <div className={`flex-1 h-px transition-all ${
             step === 'repoType'
               ? 'bg-gradient-to-r from-teal-500 to-teal-500/50'
               : 'bg-slate-200'
@@ -474,7 +474,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
                 value={branchName}
                 onChange={(e) => setBranchName(e.target.value)}
                 placeholder="e.g., main, develop, feature/xyz"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none text-sm transition-colors"
+                className="w-full px-3 py-2 bg-white border border-blue-400 rounded-lg text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none text-sm transition-colors"
               />
             </div>
           )}
@@ -500,7 +500,7 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
                 value={branchName}
                 onChange={(e) => setBranchName(e.target.value)}
                 placeholder="e.g., main, develop, feature/xyz"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none text-sm transition-colors"
+                className="w-full px-3 py-2 bg-white border border-blue-400 rounded-lg text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 focus:outline-none text-sm transition-colors"
               />
             </div>
           )}
@@ -650,11 +650,11 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
       )}
 
       {/* Action Buttons */}
-      <div className={`flex gap-2 pt-2 ${isNarrow ? 'flex-col' : 'flex-row'}`}>
+      <div className={`flex gap-2 pt-2 justify-end`}>
         {step !== 'language' && (
           <button
             onClick={handleBack}
-            className={`${isNarrow ? 'w-full' : 'w-auto'} px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors flex items-center justify-center gap-1.5 text-sm font-medium`}
+            className={`px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors flex items-center justify-center gap-1.5 text-sm font-medium w-auto`}
           >
             <ChevronLeft size={16} />
             <span>Back</span>
@@ -679,7 +679,10 @@ const WizardOptionSelection: React.FC<WizardOptionSelectionProps> = ({
             onSubmit(formattedData);
           }}
           disabled={isSubmitting || selectedOptions.length === 0}
-          className={`${isNarrow ? 'w-full' : 'flex-1'} px-4 py-2.5 rounded-lg bg-teal-50 border border-teal-500 text-teal-700 hover:bg-teal-100 font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5`}
+          className={`px-6 py-2.5 rounded-lg text-white font-medium text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 w-auto`}
+          style={{ color: '#ffffff', backgroundColor: '#0d9488' }}
+          onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#0f766e')}
+          onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#0d9488')}
         >
           <Send size={16} />
           <span>Send</span>

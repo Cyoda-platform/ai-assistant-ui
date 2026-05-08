@@ -44,7 +44,7 @@ const ResponseSeparator: React.FC<ResponseSeparatorProps> = ({
   return (
     <div className="mt-4 mb-3 flex items-center space-x-3">
       {/* Left line */}
-      <div className="flex-1 h-px bg-gradient-to-r from-amber-400/0 to-amber-400/40" />
+      <div className="flex-1 h-px bg-gradient-to-r from-blue-400/0 to-blue-400/40" />
 
       {/* Center label - minimal design with icon */}
       <span className="text-xs font-medium text-slate-400 whitespace-nowrap flex items-center gap-1.5">
@@ -53,7 +53,7 @@ const ResponseSeparator: React.FC<ResponseSeparatorProps> = ({
       </span>
 
       {/* Right line */}
-      <div className="flex-1 h-px bg-gradient-to-l from-amber-400/0 to-amber-400/40" />
+      <div className="flex-1 h-px bg-gradient-to-l from-blue-400/0 to-blue-400/40" />
     </div>
   );
 };

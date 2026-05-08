@@ -910,7 +910,8 @@ Decorative SVG with concentric circles, arc paths, and connection lines at `opac
 - **Social icons:** `react-icons/si` (SiGithub, SiLinkedin, SiX, SiYoutube) — `w-5 h-5`
 - **cyodalight-website:** Inline SVG sprite pattern; 24×24 px viewBox, stroke-only (`stroke-width: 2`, `stroke-linecap: round`, `stroke-linejoin: round`, `currentColor`)
 - **Icon containers:**
-  - Feature cards: `w-12 h-12 rounded-lg bg-primary/10` (48 px, teal-tinted)
+  - Feature cards: `w-12 h-12 rounded-lg bg-primary/10` (48 px, teal-tinted) — background `hsl(175 40% 92%)`, icon `hsl(175 65% 32%)`
+  - Workspace info cards: `w-9 h-9 rounded-lg` (36 px) — background `hsl(175 40% 92%)`, icon `hsl(175 65% 32%)`
   - Step cards: `w-12 h-12 ... rounded-2xl bg-icon` (orange fill, 48–64 px responsive)
   - Social buttons: `p-3 rounded-lg bg-secondary border border-border`
 
