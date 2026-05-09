@@ -146,7 +146,7 @@ export const EntitiesList: React.FC<EntitiesListProps> = ({
             className="flex items-center justify-center w-8 h-8 rounded-full bg-teal-500 hover:bg-teal-600 text-white transition-all duration-200 shadow-lg hover:shadow-teal-500/25"
             title="Create new entity and open editor"
           >
-            <Plus size={18} />
+            <Plus size={18} style={{ color: 'white', stroke: 'white' }} />
           </button>
         </div>
       </div>

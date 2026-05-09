@@ -730,11 +730,13 @@ Additional notes and considerations...
                     'editorLineNumber.foreground': '#475569',
                     'editorLineNumber.activeForeground': '#93C5FD',
                     'editorGutter.background': '#0E1525',
-                    'editor.lineHighlightBackground': '#1E293B',
-                    'editor.lineHighlightBorder': '#1E293B',
+                    'editor.lineHighlightBackground': '#4FB8B020',
+                    'editor.lineHighlightBorder': '#4FB8B000',
                     'editorCursor.foreground': '#93C5FD',
                     'editor.selectionBackground': '#1E293B',
                     'editor.inactiveSelectionBackground': '#1E293B80',
+                    'editor.wordHighlightBackground': '#FEF3C7',
+                    'editor.wordHighlightBorder': '#00000000',
                     'editorMinimap.background': '#0E1525',
                     'minimapSlider.background': '#33415540',
                     'minimapSlider.hoverBackground': '#33415560',
@@ -745,7 +747,7 @@ Additional notes and considerations...
                     'scrollbarSlider.background': '#33415580',
                     'scrollbarSlider.hoverBackground': '#334155A0',
                     'scrollbarSlider.activeBackground': '#334155C0',
-                    'editorBracketMatch.background': '#1E293B',
+                    'editorBracketMatch.background': '#00000000',
                     'editorBracketMatch.border': '#93C5FD',
                     'editorWidget.background': '#1E293B',
                     'editorWidget.border': '#93C5FD',
@@ -838,11 +840,13 @@ Additional notes and considerations...
                       'editorLineNumber.foreground': '#475569',
                       'editorLineNumber.activeForeground': '#93C5FD',
                       'editorGutter.background': '#0E1525',
-                      'editor.lineHighlightBackground': '#1E293B',
-                      'editor.lineHighlightBorder': '#1E293B',
+                      'editor.lineHighlightBackground': '#00000000',
+                      'editor.lineHighlightBorder': '#00000000',
                       'editorCursor.foreground': '#93C5FD',
                       'editor.selectionBackground': '#1E293B',
                       'editor.inactiveSelectionBackground': '#1E293B80',
+                      'editor.wordHighlightBackground': '#4FB8B020',
+                      'editor.wordHighlightBorder': '#00000000',
                       'editorMinimap.background': '#0E1525',
                       'minimapSlider.background': '#33415540',
                       'minimapSlider.hoverBackground': '#33415560',
@@ -853,7 +857,7 @@ Additional notes and considerations...
                       'scrollbarSlider.background': '#33415580',
                       'scrollbarSlider.hoverBackground': '#334155A0',
                       'scrollbarSlider.activeBackground': '#334155C0',
-                      'editorBracketMatch.background': '#1E293B',
+                      'editorBracketMatch.background': '#00000000',
                       'editorBracketMatch.border': '#93C5FD',
                       'editorWidget.background': '#1E293B',
                       'editorWidget.border': '#93C5FD',
@@ -906,7 +910,7 @@ Additional notes and considerations...
                 }}
               />
             </div>
-            <div className="w-1/2 overflow-auto bg-slate-900/30 requirement-preview-split">
+            <div className="w-1/2 overflow-auto bg-white requirement-preview-split">
               <EnhancedRequirementPreview
                 markdownText={markdownText}
                 requirement={requirement}
@@ -933,14 +937,14 @@ Additional notes and considerations...
         {onSendToChat && (
           <button
             onClick={() => onSendToChat(markdownText)}
-            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 text-white whitespace-nowrap"
-            style={{ backgroundColor: '#f97316' }}
+            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 whitespace-nowrap"
+            style={{ backgroundColor: '#f97316', color: '#ffffff' }}
             title="Send edited requirement to chat"
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#ea580c'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f97316'}
           >
-            <Send size={12} />
-            <span>Send to Chat</span>
+            <Send size={12} style={{ color: '#ffffff', stroke: '#ffffff' }} />
+            <span style={{ color: '#ffffff' }}>Send to Chat</span>
           </button>
         )}
       </div>

@@ -261,7 +261,7 @@ export const WorkflowsList: React.FC<WorkflowsListProps> = ({
             className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-500 hover:bg-purple-600 text-white transition-all duration-200 shadow-lg hover:shadow-purple-500/25"
             title="Create new workflow and open editor"
           >
-            <Plus size={18} />
+            <Plus size={18} style={{ color: 'white', stroke: 'white' }} />
           </button>
         </div>
       </div>

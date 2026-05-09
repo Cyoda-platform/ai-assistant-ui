@@ -144,7 +144,7 @@ Add any additional context, constraints, or considerations here.`,
             className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-500 hover:bg-orange-600 text-white transition-all duration-200 shadow-lg hover:shadow-orange-500/25"
             title="Create new requirement and open editor"
           >
-            <Plus size={18} />
+            <Plus size={18} style={{ color: 'white', stroke: 'white' }} />
           </button>
         </div>
       </div>

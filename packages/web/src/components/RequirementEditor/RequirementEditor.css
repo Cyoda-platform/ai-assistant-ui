@@ -65,6 +65,47 @@
   font-family: 'Fira Code', 'Monaco', 'Menlo', 'Consolas', 'Courier New', 'JetBrains Mono', monospace !important;
 }
 
+/* Monaco editor selection highlight - light mode */
+.requirement-preview-split .monaco-editor .view-line span.inline-selected-text,
+.requirement-editor-split .monaco-editor .view-line span.inline-selected-text {
+  background: #d1fae5 !important;
+  color: #065f46 !important;
+}
+
+/* Selection in Monaco */
+.requirement-editor-split .monaco-editor .selected-text {
+  background: #d1fae5 !important;
+}
+
+.requirement-editor-split .monaco-editor-background {
+  background: #ffffff !important;
+}
+
+/* Cursor line highlight */
+.requirement-editor-split .monaco-editor .current-line {
+  background: #f0fdfa !important;
+}
+
+/* Word Highlight in Monaco - light mode */
+.requirement-editor-split .monaco-editor .wordHighlight {
+  background-color: #fef3c7 !important;
+  border: 1px solid #f59e0b !important;
+}
+
+.requirement-editor-split .monaco-editor .wordHighlightStrong {
+  background-color: #fed7aa !important;
+  border: 1px solid #f97316 !important;
+}
+
+/* Selection highlighting */
+.requirement-editor-split .monaco-editor .selection {
+  background: #bfdbfe !important;
+}
+
+.requirement-editor-split .monaco-editor .selectionHighlight {
+  background-color: #dbeafe !important;
+}
+
 /* Enhanced Requirement Preview Styles */
 .enhanced-requirement-preview {
   padding: 1.5rem;
@@ -93,7 +134,7 @@
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
   font-weight: 600;
-  color: #f1f5f9;
+  color: #1f2937;
 }
 
 .requirement-section-content h1 { font-size: 1.5rem; }
@@ -103,7 +144,7 @@
 
 .requirement-section-content p {
   margin-bottom: 1rem;
-  color: #cbd5e1;
+  color: #4b5563;
   line-height: 1.7;
 }
 
@@ -111,7 +152,7 @@
 .requirement-section-content ol {
   margin-bottom: 1rem;
   padding-left: 1.5rem;
-  color: #cbd5e1;
+  color: #4b5563;
 }
 
 .requirement-section-content li {
@@ -120,13 +161,13 @@
 }
 
 .requirement-section-content li::marker {
-  color: #60a5fa;
+  color: #0d9488;
 }
 
 /* Checkboxes in lists */
 .requirement-section-content input[type="checkbox"] {
   margin-right: 0.5rem;
-  accent-color: #3b82f6;
+  accent-color: #0d9488;
 }
 
 .requirement-section-content li:has(input[type="checkbox"]) {
@@ -136,38 +177,38 @@
 
 /* Code blocks */
 .requirement-section-content code {
-  background: rgba(30, 41, 59, 0.5);
+  background: #f3f4f6;
   padding: 0.2rem 0.4rem;
   border-radius: 0.25rem;
   font-size: 0.875rem;
-  color: #fbbf24;
-  border: 1px solid rgba(251, 191, 36, 0.2);
+  color: #d97706;
+  border: 1px solid #e5e7eb;
 }
 
 .requirement-section-content pre {
-  background: rgba(15, 23, 42, 0.6);
+  background: #f9fafb;
   padding: 1rem;
   border-radius: 0.5rem;
   overflow-x: auto;
   margin-bottom: 1rem;
-  border: 1px solid rgba(51, 65, 85, 0.5);
+  border: 1px solid #e5e7eb;
 }
 
 .requirement-section-content pre code {
   background: transparent;
   padding: 0;
   border: none;
-  color: #e2e8f0;
+  color: #1f2937;
 }
 
 /* Blockquotes */
 .requirement-section-content blockquote {
-  border-left: 4px solid #3b82f6;
+  border-left: 4px solid #0d9488;
   padding-left: 1rem;
   margin: 1rem 0;
-  color: #94a3b8;
+  color: #6b7280;
   font-style: italic;
-  background: rgba(59, 130, 246, 0.05);
+  background: #f0fdfa;
   padding: 0.75rem 1rem;
   border-radius: 0 0.25rem 0.25rem 0;
 }
@@ -183,36 +224,36 @@
 .requirement-section-content th,
 .requirement-section-content td {
   padding: 0.75rem;
-  border: 1px solid rgba(51, 65, 85, 0.5);
+  border: 1px solid #e5e7eb;
   text-align: left;
 }
 
 .requirement-section-content th {
-  background: rgba(30, 41, 59, 0.6);
+  background: #f3f4f6;
   font-weight: 600;
-  color: #f1f5f9;
+  color: #1f2937;
 }
 
 .requirement-section-content td {
-  background: rgba(15, 23, 42, 0.3);
-  color: #cbd5e1;
+  background: #fafafa;
+  color: #4b5563;
 }
 
 .requirement-section-content tr:hover td {
-  background: rgba(30, 41, 59, 0.4);
+  background: #f3f4f6;
 }
 
 /* Links */
 .requirement-section-content a {
-  color: #60a5fa;
+  color: #0d9488;
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: all 0.2s ease;
 }
 
 .requirement-section-content a:hover {
-  color: #93c5fd;
-  border-bottom-color: #93c5fd;
+  color: #0f766e;
+  border-bottom-color: #0f766e;
 }
 
 /* Horizontal rules */
@@ -244,16 +285,16 @@
 
 /* Editor Settings Dropdown Styles */
 .editor-settings-dropdown .ant-dropdown-menu {
-  background: rgba(30, 41, 59, 0.95) !important;
+  background: #ffffff !important;
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(71, 85, 105, 0.5) !important;
+  border: 1px solid #e5e7eb !important;
   border-radius: 0.5rem !important;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
   padding: 0.5rem !important;
 }
 
 .editor-settings-dropdown .ant-dropdown-menu-item-group-title {
-  color: #94a3b8 !important;
+  color: #6b7280 !important;
   font-size: 0.75rem !important;
   font-weight: 600 !important;
   text-transform: uppercase !important;
@@ -262,25 +303,25 @@
 }
 
 .editor-settings-dropdown .ant-dropdown-menu-item {
-  color: #cbd5e1 !important;
+  color: #4b5563 !important;
   border-radius: 0.375rem !important;
   padding: 0.5rem 0.75rem !important;
   transition: all 0.2s ease !important;
 }
 
 .editor-settings-dropdown .ant-dropdown-menu-item:hover {
-  background: rgba(51, 65, 85, 0.6) !important;
-  color: #f1f5f9 !important;
+  background: #f3f4f6 !important;
+  color: #1f2937 !important;
 }
 
 .editor-settings-dropdown .ant-dropdown-menu-item-disabled {
-  color: #64748b !important;
+  color: #9ca3af !important;
   background: transparent !important;
   cursor: default !important;
 }
 
 .editor-settings-dropdown .ant-dropdown-menu-item-divider {
-  background: rgba(71, 85, 105, 0.3) !important;
+  background: #e5e7eb !important;
   margin: 0.5rem 0 !important;
 }
 
@@ -290,24 +331,24 @@
 }
 
 .editor-settings-dropdown .ant-slider-rail {
-  background: rgba(51, 65, 85, 0.5) !important;
+  background: #e5e7eb !important;
 }
 
 .editor-settings-dropdown .ant-slider-track {
-  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%) !important;
+  background: linear-gradient(90deg, #0d9488 0%, #14b8a6 100%) !important;
 }
 
 .editor-settings-dropdown .ant-slider-handle::after {
-  background: #3b82f6 !important;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+  background: #0d9488 !important;
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.3) !important;
 }
 
 .editor-settings-dropdown .ant-slider-mark-text {
-  color: #94a3b8 !important;
+  color: #6b7280 !important;
   font-size: 0.75rem !important;
 }
 
 .editor-settings-dropdown .ant-slider-mark-text-active {
-  color: #60a5fa !important;
+  color: #0d9488 !important;
 }
 

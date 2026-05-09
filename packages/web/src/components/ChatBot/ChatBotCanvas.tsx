@@ -539,32 +539,9 @@ gantt
 
       {/* Canvas Tabs - Single tier (no Application wrapper) */}
       <div className="border-b border-slate-200 bg-slate-50">
-        {/* Resource Tabs - Reordered: Pull button left, resource tabs right */}
+        {/* Resource Tabs - Reordered: tabs left, Pull button right */}
         <div className="px-4 py-3 flex items-center gap-4 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
-          {/* Pull button - Left aligned */}
-          <button
-            onClick={handlePull}
-            disabled={isPulling || !technicalId}
-            className="px-4 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-            title={!technicalId ? "Conversation not available" : "Pull latest changes from repository"}
-          >
-            {isPulling ? (
-              <>
-                <GitPullRequest size={12} className="animate-spin" />
-                <span>Pulling...</span>
-              </>
-            ) : (
-              <>
-                <GitPullRequest size={12} />
-                <span>Pull</span>
-              </>
-            )}
-          </button>
-
-          {/* Spacer to push resource tabs to the right */}
-          <div className="flex-1" />
-
-          {/* Tabs Container - Right aligned */}
+          {/* Tabs Container - Left aligned */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleTabChange('requirement')}
@@ -611,6 +588,32 @@ gantt
               <span>Code</span>
             </button>
           </div>
+
+          {/* Spacer to push Pull button to the right */}
+          <div className="flex-1" />
+
+          {/* Pull button - Right aligned */}
+          <button
+            onClick={handlePull}
+            disabled={isPulling || !technicalId}
+            className="px-4 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ color: '#ffffff', backgroundColor: '#0d9488' }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#0f766e')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#0d9488')}
+            title={!technicalId ? "Conversation not available" : "Pull latest changes from repository"}
+          >
+            {isPulling ? (
+              <>
+                <GitPullRequest size={12} className="animate-spin" />
+                <span>Pulling...</span>
+              </>
+            ) : (
+              <>
+                <GitPullRequest size={12} />
+                <span>Pull</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
