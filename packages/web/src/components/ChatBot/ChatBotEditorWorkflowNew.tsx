@@ -813,21 +813,24 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
   }
 
   return (
-    <div className={`${isFullscreen ? 'fixed inset-0 z-50' : 'h-full'} flex flex-col bg-gray-900`}>
+    <div className={`${isFullscreen ? 'fixed inset-0 z-50' : 'h-full'} flex flex-col bg-white`}>
       {/* Header with GitHub Link */}
       {!isFullscreen && getGitHubUrl() && (
-        <div className="border-b border-gray-700 bg-gray-800/50 px-6 py-3 flex items-center justify-between">
-          <div className="text-sm text-gray-400">
+        <div className="border-b border-gray-200 bg-gray-50 px-6 py-2.5 flex items-center justify-between">
+          <div className="text-xs text-gray-500 font-medium">
             GitHub Path
           </div>
           <a
             href={getGitHubUrl()!}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm font-mono break-all"
+            className="flex items-center gap-1.5 text-sm font-mono break-all transition-colors"
+            style={{ color: '#7c3aed' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#6d28d9'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#7c3aed'}
             title="View on GitHub"
           >
-            <Github size={14} />
+            <Github size={13} />
             {workflowData?.github_url}
           </a>
         </div>
@@ -835,8 +838,8 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
 
       {/* Wrapper Format Notification */}
       {wrapperFormatNotification && (
-        <div className="bg-blue-900/30 border-b border-blue-700/50 px-6 py-3 flex items-center gap-3 animate-pulse">
-          <div className="text-blue-400 text-sm font-medium">
+        <div className="bg-teal-50 border-b border-teal-200 px-6 py-2.5 flex items-center gap-3">
+          <div className="text-teal-700 text-sm font-medium">
             ℹ️ {wrapperFormatNotification.message}
           </div>
         </div>
@@ -882,12 +885,12 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
 
       {/* Footer with Send Button - Fixed at bottom */}
       {!isFullscreen && (
-      <div className="border-t border-gray-700 bg-gray-800/50 p-4 flex items-center justify-between flex-shrink-0">
+      <div className="border-t border-gray-200 bg-gray-50 px-4 py-2.5 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center space-x-2">
           {onBack && (
             <button
               onClick={onBack}
-              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 whitespace-nowrap"
+              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-white hover:bg-gray-100 border border-gray-300 text-gray-600 whitespace-nowrap"
               title="Go back to workflows list"
             >
               <ArrowLeft size={12} />
@@ -903,11 +906,14 @@ const ChatBotEditorWorkflowNew: React.FC<ChatBotEditorWorkflowNewProps> = ({
               const message = `\`\`\`json\n${workflowJson}\n\`\`\``;
               setTextareaContentCallback(message);
             }}
-            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-purple-600/80 hover:bg-purple-500/80 text-white whitespace-nowrap"
+            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 whitespace-nowrap"
+            style={{ background: '#7c3aed', color: '#ffffff' }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#6d28d9'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#7c3aed'}
             title="Send edited workflow to chat"
           >
-            <Send size={12} />
-            <span>Send to Chat</span>
+            <Send size={12} color="#ffffff" />
+            <span style={{ color: '#ffffff' }}>Send to Chat</span>
           </button>
         )}
       </div>

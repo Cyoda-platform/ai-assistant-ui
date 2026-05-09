@@ -45,14 +45,14 @@ const TreeNode: React.FC<{
     return String(value);
   };
 
-  const getTypeColor = () => {
-    if (value === null || value === undefined) return 'text-slate-400';
-    if (typeof value === 'string') return 'text-emerald-700'; // Strings - dark green
-    if (typeof value === 'number') return 'text-blue-700'; // Numbers - dark blue
-    if (typeof value === 'boolean') return 'text-purple-700'; // Boolean - dark purple
-    if (isArray) return 'text-amber-700'; // Arrays - dark amber
-    if (isObject) return 'text-teal-700'; // Objects - dark teal
-    return 'text-slate-400';
+  const getTypeColor = (): React.CSSProperties => {
+    if (value === null || value === undefined) return { color: '#64748B' };
+    if (typeof value === 'string') return { color: '#2e8861' }; // Canvas green
+    if (typeof value === 'number') return { color: '#fb923c' }; // Canvas orange
+    if (typeof value === 'boolean') return { color: '#7C3AED' }; // Canvas violet
+    if (isArray) return { color: '#3b82f6' }; // Canvas blue
+    if (isObject) return { color: '#0D8484' }; // Cyoda teal
+    return { color: '#64748B' };
   };
 
   return (
@@ -73,14 +73,14 @@ const TreeNode: React.FC<{
           <div className="w-4" />
         )}
 
-        <span className="text-teal-700 font-semibold">{label}:</span>
+        <span style={{ color: '#0D8484' }} className="font-semibold">{label}:</span>
 
         {!isExpanded && isExpandable && (
-          <span className={`${getTypeColor()} ml-1`}>{getValuePreview()}</span>
+          <span style={getTypeColor()} className="ml-1">{getValuePreview()}</span>
         )}
 
         {!isExpandable && (
-          <span className={`${getTypeColor()} ml-1`}>{getValuePreview()}</span>
+          <span style={getTypeColor()} className="ml-1">{getValuePreview()}</span>
         )}
       </div>
 
@@ -279,17 +279,18 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
                   onChange={handleJsonChange}
                   theme="workflow-dark"
                   onMount={(editor, monaco) => {
-                    // Define custom theme with light colors for light background
+                    // Define custom theme with Canvas colors
                     monaco.editor.defineTheme('workflow-light', {
                       base: 'vs',
                       inherit: true,
                       rules: [
                         { token: '', foreground: '0F172A' },
-                        { token: 'string.key.json', foreground: '0D9488' }, // Teal 700 for keys
-                        { token: 'string.value.json', foreground: '15803D' }, // Emerald 700 for string values
-                        { token: 'number', foreground: '1E40AF' }, // Blue 700 for numbers
-                        { token: 'keyword.json', foreground: '6B21A8' }, // Purple 700 for true/false/null
-                        { token: 'keyword', foreground: '6B21A8' },
+                        { token: 'string.key.json', foreground: '0D8484' }, // Cyoda teal - keys
+                        { token: 'string.value.json', foreground: '2e8861' }, // Canvas green - string values
+                        { token: 'number', foreground: 'fb923c' }, // Canvas orange - numbers
+                        { token: 'keyword.json', foreground: '7C3AED' }, // Canvas violet - true/false/null
+                        { token: 'keyword', foreground: '7C3AED' },
+                        { token: 'string', foreground: '2e8861' }, // Strings
                         { token: 'comment', foreground: '64748B' },
                       ],
                       colors: {

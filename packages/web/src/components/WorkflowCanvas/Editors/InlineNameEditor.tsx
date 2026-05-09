@@ -87,7 +87,7 @@ export const InlineNameEditor: React.FC<InlineNameEditorProps> = ({
           onClick={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
           placeholder={placeholder}
-          className={`flex-1 px-3 py-2 text-sm font-medium border border-blue-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-gray-800 text-white ${inputClassName}`}
+          className={`flex-1 px-3 py-2 text-sm font-medium border border-violet-500 rounded focus:outline-none focus:ring-1 focus:ring-violet-500/30 bg-white text-gray-800 ${inputClassName}`}
         />
         <button
           type="button"
@@ -111,7 +111,7 @@ export const InlineNameEditor: React.FC<InlineNameEditorProps> = ({
 
   return (
     <div className={`flex items-center space-x-2 group ${className}`} onDoubleClick={handleStartEdit}>
-      <span className={`flex-1 font-medium text-white truncate ${inputClassName}`}>
+      <span className={`flex-1 font-medium truncate ${inputClassName}`}>
         {value || placeholder}
       </span>
       {!disabled && (

@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import {
   ReactFlow,
-  MiniMap,
   Controls,
   Background,
   useNodesState,
@@ -134,11 +133,7 @@ export default function WorkflowCanvas() {
         <Controls
           className="bg-slate-800 border border-slate-600"
         />
-        <MiniMap
-          className="bg-slate-800 border border-slate-600"
-          nodeColor="#64748b"
-          maskColor="rgba(15, 23, 42, 0.8)"
-        />
+
         <Background
           variant={BackgroundVariant.Dots}
           gap={20}

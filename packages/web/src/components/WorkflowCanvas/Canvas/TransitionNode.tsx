@@ -129,7 +129,7 @@ export const TransitionNode: React.FC<NodeProps> = ({ data, selected }) => {
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {/* Criterion - Pink Diamond with Filter icon */}
             {hasCriterion && (
-              <Tooltip title={getCriterionTooltip()} color="#1f2937">
+              <Tooltip title={getCriterionTooltip()} color="#ffffff" overlayInnerStyle={{ color: '#1e293b' }}>
                 <div
                   style={{
                     width: '28px',
@@ -154,7 +154,7 @@ export const TransitionNode: React.FC<NodeProps> = ({ data, selected }) => {
 
             {/* Processors - Blue Circle with Zap icon */}
             {hasProcessors && (
-              <Tooltip title={getProcessorsTooltip()} color="#1f2937">
+              <Tooltip title={getProcessorsTooltip()} color="#ffffff" overlayInnerStyle={{ color: '#1e293b' }}>
                 <div
                   style={{
                     width: '37px',
@@ -178,7 +178,7 @@ export const TransitionNode: React.FC<NodeProps> = ({ data, selected }) => {
 
         {/* Label with transition name - below icons */}
         <div
-          className="text-xl font-medium text-white/90 whitespace-nowrap px-2 py-1 rounded cursor-pointer"
+          className="text-xl font-medium text-gray-700 whitespace-nowrap px-2 py-1 rounded cursor-pointer"
           onDoubleClick={handleDoubleClick}
           title="Double-click to edit transition"
           style={{

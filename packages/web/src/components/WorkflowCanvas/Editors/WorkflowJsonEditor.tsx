@@ -799,37 +799,37 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
         }
       `}</style>
       <div
-        className="h-full bg-gray-800 shadow-2xl flex flex-col border-l-2 flex-shrink-0 relative z-10"
+        className="h-full bg-white shadow-md flex flex-col border-l flex-shrink-0 relative z-10"
         style={{
           width: `${width}px`,
-          borderColor: palette.ui.panelBorder
+          borderColor: '#d1d9e0'
         }}
       >
-      {/* Left Resize Handle - only captures events when directly over it */}
+      {/* Left Resize Handle */}
       <div
-        className="absolute top-0 bottom-0 cursor-ew-resize transition-all group hover:bg-opacity-50"
+        className="absolute top-0 bottom-0 cursor-ew-resize transition-colors group"
         onMouseDown={handleResizeStart}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = palette.ui.accentColor}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#7c3aed40'}
         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
         title="Drag to resize"
         style={{
-          left: '0px',   // Position at the panel edge
-          width: '4px',  // Very narrow to minimize blocking
-          zIndex: 1,     // Very low z-index
+          left: '0px',
+          width: '2px',
+          zIndex: 1,
           pointerEvents: 'auto'
         }}
       >
         <div
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 rounded-r opacity-0 group-hover:opacity-100 transition-opacity"
-          style={{ backgroundColor: palette.ui.accentHover, pointerEvents: 'none' }}
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-8 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+          style={{ backgroundColor: '#7c3aed', pointerEvents: 'none' }}
         />
       </div>
         {/* Header */}
         <div
-          className="flex items-center justify-between px-4 py-3 border-b-2 flex-shrink-0"
+          className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0"
           style={{
-            borderColor: palette.ui.panelBorder,
-            background: `linear-gradient(to right, ${palette.ui.panelGradientVia}30, ${palette.ui.panelGradientTo}30)`
+            borderColor: '#e2e8f0',
+            background: '#f8fafc'
           }}
         >
           <div className="flex items-center gap-3">
@@ -850,13 +850,13 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
               onClick={handleImportFromFile}
               className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-105 group"
               style={{
-                background: `linear-gradient(to bottom right, ${palette.ui.accentColor}, ${palette.ui.accentHover})`
+                background: 'linear-gradient(to bottom right, #7c3aed, #6d28d9)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = `linear-gradient(to bottom right, ${palette.ui.accentHover}, ${palette.ui.panelBorder})`;
+                e.currentTarget.style.background = 'linear-gradient(to bottom right, #6d28d9, #5b21b6)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = `linear-gradient(to bottom right, ${palette.ui.accentColor}, ${palette.ui.accentHover})`;
+                e.currentTarget.style.background = 'linear-gradient(to bottom right, #7c3aed, #6d28d9)';
               }}
               title="Import workflow from JSON file"
             >
@@ -872,16 +872,16 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
                 style={{
                   background: error
                     ? '#6b7280'
-                    : `linear-gradient(to bottom right, #14b8a6, #0d9488)`
+                    : 'linear-gradient(to bottom right, #7c3aed, #6d28d9)'
                 }}
                 onMouseEnter={(e) => {
                   if (!error) {
-                    e.currentTarget.style.background = `linear-gradient(to bottom right, #0d9488, #0f766e)`;
+                    e.currentTarget.style.background = 'linear-gradient(to bottom right, #6d28d9, #5b21b6)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!error) {
-                    e.currentTarget.style.background = `linear-gradient(to bottom right, #14b8a6, #0d9488)`;
+                    e.currentTarget.style.background = 'linear-gradient(to bottom right, #7c3aed, #6d28d9)';
                   }
                 }}
                 title={error ? "Fix JSON errors before sending to chat" : "Send workflow to chat"}
@@ -912,11 +912,11 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
           <div
             className="mx-4 mt-3 p-2.5 border rounded-lg flex-shrink-0"
             style={{
-              backgroundColor: hexToRgba('#dc2626', 0.1),
-              borderColor: '#dc2626'
+              backgroundColor: hexToRgba('#dc2626', 0.06),
+              borderColor: '#fca5a5'
             }}
           >
-            <p className="text-xs font-medium" style={{ color: '#fca5a5' }}>
+            <p className="text-xs font-medium" style={{ color: '#dc2626' }}>
               ⚠️ {error}
             </p>
           </div>
@@ -928,12 +928,12 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
             className="mx-4 mt-3 p-2.5 border rounded-lg flex-shrink-0 animate-pulse"
             style={{
               backgroundColor: notification.type === 'warning'
-                ? hexToRgba('#f59e0b', 0.1)
-                : hexToRgba('#3b82f6', 0.1),
-              borderColor: notification.type === 'warning' ? '#f59e0b' : '#3b82f6'
+                ? hexToRgba('#f59e0b', 0.08)
+                : hexToRgba('#1a8a84', 0.08),
+              borderColor: notification.type === 'warning' ? '#fbbf24' : '#1a8a84'
             }}
           >
-            <p className="text-xs font-medium" style={{ color: notification.type === 'warning' ? '#fcd34d' : '#93c5fd' }}>
+            <p className="text-xs font-medium" style={{ color: notification.type === 'warning' ? '#92400e' : '#1a8a84' }}>
               ℹ️ {notification.message}
             </p>
           </div>
@@ -950,77 +950,66 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
                 editorRef.current = editor;
                 monacoRef.current = monaco;
 
-                // Define custom theme matching the Tree Preview colors
-                monaco.editor.defineTheme('workflow-dark', {
-                  base: 'vs-dark', // Critical for correct scrollbars and menus
+                // Define custom light theme matching Cyoda brand colors
+                monaco.editor.defineTheme('workflow-light', {
+                  base: 'vs', // Light base for correct scrollbars and menus
                   inherit: true,
                   rules: [
-                    { token: '', foreground: 'E2E8F0' }, // Default text color
-                    { token: 'string.key.json', foreground: '93C5FD' }, // JSON keys - text-blue-300
-                    { token: 'string.value.json', foreground: '4ADE80' }, // JSON string values - text-green-400
-                    { token: 'number', foreground: '60A5FA' }, // Numbers - text-blue-400
-                    { token: 'keyword.json', foreground: 'C084FC' }, // Keywords (true/false/null) - text-purple-400
-                    { token: 'keyword', foreground: 'C084FC' }, // Keywords - text-purple-400
-                    { token: 'comment', foreground: '64748B' }, // Comments - muted gray
+                    { token: '', foreground: '1e293b' },             // Default text - slate-800
+                    { token: 'string.key.json', foreground: '1a8a84' }, // JSON keys - Cyoda teal
+                    { token: 'string.value.json', foreground: '166534' }, // String values - green-800
+                    { token: 'number', foreground: '1d4ed8' },        // Numbers - blue-700
+                    { token: 'keyword.json', foreground: '7c3aed' },  // true/false/null - violet
+                    { token: 'keyword', foreground: '7c3aed' },
+                    { token: 'comment', foreground: '94a3b8' },       // Comments - slate-400
                   ],
                   colors: {
-                    // Main editor background - deep dark blue matching app
-                    'editor.background': '#0E1525',
-                    'editor.foreground': '#E2E8F0',
+                    'editor.background': '#ffffff',
+                    'editor.foreground': '#1e293b',
 
-                    // Line numbers and gutter
-                    'editorLineNumber.foreground': '#475569',
-                    'editorLineNumber.activeForeground': '#93C5FD',
-                    'editorGutter.background': '#0E1525',
+                    'editorLineNumber.foreground': '#94a3b8',
+                    'editorLineNumber.activeForeground': '#1a8a84',
+                    'editorGutter.background': '#f8fafc',
 
-                    // Current line highlight
-                    'editor.lineHighlightBackground': '#1E293B',
-                    'editor.lineHighlightBorder': '#1E293B',
+                    'editor.lineHighlightBackground': '#f0fdfa',
+                    'editor.lineHighlightBorder': '#e8f7f6',
 
-                    // Cursor - light blue
-                    'editorCursor.foreground': '#93C5FD',
+                    'editorCursor.foreground': '#1a8a84',
 
-                    // Selection
-                    'editor.selectionBackground': '#1E293B',
-                    'editor.inactiveSelectionBackground': '#1E293B80',
+                    'editor.selectionBackground': '#dcf4f2',
+                    'editor.inactiveSelectionBackground': '#e8f7f680',
 
-                    // Minimap - CRITICAL: must match editor background to avoid white bars
-                    'editorMinimap.background': '#0E1525',
-                    'minimapSlider.background': '#33415540',
-                    'minimapSlider.hoverBackground': '#33415560',
-                    'minimapSlider.activeBackground': '#33415580',
+                    'editorMinimap.background': '#f8fafc',
+                    'minimapSlider.background': '#d1d9e040',
+                    'minimapSlider.hoverBackground': '#d1d9e060',
+                    'minimapSlider.activeBackground': '#d1d9e080',
 
-                    // Sticky scroll - CRITICAL: must match editor background
-                    'editorStickyScroll.background': '#0E1525',
-                    'editorStickyScrollHover.background': '#1E293B',
+                    'editorStickyScroll.background': '#f8fafc',
+                    'editorStickyScrollHover.background': '#f0fdfa',
 
-                    // Scrollbars
                     'scrollbar.shadow': '#00000000',
-                    'scrollbarSlider.background': '#33415580',
-                    'scrollbarSlider.hoverBackground': '#334155A0',
-                    'scrollbarSlider.activeBackground': '#334155C0',
+                    'scrollbarSlider.background': '#d1d9e080',
+                    'scrollbarSlider.hoverBackground': '#d1d9e0A0',
+                    'scrollbarSlider.activeBackground': '#d1d9e0C0',
 
-                    // Bracket matching
-                    'editorBracketMatch.background': '#1E293B',
-                    'editorBracketMatch.border': '#93C5FD',
+                    'editorBracketMatch.background': '#dcf4f2',
+                    'editorBracketMatch.border': '#1a8a84',
 
-                    // Widget backgrounds (autocomplete, hover, etc.)
-                    'editorWidget.background': '#1E293B',
-                    'editorWidget.border': '#93C5FD',
-                    'editorSuggestWidget.background': '#1E293B',
-                    'editorSuggestWidget.border': '#93C5FD',
-                    'editorSuggestWidget.selectedBackground': '#334155',
-                    'editorHoverWidget.background': '#1E293B',
-                    'editorHoverWidget.border': '#93C5FD',
+                    'editorWidget.background': '#ffffff',
+                    'editorWidget.border': '#d1d9e0',
+                    'editorSuggestWidget.background': '#ffffff',
+                    'editorSuggestWidget.border': '#d1d9e0',
+                    'editorSuggestWidget.selectedBackground': '#f0fdfa',
+                    'editorHoverWidget.background': '#ffffff',
+                    'editorHoverWidget.border': '#d1d9e0',
 
-                    // Indentation guides
-                    'editorIndentGuide.background': '#334155',
-                    'editorIndentGuide.activeBackground': '#475569',
+                    'editorIndentGuide.background1': '#e2e8f0',
+                    'editorIndentGuide.activeBackground1': '#94a3b8',
                   }
                 });
 
-                // Set the custom theme
-                monaco.editor.setTheme('workflow-dark');
+                // Set the custom light theme
+                monaco.editor.setTheme('workflow-light');
 
                 // Configure JSON schema validation
                 monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
@@ -1162,7 +1151,7 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
                   }
                 });
               }}
-              theme="workflow-dark"
+              theme="workflow-light"
               options={{
                 minimap: { enabled: true },
                 fontSize: 13,
@@ -1193,8 +1182,8 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
         <div
           className="flex items-center justify-between px-4 py-1.5 border-t flex-shrink-0"
           style={{
-            borderColor: palette.ui.panelBorder + '40',
-            background: `linear-gradient(to right, ${palette.ui.panelGradientVia}20, ${palette.ui.panelGradientTo}20)`
+            borderColor: '#e2e8f0',
+            background: '#f8fafc'
           }}
         >
           <div className="flex items-center space-x-1.5">
@@ -1202,7 +1191,7 @@ export const WorkflowJsonEditor: React.FC<WorkflowJsonEditorProps> = ({
               className="w-1.5 h-1.5 rounded-full animate-pulse"
               style={{ backgroundColor: palette.ui.accentColor }}
             ></div>
-            <div className="text-xs text-gray-400">
+            <div className="text-xs text-gray-500">
               <strong>Live Editing:</strong> Changes apply automatically
             </div>
           </div>

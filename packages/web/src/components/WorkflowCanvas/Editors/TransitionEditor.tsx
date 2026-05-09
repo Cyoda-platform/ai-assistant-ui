@@ -410,7 +410,7 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
   return (
     <div
       ref={panelRef}
-      className="fixed rounded-2xl shadow-2xl flex flex-col border-2 z-50"
+      className="fixed rounded-xl shadow-lg flex flex-col border z-50 bg-white"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
@@ -421,18 +421,14 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
         maxWidth: '95vw',
         maxHeight: '95vh',
         cursor: isDragging ? 'grabbing' : 'default',
-        background: `linear-gradient(to bottom right, ${palette.ui.panelGradientFrom}, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
-        borderColor: palette.ui.panelBorder,
+        borderColor: '#e2e8f0',
         overflow: 'hidden'
       }}
     >
       {/* Header - Title only, draggable */}
       <div
-        className="flex items-center justify-between p-4 border-b-2 flex-shrink-0 cursor-grab active:cursor-grabbing rounded-t-2xl"
-        style={{
-          borderColor: palette.ui.panelBorder,
-          background: `linear-gradient(to right, ${palette.ui.panelGradientFrom}80, ${palette.ui.panelGradientVia}80)`
-        }}
+        className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0 cursor-grab active:cursor-grabbing rounded-t-xl bg-white"
+        style={{ borderColor: '#e2e8f0' }}
         onMouseDown={handleDragStart}
       >
         <h2 style={{ margin: 0, color: '#A78BFA', fontSize: '16px', fontWeight: 500 }}>
@@ -458,7 +454,7 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
       </div>
 
       {/* Transition Name Editor - Editable */}
-      <div className="px-4 py-3 border-b-2 flex-shrink-0" style={{ borderColor: palette.ui.panelBorder }}>
+      <div className="px-4 py-2 border-b flex-shrink-0" style={{ borderColor: '#e2e8f0' }}>
         <InlineNameEditor
           value={transitionName}
           placeholder="Enter transition name"
@@ -475,7 +471,7 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
             }
           }}
           className="text-sm font-medium"
-          inputClassName="text-sm"
+          inputClassName="text-sm text-gray-800"
         />
       </div>
 
@@ -483,7 +479,7 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
         <div className="flex-1 p-4 overflow-hidden">
           <div className="h-full flex flex-col">
             <div className="flex items-center justify-between mb-2">
-              <label className="flex items-center space-x-2 text-sm font-medium text-gray-300">
+              <label className="flex items-center space-x-2 text-sm font-medium text-gray-600">
                 <Code2 size={16} style={{ color: palette.ui.accentColor }} />
                 <span>Transition Configuration (JSON)</span>
               </label>
@@ -496,12 +492,9 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
             </div>
 
             <div
-              className="flex-1 rounded-lg overflow-hidden border-2 transition-colors shadow-lg"
+              className="flex-1 rounded-lg overflow-hidden border"
               style={{
-                borderColor: error ? '#dc2626' : palette.ui.accentColor,
-                boxShadow: error
-                  ? '0 10px 15px -3px rgba(220, 38, 38, 0.2)'
-                  : `0 10px 15px -3px ${palette.ui.accentColor}20`
+                borderColor: error ? '#fecaca' : '#e2e8f0'
               }}
             >
               <Editor
@@ -513,76 +506,51 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
                   editorRef.current = editor;
                   monacoRef.current = monaco;
 
-                  // Define custom theme matching the application design
-                  monaco.editor.defineTheme('workflow-dark', {
-                    base: 'vs-dark', // Critical for correct scrollbars and menus
+                  // Define custom light theme matching Cyoda brand colors
+                  monaco.editor.defineTheme('workflow-light', {
+                    base: 'vs', // Light base for correct scrollbars and menus
                     inherit: true,
                     rules: [
-                      { token: '', foreground: 'E2E8F0' }, // Default text color
-                      { token: 'string.key.json', foreground: '2DD4BF' }, // JSON keys - teal accent
-                      { token: 'string.value.json', foreground: '86EFAC' }, // JSON string values - light green
-                      { token: 'number', foreground: 'FCD34D' }, // Numbers - amber
-                      { token: 'keyword', foreground: '2DD4BF' }, // Keywords - teal accent
-                      { token: 'comment', foreground: '64748B' }, // Comments - muted gray
+                      { token: '', foreground: '1e293b' },
+                      { token: 'string.key.json', foreground: '1a8a84' }, // JSON keys - Cyoda teal
+                      { token: 'string.value.json', foreground: '166534' }, // String values - green
+                      { token: 'number', foreground: '1d4ed8' },           // Numbers - blue
+                      { token: 'keyword', foreground: '7c3aed' },          // Keywords - violet
+                      { token: 'comment', foreground: '94a3b8' },
                     ],
                     colors: {
-                      // Main editor background - deep dark blue matching app
-                      'editor.background': '#0E1525',
-                      'editor.foreground': '#E2E8F0',
-
-                      // Line numbers and gutter
-                      'editorLineNumber.foreground': '#475569',
-                      'editorLineNumber.activeForeground': '#2DD4BF',
-                      'editorGutter.background': '#0E1525',
-
-                      // Current line highlight
-                      'editor.lineHighlightBackground': '#1E293B',
-                      'editor.lineHighlightBorder': '#1E293B',
-
-                      // Cursor - bright teal
-                      'editorCursor.foreground': '#2DD4BF',
-
-                      // Selection
-                      'editor.selectionBackground': '#1E293B',
-                      'editor.inactiveSelectionBackground': '#1E293B80',
-
-                      // Minimap - CRITICAL: must match editor background to avoid white bars
-                      'editorMinimap.background': '#0E1525',
-                      'minimapSlider.background': '#33415540',
-                      'minimapSlider.hoverBackground': '#33415560',
-                      'minimapSlider.activeBackground': '#33415580',
-
-                      // Sticky scroll - CRITICAL: must match editor background
-                      'editorStickyScroll.background': '#0E1525',
-                      'editorStickyScrollHover.background': '#1E293B',
-
-                      // Scrollbars
+                      'editor.background': '#ffffff',
+                      'editor.foreground': '#1e293b',
+                      'editorLineNumber.foreground': '#94a3b8',
+                      'editorLineNumber.activeForeground': '#1a8a84',
+                      'editorGutter.background': '#f8fafc',
+                      'editor.lineHighlightBackground': '#f0fdfa',
+                      'editor.lineHighlightBorder': '#e8f7f6',
+                      'editorCursor.foreground': '#1a8a84',
+                      'editor.selectionBackground': '#dcf4f2',
+                      'editor.inactiveSelectionBackground': '#e8f7f680',
+                      'editorStickyScroll.background': '#f8fafc',
+                      'editorStickyScrollHover.background': '#f0fdfa',
                       'scrollbar.shadow': '#00000000',
-                      'scrollbarSlider.background': '#33415580',
-                      'scrollbarSlider.hoverBackground': '#334155A0',
-                      'scrollbarSlider.activeBackground': '#334155C0',
-
-                      // Bracket matching
-                      'editorBracketMatch.background': '#1E293B',
-                      'editorBracketMatch.border': '#2DD4BF',
-
-                      // Widget backgrounds (autocomplete, hover, etc.)
-                      'editorWidget.background': '#1E293B',
-                      'editorWidget.border': '#2DD4BF',
-                      'editorSuggestWidget.background': '#1E293B',
-                      'editorSuggestWidget.border': '#2DD4BF',
-                      'editorSuggestWidget.selectedBackground': '#334155',
-                      'editorHoverWidget.background': '#1E293B',
-                      'editorHoverWidget.border': '#2DD4BF',
-
-                      // Indentation guides
-                      'editorIndentGuide.background': '#334155',
-                      'editorIndentGuide.activeBackground': '#475569',
+                      'scrollbarSlider.background': '#d1d9e080',
+                      'scrollbarSlider.hoverBackground': '#d1d9e0A0',
+                      'scrollbarSlider.activeBackground': '#d1d9e0C0',
+                      'editorBracketMatch.background': '#dcf4f2',
+                      'editorBracketMatch.border': '#1a8a84',
+                      'editorWidget.background': '#ffffff',
+                      'editorWidget.border': '#d1d9e0',
+                      'editorSuggestWidget.background': '#ffffff',
+                      'editorSuggestWidget.border': '#d1d9e0',
+                      'editorSuggestWidget.selectedBackground': '#f0fdfa',
+                      'editorHoverWidget.background': '#ffffff',
+                      'editorHoverWidget.border': '#d1d9e0',
+                      'editorIndentGuide.background1': '#e2e8f0',
+                      'editorIndentGuide.activeBackground1': '#94a3b8',
                     }
                   });
 
-                  // Set the custom theme
-                  monaco.editor.setTheme('workflow-dark');
+                  // Set the custom light theme
+                  monaco.editor.setTheme('workflow-light');
 
                   // Configure JSON schema validation
                   monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
@@ -735,7 +703,7 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
                     }
                   });
                 }}
-                theme="workflow-dark"
+                theme="workflow-light"
                 options={{
                   minimap: { enabled: false },
                   fontSize: 13,
@@ -777,11 +745,11 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
 
             {error && (
               <div
-                className="mt-3 p-3 border-2 rounded-lg text-sm backdrop-blur-sm"
+                className="mt-2 p-3 border rounded-lg text-sm"
                 style={{
-                  background: 'linear-gradient(to right, rgba(220, 38, 38, 0.1), rgba(220, 38, 38, 0.15))',
-                  borderColor: '#dc2626',
-                  color: '#fca5a5'
+                  backgroundColor: '#fef2f2',
+                  borderColor: '#fecaca',
+                  color: '#b91c1c'
                 }}
               >
                 <div className="flex items-start space-x-2">
@@ -798,64 +766,42 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
 
         {/* Actions */}
         <div
-          className="flex justify-between p-4 border-t flex-shrink-0"
-          style={{
-            borderColor: palette.ui.panelBorder,
-            background: `linear-gradient(to right, ${palette.ui.panelGradientFrom}, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientFrom})`
-          }}
+          className="flex justify-between px-4 py-3 border-t flex-shrink-0 bg-white"
+          style={{ borderColor: '#e2e8f0' }}
         >
           <div>
             {onDelete && (
               <button
                 type="button"
                 onClick={handleDelete}
-                className="flex items-center space-x-2 px-4 py-2 text-sm text-white rounded-lg shadow-lg transition-all hover:shadow-xl hover:scale-105"
-                style={{
-                  background: 'linear-gradient(to right, #dc2626, #b91c1c)',
-                  boxShadow: '0 4px 6px -1px rgba(220, 38, 38, 0.3)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(to right, #b91c1c, #991b1b)';
-                  e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(220, 38, 38, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'linear-gradient(to right, #dc2626, #b91c1c)';
-                  e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(220, 38, 38, 0.3)';
-                }}
+                className="flex items-center space-x-2 px-3 py-1.5 text-sm text-white rounded-lg transition-colors"
+                style={{ backgroundColor: '#dc2626' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#b91c1c'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
               >
-                <Trash2 size={16} />
+                <Trash2 size={14} />
                 <span>Delete</span>
               </button>
             )}
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             {setTextareaContentCallback && (
               <button
                 type="button"
                 onClick={handleSendToChat}
                 disabled={!isValid}
-                className="flex items-center space-x-2 px-4 py-2 text-sm text-white rounded-lg shadow-lg transition-all hover:shadow-xl hover:scale-105"
+                className="flex items-center space-x-2 px-3 py-1.5 text-sm rounded-lg transition-colors"
                 style={{
-                  background: isValid ? 'linear-gradient(to right, #8b5cf6, #7c3aed)' : 'linear-gradient(to right, #4b5563, #374151)',
-                  boxShadow: isValid ? '0 4px 6px -1px rgba(139, 92, 246, 0.3)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  backgroundColor: isValid ? '#7c3aed' : '#9ca3af',
+                  color: 'white',
                   cursor: isValid ? 'pointer' : 'not-allowed',
                   opacity: isValid ? 1 : 0.6
                 }}
-                onMouseEnter={(e) => {
-                  if (isValid) {
-                    e.currentTarget.style.background = 'linear-gradient(to right, #7c3aed, #6d28d9)';
-                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(139, 92, 246, 0.4)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (isValid) {
-                    e.currentTarget.style.background = 'linear-gradient(to right, #8b5cf6, #7c3aed)';
-                    e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(139, 92, 246, 0.3)';
-                  }
-                }}
+                onMouseEnter={(e) => { if (isValid) e.currentTarget.style.backgroundColor = '#6d28d9'; }}
+                onMouseLeave={(e) => { if (isValid) e.currentTarget.style.backgroundColor = '#7c3aed'; }}
                 title="Send transition to chat"
               >
-                <Send size={16} />
+                <Send size={14} />
                 <span>Send to Chat</span>
               </button>
             )}
@@ -863,29 +809,17 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
               type="button"
               onClick={handleSave}
               disabled={!isValid}
-              className="flex items-center space-x-2 px-4 py-2 text-sm rounded-lg transition-all text-white shadow-md"
+              className="flex items-center space-x-2 px-3 py-1.5 text-sm rounded-lg transition-colors"
               style={{
-                backgroundColor: isValid ? palette.ui.accentColor : '#4b5563',
-                color: isValid ? 'white' : '#9ca3af',
+                backgroundColor: isValid ? '#7c3aed' : '#9ca3af',
+                color: 'white',
                 cursor: isValid ? 'pointer' : 'not-allowed',
                 opacity: isValid ? 1 : 0.6
               }}
-              onMouseEnter={(e) => {
-                if (isValid) {
-                  e.currentTarget.style.backgroundColor = palette.ui.accentHover;
-                  e.currentTarget.style.transform = 'scale(1.05)';
-                  e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.3)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (isValid) {
-                  e.currentTarget.style.backgroundColor = palette.ui.accentColor;
-                  e.currentTarget.style.transform = 'scale(1)';
-                  e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
-                }
-              }}
+              onMouseEnter={(e) => { if (isValid) e.currentTarget.style.backgroundColor = '#6d28d9'; }}
+              onMouseLeave={(e) => { if (isValid) e.currentTarget.style.backgroundColor = '#7c3aed'; }}
             >
-              <Save size={16} />
+              <Save size={14} />
               <span>Save</span>
             </button>
           </div>

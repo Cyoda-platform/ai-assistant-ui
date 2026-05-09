@@ -1,7 +1,7 @@
 // ABOUTME: This file defines color palettes for the workflow canvas
-// Supports multiple themes: blue-violet (default), greeny-pink, and cyberpunk
+// Supports multiple themes: cyoda-light (default), blue-violet, greeny-pink, and cyberpunk
 
-export type ThemeName = 'bluey-orange' | 'greeny-pink' | 'cyberpunk';
+export type ThemeName = 'cyoda-light' | 'bluey-orange' | 'greeny-pink' | 'cyberpunk';
 
 export interface ColorPalette {
   name: string;
@@ -30,6 +30,27 @@ export interface ColorPalette {
 }
 
 export const COLOR_PALETTES: Record<ThemeName, ColorPalette> = {
+  'cyoda-light': {
+    name: 'Cyoda Light',
+    description: 'Cyoda brand light theme — teal accents on white',
+    colors: {
+      stateInitial: '#1a8a84',   // Cyoda primary teal (WCAG on white)
+      stateFinal: '#94a3b8',     // Slate-400 — archived/final state
+      stateNormal: '#4FB8B0',    // Cyoda brand teal — normal state
+      transitionManual: '#7c3aed',    // Violet — manual transitions
+      transitionAutomated: '#1a8a84', // Primary teal — automated transitions
+    },
+    ui: {
+      panelBorder: '#1a8a84',        // --primary teal
+      panelGradientFrom: '#ffffff',  // pure white
+      panelGradientVia: '#f0fdfa',   // very light teal
+      panelGradientTo: '#e8f7f6',    // --proof-bar-bg
+      panelTitleFrom: '#1a8a84',     // primary teal
+      panelTitleTo: '#0d9488',       // teal-600
+      accentColor: '#1a8a84',        // --primary
+      accentHover: '#145f5b',        // --accent-foreground (dark teal)
+    }
+  },
   'bluey-orange': {
     name: 'Blue Violet',
     description: 'Professional blue and violet palette',
@@ -95,7 +116,7 @@ export const COLOR_PALETTES: Record<ThemeName, ColorPalette> = {
   }
 };
 
-export const DEFAULT_THEME: ThemeName = 'bluey-orange';
+export const DEFAULT_THEME: ThemeName = 'cyoda-light';
 
 /**
  * Get color palette for a given theme

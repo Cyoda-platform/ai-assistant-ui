@@ -136,7 +136,7 @@ export const StateNode: React.FC<NodeProps> = ({ data, selected }) => {
   const getNodeStyle = () => {
     // Base classes with smooth rounded corners and solid fill - NO GLOW
     const baseClasses = "px-5 py-3 rounded-xl transition-all duration-300 min-w-[180px] relative border-0";
-    const selectedClasses = selected ? " ring-2 ring-white ring-offset-2 ring-offset-[#0b0f1a]" : "";
+    const selectedClasses = selected ? " ring-2 ring-white ring-offset-2 ring-offset-slate-100" : "";
 
     return baseClasses + selectedClasses;
   };

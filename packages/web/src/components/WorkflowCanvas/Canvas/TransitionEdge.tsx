@@ -376,7 +376,7 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
             className="nodrag nopan"
             onClick={handleCriterionClick}
           >
-            <Tooltip title={getCriterionTooltip()} color="#1f2937">
+            <Tooltip title={getCriterionTooltip()} color="#ffffff" overlayInnerStyle={{ color: '#1e293b' }}>
               <div
                 style={{
                   width: '28px',
@@ -410,7 +410,7 @@ export const TransitionEdge: React.FC<EdgeProps> = ({
             className="nodrag nopan"
             onClick={handleProcessorsClick}
           >
-            <Tooltip title={getProcessorsTooltip()} color="#1f2937">
+            <Tooltip title={getProcessorsTooltip()} color="#ffffff" overlayInnerStyle={{ color: '#1e293b' }}>
               <div
                 style={{
                   width: '32px',

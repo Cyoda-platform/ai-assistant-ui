@@ -1301,16 +1301,16 @@ header a.rounded-lg:hover {
   color: rgb(20 184 166) !important; /* teal-500 */
 }
 
-/* ReactFlow Canvas Styles */
+/* ReactFlow Canvas Styles — Light Theme */
 .react-flow__controls button {
-  background-color: #1e293b !important;
-  color: #e2e8f0 !important;
-  border: 1px solid #475569 !important;
+  background-color: #ffffff !important;
+  color: #374151 !important;
+  border: 1px solid #d1d9e0 !important;
 }
 
 .react-flow__controls button:hover {
-  background-color: #334155 !important;
-  color: white !important;
+  background-color: #f0fdfa !important;
+  color: #1a8a84 !important;
 }
 
 /* Fix for Lucide icons - force stroke rendering, remove fill */
@@ -1338,8 +1338,8 @@ header a.rounded-lg:hover {
 
 /* Remove default disabled state dots/circles */
 .react-flow__controls button:disabled {
-  background-color: #0f172a !important;
-  color: #64748b !important;
+  background-color: #f8fafc !important;
+  color: #94a3b8 !important;
   opacity: 0.5;
   cursor: not-allowed;
   position: relative;
@@ -1356,22 +1356,23 @@ header a.rounded-lg:hover {
 }
 
 .react-flow__controls button:disabled:hover {
-  background-color: #0f172a !important;
-  color: #64748b !important;
+  background-color: #f8fafc !important;
+  color: #94a3b8 !important;
 }
 
-/* ReactFlow MiniMap Dark Theme */
+/* ReactFlow MiniMap Light Theme */
 .react-flow__minimap {
-  background-color: #1e293b !important;
-  border: none !important;
+  background-color: #ffffff !important;
+  border: 1px solid #d1d9e0 !important;
+  border-radius: 8px !important;
 }
 
 .react-flow__minimap-svg {
-  background-color: #1e293b !important;
+  background-color: #ffffff !important;
 }
 
 .react-flow__minimap-mask {
-  fill: rgba(15, 23, 42, 0.8) !important;
+  fill: rgba(248, 250, 252, 0.7) !important;
 }
 
 .react-flow__minimap-node {

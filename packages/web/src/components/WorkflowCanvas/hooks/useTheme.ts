@@ -14,7 +14,7 @@ export function useTheme() {
   const [theme, setThemeState] = useState<ThemeName>(() => {
     try {
       const stored = localStorage.getItem(THEME_STORAGE_KEY);
-      if (stored && (stored === 'bluey-orange' || stored === 'greeny-pink' || stored === 'cyberpunk')) {
+      if (stored && (stored === 'cyoda-light' || stored === 'bluey-orange' || stored === 'greeny-pink' || stored === 'cyberpunk')) {
         return stored as ThemeName;
       }
     } catch (error) {

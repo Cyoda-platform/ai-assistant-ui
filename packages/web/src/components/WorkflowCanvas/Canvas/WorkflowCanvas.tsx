@@ -5,7 +5,7 @@ import {
   BackgroundVariant,
   Controls,
   ControlButton,
-  MiniMap,
+
   useNodesState,
   useEdgesState,
   ConnectionMode,
@@ -2003,9 +2003,9 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
   }
 
   return (
-    <div className="h-full w-full flex" style={{ background: '#0b0f1a' }}>
+    <div className="h-full w-full flex" style={{ background: '#f8fafc' }}>
       {/* Canvas Area */}
-      <div className="flex-1 h-full" style={{ background: '#0b0f1a' }}>
+      <div className="flex-1 h-full" style={{ background: '#f8fafc' }}>
         <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -2023,8 +2023,7 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         connectionMode={ConnectionMode.Loose}
-        className="dark"
-        colorMode="dark"
+        colorMode="light"
 
         // Disable default double-click zoom behavior
         zoomOnDoubleClick={false}
@@ -2053,13 +2052,14 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             <ControlButton
               onClick={onBack}
               title="Back to workflows list"
-              className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 border-2"
+              className="border-2"
               style={{
-                borderColor: '#6b7280'
+                background: '#ffffff',
+                borderColor: '#d1d9e0'
               }}
               data-testid="back-button"
             >
-              <ArrowLeft size={16} className="text-white" />
+              <ArrowLeft size={16} className="text-gray-600" />
             </ControlButton>
           )}
 
@@ -2111,8 +2111,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             title="Toggle workflow info"
             className={showWorkflowInfo ? 'border-2' : ''}
             style={showWorkflowInfo ? {
-              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
-              borderColor: palette.ui.accentColor
+              background: 'linear-gradient(to bottom right, #ede9fe, #ddd6fe)',
+              borderColor: '#7c3aed'
             } : {}}
             data-testid="workflow-info-button"
           >
@@ -2123,8 +2123,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             title="Edit workflow JSON"
             className={showJsonEditor ? 'border-2' : ''}
             style={showJsonEditor ? {
-              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
-              borderColor: palette.ui.accentColor
+              background: 'linear-gradient(to bottom right, #ede9fe, #ddd6fe)',
+              borderColor: '#7c3aed'
             } : {}}
             data-testid="json-editor-button"
           >
@@ -2150,8 +2150,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             title="Canvas Settings"
             className={showSettings ? 'border-2' : ''}
             style={showSettings ? {
-              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
-              borderColor: palette.ui.accentColor
+              background: 'linear-gradient(to bottom right, #ede9fe, #ddd6fe)',
+              borderColor: '#7c3aed'
             } : {}}
             data-testid="settings-button"
           >
@@ -2162,8 +2162,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
             title="Toggle Quick Help"
             className={showQuickHelp ? 'border-2' : ''}
             style={showQuickHelp ? {
-              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
-              borderColor: palette.ui.accentColor
+              background: 'linear-gradient(to bottom right, #ede9fe, #ddd6fe)',
+              borderColor: '#7c3aed'
             } : {}}
             data-testid="quick-help-button"
           >
@@ -2176,8 +2176,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
               title={isInFullscreenMode ? "Exit fullscreen" : "Open in fullscreen"}
               className={isInFullscreenMode ? 'border-2' : ''}
               style={isInFullscreenMode ? {
-                background: `linear-gradient(to bottom right, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
-                borderColor: palette.ui.accentColor
+                background: 'linear-gradient(to bottom right, #ede9fe, #ddd6fe)',
+                borderColor: '#7c3aed'
               } : {}}
               data-testid="fullscreen-button"
             >
@@ -2190,54 +2190,25 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
           )}
         </Controls>
 
-        <MiniMap
-          nodeColor={(node) => {
-            // Check if it's a state node or transition node
-            const state = node.data?.state as UIStateData;
-            const transition = node.data?.transition;
 
-            if (state) {
-              // State node colors from palette
-              if (state.isInitial) return palette.colors.stateInitial;
-              if (state.isFinal) return palette.colors.stateFinal;
-              return palette.colors.stateNormal;
-            } else if (transition) {
-              // Transition node colors from palette
-              const isManual = transition.definition?.manual === true;
-              return isManual ? palette.colors.transitionManual : palette.colors.transitionAutomated;
-            }
-
-            // Fallback
-            return palette.colors.stateNormal;
-          }}
-          className="dark"
-          style={{
-            width: 150,
-            height: 120,
-            backgroundColor: palette.ui.panelGradientFrom,
-            borderColor: palette.ui.panelBorder
-          }}
-        />
 
         {showWorkflowInfo && (
           <Panel
             position="top-left"
-            className="p-4 rounded-2xl shadow-2xl border-2 backdrop-blur-md"
+            className="p-4 rounded-2xl shadow-md border"
             style={{
-              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientFrom}, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
-              borderColor: palette.ui.panelBorder
+              background: '#ffffff',
+              borderColor: '#d1d9e0'
             }}
           >
             <div className="text-sm">
               <h4
-                className="font-semibold text-transparent bg-clip-text mb-3 text-base"
-                style={{
-                  backgroundImage: `linear-gradient(to right, ${palette.ui.panelTitleFrom}, ${palette.ui.panelTitleTo})`
-                }}
+                className="font-semibold mb-3 text-base"
+                style={{ color: '#A78BFA' }}
               >
                 {workflow.configuration.name}
               </h4>
-              <div className="text-gray-300 space-y-2">
+              <div className="text-gray-600 space-y-2">
                 <div className="flex items-center space-x-2">
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: palette.colors.stateNormal }}></span>
                   <span>{Object.keys(workflow.configuration.states).length} states</span>
@@ -2247,8 +2218,8 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                   <span>{uiTransitions.length} transitions</span>
                 </div>
                 <div
-                  className="flex items-center justify-between text-xs text-gray-400 mt-2 pt-2 border-t"
-                  style={{ borderColor: palette.ui.panelBorder }}
+                  className="flex items-center justify-between text-xs text-gray-500 mt-2 pt-2 border-t"
+                  style={{ borderColor: '#e2e8f0' }}
                 >
                   <span>Updated: {new Date(workflow.updatedAt).toLocaleDateString()}</span>
                   <button
@@ -2280,10 +2251,10 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         {showSettings && (
           <Panel
             position="top-right"
-            className="rounded-2xl shadow-2xl border-2 backdrop-blur-md w-80"
+            className="rounded-2xl shadow-md border w-80"
             style={{
-              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientFrom}, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
-              borderColor: palette.ui.panelBorder
+              background: '#ffffff',
+              borderColor: '#d1d9e0'
             }}
             data-testid="settings-panel"
           >
@@ -2317,18 +2288,13 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
               {/* Edge Type Setting */}
               <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-300 uppercase tracking-wider">Edge Type</label>
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Edge Type</label>
                 <select
                   value={edgeType}
                   onChange={(e) => setEdgeType(e.target.value as any)}
-                  className="w-full px-3 py-2 pr-10 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 appearance-none"
+                  className="w-full px-3 py-2 bg-white border rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 appearance-none"
                   style={{
-                    borderColor: palette.ui.panelBorder,
-                    borderWidth: '1px',
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e5e7eb' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 8px center',
-                    paddingRight: '32px',
+                    borderColor: '#d1d9e0',
                     accentColor: palette.ui.accentColor
                   }}
                   onFocus={(e) => e.currentTarget.style.boxShadow = `0 0 0 2px ${palette.ui.accentColor}40`}
@@ -2339,23 +2305,18 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                   <option value="step">Step</option>
                   <option value="smoothstep">Smooth Step</option>
                 </select>
-                <p className="text-xs text-gray-400">Changes the style of connection lines between nodes</p>
+                <p className="text-xs text-gray-500">Changes the style of connection lines between nodes</p>
               </div>
 
               {/* Layout Direction Setting */}
               <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-300 uppercase tracking-wider">Auto-Layout Direction</label>
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Auto-Layout Direction</label>
                 <select
                   value={layoutDirection}
                   onChange={(e) => setLayoutDirection(e.target.value as any)}
-                  className="w-full px-3 py-2 pr-10 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 appearance-none"
+                  className="w-full px-3 py-2 bg-white border rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 appearance-none"
                   style={{
-                    borderColor: palette.ui.panelBorder,
-                    borderWidth: '1px',
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e5e7eb' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 8px center',
-                    paddingRight: '32px',
+                    borderColor: '#d1d9e0',
                     accentColor: palette.ui.accentColor
                   }}
                   onFocus={(e) => e.currentTarget.style.boxShadow = `0 0 0 2px ${palette.ui.accentColor}40`}
@@ -2364,23 +2325,18 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                   <option value="TB">Top to Bottom</option>
                   <option value="LR">Left to Right</option>
                 </select>
-                <p className="text-xs text-gray-400">Direction for auto-layout algorithm</p>
+                <p className="text-xs text-gray-500">Direction for auto-layout algorithm</p>
               </div>
 
               {/* Color Theme Setting */}
               <div className="space-y-2">
-                <label className="text-xs font-medium text-gray-300 uppercase tracking-wider">Color Theme</label>
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Color Theme</label>
                 <select
                   value={theme}
                   onChange={(e) => setTheme(e.target.value as any)}
-                  className="w-full px-3 py-2 pr-10 bg-gray-800 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 appearance-none"
+                  className="w-full px-3 py-2 bg-white border rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 appearance-none"
                   style={{
-                    borderColor: palette.ui.panelBorder,
-                    borderWidth: '1px',
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e5e7eb' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 8px center',
-                    paddingRight: '32px',
+                    borderColor: '#d1d9e0',
                     accentColor: palette.ui.accentColor
                   }}
                   onFocus={(e) => e.currentTarget.style.boxShadow = `0 0 0 2px ${palette.ui.accentColor}40`}
@@ -2392,18 +2348,18 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-gray-400">{COLOR_PALETTES[theme].description}</p>
+                <p className="text-xs text-gray-500">{COLOR_PALETTES[theme].description}</p>
               </div>
 
               {/* Workflow Stats */}
-              <div className="pt-3 border-t space-y-2" style={{ borderColor: palette.ui.panelBorder }}>
-                <div className="text-xs font-medium text-gray-300 uppercase tracking-wider">Workflow Stats</div>
+              <div className="pt-3 border-t space-y-2" style={{ borderColor: '#e2e8f0' }}>
+                <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">Workflow Stats</div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div
-                    className="bg-gray-800/50 rounded-lg p-2 border"
-                    style={{ borderColor: palette.ui.panelBorder + '30' }}
+                    className="bg-gray-50 rounded-lg p-2 border"
+                    style={{ borderColor: '#e2e8f0' }}
                   >
-                    <div className="text-gray-400">States</div>
+                    <div className="text-gray-500">States</div>
                     <div
                       className="text-lg font-bold"
                       style={{ color: palette.colors.stateNormal }}
@@ -2412,10 +2368,10 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
                     </div>
                   </div>
                   <div
-                    className="bg-gray-800/50 rounded-lg p-2 border"
-                    style={{ borderColor: palette.ui.panelBorder + '30' }}
+                    className="bg-gray-50 rounded-lg p-2 border"
+                    style={{ borderColor: '#e2e8f0' }}
                   >
-                    <div className="text-gray-400">Transitions</div>
+                    <div className="text-gray-500">Transitions</div>
                     <div
                       className="text-lg font-bold"
                       style={{ color: palette.colors.transitionManual }}
@@ -2432,15 +2388,15 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
         {showQuickHelp && (
           <Panel
             position="top-right"
-            className="rounded-2xl shadow-2xl border-2 backdrop-blur-md w-72 max-h-[50vh] overflow-hidden"
+            className="rounded-2xl shadow-md border w-72 max-h-[50vh] overflow-hidden"
             style={{
-              background: `linear-gradient(to bottom right, ${palette.ui.panelGradientFrom}, ${palette.ui.panelGradientVia}, ${palette.ui.panelGradientTo})`,
-              borderColor: palette.ui.panelBorder
+              background: '#ffffff',
+              borderColor: '#d1d9e0'
             }}
             data-testid="quick-help-panel"
           >
             <div
-              className="p-4 pr-3 overflow-y-auto max-h-[50vh] text-xs text-gray-300 space-y-6"
+              className="p-4 pr-3 overflow-y-auto max-h-[50vh] text-xs text-gray-600 space-y-6"
               style={{
                 scrollbarWidth: 'thin',
                 scrollbarColor: `${palette.ui.accentColor} transparent`,
@@ -2474,120 +2430,120 @@ const WorkflowCanvasInner: React.FC<WorkflowCanvasProps> = ({
 
               {/* Canvas Interactions */}
               <div className="space-y-3">
-                <div className="text-xs font-semibold uppercase text-gray-400 opacity-60 tracking-wide">Canvas Interactions</div>
+                <div className="text-xs font-semibold uppercase text-gray-500 opacity-70 tracking-wide">Canvas Interactions</div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Double-click canvas</span> Add new state</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">Double-click canvas</span> Add new state</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Drag states</span> Rearrange layout</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">Drag states</span> Rearrange layout</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Drag from handles</span> Connect states</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">Drag from handles</span> Connect states</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Click state/transition</span> Jump to JSON</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">Click state/transition</span> Jump to JSON</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Double-click transition</span> Open editor</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">Double-click transition</span> Open editor</span>
                 </div>
               </div>
 
               {/* Toolbar Buttons */}
-              <div className="space-y-3 pt-4 border-t border-pink-200 dark:border-pink-800">
-                <div className="text-xs font-semibold uppercase text-gray-400 opacity-60 tracking-wide">Toolbar Buttons</div>
+              <div className="space-y-3 pt-4 border-t border-gray-200">
+                <div className="text-xs font-semibold uppercase text-gray-500 opacity-70 tracking-wide">Toolbar Buttons</div>
 
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-pink-500 mt-0.5 flex-shrink-0">↶</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Undo</span> Revert last change</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">↶</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">Undo</span> Revert last change</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-lime-500 mt-0.5 flex-shrink-0">↷</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Redo</span> Restore undone change</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">↷</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">Redo</span> Restore undone change</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
                   <span className="text-blue-500 mt-0.5 flex-shrink-0">⊡</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Fit View</span> Center and fit workflow</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">Fit View</span> Center and fit workflow</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-yellow-500 mt-0.5 flex-shrink-0">⚡</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Auto-arrange</span> Layout states hierarchically</span>
+                  <span className="text-yellow-600 mt-0.5 flex-shrink-0">⚡</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">Auto-arrange</span> Layout states hierarchically</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
                   <span className="text-blue-500 mt-0.5 flex-shrink-0">ℹ️</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Info</span> Workflow information panel</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">Info</span> Workflow information panel</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-lime-500 mt-0.5 flex-shrink-0">{'{}'}</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">JSON Editor</span> Edit workflow as JSON</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">{'{}'}</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">JSON Editor</span> Edit workflow as JSON</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-pink-500 mt-0.5 flex-shrink-0">↓</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Download</span> Export to JSON file</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">↓</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">Download</span> Export to JSON file</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-lime-500 mt-0.5 flex-shrink-0">↑</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Upload</span> Import from JSON file</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">↑</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">Upload</span> Import from JSON file</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-purple-500 mt-0.5 flex-shrink-0">⚙️</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Settings</span> Canvas preferences</span>
+                  <span className="text-gray-500 mt-0.5 flex-shrink-0">⚙️</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">Settings</span> Canvas preferences</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-yellow-500 mt-0.5 flex-shrink-0">💡</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Quick Help</span> Toggle this panel</span>
+                  <span className="text-yellow-600 mt-0.5 flex-shrink-0">💡</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">Quick Help</span> Toggle this panel</span>
                 </div>
                 {modelName && modelVersion && (
                   <div className="flex items-start space-x-3 py-0.5">
-                    <span className="text-purple-500 mt-0.5 flex-shrink-0">{isInFullscreenMode ? '⤓' : '⤢'}</span>
-                    <span className="text-gray-300"><span className="text-white font-bold">Fullscreen</span> {isInFullscreenMode ? 'Exit fullscreen' : 'Enter fullscreen'}</span>
+                    <span className="text-teal-500 mt-0.5 flex-shrink-0">{isInFullscreenMode ? '⤓' : '⤢'}</span>
+                    <span className="text-gray-600"><span className="text-gray-800 font-bold">Fullscreen</span> {isInFullscreenMode ? 'Exit fullscreen' : 'Enter fullscreen'}</span>
                   </div>
                 )}
               </div>
 
               {/* Keyboard Shortcuts */}
-              <div className="space-y-3 pt-4 border-t border-pink-200 dark:border-pink-800">
-                <div className="text-xs font-semibold uppercase text-gray-400 opacity-60 tracking-wide">Keyboard Shortcuts</div>
+              <div className="space-y-3 pt-4 border-t border-gray-200">
+                <div className="text-xs font-semibold uppercase text-gray-500 opacity-70 tracking-wide">Keyboard Shortcuts</div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">{navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? 'Cmd' : 'Ctrl'} + Z</span> Undo last change</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">{navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? 'Cmd' : 'Ctrl'} + Z</span> Undo last change</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">{navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? 'Cmd + Shift + Z' : 'Ctrl + Y'}</span> Redo change</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">{navigator.platform.toUpperCase().indexOf('MAC') >= 0 ? 'Cmd + Shift + Z' : 'Ctrl + Y'}</span> Redo change</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Delete / Backspace</span> Delete selected item</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">Delete / Backspace</span> Delete selected item</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
-                  <span className="text-gray-300"><span className="text-white font-bold">Mouse Wheel</span> Zoom in/out</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-600"><span className="text-gray-800 font-bold">Mouse Wheel</span> Zoom in/out</span>
                 </div>
               </div>
 
               {/* Tips */}
-              <div className="space-y-3 pt-4 border-t border-pink-200 dark:border-pink-800">
-                <div className="text-xs font-semibold uppercase text-gray-400 opacity-60 tracking-wide">Tips</div>
+              <div className="space-y-3 pt-4 border-t border-gray-200">
+                <div className="text-xs font-semibold uppercase text-gray-500 opacity-70 tracking-wide">Tips</div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
-                  <span className="text-gray-300">Use JSON editor for bulk changes</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-600">Use JSON editor for bulk changes</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
-                  <span className="text-gray-300">Auto-arrange after pasting JSON</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-600">Auto-arrange after pasting JSON</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-lime-500 mt-0.5 flex-shrink-0">•</span>
-                  <span className="text-gray-300">Right-click tabs to edit name/version</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-600">Right-click tabs to edit name/version</span>
                 </div>
                 <div className="flex items-start space-x-3 py-0.5">
-                  <span className="text-pink-500 mt-0.5 flex-shrink-0">•</span>
-                  <span className="text-gray-300">All 8 handles on states are usable</span>
+                  <span className="text-teal-500 mt-0.5 flex-shrink-0">•</span>
+                  <span className="text-gray-600">All 8 handles on states are usable</span>
                 </div>
               </div>
             </div>
