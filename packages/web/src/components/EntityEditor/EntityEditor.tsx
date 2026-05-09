@@ -46,34 +46,34 @@ const TreeNode: React.FC<{
   };
 
   const getTypeColor = () => {
-    if (value === null || value === undefined) return 'text-gray-500';
-    if (typeof value === 'string') return 'text-green-400';
-    if (typeof value === 'number') return 'text-blue-400';
-    if (typeof value === 'boolean') return 'text-purple-400';
-    if (isArray) return 'text-yellow-400';
-    if (isObject) return 'text-cyan-400';
-    return 'text-gray-400';
+    if (value === null || value === undefined) return 'text-slate-400';
+    if (typeof value === 'string') return 'text-emerald-700'; // Strings - dark green
+    if (typeof value === 'number') return 'text-blue-700'; // Numbers - dark blue
+    if (typeof value === 'boolean') return 'text-purple-700'; // Boolean - dark purple
+    if (isArray) return 'text-amber-700'; // Arrays - dark amber
+    if (isObject) return 'text-teal-700'; // Objects - dark teal
+    return 'text-slate-400';
   };
 
   return (
     <div className="font-mono text-sm">
-      <div className="flex items-center space-x-1 py-0.5 hover:bg-gray-800/50 rounded px-1">
+      <div className="flex items-center space-x-1 py-0.5 hover:bg-slate-100 rounded px-1">
         {isExpandable ? (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex-shrink-0 w-4 h-4 flex items-center justify-center hover:bg-gray-700 rounded"
+            className="flex-shrink-0 w-4 h-4 flex items-center justify-center hover:bg-slate-200 rounded"
           >
             {isExpanded ? (
-              <ChevronDown size={14} className="text-gray-400" />
+              <ChevronDown size={14} className="text-slate-600" />
             ) : (
-              <ChevronRight size={14} className="text-gray-400" />
+              <ChevronRight size={14} className="text-slate-600" />
             )}
           </button>
         ) : (
           <div className="w-4" />
         )}
 
-        <span className="text-blue-300">{label}:</span>
+        <span className="text-teal-700 font-semibold">{label}:</span>
 
         {!isExpanded && isExpandable && (
           <span className={`${getTypeColor()} ml-1`}>{getValuePreview()}</span>
@@ -85,7 +85,7 @@ const TreeNode: React.FC<{
       </div>
 
       {isExpanded && isExpandable && (
-        <div className="ml-4 border-l border-gray-700 pl-2">
+        <div className="ml-4 border-l border-slate-300 pl-2">
           {isArray ? (
             value.map((item: any, index: number) => (
               <TreeNode
@@ -264,14 +264,14 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
   const currentEntity = entity!;
 
   return (
-    <div className="h-full w-full flex flex-col bg-gray-900">
+    <div className="h-full w-full flex flex-col bg-white">
       {/* Content - Split View: JSON Editor + Tree Preview */}
       <div className="flex-1 overflow-auto w-full">
         <div className="h-full w-full flex flex-col">
           <div className="flex-1 flex w-full">
             {/* JSON Editor */}
-            <div className="flex-1 border-r border-gray-700 p-4 min-w-0">
-              <div className="h-full rounded-lg overflow-hidden border-2 border-gray-700">
+            <div className="flex-1 border-r border-slate-200 p-4 min-w-0">
+              <div className="h-full rounded-lg overflow-hidden border-2 border-slate-200">
                 <Editor
                   height="100%"
                   defaultLanguage="json"
@@ -279,54 +279,54 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
                   onChange={handleJsonChange}
                   theme="workflow-dark"
                   onMount={(editor, monaco) => {
-                    // Define custom theme matching the Tree Preview colors
-                    monaco.editor.defineTheme('workflow-dark', {
-                      base: 'vs-dark',
+                    // Define custom theme with light colors for light background
+                    monaco.editor.defineTheme('workflow-light', {
+                      base: 'vs',
                       inherit: true,
                       rules: [
-                        { token: '', foreground: 'E2E8F0' },
-                        { token: 'string.key.json', foreground: '93C5FD' }, // text-blue-300 (keys)
-                        { token: 'string.value.json', foreground: '4ADE80' }, // text-green-400 (string values)
-                        { token: 'number', foreground: '60A5FA' }, // text-blue-400 (numbers)
-                        { token: 'keyword.json', foreground: 'C084FC' }, // text-purple-400 (true/false/null)
-                        { token: 'keyword', foreground: 'C084FC' },
+                        { token: '', foreground: '0F172A' },
+                        { token: 'string.key.json', foreground: '0D9488' }, // Teal 700 for keys
+                        { token: 'string.value.json', foreground: '15803D' }, // Emerald 700 for string values
+                        { token: 'number', foreground: '1E40AF' }, // Blue 700 for numbers
+                        { token: 'keyword.json', foreground: '6B21A8' }, // Purple 700 for true/false/null
+                        { token: 'keyword', foreground: '6B21A8' },
                         { token: 'comment', foreground: '64748B' },
                       ],
                       colors: {
-                        'editor.background': '#0E1525',
-                        'editor.foreground': '#E2E8F0',
-                        'editorLineNumber.foreground': '#475569',
-                        'editorLineNumber.activeForeground': '#93C5FD',
-                        'editorGutter.background': '#0E1525',
-                        'editor.lineHighlightBackground': '#1E293B',
-                        'editor.lineHighlightBorder': '#1E293B',
-                        'editorCursor.foreground': '#93C5FD',
-                        'editor.selectionBackground': '#1E293B',
-                        'editor.inactiveSelectionBackground': '#1E293B80',
-                        'editorMinimap.background': '#0E1525',
-                        'minimapSlider.background': '#33415540',
-                        'minimapSlider.hoverBackground': '#33415560',
-                        'minimapSlider.activeBackground': '#33415580',
-                        'editorStickyScroll.background': '#0E1525',
-                        'editorStickyScrollHover.background': '#1E293B',
+                        'editor.background': '#FFFFFF',
+                        'editor.foreground': '#0F172A',
+                        'editorLineNumber.foreground': '#94A3B8',
+                        'editorLineNumber.activeForeground': '#1a8a84',
+                        'editorGutter.background': '#FFFFFF',
+                        'editor.lineHighlightBackground': '#4FB8B010',
+                        'editor.lineHighlightBorder': '#4FB8B000',
+                        'editorCursor.foreground': '#1a8a84',
+                        'editor.selectionBackground': '#D1D5DB40',
+                        'editor.inactiveSelectionBackground': '#D1D5DB20',
+                        'editorMinimap.background': '#FFFFFF',
+                        'minimapSlider.background': '#CBD5E180',
+                        'minimapSlider.hoverBackground': '#94A3B8',
+                        'minimapSlider.activeBackground': '#64748B',
+                        'editorStickyScroll.background': '#FFFFFF',
+                        'editorStickyScrollHover.background': '#F8FAFC',
                         'scrollbar.shadow': '#00000000',
-                        'scrollbarSlider.background': '#33415580',
-                        'scrollbarSlider.hoverBackground': '#334155A0',
-                        'scrollbarSlider.activeBackground': '#334155C0',
-                        'editorBracketMatch.background': '#1E293B',
-                        'editorBracketMatch.border': '#93C5FD',
-                        'editorWidget.background': '#1E293B',
-                        'editorWidget.border': '#93C5FD',
-                        'editorSuggestWidget.background': '#1E293B',
-                        'editorSuggestWidget.border': '#93C5FD',
-                        'editorSuggestWidget.selectedBackground': '#334155',
-                        'editorHoverWidget.background': '#1E293B',
-                        'editorHoverWidget.border': '#93C5FD',
-                        'editorIndentGuide.background': '#334155',
-                        'editorIndentGuide.activeBackground': '#475569',
+                        'scrollbarSlider.background': '#CBD5E180',
+                        'scrollbarSlider.hoverBackground': '#94A3B8',
+                        'scrollbarSlider.activeBackground': '#64748B',
+                        'editorBracketMatch.background': '#00000000',
+                        'editorBracketMatch.border': '#1a8a84',
+                        'editorWidget.background': '#FFFFFF',
+                        'editorWidget.border': '#D1D5DB',
+                        'editorSuggestWidget.background': '#FFFFFF',
+                        'editorSuggestWidget.border': '#D1D5DB',
+                        'editorSuggestWidget.selectedBackground': '#F1F5F9',
+                        'editorHoverWidget.background': '#FFFFFF',
+                        'editorHoverWidget.border': '#D1D5DB',
+                        'editorIndentGuide.background': '#E2E8F0',
+                        'editorIndentGuide.activeBackground': '#CBD5E1',
                       }
                     });
-                    monaco.editor.setTheme('workflow-dark');
+                    monaco.editor.setTheme('workflow-light');
                   }}
                   options={{
                     readOnly: false,
@@ -355,9 +355,9 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
 
             {/* Tree View */}
             <div className="flex-1 p-4 overflow-auto min-w-0">
-              <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 h-full flex flex-col">
-                <h3 className="text-sm font-semibold text-gray-400 mb-3">Tree Preview</h3>
-                <div className="bg-gray-900 rounded-lg p-4 overflow-auto flex-1 mb-4">
+              <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 h-full flex flex-col">
+                <h3 className="text-sm font-semibold text-slate-700 mb-3">Tree Preview</h3>
+                <div className="bg-white rounded-lg p-4 overflow-auto flex-1 mb-4 border border-slate-200">
                   {!jsonError && entity && parsedModel && (
                     <TreeNode
                       label={entity.name}
@@ -365,7 +365,7 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
                     />
                   )}
                   {jsonError && (
-                    <div className="text-red-400 text-sm">
+                    <div className="text-red-600 text-sm">
                       Fix JSON errors to see tree preview
                     </div>
                   )}
@@ -373,17 +373,17 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
 
                 {/* Entity Metadata */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-gray-900 rounded-lg p-3">
-                    <div className="text-xs text-gray-400 mb-1">Entity Name</div>
-                    <div className="text-white font-mono text-xs">{currentEntity.name}</div>
+                  <div className="bg-white rounded-lg p-3 border border-slate-200">
+                    <div className="text-xs text-slate-600 mb-1">Entity Name</div>
+                    <div className="text-slate-900 font-mono text-xs">{currentEntity.name}</div>
                   </div>
-                  <div className="bg-gray-900 rounded-lg p-3">
-                    <div className="text-xs text-gray-400 mb-1">Version</div>
-                    <div className="text-white font-mono text-xs">{currentEntity.version}</div>
+                  <div className="bg-white rounded-lg p-3 border border-slate-200">
+                    <div className="text-xs text-slate-600 mb-1">Version</div>
+                    <div className="text-slate-900 font-mono text-xs">{currentEntity.version}</div>
                   </div>
                   {currentEntity.github_url && getGitHubUrl(currentEntity) && (
-                    <div className="bg-gray-900 rounded-lg p-3 col-span-2">
-                      <div className="text-xs text-gray-400 mb-1 flex items-center gap-1">
+                    <div className="bg-white rounded-lg p-3 col-span-2 border border-slate-200">
+                      <div className="text-xs text-slate-600 mb-1 flex items-center gap-1">
                         <Github size={12} />
                         GitHub Path
                       </div>
@@ -391,7 +391,7 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
                         href={getGitHubUrl(currentEntity)!}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-400 hover:text-blue-300 underline text-xs break-all font-mono flex items-center gap-1"
+                        className="text-teal-600 hover:text-teal-700 underline text-xs break-all font-mono flex items-center gap-1"
                         title="View on GitHub"
                       >
                         {currentEntity.github_url}
@@ -405,14 +405,14 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
 
           {/* Lint Messages */}
           {(jsonError || jsonWarnings.length > 0) && (
-            <div className="border-t border-gray-700 p-4 bg-gray-800">
+            <div className="border-t border-slate-200 p-4 bg-slate-50">
               {jsonError && (
-                <div className="p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200 mb-2">
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 mb-2">
                   <strong>❌ Error:</strong> {jsonError}
                 </div>
               )}
               {!jsonError && jsonWarnings.length > 0 && (
-                <div className="p-3 bg-yellow-900/50 border border-yellow-700 rounded-lg text-yellow-200">
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-700">
                   <strong>⚠️ Warnings:</strong>
                   <ul className="mt-2 ml-4 list-disc text-sm">
                     {jsonWarnings.map((warning, idx) => (
@@ -427,12 +427,12 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
       </div>
 
       {/* Footer with Send Button - Fixed at bottom */}
-      <div className="border-t border-gray-700 bg-gray-800/50 p-4 flex items-center justify-between flex-shrink-0">
+      <div className="border-t border-slate-200 bg-white p-4 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center space-x-2">
           {onBack && (
             <button
               onClick={onBack}
-              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-300 whitespace-nowrap"
+              className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 whitespace-nowrap"
               title="Go back to entities list"
             >
               <ArrowLeft size={12} />
@@ -443,7 +443,7 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
         {onSendToChat && !jsonError && (
           <button
             onClick={() => onSendToChat(jsonText)}
-            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-teal-600/80 hover:bg-teal-500/80 text-white whitespace-nowrap"
+            className="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 bg-teal-600 hover:bg-teal-700 text-white whitespace-nowrap"
             title="Send edited entity to chat"
           >
             <Send size={12} />
