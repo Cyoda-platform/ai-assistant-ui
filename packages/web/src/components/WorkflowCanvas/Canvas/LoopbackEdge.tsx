@@ -209,10 +209,7 @@ export const LoopbackEdge: React.FC<EdgeProps> = ({
         >
           {/* Label with transition name */}
           <div
-            className="text-xl font-medium text-white/90 whitespace-nowrap px-2 py-1 rounded cursor-pointer"
-            style={{
-              backgroundColor: 'transparent',
-            }}
+            className="text-sm font-medium text-slate-800 whitespace-nowrap px-1.5 py-0.5 rounded cursor-pointer bg-white/90 border border-slate-200 shadow-sm"
             title="Click to highlight in JSON, double-click to edit transition"
           >
             {transition?.definition?.name || 'Loop-back'}
