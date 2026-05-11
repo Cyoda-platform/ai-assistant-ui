@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Server, Globe, CheckCircle, XCircle, Edit2, Save, X, Loader2, Send, BarChart3 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
+import { registerWorkflowLightTheme, WORKFLOW_LIGHT_THEME } from '@/utils/monacoTheme';
 import apiService from '@/services/apiService';
 import { mockDiagramsConfig } from '@/components/AppsCanvas/mockDiagrams';
 import DashboardChart from '@/components/AppsCanvas/nodes/DashboardChart';
@@ -332,7 +333,7 @@ export const EnvironmentEditor: React.FC<EnvironmentEditorProps> = ({ appId, env
                 defaultLanguage="json"
                 value={jsonText}
                 onChange={(value) => setJsonText(value || '')}
-                theme="vs-dark"
+                theme={WORKFLOW_LIGHT_THEME}
                 options={{
                   readOnly: false,
                   minimap: { enabled: false },

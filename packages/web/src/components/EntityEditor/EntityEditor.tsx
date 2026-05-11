@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Database, Edit2, Save, X, ChevronRight, ChevronDown, Loader2, Send, ArrowLeft, Github } from 'lucide-react';
 import Editor, { Monaco } from '@monaco-editor/react';
 import apiService from '@/services/apiService';
+import { registerWorkflowLightTheme, WORKFLOW_LIGHT_THEME } from '@/utils/monacoTheme';
 
 interface Entity {
   name: string;
@@ -45,14 +46,17 @@ const TreeNode: React.FC<{
     return String(value);
   };
 
+  const isUrl = typeof value === 'string' && /^https?:\/\//.test(value);
+
   const getTypeColor = (): React.CSSProperties => {
-    if (value === null || value === undefined) return { color: '#64748B' };
-    if (typeof value === 'string') return { color: '#2e8861' }; // Canvas green
-    if (typeof value === 'number') return { color: '#fb923c' }; // Canvas orange
-    if (typeof value === 'boolean') return { color: '#7C3AED' }; // Canvas violet
-    if (isArray) return { color: '#3b82f6' }; // Canvas blue
-    if (isObject) return { color: '#0D8484' }; // Cyoda teal
-    return { color: '#64748B' };
+    if (value === null || value === undefined) return { color: '#7c3aed' }; // violet
+    if (isUrl) return { color: '#2563eb', textDecoration: 'underline' }; // blue + underline
+    if (typeof value === 'string') return { color: '#334155' }; // slate
+    if (typeof value === 'number') return { color: '#c2410c' }; // orange
+    if (typeof value === 'boolean') return { color: '#2563eb' }; // blue
+    if (isArray) return { color: '#64748b' }; // muted gray
+    if (isObject) return { color: '#0a6363' }; // Cyoda teal dark
+    return { color: '#64748b' };
   };
 
   return (
@@ -73,7 +77,7 @@ const TreeNode: React.FC<{
           <div className="w-4" />
         )}
 
-        <span style={{ color: '#0D8484' }} className="font-semibold">{label}:</span>
+        <span style={{ color: '#0a6363' }}>{label}:</span>
 
         {!isExpanded && isExpandable && (
           <span style={getTypeColor()} className="ml-1">{getValuePreview()}</span>
@@ -277,57 +281,10 @@ export const EntityEditor: React.FC<EntityEditorProps> = ({ appId, entityId, ent
                   defaultLanguage="json"
                   value={jsonText}
                   onChange={handleJsonChange}
-                  theme="workflow-dark"
+                  theme={WORKFLOW_LIGHT_THEME}
                   onMount={(editor, monaco) => {
-                    // Define custom theme with Canvas colors
-                    monaco.editor.defineTheme('workflow-light', {
-                      base: 'vs',
-                      inherit: true,
-                      rules: [
-                        { token: '', foreground: '0F172A' },
-                        { token: 'string.key.json', foreground: '0D8484' }, // Cyoda teal - keys
-                        { token: 'string.value.json', foreground: '2e8861' }, // Canvas green - string values
-                        { token: 'number', foreground: 'fb923c' }, // Canvas orange - numbers
-                        { token: 'keyword.json', foreground: '7C3AED' }, // Canvas violet - true/false/null
-                        { token: 'keyword', foreground: '7C3AED' },
-                        { token: 'string', foreground: '2e8861' }, // Strings
-                        { token: 'comment', foreground: '64748B' },
-                      ],
-                      colors: {
-                        'editor.background': '#FFFFFF',
-                        'editor.foreground': '#0F172A',
-                        'editorLineNumber.foreground': '#94A3B8',
-                        'editorLineNumber.activeForeground': '#1a8a84',
-                        'editorGutter.background': '#FFFFFF',
-                        'editor.lineHighlightBackground': '#4FB8B010',
-                        'editor.lineHighlightBorder': '#4FB8B000',
-                        'editorCursor.foreground': '#1a8a84',
-                        'editor.selectionBackground': '#D1D5DB40',
-                        'editor.inactiveSelectionBackground': '#D1D5DB20',
-                        'editorMinimap.background': '#FFFFFF',
-                        'minimapSlider.background': '#CBD5E180',
-                        'minimapSlider.hoverBackground': '#94A3B8',
-                        'minimapSlider.activeBackground': '#64748B',
-                        'editorStickyScroll.background': '#FFFFFF',
-                        'editorStickyScrollHover.background': '#F8FAFC',
-                        'scrollbar.shadow': '#00000000',
-                        'scrollbarSlider.background': '#CBD5E180',
-                        'scrollbarSlider.hoverBackground': '#94A3B8',
-                        'scrollbarSlider.activeBackground': '#64748B',
-                        'editorBracketMatch.background': '#00000000',
-                        'editorBracketMatch.border': '#1a8a84',
-                        'editorWidget.background': '#FFFFFF',
-                        'editorWidget.border': '#D1D5DB',
-                        'editorSuggestWidget.background': '#FFFFFF',
-                        'editorSuggestWidget.border': '#D1D5DB',
-                        'editorSuggestWidget.selectedBackground': '#F1F5F9',
-                        'editorHoverWidget.background': '#FFFFFF',
-                        'editorHoverWidget.border': '#D1D5DB',
-                        'editorIndentGuide.background': '#E2E8F0',
-                        'editorIndentGuide.activeBackground': '#CBD5E1',
-                      }
-                    });
-                    monaco.editor.setTheme('workflow-light');
+                    registerWorkflowLightTheme(monaco);
+                    monaco.editor.setTheme(WORKFLOW_LIGHT_THEME);
                   }}
                   options={{
                     readOnly: false,

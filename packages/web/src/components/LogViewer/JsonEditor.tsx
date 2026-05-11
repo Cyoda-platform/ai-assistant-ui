@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Copy, CheckCircle2, AlertCircle } from 'lucide-react';
 import Editor from '@monaco-editor/react';
+import { registerWorkflowLightTheme, WORKFLOW_LIGHT_THEME } from '@/utils/monacoTheme';
 import type { Monaco } from '@monaco-editor/react';
 import './JsonEditor.css';
 
@@ -171,7 +172,7 @@ const JsonEditor: React.FC<JsonEditorProps> = ({
           value={value}
           onChange={(val) => onChange(val || '')}
           onMount={handleEditorMount}
-          theme="vs-dark"
+          theme={WORKFLOW_LIGHT_THEME}
           options={{
             minimap: { enabled: false },
             fontSize: 13,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Save, Trash2, Check, AlertCircle, Code2, Edit, Send } from 'lucide-react';
 import Editor from '@monaco-editor/react';
+import { registerWorkflowLightTheme, WORKFLOW_LIGHT_THEME } from '@/utils/monacoTheme';
 import { InlineNameEditor } from './InlineNameEditor';
 import type { TransitionDefinition, WorkflowConfiguration } from '../types/workflow';
 import type { ColorPalette } from '../themes/colorPalettes';
@@ -506,51 +507,8 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
                   editorRef.current = editor;
                   monacoRef.current = monaco;
 
-                  // Define custom light theme matching Cyoda brand colors
-                  monaco.editor.defineTheme('workflow-light', {
-                    base: 'vs', // Light base for correct scrollbars and menus
-                    inherit: true,
-                    rules: [
-                      { token: '', foreground: '1e293b' },
-                      { token: 'string.key.json', foreground: '1a8a84' }, // JSON keys - Cyoda teal
-                      { token: 'string.value.json', foreground: '166534' }, // String values - green
-                      { token: 'number', foreground: '1d4ed8' },           // Numbers - blue
-                      { token: 'keyword', foreground: '7c3aed' },          // Keywords - violet
-                      { token: 'comment', foreground: '94a3b8' },
-                    ],
-                    colors: {
-                      'editor.background': '#ffffff',
-                      'editor.foreground': '#1e293b',
-                      'editorLineNumber.foreground': '#94a3b8',
-                      'editorLineNumber.activeForeground': '#1a8a84',
-                      'editorGutter.background': '#f8fafc',
-                      'editor.lineHighlightBackground': '#f0fdfa',
-                      'editor.lineHighlightBorder': '#e8f7f6',
-                      'editorCursor.foreground': '#1a8a84',
-                      'editor.selectionBackground': '#dcf4f2',
-                      'editor.inactiveSelectionBackground': '#e8f7f680',
-                      'editorStickyScroll.background': '#f8fafc',
-                      'editorStickyScrollHover.background': '#f0fdfa',
-                      'scrollbar.shadow': '#00000000',
-                      'scrollbarSlider.background': '#d1d9e080',
-                      'scrollbarSlider.hoverBackground': '#d1d9e0A0',
-                      'scrollbarSlider.activeBackground': '#d1d9e0C0',
-                      'editorBracketMatch.background': '#dcf4f2',
-                      'editorBracketMatch.border': '#1a8a84',
-                      'editorWidget.background': '#ffffff',
-                      'editorWidget.border': '#d1d9e0',
-                      'editorSuggestWidget.background': '#ffffff',
-                      'editorSuggestWidget.border': '#d1d9e0',
-                      'editorSuggestWidget.selectedBackground': '#f0fdfa',
-                      'editorHoverWidget.background': '#ffffff',
-                      'editorHoverWidget.border': '#d1d9e0',
-                      'editorIndentGuide.background1': '#e2e8f0',
-                      'editorIndentGuide.activeBackground1': '#94a3b8',
-                    }
-                  });
-
-                  // Set the custom light theme
-                  monaco.editor.setTheme('workflow-light');
+                  registerWorkflowLightTheme(monaco);
+                  monaco.editor.setTheme(WORKFLOW_LIGHT_THEME);
 
                   // Configure JSON schema validation
                   monaco.languages.json.jsonDefaults.setDiagnosticsOptions({

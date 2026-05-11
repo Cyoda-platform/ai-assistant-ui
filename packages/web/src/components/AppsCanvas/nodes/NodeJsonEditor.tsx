@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Save, Code, Maximize2, Minimize2 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
+import { registerWorkflowLightTheme, WORKFLOW_LIGHT_THEME } from '@/utils/monacoTheme';
 
 interface NodeJsonEditorProps {
   data: any;
@@ -85,7 +86,7 @@ export const NodeJsonEditor: React.FC<NodeJsonEditorProps> = ({
             value={jsonText}
             onChange={(value) => setJsonText(value || '')}
             onMount={handleEditorDidMount}
-            theme="vs-dark"
+            theme={WORKFLOW_LIGHT_THEME}
             options={{
               readOnly: false,
               minimap: { enabled: true },
