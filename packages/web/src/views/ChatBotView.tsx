@@ -51,6 +51,7 @@ interface HeaderNotification {
   isRead: boolean;
   messageId?: string; // ID of the related message for navigation
   taskId?: string; // ID of the related task for opening tasks panel
+  chatId?: string; // ID of the chat to navigate to
 }
 
 const ChatBotView: React.FC = () => {
@@ -190,6 +191,8 @@ const ChatBotView: React.FC = () => {
   const isRequestInProgressRef = useRef<boolean>(false); // Track if a POST request is in progress
   const streamAbortControllerRef = useRef<AbortController | null>(null); // Track SSE stream abort controller
   const initialMessageSentRef = useRef<boolean>(false); // Track if we've sent the initial message from navigation state
+  const streamingChatIdRef = useRef<string | null>(null); // Track which chat is currently streaming (for background notifications)
+  const technicalIdRef = useRef<string | undefined>(technicalId); // Always-current technicalId for async handlers
 
   // Streaming state
   const [streamingState, setStreamingState] = useState<StreamingState>({
@@ -381,12 +384,12 @@ const ChatBotView: React.FC = () => {
   const addHeaderNotification = (message: Message) => {
     const timestamp = 'Just now';
 
-    if (message.type === 'question' || message.type === 'ui_function') {
+    if ((message.type === 'ai' && (message.editable || message.approve)) || message.type === 'ui_function') {
       // For questions and ui_function - ring the bell (increase count)
       const notification: HeaderNotification = {
         id: notificationIdCounter.current++,
         type: 'info',
-        title: message.type === 'question' ? 'New Question' : 'Action Required',
+        title: message.type === 'ui_function' ? 'Action Required' : 'New Question',
         message: message.text.substring(0, 100) + (message.text.length > 100 ? '...' : ''),
         timestamp,
         isRead: false,
@@ -826,6 +829,12 @@ const ChatBotView: React.FC = () => {
   const handleStreamEvent = (event: SSEChatEvent) => {
     console.log('[SSE] Event received:', event.type, event);
 
+    // If the user switched to a different chat, ignore all events except 'done'
+    // The 'done' handler will add a bell notification for the background chat.
+    if (streamingChatIdRef.current && streamingChatIdRef.current !== technicalIdRef.current && event.type !== 'done') {
+      return;
+    }
+
     // Create event record for debug panel
     const eventRecord = {
       id: String(eventIdCounter.current++),
@@ -1026,6 +1035,26 @@ const ChatBotView: React.FC = () => {
           setIsLoading(false);
           setDisabled(false);
           isRequestInProgressRef.current = false;
+          break;
+        }
+
+        // If user navigated to a different chat, add a bell notification instead of updating state
+        if (streamingChatIdRef.current && streamingChatIdRef.current !== technicalIdRef.current) {
+          const streamedChat = chatList?.find(c => c.technical_id === streamingChatIdRef.current);
+          const chatName = streamedChat?.name || streamedChat?.description || 'another chat';
+          const bgNotification: HeaderNotification = {
+            id: notificationIdCounter.current++,
+            type: 'success',
+            title: 'Response Ready',
+            message: `AI finished responding in "${chatName}"`,
+            timestamp: 'Just now',
+            isRead: false,
+            chatId: streamingChatIdRef.current,
+          };
+          setHeaderNotifications(prev => [bgNotification, ...prev]);
+          setCountNewMessages(prev => prev + 1);
+          isRequestInProgressRef.current = false;
+          streamingChatIdRef.current = null;
           break;
         }
 
@@ -1404,6 +1433,23 @@ const ChatBotView: React.FC = () => {
           return newMessages;
         });
 
+        // Add bell notification for SSE response (AI has finished and is waiting for input)
+        {
+          const notifTitle = uiFunctionMessages.length > 0 ? 'Action Required' : 'New Response';
+          const notifText = aiMessage.text.substring(0, 100) + (aiMessage.text.length > 100 ? '...' : '');
+          const sseNotification: HeaderNotification = {
+            id: notificationIdCounter.current++,
+            type: 'info',
+            title: notifTitle,
+            message: notifText,
+            timestamp: 'Just now',
+            isRead: false,
+            messageId: aiMessage.id,
+          };
+          setHeaderNotifications(prev => [sseNotification, ...prev]);
+          setCountNewMessages(prev => prev + 1);
+        }
+
         // Update chatData with adk_session_id from SSE response for conversation continuity
         if (event.adk_session_id) {
           console.log('[SSE] Updating chatData with adk_session_id:', event.adk_session_id);
@@ -1508,6 +1554,7 @@ const ChatBotView: React.FC = () => {
 
     // Block polling FIRST before any state updates
     isRequestInProgressRef.current = true;
+    streamingChatIdRef.current = technicalId; // Record which chat is streaming
 
     // Update UI state - React will batch these updates automatically
     setDisabled(true);
@@ -2248,14 +2295,19 @@ const ChatBotView: React.FC = () => {
     });
   };
 
-  const handleNotificationClick = (notificationId: number, messageId?: string, taskId?: string) => {
+  const handleNotificationClick = (notificationId: number, messageId?: string, taskId?: string, chatId?: string) => {
     // Mark notification as read
     handleMarkNotificationAsRead(notificationId);
+
+    // Navigate to a different chat if chatId is provided and differs from current
+    if (chatId && chatId !== technicalId) {
+      navigate(`/chat/${chatId}`);
+      return;
+    }
 
     // Open tasks panel if taskId is provided
     if (taskId) {
       setIsTasksPanelOpen(true);
-      // Trigger refresh of tasks when notification is clicked
       setTimeout(() => {
         tasksPanelRef.current?.refreshTasks().catch(err => {
           console.error('[ChatBotView] Failed to refresh tasks from notification:', err);
@@ -2266,7 +2318,6 @@ const ChatBotView: React.FC = () => {
 
     // Navigate to the message if messageId is provided
     if (messageId) {
-      // Find the message element and scroll to it
       const messageElement = document.getElementById(`message-${messageId}`);
       if (messageElement) {
         messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2401,10 +2452,14 @@ const ChatBotView: React.FC = () => {
       setCanvasActiveTab('requirement');
     }
 
+    technicalIdRef.current = technicalId; // Keep ref in sync for async handlers
     isInitialLoadRef.current = true; // Reset initial load flag for new chat
     notifiedMessagesRef.current.clear(); // Clear notified messages for new chat
     hasAutoOpenedCanvasRef.current = false; // Reset auto-open flag for new chat
     initialMessageSentRef.current = false; // Reset initial message sent flag for new chat
+    isRequestInProgressRef.current = false; // Allow new chat to load even if previous was streaming
+    // Reset streaming indicator so new chat doesn't inherit old chat's streaming state
+    setStreamingState(prev => ({ ...prev, isStreaming: false, currentAgent: undefined, currentTool: undefined }));
 
     // Load initial chat history (no continuous polling)
     loadChatHistory();
@@ -2415,10 +2470,9 @@ const ChatBotView: React.FC = () => {
         abortControllerRef.current.abort();
         abortControllerRef.current = null;
       }
-      if (streamAbortControllerRef.current) {
-        streamAbortControllerRef.current.abort();
-        streamAbortControllerRef.current = null;
-      }
+      // Don't abort the SSE stream — let it complete on the backend.
+      // The done handler will fire a bell notification if user has navigated away.
+      streamAbortControllerRef.current = null;
       if (promiseIntervalRef.current) {
         promiseIntervalRef.current = null;
       }

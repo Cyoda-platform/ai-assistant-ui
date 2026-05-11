@@ -35,6 +35,7 @@ interface Notification {
   isRead: boolean;
   messageId?: string; // ID of the related message for navigation
   taskId?: string; // ID of the related task for opening tasks panel
+  chatId?: string; // ID of the chat to navigate to
 }
 
 interface HeaderProps {
@@ -52,7 +53,7 @@ interface HeaderProps {
   notifications?: Notification[];
   onMarkNotificationAsRead?: (id: number) => void;
   onMarkAllNotificationsAsRead?: () => void;
-  onNotificationClick?: (notificationId: number, messageId?: string, taskId?: string) => void;
+  onNotificationClick?: (notificationId: number, messageId?: string, taskId?: string, chatId?: string) => void;
   isArchivedChat?: boolean; // Disable canvas for archived chats
   showCanvasButton?: boolean; // Show canvas button only on chat pages
   showRepositoryConfigPrompt?: boolean; // Whether to show repository config prompt
@@ -390,48 +391,48 @@ const Header: React.FC<HeaderProps> = ({
                   className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white border border-slate-200 rounded-lg shadow-lg z-[10000]"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex items-center justify-between p-4 border-b border-slate-200">
-                    <h3 className="font-medium text-slate-900">Notifications</h3>
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200">
+                    <h3 className="text-sm font-medium text-slate-900">Notifications</h3>
                     <button
                       onClick={() => setShowNotifications(false)}
                       className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
                     >
-                      <X size={16} />
+                      <X size={14} />
                     </button>
                   </div>
-                  <div className="max-h-80 overflow-y-auto">
+                  <div className="max-h-64 overflow-y-auto">
                     {notifications.length === 0 ? (
-                      <div className="p-8 text-center">
-                        <p className="text-sm text-slate-400">No notifications</p>
+                      <div className="py-6 text-center">
+                        <p className="text-xs text-slate-400">No notifications</p>
                       </div>
                     ) : (
                       notifications.map((notification) => (
                         <div
                           key={notification.id}
-                          className={`p-4 border-b border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer ${
+                          className={`px-3 py-2 border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer ${
                             !notification.isRead ? 'bg-teal-50/50' : ''
                           }`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            // Use external notification click handler if provided, otherwise just mark as read
                             if (externalNotificationClick) {
-                              externalNotificationClick(notification.id, notification.messageId, notification.taskId);
+                              externalNotificationClick(notification.id, notification.messageId, notification.taskId, notification.chatId);
                             } else {
                               markNotificationAsRead(notification.id);
                             }
-                            // Close the notification dropdown
                             setShowNotifications(false);
                           }}
                         >
-                          <div className="flex items-start space-x-3">
+                          <div className="flex items-start space-x-2">
                             {getNotificationIcon(notification.type)}
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-slate-900">{notification.title}</p>
-                              <p className="text-sm text-slate-500 mt-1">{notification.message}</p>
-                              <p className="text-xs text-slate-400 mt-2">{notification.timestamp}</p>
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-xs font-medium text-slate-900 truncate">{notification.title}</p>
+                                <span className="text-xs text-slate-400 shrink-0">{notification.timestamp}</span>
+                              </div>
+                              <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{notification.message}</p>
                             </div>
                             {!notification.isRead && (
-                              <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                              <div className="w-1.5 h-1.5 bg-teal-500 rounded-full mt-1 shrink-0"></div>
                             )}
                           </div>
                         </div>
@@ -440,13 +441,13 @@ const Header: React.FC<HeaderProps> = ({
                   </div>
                   {notifications.length > 0 && (
                     <div
-                      className="p-3 border-t border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors"
+                      className="px-3 py-2 border-t border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         markAllAsRead();
                       }}
                     >
-                      <span className="text-sm text-teal-600 hover:text-teal-700 transition-colors">
+                      <span className="text-xs text-teal-600 hover:text-teal-700 transition-colors">
                         Mark all as read
                       </span>
                     </div>
