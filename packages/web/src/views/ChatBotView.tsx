@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 
-import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import ChatBot from '@/components/ChatBot/ChatBot';
 import ChatBotCanvas from '@/components/ChatBot/ChatBotCanvas';
 import Header from '@/components/Header/Header';
@@ -56,7 +56,6 @@ interface HeaderNotification {
 const ChatBotView: React.FC = () => {
   const { technicalId } = useParams<{ technicalId: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const assistantStore = useAssistantStore();
   const chatList = useAssistantStore((state) => state.chatList); // Subscribe to chatList specifically

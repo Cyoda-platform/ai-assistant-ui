@@ -189,6 +189,12 @@ describe('HomeView pending message flow', () => {
     );
   });
 
+  it('does not render file upload controls on the home page', () => {
+    const { container } = render(<HomeView />);
+
+    expect(container.querySelector('input[type="file"]')).toBeNull();
+  });
+
   it('passes the guest typed message into the login popup payload', async () => {
     testState.authStore = {
       tokenType: 'public',

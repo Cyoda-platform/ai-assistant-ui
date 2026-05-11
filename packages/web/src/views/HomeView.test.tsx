@@ -32,7 +32,15 @@ vi.mock('@/stores/auth', () => ({
     isAuthenticated: true,
     user: { email: 'test@example.com' }
   }),
+  useIsLoggedIn: () => true,
   useSuperUserMode: () => false
+}));
+
+vi.mock('@auth0/auth0-react', () => ({
+  useAuth0: () => ({
+    loginWithRedirect: vi.fn(),
+    isLoading: false,
+  })
 }));
 
 vi.mock('@/plugins/eventBus', () => ({

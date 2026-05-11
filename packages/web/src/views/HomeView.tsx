@@ -4,8 +4,6 @@ import { useAuth0 } from '@auth0/auth0-react';
 import {
   Send,
   ChevronRight,
-  X,
-  Paperclip,
   Activity,
   History,
   Server,
@@ -177,12 +175,10 @@ const HomeView: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(false);
   const [isEnvironmentsOpen, setIsEnvironmentsOpen] = useState(false);
-  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-  const [pendingMessage, setPendingMessage] = useState<{ input: string; files: File[] } | null>(null);
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
   const [isResizing, setIsResizing] = useState(false);
   const [textareaHeight, setTextareaHeight] = useState(60);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initialWidthRef = useRef<number>(0);
@@ -336,7 +332,7 @@ const HomeView: React.FC = () => {
   }, [authStore.token]);
 
   // Submit the chat
-  const submitChat = async (input: string, files: File[]) => {
+  const submitChat = async (input: string) => {
     setIsLoading(true);
     const initialMessage = input;
     const tempId = `temp-${Date.now()}`;
@@ -344,23 +340,11 @@ const HomeView: React.FC = () => {
     navigate(`/chat/${tempId}?openCanvas=true&creating=true`);
 
     try {
-      let response;
       const chatName = input.substring(0, 50) + (input.length > 50 ? '...' : '');
-
-      if (files.length > 0) {
-        const formData = new FormData();
-        formData.append('name', chatName);
-        formData.append('description', '');
-        files.forEach(file => {
-          formData.append('files', file);
-        });
-        response = await assistantStore.postChats(formData as any);
-      } else {
-        response = await assistantStore.postChats({
-          name: chatName,
-          description: ''
-        } as any);
-      }
+      const response = await assistantStore.postChats({
+        name: chatName,
+        description: ''
+      } as any);
 
       if (response?.data?.technical_id || response?.data?.chat_id) {
         const realId = response.data.technical_id || response.data.chat_id;
@@ -377,7 +361,6 @@ const HomeView: React.FC = () => {
       navigate('/', { replace: true });
     } finally {
       setIsLoading(false);
-      setAttachedFiles([]);
       setChatInput('');
       setTextareaHeight(60);
       setPendingMessage(null);
@@ -389,14 +372,14 @@ const HomeView: React.FC = () => {
     const saved = sessionStorage.getItem(PENDING_CHAT_INPUT);
     if (saved) {
       sessionStorage.removeItem(PENDING_CHAT_INPUT);
-      setPendingMessage({ input: saved, files: [] });
+      setPendingMessage(saved);
     }
   }, []);
 
   // Watch for auth changes to send pending message
   useEffect(() => {
     if (!isGuestUser && pendingMessage && authStore.token && authStore.tokenType === 'private') {
-      submitChat(pendingMessage.input, pendingMessage.files);
+      submitChat(pendingMessage);
     }
   }, [isGuestUser, authStore.token, authStore.tokenType, pendingMessage]);
 
@@ -426,75 +409,23 @@ const HomeView: React.FC = () => {
 
     if (isGuestUser) {
       const currentInput = chatInput.trim();
-      const currentFiles = [...attachedFiles];
-      setPendingMessage({ input: currentInput, files: currentFiles });
+      setPendingMessage(currentInput);
       eventBus.$emit(SHOW_LOGIN_POPUP, {
         isGuestUser: true,
         pendingChatInput: currentInput,
         onProceedWithoutLogin: () => {
-          submitChat(currentInput, currentFiles);
+          submitChat(currentInput);
         }
       });
       return;
     }
 
-    await submitChat(chatInput.trim(), attachedFiles);
-  };
-
-  const handleFileAttach = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const newFiles = Array.from(files);
-      const validFiles: File[] = [];
-      newFiles.forEach(file => {
-        if (file.size > 10 * 1024 * 1024) {
-          console.warn(`File ${file.name} is too large`);
-        } else {
-          validFiles.push(file);
-        }
-      });
-      setAttachedFiles(prev => [...prev, ...validFiles]);
-    }
-    e.target.value = '';
-  };
-
-  const handleRemoveFile = (index: number) => {
-    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+    await submitChat(chatInput.trim());
   };
 
   const handlePromptClick = (prompt: string) => {
     setChatInput(prompt);
     chatInputRef.current?.focus();
-  };
-
-  // Drag and drop
-  const [isDragging, setIsDragging] = useState(false);
-  let dragCounter = 0;
-
-  const handleDragEnter = (e: React.DragEvent) => {
-    e.preventDefault();
-    dragCounter++;
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    dragCounter--;
-    if (dragCounter === 0) setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    dragCounter = 0;
-    setIsDragging(false);
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      setAttachedFiles(prev => [...prev, ...Array.from(files)]);
-    }
   };
 
   // Handle delete chat
@@ -671,22 +602,7 @@ const HomeView: React.FC = () => {
               {/* Prompt Input */}
               <div className="mb-6">
                 <form onSubmit={handleChatSubmit}>
-                  <div
-                    className="relative bg-white rounded-xl border border-slate-200 shadow-sm focus-within:border-blue-400 focus-within:shadow-md transition-shadow"
-                    onDragEnter={handleDragEnter}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    onDragOver={(e) => e.preventDefault()}
-                  >
-                    {isDragging && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-white/95 rounded-xl z-10 border-2 border-dashed border-blue-400">
-                        <div className="text-center">
-                          <Paperclip size={32} className="text-blue-400 mx-auto mb-2" />
-                          <span className="text-blue-600 font-medium text-sm">Drop files here</span>
-                        </div>
-                      </div>
-                    )}
-
+                  <div className="relative bg-white rounded-xl border border-slate-200 shadow-sm focus-within:border-blue-400 focus-within:shadow-md transition-shadow">
                     <textarea
                       ref={chatInputRef}
                       value={chatInput}
@@ -711,24 +627,12 @@ const HomeView: React.FC = () => {
                         maxHeight: '300px',
                         overflowY: textareaHeight >= 300 ? 'auto' : 'hidden',
                         lineHeight: '1.5',
-                        padding: '14px 96px 14px 16px',
+                        padding: '14px 64px 14px 16px',
                       }}
                       disabled={isLoading}
                     />
 
-                    <div className="absolute right-3 bottom-3 flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={handleFileAttach}
-                        disabled={!isLoggedIn}
-                        className="p-2 rounded-lg transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
-                        style={{ color: '#94a3b8' }}
-                        onMouseEnter={(e) => { if (isLoggedIn) e.currentTarget.style.color = '#2563eb'; }}
-                        onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
-                        title={isLoggedIn ? 'Attach file' : 'Sign in to attach files'}
-                      >
-                        <Paperclip size={16} />
-                      </button>
+                    <div className="absolute right-3 bottom-3 flex items-center">
                       <button
                         type="submit"
                         disabled={!chatInput.trim() || isLoading}
@@ -750,46 +654,6 @@ const HomeView: React.FC = () => {
                     </div>
                   </div>
                 </form>
-
-                {/* File attachments */}
-                {attachedFiles.length > 0 && (
-                  <div className="mt-2 p-3 bg-white border border-slate-200 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium text-slate-600">Attached Files ({attachedFiles.length})</span>
-                      <button
-                        type="button"
-                        onClick={() => setAttachedFiles([])}
-                        className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
-                      >
-                        Clear All
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {attachedFiles.map((file, index) => (
-                        <div key={index} className="bg-slate-50 text-slate-700 px-2 py-1.5 rounded-md text-xs flex items-center gap-1.5 border border-slate-200">
-                          <Paperclip size={10} className="text-blue-500 flex-shrink-0" />
-                          <span className="max-w-[150px] truncate">{file.name}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveFile(index)}
-                            className="hover:text-red-500 transition-colors ml-0.5"
-                          >
-                            <X size={10} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  onChange={handleFileChange}
-                  style={{ display: 'none' }}
-                  accept=".pdf,.docx,.xlsx,.pptx,.xml,.json,text/*,image/*"
-                />
               </div>
 
               {/* Prompt Examples */}
