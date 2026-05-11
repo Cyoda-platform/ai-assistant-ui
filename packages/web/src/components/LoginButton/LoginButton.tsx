@@ -58,7 +58,10 @@ const LoginButton: React.FC = () => {
       type="button"
       onClick={onClick}
       disabled={isLoading}
-      className="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+      className="px-4 py-2 rounded-lg font-medium text-sm text-white transition-colors"
+      style={{ backgroundColor: '#0d9488', color: '#ffffff' }}
+      onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#0f766e')}
+      onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#0d9488')}
     >
       Log in
     </button>
