@@ -5,6 +5,9 @@ import 'highlight.js/styles/github.css';
 import './MarkdownRenderer.css';
 import MermaidDiagram from '../MermaidDiagram/MermaidDiagram';
 
+const COPY_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`;
+const CHECK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
 interface MarkdownRendererProps {
   children: string;
   className?: string;
@@ -63,7 +66,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
               <div class="code-block-header">
                 <span class="code-block-language">${lang}</span>
                 <button class="code-block-copy" data-code-id="${codeId}">
-                  <span class="copy-icon">📋</span>
+                  ${COPY_SVG}
                 </button>
               </div>
               <pre class="code-block-pre"><code class="hljs language-${lang}">${code}</code></pre>
@@ -87,7 +90,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
 
   // Handle code copy clicks
   useEffect(() => {
-    const handleCopyClick = (e: MouseEvent) => {
+    const handleCopyClick = async (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const button = target.closest('.code-block-copy') as HTMLButtonElement;
       if (button) {
@@ -97,7 +100,10 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ children, className
           const encodedCode = wrapper.dataset.code;
           if (encodedCode) {
             const code = decodeURIComponent(encodedCode);
-            handleCopy(code, codeId);
+            await handleCopy(code, codeId);
+            // Swap icon to check
+            button.innerHTML = CHECK_SVG;
+            setTimeout(() => { button.innerHTML = COPY_SVG; }, 2000);
           }
         }
       }
