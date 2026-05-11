@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { marked } from 'marked';
 import hljs from 'highlight.js';
-import 'highlight.js/styles/github-dark.css';
+import 'highlight.js/styles/github.css';
 import './MarkdownRenderer.css';
 import MermaidDiagram from '../MermaidDiagram/MermaidDiagram';
 

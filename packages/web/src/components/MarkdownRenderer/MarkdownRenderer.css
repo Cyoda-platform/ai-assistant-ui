@@ -160,23 +160,25 @@
 .code-block-wrapper {
   position: relative;
   margin: 0.5rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
 }
 
 .code-block-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #1e293b;
-  border: 1px solid #334155;
-  border-bottom: 0;
-  border-radius: 0.375rem 0.375rem 0 0;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
   padding: 0.375rem 0.75rem;
 }
 
 .code-block-language {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: #64748b;
   font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
 }
 
 .code-block-copy {
@@ -190,8 +192,8 @@
 }
 
 .code-block-copy:hover {
-  color: #e2e8f0;
-  background-color: rgba(51, 65, 85, 0.5);
+  color: #475569;
+  background-color: #e2e8f0;
 }
 
 .copy-icon {
@@ -199,9 +201,7 @@
 }
 
 .code-block-pre {
-  background-color: #0f172a;
-  border: 1px solid #334155;
-  border-radius: 0 0 0.375rem 0.375rem;
+  background-color: #ffffff;
   padding: 0.75rem;
   overflow-x: auto;
   margin: 0;
@@ -215,7 +215,16 @@
   border: none;
   padding: 0;
   color: inherit;
+  font-size: 0.8125rem;
 }
+
+/* Syntax token overrides — Cyoda light palette */
+.code-block-pre .hljs-attr,
+.code-block-pre .hljs-string   { color: #166534; }
+.code-block-pre .hljs-number   { color: #1d4ed8; }
+.code-block-pre .hljs-literal  { color: #7c3aed; }
+.code-block-pre .hljs-comment  { color: #94a3b8; font-style: italic; }
+.code-block-pre .hljs-keyword  { color: #7c3aed; }
 
 /* Table */
 .markdown-content table {
