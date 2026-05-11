@@ -26,6 +26,7 @@ vi.mock('@/helpers/HelperStorage', () => ({
 vi.mock('@/helpers/HelperConstants', () => ({
   SHOW_LOGIN_POPUP: 'show-login-popup',
   LOGIN_REDIRECT_URL: 'login-redirect-url',
+  PENDING_CHAT_INPUT: 'pending-chat-input',
 }));
 
 describe('LoginPopUp', () => {
@@ -33,6 +34,15 @@ describe('LoginPopUp', () => {
     vi.clearAllMocks();
     Object.defineProperty(window, 'location', {
       value: { pathname: '/test-path' },
+      writable: true,
+    });
+    Object.defineProperty(window, 'sessionStorage', {
+      value: {
+        getItem: vi.fn(() => null),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+        clear: vi.fn(),
+      },
       writable: true,
     });
   });
@@ -143,6 +153,7 @@ describe('LoginPopUp', () => {
       eventBus.$emit(SHOW_LOGIN_POPUP, {
         isGuestUser: true,
         onProceedWithoutLogin: mockCallback,
+        pendingChatInput: 'Build me a workflow',
       });
 
       await waitFor(() => {
@@ -156,7 +167,7 @@ describe('LoginPopUp', () => {
 
     it('should render benefits description', () => {
       expect(
-        screen.getByText('Get the most out of your AI assistant')
+        screen.getByText('Get the most out of Cyoda Cloud')
       ).toBeInTheDocument();
     });
 
@@ -170,8 +181,8 @@ describe('LoginPopUp', () => {
       expect(screen.getByText('Continue with Login')).toBeInTheDocument();
     });
 
-    it('should render continue as guest button', () => {
-      expect(screen.getByText('Continue as guest')).toBeInTheDocument();
+    it('should not render continue as guest button in the current guest flow', () => {
+      expect(screen.queryByText('Continue as guest')).not.toBeInTheDocument();
     });
 
     it('should call loginWithRedirect when continue with login is clicked', () => {
@@ -183,21 +194,20 @@ describe('LoginPopUp', () => {
       });
     });
 
-    it('should call onProceedWithoutLogin callback when continue as guest is clicked', async () => {
-      const guestButton = screen.getByText('Continue as guest');
-      fireEvent.click(guestButton);
+    it('should persist pending guest message before redirecting to login', async () => {
+      const loginButton = screen.getByText('Continue with Login').closest('button');
+      fireEvent.click(loginButton!);
 
-      await waitFor(() => {
-        expect(mockCallback).toHaveBeenCalledTimes(1);
-      });
+      expect(window.sessionStorage.setItem).toHaveBeenCalledWith(
+        'pending-chat-input',
+        'Build me a workflow'
+      );
+      expect(window.sessionStorage.setItem).toHaveBeenCalledBefore(mockLoginWithRedirect);
     });
 
-    it('should close modal when continue as guest is clicked', () => {
-      const guestButton = screen.getByText('Continue as guest');
-      fireEvent.click(guestButton);
-
-      // Just verify the click happened
-      expect(guestButton).toBeInTheDocument();
+    it('should not expose continue-as-guest callback UI in the current guest flow', () => {
+      expect(mockCallback).not.toHaveBeenCalled();
+      expect(screen.queryByText('Continue as guest')).not.toBeInTheDocument();
     });
   });
 
@@ -301,7 +311,7 @@ describe('LoginPopUp', () => {
   });
 
   describe('callback handling', () => {
-    it('should not error when onProceedWithoutLogin is not provided', async () => {
+    it('should not render continue-as-guest action when callback is not provided', async () => {
       render(<LoginPopUp />);
 
       eventBus.$emit(SHOW_LOGIN_POPUP, { isGuestUser: true });
@@ -310,14 +320,10 @@ describe('LoginPopUp', () => {
         expect(screen.getByText('Unlock Full Experience')).toBeInTheDocument();
       });
 
-      const guestButton = screen.getByText('Continue as guest');
-
-      expect(() => {
-        fireEvent.click(guestButton);
-      }).not.toThrow();
+      expect(screen.queryByText('Continue as guest')).not.toBeInTheDocument();
     });
 
-    it('should only call callback once per click', async () => {
+    it('should not render continue-as-guest action even when callback is provided', async () => {
       const mockCallback = vi.fn();
       render(<LoginPopUp />);
 
@@ -327,15 +333,11 @@ describe('LoginPopUp', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('Continue as guest')).toBeInTheDocument();
+        expect(screen.getByText('Unlock Full Experience')).toBeInTheDocument();
       });
 
-      const guestButton = screen.getByText('Continue as guest');
-      fireEvent.click(guestButton);
-
-      await waitFor(() => {
-        expect(mockCallback).toHaveBeenCalledTimes(1);
-      });
+      expect(screen.queryByText('Continue as guest')).not.toBeInTheDocument();
+      expect(mockCallback).not.toHaveBeenCalled();
     });
   });
 });

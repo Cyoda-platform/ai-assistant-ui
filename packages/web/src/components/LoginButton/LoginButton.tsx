@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import HelperStorage from '@/helpers/HelperStorage';
 import { LOGIN_REDIRECT_URL } from '@/helpers/HelperConstants';
 
-const APP_ENTRY_ROUTE = '/home';
+const APP_ENTRY_ROUTE = '/';
 
 const LoginButton: React.FC = () => {
   const helperStorage = new HelperStorage();
@@ -28,7 +28,7 @@ const LoginButton: React.FC = () => {
     }
 
     if (isAuthenticated) {
-      console.log('[CyodaCloud CTA] authenticated; navigating to /home');
+      console.log('[CyodaCloud CTA] authenticated; navigating to /');
       navigate(APP_ENTRY_ROUTE);
       return;
     }

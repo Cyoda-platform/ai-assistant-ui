@@ -430,6 +430,7 @@ const HomeView: React.FC = () => {
       setPendingMessage({ input: currentInput, files: currentFiles });
       eventBus.$emit(SHOW_LOGIN_POPUP, {
         isGuestUser: true,
+        pendingChatInput: currentInput,
         onProceedWithoutLogin: () => {
           submitChat(currentInput, currentFiles);
         }

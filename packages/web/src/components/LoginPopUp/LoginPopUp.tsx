@@ -3,13 +3,14 @@ import { Modal, Button } from 'antd';
 import { useAuth0 } from '@auth0/auth0-react';
 import { X } from 'lucide-react';
 import eventBus from '@/plugins/eventBus';
-import { SHOW_LOGIN_POPUP } from '@/helpers/HelperConstants';
+import { PENDING_CHAT_INPUT, SHOW_LOGIN_POPUP } from '@/helpers/HelperConstants';
 import HelperStorage from '@/helpers/HelperStorage';
 import { LOGIN_REDIRECT_URL } from '@/helpers/HelperConstants';
 
 interface LoginPopUpData {
   isGuestUser?: boolean;
   onProceedWithoutLogin?: () => void;
+  pendingChatInput?: string;
 }
 
 const LoginPopUp: React.FC = () => {
@@ -34,6 +35,9 @@ const LoginPopUp: React.FC = () => {
   const handleLogin = () => {
     // Store current URL for redirect after login
     helperStorage.set(LOGIN_REDIRECT_URL, window.location.pathname);
+    if (popupData.pendingChatInput) {
+      sessionStorage.setItem(PENDING_CHAT_INPUT, popupData.pendingChatInput);
+    }
     setVisible(false);
     loginWithRedirect({
       authorizationParams: { prompt: 'login' }

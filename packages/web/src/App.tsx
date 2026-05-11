@@ -21,7 +21,7 @@ import { useDetectTheme } from './helpers/HelperTheme';
 import { useNavigationGuards } from './router';
 import { initializeCleanState } from './utils/clearTestData';
 
-const APP_ENTRY_ROUTE = '/home';
+const APP_ENTRY_ROUTE = '/';
 
 const App: React.FC = () => {
   const location = useLocation();
@@ -92,13 +92,14 @@ const App: React.FC = () => {
 
     // Set flag immediately if we have an old token to prevent any getChats calls during transition
     const currentState = useAuthStore.getState();
-    if (currentState.token) {
+    const isGuestToken = currentState.tokenType === 'public';
+    if (currentState.token && !isGuestToken) {
       assistantStore.setIsTransferringChats(true);
     }
 
     const handleAuth = async () => {
       try {
-        const oldToken = currentState.token;
+        const oldToken = !isGuestToken ? currentState.token : null;
         const token = await getAccessTokenSilently();
 
 
@@ -137,6 +138,18 @@ const App: React.FC = () => {
 
         useAuthStore.getState().saveData(authData);
 
+        assistantStore.setGuestChatsExist(false);
+
+        const storedReturnTo = helperStorage.get<string>(LOGIN_REDIRECT_URL, APP_ENTRY_ROUTE);
+        const returnTo = !storedReturnTo || storedReturnTo === '/' ? APP_ENTRY_ROUTE : storedReturnTo;
+        helperStorage.removeItem(LOGIN_REDIRECT_URL);
+
+        // Redirect as soon as auth is established so UI state on the pre-login page
+        // isn't lost by a late remount after the user starts interacting with it.
+        if (location.pathname !== returnTo) {
+          navigate(returnTo, { replace: true });
+        }
+
         if (oldToken) {
           try {
             await useAuthStore.getState().postTransferChats(oldToken, true);
@@ -161,39 +174,13 @@ const App: React.FC = () => {
             console.error('Error loading chats after login:', error);
           }
         }
-
-        assistantStore.setGuestChatsExist(false);
-
-        const storedReturnTo = helperStorage.get<string>(LOGIN_REDIRECT_URL, APP_ENTRY_ROUTE);
-        const returnTo = !storedReturnTo || storedReturnTo === '/' ? APP_ENTRY_ROUTE : storedReturnTo;
-        helperStorage.removeItem(LOGIN_REDIRECT_URL);
-
-        // Navigate to return URL
-        navigate(returnTo, { replace: true });
       } catch (error) {
         console.error('Error during authentication:', error);
       }
     };
 
     handleAuth();
-  }, [assistantStore, helperStorage, isAuthenticated, user, getAccessTokenSilently, navigate]);
-
-  // Authenticated users who open the public root should enter the product shell.
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const isAuth0Callback = params.get('auth0') === 'true';
-
-    if (
-      auth0Loading ||
-      !isAuthenticated ||
-      location.pathname !== '/' ||
-      isAuth0Callback
-    ) {
-      return;
-    }
-
-    navigate(APP_ENTRY_ROUTE, { replace: true });
-  }, [auth0Loading, isAuthenticated, location.pathname, location.search, navigate]);
+  }, [assistantStore, helperStorage, isAuthenticated, location.pathname, user, getAccessTokenSilently, navigate]);
 
   // Handle navigation guards on route changes
   useEffect(() => {

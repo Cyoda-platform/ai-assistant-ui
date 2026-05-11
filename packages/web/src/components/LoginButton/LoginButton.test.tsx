@@ -56,9 +56,9 @@ describe('LoginButton', () => {
       render(<LoginButton />);
 
       const button = screen.getByRole('button', { name: /Log in/i });
-      expect(button.className).toContain('bg-gradient-to-r');
-      expect(button.className).toContain('from-teal-500');
-      expect(button.className).toContain('to-teal-600');
+      expect(button.className).toContain('rounded-lg');
+      expect(button.className).toContain('text-white');
+      expect(button.className).toContain('transition-colors');
     });
   });
 
@@ -78,7 +78,7 @@ describe('LoginButton', () => {
       const button = screen.getByRole('button', { name: /Log in/i });
       fireEvent.click(button);
 
-      expect(mockSet).toHaveBeenCalledWith('login-redirect-url', '/home');
+      expect(mockSet).toHaveBeenCalledWith('login-redirect-url', '/');
       expect(mockSet).toHaveBeenCalledBefore(mockLoginWithRedirect);
     });
 
@@ -90,7 +90,7 @@ describe('LoginButton', () => {
 
       expect(mockLoginWithRedirect).toHaveBeenCalledWith({
         appState: {
-          returnTo: '/home',
+          returnTo: '/',
         },
         authorizationParams: {
           prompt: 'login',
@@ -113,7 +113,7 @@ describe('LoginButton', () => {
   });
 
   describe('storage behavior', () => {
-    it('should store "/home" as redirect URL', () => {
+    it('should store "/" as redirect URL', () => {
       render(<LoginButton />);
 
       const button = screen.getByRole('button', { name: /Log in/i });
@@ -121,7 +121,7 @@ describe('LoginButton', () => {
 
       expect(mockSet).toHaveBeenCalledWith(
         expect.any(String),
-        '/home'
+        '/'
       );
     });
 
