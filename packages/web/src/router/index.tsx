@@ -5,10 +5,7 @@ import { useAssistantStore } from '@/stores/assistant';
 import { isInIframe } from '@/helpers/HelperIframe';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 
-// Landing page loads eagerly for fast initial paint
-import FintechHomeView from '@/views/FintechHomeView';
-
-// Heavy views loaded lazily to keep the landing page bundle lean
+// Heavy views loaded lazily to keep the bundle lean
 const HomeView = lazy(() => import('@/views/HomeView'));
 const NewChatView = lazy(() => import('@/views/NewChatView'));
 const DashboardView = lazy(() => import('@/views/DashboardView'));
@@ -69,10 +66,6 @@ const routes = [
     children: [
       {
         index: true,
-        element: <FintechHomeView />,
-      },
-      {
-        path: "home",
         element: <Suspense fallback={<Fallback />}><HomeView /></Suspense>,
       },
       {

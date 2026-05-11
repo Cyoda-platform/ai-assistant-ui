@@ -214,7 +214,7 @@ const Header: React.FC<HeaderProps> = ({
             {showActions && (
               <div className="flex items-center gap-2">
                 {/* Chat History Button */}
-                {onToggleChatHistory && (
+                {onToggleChatHistory && isLoggedIn && (
                   <button
                     onClick={onToggleChatHistory}
                     className={`relative px-3 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
@@ -343,7 +343,7 @@ const Header: React.FC<HeaderProps> = ({
             )}
 
             {/* Documentation */}
-            <a
+            {isLoggedIn && <a
               href="https://docs.cyoda.net/"
               target="_blank"
               rel="noopener noreferrer"
@@ -351,10 +351,10 @@ const Header: React.FC<HeaderProps> = ({
               title="Documentation"
             >
               <BookOpen size={16} />
-            </a>
+            </a>}
 
             {/* Discord */}
-            <a
+            {isLoggedIn && <a
               href="https://discord.com/invite/95rdAyBZr2"
               target="_blank"
               rel="noopener noreferrer"
@@ -362,10 +362,10 @@ const Header: React.FC<HeaderProps> = ({
               title="Discord Community"
             >
               <MessageCircle size={16} />
-            </a>
+            </a>}
 
             {/* Notifications */}
-            <div className="relative">
+            {isLoggedIn && <div className="relative">
               <button
                 onClick={() => {
                   setShowNotifications(!showNotifications);
@@ -453,7 +453,7 @@ const Header: React.FC<HeaderProps> = ({
                   )}
                 </div>
               )}
-            </div>
+            </div>}
 
             {/* User Profile */}
             <AuthState />
@@ -489,7 +489,7 @@ const Header: React.FC<HeaderProps> = ({
               {/* Action Buttons - Mobile */}
               {showActions && (
                 <div className="space-y-2">
-                  {onToggleChatHistory && (
+                  {onToggleChatHistory && isLoggedIn && (
                     <button
                       onClick={() => {
                         onToggleChatHistory();

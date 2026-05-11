@@ -158,18 +158,7 @@ const LoginPopUp: React.FC = () => {
             </svg>
           </button>
 
-          {/* Spacer for 10% gap */}
-          <div className="h-[10%] min-h-4"></div>
 
-          {/* Secondary subtle link */}
-          <div className="text-center">
-            <button
-              onClick={handleProceedWithoutLogin}
-              className="text-xs text-slate-400 hover:text-slate-600 transition-colors underline decoration-dotted underline-offset-2"
-            >
-              Continue as guest
-            </button>
-          </div>
         </div>
       ) : (
         <div className="p-10">

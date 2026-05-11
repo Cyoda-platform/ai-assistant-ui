@@ -8,3 +8,4 @@ export const LOAD_CHAT_HISTORY = 'load-chat-history';
 export const ROLLBACK_CHAT = 'rollback-chat';
 export const SEND_INITIAL_MESSAGE = 'send-initial-message';
 export const CHAT_READY = 'chat-ready';
+export const PENDING_CHAT_INPUT = 'pendingChatInput';
