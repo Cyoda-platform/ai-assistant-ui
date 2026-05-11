@@ -55,6 +55,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
   onRefresh
 }) => {
   const navigate = useNavigate();
+  const newChatHref = '/?focusInput=true';
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [chatToDelete, setChatToDelete] = useState<{ id: string; name?: string } | null>(null);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
@@ -148,7 +149,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
       <nav className={`flex-1 flex flex-col pl-4 pr-2 py-4 space-y-2 overflow-hidden ${onClose ? 'pt-4' : 'pt-6'}`}>
         {/* Home Button */}
         <a
-          href="/"
+          href={newChatHref}
           onClick={(e) => {
             // Allow default behavior for middle-click and Ctrl+click
             if (e.button === 1 || e.ctrlKey || e.metaKey) {
@@ -156,13 +157,13 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
             }
             // Prevent default and use navigate for regular clicks
             e.preventDefault();
-            navigate('/');
+            navigate(newChatHref);
           }}
           onAuxClick={(e) => {
             // Handle middle-click
             if (e.button === 1) {
               e.preventDefault();
-              window.open('/', '_blank');
+              window.open(newChatHref, '_blank');
             }
           }}
           className="flex items-center justify-center gap-2 cursor-pointer px-4 py-2.5 rounded-lg text-white font-semibold text-sm no-underline"

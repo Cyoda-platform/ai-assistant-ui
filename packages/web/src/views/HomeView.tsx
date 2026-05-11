@@ -187,14 +187,22 @@ const HomeView: React.FC = () => {
   // Check for 'name' URL parameter and populate chat input
   useEffect(() => {
     const nameParam = searchParams.get('name');
-    if (nameParam) {
+    const shouldFocusInput = searchParams.get('focusInput') === 'true';
+
+    if (nameParam || shouldFocusInput) {
       const decodedName = decodeURIComponent(nameParam);
-      setChatInput(decodedName);
+      if (nameParam) {
+        setChatInput(decodedName);
+      }
+
       setTimeout(() => {
         chatInputRef.current?.focus();
       }, 100);
-      searchParams.delete('name');
-      setSearchParams(searchParams, { replace: true });
+
+      const nextSearchParams = new URLSearchParams(searchParams);
+      nextSearchParams.delete('name');
+      nextSearchParams.delete('focusInput');
+      setSearchParams(nextSearchParams, { replace: true });
     }
   }, [searchParams, setSearchParams]);
 

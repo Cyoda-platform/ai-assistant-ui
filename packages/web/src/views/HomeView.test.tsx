@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { render, screen, waitFor } from '@testing-library/react';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import HomeView from './HomeView';
 
 // Mock all dependencies
@@ -101,5 +101,17 @@ describe('HomeView', () => {
     );
     expect(container.textContent).not.toContain('Cyoda AI Studio');
     expect(container.textContent).not.toContain('BUILD WITH CYODA AI');
+  });
+
+  it('should focus the input when focusInput query param is present', async () => {
+    render(
+      <MemoryRouter initialEntries={['/?focusInput=true']}>
+        <HomeView />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Ask the assistant/i)).toHaveFocus();
+    });
   });
 });
