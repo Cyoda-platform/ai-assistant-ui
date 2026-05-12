@@ -1,22 +1,31 @@
 import type {AxiosError, AxiosInstance} from "axios";
 import HelperStorage from "@/helpers/HelperStorage.ts";
 import { useAuthStore } from "@/stores/auth.ts";
+import { triggerAuth0Logout } from "@/helpers/HelperAuth";
 import type {Auth} from "@/types/auth";
 
 let refreshAccessTokenPromise: Promise<void> | null = null;
 const helperStorage = new HelperStorage();
 
 const handleLogoutAndRedirect = () => {
-    debugger;
     // Use getState() instead of the hook to avoid hook call outside component
     const authStore = useAuthStore.getState();
     authStore.logout();
 
     if (import.meta.env.VITE_IS_ELECTRON && window.electronAPI?.reloadMainWindow) {
         window.electronAPI.reloadMainWindow();
-    } else {
-        window.location.href = window.location.origin + "/";
+        return;
     }
+
+    // Trigger a real Auth0 logout so the Auth0 session cookie is cleared.
+    // Otherwise the next page load silently re-authenticates and we end
+    // up in an endless reload loop when the API keeps returning 401.
+    if (triggerAuth0Logout()) {
+        return;
+    }
+
+    // Fallback for environments where Auth0 logout was not registered.
+    window.location.href = window.location.origin + "/";
 };
 
 const refreshToken = (instance: AxiosInstance): void => {

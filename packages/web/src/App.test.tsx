@@ -69,7 +69,7 @@ vi.mock('./helpers/HelperConstants', () => ({
 }));
 
 vi.mock('./helpers/HelperIframe', () => ({ isInIframe: false }));
-vi.mock('./helpers/HelperAuth', () => ({ setTokenGetter: vi.fn() }));
+vi.mock('./helpers/HelperAuth', () => ({ setTokenGetter: vi.fn(), setAuth0Logout: vi.fn() }));
 vi.mock('./helpers/HelperTheme', () => ({ useDetectTheme: () => vi.fn() }));
 vi.mock('./router', () => ({ useNavigationGuards: () => ({ handleFirstVisit: testState.handleFirstVisitMock }) }));
 vi.mock('./utils/clearTestData', () => ({ initializeCleanState: vi.fn() }));

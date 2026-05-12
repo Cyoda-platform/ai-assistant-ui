@@ -16,7 +16,7 @@ import ConfirmationDialog from './components/ConfirmationDialog/ConfirmationDial
 import HelperStorage from './helpers/HelperStorage';
 import { LOGIN_REDIRECT_URL } from './helpers/HelperConstants';
 import { isInIframe } from './helpers/HelperIframe';
-import { setTokenGetter } from './helpers/HelperAuth';
+import { setTokenGetter, setAuth0Logout } from './helpers/HelperAuth';
 import { useDetectTheme } from './helpers/HelperTheme';
 import { useNavigationGuards } from './router';
 import { initializeCleanState } from './utils/clearTestData';
@@ -26,7 +26,7 @@ const APP_ENTRY_ROUTE = '/';
 const App: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, getAccessTokenSilently, isAuthenticated, isLoading: auth0Loading, error: auth0Error } = useAuth0();
+  const { user, getAccessTokenSilently, isAuthenticated, isLoading: auth0Loading, error: auth0Error, logout: auth0LogoutFn } = useAuth0();
   const [firstVisit, setFirstVisit] = useState(true);
 
   const authStore = useAuthStore();
@@ -56,6 +56,18 @@ const App: React.FC = () => {
       }
     });
   }, [getAccessTokenSilently]);
+
+  // Register the Auth0 logout so the refreshToken interceptor can trigger
+  // a real session logout when token refresh fails. Without this the
+  // interceptor only clears local state and the Auth0 session cookie keeps
+  // silently re-authenticating, producing an endless reload loop on 401s.
+  useEffect(() => {
+    setAuth0Logout(() => {
+      auth0LogoutFn({
+        logoutParams: { returnTo: window.location.origin }
+      });
+    });
+  }, [auth0LogoutFn]);
 
   // Initialize clean state on app load
   useEffect(() => {
