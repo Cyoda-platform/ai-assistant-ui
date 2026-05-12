@@ -90,7 +90,7 @@ describe('BackgroundTaskNotification', () => {
     it('should render View Tasks button', () => {
       render(<BackgroundTaskNotification hook={mockHook} />);
 
-      expect(screen.getByText('📊 View Tasks')).toBeInTheDocument();
+      expect(screen.getByText('View Tasks')).toBeInTheDocument();
     });
   });
 
@@ -120,7 +120,7 @@ describe('BackgroundTaskNotification', () => {
         <BackgroundTaskNotification hook={hookWithoutDescription} />
       );
 
-      const descriptionDivs = container.querySelectorAll('.text-xs.text-slate-400');
+      const descriptionDivs = container.querySelectorAll('.text-xs.text-slate-500');
       expect(descriptionDivs.length).toBe(0);
     });
   });
@@ -165,7 +165,7 @@ describe('BackgroundTaskNotification', () => {
         />
       );
 
-      const button = screen.getByText('📊 View Tasks');
+      const button = screen.getByText('View Tasks');
       fireEvent.click(button);
 
       expect(onOpenTaskPanel).toHaveBeenCalledTimes(1);
@@ -174,7 +174,7 @@ describe('BackgroundTaskNotification', () => {
     it('should not error when onOpenTaskPanel is not provided', () => {
       render(<BackgroundTaskNotification hook={mockHook} />);
 
-      const button = screen.getByText('📊 View Tasks');
+      const button = screen.getByText('View Tasks');
 
       expect(() => {
         fireEvent.click(button);
@@ -186,7 +186,7 @@ describe('BackgroundTaskNotification', () => {
 
       render(<BackgroundTaskNotification hook={mockHook} />);
 
-      const button = screen.getByText('📊 View Tasks');
+      const button = screen.getByText('View Tasks');
       fireEvent.click(button);
 
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -204,7 +204,7 @@ describe('BackgroundTaskNotification', () => {
         />
       );
 
-      const button = screen.getByText('📊 View Tasks');
+      const button = screen.getByText('View Tasks');
 
       fireEvent.click(button);
       fireEvent.click(button);
@@ -225,14 +225,14 @@ describe('BackgroundTaskNotification', () => {
     it('should have correct background styling', () => {
       const { container } = render(<BackgroundTaskNotification hook={mockHook} />);
 
-      const mainDiv = container.querySelector('.bg-slate-800\\/50');
+      const mainDiv = container.querySelector('.bg-white');
       expect(mainDiv).toBeInTheDocument();
     });
 
     it('should have border styling', () => {
       const { container } = render(<BackgroundTaskNotification hook={mockHook} />);
 
-      const borderDiv = container.querySelector('.border-t.border-slate-700');
+      const borderDiv = container.querySelector('.border-t.border-slate-200');
       expect(borderDiv).toBeInTheDocument();
     });
 
@@ -253,9 +253,9 @@ describe('BackgroundTaskNotification', () => {
     it('should have button with teal styling', () => {
       render(<BackgroundTaskNotification hook={mockHook} />);
 
-      const button = screen.getByText('📊 View Tasks');
-      expect(button.className).toContain('bg-teal-500/20');
-      expect(button.className).toContain('text-teal-300');
+      const button = screen.getByText('View Tasks');
+      expect(button.className).toContain('bg-teal-50');
+      expect(button.className).toContain('text-teal-700');
     });
   });
 

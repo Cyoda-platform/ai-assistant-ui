@@ -17,30 +17,19 @@ describe('ResizeHandle', () => {
       expect(handle).toBeInTheDocument();
     });
 
-    it('should render grip icon', () => {
+    it('should not render grip icon (visual indicator removed)', () => {
       const { container } = render(<ResizeHandle {...defaultProps} />);
 
-      // Lucide icon renders as SVG
       const icon = container.querySelector('svg');
-      expect(icon).toBeInTheDocument();
-    });
-
-    it('should render indicator element', () => {
-      const { container } = render(<ResizeHandle {...defaultProps} />);
-
-      // Check for the structure: handle has two children
-      const handle = container.firstChild as HTMLElement;
-      const firstChild = handle.children[0];
-      expect(firstChild).toBeInTheDocument();
+      expect(icon).not.toBeInTheDocument();
     });
 
     it('should render hit area element', () => {
       const { container } = render(<ResizeHandle {...defaultProps} />);
 
-      // Check for the structure: handle has two children
       const handle = container.firstChild as HTMLElement;
-      const secondChild = handle.children[1];
-      expect(secondChild).toBeInTheDocument();
+      const hitArea = handle.children[0];
+      expect(hitArea).toBeInTheDocument();
     });
   });
 
@@ -189,30 +178,20 @@ describe('ResizeHandle', () => {
   });
 
   describe('structure', () => {
-    it('should have two child elements (indicator and hit area)', () => {
+    it('should have one child element (hit area only)', () => {
       const { container } = render(<ResizeHandle {...defaultProps} />);
 
       const handle = container.firstChild as HTMLElement;
-      expect(handle.children.length).toBe(2);
+      expect(handle.children.length).toBe(1);
     });
 
-    it('should have indicator as first child', () => {
+    it('should have hit area as only child', () => {
       const { container } = render(<ResizeHandle {...defaultProps} />);
 
       const handle = container.firstChild as HTMLElement;
-      const firstChild = handle.children[0];
-      // First child should contain the SVG icon
-      const icon = firstChild.querySelector('svg');
-      expect(icon).toBeInTheDocument();
-    });
-
-    it('should have hit area as second child', () => {
-      const { container } = render(<ResizeHandle {...defaultProps} />);
-
-      const handle = container.firstChild as HTMLElement;
-      const secondChild = handle.children[1];
-      // Second child is the hit area (should not have any children)
-      expect(secondChild.children.length).toBe(0);
+      const hitArea = handle.children[0];
+      expect(hitArea).toBeInTheDocument();
+      expect(hitArea.children.length).toBe(0);
     });
   });
 });

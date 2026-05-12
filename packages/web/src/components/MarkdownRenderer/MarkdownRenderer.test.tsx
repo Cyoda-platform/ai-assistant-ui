@@ -143,7 +143,8 @@ describe('MarkdownRenderer', () => {
       const markdown = '```js\ncode\n```';
       const { container } = render(<MarkdownRenderer>{markdown}</MarkdownRenderer>);
 
-      expect(container.querySelector('.copy-icon')).toBeInTheDocument();
+      const copyButton = container.querySelector('.code-block-copy');
+      expect(copyButton?.querySelector('svg')).toBeInTheDocument();
     });
   });
 

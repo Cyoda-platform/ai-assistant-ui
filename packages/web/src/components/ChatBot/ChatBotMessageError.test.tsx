@@ -130,7 +130,7 @@ describe('ChatBotMessageError', () => {
     it('should have error badge with red styling classes', () => {
       const { container } = render(<ChatBotMessageError message={defaultMessage} />);
 
-      const badge = container.querySelector('.bg-red-500\\/20');
+      const badge = container.querySelector('.bg-red-50');
       expect(badge).toBeInTheDocument();
     });
 
@@ -204,7 +204,7 @@ describe('ChatBotMessageError', () => {
 
       const { container } = render(<ChatBotMessageError message={message} />);
 
-      expect(container.querySelector('.text-red-100')).toBeInTheDocument();
+      expect(container.querySelector('.text-red-700')).toBeInTheDocument();
     });
 
     it('should handle very long dates', () => {

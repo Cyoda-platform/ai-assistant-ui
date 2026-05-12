@@ -22,7 +22,7 @@ describe('appStore', () => {
     useAppStore.setState({
       isSidebarHidden: false,
       isCanvasHidden: false,
-      theme: 'dark',
+      theme: 'light',
       consentDialog: true,
       workflowLayout: 'vertical',
     });
@@ -73,18 +73,18 @@ describe('appStore', () => {
   });
 
   describe('theme', () => {
-    it('should always be dark theme', () => {
+    it('should initialize with light theme', () => {
       const { theme } = useAppStore.getState();
-      expect(theme).toBe('dark');
+      expect(theme).toBe('light');
     });
 
-    it('should enforce dark theme even when trying to set light', () => {
+    it('should allow setting theme', () => {
       const { setTheme } = useAppStore.getState();
 
       setTheme('light');
-      expect(useAppStore.getState().theme).toBe('dark');
+      expect(useAppStore.getState().theme).toBe('light');
 
-      setTheme('blue');
+      setTheme('dark');
       expect(useAppStore.getState().theme).toBe('dark');
     });
   });

@@ -73,8 +73,8 @@ describe('ResponseSeparator', () => {
   it('should have gradient lines', () => {
     const { container } = render(<ResponseSeparator />);
 
-    const leftGradient = container.querySelector('.bg-gradient-to-r.from-amber-400\\/0.to-amber-400\\/40');
-    const rightGradient = container.querySelector('.bg-gradient-to-l.from-amber-400\\/0.to-amber-400\\/40');
+    const leftGradient = container.querySelector('.bg-gradient-to-r.from-blue-400\\/0.to-blue-400\\/40');
+    const rightGradient = container.querySelector('.bg-gradient-to-l.from-blue-400\\/0.to-blue-400\\/40');
 
     expect(leftGradient).toBeInTheDocument();
     expect(rightGradient).toBeInTheDocument();
