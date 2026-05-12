@@ -1,3 +1,4 @@
+import { renderWithReactFlow } from '@/test-utils/renderWithReactFlow';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -13,46 +14,46 @@ describe('EnvironmentNode', () => {
   };
 
   it('should render environment name', () => {
-    render(<EnvironmentNode data={defaultData} />);
+    renderWithReactFlow(<EnvironmentNode data={defaultData} />);
 
     expect(screen.getByText('Production')).toBeInTheDocument();
   });
 
   it('should render environment type', () => {
-    render(<EnvironmentNode data={defaultData} />);
+    renderWithReactFlow(<EnvironmentNode data={defaultData} />);
 
     expect(screen.getByText('production')).toBeInTheDocument();
   });
 
   it('should render description when provided', () => {
-    render(<EnvironmentNode data={defaultData} />);
+    renderWithReactFlow(<EnvironmentNode data={defaultData} />);
 
     expect(screen.getByText('Production environment')).toBeInTheDocument();
   });
 
   it('should not render description when not provided', () => {
     const dataWithoutDescription = { ...defaultData, description: undefined };
-    const { container } = render(<EnvironmentNode data={dataWithoutDescription} />);
+    const { container } = renderWithReactFlow(<EnvironmentNode data={dataWithoutDescription} />);
 
     expect(container.textContent).not.toContain('Production environment');
   });
 
   it('should render app count', () => {
-    render(<EnvironmentNode data={defaultData} />);
+    renderWithReactFlow(<EnvironmentNode data={defaultData} />);
 
     expect(screen.getByText('5')).toBeInTheDocument();
     expect(screen.getByText('Apps')).toBeInTheDocument();
   });
 
   it('should render status', () => {
-    render(<EnvironmentNode data={defaultData} />);
+    renderWithReactFlow(<EnvironmentNode data={defaultData} />);
 
     expect(screen.getByText('active')).toBeInTheDocument();
   });
 
   describe('environment type styling', () => {
     it('should render production with green color', () => {
-      const { container } = render(
+      const { container } = renderWithReactFlow(
         <EnvironmentNode data={{ ...defaultData, environmentType: 'production' }} />
       );
 
@@ -60,7 +61,7 @@ describe('EnvironmentNode', () => {
     });
 
     it('should render staging with yellow color', () => {
-      const { container } = render(
+      const { container } = renderWithReactFlow(
         <EnvironmentNode data={{ ...defaultData, environmentType: 'staging' }} />
       );
 
@@ -68,7 +69,7 @@ describe('EnvironmentNode', () => {
     });
 
     it('should render development with blue color', () => {
-      const { container } = render(
+      const { container } = renderWithReactFlow(
         <EnvironmentNode data={{ ...defaultData, environmentType: 'development' }} />
       );
 
@@ -76,7 +77,7 @@ describe('EnvironmentNode', () => {
     });
 
     it('should render test with purple color', () => {
-      const { container } = render(
+      const { container } = renderWithReactFlow(
         <EnvironmentNode data={{ ...defaultData, environmentType: 'test' }} />
       );
 
@@ -86,7 +87,7 @@ describe('EnvironmentNode', () => {
 
   describe('environment type icons', () => {
     it('should render Cloud icon for production', () => {
-      const { container } = render(
+      const { container } = renderWithReactFlow(
         <EnvironmentNode data={{ ...defaultData, environmentType: 'production' }} />
       );
 
@@ -94,7 +95,7 @@ describe('EnvironmentNode', () => {
     });
 
     it('should render Server icon for staging', () => {
-      const { container } = render(
+      const { container } = renderWithReactFlow(
         <EnvironmentNode data={{ ...defaultData, environmentType: 'staging' }} />
       );
 
@@ -102,7 +103,7 @@ describe('EnvironmentNode', () => {
     });
 
     it('should render Wrench icon for development', () => {
-      const { container } = render(
+      const { container } = renderWithReactFlow(
         <EnvironmentNode data={{ ...defaultData, environmentType: 'development' }} />
       );
 
@@ -110,7 +111,7 @@ describe('EnvironmentNode', () => {
     });
 
     it('should render TestTube icon for test', () => {
-      const { container } = render(
+      const { container } = renderWithReactFlow(
         <EnvironmentNode data={{ ...defaultData, environmentType: 'test' }} />
       );
 
@@ -120,7 +121,7 @@ describe('EnvironmentNode', () => {
 
   describe('status indicator', () => {
     it('should render green indicator for active status', () => {
-      const { container } = render(
+      const { container } = renderWithReactFlow(
         <EnvironmentNode data={{ ...defaultData, status: 'active' }} />
       );
 
@@ -128,7 +129,7 @@ describe('EnvironmentNode', () => {
     });
 
     it('should render gray indicator for inactive status', () => {
-      const { container } = render(
+      const { container } = renderWithReactFlow(
         <EnvironmentNode data={{ ...defaultData, status: 'inactive' }} />
       );
 
@@ -136,7 +137,7 @@ describe('EnvironmentNode', () => {
     });
 
     it('should render orange indicator for maintenance status', () => {
-      const { container } = render(
+      const { container } = renderWithReactFlow(
         <EnvironmentNode data={{ ...defaultData, status: 'maintenance' }} />
       );
 
@@ -144,7 +145,7 @@ describe('EnvironmentNode', () => {
     });
 
     it('should have animate-pulse class', () => {
-      const { container } = render(<EnvironmentNode data={defaultData} />);
+      const { container } = renderWithReactFlow(<EnvironmentNode data={defaultData} />);
 
       expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
     });
@@ -155,7 +156,7 @@ describe('EnvironmentNode', () => {
       const onClick = vi.fn();
       const user = userEvent.setup();
 
-      render(<EnvironmentNode data={{ ...defaultData, onClick }} />);
+      renderWithReactFlow(<EnvironmentNode data={{ ...defaultData, onClick }} />);
 
       const node = screen.getByText('Production').closest('div');
       if (node) {
@@ -168,33 +169,32 @@ describe('EnvironmentNode', () => {
     it('should not throw when onClick is not provided', async () => {
       const user = userEvent.setup();
 
-      render(<EnvironmentNode data={defaultData} />);
+      renderWithReactFlow(<EnvironmentNode data={defaultData} />);
 
       const node = screen.getByText('Production').closest('div');
 
-      await expect(async () => {
+
         if (node) {
           await user.click(node);
         }
-      }).resolves.not.toThrow();
     });
   });
 
   describe('styling and classes', () => {
     it('should have cursor-pointer class', () => {
-      const { container } = render(<EnvironmentNode data={defaultData} />);
+      const { container } = renderWithReactFlow(<EnvironmentNode data={defaultData} />);
 
       expect(container.querySelector('.cursor-pointer')).toBeInTheDocument();
     });
 
     it('should have hover effects', () => {
-      const { container } = render(<EnvironmentNode data={defaultData} />);
+      const { container } = renderWithReactFlow(<EnvironmentNode data={defaultData} />);
 
       expect(container.querySelector('.hover\\:scale-105')).toBeInTheDocument();
     });
 
     it('should have shadow and rounded styling', () => {
-      const { container } = render(<EnvironmentNode data={defaultData} />);
+      const { container } = renderWithReactFlow(<EnvironmentNode data={defaultData} />);
 
       expect(container.querySelector('.rounded-xl.shadow-2xl')).toBeInTheDocument();
     });
@@ -202,7 +202,7 @@ describe('EnvironmentNode', () => {
 
   describe('React Flow handles', () => {
     it('should render source handle', () => {
-      const { container } = render(<EnvironmentNode data={defaultData} />);
+      const { container } = renderWithReactFlow(<EnvironmentNode data={defaultData} />);
 
       const handles = container.querySelectorAll('[data-handlepos]');
       expect(handles.length).toBeGreaterThan(0);
@@ -211,21 +211,21 @@ describe('EnvironmentNode', () => {
 
   describe('edge cases', () => {
     it('should handle app count of 0', () => {
-      render(<EnvironmentNode data={{ ...defaultData, appCount: 0 }} />);
+      renderWithReactFlow(<EnvironmentNode data={{ ...defaultData, appCount: 0 }} />);
 
       expect(screen.getByText('0')).toBeInTheDocument();
     });
 
     it('should handle very long environment names', () => {
       const longName = 'Environment '.repeat(10);
-      render(<EnvironmentNode data={{ ...defaultData, name: longName }} />);
+      const { container } = renderWithReactFlow(<EnvironmentNode data={{ ...defaultData, name: longName }} />);
 
-      expect(screen.getByText(longName)).toBeInTheDocument();
+      expect(container.textContent).toContain(longName.trim());
     });
 
     it('should handle very long descriptions with line-clamp', () => {
       const longDescription = 'Description '.repeat(50);
-      const { container } = render(
+      const { container } = renderWithReactFlow(
         <EnvironmentNode data={{ ...defaultData, description: longDescription }} />
       );
 
@@ -233,7 +233,7 @@ describe('EnvironmentNode', () => {
     });
 
     it('should handle large app counts', () => {
-      render(<EnvironmentNode data={{ ...defaultData, appCount: 999 }} />);
+      renderWithReactFlow(<EnvironmentNode data={{ ...defaultData, appCount: 999 }} />);
 
       expect(screen.getByText('999')).toBeInTheDocument();
     });

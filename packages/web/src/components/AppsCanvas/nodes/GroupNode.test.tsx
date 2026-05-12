@@ -1,3 +1,4 @@
+import { renderWithReactFlow } from '@/test-utils/renderWithReactFlow';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -13,13 +14,13 @@ describe('GroupNode', () => {
   };
 
   it('should render group label', () => {
-    render(<GroupNode data={defaultData} />);
+    renderWithReactFlow(<GroupNode data={defaultData} />);
 
     expect(screen.getByText('Test Group')).toBeInTheDocument();
   });
 
   it('should render count', () => {
-    render(<GroupNode data={defaultData} />);
+    renderWithReactFlow(<GroupNode data={defaultData} />);
 
     expect(screen.getByText('5 items')).toBeInTheDocument();
   });
@@ -29,14 +30,14 @@ describe('GroupNode', () => {
       ...defaultData,
       metadata: { ...defaultData.metadata, count: 1 },
     };
-    render(<GroupNode data={dataWithOne} />);
+    renderWithReactFlow(<GroupNode data={dataWithOne} />);
 
     expect(screen.getByText('1 item')).toBeInTheDocument();
   });
 
   it('should handle missing metadata', () => {
     const dataWithoutMetadata = { label: 'Test Group' };
-    const { container } = render(<GroupNode data={dataWithoutMetadata} />);
+    const { container } = renderWithReactFlow(<GroupNode data={dataWithoutMetadata} />);
 
     expect(screen.getByText('Test Group')).toBeInTheDocument();
     expect(screen.getByText('0 items')).toBeInTheDocument();
@@ -44,7 +45,7 @@ describe('GroupNode', () => {
 
   describe('group type colors', () => {
     it('should render environments with emerald color', () => {
-      const { container } = render(
+      const { container } = renderWithReactFlow(
         <GroupNode
           data={{ ...defaultData, metadata: { ...defaultData.metadata, groupType: 'environments' } }}
         />
@@ -54,7 +55,7 @@ describe('GroupNode', () => {
     });
 
     it('should render entities with blue color', () => {
-      const { container } = render(
+      const { container } = renderWithReactFlow(
         <GroupNode
           data={{ ...defaultData, metadata: { ...defaultData.metadata, groupType: 'entities' } }}
         />
@@ -64,7 +65,7 @@ describe('GroupNode', () => {
     });
 
     it('should render workflows with amber color', () => {
-      const { container } = render(
+      const { container } = renderWithReactFlow(
         <GroupNode
           data={{ ...defaultData, metadata: { ...defaultData.metadata, groupType: 'workflows' } }}
         />
@@ -74,7 +75,7 @@ describe('GroupNode', () => {
     });
 
     it('should render default with slate color for unknown type', () => {
-      const { container } = render(
+      const { container } = renderWithReactFlow(
         <GroupNode
           data={{ ...defaultData, metadata: { ...defaultData.metadata, groupType: 'unknown' } }}
         />
@@ -94,7 +95,7 @@ describe('GroupNode', () => {
         metadata: { ...defaultData.metadata, onAddNew },
       };
 
-      render(<GroupNode data={dataWithAddNew} />);
+      renderWithReactFlow(<GroupNode data={dataWithAddNew} />);
 
       const addButton = screen.getByTitle(/Add new/i);
       await user.click(addButton);
@@ -108,7 +109,7 @@ describe('GroupNode', () => {
         metadata: { groupType: 'environments', count: 5 },
       };
 
-      const { container } = render(<GroupNode data={dataWithoutAddNew} />);
+      const { container } = renderWithReactFlow(<GroupNode data={dataWithoutAddNew} />);
 
       const addButtons = container.querySelectorAll('[title*="Add new"]');
       expect(addButtons).toHaveLength(0);
@@ -123,7 +124,7 @@ describe('GroupNode', () => {
         metadata: { ...defaultData.metadata, onAddNew },
       };
 
-      render(<GroupNode data={dataWithAddNew} />);
+      renderWithReactFlow(<GroupNode data={dataWithAddNew} />);
 
       const addButton = screen.getByTitle(/Add new/i);
       await user.click(addButton);
@@ -138,7 +139,7 @@ describe('GroupNode', () => {
         metadata: { groupType: 'environments', count: 5, onAddNew },
       };
 
-      render(<GroupNode data={dataWithAddNew} />);
+      renderWithReactFlow(<GroupNode data={dataWithAddNew} />);
 
       expect(screen.getByTitle('Add new environment')).toBeInTheDocument();
     });
@@ -150,7 +151,7 @@ describe('GroupNode', () => {
         metadata: { groupType: 'entities', count: 5, onAddNew },
       };
 
-      render(<GroupNode data={dataWithAddNew} />);
+      renderWithReactFlow(<GroupNode data={dataWithAddNew} />);
 
       expect(screen.getByTitle('Add new entity')).toBeInTheDocument();
     });
@@ -162,7 +163,7 @@ describe('GroupNode', () => {
         metadata: { groupType: 'workflows', count: 5, onAddNew },
       };
 
-      render(<GroupNode data={dataWithAddNew} />);
+      renderWithReactFlow(<GroupNode data={dataWithAddNew} />);
 
       expect(screen.getByTitle('Add new workflow')).toBeInTheDocument();
     });
@@ -178,7 +179,7 @@ describe('GroupNode', () => {
         metadata: { ...defaultData.metadata, onSendToChat },
       };
 
-      render(<GroupNode data={dataWithSendToChat} />);
+      renderWithReactFlow(<GroupNode data={dataWithSendToChat} />);
 
       const sendButton = screen.getByTitle(/Send.*to chat/i);
       await user.click(sendButton);
@@ -200,7 +201,7 @@ describe('GroupNode', () => {
         metadata: { groupType: 'environments', count: 5 },
       };
 
-      const { container } = render(<GroupNode data={dataWithoutSendToChat} />);
+      const { container } = renderWithReactFlow(<GroupNode data={dataWithoutSendToChat} />);
 
       const sendButtons = container.querySelectorAll('[title*="Send"]');
       expect(sendButtons).toHaveLength(0);
@@ -215,7 +216,7 @@ describe('GroupNode', () => {
         metadata: { ...defaultData.metadata, onSendToChat },
       };
 
-      render(<GroupNode data={dataWithSendToChat} />);
+      renderWithReactFlow(<GroupNode data={dataWithSendToChat} />);
 
       const sendButton = screen.getByTitle(/Send.*to chat/i);
       await user.click(sendButton);
@@ -226,14 +227,14 @@ describe('GroupNode', () => {
 
   describe('React Flow handles', () => {
     it('should render 8 handles (4 source, 4 target)', () => {
-      const { container } = render(<GroupNode data={defaultData} />);
+      const { container } = renderWithReactFlow(<GroupNode data={defaultData} />);
 
       const handles = container.querySelectorAll('[data-handlepos]');
       expect(handles.length).toBe(8);
     });
 
     it('should have handles in all positions', () => {
-      const { container } = render(<GroupNode data={defaultData} />);
+      const { container } = renderWithReactFlow(<GroupNode data={defaultData} />);
 
       const topHandle = container.querySelector('[data-handlepos="top"]');
       const rightHandle = container.querySelector('[data-handlepos="right"]');
@@ -249,13 +250,13 @@ describe('GroupNode', () => {
 
   describe('styling', () => {
     it('should have shadow and rounded styling', () => {
-      const { container } = render(<GroupNode data={defaultData} />);
+      const { container } = renderWithReactFlow(<GroupNode data={defaultData} />);
 
       expect(container.querySelector('.rounded-lg.shadow-lg')).toBeInTheDocument();
     });
 
     it('should have minimum width', () => {
-      const { container } = render(<GroupNode data={defaultData} />);
+      const { container } = renderWithReactFlow(<GroupNode data={defaultData} />);
 
       expect(container.querySelector('.min-w-\\[160px\\]')).toBeInTheDocument();
     });
@@ -267,16 +268,16 @@ describe('GroupNode', () => {
         ...defaultData,
         metadata: { ...defaultData.metadata, count: 0 },
       };
-      render(<GroupNode data={dataWithZero} />);
+      renderWithReactFlow(<GroupNode data={dataWithZero} />);
 
       expect(screen.getByText('0 items')).toBeInTheDocument();
     });
 
     it('should handle very long labels', () => {
       const longLabel = 'Group '.repeat(20);
-      render(<GroupNode data={{ ...defaultData, label: longLabel }} />);
+      const { container } = renderWithReactFlow(<GroupNode data={{ ...defaultData, label: longLabel }} />);
 
-      expect(screen.getByText(longLabel)).toBeInTheDocument();
+      expect(container.textContent).toContain(longLabel.trim());
     });
 
     it('should handle large counts', () => {
@@ -284,7 +285,7 @@ describe('GroupNode', () => {
         ...defaultData,
         metadata: { ...defaultData.metadata, count: 9999 },
       };
-      render(<GroupNode data={dataWithLargeCount} />);
+      renderWithReactFlow(<GroupNode data={dataWithLargeCount} />);
 
       expect(screen.getByText('9999 items')).toBeInTheDocument();
     });
@@ -298,7 +299,7 @@ describe('GroupNode', () => {
         metadata: { ...defaultData.metadata, onAddNew, onSendToChat },
       };
 
-      render(<GroupNode data={dataWithBoth} />);
+      renderWithReactFlow(<GroupNode data={dataWithBoth} />);
 
       expect(screen.getByTitle(/Add new/i)).toBeInTheDocument();
       expect(screen.getByTitle(/Send.*to chat/i)).toBeInTheDocument();

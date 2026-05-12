@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NodeJsonEditor } from './NodeJsonEditor';
 
@@ -174,8 +174,7 @@ describe('NodeJsonEditor', () => {
       const editor = screen.getByTestId('monaco-editor');
       const newData = { updated: true };
 
-      await user.clear(editor);
-      await user.type(editor, JSON.stringify(newData));
+      fireEvent.change(editor, { target: { value: JSON.stringify(newData) } });
 
       const saveButton = screen.getByText('Save Changes');
       await user.click(saveButton);
@@ -197,8 +196,7 @@ describe('NodeJsonEditor', () => {
 
       const editor = screen.getByTestId('monaco-editor');
 
-      await user.clear(editor);
-      await user.type(editor, '{ invalid json }');
+      fireEvent.change(editor, { target: { value: '{ invalid json }' } });
 
       const saveButton = screen.getByText('Save Changes');
       await user.click(saveButton);
@@ -225,8 +223,7 @@ describe('NodeJsonEditor', () => {
       const editor = screen.getByTestId('monaco-editor');
 
       // Enter invalid JSON
-      await user.clear(editor);
-      await user.type(editor, '{ invalid }');
+      fireEvent.change(editor, { target: { value: '{ invalid }' } });
 
       const saveButton = screen.getByText('Save Changes');
       await user.click(saveButton);
@@ -236,8 +233,7 @@ describe('NodeJsonEditor', () => {
       });
 
       // Fix the JSON
-      await user.clear(editor);
-      await user.type(editor, '{"valid": true}');
+      fireEvent.change(editor, { target: { value: '{"valid": true}' } });
       await user.click(saveButton);
 
       await waitFor(() => {
@@ -263,8 +259,7 @@ describe('NodeJsonEditor', () => {
       const editor = screen.getByTestId('monaco-editor');
       const newValue = '{"new": "value"}';
 
-      await user.clear(editor);
-      await user.type(editor, newValue);
+      fireEvent.change(editor, { target: { value: newValue } });
 
       expect(editor).toHaveValue(newValue);
     });
@@ -331,8 +326,7 @@ describe('NodeJsonEditor', () => {
 
       const editor = screen.getByTestId('monaco-editor');
 
-      await user.clear(editor);
-      await user.type(editor, '{ "unterminated": ');
+      fireEvent.change(editor, { target: { value: '{ "unterminated": ' } });
 
       const saveButton = screen.getByText('Save Changes');
       await user.click(saveButton);
@@ -358,8 +352,7 @@ describe('NodeJsonEditor', () => {
       const editor = screen.getByTestId('monaco-editor');
 
       // Create an error
-      await user.clear(editor);
-      await user.type(editor, '{ invalid }');
+      fireEvent.change(editor, { target: { value: '{ invalid }' } });
 
       const saveButton = screen.getByText('Save Changes');
       await user.click(saveButton);

@@ -47,6 +47,16 @@ global.ResizeObserver = class ResizeObserver {
 // Mock scrollTo
 window.scrollTo = vi.fn();
 
+// Mock navigator.clipboard
+Object.defineProperty(navigator, 'clipboard', {
+  value: {
+    writeText: vi.fn().mockResolvedValue(undefined),
+    readText: vi.fn().mockResolvedValue(''),
+  },
+  writable: true,
+  configurable: true,
+});
+
 // Suppress console errors during tests (optional - remove if you want to see them)
 const originalError = console.error;
 beforeAll(() => {

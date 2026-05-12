@@ -90,7 +90,7 @@ export function hierarchicalLayout(
 
   trees.forEach((tree, treeIndex) => {
     // First pass: calculate relative positions
-    calculateInitialX(tree, 0);
+    calculateInitialX(tree, 0, 0, config);
 
     // Second pass: collect all nodes and find bounds
     const treeNodes: TreeNode[] = [];
@@ -159,8 +159,8 @@ function buildTree(
  * Calculate positions recursively
  * Each node is positioned relative to its parent
  */
-function calculateInitialX(tree: TreeNode, depth: number, parentX: number = 0): void {
-  tree.y = 100 + depth * defaultConfig.levelSpacing;
+function calculateInitialX(tree: TreeNode, depth: number, parentX: number = 0, config: LayoutConfig = defaultConfig): void {
+  tree.y = 100 + depth * config.levelSpacing;
 
   if (tree.children.length === 0) {
     // Leaf node - positioned at parent's X
@@ -176,7 +176,7 @@ function calculateInitialX(tree: TreeNode, depth: number, parentX: number = 0): 
   if (numChildren === 1) {
     // Single child - parent directly above child
     const childX = parentX;
-    calculateInitialX(tree.children[0], depth + 1, childX);
+    calculateInitialX(tree.children[0], depth + 1, childX, config);
     tree.x = childX;
     tree.mod = 0;
     return;
@@ -189,8 +189,8 @@ function calculateInitialX(tree: TreeNode, depth: number, parentX: number = 0): 
   // Start from the left of parent
   let currentX = parentX - totalWidth / 2;
 
-  tree.children.forEach((child, index) => {
-    calculateInitialX(child, depth + 1, currentX);
+  tree.children.forEach((child) => {
+    calculateInitialX(child, depth + 1, currentX, config);
     currentX += spacing;
   });
 
@@ -392,6 +392,22 @@ export function hierarchicalLayoutLegacy(
       });
     }
   });
+
+  // Add any nodes that weren't placed (no parent data or edges) in a grid at the bottom
+  const positionedIds = new Set(positioned.map(n => n.id));
+  const orphanedNodes = nodes.filter(n => !positionedIds.has(n.id));
+  if (orphanedNodes.length > 0) {
+    currentY += config.levelSpacing;
+    orphanedNodes.forEach((node, index) => {
+      positioned.push({
+        ...node,
+        position: {
+          x: 100 + index * config.nodeSpacing.horizontal,
+          y: currentY,
+        }
+      });
+    });
+  }
 
   return positioned;
 }

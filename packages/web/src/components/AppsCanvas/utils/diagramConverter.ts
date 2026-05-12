@@ -101,7 +101,7 @@ export function addDiagramToEnvironment(
   environmentId: string,
   diagram: DiagramConfig
 ): DiagramsConfiguration {
-  const newConfig = { ...config };
+  const newConfig = { ...config, environments: [...config.environments] };
   const envIndex = newConfig.environments.findIndex(
     env => env.environmentId === environmentId
   );
@@ -132,7 +132,7 @@ export function removeDiagramFromEnvironment(
   environmentId: string,
   diagramId: string
 ): DiagramsConfiguration {
-  const newConfig = { ...config };
+  const newConfig = { ...config, environments: [...config.environments] };
   const envIndex = newConfig.environments.findIndex(
     env => env.environmentId === environmentId
   );
@@ -158,24 +158,24 @@ export function updateDiagramInEnvironment(
   diagramId: string,
   updates: Partial<DiagramConfig>
 ): DiagramsConfiguration {
-  const newConfig = { ...config };
+  const newConfig = { ...config, environments: [...config.environments] };
   const envIndex = newConfig.environments.findIndex(
     env => env.environmentId === environmentId
   );
-  
+
   if (envIndex !== -1) {
-    const diagramIndex = newConfig.environments[envIndex].diagrams.findIndex(
-      d => d.id === diagramId
-    );
-    
+    const diagrams = [...newConfig.environments[envIndex].diagrams];
+    const diagramIndex = diagrams.findIndex(d => d.id === diagramId);
+
     if (diagramIndex !== -1) {
-      newConfig.environments[envIndex].diagrams[diagramIndex] = {
-        ...newConfig.environments[envIndex].diagrams[diagramIndex],
-        ...updates,
+      diagrams[diagramIndex] = { ...diagrams[diagramIndex], ...updates };
+      newConfig.environments[envIndex] = {
+        ...newConfig.environments[envIndex],
+        diagrams,
       };
     }
   }
-  
+
   return newConfig;
 }
 
