@@ -165,8 +165,13 @@ const PROMPT_EXAMPLES = [
   'Create a KYC onboarding workflow',
   'Add an entity with lifecycle states',
   'Connect a Java processor',
-  'Explain this workflow',
   'Generate a Python service stub',
+  'Create an entity model',
+  'Design a workflow',
+  'Generate an application',
+  'Help me run my application locally',
+  'Deploy my environment',
+  'List all environments',
 ];
 
 const HomeView: React.FC = () => {
@@ -391,6 +396,13 @@ const HomeView: React.FC = () => {
     }
   }, [isGuestUser, authStore.token, authStore.tokenType, pendingMessage]);
 
+  // Auto-focus input on mount for authenticated users
+  useEffect(() => {
+    if (isLoggedIn) {
+      setTimeout(() => chatInputRef.current?.focus(), 50);
+    }
+  }, [isLoggedIn]);
+
   // Keyboard shortcut: Ctrl/Cmd+K focuses input
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -449,10 +461,9 @@ const HomeView: React.FC = () => {
   const chatGroups = groupChatsByDate(assistantStore.chatList);
   const hasChats = chatGroups.length > 0;
 
-  const recentChats = chatGroups.flatMap(g => g.chats).slice(0, 5);
 
   return (
-    <div className="main-layout text-slate-900 bg-white">
+    <div className={`main-layout text-slate-900 ${isLoggedIn ? 'bg-slate-50' : 'bg-white'}`}>
       <Header
         showActions={true}
         onToggleChatHistory={() => setIsChatHistoryOpen(!isChatHistoryOpen)}
@@ -515,11 +526,14 @@ const HomeView: React.FC = () => {
           className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden scrollbar-thin"
         >
           {/* ── Section 1: Hero + Input + Examples — bg-white ── */}
-          <section className="bg-white border-b border-slate-100">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-10 min-w-0">
+          <section
+            className={isLoggedIn ? 'bg-slate-50' : 'bg-white border-b border-slate-100'}
+            style={isLoggedIn ? { minHeight: 'calc(100vh - 57px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' } : undefined}
+          >
+            <div className={`max-w-6xl mx-auto px-4 sm:px-6 md:px-8 min-w-0 w-full ${isLoggedIn ? 'py-10' : 'py-10'}`}>
 
-              {/* Hero */}
-              <div style={{ marginTop: '40px', marginBottom: '32px' }} className="flex items-start gap-10">
+              {/* Hero — landing only */}
+              {!isLoggedIn && <div style={{ marginTop: '40px', marginBottom: '32px' }} className="flex items-start gap-10">
                 {/* Left: text */}
                 <div className="flex-[13] min-w-0">
                   <p
@@ -605,7 +619,17 @@ const HomeView: React.FC = () => {
                 <div className="hidden lg:block flex-[7] min-w-0">
                   <WorkflowEditorPreviewPlaceholder />
                 </div>
-              </div>
+              </div>}
+
+              {/* Greeting — authenticated only */}
+              {isLoggedIn && (
+                <div className="mb-8">
+                  <h1 className="text-2xl font-semibold mb-1" style={{ color: '#4FB8B0' }}>
+                    Hello {authStore.given_name || authStore.username || 'there'}
+                  </h1>
+                  <p className="text-slate-500 text-xl">What would you like to build today?</p>
+                </div>
+              )}
 
               {/* Prompt Input */}
               <div className="mb-6">
@@ -668,7 +692,7 @@ const HomeView: React.FC = () => {
               <div className="mb-0">
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-3">Try an example</p>
                 <div className="flex flex-wrap gap-2">
-                  {PROMPT_EXAMPLES.map((example) => (
+                  {(isLoggedIn ? PROMPT_EXAMPLES : PROMPT_EXAMPLES.slice(0, 8)).map((example) => (
                     <button
                       key={example}
                       onClick={() => handlePromptClick(example)}
@@ -681,6 +705,11 @@ const HomeView: React.FC = () => {
               </div>
             </div>
           </section>
+
+
+
+          {/* ── Sections 2–6: marketing — landing only ── */}
+          {!isLoggedIn && <>
 
           {/* ── Section 2: Get started — bg-slate-50 ── */}
           <section className="bg-slate-50 border-b border-slate-100">
@@ -900,6 +929,8 @@ const HomeView: React.FC = () => {
               </div>
             </div>
           </section>
+
+          </>}
 
           {/* ── Footer ── */}
           <footer className="bg-white border-t border-slate-200">
