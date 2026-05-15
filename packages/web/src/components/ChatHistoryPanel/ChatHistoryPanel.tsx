@@ -177,7 +177,7 @@ const ChatHistoryPanel: React.FC<ChatHistoryPanelProps> = ({
 
         {/* Chat History List */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className={`space-y-4 flex-1 chat-container ${isLoading ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+          <div className={`space-y-4 flex-1 chat-container scrollbar-thin ${isLoading ? 'overflow-hidden' : 'overflow-y-auto'}`}>
             {isLoading ? (
               <div className="flex flex-col items-center justify-center h-full space-y-3 py-8">
                 <LoadingSpinner size="md" />
