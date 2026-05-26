@@ -2,8 +2,17 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
+const mockAssetsPlugin = {
+  name: 'mock-assets',
+  transform(_code: string, id: string) {
+    if (/\.(svg|png|jpg|jpeg|gif|webp|ico)(\?.*)?$/.test(id)) {
+      return { code: 'export default ""', map: null };
+    }
+  },
+};
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), mockAssetsPlugin],
   esbuild: {
     jsx: 'automatic',
   },

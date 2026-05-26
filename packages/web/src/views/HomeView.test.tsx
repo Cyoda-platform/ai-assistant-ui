@@ -3,6 +3,9 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import HomeView from './HomeView';
 
+// Mock static assets
+vi.mock('@/assets/images/logo-small.svg', () => ({ default: '' }));
+
 // Mock all dependencies
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { changeLanguage: vi.fn() } })
@@ -32,7 +35,7 @@ vi.mock('@/stores/auth', () => ({
     isAuthenticated: true,
     user: { email: 'test@example.com' }
   }),
-  useIsLoggedIn: () => true,
+  useIsLoggedIn: vi.fn(() => true),
   useSuperUserMode: () => false
 }));
 
@@ -113,5 +116,82 @@ describe('HomeView', () => {
     await waitFor(() => {
       expect(screen.getByPlaceholderText(/Ask the assistant/i)).toHaveFocus();
     });
+  });
+
+  it('should show the chat input when logged in', () => {
+    render(
+      <BrowserRouter>
+        <HomeView />
+      </BrowserRouter>
+    );
+    expect(screen.getByPlaceholderText(/Ask the assistant/i)).toBeInTheDocument();
+  });
+
+  it('should show example prompts when logged in', () => {
+    render(
+      <BrowserRouter>
+        <HomeView />
+      </BrowserRouter>
+    );
+    expect(screen.getByText('Model a trade settlement lifecycle')).toBeInTheDocument();
+  });
+
+  it('should NOT show FAQ section when logged in', () => {
+    render(
+      <BrowserRouter>
+        <HomeView />
+      </BrowserRouter>
+    );
+    expect(screen.queryByText('Common questions')).not.toBeInTheDocument();
+  });
+
+  it('should NOT show platform overview section when logged in', () => {
+    render(
+      <BrowserRouter>
+        <HomeView />
+      </BrowserRouter>
+    );
+    expect(screen.queryByText('How it works')).not.toBeInTheDocument();
+  });
+
+  it('should show all example prompts when logged in', () => {
+    render(
+      <BrowserRouter>
+        <HomeView />
+      </BrowserRouter>
+    );
+    expect(screen.getByText('Deploy my environment')).toBeInTheDocument();
+    expect(screen.getByText('List all environments')).toBeInTheDocument();
+  });
+});
+
+describe('HomeView (unauthenticated)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    Object.defineProperty(window, 'localStorage', { value: localStorageMock, writable: true });
+  });
+
+  it('should show FAQ section when NOT logged in', async () => {
+    const { useIsLoggedIn } = await import('@/stores/auth');
+    vi.mocked(useIsLoggedIn).mockReturnValue(false);
+
+    render(
+      <BrowserRouter>
+        <HomeView />
+      </BrowserRouter>
+    );
+    expect(screen.getByText('Common questions')).toBeInTheDocument();
+  });
+
+  it('should show platform overview when NOT logged in', async () => {
+    const { useIsLoggedIn } = await import('@/stores/auth');
+    vi.mocked(useIsLoggedIn).mockReturnValue(false);
+
+    render(
+      <BrowserRouter>
+        <HomeView />
+      </BrowserRouter>
+    );
+    expect(screen.getByText('How it works')).toBeInTheDocument();
   });
 });
